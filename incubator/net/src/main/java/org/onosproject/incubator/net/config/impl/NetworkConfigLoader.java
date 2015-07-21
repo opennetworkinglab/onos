@@ -17,16 +17,22 @@ package org.onosproject.incubator.net.config.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.incubator.net.config.NetworkConfigEvent;
+import org.onosproject.incubator.net.config.NetworkConfigListener;
 import org.onosproject.incubator.net.config.NetworkConfigService;
-import org.onosproject.incubator.net.config.SubjectFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Component for loading the initial network configuration.
@@ -43,59 +49,132 @@ public class NetworkConfigLoader {
 
     // FIXME: Add mutual exclusion to make sure this happens only once per startup.
 
-    // TODO: add a field to track the collection of pending JSONS
+    private Map<InnerConfigPosition, ObjectNode> jsons = Maps.newHashMap();
+
+    private final NetworkConfigListener configListener = new InnerConfigListener();
+
+    ObjectNode root;
 
     @Activate
     public void activate() {
-        // Add listener to net config events
+        //TODO Maybe this should be at the bottom to avoid a potential race
+        networkConfigService.addListener(configListener);
         try {
             if (CFG_FILE.exists()) {
-                ObjectNode root = (ObjectNode) new ObjectMapper().readTree(CFG_FILE);
-                // Parse this JSON structure and accumulate a collection of all leaf config JSONs
+                root = (ObjectNode) new ObjectMapper().readTree(CFG_FILE);
 
-                // Perform initial iteration over all leaf configs and attempt to apply them,
-                // but do this only if they are valid.
-//                networkConfigService.getConfigClass("foo");
+                populateConfigurations();
 
-                // This code can be used for building the collection of jsons
-                root.fieldNames().forEachRemaining(sk ->
-                       consumeJson(networkConfigService, (ObjectNode) root.path(sk),
-                                   networkConfigService.getSubjectFactory(sk)));
+                applyConfigurations();
+
                 log.info("Loaded initial network configuration from {}", CFG_FILE);
             }
         } catch (Exception e) {
             log.warn("Unable to load initial network configuration from {}",
-                     CFG_FILE, e);
+                    CFG_FILE, e);
         }
     }
 
-
-    // TODO: add deactivate which will remove listener
-
-    // TODO: implement event listener and as each config is registered,
+    @Deactivate
+    public void deactivate() {
+        networkConfigService.removeListener(configListener);
+    }
     // sweep through pending config jsons and try to add them
 
     /**
-     * Consumes configuration JSON for the specified subject factory.
-     *
-     * @param service        network configuration service
-     * @param classNode      subject class JSON node
-     * @param subjectFactory subject factory
+     * Inner class that allows for handling of newly added NetConfig types.
      */
-    static void consumeJson(NetworkConfigService service, ObjectNode classNode,
-                            SubjectFactory subjectFactory) {
-        classNode.fieldNames().forEachRemaining(s ->
-                                                        consumeSubjectJson(service, (ObjectNode) classNode.path(s),
-                                                                           subjectFactory.createSubject(s),
-                                                                           subjectFactory.subjectKey()));
+    private final class InnerConfigListener implements NetworkConfigListener {
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            //TODO should this be done for other types of NetworkConfigEvents?
+            if (event.type() == NetworkConfigEvent.Type.CONFIG_REGISTERED ||
+                    event.type() == NetworkConfigEvent.Type.CONFIG_ADDED) {
+                applyConfigurations();
+            }
+
+        }
     }
 
-    private static void consumeSubjectJson(NetworkConfigService service,
-                                           ObjectNode subjectNode, Object subject, String subjectKey) {
-        subjectNode.fieldNames().forEachRemaining(c ->
-                                                          service.applyConfig(subject,
-                                                                              service.getConfigClass(subjectKey, c),
-                                                                              (ObjectNode) subjectNode.path(c)));
+    /**
+     * Inner class that allows for tracking of JSON class configurations.
+     */
+    private final class InnerConfigPosition {
+        private String subjectKey, subject, classKey;
+
+        private String getSubjectKey() {
+            return subjectKey;
+        }
+
+        private String getSubject() {
+            return subject;
+        }
+
+        private String getClassKey() {
+            return classKey;
+        }
+
+        private InnerConfigPosition(String subjectKey, String subject, String classKey) {
+            this.subjectKey = subjectKey;
+            this.subject = subject;
+            this.classKey = classKey;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof InnerConfigPosition) {
+                final InnerConfigPosition that = (InnerConfigPosition) obj;
+                return Objects.equals(this.subjectKey, that.subjectKey) && Objects.equals(this.subject, that.subject)
+                        && Objects.equals(this.classKey, that.classKey);
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(subjectKey, subject, classKey);
+        }
+    }
+
+    private void saveJson(String sk, ObjectNode node) {
+        node.fieldNames().forEachRemaining(s ->
+                saveSubjectJson(sk, s, (ObjectNode) node.path(s)));
+    }
+
+    private void saveSubjectJson(String sk,
+                                 String s, ObjectNode node) {
+        node.fieldNames().forEachRemaining(c ->
+                this.jsons.put(new InnerConfigPosition(sk, s, c), (ObjectNode) node.path(c)));
+    }
+
+    private void populateConfigurations() {
+        root.fieldNames().forEachRemaining(sk ->
+                saveJson(sk, (ObjectNode) root.path(sk)));
+
+    }
+
+    protected void applyConfigurations() {
+        Iterator<Map.Entry<InnerConfigPosition, ObjectNode>> iter = jsons.entrySet().iterator();
+        Map.Entry<InnerConfigPosition, ObjectNode> entry;
+        while (iter.hasNext()) {
+            entry = iter.next();
+            if (networkConfigService.getConfigClass(networkConfigService.getSubjectFactory(entry.getKey().
+                    getSubjectKey()).subjectKey(), entry.getKey().getSubject()) != null) {
+                networkConfigService.applyConfig(networkConfigService.getSubjectFactory(
+                                entry.getKey().getSubjectKey()).createSubject(entry.getKey().getSubject()),
+                        networkConfigService.getConfigClass(networkConfigService.getSubjectFactory(entry.getKey().
+                                getSubjectKey()).subjectKey(), entry.getKey().getClassKey()),
+                        (ObjectNode) root.path(entry.getKey().getSubjectKey()).
+                                path(entry.getKey().getSubject()).
+                                path(entry.getKey().getClassKey()));
+                jsons.remove(entry.getKey());
+            }
+
+        }
     }
 
 }
