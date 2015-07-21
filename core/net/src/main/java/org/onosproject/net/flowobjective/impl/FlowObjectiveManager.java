@@ -260,12 +260,12 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             }
 
             driverHandlers.put(deviceId, handler);
-            hTime = now();
         }
 
         // Always (re)initialize the pipeline behaviour
         log.info("Driver {} bound to device {} ... initializing driver",
                  handler.driver().name(), deviceId);
+        hTime = now();
         Pipeliner pipeliner = handler.behaviour(Pipeliner.class);
         hbTime = now();
         pipeliner.init(deviceId, context);
