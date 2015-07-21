@@ -31,6 +31,7 @@
 #device-details-panel.floatpanel {
     -moz-border-radius: 0;
     border-radius: 0;
+    z-index: 0;
 }
 
 .light #device-details-panel.floatpanel {

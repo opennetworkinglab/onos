@@ -167,6 +167,12 @@
         };
     }
 
+    function unbindKeys() {
+        keyHandler.viewKeys = {};
+        keyHandler.viewFn = null;
+        keyHandler.viewGestures = [];
+    }
+
     angular.module('onosUtil')
     .factory('KeyService',
         ['$log', 'FnService', 'ThemeService', 'NavService',
@@ -192,6 +198,7 @@
                         setKeyBindings(x);
                     }
                 },
+                unbindKeys: unbindKeys,
                 gestureNotes: function (g) {
                     if (g === undefined) {
                         return keyHandler.viewGestures;

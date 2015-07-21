@@ -55,14 +55,17 @@
             'Enabled', 'ID', 'Speed', 'Type', 'Egress Links', 'Name'
         ];
 
+    function closePanel() {
+        if (detailsPanel.isVisible()) {
+            $scope.selId = null;
+            detailsPanel.hide();
+        }
+    }
+
     function addCloseBtn(div) {
         is.loadEmbeddedIcon(div, 'plus', 30);
         div.select('g').attr('transform', 'translate(25, 0) rotate(45)');
-
-        div.on('click', function () {
-            $scope.selId = null;
-            detailsPanel.hide();
-        });
+        div.on('click', closePanel);
     }
 
     function setUpPanel() {
@@ -247,8 +250,8 @@
             $log.log('OvDeviceCtrl has been created');
         }])
 
-    .directive('deviceDetailsPanel', ['$rootScope', '$window',
-    function ($rootScope, $window) {
+    .directive('deviceDetailsPanel', ['$rootScope', '$window', 'KeyService',
+    function ($rootScope, $window, ks) {
         return function (scope) {
             var unbindWatch;
 
@@ -261,6 +264,16 @@
             heightCalc();
 
             createDetailsPane();
+
+            // create key bindings to handle panel
+            ks.keyBindings({
+                esc: [closePanel, 'Close the details panel'],
+                _helpFormat: ['esc']
+            });
+            ks.gestureNotes([
+                ['click', 'Select a row to show device details'],
+                ['scroll down', 'See more devices']
+            ]);
 
             scope.$watch('panelData', function () {
                 if (!fs.isEmptyObject(scope.panelData)) {
@@ -285,6 +298,7 @@
 
             scope.$on('$destroy', function () {
                 unbindWatch();
+                ks.unbindKeys();
                 ps.destroyPanel(pName);
             });
         };

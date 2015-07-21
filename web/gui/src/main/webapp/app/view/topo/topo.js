@@ -447,6 +447,7 @@
             $scope.$on('$destroy', function () {
                 $log.log('OvTopoCtrl is saying Buh-Bye!');
                 tes.stop();
+                ks.unbindKeys();
                 tps.destroyPanels();
                 tis.destroyInst();
                 tfs.destroyForce();

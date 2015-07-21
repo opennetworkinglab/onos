@@ -31,8 +31,9 @@
     .controller('OvAppCtrl',
         ['$log', '$scope', '$http',
         'FnService', 'TableBuilderService', 'WebSocketService', 'UrlFnService',
+        'KeyService',
 
-    function ($log, $scope, $http, fs, tbs, wss, ufs) {
+    function ($log, $scope, $http, fs, tbs, wss, ufs, ks) {
         $scope.ctrlBtnState = {};
         $scope.uploadTip = 'Upload an application';
         $scope.activateTip = 'Activate selected application';
@@ -42,8 +43,6 @@
         function selCb($event, row) {
             // selId comes from tableBuilder
             $scope.ctrlBtnState.selection = !!$scope.selId;
-            $log.debug('Got a click on:', row);
-
             refreshCtrls();
         }
 
@@ -67,6 +66,16 @@
             selCb: selCb,
             respCb: refreshCtrls
         });
+
+        // TODO: reexamine where keybindings should be - directive or controller?
+        ks.keyBindings({
+            esc: [$scope.selectCallback, 'Deselect app'],
+            _helpFormat: ['esc']
+        });
+        ks.gestureNotes([
+            ['click row', 'Select / deselect app'],
+            ['scroll down', 'See more apps']
+        ]);
 
         $scope.appAction = function (action) {
             if ($scope.ctrlBtnState.selection) {
@@ -93,6 +102,10 @@
                         document.getElementById('inputFileForm').reset();
                     });
             }
+        });
+
+        $scope.$on('$destroy', function () {
+            ks.unbindKeys();
         });
 
         $log.log('OvAppCtrl has been created');
