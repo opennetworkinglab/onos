@@ -49,17 +49,17 @@
                 </tr>
 
                 <tr ng-repeat-start="intent in tableData track by $index"
-                    onos-flash-changes row="{{intent}}" row-id="key">
+                    onos-flash-changes row="{{intent}}" row-id="key" multi-row>
                     <td>{{intent.appId}}</td>
                     <td>{{intent.key}}</td>
                     <td>{{intent.type}}</td>
                     <td>{{intent.priority}}</td>
                     <td>{{intent.state}}</td>
                 </tr>
-                <tr class="multi-row">
+                <tr class="multi-row-{{intent.key}}">
                     <td class="resources" colspan="5">{{intent.resources}}</td>
                 </tr>
-                <tr class="multi-row" ng-repeat-end>
+                <tr class="multi-row-{{intent.key}}" ng-repeat-end>
                     <td class="details" colspan="5">{{intent.details}}</td>
                 </tr>
             </table>

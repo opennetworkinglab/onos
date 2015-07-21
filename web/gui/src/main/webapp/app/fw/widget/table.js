@@ -26,7 +26,7 @@
     // constants
     var tableIconTdSize = 33,
         pdg = 22,
-        flashTime = 2000,
+        flashTime = 1500,
         colWidth = 'col-width',
         tableIcon = 'table-icon',
         asc = 'asc',
@@ -212,37 +212,43 @@
             };
         }])
 
-        .directive('onosFlashChanges', ['$log', '$parse', '$timeout',
-            function ($log, $parse, $timeout) {
+        .directive('onosFlashChanges',
+            ['$log', '$parse', '$timeout', 'FnService',
+            function ($log, $parse, $timeout, fs) {
+
             return function (scope, element, attrs) {
                 var rowData = $parse(attrs.row)(scope),
                     id = attrs.rowId,
                     tr = d3.select(element[0]),
-                    multiRows = d3.selectAll('.multi-row'),
+                    multi = 'multiRow' in attrs,
                     promise;
 
                 scope.$watchCollection('changedData', function (newData) {
-                    angular.forEach(newData, function (item) {
-                        function classMultiRows(b) {
-                            if (!multiRows.empty()) {
-                                multiRows.each(function () {
-                                    d3.select(this).classed('data-change', b);
-                                });
-                            }
+                    var multiRows = null;
+                    if (multi) {
+                        // This is a way to identify which rows need to be
+                        // highlighted with the first one. It uses the unique
+                        // identifier as a class selection. If the unique ID
+                        // has invalid characters (like ':') then it won't work.
+                        multiRows = d3.selectAll('.multi-row-' + rowData[id]);
+                    }
+
+                    function classRows(b) {
+                        tr.classed('data-change', b);
+                        if (multiRows) {
+                            multiRows.classed('data-change', b);
                         }
+                    }
 
-                        if (rowData[id] === item[id]) {
-                            tr.classed('data-change', true);
-                            classMultiRows(true);
+                    if (fs.find(rowData[id], newData, id) > -1) {
+                        classRows(true);
 
-                            promise = $timeout(function () {
-                                tr.classed('data-change', false);
-                                classMultiRows(false);
-                            }, flashTime);
-                        }
-
-                    });
+                        promise = $timeout(function () {
+                            classRows(false);
+                        }, flashTime);
+                    }
                 });
+
                 scope.$on('$destroy', function () {
                     if (promise) {
                         $timeout.cancel(promise);
