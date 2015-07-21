@@ -51,6 +51,7 @@
         <module>features</module>
         <module>tools/package/archetypes</module>
         <module>tools/package/branding</module>
+        <module>ovsdb</module>
     </modules>
 
     <url>http://onosproject.org/</url>

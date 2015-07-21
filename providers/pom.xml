@@ -38,6 +38,7 @@
         <module>netconf</module>
         <module>null</module>
         <module>pcep</module>
+        <module>ovsdb</module>
     </modules>
 
     <dependencies>
