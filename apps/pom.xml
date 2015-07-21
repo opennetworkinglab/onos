@@ -54,6 +54,7 @@
         <module>olt</module>
         <module>flowanalyzer</module>
         <module>vtnrsc</module>
+        <module>vtn</module>
     </modules>
 
     <properties>
