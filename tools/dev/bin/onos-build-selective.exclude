@@ -5,3 +5,4 @@
 .*/openflow/drivers/.*
 .*/cord-gui/.*
 .*/jdvue/.*
+.*/ovsdb/api/.*
