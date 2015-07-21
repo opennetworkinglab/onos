@@ -251,7 +251,7 @@ class LINCSwitch(OpticalSwitch):
     #--------------------------------------------------------------------------
     def start_oe(self):
         '''
-        start the existing LINC switch
+         existing LINC switch
         '''
         #starting Switch
         cmd = "linc:start_switch({}).\r\n".format(self.lincId)
@@ -344,7 +344,7 @@ class LINCSwitch(OpticalSwitch):
     @staticmethod
     def bootOE(net):
         "Start the LINC optical emulator within a mininet instance"
-        opticalJSON = {}
+        LINCSwitch.opticalJSON = {}
         linkConfig = []
         devices = []
         #setting up the controllers for LINCSwitch class
@@ -355,24 +355,24 @@ class LINCSwitch(OpticalSwitch):
                 devices.append(switch.json())
             else:
                 devices.append(LINCSwitch.switchJSON(switch))
-        opticalJSON[ 'devices' ] = devices
+        LINCSwitch.opticalJSON[ 'devices' ] = devices
 
         for link in net.links:
             if isinstance(link, LINCLink) :
                 linkConfig.append(link.json())
-        opticalJSON[ 'links' ] = linkConfig
+        LINCSwitch.opticalJSON[ 'links' ] = linkConfig
 
         info('*** Writing Topology.json file\n')
         with open('Topology.json', 'w') as outfile:
-            json.dump(opticalJSON, outfile, indent=4, separators=(',', ': '))
+            json.dump(LINCSwitch.opticalJSON, outfile, indent=4, separators=(',', ': '))
 
         info('*** Converting Topology.json to linc-oe format (TopoConfig.json) file (no oecfg) \n')
         
         topoConfigJson = {};
         dpIdToName = {};
 
-        topoConfigJson["switchConfig"] = getSwitchConfig(dpIdToName);
-        topoConfigJson["linkConfig"] = getLinkConfig(dpIdToName);
+        topoConfigJson["switchConfig"] = LINCSwitch.getSwitchConfig(dpIdToName);
+        topoConfigJson["linkConfig"] = LINCSwitch.getLinkConfig(dpIdToName);
 
         #Writing to TopoConfig.json
         with open( 'TopoConfig.json', 'w' ) as outfile:
@@ -459,17 +459,19 @@ class LINCSwitch(OpticalSwitch):
                 warn('***WARNING: Could not push topology file to ONOS: %s\n' % output)
 
     #converts node ids to linc-oe format, with colons every two chars
+    @staticmethod
     def dpId(id):
         nodeDpid = ""
         id = id.split("/", 1)[0]
         for i in range(3, len(id) - 1, 2):
             nodeDpid += (id[i:(i + 2):]) + ":"
-        return nodeDpid[0:(len(nodeDpid) - 1)];
+        return nodeDpid[0:-1];
 
+    @staticmethod
     def getSwitchConfig (dpIdToName):
         switchConfig = [];
         #Iterate through all switches and convert the ROADM switches to linc-oe format
-        for switch in opticalJSON["devices"]:
+        for switch in LINCSwitch.opticalJSON["devices"]:
             if switch.get("type", "none") == "ROADM":
                 builtSwitch = {}
 
@@ -482,7 +484,7 @@ class LINCSwitch(OpticalSwitch):
                 nodeId = switch["uri"]
 
                 #convert the nodeId to linc-oe format
-                nodeDpid = dpId(nodeId);
+                nodeDpid = LINCSwitch.dpId(nodeId);
 
                 builtSwitch["name"] = switch.get("name", "none");
 
@@ -500,18 +502,18 @@ class LINCSwitch(OpticalSwitch):
                 switchConfig.append(builtSwitch);
         return switchConfig
 
-
+    @staticmethod
     def getLinkConfig (dpIdToName):
         newLinkConfig = [];
         #Iterate through all optical links and convert them to linc-oe format
-        for link in opticalJSON["links"]:
+        for link in LINCSwitch.opticalJSON["links"]:
             if link.get("type", "none") == "OPTICAL":
                 builtLink = {}
 
                 #set basic link params for src and dst
                 builtLink["allowed"] = True;
-                builtLink["nodeDpid1"] = dpId(link["src"])
-                builtLink["nodeDpid2"] = dpId(link["dst"])
+                builtLink["nodeDpid1"] = LINCSwitch.dpId(link["src"])
+                builtLink["nodeDpid2"] = LINCSwitch.dpId(link["dst"])
 
                 #set more params such as name/bandwidth/port/waves if they exist
                 params = {}
