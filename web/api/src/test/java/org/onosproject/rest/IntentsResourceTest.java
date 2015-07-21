@@ -38,6 +38,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.intent.FakeIntentManager;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
@@ -386,5 +387,46 @@ public class IntentsResourceTest extends ResourceTest {
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
         String location = response.getLocation().getPath();
         assertThat(location, Matchers.startsWith("/intents/2/"));
+    }
+
+    /**
+     * Tests removing an intent with DELETE.
+     */
+    @Test
+    public void testRemove() {
+        final HashSet<NetworkResource> resources = new HashSet<>();
+        resources.add(new MockResource(1));
+        resources.add(new MockResource(2));
+        resources.add(new MockResource(3));
+        final Intent intent = new MockIntent(3L, resources);
+        final ApplicationId appId = new DefaultApplicationId(2, "app");
+        IntentService fakeManager = new FakeIntentManager();
+
+        expect(mockCoreService.getAppId("app"))
+                .andReturn(appId).once();
+        replay(mockCoreService);
+
+        mockIntentService.withdraw(anyObject());
+        expectLastCall().andDelegateTo(fakeManager).once();
+        expect(mockIntentService.getIntent(Key.of(2, appId)))
+                .andReturn(intent)
+                .once();
+        expect(mockIntentService.getIntent(Key.of("0x2", appId)))
+                .andReturn(null)
+                .once();
+
+        mockIntentService.addListener(anyObject());
+        expectLastCall().andDelegateTo(fakeManager).once();
+        mockIntentService.removeListener(anyObject());
+        expectLastCall().andDelegateTo(fakeManager).once();
+
+        replay(mockIntentService);
+
+        WebResource rs = resource();
+
+        ClientResponse response = rs.path("intents/app/0x2")
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .delete(ClientResponse.class);
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
     }
 }

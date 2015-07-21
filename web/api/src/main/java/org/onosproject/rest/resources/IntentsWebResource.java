@@ -149,7 +149,7 @@ public class IntentsWebResource extends AbstractWebResource {
 
         if (intent == null) {
             intent = service
-                    .getIntent(Key.of(Long.parseLong(keyString), app));
+                    .getIntent(Key.of(Long.decode(keyString), app));
         }
         if (intent == null) {
             // No such intent.  REST standards recommend a positive status code
