@@ -22,7 +22,7 @@ import java.util.Objects;
 /**
  * Representation of a EventuallyConsistentMap update notification.
  */
-public class EventuallyConsistentMapEvent<K, V> {
+public final class EventuallyConsistentMapEvent<K, V> {
 
     public enum Type {
         /**

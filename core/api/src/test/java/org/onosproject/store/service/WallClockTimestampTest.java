@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.impl;
+package org.onosproject.store.service;
 
 import static org.junit.Assert.assertTrue;
 
@@ -24,7 +24,6 @@ import org.onosproject.store.Timestamp;
 import org.onlab.util.KryoNamespace;
 
 import com.google.common.testing.EqualsTester;
-import org.onosproject.store.service.WallClockTimestamp;
 
 /**
  * Tests for {@link WallClockTimestamp}.
@@ -36,15 +35,20 @@ public class WallClockTimestampTest {
         WallClockTimestamp ts1 = new WallClockTimestamp();
         Thread.sleep(50);
         WallClockTimestamp ts2 = new WallClockTimestamp();
+        long stamp = System.currentTimeMillis() + 10000;
+        WallClockTimestamp ts3 = new WallClockTimestamp(stamp);
+
 
         assertTrue(ts1.compareTo(ts1) == 0);
         assertTrue(ts2.compareTo(ts1) > 0);
         assertTrue(ts1.compareTo(ts2) < 0);
+        assertTrue(ts3.unixTimestamp() == stamp);
     }
 
     @Test
     public final void testKryoSerializable() {
         WallClockTimestamp ts1 = new WallClockTimestamp();
+        WallClockTimestamp ts2 = new WallClockTimestamp(System.currentTimeMillis() + 10000);
         final ByteBuffer buffer = ByteBuffer.allocate(1 * 1024 * 1024);
         final KryoNamespace kryos = KryoNamespace.newBuilder()
                 .register(WallClockTimestamp.class)
@@ -55,7 +59,8 @@ public class WallClockTimestampTest {
         Timestamp copy = kryos.deserialize(buffer);
 
         new EqualsTester()
-            .addEqualityGroup(ts1, copy)
-            .testEquals();
+                .addEqualityGroup(ts1, copy)
+                .addEqualityGroup(ts2)
+                .testEquals();
     }
 }
