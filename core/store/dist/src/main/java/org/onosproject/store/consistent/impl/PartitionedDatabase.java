@@ -367,14 +367,16 @@ public class PartitionedDatabase implements Database {
 
     @Override
     public boolean hasChangeNotificationSupport() {
-        return false;
+        return true;
     }
 
     @Override
     public void registerConsumer(Consumer<StateMachineUpdate> consumer) {
+        partitions.forEach(p -> p.registerConsumer(consumer));
     }
 
     @Override
     public void unregisterConsumer(Consumer<StateMachineUpdate> consumer) {
+        partitions.forEach(p -> p.unregisterConsumer(consumer));
     }
 }
