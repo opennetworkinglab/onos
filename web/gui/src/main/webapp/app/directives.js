@@ -15,7 +15,7 @@
  */
 
 /*
- ONOS GUI -- Our own Angular directives defined here.
+ ONOS GUI -- General Purpose Angular directives defined here.
  */
 
 (function () {
@@ -57,6 +57,15 @@
                     angular.element($window).bind('resize', function () {
                         scope.$apply();
                     });
+                }
+            };
+        }])
+
+        .directive('ngRepeatComplete', [function () {
+            return function (scope) {
+                if (scope.$last) {
+                    scope.$emit('ngRepeatComplete');
+                    scope.$broadcast('ngRepeatComplete');
                 }
             };
         }]);

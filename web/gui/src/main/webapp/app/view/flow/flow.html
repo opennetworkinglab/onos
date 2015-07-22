@@ -48,7 +48,7 @@
         </div>
 
         <div class="table-body">
-            <table>
+            <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="10">
                         No Flows found
@@ -56,7 +56,7 @@
                 </tr>
 
                 <tr ng-repeat-start="flow in tableData track by $index"
-                    onos-flash-changes row="{{flow}}" row-id="id" multi-row>
+                    ng-repeat-complete row-id="{{flow.id}}">
                     <td>{{flow.id}}</td>
                     <td>{{flow.appId}}</td>
                     <td>{{flow.groupId}}</td>
@@ -68,10 +68,10 @@
                     <td>{{flow.packets}}</td>
                     <td>{{flow.bytes}}</td>
                 </tr>
-                <tr class="multi-row-{{flow.id}}">
+                <tr row-id="{{flow.id}}">
                     <td class="selector" colspan="10">{{flow.selector}}</td>
                 </tr>
-                <tr class="multi-row-{{flow.id}}" ng-repeat-end>
+                <tr row-id="{{flow.id}}" ng-repeat-end>
                     <td class="treatment" colspan="10">{{flow.treatment}}</td>
                 </tr>
             </table>

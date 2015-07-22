@@ -26,7 +26,7 @@
         </div>
 
         <div class="table-body">
-            <table>
+            <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="6">
                         No Settings found
@@ -34,7 +34,7 @@
                 </tr>
 
                 <tr ng-repeat="prop in tableData track by $index"
-                    onos-flash-changes row="{{prop}}" row-id="id">
+                    ng-repeat-complete row-id="{{prop.id}}">
                     <td>{{prop.component}}</td>
                     <td>{{prop.id}}</td>
                     <td>{{prop.type}}</td>

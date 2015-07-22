@@ -60,7 +60,7 @@
         </div>
 
         <div class="table-body">
-            <table>
+            <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="6">
                         No Groups found
@@ -68,7 +68,7 @@
                 </tr>
 
                 <tr ng-repeat-start="group in tableData track by $index"
-                    onos-flash-changes row="{{group}}" row-id="id" multi-row>
+                    ng-repeat-complete row-id="{{group.id}}">
                     <td>{{group.id}}</td>
                     <td>{{group.app_id}}</td>
                     <td>{{group.state}}</td>
@@ -76,7 +76,7 @@
                     <td>{{group.packets}}</td>
                     <td>{{group.bytes}}</td>
                 </tr>
-                <tr class="multi-row-{{group.id}}" ng-repeat-end>
+                <tr row-id="{{group.id}}" ng-repeat-end>
                     <td class="buckets" colspan="6"
                         ng-bind-html="group.buckets"></td>
                 </tr>

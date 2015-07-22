@@ -42,7 +42,7 @@
         </div>
 
         <div class="table-body">
-            <table>
+            <table onos-flash-changes id-prop="one">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="6">
                         No Links found
@@ -50,7 +50,7 @@
                 </tr>
 
                 <tr ng-repeat="link in tableData track by $index"
-                    onos-flash-changes row="{{link}}" row-id="one">
+                    ng-repeat-complete row-id="{{link.one}}">
                     <td class="table-icon">
                         <div icon icon-id="{{link._iconid_state}}"></div>
                     </td>

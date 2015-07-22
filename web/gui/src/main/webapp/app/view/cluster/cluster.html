@@ -41,7 +41,7 @@
         </div>
 
         <div class="table-body">
-            <table>
+            <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="5">
                         No Cluster Nodes found
@@ -49,7 +49,7 @@
                 </tr>
 
                 <tr ng-repeat="node in tableData track by $index"
-                    onos-flash-changes row="{{node}}" row-id="id">
+                    ng-repeat-complete row-id="{{node.id}}">
                     <td class="table-icon">
                         <div icon icon-id="{{node._iconid_state}}"></div>
                     </td>

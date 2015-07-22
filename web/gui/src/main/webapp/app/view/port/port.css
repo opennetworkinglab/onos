@@ -43,3 +43,7 @@
 #ov-port td {
     text-align: right;
 }
+
+#ov-port tr.no-data td {
+    text-align: center;
+}

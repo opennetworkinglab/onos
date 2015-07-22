@@ -45,7 +45,7 @@
         </div>
 
         <div class="table-body">
-            <table>
+            <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="9">
                         No Devices found
@@ -55,7 +55,7 @@
                 <tr ng-repeat="dev in tableData track by $index"
                     ng-click="selectCallback($event, dev)"
                     ng-class="{selected: dev.id === selId}"
-                    onos-flash-changes row="{{dev}}" row-id="id">
+                    ng-repeat-complete row-id="{{dev.id}}">
                     <td class="table-icon">
                         <div icon icon-id="{{dev._iconid_available}}"></div>
                     </td>

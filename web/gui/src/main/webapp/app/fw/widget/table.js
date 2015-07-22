@@ -217,37 +217,49 @@
             function ($log, $parse, $timeout, fs) {
 
             return function (scope, element, attrs) {
-                var rowData = $parse(attrs.row)(scope),
-                    id = attrs.rowId,
-                    tr = d3.select(element[0]),
-                    multi = 'multiRow' in attrs,
-                    promise;
+                var idProp = attrs.idProp,
+                    table = d3.select(element[0]),
+                    trs, promise;
 
-                scope.$watchCollection('changedData', function (newData) {
-                    var multiRows = null;
-                    if (multi) {
-                        // This is a way to identify which rows need to be
-                        // highlighted with the first one. It uses the unique
-                        // identifier as a class selection. If the unique ID
-                        // has invalid characters (like ':') then it won't work.
-                        multiRows = d3.selectAll('.multi-row-' + rowData[id]);
-                    }
-
+                function highlightRows() {
+                    var changedRows = [];
                     function classRows(b) {
-                        tr.classed('data-change', b);
-                        if (multiRows) {
-                            multiRows.classed('data-change', b);
+                        if (changedRows.length) {
+                            angular.forEach(changedRows, function (tr) {
+                                tr.classed('data-change', b);
+                            });
                         }
                     }
+                    // timeout because 'row-id' was the un-interpolated value
+                    // "{{link.one}}" for example, instead of link.one evaluated
+                    // timeout executes on the next digest -- after evaluation
+                    $timeout(function () {
+                        if (scope.tableData.length) {
+                            trs = table.selectAll('tr');
+                        }
 
-                    if (fs.find(rowData[id], newData, id) > -1) {
-                        classRows(true);
+                        if (trs && !trs.empty()) {
+                            trs.each(function () {
+                                var tr = d3.select(this);
+                                if (fs.find(tr.attr('row-id'),
+                                        scope.changedData,
+                                        idProp) > -1) {
+                                    changedRows.push(tr);
+                                }
+                            });
+                            classRows(true);
+                            promise = $timeout(function () {
+                                classRows(false);
+                            }, flashTime);
+                            trs = undefined;
+                        }
+                    });
+                }
 
-                        promise = $timeout(function () {
-                            classRows(false);
-                        }, flashTime);
-                    }
-                });
+                // new items added:
+                scope.$on('ngRepeatComplete', highlightRows);
+                // items changed in existing set:
+                scope.$watchCollection('changedData', highlightRows);
 
                 scope.$on('$destroy', function () {
                     if (promise) {

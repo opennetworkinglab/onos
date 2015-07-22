@@ -189,8 +189,9 @@
     // does NOT use strict object reference equality,
         // instead checks each property individually for equality
     function containsObj(arr, obj) {
-        var i;
-        for (i = 0; i < arr.length; i++) {
+        var i,
+            len = arr.length;
+        for (i = 0; i < len; i++) {
             if (sameObjProps(arr[i], obj)) {
                 return true;
             }

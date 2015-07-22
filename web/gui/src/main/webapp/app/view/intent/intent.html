@@ -41,7 +41,7 @@
         </div>
 
         <div class="table-body">
-            <table>
+            <table onos-flash-changes id-prop="key">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="5">
                         No Intents found
@@ -49,17 +49,17 @@
                 </tr>
 
                 <tr ng-repeat-start="intent in tableData track by $index"
-                    onos-flash-changes row="{{intent}}" row-id="key" multi-row>
+                    ng-repeat-complete row-id="{{intent.key}}">
                     <td>{{intent.appId}}</td>
                     <td>{{intent.key}}</td>
                     <td>{{intent.type}}</td>
                     <td>{{intent.priority}}</td>
                     <td>{{intent.state}}</td>
                 </tr>
-                <tr class="multi-row-{{intent.key}}">
+                <tr row-id="{{intent.key}}">
                     <td class="resources" colspan="5">{{intent.resources}}</td>
                 </tr>
-                <tr class="multi-row-{{intent.key}}" ng-repeat-end>
+                <tr row-id="{{intent.key}}" ng-repeat-end>
                     <td class="details" colspan="5">{{intent.details}}</td>
                 </tr>
             </table>

@@ -60,7 +60,6 @@
         function respCb(data) {
             o.scope.tableData = data[root];
             onResp && onResp();
-            o.scope.$apply();
 
             // checks if data changed for row flashing
             if (!angular.equals(o.scope.tableData, oldTableData)) {
@@ -75,6 +74,7 @@
                 }
                 angular.copy(o.scope.tableData, oldTableData);
             }
+            o.scope.$apply();
         }
         handlers[resp] = respCb;
         wss.bindHandlers(handlers);

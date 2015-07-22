@@ -62,7 +62,7 @@
         </div>
 
         <div class="table-body">
-            <table>
+            <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="8">
                         No Ports found
@@ -70,7 +70,7 @@
                 </tr>
 
                 <tr ng-repeat="port in tableData track by $index"
-                    onos-flash-changes row="{{port}}" row-id="id">
+                    ng-repeat-complete row-id="{{port.id}}">
                     <td>{{port.id}}</td>
                     <td>{{port.pkt_rx}}</td>
                     <td>{{port.pkt_tx}}</td>
