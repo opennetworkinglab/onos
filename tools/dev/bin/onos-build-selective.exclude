@@ -6,3 +6,4 @@
 .*/cord-gui/.*
 .*/jdvue/.*
 .*/ovsdb/api/.*
+.*/netconf/flow/.*
