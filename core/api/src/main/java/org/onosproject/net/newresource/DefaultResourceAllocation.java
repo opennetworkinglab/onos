@@ -47,6 +47,13 @@ public class DefaultResourceAllocation<S, T> implements ResourceAllocation<S, T>
         this.consumer = consumer;
     }
 
+    // for serialization
+    private DefaultResourceAllocation() {
+        this.subject = null;
+        this.resource = null;
+        this.consumer = null;
+    }
+
     @Override
     public S subject() {
         return subject;

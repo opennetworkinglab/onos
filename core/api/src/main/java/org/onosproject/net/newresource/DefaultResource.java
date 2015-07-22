@@ -44,6 +44,12 @@ public class DefaultResource<S, T> implements Resource<S, T> {
         this.resource = checkNotNull(resource);
     }
 
+    // for serialization
+    private DefaultResource() {
+        this.subject = null;
+        this.resource = null;
+    }
+
     @Override
     public S subject() {
         return subject;
