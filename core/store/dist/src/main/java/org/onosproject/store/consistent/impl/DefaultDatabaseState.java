@@ -151,9 +151,13 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
                 !versionMatch.matches(currentValue == null ? null : currentValue.version())) {
             return Result.ok(new UpdateResult<>(false, mapName, key, currentValue, currentValue));
         } else {
-            if (value == null && currentValue != null) {
-                getMap(mapName).remove(key);
-                return Result.ok(new UpdateResult<>(true, mapName, key, currentValue, null));
+            if (value == null) {
+                if (currentValue == null) {
+                    return Result.ok(new UpdateResult<>(false, mapName, key, null, null));
+                } else {
+                    getMap(mapName).remove(key);
+                    return Result.ok(new UpdateResult<>(true, mapName, key, currentValue, null));
+                }
             }
             Versioned<byte[]> newValue = new Versioned<>(value, ++nextVersion);
             getMap(mapName).put(key, newValue);
