@@ -245,10 +245,13 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
         // Attempt to lookup the handler in the cache
         DriverHandler handler = driverHandlers.get(deviceId);
+        cTime = now();
+
         if (handler == null) {
             try {
                 // Otherwise create it and if it has pipeline behaviour, cache it
                 handler = driverService.createHandler(deviceId);
+                dTime = now();
                 if (!handler.driver().hasBehaviour(Pipeliner.class)) {
                     log.warn("Pipeline behaviour not supported for device {}",
                              deviceId);
@@ -260,6 +263,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             }
 
             driverHandlers.put(deviceId, handler);
+            eTime = now();
         }
 
         // Always (re)initialize the pipeline behaviour
@@ -330,7 +334,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     // Temporary mechanism to monitor pipeliner setup time-cost; there are
     // intermittent time where this takes in excess of 2 seconds. Why?
     private long start = 0, totals = 0, count = 0;
-    private long hTime, hbTime;
+    private long cTime, dTime, eTime, hTime, hbTime;
     private static final long LIMIT = 500;
 
     private long now() {
@@ -342,13 +346,14 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         totals += duration;
         count += 1;
         if (duration > LIMIT) {
-            log.info("Pipeline setup took {} ms; avg {} ms; hTime={}, hbTime={}",
-                     duration, totals / count, diff(hTime), diff(hbTime));
+            log.info("Pipeline setup took {} ms; avg {} ms; cTime={}, dTime={}, eTime={}, hTime={}, hbTime={}",
+                     duration, totals / count, diff(cTime), diff(dTime), diff(eTime), diff(hTime), diff(hbTime));
         }
     }
 
     private long diff(long bTime) {
-        return bTime - start;
+        long diff = bTime - start;
+        return diff < 0 ? 0 : diff;
     }
 
     // Processing context for initializing pipeline driver behaviours.
