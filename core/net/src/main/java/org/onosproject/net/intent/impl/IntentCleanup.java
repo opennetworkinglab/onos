@@ -181,7 +181,7 @@ public class IntentCleanup implements Runnable, IntentListener {
                 service.withdraw(intentData.intent());
                 break;
             default:
-                log.warn("Trying to resubmit corrupt intent {} in state {} with request {}",
+                log.warn("Trying to resubmit corrupt/failed intent {} in state {} with request {}",
                          intentData.key(), intentData.state(), intentData.request());
                 break;
         }
@@ -203,14 +203,18 @@ public class IntentCleanup implements Runnable, IntentListener {
     }
 
     /**
-     * Iterate through CORRUPT intents and re-submit/withdraw appropriately.
-     *
+     * Iterates through corrupt, failed and pending intents and
+     * re-submit/withdraw appropriately.
      */
     private void cleanup() {
-        int corruptCount = 0, stuckCount = 0, pendingCount = 0;
-        store.getIntentData(true, periodMs);
+        int corruptCount = 0, failedCount = 0, stuckCount = 0, pendingCount = 0;
+
         for (IntentData intentData : store.getIntentData(true, periodMs)) {
             switch (intentData.state()) {
+                case FAILED:
+                    resubmitCorrupt(intentData, false);
+                    failedCount++;
+                    break;
                 case CORRUPT:
                     resubmitCorrupt(intentData, false);
                     corruptCount++;
@@ -231,8 +235,8 @@ public class IntentCleanup implements Runnable, IntentListener {
             stuckCount++;
         }
 
-        log.debug("Intent cleanup ran and resubmitted {} corrupt, {} stuck, and {} pending intents",
-                  corruptCount, stuckCount, pendingCount);
+        log.debug("Intent cleanup ran and resubmitted {} corrupt, {} failed, {} stuck, and {} pending intents",
+                  corruptCount, failedCount, stuckCount, pendingCount);
     }
 
     @Override
