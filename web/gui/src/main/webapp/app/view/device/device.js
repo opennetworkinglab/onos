@@ -185,6 +185,7 @@
             position: 'absolute',
             top: pStartY + 'px'
         });
+        $scope.hidePanel = function () { detailsPanel.hide(); };
         detailsPanel.hide();
     }
 
@@ -207,7 +208,7 @@
             ns = _ns_;
             var params = $location.search(),
                 handlers = {};
-            $scope.panelData = [];
+            $scope.panelData = {};
             $scope.flowTip = 'Show flow view for selected device';
             $scope.portTip = 'Show port view for selected device';
             $scope.groupTip = 'Show group view for selected device';
@@ -226,7 +227,7 @@
                 if ($scope.selId) {
                     wss.sendEvent(detailsReq, { id: row.id });
                 } else {
-                    detailsPanel.hide();
+                    $scope.hidePanel();
                 }
                 $log.debug('Got a click on:', row);
             }
