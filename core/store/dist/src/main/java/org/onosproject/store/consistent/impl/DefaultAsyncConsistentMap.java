@@ -34,8 +34,12 @@ import java.util.stream.Collectors;
 import java.util.Set;
 
 import org.onlab.util.HexString;
+import org.onlab.util.SharedExecutors;
 import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
+
+import static org.onosproject.store.consistent.impl.StateMachineUpdate.Target.MAP;
+
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
@@ -101,6 +105,17 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
         this.readOnly = readOnly;
         this.purgeOnUninstall = purgeOnUninstall;
         this.eventPublisher = eventPublisher;
+        this.database.registerConsumer(update -> {
+            SharedExecutors.getSingleThreadExecutor().execute(() -> {
+                if (update.target() == MAP) {
+                    Result<UpdateResult<String, byte[]>> result = update.output();
+                    if (result.success() && result.value().mapName().equals(name)) {
+                        MapEvent<K, V> mapEvent = result.value().<K, V>map(this::dK, serializer::decode).toMapEvent();
+                        notifyLocalListeners(mapEvent);
+                    }
+                }
+            });
+        });
     }
 
     /**
@@ -322,7 +337,11 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
                     value == null ? null : serializer.encode(value))
                 .thenApply(this::unwrapResult)
                 .thenApply(r -> r.<K, V>map(this::dK, serializer::decode))
-                .whenComplete((r, e) -> notifyListeners(r != null ? r.toMapEvent() : null));
+                .whenComplete((r, e) -> {
+                    if (r != null && e == null && !database.hasChangeNotificationSupport()) {
+                        notifyListeners(r.toMapEvent());
+                    }
+                });
     }
 
     private <T> T unwrapResult(Result<T> result) {
@@ -363,7 +382,9 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     }
 
     protected void notifyLocalListeners(MapEvent<K, V> event) {
-        listeners.forEach(listener -> listener.event(event));
+        if (event != null) {
+            listeners.forEach(listener -> listener.event(event));
+        }
     }
 
     protected void notifyRemoteListeners(MapEvent<K, V> event) {

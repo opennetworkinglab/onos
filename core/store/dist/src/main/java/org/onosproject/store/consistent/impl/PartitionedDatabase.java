@@ -25,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.onosproject.cluster.NodeId;
@@ -362,5 +363,18 @@ public class PartitionedDatabase implements Database {
 
     protected void setTransactionManager(TransactionManager transactionManager) {
         this.transactionManager = transactionManager;
+    }
+
+    @Override
+    public boolean hasChangeNotificationSupport() {
+        return false;
+    }
+
+    @Override
+    public void registerConsumer(Consumer<StateMachineUpdate> consumer) {
+    }
+
+    @Override
+    public void unregisterConsumer(Consumer<StateMachineUpdate> consumer) {
     }
 }

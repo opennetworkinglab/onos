@@ -21,16 +21,20 @@ import net.kuujo.copycat.resource.internal.AbstractResource;
 import net.kuujo.copycat.resource.internal.ResourceManager;
 import net.kuujo.copycat.state.internal.DefaultStateMachine;
 import net.kuujo.copycat.util.concurrent.Futures;
+import net.kuujo.copycat.util.function.TriConsumer;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
+
+import com.google.common.collect.Sets;
 
 /**
  * Default database.
@@ -38,6 +42,8 @@ import org.onosproject.store.service.Versioned;
 public class DefaultDatabase extends AbstractResource<Database> implements Database {
     private final StateMachine<DatabaseState<String, byte[]>> stateMachine;
     private DatabaseProxy<String, byte[]> proxy;
+    private final Set<Consumer<StateMachineUpdate>> consumers = Sets.newCopyOnWriteArraySet();
+    private final TriConsumer<String, Object, Object> watcher = new InternalStateMachineWatcher();
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public DefaultDatabase(ResourceManager context) {
@@ -46,6 +52,14 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
                 DatabaseState.class,
                 DefaultDatabaseState.class,
                 DefaultDatabase.class.getClassLoader());
+        this.stateMachine.addStartupTask(() -> {
+            stateMachine.registerWatcher(watcher);
+            return CompletableFuture.completedFuture(null);
+        });
+        this.stateMachine.addShutdownTask(() -> {
+            stateMachine.unregisterWatcher(watcher);
+            return CompletableFuture.completedFuture(null);
+        });
     }
 
     /**
@@ -208,5 +222,28 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
             return name().equals(((Database) other).name());
         }
         return false;
+    }
+
+    @Override
+    public void registerConsumer(Consumer<StateMachineUpdate> consumer) {
+        consumers.add(consumer);
+    }
+
+    @Override
+    public void unregisterConsumer(Consumer<StateMachineUpdate> consumer) {
+        consumers.remove(consumer);
+    }
+
+    @Override
+    public boolean hasChangeNotificationSupport() {
+        return true;
+    }
+
+    private class InternalStateMachineWatcher implements TriConsumer<String, Object, Object> {
+        @Override
+        public void accept(String name, Object input, Object output) {
+            StateMachineUpdate update = new StateMachineUpdate(name, input, output);
+            consumers.forEach(consumer -> consumer.accept(update));
+        }
     }
 }

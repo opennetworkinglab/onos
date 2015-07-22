@@ -17,6 +17,8 @@
 package org.onosproject.store.consistent.impl;
 
 
+import java.util.function.Consumer;
+
 import net.kuujo.copycat.cluster.ClusterConfig;
 import net.kuujo.copycat.cluster.internal.coordinator.ClusterCoordinator;
 import net.kuujo.copycat.cluster.internal.coordinator.CoordinatorConfig;
@@ -81,4 +83,22 @@ public interface Database extends DatabaseProxy<String, byte[]>, Resource<Databa
       .addStartupTask(() -> coordinator.open().thenApply(v -> null))
       .addShutdownTask(coordinator::close);
   }
+
+  /**
+   * Tells whether the database supports change notifications.
+   * @return true if notifications are supported; false otherwise
+   */
+  boolean hasChangeNotificationSupport();
+
+  /**
+   * Registers a new consumer of StateMachineUpdates.
+   * @param consumer consumer to register
+   */
+  void registerConsumer(Consumer<StateMachineUpdate> consumer);
+
+  /**
+   * Unregisters a consumer of StateMachineUpdates.
+   * @param consumer consumer to unregister
+   */
+  void unregisterConsumer(Consumer<StateMachineUpdate> consumer);
 }
