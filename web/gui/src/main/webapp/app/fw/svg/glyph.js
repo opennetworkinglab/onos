@@ -477,7 +477,6 @@
     }
 
     function init() {
-        clear();
         registerGlyphs(birdData);
         registerGlyphSet(glyphDataSet);
         registerGlyphSet(badgeDataSet);
@@ -595,6 +594,10 @@
                 addGlyph: addGlyph
             };
         }]
-    );
+    )
+    .run(['$log', function ($log) {
+        $log.debug('Clearing glyph cache');
+        clear();
+    }]);
 
 }());

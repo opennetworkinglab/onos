@@ -30,7 +30,7 @@
 
     // references to injected services etc.
     var $scope, $log, $cookies, fs, ks, zs, gs, ms, sus, flash, wss, ps,
-        tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, ttip;
+        tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, ttip, tov;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
@@ -396,11 +396,12 @@
             'TopoInstService', 'TopoSelectService', 'TopoLinkService',
             'TopoTrafficService', 'TopoObliqueService', 'TopoFilterService',
             'TopoToolbarService', 'TopoSpriteService', 'TooltipService',
+            'TopoOverlayService',
 
         function (_$scope_, _$log_, $loc, $timeout, _$cookies_, _fs_, mast, _ks_,
                   _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _tes_, _tfs_,
                   _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_, _ttbs_, tspr,
-                  _ttip_) {
+                  _ttip_, _tov_) {
             var projection,
                 dim,
                 uplink = {
@@ -438,6 +439,7 @@
             fltr = _fltr_;
             ttbs = _ttbs_;
             ttip = _ttip_;
+            tov = _tov_;
 
             $scope.notifyResize = function () {
                 svgResized(fs.windowSize(mast.mastHeight()));
@@ -495,6 +497,8 @@
 
             // temporary solution for persisting user settings
             restoreConfigFromPrefs();
+
+            $log.debug('registered overlays...', tov.list());
 
             $log.log('OvTopoCtrl has been created');
         }]);
