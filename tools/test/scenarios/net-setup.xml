@@ -19,13 +19,7 @@
         <step name="Push-Topos" exec="onos-push-topos ${OCN}"/>
         <step name="Stop-Mininet-If-Needed" env="~" exec="onos-mininet stop"/>
 
-        <step name="Install-Apps"
-              exec="onos ${OC1} app activate org.onosproject.openflow org.onosproject.proxyarp org.onosproject.fwd"/>
-
-        <step name="Check-Apps" requires="Install-Apps"
-              exec="onos-check-apps ${OC1} drivers,openflow,proxyarp,fwd"/>
-
-        <step name="Wipe-Out-Data-Before" requires="~Check-Apps" exec="onos-wipe-out"/>
+        <step name="Wipe-Out-Data-Before" exec="onos-wipe-out"/>
 
         <step name="Initial-Summary-Check" requires="~Wipe-Out-Data-Before"
               exec="onos-check-summary ${OC1} [0-9]* 0 0 0"/>
@@ -42,5 +36,8 @@
 
         <step name="Balance-Masters" requires="Check-Summary"
               exec="onos ${OC1} balance-masters"/>
+
+        <step name="Pause-For-Masters" requires="Balance-Masters"
+              exec="sleep 10"/>
     </group>
 </scenario>

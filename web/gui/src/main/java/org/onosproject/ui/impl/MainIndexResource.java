@@ -17,6 +17,7 @@ package org.onosproject.ui.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.ui.UiExtensionService;
 
 import javax.ws.rs.GET;
@@ -38,6 +39,7 @@ import static com.google.common.io.ByteStreams.toByteArray;
 public class MainIndexResource extends AbstractInjectionResource {
 
     private static final String INDEX = "index.html";
+    private static final String NOT_READY = "not-ready.html";
 
     private static final String INJECT_CSS_START = "<!-- {INJECTED-STYLESHEETS-START} -->";
     private static final String INJECT_CSS_END = "<!-- {INJECTED-STYLESHEETS-END} -->";
@@ -48,8 +50,15 @@ public class MainIndexResource extends AbstractInjectionResource {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public Response getMainIndex() throws IOException {
-        UiExtensionService service = get(UiExtensionService.class);
-        InputStream indexTemplate = getClass().getClassLoader().getResourceAsStream(INDEX);
+        ClassLoader classLoader = getClass().getClassLoader();
+        UiExtensionService service;
+        try {
+            service = get(UiExtensionService.class);
+        } catch (ServiceNotFoundException e) {
+            return Response.ok(classLoader.getResourceAsStream(NOT_READY)).build();
+        }
+
+        InputStream indexTemplate = classLoader.getResourceAsStream(INDEX);
         String index = new String(toByteArray(indexTemplate));
 
         int p1s = split(index, 0, INJECT_JS_START);
