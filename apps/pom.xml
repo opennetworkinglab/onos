@@ -53,6 +53,7 @@
         <module>pcep-api</module>
         <module>olt</module>
         <module>flowanalyzer</module>
+        <module>vtnrsc</module>
     </modules>
 
     <properties>
