@@ -24,7 +24,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * A distributed, strongly consistent map.
+ * A distributed, strongly consistent key-value map.
  * <p>
  * This map offers strong read-after-update (where update == create/update/delete)
  * consistency. All operations to the map are serialized and applied in a consistent
@@ -55,7 +55,7 @@ public interface ConsistentMap<K, V> {
     /**
      * Returns true if the map is empty.
      *
-     * @return true if map has no entries, false otherwise.
+     * @return true if map has no entries, false otherwise
      */
     boolean isEmpty();
 
@@ -63,7 +63,7 @@ public interface ConsistentMap<K, V> {
      * Returns true if this map contains a mapping for the specified key.
      *
      * @param key key
-     * @return true if map contains key, false otherwise.
+     * @return true if map contains key, false otherwise
      */
     boolean containsKey(K key);
 

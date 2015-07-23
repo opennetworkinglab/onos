@@ -24,7 +24,7 @@ import org.onlab.util.KryoNamespace;
 import com.google.common.collect.Lists;
 
 /**
- * Interface for serialization for store artifacts.
+ * Interface for serialization of store artifacts.
  */
 public interface Serializer {
     /**

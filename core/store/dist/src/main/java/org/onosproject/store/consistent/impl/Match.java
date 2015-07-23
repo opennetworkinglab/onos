@@ -104,6 +104,21 @@ public final class Match<T> {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(matchAny, value);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Match)) {
+            return false;
+        }
+        Match<T> that = (Match) other;
+        return Objects.equals(this.matchAny, that.matchAny) &&
+               Objects.equals(this.value, that.value);
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("matchAny", matchAny)
