@@ -56,9 +56,9 @@ public class MapEvent<K, V> {
      * Creates a new event object.
      *
      * @param name map name
-     * @param type the type of the event
-     * @param key the key the event concerns
-     * @param value the value related to the key, or null for remove events
+     * @param type type of event
+     * @param key key the event concerns
+     * @param value value key is mapped to
      */
     public MapEvent(String name, Type type, K key, Versioned<V> value) {
         this.name = name;
@@ -79,7 +79,7 @@ public class MapEvent<K, V> {
     /**
      * Returns the type of the event.
      *
-     * @return the type of the event
+     * @return the type of event
      */
     public Type type() {
         return type;
@@ -120,7 +120,7 @@ public class MapEvent<K, V> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, key, value);
+        return Objects.hash(name, type, key, value);
     }
 
     @Override

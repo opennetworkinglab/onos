@@ -16,7 +16,7 @@
 package org.onosproject.store.service;
 
 /**
- * Listener to be notified about updates to a ConsitentMap.
+ * Listener to be notified about updates to a ConsistentMap.
  */
 public interface MapEventListener<K, V> {
     /**

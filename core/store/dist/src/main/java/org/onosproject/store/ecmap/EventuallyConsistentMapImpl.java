@@ -310,7 +310,7 @@ public class EventuallyConsistentMapImpl<K, V>
         MapValue<V> newValue = new MapValue<>(value, timestampProvider.apply(key, value));
         if (putInternal(key, newValue)) {
             notifyPeers(new UpdateEntry<>(key, newValue), peerUpdateFunction.apply(key, value));
-            notifyListeners(new EventuallyConsistentMapEvent<>(PUT, key, value));
+            notifyListeners(new EventuallyConsistentMapEvent<>(mapName, PUT, key, value));
         }
     }
 
@@ -335,7 +335,7 @@ public class EventuallyConsistentMapImpl<K, V>
         if (previousValue != null) {
             notifyPeers(new UpdateEntry<>(key, tombstone), peerUpdateFunction.apply(key, previousValue.get()));
             if (previousValue.isAlive()) {
-                notifyListeners(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get()));
+                notifyListeners(new EventuallyConsistentMapEvent<>(mapName, REMOVE, key, previousValue.get()));
             }
         }
         return previousValue != null ? previousValue.get() : null;
@@ -406,7 +406,7 @@ public class EventuallyConsistentMapImpl<K, V>
                     ? previousValue.get() == null ? null : previousValue.get().get()
                     : computedValue.get();
             if (value != null) {
-                notifyListeners(new EventuallyConsistentMapEvent<>(updateType, key, value));
+                notifyListeners(new EventuallyConsistentMapEvent<>(mapName, updateType, key, value));
             }
         }
         return computedValue.get();
@@ -609,7 +609,7 @@ public class EventuallyConsistentMapImpl<K, V>
                                                            Optional.empty(),
                                                            MapValue.tombstone(remoteValueDigest.timestamp()));
                 if (previousValue != null && previousValue.isAlive()) {
-                    externalEvents.add(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get()));
+                    externalEvents.add(new EventuallyConsistentMapEvent<>(mapName, REMOVE, key, previousValue.get()));
                 }
             }
         });
@@ -626,10 +626,10 @@ public class EventuallyConsistentMapImpl<K, V>
             if (value.isTombstone()) {
                 MapValue<V> previousValue = removeInternal(key, Optional.empty(), value);
                 if (previousValue != null && previousValue.isAlive()) {
-                    notifyListeners(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get()));
+                    notifyListeners(new EventuallyConsistentMapEvent<>(mapName, REMOVE, key, previousValue.get()));
                 }
             } else if (putInternal(key, value)) {
-                notifyListeners(new EventuallyConsistentMapEvent<>(PUT, key, value.get()));
+                notifyListeners(new EventuallyConsistentMapEvent<>(mapName, PUT, key, value.get()));
             }
         });
     }

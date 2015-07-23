@@ -22,7 +22,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Representation of a DistributedSet update notification.
  *
- * @param <E> element type
+ * @param <E> set element type
  */
 public class SetEvent<E> {
 
@@ -49,8 +49,8 @@ public class SetEvent<E> {
      * Creates a new event object.
      *
      * @param name set name
-     * @param type the type of the event
-     * @param entry the entry the event concerns
+     * @param type type of the event
+     * @param entry entry the event concerns
      */
     public SetEvent(String name, Type type, E entry) {
         this.name = name;
@@ -70,7 +70,7 @@ public class SetEvent<E> {
     /**
      * Returns the type of the event.
      *
-     * @return the type of the event
+     * @return type of the event
      */
     public Type type() {
         return type;

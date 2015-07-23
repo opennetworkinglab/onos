@@ -20,7 +20,7 @@ import org.onosproject.store.Timestamp;
 /**
  * Service that issues logical timestamps.
  * <p>
- * The logical timestamps are useful for establishing a total ordering of
+ * Logical timestamps are useful for establishing a total ordering of
  * arbitrary cluster wide events without relying on a fully synchronized
  * system clock (wall clock)
  */

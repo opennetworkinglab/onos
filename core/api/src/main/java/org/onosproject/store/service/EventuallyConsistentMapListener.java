@@ -16,8 +16,7 @@
 package org.onosproject.store.service;
 
 /**
- * Listener interested in receiving modification events for an
- * EventuallyConsistentMap.
+ * Listener to be notified about updates to a EventuallyConsistentMap.
  */
 public interface EventuallyConsistentMapListener<K, V> {
 

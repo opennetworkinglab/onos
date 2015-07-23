@@ -274,9 +274,9 @@ public class EventuallyConsistentMapImplTest {
         EventuallyConsistentMapListener<String, String> listener
                 = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE2));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE2));
         replay(listener);
 
         ecMap.addListener(listener);
@@ -325,11 +325,11 @@ public class EventuallyConsistentMapImplTest {
         EventuallyConsistentMapListener<String, String> listener
                 = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.REMOVE, KEY1, VALUE1));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.REMOVE, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY2, VALUE2));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY2, VALUE2));
         replay(listener);
 
         ecMap.addListener(listener);
@@ -388,11 +388,11 @@ public class EventuallyConsistentMapImplTest {
         EventuallyConsistentMapListener<String, String> listener
                 = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.REMOVE, KEY1, VALUE1));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.REMOVE, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY2, VALUE2));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY2, VALUE2));
         replay(listener);
 
         ecMap.addListener(listener);
@@ -457,9 +457,9 @@ public class EventuallyConsistentMapImplTest {
         EventuallyConsistentMapListener<String, String> listener
                 = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY2, VALUE2));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY2, VALUE2));
         replay(listener);
 
         ecMap.addListener(listener);
@@ -485,9 +485,9 @@ public class EventuallyConsistentMapImplTest {
         EventuallyConsistentMapListener<String, String> listener
                 = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.REMOVE, KEY1, VALUE1));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.REMOVE, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.REMOVE, KEY2, VALUE2));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.REMOVE, KEY2, VALUE2));
         replay(listener);
 
         // clear() on an empty map is a no-op - no messages will be sent

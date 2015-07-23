@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.store.service;
-
 
 /**
  * Storage service.
  * <p>
- * This service provides operations for creating key-value stores.
- * One can chose to create key-value stores with varying properties such
- * as strongly consistent vs eventually consistent, durable vs volatile.
+ * This service provides builders for various distributed primitives.
  * <p>
- * Various store implementations should leverage the data structures provided
- * by this service
+ * It is expected that services and applications will leverage the primitives indirectly provided by
+ * this service for their distributed state management and coordination.
  */
 public interface StorageService {
 
@@ -48,7 +44,7 @@ public interface StorageService {
     <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder();
 
     /**
-     * Creates a new distributed set builder.
+     * Creates a new DistributedSetBuilder.
      *
      * @param <E> set element type
      * @return builder for an distributed set
@@ -56,7 +52,7 @@ public interface StorageService {
     <E> DistributedSetBuilder<E> setBuilder();
 
     /**
-     * Creates a new distributed queue builder.
+     * Creates a new DistributedQueueBuilder.
      *
      * @param <E> queue entry type
      * @return builder for an distributed queue
