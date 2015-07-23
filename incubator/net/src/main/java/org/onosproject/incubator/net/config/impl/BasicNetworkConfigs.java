@@ -21,12 +21,14 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.ConfigFactory;
 import org.onosproject.incubator.net.config.NetworkConfigRegistry;
 import org.onosproject.incubator.net.config.basics.BasicDeviceConfig;
 import org.onosproject.incubator.net.config.basics.BasicHostConfig;
 import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
 import org.onosproject.incubator.net.config.basics.BasicPortConfig;
+import org.onosproject.incubator.net.config.basics.SubjectFactories;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
@@ -36,10 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
-import static org.onosproject.incubator.net.config.basics.SubjectFactories.CONNECT_POINT_SUBJECT_FACTORY;
-import static org.onosproject.incubator.net.config.basics.SubjectFactories.DEVICE_SUBJECT_FACTORY;
-import static org.onosproject.incubator.net.config.basics.SubjectFactories.HOST_SUBJECT_FACTORY;
-import static org.onosproject.incubator.net.config.basics.SubjectFactories.LINK_SUBJECT_FACTORY;
+import static org.onosproject.incubator.net.config.basics.SubjectFactories.*;
 
 /**
  * Component for registration of builtin basic network configurations.
@@ -59,8 +58,8 @@ public class BasicNetworkConfigs {
                 }
             },
             new ConfigFactory<ConnectPoint, BasicPortConfig>(CONNECT_POINT_SUBJECT_FACTORY,
-                                                                BasicPortConfig.class,
-                                                                "basic") {
+                                                             BasicPortConfig.class,
+                                                             "basic") {
                 @Override
                 public BasicPortConfig createConfig() {
                     return new BasicPortConfig();
@@ -85,10 +84,14 @@ public class BasicNetworkConfigs {
     );
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry registry;
 
     @Activate
     public void activate() {
+        SubjectFactories.setCoreService(coreService);
         factories.forEach(registry::registerConfigFactory);
         log.info("Started");
     }

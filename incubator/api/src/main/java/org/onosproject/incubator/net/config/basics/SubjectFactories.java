@@ -16,6 +16,7 @@
 package org.onosproject.incubator.net.config.basics;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.SubjectFactory;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -33,12 +34,14 @@ public final class SubjectFactories {
     private SubjectFactories() {
     }
 
+    // Required for resolving application identifiers
+    private static CoreService coreService;
+
     public static final SubjectFactory<ApplicationId> APP_SUBJECT_FACTORY =
             new SubjectFactory<ApplicationId>(ApplicationId.class, "apps") {
                 @Override
                 public ApplicationId createSubject(String key) {
-                    // FIXME: figure out how to safely create sanctioned app ids
-                    return null;
+                    return coreService.registerApplication(key);
                 }
             };
 
@@ -76,5 +79,15 @@ public final class SubjectFactories {
                                            ConnectPoint.deviceConnectPoint(cps[1]));
                 }
             };
+
+    /**
+     * Provides reference to the core service, which is required for
+     * application subject factory.
+     *
+     * @param service core service reference
+     */
+    public static void setCoreService(CoreService service) {
+        coreService = service;
+    }
 
 }
