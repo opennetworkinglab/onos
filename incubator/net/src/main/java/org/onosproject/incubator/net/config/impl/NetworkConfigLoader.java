@@ -140,38 +140,70 @@ public class NetworkConfigLoader {
         }
     }
 
+    /**
+     * Save the JSON leaves associated with a specific subject key.
+     *
+     * @param sk   the subject key string.
+     * @param node the node associated with the subject key.
+     */
     private void saveJson(String sk, ObjectNode node) {
         node.fieldNames().forEachRemaining(s ->
                 saveSubjectJson(sk, s, (ObjectNode) node.path(s)));
     }
 
+    /**
+     * Save the JSON leaves of the tree rooted as the node 'node' with subject key 'sk'.
+     *
+     * @param sk   the string of the subject key.
+     * @param s    the subject name.
+     * @param node the node rooting this subtree.
+     */
     private void saveSubjectJson(String sk,
                                  String s, ObjectNode node) {
         node.fieldNames().forEachRemaining(c ->
                 this.jsons.put(new InnerConfigPosition(sk, s, c), (ObjectNode) node.path(c)));
     }
 
+    /**
+     * Iterate through the JSON and populate a list of the leaf nodes of the structure.
+     */
     private void populateConfigurations() {
         root.fieldNames().forEachRemaining(sk ->
                 saveJson(sk, (ObjectNode) root.path(sk)));
 
     }
 
+    /**
+     * Apply the configurations associated with all of the config classes that are imported and have not yet been
+     * applied.
+     */
     protected void applyConfigurations() {
         Iterator<Map.Entry<InnerConfigPosition, ObjectNode>> iter = jsons.entrySet().iterator();
+
         Map.Entry<InnerConfigPosition, ObjectNode> entry;
+        InnerConfigPosition key;
+        ObjectNode node;
+        String subjectKey;
+        String subject;
+        String classKey;
+
         while (iter.hasNext()) {
             entry = iter.next();
-            if (networkConfigService.getConfigClass(networkConfigService.getSubjectFactory(entry.getKey().
-                    getSubjectKey()).subjectKey(), entry.getKey().getSubject()) != null) {
-                networkConfigService.applyConfig(networkConfigService.getSubjectFactory(
-                                entry.getKey().getSubjectKey()).createSubject(entry.getKey().getSubject()),
-                        networkConfigService.getConfigClass(networkConfigService.getSubjectFactory(entry.getKey().
-                                getSubjectKey()).subjectKey(), entry.getKey().getClassKey()),
-                        (ObjectNode) root.path(entry.getKey().getSubjectKey()).
-                                path(entry.getKey().getSubject()).
-                                path(entry.getKey().getClassKey()));
-                jsons.remove(entry.getKey());
+            node = entry.getValue();
+            key = entry.getKey();
+            subjectKey = key.getSubjectKey();
+            subject = key.getSubject();
+            classKey = key.getClassKey();
+            //Check that the config class has been imported
+            if (networkConfigService.getConfigClass(subjectKey, subject) != null) {
+
+                //Apply the configuration
+                networkConfigService.applyConfig(networkConfigService.getSubjectFactory(subjectKey).
+                                createSubject(subject),
+                        networkConfigService.getConfigClass(subjectKey, classKey), node);
+
+                //Now that it has been applied the corresponding JSON entry is no longer needed
+                jsons.remove(key);
             }
 
         }
