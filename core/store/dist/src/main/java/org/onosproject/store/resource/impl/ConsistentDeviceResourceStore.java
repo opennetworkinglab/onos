@@ -21,7 +21,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.KryoNamespace;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
@@ -56,8 +55,7 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
     private static final String INTENT_MAPPING = "IntentMapping";
     private static final String INTENT_ALLOCATIONS = "PortIntentAllocations";
 
-    private static final Serializer SERIALIZER = Serializer.using(
-            new KryoNamespace.Builder().register(KryoNamespaces.API).build());
+    private static final Serializer SERIALIZER = Serializer.using(KryoNamespaces.API);
 
     private ConsistentMap<Port, IntentId> portAllocMap;
     private ConsistentMap<IntentId, Set<Port>> intentAllocMap;
