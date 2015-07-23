@@ -24,7 +24,7 @@ import com.google.common.base.MoreObjects;
  *
  * @param <V> atomic value type
  */
-public class AtomicValueEvent<V> {
+public final class AtomicValueEvent<V> {
 
     /**
      * AtomicValueEvent type.
@@ -87,7 +87,7 @@ public class AtomicValueEvent<V> {
             return false;
         }
 
-        AtomicValueEvent<V> that = (AtomicValueEvent) o;
+        AtomicValueEvent that = (AtomicValueEvent) o;
         return Objects.equals(this.name, that.name) &&
                 Objects.equals(this.type, that.type) &&
                 Objects.equals(this.value, that.value);

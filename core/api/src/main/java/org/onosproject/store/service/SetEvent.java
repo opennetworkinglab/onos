@@ -24,7 +24,7 @@ import com.google.common.base.MoreObjects;
  *
  * @param <E> set element type
  */
-public class SetEvent<E> {
+public final class SetEvent<E> {
 
     /**
      * SetEvent type.
@@ -91,7 +91,7 @@ public class SetEvent<E> {
             return false;
         }
 
-        SetEvent<E> that = (SetEvent) o;
+        SetEvent that = (SetEvent) o;
         return Objects.equals(this.name, that.name) &&
                 Objects.equals(this.type, that.type) &&
                 Objects.equals(this.entry, that.entry);
