@@ -653,7 +653,7 @@ public class EventuallyConsistentMapImpl<K, V>
         public void processItems(List<UpdateEntry<K, V>> items) {
             Map<K, UpdateEntry<K, V>> map = Maps.newHashMap();
             items.forEach(item -> map.compute(item.key(), (key, existing) ->
-                    existing == null || item.compareTo(existing) > 0 ? item : existing));
+                    item.isNewerThan(existing) ? item : existing));
             communicationExecutor.submit(() -> {
                 clusterCommunicator.unicast(ImmutableList.copyOf(map.values()),
                                             updateMessageSubject,

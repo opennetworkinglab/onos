@@ -108,12 +108,13 @@ public final class Match<T> {
         return Objects.hash(matchAny, value);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object other) {
         if (!(other instanceof Match)) {
             return false;
         }
-        Match<T> that = (Match) other;
+        Match<T> that = (Match<T>) other;
         return Objects.equals(this.matchAny, that.matchAny) &&
                Objects.equals(this.value, that.value);
     }

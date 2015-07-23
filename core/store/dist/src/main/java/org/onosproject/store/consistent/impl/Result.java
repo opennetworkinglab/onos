@@ -15,6 +15,10 @@
  */
 package org.onosproject.store.consistent.impl;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
+import java.util.Objects;
+
 /**
  * Result of a database update operation.
  *
@@ -74,6 +78,7 @@ public final class Result<V> {
 
     /**
      * Returns the status of database update operation.
+     *
      * @return database update status
      */
     public Status status() {
@@ -82,10 +87,35 @@ public final class Result<V> {
 
     /**
      * Returns the return value for the update.
+     *
      * @return value returned by database update. If the status is another
      * other than Status.OK, this returns a null
      */
     public V value() {
         return value;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value, status);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Result)) {
+            return false;
+        }
+        Result<V> that = (Result<V>) other;
+        return Objects.equals(this.value, that.value) &&
+               Objects.equals(this.status, that.status);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("status", status)
+                .add("value", value)
+                .toString();
     }
 }
