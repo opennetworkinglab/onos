@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,19 @@
 package org.onosproject.event;
 
 /**
- * Entity capable of receiving events.
+ * Entity capable of filtering events.
  */
-public interface EventListener<E extends Event> extends EventFilter<E> {
+public interface EventFilter<E extends Event> {
 
     /**
-     * Reacts to the specified event.
+     * Indicates whether the specified event is of interest or not.
+     * Default implementation always returns true.
      *
-     * @param event event to be processed
+     * @param event event to be inspected
+     * @return true if event is relevant; false otherwise
      */
-    void event(E event);
+    default boolean isRelevant(E event) {
+        return true;
+    }
 
 }
