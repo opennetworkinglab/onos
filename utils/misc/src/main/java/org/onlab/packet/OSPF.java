@@ -1,6 +1,8 @@
 package org.onlab.packet;
 
 import static org.onlab.packet.PacketUtils.checkInput;
+import static org.slf4j.LoggerFactory.getLogger;
+import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ public class OSPF extends BasePacket {
     protected int ospfNumOfAdvertisments;
     protected ArrayList<LSAdvertisment> ospfAdvertismentList = new ArrayList<LSAdvertisment>();
 
+    private static final Logger log = getLogger(OSPF.class);
     /**
      * Default constructor that sets the version to 2.
      */
@@ -302,8 +305,8 @@ public class OSPF extends BasePacket {
             break;
 
         default:
-            System.out.println("Unknown Type field in the packet");
-            System.exit(0);
+            log.debug("Unknown Type field in the packet");
+
         }
 
         final byte [] ospfData = new byte[this.ospfPktLen];
@@ -360,8 +363,7 @@ public class OSPF extends BasePacket {
             break;
 
         default:
-            System.out.println("Unknown Type field in the packet");
-            System.exit(0);
+            log.debug("Unknown Type field in the packet");
 
         }
 
@@ -443,8 +445,7 @@ public class OSPF extends BasePacket {
             break;
 
         default:
-            System.out.println("Unknown Type field in the packet");
-            System.exit(0);
+            log.debug("Unknown Type field in the packet");
 
         }
 
@@ -597,8 +598,7 @@ public class OSPF extends BasePacket {
                 break;
 
             default:
-                System.out.println("Unknown Type field in the packet");
-                System.exit(0);
+                log.debug("Unknown Type field in the packet");
 
             }
 
