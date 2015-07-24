@@ -11,6 +11,7 @@
     <name>onos-ovsdb</name>
     <packaging>pom</packaging>
 
+    <description>ONOS OVSDB southbound plugin</description>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
