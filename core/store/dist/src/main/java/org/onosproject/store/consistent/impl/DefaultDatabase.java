@@ -236,7 +236,7 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
 
     @Override
     public boolean hasChangeNotificationSupport() {
-        return true;
+        return false;
     }
 
     private class InternalStateMachineWatcher implements TriConsumer<String, Object, Object> {

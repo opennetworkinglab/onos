@@ -367,7 +367,7 @@ public class PartitionedDatabase implements Database {
 
     @Override
     public boolean hasChangeNotificationSupport() {
-        return true;
+        return false;
     }
 
     @Override
