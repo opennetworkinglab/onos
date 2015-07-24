@@ -19,12 +19,16 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -52,6 +56,7 @@ import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.RoleState;
+import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
@@ -73,10 +78,13 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.Port.Type.COPPER;
 import static org.onosproject.net.Port.Type.FIBER;
@@ -100,12 +108,18 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenFlowController controller;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     private DeviceProviderService providerService;
 
     private final InternalDeviceProvider listener = new InternalDeviceProvider();
 
     // TODO: We need to make the poll interval configurable.
     static final int POLL_INTERVAL = 5;
+    @Property(name = "PortStatsPollFrequency", intValue = POLL_INTERVAL,
+    label = "Frequency (in seconds) for polling switch Port statistics")
+    private int portStatsPollFrequency = POLL_INTERVAL;
 
     private HashMap<Dpid, PortStatsCollector> collectors = Maps.newHashMap();
 
@@ -117,7 +131,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     }
 
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
         controller.addListener(listener);
         controller.addEventListener(listener);
@@ -130,7 +145,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 // disconnect to trigger switch-add later
                 sw.disconnectSwitch();
             }
-            PortStatsCollector psc = new PortStatsCollector(sw, POLL_INTERVAL);
+            PortStatsCollector psc = new PortStatsCollector(sw, portStatsPollFrequency);
             psc.start();
             collectors.put(new Dpid(sw.getId()), psc);
         }
@@ -138,7 +153,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     }
 
     @Deactivate
-    public void deactivate() {
+    public void deactivate(ComponentContext context) {
+        cfgService.unregisterProperties(getClass(), false);
         providerRegistry.unregister(this);
         controller.removeListener(listener);
         collectors.values().forEach(PortStatsCollector::stop);
@@ -146,6 +162,25 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         LOG.info("Stopped");
     }
 
+    @Modified
+    public void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        int newPortStatsPollFrequency;
+        try {
+            String s = get(properties, "PortStatsPollFrequency");
+            newPortStatsPollFrequency = isNullOrEmpty(s) ? portStatsPollFrequency : Integer.parseInt(s.trim());
+
+        } catch (NumberFormatException | ClassCastException e) {
+            newPortStatsPollFrequency = portStatsPollFrequency;
+        }
+
+        if (newPortStatsPollFrequency != portStatsPollFrequency) {
+            portStatsPollFrequency = newPortStatsPollFrequency;
+            collectors.values().forEach(psc -> psc.adjustPollInterval(portStatsPollFrequency));
+        }
+
+        LOG.info("Settings: portStatsPollFrequency={}", portStatsPollFrequency);
+    }
 
     @Override
     public boolean isReachable(DeviceId deviceId) {
@@ -275,7 +310,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             providerService.updatePorts(did, buildPortDescriptions(sw));
 
             PortStatsCollector psc =
-                    new PortStatsCollector(controller.getSwitch(dpid), POLL_INTERVAL);
+                    new PortStatsCollector(controller.getSwitch(dpid), portStatsPollFrequency);
             psc.start();
             collectors.put(dpid, psc);
         }

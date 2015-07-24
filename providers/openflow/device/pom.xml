@@ -30,5 +30,10 @@
     <packaging>bundle</packaging>
 
     <description>ONOS OpenFlow protocol device provider</description>
-
+    <dependencies>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+    </dependencies>
 </project>
