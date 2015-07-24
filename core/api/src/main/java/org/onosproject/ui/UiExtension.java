@@ -15,61 +15,47 @@
  */
 package org.onosproject.ui;
 
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * User interface extension.
  */
-public class UiExtension {
+public final class UiExtension {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String VIEW_PREFIX = "app/view/";
+    private static final String EMPTY = "";
+    private static final String SLASH = "/";
+    private static final String CSS_HTML = "css.html";
+    private static final String JS_HTML = "js.html";
 
-    private final String prefix;
     private final ClassLoader classLoader;
+    private final String resourcePath;
     private final List<UiView> views;
     private final UiMessageHandlerFactory messageHandlerFactory;
+    private final UiTopoOverlayFactory topoOverlayFactory;
 
-    /**
-     * Creates a user interface extension for loading CSS and JS injections
-     * from {@code css.html} and {@code js.html} resources, respectively.
-     *
-     * @param views                 list of contributed views
-     * @param messageHandlerFactory optional message handler factory
-     * @param classLoader           class-loader for user interface resources
-     */
-    public UiExtension(List<UiView> views,
-                       UiMessageHandlerFactory messageHandlerFactory,
-                       ClassLoader classLoader) {
-        this(views, messageHandlerFactory, null, classLoader);
+
+    // private constructor - only the builder calls this
+    private UiExtension(ClassLoader cl, String path, List<UiView> views,
+                        UiMessageHandlerFactory mhFactory,
+                        UiTopoOverlayFactory toFactory) {
+        this.classLoader = cl;
+        this.resourcePath = path;
+        this.views = views;
+        this.messageHandlerFactory = mhFactory;
+        this.topoOverlayFactory = toFactory;
     }
 
-    /**
-     * Creates a user interface extension using custom resource prefix. It
-     * loads CSS and JS injections from {@code path/css.html} and
-     * {@code prefix/js.html} resources, respectively.
-     *
-     * @param views                 list of user interface views
-     * @param messageHandlerFactory optional message handler factory
-     * @param path                  resource path prefix
-     * @param classLoader           class-loader for user interface resources
-     */
-    public UiExtension(List<UiView> views,
-                       UiMessageHandlerFactory messageHandlerFactory,
-                       String path, ClassLoader classLoader) {
-        this.views = checkNotNull(ImmutableList.copyOf(views), "Views cannot be null");
-        this.messageHandlerFactory = messageHandlerFactory;
-        this.prefix = path != null ? (path + "/") : "";
-        this.classLoader = checkNotNull(classLoader, "Class loader must be specified");
-    }
 
     /**
      * Returns input stream containing CSS inclusion statements.
@@ -77,7 +63,7 @@ public class UiExtension {
      * @return CSS inclusion statements
      */
     public InputStream css() {
-        return getStream(prefix + "css.html");
+        return getStream(resourcePath + CSS_HTML);
     }
 
     /**
@@ -86,7 +72,7 @@ public class UiExtension {
      * @return JavaScript inclusion statements
      */
     public InputStream js() {
-       return getStream(prefix + "js.html");
+       return getStream(resourcePath + JS_HTML);
     }
 
     /**
@@ -106,17 +92,27 @@ public class UiExtension {
      * @return resource input stream
      */
     public InputStream resource(String viewId, String path) {
-        return getStream(VIEW_PREFIX + viewId + "/" + path);
+        return getStream(VIEW_PREFIX + viewId + SLASH + path);
     }
 
     /**
-     * Returns message handler factory.
+     * Returns message handler factory, if one was defined.
      *
-     * @return message handlers
+     * @return message handler factory
      */
     public UiMessageHandlerFactory messageHandlerFactory() {
         return messageHandlerFactory;
     }
+
+    /**
+     * Returns the topology overlay factory, if one was defined.
+     *
+     * @return topology overlay factory
+     */
+    public UiTopoOverlayFactory topoOverlayFactory() {
+        return topoOverlayFactory;
+    }
+
 
     // Returns the resource input stream from the specified class-loader.
     private InputStream getStream(String path) {
@@ -127,5 +123,77 @@ public class UiExtension {
         return stream;
     }
 
+
+    /**
+     * UI Extension Builder.
+     */
+    public static class Builder {
+        private ClassLoader classLoader;
+
+        private String resourcePath = EMPTY;
+        private List<UiView> views = new ArrayList<>();
+        private UiMessageHandlerFactory messageHandlerFactory = null;
+        private UiTopoOverlayFactory topoOverlayFactory = null;
+
+        /**
+         * Create a builder with the given class loader.
+         * Resource path defaults to "".
+         * Views defaults to an empty list.
+         * Both Message and TopoOverlay factories default to null.
+         *
+         * @param cl the classloader
+         */
+        public Builder(ClassLoader cl, List<UiView> views) {
+            checkNotNull(cl, "Must provide a class loader");
+            checkArgument(views.size() > 0, "Must provide at least one view");
+            this.classLoader = cl;
+            this.views = views;
+        }
+
+        /**
+         * Set the resource path. That is, path to where the CSS and JS
+         * files are located. This value should
+         *
+         * @param path resource path
+         * @return self, for chaining
+         */
+        public Builder resourcePath(String path) {
+            this.resourcePath = path == null ? EMPTY : path + SLASH;
+            return this;
+        }
+
+        /**
+         * Sets the message handler factory for this extension.
+         *
+         * @param mhFactory message handler factory
+         * @return self, for chaining
+         */
+        public Builder messageHandlerFactory(UiMessageHandlerFactory mhFactory) {
+            this.messageHandlerFactory = mhFactory;
+            return this;
+        }
+
+        /**
+         * Sets the topology overlay factory for this extension.
+         *
+         * @param toFactory topology overlay factory
+         * @return self, for chaining
+         */
+        public Builder topoOverlayFactory(UiTopoOverlayFactory toFactory) {
+            this.topoOverlayFactory = toFactory;
+            return this;
+        }
+
+        /**
+         * Builds the UI extension.
+         *
+         * @return UI extension instance
+         */
+        public UiExtension build() {
+            return new UiExtension(classLoader, resourcePath, views,
+                                   messageHandlerFactory, topoOverlayFactory);
+        }
+
+    }
 
 }

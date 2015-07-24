@@ -30,10 +30,11 @@
     var tos = 'TopoOverlayService: ';
 
     // injected refs
-    var $log, fs, gs;
+    var $log, fs, gs, wss;
 
     // internal state
-    var overlays = {};
+    var overlays = {},
+        current = null;
 
     function error(fn, msg) {
         $log.error(tos + fn + '(): ' + msg);
@@ -108,20 +109,42 @@
         return overlays[id];
     }
 
+    // an overlay was selected via toolbar radio button press from user
+    function tbSelection(id) {
+        var same = current && current.overlayId === id,
+            payload = {};
+
+        function doop(op) {
+            var oid = current.overlayId;
+            $log.debug('Overlay:', op, oid);
+            current[op]();
+            payload[op] = oid;
+        }
+
+        if (!same) {
+            current && doop('deactivate');
+            current = overlay(id);
+            current && doop('activate');
+            wss.sendEvent('topoSelectOverlay', payload);
+        }
+    }
+
     angular.module('ovTopo')
     .factory('TopoOverlayService',
-        ['$log', 'FnService', 'GlyphService',
+        ['$log', 'FnService', 'GlyphService', 'WebSocketService',
 
-        function (_$log_, _fs_, _gs_) {
+        function (_$log_, _fs_, _gs_, _wss_) {
             $log = _$log_;
             fs = _fs_;
             gs = _gs_;
+            wss = _wss_;
 
             return {
                 register: register,
                 unregister: unregister,
                 list: list,
-                overlay: overlay
+                overlay: overlay,
+                tbSelection: tbSelection
             }
         }]);
 

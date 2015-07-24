@@ -27,6 +27,7 @@ import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.UiTopoOverlayFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +59,7 @@ public class UiWebSocket
     private long lastActive = System.currentTimeMillis();
 
     private Map<String, UiMessageHandler> handlers;
+    private TopoOverlayCache overlayCache;
 
     /**
      * Creates a new web-socket for serving data to GUI.
@@ -72,7 +74,7 @@ public class UiWebSocket
      * Issues a close on the connection.
      */
     synchronized void close() {
-        destroyHandlers();
+        destroyHandlersAndOverlays();
         if (connection.isOpen()) {
             connection.close();
         }
@@ -104,7 +106,7 @@ public class UiWebSocket
         this.connection = connection;
         this.control = (FrameConnection) connection;
         try {
-            createHandlers();
+            createHandlersAndOverlays();
             sendInstanceData();
             log.info("GUI client connected");
 
@@ -118,7 +120,7 @@ public class UiWebSocket
 
     @Override
     public synchronized void onClose(int closeCode, String message) {
-        destroyHandlers();
+        destroyHandlersAndOverlays();
         log.info("GUI client disconnected [close-code={}, message={}]",
                  closeCode, message);
     }
@@ -131,6 +133,7 @@ public class UiWebSocket
 
     @Override
     public void onMessage(String data) {
+        log.debug("onMessage: {}", data);
         lastActive = System.currentTimeMillis();
         try {
             ObjectNode message = (ObjectNode) mapper.reader().readTree(data);
@@ -172,8 +175,11 @@ public class UiWebSocket
     }
 
     // Creates new message handlers.
-    private synchronized void createHandlers() {
+    private synchronized void createHandlersAndOverlays() {
+        log.debug("creating handlers and overlays...");
         handlers = new HashMap<>();
+        overlayCache = new TopoOverlayCache();
+
         UiExtensionService service = directory.get(UiExtensionService.class);
         service.getExtensions().forEach(ext -> {
             UiMessageHandlerFactory factory = ext.messageHandlerFactory();
@@ -181,15 +187,33 @@ public class UiWebSocket
                 factory.newHandlers().forEach(handler -> {
                     handler.init(this, directory);
                     handler.messageTypes().forEach(type -> handlers.put(type, handler));
+
+                    // need to inject the overlay cache into topology message handler
+                    if (handler instanceof TopologyViewMessageHandler) {
+                        ((TopologyViewMessageHandler) handler).setOverlayCache(overlayCache);
+                    }
                 });
             }
+
+            UiTopoOverlayFactory overlayFactory = ext.topoOverlayFactory();
+            if (overlayFactory != null) {
+                overlayFactory.newOverlays().forEach(overlayCache::add);
+            }
         });
+        log.debug("#handlers = {}, #overlays = {}", handlers.size(),
+                  overlayCache.size());
     }
 
     // Destroys message handlers.
-    private synchronized void destroyHandlers() {
+    private synchronized void destroyHandlersAndOverlays() {
+        log.debug("destroying handlers and overlays...");
         handlers.forEach((type, handler) -> handler.destroy());
         handlers.clear();
+
+        if (overlayCache != null) {
+            overlayCache.destroy();
+            overlayCache = null;
+        }
     }
 
     // Sends cluster node/instance information to allow GUI to fail-over.

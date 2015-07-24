@@ -30,6 +30,7 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
+import org.onosproject.ui.UiTopoOverlayFactory;
 import org.onosproject.ui.UiView;
 import org.onosproject.ui.UiViewHidden;
 import org.onosproject.ui.impl.topo.OverlayService;
@@ -53,6 +54,10 @@ import static org.onosproject.ui.UiView.Category.PLATFORM;
 @Service
 public class UiExtensionManager
         implements UiExtensionService, SpriteService, OverlayService {
+
+    private static final ClassLoader CL =
+            UiExtensionManager.class.getClassLoader();
+    private static final String CORE = "core";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -104,8 +109,16 @@ public class UiExtensionManager
                         new ClusterViewMessageHandler()
                 );
 
-        return new UiExtension(coreViews, messageHandlerFactory, "core",
-                               UiExtensionManager.class.getClassLoader());
+        UiTopoOverlayFactory topoOverlayFactory =
+                () -> ImmutableList.of(
+                        new TrafficOverlay()
+                );
+
+        return new UiExtension.Builder(CL, coreViews)
+                .messageHandlerFactory(messageHandlerFactory)
+                .topoOverlayFactory(topoOverlayFactory)
+                .resourcePath(CORE)
+                .build();
     }
 
     @Activate

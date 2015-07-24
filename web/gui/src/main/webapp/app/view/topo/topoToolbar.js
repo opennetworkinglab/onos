@@ -50,14 +50,14 @@
         L: { id: 'cycleLabels-btn', gid: 'cycleLabels' },
         R: { id: 'resetZoom-btn', gid: 'resetZoom' },
 
+        E: { id: 'eqMaster-btn', gid: 'eqMaster' },
+
         V: { id: 'relatedIntents-btn', gid: 'relatedIntents' },
         leftArrow: { id: 'prevIntent-btn', gid: 'prevIntent' },
         rightArrow: { id: 'nextIntent-btn', gid: 'nextIntent' },
         W: { id: 'intentTraffic-btn', gid: 'intentTraffic' },
         A: { id: 'allTraffic-btn', gid: 'allTraffic' },
-        F: { id: 'flows-btn', gid: 'flows' },
-
-        E: { id: 'eqMaster-btn', gid: 'eqMaster' }
+        F: { id: 'flows-btn', gid: 'flows' }
     };
 
     // initial toggle state: default settings and tag to key mapping
@@ -153,14 +153,6 @@
         addButton('E');
     }
 
-    function setOverlay(overlayId) {
-        if (!overlayId) {
-            $log.debug('CLEAR overlay');
-        } else {
-            $log.debug('SET overlay', overlayId);
-        }
-    }
-
     function addOverlays() {
         toolbar.addSeparator();
 
@@ -168,7 +160,9 @@
         var rset = [{
                 gid: 'unknown',
                 tooltip: 'No Overlay',
-                cb: function () { setOverlay(); }
+                cb: function () {
+                    tov.tbSelection(null);
+                }
             }];
 
         tov.list().forEach(function (key) {
@@ -177,7 +171,7 @@
                 gid: ov._glyphId,
                 tooltip: (ov.tooltip || '(no tooltip)'),
                 cb: function () {
-                    setOverlay(ov.overlayId);
+                    tov.tbSelection(ov.overlayId);
                 }
             });
         });
@@ -186,6 +180,7 @@
     }
 
     // TODO: 3rd row needs to be swapped in/out based on selected overlay
+    // NOTE: This particular row of buttons is for the traffic overlay
     function addThirdRow() {
         addButton('V');
         addButton('leftArrow');

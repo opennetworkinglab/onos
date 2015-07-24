@@ -62,7 +62,9 @@ public class IntentPerfUi {
     );
 
     private UiExtension uiExtension =
-            new UiExtension(views, this::newHandlers, getClass().getClassLoader());
+            new UiExtension.Builder(getClass().getClassLoader(), views)
+                .messageHandlerFactory(this::newHandlers)
+                .build();
 
     private IntentPerfCollector collector;
 

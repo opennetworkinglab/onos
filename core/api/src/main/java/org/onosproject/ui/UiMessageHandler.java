@@ -107,8 +107,9 @@ public abstract class UiMessageHandler {
     void exec(String eventType, long sid, ObjectNode payload) {
         RequestHandler requestHandler = handlerMap.get(eventType);
         if (requestHandler != null) {
-            log.debug("process {} event...", eventType);
             requestHandler.process(sid, payload);
+        } else {
+            log.warn("no request handler for event type {}", eventType);
         }
     }
 

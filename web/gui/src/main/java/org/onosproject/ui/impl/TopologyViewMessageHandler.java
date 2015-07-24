@@ -103,6 +103,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String SPRITE_DATA_REQ = "spriteDataRequest";
     private static final String TOPO_START = "topoStart";
     private static final String TOPO_HEARTBEAT = "topoHeartbeat";
+    private static final String TOPO_SELECT_OVERLAY = "topoSelectOverlay";
     private static final String TOPO_STOP = "topoStop";
 
 
@@ -134,6 +135,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private final Accumulator<Event> eventAccummulator = new InternalEventAccummulator();
     private final ExecutorService msgSender =
             newSingleThreadExecutor(groupedThreads("onos/gui", "msg-sender"));
+
+    private TopoOverlayCache overlayCache;
 
     private TimerTask trafficTask = null;
     private TrafficEvent trafficEvent = null;
@@ -172,6 +175,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         return ImmutableSet.of(
                 new TopoStart(),
                 new TopoHeartbeat(),
+                new TopoSelectOverlay(),
                 new TopoStop(),
                 new ReqSummary(),
                 new CancelSummary(),
@@ -193,6 +197,15 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 new ReqDevLinkFlows(),
                 new CancelTraffic()
         );
+    }
+
+    /**
+     * Injects the topology overlay cache.
+     *
+     * @param overlayCache injected cache
+     */
+    void setOverlayCache(TopoOverlayCache overlayCache) {
+        this.overlayCache = overlayCache;
     }
 
     // ==================================================================
@@ -228,6 +241,19 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void process(long sid, ObjectNode payload) {
             // place holder for now
+        }
+    }
+
+    private final class TopoSelectOverlay extends RequestHandler {
+        private TopoSelectOverlay() {
+            super(TOPO_SELECT_OVERLAY);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            String deact = string(payload, "deactivate");
+            String act = string(payload, "activate");
+            overlayCache.switchOverlay(deact, act);
         }
     }
 
@@ -311,7 +337,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void process(long sid, ObjectNode payload) {
             String type = string(payload, "class", "unknown");
-            String id = JsonUtils.string(payload, "id");
+            String id = string(payload, "id");
 
             if (type.equals("device")) {
                 sendMessage(deviceDetails(deviceId(id), sid));

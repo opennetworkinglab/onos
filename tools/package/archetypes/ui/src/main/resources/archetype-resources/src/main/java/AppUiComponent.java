@@ -57,8 +57,9 @@ public class AppUiComponent {
 
     // Application UI extension
     protected UiExtension extension =
-            new UiExtension(uiViews, messageHandlerFactory,
-                            getClass().getClassLoader());
+            new UiExtension.Builder(getClass().getClassLoader(), uiViews)
+                    .messageHandlerFactory(messageHandlerFactory)
+                    .build();
 
     @Activate
     protected void activate() {
