@@ -42,6 +42,9 @@ public class EventuallyConsistentMapEventTest {
             new EventuallyConsistentMapEvent<>("map1", PUT, "k1", "v2");
     EventuallyConsistentMapEvent<String, String> event5 =
             new EventuallyConsistentMapEvent<>("map2", REMOVE, "k1", "v2");
+    EventuallyConsistentMapEvent<String, String> event6 =
+            new EventuallyConsistentMapEvent<>("map3", REMOVE, "k1", "v2");
+
 
     /**
      * Checks the equals(), hashCode() and toString() operations.
@@ -54,6 +57,7 @@ public class EventuallyConsistentMapEventTest {
                 .addEqualityGroup(event3)
                 .addEqualityGroup(event4)
                 .addEqualityGroup(event5)
+                .addEqualityGroup(event6)
                 .testEquals();
     }
 

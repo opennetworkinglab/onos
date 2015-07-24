@@ -103,7 +103,8 @@ public final class EventuallyConsistentMapEvent<K, V> {
         EventuallyConsistentMapEvent that = (EventuallyConsistentMapEvent) o;
         return Objects.equals(this.type, that.type) &&
                 Objects.equals(this.key, that.key) &&
-                Objects.equals(this.value, that.value);
+                Objects.equals(this.value, that.value) &&
+                Objects.equals(this.name, that.name);
     }
 
     @Override
@@ -114,6 +115,7 @@ public final class EventuallyConsistentMapEvent<K, V> {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
+                .add("name", name)
                 .add("type", type)
                 .add("key", key)
                 .add("value", value)
