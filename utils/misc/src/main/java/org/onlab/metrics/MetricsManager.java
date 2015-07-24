@@ -290,4 +290,15 @@ public class MetricsManager implements MetricsService {
     public void removeMatching(final MetricFilter filter) {
         metricsRegistry.removeMatching(filter);
     }
+
+    /**
+     * Fetches the existing Meters.
+     *
+     *
+     * @return a map of all metrics with the key as the
+     *         name String to the Meter.
+     */
+    public Map<String, Metric> getMetrics() {
+        return metricsRegistry.getMetrics();
+    }
 }

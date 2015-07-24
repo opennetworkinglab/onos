@@ -162,6 +162,14 @@ public interface MetricsService {
      Map<String, Histogram> getHistograms(MetricFilter filter);
 
     /**
+     * Fetches the existing metrics.
+     *
+     * @return a map of the Metrics, with the key as
+     *         the name String to the Histogram.
+     */
+    Map<String, Metric> getMetrics();
+
+    /**
      * Removes all Metrics that match a given filter.
      *
      * @param filter filter to use to select the Metrics to remove.
