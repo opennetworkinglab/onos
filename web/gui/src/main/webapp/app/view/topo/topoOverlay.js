@@ -126,6 +126,9 @@
             current = overlay(id);
             current && doop('activate');
             wss.sendEvent('topoSelectOverlay', payload);
+
+            // TODO: refactor to emit "flush on overlay change" messages
+            wss.sendEvent('requestSummary');
         }
     }
 

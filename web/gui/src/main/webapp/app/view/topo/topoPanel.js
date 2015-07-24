@@ -208,7 +208,7 @@
         gs.addGlyph(svg, 'node', 40);
         gs.addGlyph(svg, 'bird', 24, true, [8,12]);
 
-        title.text(data.id);
+        title.text(data.title);
         listProps(tbody, data);
     }
 

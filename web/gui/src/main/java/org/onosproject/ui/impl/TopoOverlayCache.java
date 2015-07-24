@@ -22,13 +22,22 @@ import org.onosproject.ui.UiTopoOverlay;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * A cache of {@link org.onosproject.ui.UiTopoOverlay}'s that were registered
  * at the time the UI connection was established.
  */
 public class TopoOverlayCache {
 
+    private static final UiTopoOverlay NONE = new NullOverlay();
+
     private final Map<String, UiTopoOverlay> overlays = new HashMap<>();
+    private UiTopoOverlay current = NONE;
+
+    public TopoOverlayCache() {
+        overlays.put(null, NONE);
+    }
 
     /**
      * Adds a topology overlay to the cache.
@@ -55,16 +64,18 @@ public class TopoOverlayCache {
     public void switchOverlay(String deact, String act) {
         UiTopoOverlay toDeactivate = getOverlay(deact);
         UiTopoOverlay toActivate = getOverlay(act);
-        if (toDeactivate != null) {
-            toDeactivate.deactivate();
-        }
-        if (toActivate != null) {
-            toActivate.activate();
-        }
+
+        toDeactivate.deactivate();
+        current = toActivate;
+        current.activate();
     }
 
     private UiTopoOverlay getOverlay(String id) {
-        return id == null ? null : overlays.get(id);
+        return isNullOrEmpty(id) ? NONE : overlays.get(id);
+    }
+
+    public UiTopoOverlay currentOverlay() {
+        return current;
     }
 
     /**
@@ -74,5 +85,29 @@ public class TopoOverlayCache {
      */
     public int size() {
         return overlays.size();
+    }
+
+
+
+    private static class NullOverlay extends UiTopoOverlay {
+        public NullOverlay() {
+            super(null);
+        }
+
+        @Override
+        public void init() {
+        }
+
+        @Override
+        public void activate() {
+        }
+
+        @Override
+        public void deactivate() {
+        }
+
+        @Override
+        public void destroy() {
+        }
     }
 }

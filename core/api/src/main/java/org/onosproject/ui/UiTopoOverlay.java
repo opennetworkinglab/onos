@@ -17,6 +17,7 @@
 
 package org.onosproject.ui;
 
+import org.onosproject.ui.topo.PropertyPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,5 +75,14 @@ public class UiTopoOverlay {
      * This default implementation does nothing.
      */
     public void destroy() {
+    }
+
+    /**
+     * Callback to modify the contents of the summary panel.
+     * This default implementation does nothing.
+     *
+     * @param pp property panel model of summary data
+     */
+    public void modifySummary(PropertyPanel pp) {
     }
 }

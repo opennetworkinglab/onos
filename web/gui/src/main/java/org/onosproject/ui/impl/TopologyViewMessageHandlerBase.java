@@ -72,6 +72,7 @@ import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.topo.PropertyPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -443,19 +444,20 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Returns summary response.
-    protected ObjectNode summmaryMessage(long sid) {
+    protected PropertyPanel summmaryMessage(long sid) {
         Topology topology = topologyService.currentTopology();
-        return JsonUtils.envelope("showSummary", sid,
-                                  json("ONOS Summary", "node",
-                                       new Prop("Devices", format(topology.deviceCount())),
-                                       new Prop("Links", format(topology.linkCount())),
-                                       new Prop("Hosts", format(hostService.getHostCount())),
-                                       new Prop("Topology SCCs", format(topology.clusterCount())),
-                                       new Separator(),
-                                       new Prop("Intents", format(intentService.getIntentCount())),
-                                       new Prop("Tunnels", format(tunnelService.tunnelCount())),
-                                       new Prop("Flows", format(flowService.getFlowRuleCount())),
-                                       new Prop("Version", version)));
+        PropertyPanel pp = new PropertyPanel("ONOS Summary", "node")
+            .add(new PropertyPanel.Prop("Devices", format(topology.deviceCount())))
+            .add(new PropertyPanel.Prop("Links", format(topology.linkCount())))
+            .add(new PropertyPanel.Prop("Hosts", format(hostService.getHostCount())))
+            .add(new PropertyPanel.Prop("Topology SCCs", format(topology.clusterCount())))
+            .add(new PropertyPanel.Separator())
+            .add(new PropertyPanel.Prop("Intents", format(intentService.getIntentCount())))
+            .add(new PropertyPanel.Prop("Tunnels", format(tunnelService.tunnelCount())))
+            .add(new PropertyPanel.Prop("Flows", format(flowService.getFlowRuleCount())))
+            .add(new PropertyPanel.Prop("Version", version));
+
+        return pp;
     }
 
     // Returns device details response.
@@ -838,6 +840,20 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     private static String compactLinkString(Link link) {
         return String.format(COMPACT, link.src().elementId(), link.src().port(),
                              link.dst().elementId(), link.dst().port());
+    }
+
+    protected ObjectNode json(PropertyPanel pp) {
+        ObjectNode result = objectNode()
+                .put("title", pp.title()).put("type", pp.typeId());
+        ObjectNode pnode = objectNode();
+        ArrayNode porder = arrayNode();
+        for (PropertyPanel.Prop p : pp.properties()) {
+            porder.add(p.key());
+            pnode.put(p.key(), p.value());
+        }
+        result.set("propOrder", porder);
+        result.set("props", pnode);
+        return result;
     }
 
     // Produces JSON property details.

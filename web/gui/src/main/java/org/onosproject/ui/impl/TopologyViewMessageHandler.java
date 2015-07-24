@@ -57,6 +57,7 @@ import org.onosproject.net.link.LinkListener;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
+import org.onosproject.ui.topo.PropertyPanel;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -561,7 +562,10 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // Subscribes for summary messages.
     private synchronized void requestSummary(long sid) {
-        sendMessage(summmaryMessage(sid));
+        PropertyPanel pp = summmaryMessage(sid);
+        overlayCache.currentOverlay().modifySummary(pp);
+        ObjectNode json = JsonUtils.envelope("showSummary", sid, json(pp));
+        sendMessage(json);
     }
 
 
