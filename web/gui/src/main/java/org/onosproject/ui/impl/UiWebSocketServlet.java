@@ -42,14 +42,18 @@ public class UiWebSocketServlet extends WebSocketServlet {
     private final Set<UiWebSocket> sockets = new HashSet<>();
     private final Timer timer = new Timer();
     private final TimerTask pruner = new Pruner();
+    private boolean isStopped = false;
 
     /**
      * Closes all currently open UI web-sockets.
      */
     public static void closeAll() {
         if (instance != null) {
+            instance.isStopped = true;
             instance.sockets.forEach(UiWebSocket::close);
             instance.sockets.clear();
+            instance.pruner.cancel();
+            instance.timer.cancel();
         }
     }
 
@@ -62,6 +66,9 @@ public class UiWebSocketServlet extends WebSocketServlet {
 
     @Override
     public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
+        if (isStopped) {
+            return null;
+        }
         UiWebSocket socket = new UiWebSocket(directory);
         synchronized (sockets) {
             sockets.add(socket);
