@@ -698,18 +698,23 @@ public class ReactiveForwarding {
 
         for (SrcDstPair sd : pairs) {
             // get the edge deviceID for the src host
-            DeviceId srcId = hostService.getHost(HostId.hostId(sd.src)).location().deviceId();
-            DeviceId dstId = hostService.getHost(HostId.hostId(sd.dst)).location().deviceId();
-            log.trace("SRC ID is " + srcId + ", DST ID is " + dstId);
+            Host srcHost = hostService.getHost(HostId.hostId(sd.src));
+            Host dstHost = hostService.getHost(HostId.hostId(sd.dst));
+            if (srcHost != null && dstHost != null) {
+                DeviceId srcId = srcHost.location().deviceId();
+                DeviceId dstId = dstHost.location().deviceId();
+                log.trace("SRC ID is " + srcId + ", DST ID is " + dstId);
 
-            cleanFlowRules(sd, egress.deviceId());
+                cleanFlowRules(sd, egress.deviceId());
 
-            Set<Path> shortestPaths = srcPaths.get(srcId);
-            if (shortestPaths == null) {
-                shortestPaths = topologyService.getPaths(topologyService.currentTopology(), egress.deviceId(), srcId);
-                srcPaths.put(srcId, shortestPaths);
+                Set<Path> shortestPaths = srcPaths.get(srcId);
+                if (shortestPaths == null) {
+                    shortestPaths = topologyService.getPaths(topologyService.currentTopology(),
+                            egress.deviceId(), srcId);
+                    srcPaths.put(srcId, shortestPaths);
+                }
+                backTrackBadNodes(shortestPaths, dstId, sd);
             }
-            backTrackBadNodes(shortestPaths, dstId, sd);
         }
     }
 
