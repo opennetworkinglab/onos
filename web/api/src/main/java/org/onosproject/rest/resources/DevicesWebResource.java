@@ -18,9 +18,11 @@ package org.onosproject.rest.resources;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.Device;
 import org.onosproject.net.Port;
+import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.rest.AbstractWebResource;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -50,6 +52,15 @@ public class DevicesWebResource extends AbstractWebResource {
     public Response getDevice(@PathParam("id") String id) {
         Device device = nullIsNotFound(get(DeviceService.class).getDevice(deviceId(id)),
                                        DEVICE_NOT_FOUND);
+        return ok(codec(Device.class).encode(device, this)).build();
+    }
+
+    @DELETE
+    @Path("{id}")
+    public Response removeDevice(@PathParam("id") String id) {
+        Device device = nullIsNotFound(get(DeviceService.class).getDevice(deviceId(id)),
+                                       DEVICE_NOT_FOUND);
+        get(DeviceAdminService.class).removeDevice(deviceId(id));
         return ok(codec(Device.class).encode(device, this)).build();
     }
 
