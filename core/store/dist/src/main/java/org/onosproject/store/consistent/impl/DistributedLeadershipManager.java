@@ -374,6 +374,10 @@ public class DistributedLeadershipManager implements LeadershipService {
                             leader.value(),
                             leader.version(),
                             leader.creationTime());
+                    // Since reads only go through the local copy of leader board, we ought to update it
+                    // first before returning from this method.
+                    // This is to ensure a subsequent read will not read a stale value.
+                    onLeadershipEvent(new LeadershipEvent(LeadershipEvent.Type.LEADER_ELECTED, newLeadership));
                     return newLeadership;
                 }
             } catch (Exception e) {

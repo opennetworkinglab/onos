@@ -39,7 +39,6 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceAdminService;
-import org.onosproject.net.device.DeviceClockProviderService;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -106,7 +105,6 @@ public class DeviceManagerTest {
         mgr.mastershipService = mastershipManager;
         mgr.termService = mastershipManager;
         mgr.clusterService = new TestClusterService();
-        mgr.deviceClockProviderService = new TestClockProviderService();
         mgr.networkConfigService = new TestNetworkConfigService();
         mgr.activate();
 
@@ -326,22 +324,6 @@ public class DeviceManagerTest {
             return local;
         }
 
-    }
-
-    private final class TestClockProviderService implements
-            DeviceClockProviderService {
-
-        private Set<DeviceId> registerdBefore = Sets.newConcurrentHashSet();
-
-        @Override
-        public void setMastershipTerm(DeviceId deviceId, MastershipTerm term) {
-            registerdBefore.add(deviceId);
-        }
-
-        @Override
-        public boolean isTimestampAvailable(DeviceId deviceId) {
-            return registerdBefore.contains(deviceId);
-        }
     }
 
     private class TestNetworkConfigService extends NetworkConfigServiceAdapter {

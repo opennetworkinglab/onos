@@ -15,6 +15,21 @@
  */
 package org.onosproject.provider.lldp.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
 import org.onlab.packet.Ethernet;
@@ -35,22 +50,6 @@ import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
-
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.onosproject.net.MastershipRole.MASTER;
-import static org.onosproject.net.PortNumber.portNumber;
-import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
-import static org.slf4j.LoggerFactory.getLogger;
 
 // TODO: add 'fast discovery' mode: drop LLDPs in destination switch but listen for flow_removed messages
 
@@ -149,7 +148,7 @@ public class LinkDiscovery implements TimerTask {
             }
         }
 
-        boolean isMaster = mastershipService.getLocalRole(device.id()) == MASTER;
+        boolean isMaster = mastershipService.isLocalMaster(device.id());
         if (newPort && isMaster) {
             this.log.debug("Sending init probe to port {}@{}",
                     port.number().toLong(), device.id());
@@ -258,8 +257,7 @@ public class LinkDiscovery implements TimerTask {
         if (isStopped()) {
             return;
         }
-        boolean isMaster = mastershipService.getLocalRole(device.id()) == MASTER;
-        if (!isMaster) {
+        if (!mastershipService.isLocalMaster(device.id())) {
             if (!isStopped()) {
                 // reschedule timer
                 timeout = Timer.getTimer().newTimeout(this, this.probeRate, MILLISECONDS);

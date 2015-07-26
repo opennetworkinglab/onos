@@ -16,6 +16,8 @@
 package org.onosproject.net.device.impl;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -46,7 +48,6 @@ import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceAdminService;
-import org.onosproject.net.device.DeviceClockProviderService;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -118,11 +119,7 @@ public class DeviceManager
     protected MastershipTermService termService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceClockProviderService deviceClockProviderService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService networkConfigService;
-
 
     @Activate
     public void activate() {
@@ -316,31 +313,13 @@ public class DeviceManager
             checkValidity();
             deviceDescription = validateDevice(deviceDescription, deviceId);
 
-            // check my Role
-            CompletableFuture<MastershipRole> role = mastershipService.requestRoleFor(deviceId);
-            try {
-                // Device subsystem must wait for role assignment
-                // to avoid losing Device information.
-                // (This node could be the only Node connected to the Device.)
-                role.get();
-            } catch (InterruptedException e) {
-                log.warn("Interrupted while waiting role-assignment for {}", deviceId);
-                Thread.currentThread().interrupt();
-            } catch (ExecutionException e) {
-                log.error("Exception thrown while waiting role-assignment for {}",
-                          deviceId, e);
-            }
+            // Establish my Role
+            Futures.getUnchecked(mastershipService.requestRoleFor(deviceId)
+                    .thenAccept(role -> {
+                        log.info("Local role is {} for {}", role, deviceId);
+                        applyRole(deviceId, role);
+                    }));
 
-            final MastershipTerm term = termService.getMastershipTerm(deviceId);
-            if (term == null || !localNodeId.equals(term.master())) {
-                log.info("Role of this node is STANDBY for {}", deviceId);
-                applyRole(deviceId, MastershipRole.STANDBY);
-            } else {
-                log.info("Role of this node is MASTER for {}", deviceId);
-                // tell clock provider if this instance is the master
-                deviceClockProviderService.setMastershipTerm(deviceId, term);
-                applyRole(deviceId, MastershipRole.MASTER);
-            }
             DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
                                                            deviceDescription);
             if (event != null) {
@@ -383,7 +362,7 @@ public class DeviceManager
                                                                        port.portSpeed())));
             store.updatePorts(this.provider().id(), deviceId, descs);
             try {
-                if (mastershipService.getLocalRole(deviceId) == MASTER) {
+                if (mastershipService.isLocalMaster(deviceId)) {
                     post(store.markOffline(deviceId));
                 }
             } catch (IllegalStateException e) {
@@ -405,7 +384,6 @@ public class DeviceManager
                     // TODO: Move this type of check inside device clock manager, etc.
                     if (term != null && localNodeId.equals(term.master())) {
                         log.info("Retry marking {} offline", deviceId);
-                        deviceClockProviderService.setMastershipTerm(deviceId, term);
                         post(store.markOffline(deviceId));
                     } else {
                         log.info("Failed again marking {} offline. {}", deviceId, role);
@@ -431,7 +409,7 @@ public class DeviceManager
             checkNotNull(portDescriptions,
                          "Port descriptions list cannot be null");
             checkValidity();
-            if (!deviceClockProviderService.isTimestampAvailable(deviceId)) {
+            if (!mastershipService.isLocalMaster(deviceId)) {
                 // Never been a master for this device
                 // any update will be ignored.
                 log.trace("Ignoring {} port updates on standby node. {}", deviceId, portDescriptions);
@@ -452,7 +430,7 @@ public class DeviceManager
             checkNotNull(portDescription, PORT_DESCRIPTION_NULL);
             checkValidity();
 
-            if (!deviceClockProviderService.isTimestampAvailable(deviceId)) {
+            if (!mastershipService.isLocalMaster(deviceId)) {
                 // Never been a master for this device
                 // any update will be ignored.
                 log.trace("Ignoring {} port update on standby node. {}", deviceId,
@@ -664,7 +642,6 @@ public class DeviceManager
             MastershipTerm term = termService.getMastershipTerm(did);
             final boolean iHaveControl = term != null && localNodeId.equals(term.master());
             if (iHaveControl) {
-                deviceClockProviderService.setMastershipTerm(did, term);
                 myNextRole = MASTER;
             } else {
                 myNextRole = STANDBY;

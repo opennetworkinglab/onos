@@ -15,6 +15,8 @@
  */
 package org.onosproject.mastership;
 
+import static org.onosproject.net.MastershipRole.MASTER;
+
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -41,6 +43,16 @@ public interface MastershipService
      * @return role of the current node
      */
     MastershipRole getLocalRole(DeviceId deviceId);
+
+    /**
+     * Returns true if the local controller is the Master for the specified deviceId.
+     *
+     * @param deviceId the the identifier of the device
+     * @return true if local node is master; false otherwise
+     */
+    default boolean isLocalMaster(DeviceId deviceId) {
+        return getLocalRole(deviceId) == MASTER;
+    }
 
     /**
      * Returns the mastership status of the local controller for a given

@@ -17,17 +17,19 @@ package org.onosproject.store.device.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipTerm;
+import org.onosproject.mastership.MastershipTermService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.device.DeviceClockProviderService;
 import org.onosproject.net.device.DeviceClockService;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.impl.MastershipBasedTimestamp;
@@ -38,16 +40,23 @@ import org.slf4j.Logger;
  */
 @Component(immediate = true)
 @Service
-public class DeviceClockManager implements DeviceClockService, DeviceClockProviderService {
+public class DeviceClockManager implements DeviceClockService {
 
     private final Logger log = getLogger(getClass());
 
-    // TODO: Implement per device ticker that is reset to 0 at the beginning of a new term.
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipTermService mastershipTermService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
+    protected NodeId localNodeId;
+
     private final AtomicLong ticker = new AtomicLong(0);
-    private ConcurrentMap<DeviceId, MastershipTerm> deviceMastershipTerms = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
+        localNodeId = clusterService.getLocalNode().id();
         log.info("Started");
     }
 
@@ -58,23 +67,16 @@ public class DeviceClockManager implements DeviceClockService, DeviceClockProvid
 
     @Override
     public Timestamp getTimestamp(DeviceId deviceId) {
-        MastershipTerm term = deviceMastershipTerms.get(deviceId);
-        log.trace("term info for {} is: {}", deviceId, term);
-
-        if (term == null) {
+        MastershipTerm term = mastershipTermService.getMastershipTerm(deviceId);
+        if (term == null || !localNodeId.equals(term.master())) {
             throw new IllegalStateException("Requesting timestamp for " + deviceId + " without mastership");
         }
         return new MastershipBasedTimestamp(term.termNumber(), ticker.incrementAndGet());
     }
 
     @Override
-    public void setMastershipTerm(DeviceId deviceId, MastershipTerm term) {
-        log.debug("adding term info {} {}", deviceId, term.master());
-        deviceMastershipTerms.put(deviceId, term);
-    }
-
-    @Override
     public boolean isTimestampAvailable(DeviceId deviceId) {
-        return deviceMastershipTerms.containsKey(deviceId);
+        MastershipTerm term = mastershipTermService.getMastershipTerm(deviceId);
+        return term != null && localNodeId.equals(term.master());
     }
 }
