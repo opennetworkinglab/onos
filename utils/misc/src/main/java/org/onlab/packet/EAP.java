@@ -198,7 +198,7 @@ public class EAP extends BasePacket {
             eap.identifier = bb.get();
             eap.length = bb.getShort();
 
-            checkHeaderLength(length, HEADER_LENGTH + eap.length);
+            checkHeaderLength(length, eap.length);
 
             int dataLength;
             if (eap.code == REQUEST || eap.code == RESPONSE) {
