@@ -7,11 +7,11 @@
 . $ONOS_ROOT/tools/build/envDefaults
 
 aux=/tmp/stc-$$.log
-trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
+trap "rm -f $aux 2>/dev/null" EXIT
 
-onos ${1} "onos:ui-views" > $aux
+onos ${1:-$OCI} "onos:ui-views" > $aux
 cat $aux
 
-shift
+[ $# -gt 0 ] && shift
 
-grep "$@" $aux
+grep "${@:-topo}" $aux
