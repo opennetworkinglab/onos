@@ -27,7 +27,7 @@ import java.util.Set;
  * treated.
  */
 @Beta
-public interface NetworkConfigRegistry {
+public interface NetworkConfigRegistry extends NetworkConfigService {
 
     /**
      * Registers the specified configuration factory.
