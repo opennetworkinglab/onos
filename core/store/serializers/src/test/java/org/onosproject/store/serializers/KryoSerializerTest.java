@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
 import org.onlab.util.Frequency;
 import org.onosproject.cluster.NodeId;
@@ -59,6 +60,8 @@ import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.newresource.DefaultResource;
+import org.onosproject.net.newresource.DefaultResourceAllocation;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.resource.link.BandwidthResource;
 import org.onosproject.net.resource.link.BandwidthResourceAllocation;
@@ -126,6 +129,7 @@ public class KryoSerializerTest {
             .build();
     private static final OchSignal OCH_SIGNAL1 = (OchSignal) org.onosproject.net.Lambda.ochSignal(
             GridType.DWDM, ChannelSpacing.CHL_100GHZ, -8, 4);
+    private static final VlanId VLAN1 = VlanId.vlanId((short) 100);
 
     private KryoSerializer serializer;
 
@@ -368,6 +372,18 @@ public class KryoSerializerTest {
         testSerializable(new DefaultLinkResourceAllocations(request, allocations));
     }
 
+    @Test
+    public void testDefaultResouce() {
+        testSerializedEquals(new DefaultResource<>(LinkKey.linkKey(CP1, CP2), VLAN1));
+    }
+
+    @Test
+    public void testDefaultResourceAllocation() {
+        testSerializedEquals(new DefaultResourceAllocation<>(
+                LinkKey.linkKey(CP1, CP2),
+                VLAN1,
+                IntentId.valueOf(30)));
+    }
 
     @Test
     public void testFrequency() {
