@@ -447,20 +447,26 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
 
     // Adds any missing device ports.
     private void addMissingPorts(Device device) {
-        List<Port> ports = deviceService.getPorts(device.id());
-        Set<ConnectPoint> existing = ports.stream()
-                .map(p -> new ConnectPoint(device.id(), p.number()))
-                .collect(Collectors.toSet());
-        Set<ConnectPoint> missing = connectPoints.stream()
-                .filter(cp -> cp.deviceId().equals(device.id()))
-                .filter(cp -> !existing.contains(cp))
-                .collect(Collectors.toSet());
+        try {
+            List<Port> ports = deviceService.getPorts(device.id());
+            Set<ConnectPoint> existing = ports.stream()
+                    .map(p -> new ConnectPoint(device.id(), p.number()))
+                    .collect(Collectors.toSet());
+            Set<ConnectPoint> missing = connectPoints.stream()
+                    .filter(cp -> cp.deviceId().equals(device.id()))
+                    .filter(cp -> !existing.contains(cp))
+                    .collect(Collectors.toSet());
 
-        List<PortDescription> newPorts = Stream.concat(
-                ports.stream().map(this::description),
-                missing.stream().map(this::description)
-        ).collect(Collectors.toList());
-        deviceProviderService.updatePorts(device.id(), newPorts);
+            if (!missing.isEmpty()) {
+                List<PortDescription> newPorts = Stream.concat(
+                        ports.stream().map(this::description),
+                        missing.stream().map(this::description)
+                ).collect(Collectors.toList());
+                deviceProviderService.updatePorts(device.id(), newPorts);
+            }
+        } catch (IllegalArgumentException e) {
+            log.warn("Error pushing ports: {}", e.getMessage());
+        }
     }
 
     // Creates a port description from the specified port.
