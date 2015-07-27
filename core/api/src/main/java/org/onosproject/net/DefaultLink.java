@@ -34,6 +34,7 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
     private final Type type;
     private final State state;
     private final boolean isExpected;
+    private int weight;
 
     /**
      * Creates an active infrastructure link using the supplied information.
@@ -47,6 +48,7 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
     protected DefaultLink(ProviderId providerId, ConnectPoint src, ConnectPoint dst,
                        Type type, Annotations... annotations) {
         this(providerId, src, dst, type, ACTIVE, false, annotations);
+        this.weight = 1;
     }
 
     /**
@@ -71,6 +73,7 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
         this.type = type;
         this.state = state;
         this.isExpected = isExpected;
+        this.weight = 1;
     }
 
     @Override
@@ -111,6 +114,16 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
     }
 
     @Override
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+
+    @Override
+    public int weight() {
+        return weight;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -133,6 +146,7 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
                 .add("type", type)
                 .add("state", state)
                 .add("expected", isExpected)
+                .add("weight", weight)
                 .toString();
     }
 
