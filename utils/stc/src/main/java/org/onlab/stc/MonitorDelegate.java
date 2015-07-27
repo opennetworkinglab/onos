@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onlab.stc;
 
-.body {
-    font-family: Helvetica, Arial, sans-serif;
-}
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-.node {
-    stroke: #fff;
-    stroke-width: 1.5px;
-}
+/**
+ * Delegate to which monitor can send notifications.
+ */
+public interface MonitorDelegate {
 
-.link {
-    stroke: #999;
-    stroke-opacity: .6;
-}
-
-text {
-    font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
-    stroke: #000;
-    stroke-width: 0.2;
-    font-weight: normal;
-    font-size: 0.6em;
+    /**
+     * Issues JSON event to be sent to any connected monitor clients.
+     *
+     * @param event JSON event data
+     */
+    void notify(ObjectNode event);
 }

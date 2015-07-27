@@ -15,6 +15,7 @@
  */
 package org.onlab.stc;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.ByteStreams;
 import com.google.common.net.MediaType;
 import org.eclipse.jetty.websocket.WebSocket;
@@ -34,16 +35,27 @@ import java.util.TimerTask;
 /**
  * Web socket servlet capable of creating web sockets for the STC monitor.
  */
-public class MonitorWebSocketServlet extends WebSocketServlet {
+public class MonitorWebSocketServlet extends WebSocketServlet
+        implements MonitorDelegate {
 
     private static final long PING_DELAY_MS = 5000;
     private static final String DOT = ".";
 
+    private static Monitor monitor;
     private static MonitorWebSocketServlet instance;
 
     private final Set<MonitorWebSocket> sockets = new HashSet<>();
     private final Timer timer = new Timer();
     private final TimerTask pruner = new Pruner();
+
+    /**
+     * Binds the shared process flow monitor.
+     *
+     * @param m process monitor reference
+     */
+    public static void setMonitor(Monitor m) {
+        monitor = m;
+    }
 
     /**
      * Closes all currently open monitor web-sockets.
@@ -59,7 +71,7 @@ public class MonitorWebSocketServlet extends WebSocketServlet {
     public void init() throws ServletException {
         super.init();
         instance = this;
-        System.out.println("Yo!!!!");
+        monitor.setDelegate(this);
         timer.schedule(pruner, PING_DELAY_MS, PING_DELAY_MS);
     }
 
@@ -92,12 +104,18 @@ public class MonitorWebSocketServlet extends WebSocketServlet {
 
     @Override
     public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
-        System.out.println("Wazup????");
-        MonitorWebSocket socket = new MonitorWebSocket();
+        MonitorWebSocket socket = new MonitorWebSocket(monitor);
         synchronized (sockets) {
             sockets.add(socket);
         }
         return socket;
+    }
+
+    @Override
+    public void notify(ObjectNode event) {
+        if (instance != null) {
+            instance.sockets.forEach(ws -> ws.sendMessage(event));
+        }
     }
 
     // Task for pruning web-sockets that are idle.

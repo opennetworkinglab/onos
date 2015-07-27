@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.onlab.stc.Coordinator.Status.FAILED;
@@ -41,26 +42,32 @@ class StepProcessor implements Runnable {
 
     private final Step step;
     private final File logDir;
+    private String command;
 
     private Process process;
     private StepProcessListener delegate;
+    private Function<String, String> substitutor;
 
     /**
      * Creates a process monitor.
      *
-     * @param step     step or group to be executed
-     * @param logDir   directory where step process log should be stored
-     * @param delegate process lifecycle listener
+     * @param step        step or group to be executed
+     * @param logDir      directory where step process log should be stored
+     * @param delegate    process lifecycle listener
+     * @param substitutor function to substitute var reference in command
      */
-    StepProcessor(Step step, File logDir, StepProcessListener delegate) {
+    StepProcessor(Step step, File logDir, StepProcessListener delegate,
+                  Function<String, String> substitutor) {
         this.step = step;
         this.logDir = logDir;
         this.delegate = delegate;
+        this.substitutor = substitutor;
     }
 
     @Override
     public void run() {
-        delegate.onStart(step);
+        command = substitutor != null ? substitutor.apply(command()) : command();
+        delegate.onStart(step, command);
         int code = execute();
         boolean ignoreCode = step.env() != null && step.env.equals(IGNORE_CODE);
         Status status = ignoreCode || code == 0 ? SUCCEEDED : FAILED;
@@ -74,7 +81,7 @@ class StepProcessor implements Runnable {
      */
     private int execute() {
         try (PrintWriter pw = new PrintWriter(logFile())) {
-            process = Runtime.getRuntime().exec(command());
+            process = Runtime.getRuntime().exec(command);
             processOutput(pw);
 
             // Wait for the process to complete and get its exit code.

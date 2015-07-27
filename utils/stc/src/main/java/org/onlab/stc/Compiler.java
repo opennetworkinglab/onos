@@ -61,8 +61,8 @@ public class Compiler {
     private static final String FILE = "[@file]";
     private static final String NAMESPACE = "[@namespace]";
 
-    private static final String PROP_START = "${";
-    private static final String PROP_END = "}";
+    static final String PROP_START = "${";
+    static final String PROP_END = "}";
     private static final String HASH = "#";
 
     private final Scenario scenario;
@@ -230,7 +230,7 @@ public class Compiler {
     private void processStep(HierarchicalConfiguration cfg,
                              String namespace, Group parentGroup) {
         String name = expand(prefix(cfg.getString(NAME), namespace));
-        String command = expand(cfg.getString(COMMAND, parentGroup != null ? parentGroup.command() : null));
+        String command = expand(cfg.getString(COMMAND, parentGroup != null ? parentGroup.command() : null), true);
         String env = expand(cfg.getString(ENV, parentGroup != null ? parentGroup.env() : null));
         String cwd = expand(cfg.getString(CWD, parentGroup != null ? parentGroup.cwd() : null));
 
@@ -249,7 +249,7 @@ public class Compiler {
     private void processGroup(HierarchicalConfiguration cfg,
                               String namespace, Group parentGroup) {
         String name = expand(prefix(cfg.getString(NAME), namespace));
-        String command = expand(cfg.getString(COMMAND, parentGroup != null ? parentGroup.command() : null));
+        String command = expand(cfg.getString(COMMAND, parentGroup != null ? parentGroup.command() : null), true);
         String env = expand(cfg.getString(ENV, parentGroup != null ? parentGroup.env() : null));
         String cwd = expand(cfg.getString(CWD, parentGroup != null ? parentGroup.cwd() : null));
 
@@ -388,13 +388,14 @@ public class Compiler {
     }
 
     /**
-     * Expands any environment variables in the specified
-     * string. These are specified as ${property} tokens.
+     * Expands any environment variables in the specified string. These are
+     * specified as ${property} tokens.
      *
-     * @param string string to be processed
+     * @param string     string to be processed
+     * @param keepTokens true if the original unresolved tokens should be kept
      * @return original string with expanded substitutions
      */
-    private String expand(String string) {
+    private String expand(String string, boolean... keepTokens) {
         if (string == null) {
             return null;
         }
@@ -421,7 +422,11 @@ public class Compiler {
                     value = System.getenv(prop);
                 }
             }
-            sb.append(value != null ? value : "");
+            if (value == null && keepTokens.length == 1 && keepTokens[0]) {
+                sb.append("${").append(prop).append("}");
+            } else {
+                sb.append(value != null ? value : "");
+            }
             last = end + 1;
         }
         sb.append(pString.substring(last));

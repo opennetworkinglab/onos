@@ -3,6 +3,8 @@
 #   System Test Coordinator process launcher
 #-------------------------------------------------------------------------------
 
+#sleep 5 && exit 0;
+
 env=$1 && shift
 cwd=$1 && shift
 

@@ -54,6 +54,7 @@ public final class Main {
     private String runToPatterns = "";
 
     private Coordinator coordinator;
+    private Monitor monitor;
     private Listener delegate = new Listener();
 
     private static boolean useColor = Objects.equals("true", System.getenv("stcColor"));
@@ -105,13 +106,16 @@ public final class Main {
             Compiler compiler = new Compiler(scenario);
             compiler.compile();
 
-            // Execute process flow
+            // Setup the process flow coordinator
             coordinator = new Coordinator(scenario, compiler.processFlow(),
                                           compiler.logDir());
             coordinator.addListener(delegate);
 
-            startMonitorServer();
+            // Prepare the GUI monitor
+            monitor = new Monitor(coordinator, compiler);
+            startMonitorServer(monitor);
 
+            // Execute process flow
             processCommand();
 
         } catch (FileNotFoundException e) {
@@ -120,11 +124,12 @@ public final class Main {
     }
 
     // Initiates a web-server for the monitor GUI.
-    private static void startMonitorServer() {
+    private static void startMonitorServer(Monitor monitor) {
         org.eclipse.jetty.util.log.Log.setLog(new NullLogger());
         Server server = new Server(9999);
         ServletHandler handler = new ServletHandler();
         server.setHandler(handler);
+        MonitorWebSocketServlet.setMonitor(monitor);
         handler.addServletWithMapping(MonitorWebSocketServlet.class, "/*");
         try {
             server.start();
@@ -187,8 +192,8 @@ public final class Main {
      */
     private static class Listener implements StepProcessListener {
         @Override
-        public void onStart(Step step) {
-            logStatus(currentTimeMillis(), step.name(), IN_PROGRESS, step.command());
+        public void onStart(Step step, String command) {
+            logStatus(currentTimeMillis(), step.name(), IN_PROGRESS, command);
         }
 
         @Override

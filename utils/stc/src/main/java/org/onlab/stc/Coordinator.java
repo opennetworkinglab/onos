@@ -16,16 +16,24 @@
 package org.onlab.stc;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static org.onlab.stc.Compiler.PROP_END;
+import static org.onlab.stc.Compiler.PROP_START;
 import static org.onlab.stc.Coordinator.Directive.*;
 import static org.onlab.stc.Coordinator.Status.*;
 
@@ -43,6 +51,10 @@ public class Coordinator {
     private final StepProcessListener delegate;
     private final CountDownLatch latch;
     private final ScenarioStore store;
+
+    private static final Pattern PROP_ERE = Pattern.compile("^@stc ([a-zA-Z0-9_.]+)=(.*$)");
+    private final Map<String, String> properties = Maps.newConcurrentMap();
+    private final Function<String, String> substitutor = this::substitute;
 
     private final Set<StepProcessListener> listeners = Sets.newConcurrentHashSet();
     private File logDir;
@@ -208,10 +220,11 @@ public class Coordinator {
             store.markStarted(step);
             if (step instanceof Group) {
                 Group group = (Group) step;
-                delegate.onStart(group);
+                delegate.onStart(group, null);
                 executeRoots(group);
             } else {
-                executor.execute(new StepProcessor(step, logDir, delegate));
+                executor.execute(new StepProcessor(step, logDir, delegate,
+                                                   substitutor));
             }
         } else if (directive == SKIP) {
             if (step instanceof Group) {
@@ -278,6 +291,43 @@ public class Coordinator {
     }
 
     /**
+     * Expands the var references with values from the properties map.
+     *
+     * @param string string to perform substitutions on
+     */
+    private String substitute(String string) {
+        StringBuilder sb = new StringBuilder();
+        int start, end, last = 0;
+        while ((start = string.indexOf(PROP_START, last)) >= 0) {
+            end = string.indexOf(PROP_END, start + PROP_START.length());
+            checkArgument(end > start, "Malformed property in %s", string);
+            sb.append(string.substring(last, start));
+            String prop = string.substring(start + PROP_START.length(), end);
+            String value = properties.get(prop);
+            sb.append(value != null ? value : "");
+            last = end + 1;
+        }
+        sb.append(string.substring(last));
+        return sb.toString().replace('\n', ' ').replace('\r', ' ');
+    }
+
+    /**
+     * Scrapes the line of output for any variables to be captured and posted
+     * in the properties for later use.
+     *
+     * @param line line of output to scrape for property exports
+     */
+    private void scrapeForVariables(String line) {
+        Matcher matcher = PROP_ERE.matcher(line);
+        if (matcher.matches()) {
+            String prop = matcher.group(1);
+            String value = matcher.group(2);
+            properties.put(prop, value);
+        }
+    }
+
+
+    /**
      * Prints formatted output.
      *
      * @param format printf format string
@@ -291,10 +341,9 @@ public class Coordinator {
      * Internal delegate to monitor the process execution.
      */
     private class Delegate implements StepProcessListener {
-
         @Override
-        public void onStart(Step step) {
-            listeners.forEach(listener -> listener.onStart(step));
+        public void onStart(Step step, String command) {
+            listeners.forEach(listener -> listener.onStart(step, command));
         }
 
         @Override
@@ -307,9 +356,9 @@ public class Coordinator {
 
         @Override
         public void onOutput(Step step, String line) {
+            scrapeForVariables(line);
             listeners.forEach(listener -> listener.onOutput(step, line));
         }
-
     }
 
 }

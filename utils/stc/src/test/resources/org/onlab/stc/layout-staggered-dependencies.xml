@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <!--
   ~ Copyright 2015 Open Networking Laboratory
   ~
@@ -14,16 +13,18 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<html>
-<head lang="en">
-    <meta charset="utf-8">
-    <title>Scenario Test Coordinator</title>
-
-    <link rel="stylesheet" href="stc.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
-    <script src="stc.js"></script>
-</head>
-<body>
-</body>
-</html>
+<scenario name="basic-nest">
+    <step name="a"/>
+    <step name="aa"/>
+    <step name="b" requires="a"/>
+    <step name="f" requires="b,aa"/>
+    <group name="g">
+        <step name="c"/>
+        <group name="gg" requires="c">
+            <step name="d"/>
+            <step name="dd" requires="c"/>
+            <step name="e" requires="d"/>
+        </group>
+    </group>
+    <step name="i" requires="f,g"/>
+</scenario>

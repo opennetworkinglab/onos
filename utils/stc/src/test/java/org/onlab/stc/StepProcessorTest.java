@@ -51,7 +51,7 @@ public class StepProcessorTest {
     @Test
     public void basics() {
         Step step = new Step("foo", "ls " + DIR.getAbsolutePath(), null, null, null);
-        StepProcessor processor = new StepProcessor(step, DIR, delegate);
+        StepProcessor processor = new StepProcessor(step, DIR, delegate, null);
         processor.run();
         assertTrue("should be started", delegate.started);
         assertTrue("should be stopped", delegate.stopped);
@@ -65,7 +65,7 @@ public class StepProcessorTest {
         private boolean started, stopped, output;
 
         @Override
-        public void onStart(Step step) {
+        public void onStart(Step step, String command) {
             started = true;
         }
 

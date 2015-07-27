@@ -52,11 +52,11 @@ public class CompilerTest {
         System.setProperty("test.dir", TEST_DIR.getAbsolutePath());
     }
 
-    public static FileInputStream getStream(String name) throws FileNotFoundException {
+    static FileInputStream getStream(String name) throws FileNotFoundException {
         return new FileInputStream(new File(TEST_DIR, name));
     }
 
-    private static void stageTestResource(String name) throws IOException {
+    static void stageTestResource(String name) throws IOException {
         byte[] bytes = toByteArray(CompilerTest.class.getResourceAsStream(name));
         write(bytes, new File(TEST_DIR, name));
     }
