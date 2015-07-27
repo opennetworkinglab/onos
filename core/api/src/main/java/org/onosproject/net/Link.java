@@ -111,4 +111,18 @@ public interface Link extends Annotated, Provided, NetworkResource {
      */
     boolean isDurable();
 
+    /**
+     * Sets the weight of the link.
+     *
+     * @param link weight
+     */
+    void setWeight(int weight);
+
+    /**
+     * Returns the weight of the link.
+     *
+     * @return link weight
+     */
+    int weight();
+
 }

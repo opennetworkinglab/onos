@@ -98,7 +98,7 @@ public class DefaultRoutingHandler {
                 continue;
             }
 
-            ECMPShortestPathGraph ecmpSpg = new ECMPShortestPathGraph(sw.id(), srManager);
+            ECMPShortestPathGraph ecmpSpg = new ECMPShortestPathGraph(sw.id(), srManager, false);
             if (!populateEcmpRoutingRules(sw.id(), ecmpSpg)) {
                 log.debug("populateAllRoutingRules: populationStatus is ABORTED");
                 populationStatus = Status.ABORTED;
@@ -142,7 +142,7 @@ public class DefaultRoutingHandler {
                     continue;
                 }
                 ECMPShortestPathGraph ecmpSpgUpdated =
-                        new ECMPShortestPathGraph(sw.id(), srManager);
+                        new ECMPShortestPathGraph(sw.id(), srManager, false);
                 updatedEcmpSpgMap.put(sw.id(), ecmpSpgUpdated);
             }
 
@@ -190,7 +190,7 @@ public class DefaultRoutingHandler {
             // When only the source device is defined, reinstall routes to all other devices
             if (link.size() == 1) {
                 log.trace("repopulateRoutingRulesForRoutes: running ECMP graph for device {}", link.get(0));
-                ECMPShortestPathGraph ecmpSpg = new ECMPShortestPathGraph(link.get(0), srManager);
+                ECMPShortestPathGraph ecmpSpg = new ECMPShortestPathGraph(link.get(0), srManager, false);
                 if (populateEcmpRoutingRules(link.get(0), ecmpSpg)) {
                     log.debug("Populating flow rules from {} to all is successful",
                               link.get(0));

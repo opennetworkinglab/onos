@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Comparator;
 
 /**
  * This class creates bandwidth constrained breadth first tree and returns paths
@@ -37,7 +39,34 @@ import java.util.List;
  * instantiation.
  */
 public class ECMPShortestPathGraph {
+    static class DeviceDistance {
+        private DeviceId deviceId;
+        private int distance;
+
+        public DeviceDistance(DeviceId id, int dist) {
+            this.deviceId = id;
+            this.distance = dist;
+        }
+
+        public DeviceId deviceId() {
+            return deviceId;
+        }
+
+        public int distance() {
+            return distance;
+        }
+    }
+
+    static class PQsort implements Comparator<DeviceDistance> {
+        public int compare(DeviceDistance devDist1, DeviceDistance devDist2) {
+            return devDist1.distance() - devDist2.distance();
+        }
+    }
+
+    PQsort pqs = new PQsort();
+
     LinkedList<DeviceId> deviceQueue = new LinkedList<>();
+    PriorityQueue<DeviceDistance> devicePriorityQueue = new PriorityQueue<DeviceDistance>(1, pqs);
     LinkedList<Integer> distanceQueue = new LinkedList<>();
     HashMap<DeviceId, Integer> deviceSearched = new HashMap<>();
     HashMap<DeviceId, ArrayList<Link>> upstreamLinks = new HashMap<>();
@@ -67,10 +96,85 @@ public class ECMPShortestPathGraph {
      * @param rootDevice root of the BFS tree
      * @param srManager SegmentRoutingManager object
      */
-    public ECMPShortestPathGraph(DeviceId rootDevice, SegmentRoutingManager srManager) {
+    public ECMPShortestPathGraph(DeviceId rootDevice, SegmentRoutingManager srManager,
+                                 boolean linkHasWeight) {
         this.rootDevice = rootDevice;
         this.srManager = srManager;
-        calcECMPShortestPathGraph();
+        if (!linkHasWeight) {
+            calcECMPShortestPathGraph();
+        } else {
+            calcECMPShortestPathGraphWithWeights();
+        }
+    }
+
+    /**
+     * Calculates the shortest path using Dijkstra's algorithm.
+     */
+    private void calcECMPShortestPathGraphWithWeights() {
+        DeviceDistance rootDeviceObj = new DeviceDistance(rootDevice, 0);
+        devicePriorityQueue.add(rootDeviceObj);
+        int currDistance = 0;
+        deviceSearched.put(rootDeviceObj.deviceId(), rootDeviceObj.distance());
+
+        while (devicePriorityQueue.peek() != null) {
+            DeviceDistance sw = devicePriorityQueue.poll();
+            DeviceId prevSw = null;
+            currDistance = sw.distance();
+
+            for (Link link : srManager.linkService.getDeviceEgressLinks(sw.deviceId())) {
+                DeviceId reachedDevice = link.dst().deviceId();
+                if ((prevSw != null)
+                        && (prevSw.equals(reachedDevice))) {
+                    /* Ignore LAG links between the same set of Devicees */
+                    continue;
+                }
+
+                Integer distance = deviceSearched.get(reachedDevice);
+                if ((distance != null) && (distance.intValue() < (currDistance + link.weight()))) {
+                    continue;
+                }
+
+                /* First time visiting this Device node or update the distance */
+                if (distance == null || distance.intValue() >= (currDistance + link.weight())) {
+                    DeviceDistance reachedDeviceObj = new DeviceDistance(reachedDevice, currDistance + link.weight());
+                    devicePriorityQueue.add(reachedDeviceObj);
+                    deviceSearched.put(reachedDeviceObj.deviceId(), reachedDeviceObj.distance());
+
+                    if (distance != null) {
+                        ArrayList<DeviceId> distanceSwArray = distanceDeviceMap.get(distance);
+                        for (int i = 0; i < distanceSwArray.size(); i++) {
+                            if (distanceSwArray.get(i).equals(reachedDevice)) {
+                                distanceSwArray.remove(i);
+                            }
+                        }
+                    }
+
+                    ArrayList<DeviceId> distanceSwArray = distanceDeviceMap
+                            .get(currDistance + link.weight());
+                    if (distanceSwArray == null) {
+                        distanceSwArray = new ArrayList<DeviceId>();
+                        distanceSwArray.add(reachedDevice);
+                        distanceDeviceMap.put(currDistance + link.weight(), distanceSwArray);
+                    } else {
+                        distanceSwArray.add(reachedDevice);
+                    }
+                }
+
+                ArrayList<Link> upstreamLinkArray =
+                        upstreamLinks.get(reachedDevice);
+                if (upstreamLinkArray == null) {
+                    upstreamLinkArray = new ArrayList<Link>();
+                    upstreamLinkArray.add(copyDefaultLink(link));
+                    upstreamLinks.put(reachedDevice, upstreamLinkArray);
+                } else {
+                    /* ECMP links */
+                    if (distance.intValue() > (currDistance + link.weight())) {
+                        upstreamLinkArray.clear();
+                    }
+                    upstreamLinkArray.add(copyDefaultLink(link));
+                }
+            }
+        }
     }
 
     /**
