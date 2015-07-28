@@ -28,6 +28,7 @@ import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.UiTopoOverlayFactory;
+import org.onosproject.ui.topo.TopoConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -225,7 +226,8 @@ public class UiWebSocket
             ObjectNode instance = mapper.createObjectNode()
                     .put("id", node.id().toString())
                     .put("ip", node.ip().toString())
-                    .put("uiAttached", node.equals(service.getLocalNode()));
+                    .put(TopoConstants.Glyphs.UI_ATTACHED,
+                         node.equals(service.getLocalNode()));
             instances.add(instance);
         }
 

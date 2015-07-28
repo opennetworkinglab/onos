@@ -203,10 +203,14 @@
                 .append('svg'),
             title = summary.appendHeader('h2'),
             table = summary.appendBody('table'),
-            tbody = table.append('tbody');
+            tbody = table.append('tbody'),
+            glyphId = data.type || 'node';
 
-        gs.addGlyph(svg, 'node', 40);
-        gs.addGlyph(svg, 'bird', 24, true, [8,12]);
+        gs.addGlyph(svg, glyphId, 40);
+
+        if (glyphId === 'node') {
+            gs.addGlyph(svg, 'bird', 24, true, [8,12]);
+        }
 
         title.text(data.title);
         listProps(tbody, data);
