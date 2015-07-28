@@ -74,12 +74,20 @@ public class TopoOverlayCache {
         return isNullOrEmpty(id) ? NONE : overlays.get(id);
     }
 
+    /**
+     * Returns the current overlay instance.
+     * Note that this method always returns a reference; when there is no
+     * overlay selected the "NULL" overlay instance is returned.
+     *
+     * @return the current overlay
+     */
     public UiTopoOverlay currentOverlay() {
         return current;
     }
 
     /**
-     * Returns the number of overlays in the cache.
+     * Returns the number of overlays in the cache. Remember that this
+     * includes the "NULL" overlay, representing "no overlay selected".
      *
      * @return number of overlays
      */
@@ -88,26 +96,19 @@ public class TopoOverlayCache {
     }
 
 
-
+    // overlay instance representing "no overlay selected"
     private static class NullOverlay extends UiTopoOverlay {
         public NullOverlay() {
             super(null);
         }
 
-        @Override
-        public void init() {
-        }
-
+        // override activate and deactivate, so no log messages are written
         @Override
         public void activate() {
         }
 
         @Override
         public void deactivate() {
-        }
-
-        @Override
-        public void destroy() {
         }
     }
 }

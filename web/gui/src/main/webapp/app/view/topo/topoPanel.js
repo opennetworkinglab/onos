@@ -219,6 +219,11 @@
     // === -----------------------------------------------------
     //  Functions for populating the detail panel
 
+    var isDevice = {
+        switch: 1,
+        roadm: 1
+    };
+
     function displaySingle(data) {
         detail.setup();
 
@@ -228,16 +233,21 @@
             title = detail.appendHeader('h2')
                 .classed('clickable', true),
             table = detail.appendBody('table'),
-            tbody = table.append('tbody');
+            tbody = table.append('tbody'),
+            navFn;
 
         gs.addGlyph(svg, (data.type || 'unknown'), 40);
-        title.text(data.id);
-        svg.on('click', function () {
-            ns.navTo(devPath, { devId: data.id });
-        });
-        title.on('click', function () {
-            ns.navTo(devPath, { devId: data.id });
-        });
+        title.text(data.title);
+
+        // only add navigation when displaying a device
+        if (isDevice[data.type]) {
+            navFn = function () {
+                ns.navTo(devPath, { devId: data.id });
+            };
+
+            svg.on('click', navFn);
+            title.on('click', navFn);
+        }
 
         listProps(tbody, data);
         addBtnFooter();

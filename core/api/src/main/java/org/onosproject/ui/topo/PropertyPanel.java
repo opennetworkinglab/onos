@@ -19,6 +19,7 @@ package org.onosproject.ui.topo;
 
 import com.google.common.collect.Sets;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -30,6 +31,7 @@ public class PropertyPanel {
 
     private String title;
     private String typeId;
+    private String id;
     private List<Prop> properties = new ArrayList<>();
 
     /**
@@ -56,6 +58,19 @@ public class PropertyPanel {
     }
 
     /**
+     * Adds an ID field to the panel data, to be included in
+     * the returned JSON data to the client.
+     *
+     * @param id the identifier
+     * @return self, for chaining
+     */
+    public PropertyPanel id(String id) {
+        this.id = id;
+        return this;
+    }
+
+
+    /**
      * Returns the title text.
      *
      * @return title text
@@ -71,6 +86,15 @@ public class PropertyPanel {
      */
     public String typeId() {
         return typeId;
+    }
+
+    /**
+     * Returns the internal ID.
+     *
+     * @return the ID
+     */
+    public String id() {
+        return id;
     }
 
     /**
@@ -137,6 +161,8 @@ public class PropertyPanel {
 
     // ====================
 
+    private static final DecimalFormat DF0 = new DecimalFormat("#,###");
+
     /**
      * Simple data carrier for a property, composed of a key/value pair.
      */
@@ -153,6 +179,26 @@ public class PropertyPanel {
         public Prop(String key, String value) {
             this.key = key;
             this.value = value;
+        }
+
+        /**
+         * Constructs a property data value.
+         * @param key property key
+         * @param value property value
+         */
+        public Prop(String key, int value) {
+            this.key = key;
+            this.value = DF0.format(value);
+        }
+
+        /**
+         * Constructs a property data value.
+         * @param key property key
+         * @param value property value
+         */
+        public Prop(String key, long value) {
+            this.key = key;
+            this.value = DF0.format(value);
         }
 
         /**

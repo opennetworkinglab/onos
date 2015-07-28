@@ -440,57 +440,61 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                    JsonUtils.node(payload, "memento"));
     }
 
-    // Returns summary response.
+    // -----------------------------------------------------------------------
+    // Create models of the data to return, that overlays can adjust / augment
+
+    // Returns property panel model for summary response.
     protected PropertyPanel summmaryMessage(long sid) {
         Topology topology = topologyService.currentTopology();
         PropertyPanel pp = new PropertyPanel("ONOS Summary", "node")
-            .add(new PropertyPanel.Prop("Devices", format(topology.deviceCount())))
-            .add(new PropertyPanel.Prop("Links", format(topology.linkCount())))
-            .add(new PropertyPanel.Prop("Hosts", format(hostService.getHostCount())))
-            .add(new PropertyPanel.Prop("Topology SCCs", format(topology.clusterCount())))
+            .add(new PropertyPanel.Prop("Devices", topology.deviceCount()))
+            .add(new PropertyPanel.Prop("Links", topology.linkCount()))
+            .add(new PropertyPanel.Prop("Hosts", hostService.getHostCount()))
+            .add(new PropertyPanel.Prop("Topology SCCs", topology.clusterCount()))
             .add(new PropertyPanel.Separator())
-            .add(new PropertyPanel.Prop("Intents", format(intentService.getIntentCount())))
-            .add(new PropertyPanel.Prop("Tunnels", format(tunnelService.tunnelCount())))
-            .add(new PropertyPanel.Prop("Flows", format(flowService.getFlowRuleCount())))
+            .add(new PropertyPanel.Prop("Intents", intentService.getIntentCount()))
+            .add(new PropertyPanel.Prop("Tunnels", tunnelService.tunnelCount()))
+            .add(new PropertyPanel.Prop("Flows", flowService.getFlowRuleCount()))
             .add(new PropertyPanel.Prop("Version", version));
 
         return pp;
     }
 
-    // Returns device details response.
-    protected ObjectNode deviceDetails(DeviceId deviceId, long sid) {
+    // Returns property panel model for device details response.
+    protected PropertyPanel deviceDetails(DeviceId deviceId, long sid) {
         Device device = deviceService.getDevice(deviceId);
         Annotations annot = device.annotations();
         String name = annot.value(AnnotationKeys.NAME);
         int portCount = deviceService.getPorts(deviceId).size();
         int flowCount = getFlowCount(deviceId);
         int tunnelCount = getTunnelCount(deviceId);
-        return JsonUtils.envelope("showDetails", sid,
-                                  json(isNullOrEmpty(name) ? deviceId.toString() : name,
-                                       device.type().toString().toLowerCase(),
-                                       new Prop("URI", deviceId.toString()),
-                                       new Prop("Vendor", device.manufacturer()),
-                                       new Prop("H/W Version", device.hwVersion()),
-                                       new Prop("S/W Version", device.swVersion()),
-                                       new Prop("Serial Number", device.serialNumber()),
-                                       new Prop("Protocol", annot.value(AnnotationKeys.PROTOCOL)),
-                                       new Separator(),
-                                       new Prop("Master", master(deviceId)),
-                                       new Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)),
-                                       new Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE)),
-                                       new Separator(),
-                                       new Prop("Ports", Integer.toString(portCount)),
-                                       new Prop("Flows", Integer.toString(flowCount)),
-                                       new Prop("Tunnels", Integer.toString(tunnelCount))
-                                  ));
+
+        String title = isNullOrEmpty(name) ? deviceId.toString() : name;
+        String typeId = device.type().toString().toLowerCase();
+
+        PropertyPanel pp = new PropertyPanel(title, typeId)
+                .id(deviceId.toString())
+                .add(new PropertyPanel.Prop("URI", deviceId.toString()))
+                .add(new PropertyPanel.Prop("Vendor", device.manufacturer()))
+                .add(new PropertyPanel.Prop("H/W Version", device.hwVersion()))
+                .add(new PropertyPanel.Prop("S/W Version", device.swVersion()))
+                .add(new PropertyPanel.Prop("Serial Number", device.serialNumber()))
+                .add(new PropertyPanel.Prop("Protocol", annot.value(AnnotationKeys.PROTOCOL)))
+                .add(new PropertyPanel.Separator())
+                .add(new PropertyPanel.Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)))
+                .add(new PropertyPanel.Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE)))
+                .add(new PropertyPanel.Separator())
+                .add(new PropertyPanel.Prop("Ports", portCount))
+                .add(new PropertyPanel.Prop("Flows", flowCount))
+                .add(new PropertyPanel.Prop("Tunnels", tunnelCount));
+
+        return pp;
     }
 
     protected int getFlowCount(DeviceId deviceId) {
         int count = 0;
-        Iterator<FlowEntry> it = flowService.getFlowEntries(deviceId).iterator();
-        while (it.hasNext()) {
+        for (FlowEntry flowEntry : flowService.getFlowEntries(deviceId)) {
             count++;
-            it.next();
         }
         return count;
     }
@@ -503,8 +507,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             OpticalTunnelEndPoint dst = (OpticalTunnelEndPoint) tunnel.dst();
             DeviceId srcDevice = (DeviceId) src.elementId().get();
             DeviceId dstDevice = (DeviceId) dst.elementId().get();
-            if (srcDevice.toString().equals(deviceId.toString())
-             || dstDevice.toString().equals(deviceId.toString())) {
+            if (srcDevice.toString().equals(deviceId.toString()) ||
+                dstDevice.toString().equals(deviceId.toString())) {
                 count++;
             }
         }
@@ -516,9 +520,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         List<FlowEntry> entries = new ArrayList<>();
         Set<Link> links = new HashSet<>(linkService.getDeviceEgressLinks(deviceId));
         Set<Host> hosts = hostService.getConnectedHosts(deviceId);
-        Iterator<FlowEntry> it = flowService.getFlowEntries(deviceId).iterator();
-        while (it.hasNext()) {
-            entries.add(it.next());
+        for (FlowEntry flowEntry : flowService.getFlowEntries(deviceId)) {
+            entries.add(flowEntry);
         }
 
         // Add all edge links to the set
@@ -555,24 +558,30 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
 
     // Returns host details response.
-    protected ObjectNode hostDetails(HostId hostId, long sid) {
+    protected PropertyPanel hostDetails(HostId hostId, long sid) {
         Host host = hostService.getHost(hostId);
         Annotations annot = host.annotations();
         String type = annot.value(AnnotationKeys.TYPE);
         String name = annot.value(AnnotationKeys.NAME);
         String vlan = host.vlan().toString();
-        return JsonUtils.envelope("showDetails", sid,
-                                  json(isNullOrEmpty(name) ? hostId.toString() : name,
-                                       isNullOrEmpty(type) ? "endstation" : type,
-                                       new Prop("MAC", host.mac().toString()),
-                                       new Prop("IP", host.ipAddresses().toString().replaceAll("[\\[\\]]", "")),
-                                       new Prop("VLAN", vlan.equals("-1") ? "none" : vlan),
-                                       new Separator(),
-                                       new Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)),
-                                       new Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE))));
+
+        String title = isNullOrEmpty(name) ? hostId.toString() : name;
+        String typeId = isNullOrEmpty(type) ? "endstation" : type;
+
+        PropertyPanel pp = new PropertyPanel(title, typeId)
+                .id(hostId.toString())
+                .add(new PropertyPanel.Prop("MAC", host.mac().toString()))
+                .add(new PropertyPanel.Prop("IP", host.ipAddresses().toString().replaceAll("[\\[\\]]", "")))
+                .add(new PropertyPanel.Prop("VLAN", vlan.equals("-1") ? "none" : vlan))
+                .add(new PropertyPanel.Separator())
+                .add(new PropertyPanel.Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)))
+                .add(new PropertyPanel.Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE)));
+
+        return pp;
     }
 
 
+    // TODO: migrate to Traffic overlay
     // Produces JSON message to trigger flow traffic overview visualization
     protected ObjectNode trafficSummaryMessage(StatsType type) {
         ObjectNode payload = objectNode();
@@ -827,21 +836,19 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return format.format(value) + " " + unit;
     }
 
-    // Formats the given number into a string.
-    private String format(Number number) {
-        DecimalFormat format = new DecimalFormat("#,###");
-        return format.format(number);
-    }
-
     // Produces compact string representation of a link.
     private static String compactLinkString(Link link) {
         return String.format(COMPACT, link.src().elementId(), link.src().port(),
                              link.dst().elementId(), link.dst().port());
     }
 
+    // translates the property panel into JSON, for returning to the client
     protected ObjectNode json(PropertyPanel pp) {
         ObjectNode result = objectNode()
-                .put("title", pp.title()).put("type", pp.typeId());
+                .put("title", pp.title())
+                .put("type", pp.typeId())
+                .put("id", pp.id());
+
         ObjectNode pnode = objectNode();
         ArrayNode porder = arrayNode();
         for (PropertyPanel.Prop p : pp.properties()) {

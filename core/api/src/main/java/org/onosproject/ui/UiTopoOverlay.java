@@ -26,7 +26,10 @@ import org.slf4j.LoggerFactory;
  */
 public class UiTopoOverlay {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    /**
+     * Logger for this overlay.
+     */
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     private final String id;
 
@@ -72,7 +75,7 @@ public class UiTopoOverlay {
     /**
      * Callback invoked to destroy this instance by cleaning up any
      * internal state ready for garbage collection.
-     * This default implementation does nothing.
+     * This default implementation holds no state and does nothing.
      */
     public void destroy() {
     }
@@ -84,5 +87,25 @@ public class UiTopoOverlay {
      * @param pp property panel model of summary data
      */
     public void modifySummary(PropertyPanel pp) {
+    }
+
+    /**
+     * Callback to modify the contents of the details panel for
+     * a selected device.
+     * This default implementation does nothing.
+     *
+     * @param pp property panel model of summary data
+     */
+    public void modifyDeviceDetails(PropertyPanel pp) {
+    }
+
+    /**
+     * Callback to modify the contents of the details panel for
+     * a selected host.
+     * This default implementation does nothing.
+     *
+     * @param pp property panel model of summary data
+     */
+    public void modifyHostDetails(PropertyPanel pp) {
     }
 }
