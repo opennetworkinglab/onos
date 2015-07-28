@@ -501,6 +501,21 @@ html[data-platform='iPad'] #topo-p-detail {
 }
 
 
+#ov-topo svg .link.animated {
+    stroke-dasharray: 8 5;
+    animation: ants 5s infinite linear;
+    /* below line will be added via Javascript based on path */
+    /*animation-direction: reverse;*/
+}
+@keyframes ants {
+    from {
+        stroke-dashoffset: 0;
+    }
+    to {
+        stroke-dashoffset: 400;
+    }
+}
+
 #ov-topo svg .link.primary {
     stroke-width: 4px;
 }

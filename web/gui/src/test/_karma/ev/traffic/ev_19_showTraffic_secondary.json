@@ -4,7 +4,7 @@
   "payload": {
     "paths": [
       {
-        "class": "secondary",
+        "class": "secondary animated",
         "links": [
           "0E:2A:69:30:13:86/-1/0-of:0000ffffffff0003/101",
           "0E:2A:69:30:13:aa/-1/0-of:0000ffffffff0008/103",
@@ -19,7 +19,7 @@
         ]
       },
       {
-        "class": "secondary optical",
+        "class": "secondary optical animated",
         "links": [
           "of:0000ffffffffff08/13-of:0000ffffffffff03/17",
           "of:0000ffffffffff08/99-of:0000ffffffffff04/65535"
