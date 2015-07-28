@@ -110,10 +110,7 @@ import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.P
 
 /**
  * Facility for creating messages bound for the topology viewer.
- *
- * @deprecated in Cardinal Release
  */
-@Deprecated
 public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     protected static final Logger log =
@@ -943,6 +940,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Auxiliary key/value carrier.
+    @Deprecated
     static class Prop {
         public final String key;
         public final String value;
@@ -954,12 +952,14 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Auxiliary properties separator
+    @Deprecated
     static class Separator extends Prop {
         protected Separator() {
             super("-", "");
         }
     }
 
+    // TODO: move this to traffic overlay component
     // Auxiliary carrier of data for requesting traffic message.
     static class TrafficClass {
         public final boolean showTraffic;

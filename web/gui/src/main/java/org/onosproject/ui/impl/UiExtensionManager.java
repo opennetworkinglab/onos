@@ -33,8 +33,6 @@ import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiTopoOverlayFactory;
 import org.onosproject.ui.UiView;
 import org.onosproject.ui.UiViewHidden;
-import org.onosproject.ui.impl.topo.OverlayService;
-import org.onosproject.ui.impl.topo.overlay.SummaryGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +50,7 @@ import static org.onosproject.ui.UiView.Category.PLATFORM;
  */
 @Component(immediate = true)
 @Service
-public class UiExtensionManager
-        implements UiExtensionService, SpriteService, OverlayService {
+public class UiExtensionManager implements UiExtensionService, SpriteService {
 
     private static final ClassLoader CL =
             UiExtensionManager.class.getClassLoader();
@@ -70,9 +67,6 @@ public class UiExtensionManager
     // Core views & core extension
     private final UiExtension core = createCoreExtension();
 
-    // Topology Message Handler
-    private final AltTopoViewMessageHandler topoHandler =
-            new AltTopoViewMessageHandler();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
@@ -96,7 +90,6 @@ public class UiExtensionManager
         UiMessageHandlerFactory messageHandlerFactory =
                 () -> ImmutableList.of(
                         new TopologyViewMessageHandler(),
-//                        topoHandler,
                         new DeviceViewMessageHandler(),
                         new LinkViewMessageHandler(),
                         new HostViewMessageHandler(),
@@ -182,18 +175,4 @@ public class UiExtensionManager
         return sprites.get(name);
     }
 
-
-    // =====================================================================
-    // Topology Overlay API -- pass through to topology message handler
-
-    // NOTE: while WIP, comment out calls to topoHandler (for checked in code)
-    @Override
-    public void addSummaryGenerator(String overlayId, SummaryGenerator generator) {
-        topoHandler.addSummaryGenerator(overlayId, generator);
-    }
-
-    @Override
-    public void removeSummaryGenerator(String overlayId) {
-        topoHandler.removeSummaryGenerator(overlayId);
-    }
 }
