@@ -141,9 +141,6 @@ public class LinkDiscovery implements TimerTask {
      * @param port the port
      */
     public void addPort(final Port port) {
-        this.log.debug("Sending init probe to port {}@{}",
-                       port.number().toLong(), device.id());
-
         boolean newPort = false;
         synchronized (this) {
             if (!containsPort(port.number().toLong())) {
@@ -154,6 +151,8 @@ public class LinkDiscovery implements TimerTask {
 
         boolean isMaster = mastershipService.getLocalRole(device.id()) == MASTER;
         if (newPort && isMaster) {
+            this.log.debug("Sending init probe to port {}@{}",
+                    port.number().toLong(), device.id());
             sendProbes(port.number().toLong());
         }
     }
