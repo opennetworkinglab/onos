@@ -18,19 +18,25 @@ package org.onosproject.cluster;
 import java.util.Set;
 
 import org.joda.time.DateTime;
+import org.onlab.packet.IpAddress;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Test adapter for the cluster service.
  */
 public class ClusterServiceAdapter implements ClusterService {
+    ControllerNode local = new DefaultControllerNode(new NodeId("local"),
+            IpAddress.valueOf("127.0.0.1"));
+
     @Override
     public ControllerNode getLocalNode() {
-        return null;
+        return local;
     }
 
     @Override
     public Set<ControllerNode> getNodes() {
-        return null;
+        return ImmutableSet.of(local);
     }
 
     @Override
