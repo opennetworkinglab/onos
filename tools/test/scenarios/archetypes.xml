@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<scenario name="archetypes-test" description="ONOS archetypes test">
+<scenario name="archetypes" description="ONOS archetypes test">
     <group name="Archetypes" cwd="${WORKSPACE}/tmp/test-app">
         <step name="Clean-Up" cwd="${WORKSPACE}/tmp" env="~"
               exec="rm -r test-app"/>

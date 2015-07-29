@@ -23,6 +23,19 @@ function _stc-opts () {
 complete -F _stc-opts stc
 
 
+# Tab completion settings for stl
+function _stl-opts () {
+  local cur=${COMP_WORDS[COMP_CWORD]}
+  if [ $COMP_CWORD -eq 1 ]; then
+    COMPREPLY=( $( compgen -W "$(cd /tmp/stc && ls -1)" -- $cur ) )
+  elif [ $COMP_CWORD -eq 2 ]; then
+    COMPREPLY=( $( compgen -W "$(cd /tmp/stc/$3 && ls -1)" -- $cur ) )
+  fi
+}
+
+complete -F _stl-opts stl
+
+
 # Tab completion settings for cell
 function _cell-opts () {
   local cur=${COMP_WORDS[COMP_CWORD]}
