@@ -45,6 +45,7 @@ import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.Version;
+import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ChannelSpacing;
@@ -416,7 +417,8 @@ public final class KryoNamespaces {
                     Frequency.class,
                     DefaultAnnotations.class,
                     PortStatistics.class,
-                    DefaultPortStatistics.class
+                    DefaultPortStatistics.class,
+                    IntentDomainId.class
             )
             .register(new DefaultApplicationIdSerializer(), DefaultApplicationId.class)
             .register(new URISerializer(), URI.class)

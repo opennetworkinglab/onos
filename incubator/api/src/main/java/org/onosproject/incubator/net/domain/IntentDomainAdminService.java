@@ -22,7 +22,7 @@ import org.onosproject.core.ApplicationId;
  * Administrative interface for the intent domain service.
  */
 @Beta
-public interface IntentDomainAdminService {
+public interface IntentDomainAdminService extends IntentDomainService {
 
     /**
      * Register an application that provides intent domain service.

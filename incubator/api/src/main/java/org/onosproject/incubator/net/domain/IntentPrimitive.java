@@ -26,7 +26,7 @@ public abstract class IntentPrimitive {
 
     private final ApplicationId appId;
 
-    IntentPrimitive(ApplicationId appId) {
+    public IntentPrimitive(ApplicationId appId) {
         this.appId = appId;
     }
 }

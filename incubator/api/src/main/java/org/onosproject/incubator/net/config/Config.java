@@ -16,8 +16,14 @@
 package org.onosproject.incubator.net.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.Beta;
+import com.google.common.collect.Lists;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -255,6 +261,41 @@ public abstract class Config<S> {
             node.put(name, value.toString());
         } else {
             node.remove(name);
+        }
+        return this;
+    }
+
+    /**
+     * Gets the specified array property as a list of items.
+     *
+     * @param name property name
+     * @param function mapper from string to item
+     * @param <T> type of item
+     * @return list of items
+     */
+    protected <T> List<T> getList(String name, Function<String, T> function) {
+        List<T> list = Lists.newArrayList();
+        ArrayNode arrayNode = (ArrayNode) node.path(name);
+        arrayNode.forEach(i -> list.add(function.apply(i.asText())));
+        return list;
+    }
+
+    /**
+     * Sets the specified property as an array of items in a given collection or
+     * clears it if null is given.
+     *
+     * @param name propertyName
+     * @param collection collection of items
+     * @param <T> type of items
+     * @return self
+     */
+    protected <T> Config<S> setOrClear(String name, Collection<T> collection) {
+        if (collection == null) {
+            node.remove(name);
+        } else {
+            ArrayNode arrayNode = mapper.createArrayNode();
+            collection.forEach(i -> arrayNode.add(i.toString()));
+            node.set(name, arrayNode);
         }
         return this;
     }

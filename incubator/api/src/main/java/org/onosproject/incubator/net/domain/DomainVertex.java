@@ -16,6 +16,7 @@
 package org.onosproject.incubator.net.domain;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.MoreObjects;
 import org.onlab.graph.Vertex;
 import org.onosproject.net.DeviceId;
 
@@ -30,23 +31,39 @@ public class DomainVertex implements Vertex {
     // FIXME we will want to add a type enum or subclasses for the two different types
 
     // A domain vertex is either an intent domain or a device:
-    private final IntentDomainId id;
+    private final IntentDomainId domainId;
     // ----- or -----
     private final DeviceId deviceId;
 
     // Serialization constructor
     private DomainVertex() {
-        this.id = null;
+        this.domainId = null;
         this.deviceId = null;
     }
 
-    DomainVertex(IntentDomainId id) {
-        this.id = checkNotNull(id, "Intent domain ID cannot be null.");
+    public DomainVertex(IntentDomainId id) {
+        this.domainId = checkNotNull(id, "Intent domain ID cannot be null.");
         this.deviceId = null;
     }
 
-    DomainVertex(DeviceId id) {
-        this.id = null;
+    public DomainVertex(DeviceId id) {
+        this.domainId = null;
         this.deviceId = checkNotNull(id, "Device ID cannot be null.");
+    }
+
+    @Override
+    public String toString() {
+        if (domainId != null) {
+            return MoreObjects.toStringHelper(this)
+                    .add("domainId", domainId)
+                    .toString();
+        } else if (deviceId != null) {
+            return MoreObjects.toStringHelper(this)
+                    .add("deviceId", deviceId)
+                    .toString();
+        } else {
+            return MoreObjects.toStringHelper(this)
+                    .toString();
+        }
     }
 }

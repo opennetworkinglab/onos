@@ -29,6 +29,8 @@ import org.onosproject.incubator.net.config.basics.BasicHostConfig;
 import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
 import org.onosproject.incubator.net.config.basics.BasicPortConfig;
 import org.onosproject.incubator.net.config.basics.SubjectFactories;
+import org.onosproject.incubator.net.domain.IntentDomainConfig;
+import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
@@ -79,6 +81,14 @@ public class BasicNetworkConfigs {
                 @Override
                 public BasicLinkConfig createConfig() {
                     return new BasicLinkConfig();
+                }
+            },
+            new ConfigFactory<IntentDomainId, IntentDomainConfig>(INTENT_DOMAIN_SUBJECT_FACTORY,
+                                                                  IntentDomainConfig.class,
+                                                                  "basic") {
+                @Override
+                public IntentDomainConfig createConfig() {
+                    return new IntentDomainConfig();
                 }
             }
     );

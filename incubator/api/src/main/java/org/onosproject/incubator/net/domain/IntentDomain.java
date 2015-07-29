@@ -19,7 +19,6 @@ import com.google.common.annotations.Beta;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -37,7 +36,7 @@ public class IntentDomain {
 
     private IntentDomainProvider provider;
 
-    IntentDomain(IntentDomainId id, String name,
+    public IntentDomain(IntentDomainId id, String name,
                  Set<DeviceId> internalDevices,
                  Set<ConnectPoint> edgePorts) {
         this.id = id;
@@ -88,7 +87,7 @@ public class IntentDomain {
      *
      * @return intent domain provider
      */
-    IntentDomainProvider provider() {
+    public IntentDomainProvider provider() {
         return provider;
     }
 
@@ -115,16 +114,10 @@ public class IntentDomain {
     }
 
     /**
-     * Unsets the provider for the intent domain if the given provider matches
-     * the existing provider.
-     *
-     * @param provider provider to unset
+     * Unsets the provider for the intent domain.
      */
-    public void unsetProvider(IntentDomainProvider provider) {
-        // TODO consider checkState depending on caller
-        if (Objects.equals(this.provider, provider)) {
-            this.provider = null;
-        }
+    public void unsetProvider() {
+        this.provider = null;
     }
 
     //TODO add remaining setters (we will probably want to link this to the network config)

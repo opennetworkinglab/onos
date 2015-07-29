@@ -70,7 +70,7 @@ import static org.onosproject.security.AppGuard.checkPermission;
 
 
 /**
- * An implementation of Intent Manager.
+ * An implementation of intent service.
  */
 @Component(immediate = true)
 @Service

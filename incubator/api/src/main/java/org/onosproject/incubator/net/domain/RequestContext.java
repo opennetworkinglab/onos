@@ -26,7 +26,7 @@ import com.google.common.annotations.Beta;
  * also be automatically cancelled by a provider after a short timeout.
  */
 @Beta
-class RequestContext {
+public class RequestContext {
     IntentDomain domain;
     IntentResource resource;
     //TODO other common parameters:

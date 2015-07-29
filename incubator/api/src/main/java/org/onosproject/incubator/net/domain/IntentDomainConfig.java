@@ -16,6 +16,7 @@
 package org.onosproject.incubator.net.domain;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.incubator.net.config.Config;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -27,10 +28,13 @@ import java.util.Set;
  * set of edge ports, and the application bound to control the domain.
  */
 @Beta
-public abstract class IntentDomainConfig extends Config<IntentDomainId> {
+public class IntentDomainConfig extends Config<IntentDomainId> {
 
-    private static final String DOMAIN_NAME = "domainName";
+    private static final String DOMAIN_NAME = "name";
     private static final String APPLICATION_NAME = "applicationName";
+    private static final String INTERNAL_DEVICES = "internalDevices";
+    private static final String EDGE_PORTS = "edgePorts";
+
 
     /**
      * Returns the friendly name for the domain.
@@ -57,7 +61,7 @@ public abstract class IntentDomainConfig extends Config<IntentDomainId> {
      * @return domain name
      */
     public String applicationName() {
-        return get(APPLICATION_NAME, null); //TODO maybe not null?
+        return get(APPLICATION_NAME, "FIXME"); //TODO maybe not null?
     }
 
     /**
@@ -70,8 +74,42 @@ public abstract class IntentDomainConfig extends Config<IntentDomainId> {
         return (IntentDomainConfig) setOrClear(APPLICATION_NAME, applicationName);
     }
 
-    //TODO sets
-    abstract Set<DeviceId> internalDevices();
-    abstract Set<ConnectPoint> edgePorts();
+    /**
+     * Returns the set of internal devices.
+     *
+     * @return set of internal devices
+     */
+    public Set<DeviceId> internalDevices() {
+        return ImmutableSet.copyOf(getList(INTERNAL_DEVICES, DeviceId::deviceId));
+    }
+
+    /**
+     * Sets the set of internal devices.
+     *
+     * @param devices set of devices; null to clear
+     * @return self
+     */
+    public IntentDomainConfig internalDevices(Set<DeviceId> devices) {
+        return (IntentDomainConfig) setOrClear(INTERNAL_DEVICES, devices);
+    }
+
+    /**
+     * Returns the set of edge ports.
+     *
+     * @return set of edge ports
+     */
+    public Set<ConnectPoint> edgePorts() {
+        return ImmutableSet.copyOf(getList(EDGE_PORTS, ConnectPoint::deviceConnectPoint));
+    }
+
+    /**
+     * Sets the set of edge ports.
+     *
+     * @param connectPoints set of edge ports; null to clear
+     * @return self
+     */
+    public IntentDomainConfig edgePorts(Set<ConnectPoint> connectPoints) {
+        return (IntentDomainConfig) setOrClear(EDGE_PORTS, connectPoints);
+    }
 
 }
