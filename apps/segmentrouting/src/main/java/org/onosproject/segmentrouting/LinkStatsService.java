@@ -21,15 +21,20 @@ import org.onosproject.net.device.DefaultPortStatistics;
 
 import java.util.HashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class LinkStatsService {
-    static class LinkStats {
+
+    public static class LinkStats {
+
         private long bytesTransferred;
         private long packetsTransferred;
         private long packetsDropped;
 
         public LinkStats(long bytesTransferred,
-            long packetsTransferred,
-            long packetsDropped) {
+                         long packetsTransferred,
+                         long packetsDropped) {
             this.bytesTransferred = bytesTransferred;
             this.packetsTransferred = packetsTransferred;
             this.packetsDropped = packetsDropped;
@@ -48,6 +53,7 @@ public class LinkStatsService {
         }
     }
 
+    private static Logger log = LoggerFactory.getLogger(LinkStatsService.class);
     private SegmentRoutingManager srManager;
 
     public LinkStatsService(SegmentRoutingManager srManager) {
@@ -85,10 +91,4 @@ public class LinkStatsService {
         }
         return linkStatsMapper;
     }
-
 }
-
-
-
-
-

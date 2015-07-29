@@ -101,6 +101,7 @@ public class DefaultRoutingHandler {
             log.debug("populateAllRoutingRules: populationStatus is STARTED");
 
             for (Device sw : srManager.deviceService.getDevices()) {
+                log.debug("DEVICE -- {}", sw.id());
                 if (!srManager.mastershipService.isLocalMaster(sw.id())) {
                     log.debug("populateAllRoutingRules: skipping device {}...we are not master",
                               sw.id());
