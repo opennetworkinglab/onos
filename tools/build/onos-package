@@ -1,93 +1,144 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Packages ONOS distributable into onos.tar.gz and onos.zip
+# Packages ONOS distributable into onos.tar.gz, onos.zip or a deb file
 # -----------------------------------------------------------------------------
 
+# Build the staging directory used to produce the packages
+function build_stage_dir() {
+    # Make sure we have the original apache karaf bits first
+    [ ! -d $M2_REPO ] && echo "M2 repository $M2_REPO not found" && exit 1
+    [ -d $ONOS_STAGE ] && echo "ONOS stage $ONOS_STAGE already exists" && exit 1
+
+    # Create the stage directory and warp into it
+    mkdir -p $ONOS_STAGE
+    cd $ONOS_STAGE
+
+    # Check if Apache Karaf bits are available and if not, fetch them.
+    if [ ! -f $KARAF_ZIP -a ! -f $KARAF_TAR ]; then
+        echo "Downloading $KARAF_TAR..."
+        curl -sL http://downloads.onosproject.org/third-party/apache-karaf-$KARAF_VERSION.tar.gz > $KARAF_TAR
+    fi
+    [ ! -f $KARAF_ZIP -a ! -f $KARAF_TAR ] && \
+        echo "Apache Karaf bits $KARAF_ZIP or $KARAF_TAR not found" && exit 1
+
+    # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
+    [ -f $KARAF_ZIP ] && unzip -q $KARAF_ZIP && rm -rf $ONOS_STAGE/$KARAF_DIST/demos
+    [ -f $KARAF_TAR ] && tar zxf $KARAF_TAR && rm -rf $ONOS_STAGE/$KARAF_DIST/demos
+    mkdir bin
+
+    # Stage the ONOS admin scripts and patch in Karaf service wrapper extras
+    cp -r $ONOS_ROOT/tools/package/bin .
+    cp -r $ONOS_ROOT/tools/package/debian $ONOS_STAGE/debian
+    cp -r $ONOS_ROOT/tools/package/etc/* $ONOS_STAGE/$KARAF_DIST/etc
+
+    # Stage all builtin ONOS apps for factory install
+    onos-stage-apps $ONOS_STAGE/apps $ONOS_STAGE/$KARAF_DIST/system
+
+    # Mark the org.onosproject.drivers app active by default
+    touch $ONOS_STAGE/apps/org.onosproject.drivers/active
+
+    # Patch-in proper Karaf version into the startup script
+    sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
+        $ONOS_ROOT/tools/package/bin/onos-service > bin/onos-service
+    sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
+        $ONOS_ROOT/tools/package/bin/onos-client > bin/onos
+    chmod a+x bin/onos-service bin/onos
+
+    # Stage the ONOS bundles, but only those that match the version
+    mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/onosproject
+    find $M2_REPO/org/onosproject -type f -path "*/$ONOS_POM_VERSION/*" \
+        -name '*.jar' -o -name '*.pom' -o -name '*-features.xml' \
+            | grep -v -Ee '-tests.jar|-[0-9]{8}.[0-9]{6}-' \
+            | while read src; do
+        dst=$ONOS_STAGE/$KARAF_DIST/system/${src#$M2_REPO/*}
+        mkdir -p $(dirname $dst)
+        cp $src $dst
+    done
+
+    # ONOS Patching ----------------------------------------------------------------
+
+    # Patch the Apache Karaf distribution file to add ONOS features repository
+    perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onosproject/onos-features/$ONOS_POM_VERSION/xml/features|" \
+        $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg
+
+    # Patch the Apache Karaf distribution file to load default ONOS boot features
+    export BOOT_FEATURES="webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui"
+    perl -pi.old -e "s|^(featuresBoot=.*)|\1,$BOOT_FEATURES|" \
+        $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg
+
+    # Patch the Apache Karaf distribution with ONOS branding bundle
+    cp $M2_REPO/org/onosproject/onos-branding/$ONOS_POM_VERSION/onos-branding-*.jar \
+        $ONOS_STAGE/$KARAF_DIST/lib
+
+    # Patch in the ONOS version file
+    echo $ONOS_VERSION > $ONOS_STAGE/VERSION
+}
+
+function build_compressed_package() {
+    # Package up the ONOS tar file
+    cd $ONOS_STAGE_ROOT
+    rm -f $ONOS_TAR $ONOS_ZIP
+    COPYFILE_DISABLE=1 tar zcf $ONOS_TAR $ONOS_BITS
+
+    # Figure out whether we should build ONOS zip file and if so, build it.
+    which zip >/dev/null && [ -z "$ONOS_TAR_ONLY" ] && buildZip=true || unset buildZip
+    [ -n "$buildZip" ] && zip -rq $ONOS_ZIP $ONOS_BITS
+
+    # Report on the archives that were built and clean-up
+    [ -n "$buildZip" ] && ls -lh $ONOS_TAR $ONOS_ZIP || ls -lh $ONOS_TAR
+    rm -r $ONOS_STAGE
+}
+
+# Build a DEB package
+function build_deb() { 
+    echo "You need to be root in order to generate a proper DEB package."
+
+    sudo rm -fr $ONOS_DEB_ROOT
+
+    mkdir -p $ONOS_DEB_ROOT/DEBIAN
+    mkdir -p $ONOS_DEB_ROOT/opt/
+    mkdir -p $ONOS_DEB_ROOT/etc/init
+
+    {
+        echo "Package: onos"
+        echo "Architecture: all"
+        echo "Maintainer: ONOS Project"
+        echo "Depends: debconf (>= 0.5.00), default-jre-headless (>= 1.8) | openjdk-8-jre | oracle-java8-installer"
+        echo "Priority: optional"
+        echo "Version: $ONOS_POM_VERSION"
+        echo "Description: Open Network Operating System (ONOS) is an"
+        echo "  opensource SDN controller."
+    } > $ONOS_DEB_ROOT/DEBIAN/control
+
+    cp -r $ONOS_STAGE $ONOS_DEB_ROOT/opt/onos
+    cp $ONOS_ROOT/tools/package/debian/onos.conf $ONOS_DEB_ROOT/etc/init/
+
+    mkdir -p $ONOS_DEB_ROOT/opt/onos/var/
+
+    sudo chown -R root:root $ONOS_DEB_ROOT
+    
+    sudo dpkg-deb --build $ONOS_DEB_ROOT > /dev/null &&
+    sudo mv $ONOS_STAGE_ROOT/deb.deb $ONOS_DEB && ls -l $ONOS_DEB
+}
+
+# Script entry point
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
 # Bail on any errors
 set -e
 
-rm -fr $ONOS_STAGE # Remove this when package script is completed
+# Before starting make sure the environment is clan - delete onos staging folder
+rm -fr $ONOS_STAGE
 
-# Make sure we have the original apache karaf bits first
-[ ! -d $M2_REPO ] && echo "M2 repository $M2_REPO not found" && exit 1
-[ -d $ONOS_STAGE ] && echo "ONOS stage $ONOS_STAGE already exists" && exit 1
-
-# Create the stage directory and warp into it
-mkdir -p $ONOS_STAGE
-cd $ONOS_STAGE
-
-# Check if Apache Karaf bits are available and if not, fetch them.
-if [ ! -f $KARAF_ZIP -a ! -f $KARAF_TAR ]; then
-    echo "Downloading $KARAF_TAR..."
-    curl -sL http://downloads.onosproject.org/third-party/apache-karaf-$KARAF_VERSION.tar.gz > $KARAF_TAR
-fi
-[ ! -f $KARAF_ZIP -a ! -f $KARAF_TAR ] && \
-    echo "Apache Karaf bits $KARAF_ZIP or $KARAF_TAR not found" && exit 1
-
-# Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
-[ -f $KARAF_ZIP ] && unzip -q $KARAF_ZIP && rm -rf $ONOS_STAGE/$KARAF_DIST/demos
-[ -f $KARAF_TAR ] && tar zxf $KARAF_TAR && rm -rf $ONOS_STAGE/$KARAF_DIST/demos
-mkdir bin
-
-# Stage the ONOS admin scripts and patch in Karaf service wrapper extras
-cp -r $ONOS_ROOT/tools/package/bin .
-cp -r $ONOS_ROOT/tools/package/debian $ONOS_STAGE/debian
-cp -r $ONOS_ROOT/tools/package/etc/* $ONOS_STAGE/$KARAF_DIST/etc
-
-# Stage all builtin ONOS apps for factory install
-onos-stage-apps $ONOS_STAGE/apps $ONOS_STAGE/$KARAF_DIST/system
-
-# Mark the org.onosproject.drivers app active by default
-touch $ONOS_STAGE/apps/org.onosproject.drivers/active
-
-# Patch-in proper Karaf version into the startup script
-sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
-    $ONOS_ROOT/tools/package/bin/onos-service > bin/onos-service
-sed "s/\$KARAF_VERSION/$KARAF_VERSION/g" \
-    $ONOS_ROOT/tools/package/bin/onos-client > bin/onos
-chmod a+x bin/onos-service bin/onos
-
-# Stage the ONOS bundles, but only those that match the version
-mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/onosproject
-find $M2_REPO/org/onosproject -type f -path "*/$ONOS_POM_VERSION/*" \
-    -name '*.jar' -o -name '*.pom' -o -name '*-features.xml' \
-        | grep -v -Ee '-tests.jar|-[0-9]{8}.[0-9]{6}-' \
-        | while read src; do
-    dst=$ONOS_STAGE/$KARAF_DIST/system/${src#$M2_REPO/*}
-    mkdir -p $(dirname $dst)
-    cp $src $dst
-done
-
-# ONOS Patching ----------------------------------------------------------------
-
-# Patch the Apache Karaf distribution file to add ONOS features repository
-perl -pi.old -e "s|^(featuresRepositories=.*)|\1,mvn:org.onosproject/onos-features/$ONOS_POM_VERSION/xml/features|" \
-    $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg
-
-# Patch the Apache Karaf distribution file to load default ONOS boot features
-export BOOT_FEATURES="webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui"
-perl -pi.old -e "s|^(featuresBoot=.*)|\1,$BOOT_FEATURES|" \
-    $ONOS_STAGE/$KARAF_DIST/etc/org.apache.karaf.features.cfg
-
-# Patch the Apache Karaf distribution with ONOS branding bundle
-cp $M2_REPO/org/onosproject/onos-branding/$ONOS_POM_VERSION/onos-branding-*.jar \
-    $ONOS_STAGE/$KARAF_DIST/lib
-
-# Patch in the ONOS version file
-echo $ONOS_VERSION > $ONOS_STAGE/VERSION
-
-# Now package up the ONOS tar file
-cd $ONOS_STAGE_ROOT
-rm -f $ONOS_TAR $ONOS_ZIP
-COPYFILE_DISABLE=1 tar zcf $ONOS_TAR $ONOS_BITS
-
-# Figure out whether we should build ONOS zip file and if so, build it.
-which zip >/dev/null && [ -z "$ONOS_TAR_ONLY" ] && buildZip=true || unset buildZip
-[ -n "$buildZip" ] && zip -rq $ONOS_ZIP $ONOS_BITS
-
-# Report on the archives that were built and clean-up
-[ -n "$buildZip" ] && ls -lh $ONOS_TAR $ONOS_ZIP || ls -lh $ONOS_TAR
-rm -r $ONOS_STAGE
+# If there are parameters check if we want to build a deb - otherwise build tar.gz 
+case ${1:---tar} in
+    "--tar") build_stage_dir
+             build_compressed_package
+    ;;
+    "--deb") build_stage_dir
+             build_deb
+    ;;
+    *) echo "usage: $(basename $0) [--tar|--deb]" >&2 && exit 1
+    ;;
+esac
