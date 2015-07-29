@@ -15,8 +15,6 @@
  */
 package org.onosproject.net.packet;
 
-
-
 /**
  * Abstraction of an inbound packet processor.
  */
@@ -25,6 +23,52 @@ public interface PacketProcessor {
     static final int ADVISOR_MAX = Integer.MAX_VALUE / 3;
     static final int DIRECTOR_MAX = (Integer.MAX_VALUE / 3) * 2;
     static final int OBSERVER_MAX = Integer.MAX_VALUE;
+
+    /**
+     * Returns a priority in the ADVISOR range, where processors can take early action and
+     * influence the packet context. However, they cannot handle the packet (i.e. call send() or block()).
+     * Processors in this range get to see the packet first.
+     *
+     * @param priority priority within ADVISOR range
+     * @return overall priority
+     */
+    static int advisor(int priority) {
+        if (priority > 0 && priority <= ADVISOR_MAX) {
+            return priority;
+        }
+        return ADVISOR_MAX;
+    }
+
+    /**
+     * Returns a priority in the DIRECTOR range, where processors can handle the packet.
+     * Processors in this range get to see the packet second, after ADVISORS.
+     *
+     * @param priority priority within the DIRECTOR range
+     * @return overall priority
+     */
+    static int director(int priority) {
+        int overallPriority = ADVISOR_MAX + priority;
+        if (overallPriority > ADVISOR_MAX && overallPriority <= DIRECTOR_MAX) {
+            return overallPriority;
+        }
+        return DIRECTOR_MAX;
+    }
+
+    /**
+     * Returns a priority in the OBSERVER range, where processors cannot take any action,
+     * but can observe what action has been taken until then.
+     * Processors in this range get to see the packet last, after ADVISORS and DIRECTORS.
+     *
+     * @param priority priority within the OBSERVER range
+     * @return overall priority
+     */
+    static int observer(int priority) {
+        int overallPriority = DIRECTOR_MAX + priority;
+        if (overallPriority > DIRECTOR_MAX && overallPriority <= OBSERVER_MAX) {
+            return overallPriority;
+        }
+        return OBSERVER_MAX;
+    }
 
     /**
      * Processes the inbound packet as specified in the given context.
