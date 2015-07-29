@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,58 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.intent;
+package org.onosproject.incubator.net.domain;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.newresource.ResourceConsumer;
+
+import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Intent identifier suitable as an external key.
- * <p>This class is immutable.</p>
+ * Intent domain identifier.
  */
 @Beta
-public final class IntentId implements ResourceConsumer {
+public class IntentDomainId {
 
-    private final long value;
+    private final String id;
 
     /**
-     * Creates an intent identifier from the specified long representation.
+     * Creates an intent domain identifier from the specified string representation.
      *
-     * @param value long value
+     * @param value string value
      * @return intent identifier
      */
-    public static IntentId valueOf(long value) {
-        return new IntentId(value);
+    public static IntentDomainId valueOf(String value) {
+        return new IntentDomainId(value);
     }
 
     /**
      * Constructor for serializer.
      */
-    IntentId() {
-        this.value = 0;
+    IntentDomainId() {
+        this.id = null;
     }
 
     /**
-     * Constructs the ID corresponding to a given long value.
+     * Constructs the ID corresponding to a given string value.
      *
      * @param value the underlying value of this ID
      */
-    IntentId(long value) {
-        this.value = value;
-    }
-
-    /**
-     * Returns the backing value.
-     *
-     * @return the value
-     */
-    public long fingerprint() {
-        return value;
+    IntentDomainId(String value) {
+        this.id = checkNotNull(value, "Intent domain ID cannot be null.");
     }
 
     @Override
     public int hashCode() {
-        return Long.hashCode(value);
+        return id.hashCode();
     }
 
     @Override
@@ -72,16 +65,15 @@ public final class IntentId implements ResourceConsumer {
         if (obj == this) {
             return true;
         }
-        if (!(obj instanceof IntentId)) {
+        if (!(obj instanceof IntentDomainId)) {
             return false;
         }
-        IntentId that = (IntentId) obj;
-        return this.value == that.value;
+        IntentDomainId that = (IntentDomainId) obj;
+        return Objects.equals(this.id, that.id);
     }
 
     @Override
     public String toString() {
-        return "0x" + Long.toHexString(value);
+        return id;
     }
-
 }
