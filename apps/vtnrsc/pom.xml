@@ -17,7 +17,6 @@
 
 	<properties>
 		<onos.app.name>org.onosproject.vtnrsc</onos.app.name>
-		<web.context>/onos/vtn</web.context>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -52,7 +51,6 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <_wab>src/main/webapp/</_wab>
                         <Bundle-SymbolicName>
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
@@ -76,7 +74,6 @@
                             org.onlab.util.*,
                             org.jboss.netty.util.*
                         </Import-Package>
-                        <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>
                 </configuration>
             </plugin>
