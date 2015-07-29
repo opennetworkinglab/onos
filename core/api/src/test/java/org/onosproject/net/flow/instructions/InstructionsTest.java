@@ -597,4 +597,127 @@ public class InstructionsTest {
                 modMplsLabelInstruction2);
     }
 
+    // ModTunnelIdInstruction
+
+    private final long tunnelId1 = 1L;
+    private final long tunnelId2 = 2L;
+    private final Instruction modTunnelId1 = Instructions.modTunnelId(tunnelId1);
+    private final Instruction sameAsModTunnelId1 = Instructions.modTunnelId(tunnelId1);
+    private final Instruction modTunnelId2 = Instructions.modTunnelId(tunnelId2);
+
+    /**
+     * Test the modTunnelId method.
+     */
+    @Test
+    public void testModTunnelIdMethod() {
+        final Instruction instruction = Instructions.modTunnelId(tunnelId1);
+        final L2ModificationInstruction.ModTunnelIdInstruction modTunnelIdInstruction =
+                checkAndConvert(instruction, Instruction.Type.L2MODIFICATION,
+                                L2ModificationInstruction.ModTunnelIdInstruction.class);
+        assertThat(modTunnelIdInstruction.tunnelId(), is(equalTo(tunnelId1)));
+        assertThat(modTunnelIdInstruction.subtype(),
+                   is(equalTo(L2ModificationInstruction.L2SubType.TUNNEL_ID)));
+    }
+
+    /***
+     * Test the equals() method of the ModTunnelIdInstruction class.
+     */
+    @Test
+    public void testModTunnelIdInstructionEquals() throws Exception {
+        checkEqualsAndToString(modTunnelId1, sameAsModTunnelId1, modTunnelId2);
+    }
+
+    /**
+     * Test the hashCode() method of the ModTunnelIdInstruction class.
+     */
+    @Test
+    public void testModTunnelIdInstructionHashCode() {
+        assertThat(modTunnelId1.hashCode(), is(equalTo(sameAsModTunnelId1.hashCode())));
+        assertThat(modTunnelId1.hashCode(), is(not(equalTo(modTunnelId2.hashCode()))));
+    }
+
+    // ModTransportPortInstruction
+
+    private final short l4port1 = 1;
+    private final short l4port2 = 2;
+    private final Instruction modTransportPortInstruction1 = Instructions.modTcpSrc(l4port1);
+    private final Instruction sameAsModTransportPortInstruction1 = Instructions.modTcpSrc(l4port1);
+    private final Instruction modTransportPortInstruction2 = Instructions.modTcpSrc(l4port2);
+
+    /**
+     * Test the modTcpSrc() method.
+     */
+    @Test
+    public void testModTcpSrcMethod() {
+        final Instruction instruction = Instructions.modTcpSrc(l4port1);
+        final L4ModificationInstruction.ModTransportPortInstruction modTransportPortInstruction =
+                checkAndConvert(instruction, Instruction.Type.L4MODIFICATION,
+                                L4ModificationInstruction.ModTransportPortInstruction.class);
+        assertThat(modTransportPortInstruction.port(), is(equalTo(l4port1)));
+        assertThat(modTransportPortInstruction.subtype(),
+                   is(equalTo(L4ModificationInstruction.L4SubType.TCP_SRC)));
+    }
+
+    /**
+     * Test the modTcpDst() method.
+     */
+    @Test
+    public void testModTcpDstMethod() {
+        final Instruction instruction = Instructions.modTcpDst(l4port1);
+        final L4ModificationInstruction.ModTransportPortInstruction modTransportPortInstruction =
+                checkAndConvert(instruction, Instruction.Type.L4MODIFICATION,
+                                L4ModificationInstruction.ModTransportPortInstruction.class);
+        assertThat(modTransportPortInstruction.port(), is(equalTo(l4port1)));
+        assertThat(modTransportPortInstruction.subtype(),
+                   is(equalTo(L4ModificationInstruction.L4SubType.TCP_DST)));
+    }
+
+    /**
+     * Test the modUdpSrc() method.
+     */
+    @Test
+    public void testModUdpSrcMethod() {
+        final Instruction instruction = Instructions.modUdpSrc(l4port1);
+        final L4ModificationInstruction.ModTransportPortInstruction modTransportPortInstruction =
+                checkAndConvert(instruction, Instruction.Type.L4MODIFICATION,
+                                L4ModificationInstruction.ModTransportPortInstruction.class);
+        assertThat(modTransportPortInstruction.port(), is(equalTo(l4port1)));
+        assertThat(modTransportPortInstruction.subtype(),
+                   is(equalTo(L4ModificationInstruction.L4SubType.UDP_SRC)));
+    }
+
+    /**
+     * Test the modUdpDst() method.
+     */
+    @Test
+    public void testModUdpDstMethod() {
+        final Instruction instruction = Instructions.modUdpDst(l4port1);
+        final L4ModificationInstruction.ModTransportPortInstruction modTransportPortInstruction =
+                checkAndConvert(instruction, Instruction.Type.L4MODIFICATION,
+                                L4ModificationInstruction.ModTransportPortInstruction.class);
+        assertThat(modTransportPortInstruction.port(), is(equalTo(l4port1)));
+        assertThat(modTransportPortInstruction.subtype(),
+                   is(equalTo(L4ModificationInstruction.L4SubType.UDP_DST)));
+    }
+
+    /**
+     * Test the equals() method of the ModTransportPortInstruction class.
+     */
+    @Test
+    public void testModTransportPortInstructionEquals() throws Exception {
+        checkEqualsAndToString(modTransportPortInstruction1,
+                               sameAsModTransportPortInstruction1,
+                               modTransportPortInstruction2);
+    }
+
+    /**
+     * Test the hashCode() method of the ModTransportPortInstruction class.
+     */
+    @Test
+    public void testModTransportPortInstructionHashCode() {
+        assertThat(modTransportPortInstruction1.hashCode(),
+                   is(equalTo(sameAsModTransportPortInstruction1.hashCode())));
+        assertThat(modTransportPortInstruction1.hashCode(),
+                   is(not(equalTo(modTransportPortInstruction2.hashCode()))));
+    }
 }
