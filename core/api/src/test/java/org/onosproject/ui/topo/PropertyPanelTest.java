@@ -17,12 +17,17 @@
 
 package org.onosproject.ui.topo;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onosproject.ui.topo.PropertyPanel.Prop;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 /**
  * Unit tests for {@link PropertyPanel}.
@@ -33,20 +38,49 @@ public class PropertyPanelTest {
     private static final String TYPE_ORIG = "Original type ID";
     private static final String TITLE_NEW = "New Title";
     private static final String TYPE_NEW = "New type";
+    private static final String SOME_IDENTIFICATION = "It's Me!";
 
-    private static final Prop PROP_A = new Prop("A", "Hay");
-    private static final Prop PROP_B = new Prop("B", "Bee");
-    private static final Prop PROP_C = new Prop("C", "Sea");
-    private static final Prop PROP_Z = new Prop("Z", "Zed");
+    private static final String KEY_A = "A";
+    private static final String KEY_B = "B";
+    private static final String KEY_C = "C";
+    private static final String KEY_Z = "Z";
+    private static final String VALUE_A = "Hay";
+    private static final String VALUE_B = "Bee";
+    private static final String VALUE_C = "Sea";
+    private static final String VALUE_Z = "Zed";
+
+    private static final Map<String, Prop> PROP_MAP = new HashMap<>();
+
+    private static class FooClass {
+        private final String s;
+        FooClass(String s) {
+            this.s = s;
+        }
+
+        @Override
+        public String toString() {
+            return ">" + s + "<";
+        }
+    }
 
     private PropertyPanel pp;
 
+
+
+    @BeforeClass
+    public static void setUpClass() {
+        PROP_MAP.put(KEY_A, new Prop(KEY_A, VALUE_A));
+        PROP_MAP.put(KEY_B, new Prop(KEY_B, VALUE_B));
+        PROP_MAP.put(KEY_C, new Prop(KEY_C, VALUE_C));
+        PROP_MAP.put(KEY_Z, new Prop(KEY_Z, VALUE_Z));
+    }
 
     @Test
     public void basic() {
         pp = new PropertyPanel(TITLE_ORIG, TYPE_ORIG);
         assertEquals("wrong title", TITLE_ORIG, pp.title());
         assertEquals("wrong type", TYPE_ORIG, pp.typeId());
+        assertNull("id?", pp.id());
         assertEquals("unexpected props", 0, pp.properties().size());
     }
 
@@ -64,20 +98,46 @@ public class PropertyPanelTest {
         assertEquals("wrong type", TYPE_NEW, pp.typeId());
     }
 
-    private void validateProps(Prop... props) {
+    @Test
+    public void setId() {
+        basic();
+        pp.id(SOME_IDENTIFICATION);
+        assertEquals("wrong id", SOME_IDENTIFICATION, pp.id());
+    }
+
+    private void validateProps(String... keys) {
         Iterator<Prop> iter = pp.properties().iterator();
-        for (Prop p: props) {
-            Prop ppProp = iter.next();
-            assertEquals("Bad prop sequence", p, ppProp);
+        for (String k: keys) {
+            Prop exp = PROP_MAP.get(k);
+            Prop act = iter.next();
+            assertEquals("Bad prop sequence", exp, act);
         }
+    }
+
+    private void validateProp(String key, String expValue) {
+        Iterator<Prop> iter = pp.properties().iterator();
+        Prop prop = null;
+        while (iter.hasNext()) {
+            Prop p = iter.next();
+            if (p.key().equals(key)) {
+                prop = p;
+                break;
+            }
+        }
+        if (prop == null) {
+            fail("no prop found with key: " + key);
+        }
+        assertEquals("Wrong prop value", expValue, prop.value());
     }
 
     @Test
     public void props() {
         basic();
-        pp.add(PROP_A).add(PROP_B).add(PROP_C);
+        pp.addProp(KEY_A, VALUE_A)
+            .addProp(KEY_B, VALUE_B)
+            .addProp(KEY_C, VALUE_C);
         assertEquals("bad props", 3, pp.properties().size());
-        validateProps(PROP_A, PROP_B, PROP_C);
+        validateProps(KEY_A, KEY_B, KEY_C);
     }
 
     @Test
@@ -91,8 +151,45 @@ public class PropertyPanelTest {
     @Test
     public void adjustProps() {
         props();
-        pp.removeProps("B", "A");
-        pp.add(PROP_Z);
-        validateProps(PROP_C, PROP_Z);
+        pp.removeProps(KEY_B, KEY_A);
+        pp.addProp(KEY_Z, VALUE_Z);
+        validateProps(KEY_C, KEY_Z);
     }
+
+    @Test
+    public void intValues() {
+        basic();
+        pp.addProp(KEY_A, 200)
+          .addProp(KEY_B, 2000)
+          .addProp(KEY_C, 1234567);
+
+        validateProp(KEY_A, "200");
+        validateProp(KEY_B, "2,000");
+        validateProp(KEY_C, "1,234,567");
+    }
+
+    @Test
+    public void longValues() {
+        basic();
+        pp.addProp(KEY_A, 200L)
+          .addProp(KEY_B, 2000L)
+          .addProp(KEY_C, 1234567L)
+          .addProp(KEY_Z, Long.MAX_VALUE);
+
+        validateProp(KEY_A, "200");
+        validateProp(KEY_B, "2,000");
+        validateProp(KEY_C, "1,234,567");
+        validateProp(KEY_Z, "9,223,372,036,854,775,807");
+    }
+
+    @Test
+    public void objectValue() {
+        basic();
+        pp.addProp(KEY_A, new FooClass("a"))
+            .addProp(KEY_B, new FooClass("bxyyzy"), "[xz]");
+
+        validateProp(KEY_A, ">a<");
+        validateProp(KEY_B, ">byyy<");
+    }
+
 }

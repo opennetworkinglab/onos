@@ -446,18 +446,17 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     // Returns property panel model for summary response.
     protected PropertyPanel summmaryMessage(long sid) {
         Topology topology = topologyService.currentTopology();
-        PropertyPanel pp = new PropertyPanel("ONOS Summary", "node")
-            .add(new PropertyPanel.Prop("Devices", topology.deviceCount()))
-            .add(new PropertyPanel.Prop("Links", topology.linkCount()))
-            .add(new PropertyPanel.Prop("Hosts", hostService.getHostCount()))
-            .add(new PropertyPanel.Prop("Topology SCCs", topology.clusterCount()))
-            .add(new PropertyPanel.Separator())
-            .add(new PropertyPanel.Prop("Intents", intentService.getIntentCount()))
-            .add(new PropertyPanel.Prop("Tunnels", tunnelService.tunnelCount()))
-            .add(new PropertyPanel.Prop("Flows", flowService.getFlowRuleCount()))
-            .add(new PropertyPanel.Prop("Version", version));
 
-        return pp;
+        return new PropertyPanel("ONOS Summary", "node")
+            .addProp("Devices", topology.deviceCount())
+            .addProp("Links", topology.linkCount())
+            .addProp("Hosts", hostService.getHostCount())
+            .addProp("Topology SCCs", topology.clusterCount())
+            .addSeparator()
+            .addProp("Intents", intentService.getIntentCount())
+            .addProp("Tunnels", tunnelService.tunnelCount())
+            .addProp("Flows", flowService.getFlowRuleCount())
+            .addProp("Version", version);
     }
 
     // Returns property panel model for device details response.
@@ -474,19 +473,21 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         PropertyPanel pp = new PropertyPanel(title, typeId)
                 .id(deviceId.toString())
-                .add(new PropertyPanel.Prop("URI", deviceId.toString()))
-                .add(new PropertyPanel.Prop("Vendor", device.manufacturer()))
-                .add(new PropertyPanel.Prop("H/W Version", device.hwVersion()))
-                .add(new PropertyPanel.Prop("S/W Version", device.swVersion()))
-                .add(new PropertyPanel.Prop("Serial Number", device.serialNumber()))
-                .add(new PropertyPanel.Prop("Protocol", annot.value(AnnotationKeys.PROTOCOL)))
-                .add(new PropertyPanel.Separator())
-                .add(new PropertyPanel.Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)))
-                .add(new PropertyPanel.Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE)))
-                .add(new PropertyPanel.Separator())
-                .add(new PropertyPanel.Prop("Ports", portCount))
-                .add(new PropertyPanel.Prop("Flows", flowCount))
-                .add(new PropertyPanel.Prop("Tunnels", tunnelCount));
+                .addProp("URI", deviceId.toString())
+                .addProp("Vendor", device.manufacturer())
+                .addProp("H/W Version", device.hwVersion())
+                .addProp("S/W Version", device.swVersion())
+                .addProp("Serial Number", device.serialNumber())
+                .addProp("Protocol", annot.value(AnnotationKeys.PROTOCOL))
+                .addSeparator()
+                .addProp("Latitude", annot.value(AnnotationKeys.LATITUDE))
+                .addProp("Longitude", annot.value(AnnotationKeys.LONGITUDE))
+                .addSeparator()
+                .addProp("Ports", portCount)
+                .addProp("Flows", flowCount)
+                .addProp("Tunnels", tunnelCount);
+
+        // TODO: add button descriptors
 
         return pp;
     }
@@ -570,13 +571,14 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         PropertyPanel pp = new PropertyPanel(title, typeId)
                 .id(hostId.toString())
-                .add(new PropertyPanel.Prop("MAC", host.mac().toString()))
-                .add(new PropertyPanel.Prop("IP", host.ipAddresses().toString().replaceAll("[\\[\\]]", "")))
-                .add(new PropertyPanel.Prop("VLAN", vlan.equals("-1") ? "none" : vlan))
-                .add(new PropertyPanel.Separator())
-                .add(new PropertyPanel.Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)))
-                .add(new PropertyPanel.Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE)));
+                .addProp("MAC", host.mac())
+                .addProp("IP", host.ipAddresses(), "[\\[\\]]")
+                .addProp("VLAN", vlan.equals("-1") ? "none" : vlan)
+                .addSeparator()
+                .addProp("Latitude", annot.value(AnnotationKeys.LATITUDE))
+                .addProp("Longitude", annot.value(AnnotationKeys.LONGITUDE));
 
+        // TODO: add button descriptors
         return pp;
     }
 
@@ -860,21 +862,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return result;
     }
 
-    // Produces JSON property details.
-    private ObjectNode json(String id, String type, Prop... props) {
-        ObjectNode result = objectNode()
-                .put("id", id).put("type", type);
-        ObjectNode pnode = objectNode();
-        ArrayNode porder = arrayNode();
-        for (Prop p : props) {
-            porder.add(p.key);
-            pnode.put(p.key, p.value);
-        }
-        result.set("propOrder", porder);
-        result.set("props", pnode);
-        return result;
-    }
-
     // Produces canonical link key, i.e. one that will match link and its inverse.
     static LinkKey canonicalLinkKey(Link link) {
         String sn = link.src().elementId().toString();
@@ -946,25 +933,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         }
     }
 
-    // Auxiliary key/value carrier.
-    @Deprecated
-    static class Prop {
-        public final String key;
-        public final String value;
-
-        protected Prop(String key, String value) {
-            this.key = key;
-            this.value = value;
-        }
-    }
-
-    // Auxiliary properties separator
-    @Deprecated
-    static class Separator extends Prop {
-        protected Separator() {
-            super("-", "");
-        }
-    }
 
     // TODO: move this to traffic overlay component
     // Auxiliary carrier of data for requesting traffic message.

@@ -29,6 +29,8 @@ import java.util.Set;
  */
 public class PropertyPanel {
 
+    private static final DecimalFormat DF0 = new DecimalFormat("#,###");
+
     private String title;
     private String typeId;
     private String id;
@@ -47,17 +49,6 @@ public class PropertyPanel {
     }
 
     /**
-     * Adds a property to the panel.
-     *
-     * @param p the property
-     * @return self, for chaining
-     */
-    public PropertyPanel add(Prop p) {
-        properties.add(p);
-        return this;
-    }
-
-    /**
      * Adds an ID field to the panel data, to be included in
      * the returned JSON data to the client.
      *
@@ -69,6 +60,82 @@ public class PropertyPanel {
         return this;
     }
 
+    /**
+     * Adds a property to the panel data.
+     *
+     * @param key property key
+     * @param value property value
+     * @return self, for chaining
+     */
+    public PropertyPanel addProp(String key, String value) {
+        properties.add(new Prop(key, value));
+        return this;
+    }
+
+    /**
+     * Adds a property to the panel data, using a decimal formatter.
+     *
+     * @param key property key
+     * @param value property value
+     * @return self, for chaining
+     */
+    public PropertyPanel addProp(String key, int value) {
+        properties.add(new Prop(key, DF0.format(value)));
+        return this;
+    }
+
+    /**
+     * Adds a property to the panel data, using a decimal formatter.
+     *
+     * @param key property key
+     * @param value property value
+     * @return self, for chaining
+     */
+    public PropertyPanel addProp(String key, long value) {
+        properties.add(new Prop(key, DF0.format(value)));
+        return this;
+    }
+
+    /**
+     * Adds a property to the panel data. Note that the value's
+     * {@link Object#toString toString()} method is used to convert the
+     * value to a string.
+     *
+     * @param key property key
+     * @param value property value
+     * @return self, for chaining
+     */
+    public PropertyPanel addProp(String key, Object value) {
+        properties.add(new Prop(key, value.toString()));
+        return this;
+    }
+
+    /**
+     * Adds a property to the panel data. Note that the value's
+     * {@link Object#toString toString()} method is used to convert the
+     * value to a string, from which the characters defined in the given
+     * regular expression string are stripped.
+     *
+     * @param key property key
+     * @param value property value
+     * @param reStrip regexp characters to strip from value string
+     * @return self, for chaining
+     */
+    public PropertyPanel addProp(String key, Object value, String reStrip) {
+        String val = value.toString().replaceAll(reStrip, "");
+        properties.add(new Prop(key, val));
+        return this;
+    }
+
+    /**
+     * Adds a separator to the panel data.
+     *
+     * @return self, for chaining
+     */
+    public PropertyPanel addSeparator() {
+        properties.add(new Separator());
+        return this;
+    }
 
     /**
      * Returns the title text.
@@ -161,7 +228,6 @@ public class PropertyPanel {
 
     // ====================
 
-    private static final DecimalFormat DF0 = new DecimalFormat("#,###");
 
     /**
      * Simple data carrier for a property, composed of a key/value pair.
@@ -179,26 +245,6 @@ public class PropertyPanel {
         public Prop(String key, String value) {
             this.key = key;
             this.value = value;
-        }
-
-        /**
-         * Constructs a property data value.
-         * @param key property key
-         * @param value property value
-         */
-        public Prop(String key, int value) {
-            this.key = key;
-            this.value = DF0.format(value);
-        }
-
-        /**
-         * Constructs a property data value.
-         * @param key property key
-         * @param value property value
-         */
-        public Prop(String key, long value) {
-            this.key = key;
-            this.value = DF0.format(value);
         }
 
         /**
