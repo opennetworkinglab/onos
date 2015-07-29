@@ -117,7 +117,6 @@ public class VTNManager implements VTNService {
     private DeviceListener deviceListener = new InnerDeviceListener();
     private static final String IFACEID = "ifaceid";
     private static final String PORT_HEAD = "vxlan";
-    private static final int MAC_TABLE = 40;
     private static final String DEFAULT_BRIDGE_NAME = "br-int";
     private static final String CONTROLLER_IP_KEY = "ipaddress";
 
@@ -463,7 +462,6 @@ public class VTNManager implements VTNService {
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         treatment.add(Instructions.modTunnelId(Long.parseLong(segmentationId
                 .toString())));
-        treatment.transition(MAC_TABLE);
         ForwardingObjective.Builder objective = DefaultForwardingObjective
                 .builder().withTreatment(treatment.build())
                 .withSelector(selector).fromApp(appId).makePermanent()
@@ -484,8 +482,7 @@ public class VTNManager implements VTNService {
                 .matchInPort(inPort)
                 .add(Criteria.matchTunnelId(Long.parseLong(segmentationId
                              .toString()))).build();
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .transition(MAC_TABLE).build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
 
         ForwardingObjective.Builder objective = DefaultForwardingObjective
                 .builder().withTreatment(treatment).withSelector(selector)
@@ -501,8 +498,7 @@ public class VTNManager implements VTNService {
     private void programPortDefaultRules(DeviceId dpid, ApplicationId appid,
                                          Objective.Operation type) {
         TrafficSelector selector = DefaultTrafficSelector.builder().build();
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .transition(MAC_TABLE).build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
         ForwardingObjective.Builder objective = DefaultForwardingObjective
                 .builder().withTreatment(treatment).withSelector(selector)
                 .fromApp(appId).makePermanent().withFlag(Flag.SPECIFIC);
