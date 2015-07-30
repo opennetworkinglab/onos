@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.packet;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Abstraction of an inbound packet processor.
  */
@@ -27,47 +29,48 @@ public interface PacketProcessor {
     /**
      * Returns a priority in the ADVISOR range, where processors can take early action and
      * influence the packet context. However, they cannot handle the packet (i.e. call send() or block()).
+     * The valid range is from 1 to ADVISOR_MAX.
      * Processors in this range get to see the packet first.
      *
      * @param priority priority within ADVISOR range
      * @return overall priority
      */
     static int advisor(int priority) {
-        if (priority > 0 && priority <= ADVISOR_MAX) {
-            return priority;
-        }
-        return ADVISOR_MAX;
+        int overallPriority = priority + 1;
+        checkArgument(overallPriority > 0 && overallPriority <= ADVISOR_MAX,
+                "Priority not within ADVISOR range");
+        return overallPriority;
     }
 
     /**
      * Returns a priority in the DIRECTOR range, where processors can handle the packet.
+     * The valid range is from ADVISOR_MAX+1 to DIRECTOR_MAX.
      * Processors in this range get to see the packet second, after ADVISORS.
      *
      * @param priority priority within the DIRECTOR range
      * @return overall priority
      */
     static int director(int priority) {
-        int overallPriority = ADVISOR_MAX + priority;
-        if (overallPriority > ADVISOR_MAX && overallPriority <= DIRECTOR_MAX) {
-            return overallPriority;
-        }
-        return DIRECTOR_MAX;
+        int overallPriority = ADVISOR_MAX + priority + 1;
+        checkArgument(overallPriority > ADVISOR_MAX && overallPriority <= DIRECTOR_MAX,
+                "Priority not within DIRECTOR range");
+        return overallPriority;
     }
 
     /**
      * Returns a priority in the OBSERVER range, where processors cannot take any action,
      * but can observe what action has been taken until then.
+     * The valid range is from DIRECTOR_MAX+1 to OBSERVER_MAX.
      * Processors in this range get to see the packet last, after ADVISORS and DIRECTORS.
      *
      * @param priority priority within the OBSERVER range
      * @return overall priority
      */
     static int observer(int priority) {
-        int overallPriority = DIRECTOR_MAX + priority;
-        if (overallPriority > DIRECTOR_MAX && overallPriority <= OBSERVER_MAX) {
-            return overallPriority;
-        }
-        return OBSERVER_MAX;
+        int overallPriority = DIRECTOR_MAX + priority + 1;
+        checkArgument(overallPriority > DIRECTOR_MAX && overallPriority <= OBSERVER_MAX,
+                "Priority not within OBSERVER range");
+        return overallPriority;
     }
 
     /**
