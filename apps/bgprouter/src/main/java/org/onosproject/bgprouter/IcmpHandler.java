@@ -53,7 +53,7 @@ public class IcmpHandler {
     }
 
     public void start() {
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 4);
+        packetService.addProcessor(processor, PacketProcessor.director(4));
     }
 
     public void stop() {

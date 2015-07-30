@@ -130,7 +130,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         appId = coreService.registerApplication("org.onosproject.provider.host");
 
         providerService = providerRegistry.register(this);
-        packetService.addProcessor(processor, 1);
+        packetService.addProcessor(processor, PacketProcessor.advisor(1));
         deviceService.addListener(deviceListener);
         readComponentConfiguration(context);
         requestIntercepts();

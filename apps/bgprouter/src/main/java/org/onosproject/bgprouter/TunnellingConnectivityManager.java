@@ -84,7 +84,7 @@ public class TunnellingConnectivityManager {
     }
 
     public void start() {
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 3);
+        packetService.addProcessor(processor, PacketProcessor.director(3));
     }
 
     public void stop() {

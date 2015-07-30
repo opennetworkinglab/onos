@@ -151,7 +151,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
         providerService = providerRegistry.register(this);
         deviceService.addListener(listener);
-        packetService.addProcessor(listener, 0);
+        packetService.addProcessor(listener, PacketProcessor.advisor(0));
         masterService.addListener(roleListener);
 
         LinkDiscovery ld;

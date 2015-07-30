@@ -204,7 +204,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         policyHandler = new PolicyHandler(appId, deviceConfiguration,
                 flowObjectiveService, tunnelHandler, policyStore);
 
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
+        packetService.addProcessor(processor, PacketProcessor.director(2));
         linkService.addListener(new InternalLinkListener());
         deviceService.addListener(new InternalDeviceListener());
 

@@ -204,7 +204,7 @@ public class AAA {
         // "org.onosproject.aaa" is the FQDN of our app
         appId = coreService.registerApplication("org.onosproject.aaa");
         // register our event handler
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
+        packetService.addProcessor(processor, PacketProcessor.director(2));
         requestIntercepts();
         // Instantiate the map of the state machines
         stateMachineMap = Collections.synchronizedMap(Maps.newHashMap());
