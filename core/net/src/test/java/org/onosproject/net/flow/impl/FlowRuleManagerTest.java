@@ -80,6 +80,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_ADDED;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_ADD_REQUESTED;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
@@ -112,7 +113,7 @@ public class FlowRuleManagerTest {
     public void setUp() {
         mgr = new FlowRuleManager();
         mgr.store = new SimpleFlowRuleStore();
-        mgr.eventDispatcher = new TestEventDispatcher();
+        injectEventDispatcher(mgr, new TestEventDispatcher());
         mgr.deviceService = new TestDeviceService();
         mgr.coreService = new TestCoreService();
         mgr.operationsService = MoreExecutors.newDirectExecutorService();
@@ -137,7 +138,7 @@ public class FlowRuleManagerTest {
                     registry.getProviders().contains(provider.id()));
         service.removeListener(listener);
         mgr.deactivate();
-        mgr.eventDispatcher = null;
+        injectEventDispatcher(mgr, null);
         mgr.deviceService = null;
     }
 

@@ -16,6 +16,7 @@
 package org.onosproject.net.group;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 
 /**
@@ -32,7 +33,8 @@ import org.onosproject.net.DeviceId;
  * where the master copy of the groups lies with the controller and
  * the devices hold only the 'cached' copy.
  */
-public interface GroupService {
+public interface GroupService
+    extends ListenerService<GroupEvent, GroupListener> {
 
     /**
      * Creates a group in the specified device with the provided buckets.
@@ -134,17 +136,4 @@ public interface GroupService {
      */
     Iterable<Group> getGroups(DeviceId deviceId);
 
-    /**
-     * Adds the specified group listener.
-     *
-     * @param listener group listener
-     */
-    void addListener(GroupListener listener);
-
-    /**
-     * Removes the specified group listener.
-     *
-     * @param listener group listener
-     */
-    void removeListener(GroupListener listener);
 }

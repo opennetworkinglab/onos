@@ -41,6 +41,7 @@ import static org.junit.Assert.assertNull;
 import static org.onosproject.net.MastershipRole.MASTER;
 import static org.onosproject.net.MastershipRole.NONE;
 import static org.onosproject.net.MastershipRole.STANDBY;
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 
 /**
  * Test codifying the mastership service contracts.
@@ -60,7 +61,7 @@ public class MastershipManagerTest {
     public void setUp() {
         mgr = new MastershipManager();
         service = mgr;
-        mgr.eventDispatcher = new TestEventDispatcher();
+        injectEventDispatcher(mgr, new TestEventDispatcher());
         mgr.clusterService = new TestClusterService();
         mgr.store = new TestSimpleMastershipStore(mgr.clusterService);
         mgr.activate();
@@ -70,7 +71,7 @@ public class MastershipManagerTest {
     public void tearDown() {
         mgr.deactivate();
         mgr.clusterService = null;
-        mgr.eventDispatcher = null;
+        injectEventDispatcher(mgr, null);
         mgr.store = null;
     }
 

@@ -21,15 +21,13 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.Permission;
-import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.Event;
-import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
-import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.topology.ClusterId;
 import org.onosproject.net.topology.GraphDescription;
@@ -51,8 +49,8 @@ import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides basic implementation of the topology SB &amp; NB APIs.
@@ -60,7 +58,8 @@ import static org.onosproject.security.AppGuard.checkPermission;
 @Component(immediate = true)
 @Service
 public class TopologyManager
-        extends AbstractProviderRegistry<TopologyProvider, TopologyProviderService>
+        extends AbstractListenerProviderRegistry<TopologyEvent, TopologyListener,
+                                                 TopologyProvider, TopologyProviderService>
         implements TopologyService, TopologyProviderRegistry {
 
     public static final String TOPOLOGY_NULL = "Topology cannot be null";
@@ -71,17 +70,10 @@ public class TopologyManager
 
     private final Logger log = getLogger(getClass());
 
-    private final ListenerRegistry<TopologyEvent, TopologyListener>
-            listenerRegistry = new ListenerRegistry<>();
-
     private TopologyStoreDelegate delegate = new InternalStoreDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyStore store;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
-
 
     @Activate
     public void activate() {
@@ -100,14 +92,12 @@ public class TopologyManager
     @Override
     public Topology currentTopology() {
         checkPermission(Permission.TOPOLOGY_READ);
-
         return store.currentTopology();
     }
 
     @Override
     public boolean isLatest(Topology topology) {
         checkPermission(Permission.TOPOLOGY_READ);
-
         checkNotNull(topology, TOPOLOGY_NULL);
         return store.isLatest(topology);
     }
@@ -115,7 +105,6 @@ public class TopologyManager
     @Override
     public Set<TopologyCluster> getClusters(Topology topology) {
         checkPermission(Permission.TOPOLOGY_READ);
-
         checkNotNull(topology, TOPOLOGY_NULL);
         return store.getClusters(topology);
     }
@@ -123,7 +112,6 @@ public class TopologyManager
     @Override
     public TopologyCluster getCluster(Topology topology, ClusterId clusterId) {
         checkPermission(Permission.TOPOLOGY_READ);
-
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(topology, CLUSTER_ID_NULL);
         return store.getCluster(topology, clusterId);
@@ -132,7 +120,6 @@ public class TopologyManager
     @Override
     public Set<DeviceId> getClusterDevices(Topology topology, TopologyCluster cluster) {
         checkPermission(Permission.TOPOLOGY_READ);
-
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(topology, CLUSTER_NULL);
         return store.getClusterDevices(topology, cluster);
@@ -141,7 +128,6 @@ public class TopologyManager
     @Override
     public Set<Link> getClusterLinks(Topology topology, TopologyCluster cluster) {
         checkPermission(Permission.TOPOLOGY_READ);
-
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(topology, CLUSTER_NULL);
         return store.getClusterLinks(topology, cluster);
@@ -150,7 +136,6 @@ public class TopologyManager
     @Override
     public TopologyGraph getGraph(Topology topology) {
         checkPermission(Permission.TOPOLOGY_READ);
-
         checkNotNull(topology, TOPOLOGY_NULL);
         return store.getGraph(topology);
     }
@@ -158,7 +143,6 @@ public class TopologyManager
     @Override
     public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst) {
         checkPermission(Permission.TOPOLOGY_READ);
-
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(src, DEVICE_ID_NULL);
         checkNotNull(dst, DEVICE_ID_NULL);
@@ -179,7 +163,6 @@ public class TopologyManager
     @Override
     public boolean isInfrastructure(Topology topology, ConnectPoint connectPoint) {
         checkPermission(Permission.TOPOLOGY_READ);
-
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(connectPoint, CONNECTION_POINT_NULL);
         return store.isInfrastructure(topology, connectPoint);
@@ -188,24 +171,9 @@ public class TopologyManager
     @Override
     public boolean isBroadcastPoint(Topology topology, ConnectPoint connectPoint) {
         checkPermission(Permission.TOPOLOGY_READ);
-
         checkNotNull(topology, TOPOLOGY_NULL);
         checkNotNull(connectPoint, CONNECTION_POINT_NULL);
         return store.isBroadcastPoint(topology, connectPoint);
-    }
-
-    @Override
-    public void addListener(TopologyListener listener) {
-        checkPermission(Permission.TOPOLOGY_EVENT);
-
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(TopologyListener listener) {
-        checkPermission(Permission.TOPOLOGY_EVENT);
-
-        listenerRegistry.removeListener(listener);
     }
 
     // Personalized host provider service issued to the supplied provider.
@@ -231,7 +199,7 @@ public class TopologyManager
                                                        topoDescription, reasons);
             if (event != null) {
                 log.info("Topology {} changed", event.subject());
-                eventDispatcher.post(event);
+                post(event);
             }
         }
     }
@@ -240,7 +208,7 @@ public class TopologyManager
     private class InternalStoreDelegate implements TopologyStoreDelegate {
         @Override
         public void notify(TopologyEvent event) {
-            eventDispatcher.post(event);
+            post(event);
         }
     }
 }

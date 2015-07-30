@@ -15,12 +15,7 @@
  */
 package org.onosproject.net.device.impl;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-
+import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,8 +25,8 @@ import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.event.Event;
 import org.onosproject.common.event.impl.TestEventDispatcher;
+import org.onosproject.event.Event;
 import org.onosproject.incubator.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.mastership.MastershipTerm;
@@ -57,21 +52,17 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.SimpleDeviceStore;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.onosproject.net.Device.Type.SWITCH;
 import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_UPDATED;
-import static org.onosproject.net.device.DeviceEvent.Type.PORT_ADDED;
-import static org.onosproject.net.device.DeviceEvent.Type.PORT_REMOVED;
-import static org.onosproject.net.device.DeviceEvent.Type.PORT_UPDATED;
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
+import static org.onosproject.net.device.DeviceEvent.Type.*;
 
 /**
  * Test codifying the device service & device provider service contracts.
@@ -110,7 +101,7 @@ public class DeviceManagerTest {
         admin = mgr;
         registry = mgr;
         mgr.store = new SimpleDeviceStore();
-        mgr.eventDispatcher = new TestEventDispatcher();
+        injectEventDispatcher(mgr, new TestEventDispatcher());
         TestMastershipManager mastershipManager = new TestMastershipManager();
         mgr.mastershipService = mastershipManager;
         mgr.termService = mastershipManager;

@@ -17,6 +17,7 @@ package org.onosproject.net.link;
 
 import java.util.Set;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -24,7 +25,8 @@ import org.onosproject.net.Link;
 /**
  * Service for interacting with the inventory of infrastructure links.
  */
-public interface LinkService {
+public interface LinkService
+    extends ListenerService<LinkEvent, LinkListener> {
 
     /**
      * Returns the count of all known infrastructure links.
@@ -110,19 +112,5 @@ public interface LinkService {
      * @return link from source to destination; null if none found
      */
     Link getLink(ConnectPoint src, ConnectPoint dst);
-
-    /**
-     * Adds the specified link listener.
-     *
-     * @param listener link listener
-     */
-    void addListener(LinkListener listener);
-
-    /**
-     * Removes the specified link listener.
-     *
-     * @param listener link listener
-     */
-    void removeListener(LinkListener listener);
 
 }

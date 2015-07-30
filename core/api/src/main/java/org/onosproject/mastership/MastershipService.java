@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 
@@ -29,7 +30,8 @@ import org.onosproject.net.MastershipRole;
  * determining mastership, but is not responsible for actually applying it
  * to the devices; this falls on the device service.
  */
-public interface MastershipService {
+public interface MastershipService
+    extends ListenerService<MastershipEvent, MastershipListener> {
 
     /**
      * Returns the role of the local node for the specified device, without
@@ -83,19 +85,5 @@ public interface MastershipService {
      * @return a set of device IDs
      */
     Set<DeviceId> getDevicesOf(NodeId nodeId);
-
-    /**
-     * Adds the specified mastership change listener.
-     *
-     * @param listener the mastership listener
-     */
-    void addListener(MastershipListener listener);
-
-    /**
-     * Removes the specified mastership change listener.
-     *
-     * @param listener the mastership listener
-     */
-    void removeListener(MastershipListener listener);
 
 }

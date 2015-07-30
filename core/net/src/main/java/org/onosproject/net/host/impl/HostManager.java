@@ -24,9 +24,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.Permission;
-import org.onosproject.event.EventDeliveryService;
-import org.onosproject.event.ListenerRegistry;
 import org.onosproject.incubator.net.config.NetworkConfigEvent;
 import org.onosproject.incubator.net.config.NetworkConfigListener;
 import org.onosproject.incubator.net.config.NetworkConfigService;
@@ -51,7 +50,6 @@ import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
 import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
@@ -59,9 +57,8 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
-
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides basic implementation of the host SB &amp; NB APIs.
@@ -69,14 +66,12 @@ import static org.onosproject.security.AppGuard.checkPermission;
 @Component(immediate = true)
 @Service
 public class HostManager
-        extends AbstractProviderRegistry<HostProvider, HostProviderService>
+        extends AbstractListenerProviderRegistry<HostEvent, HostListener, HostProvider, HostProviderService>
         implements HostService, HostAdminService, HostProviderRegistry {
 
-    public static final String HOST_ID_NULL = "Host ID cannot be null";
     private final Logger log = getLogger(getClass());
 
-    private final ListenerRegistry<HostEvent, HostListener>
-            listenerRegistry = new ListenerRegistry<>();
+    public static final String HOST_ID_NULL = "Host ID cannot be null";
 
     private final NetworkConfigListener networkConfigListener = new InternalNetworkConfigListener();
 
@@ -84,9 +79,6 @@ public class HostManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostStore store;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -101,12 +93,12 @@ public class HostManager
 
     @Activate
     public void activate() {
-        log.info("Started");
         store.setDelegate(delegate);
         eventDispatcher.addSink(HostEvent.class, listenerRegistry);
         networkConfigService.addListener(networkConfigListener);
-        monitor = new HostMonitor(deviceService,  packetService, this);
+        monitor = new HostMonitor(deviceService, packetService, this);
         monitor.start();
+        log.info("Started");
     }
 
     @Deactivate
@@ -120,28 +112,24 @@ public class HostManager
     @Override
     protected HostProviderService createProviderService(HostProvider provider) {
         monitor.registerHostProvider(provider);
-
         return new InternalHostProviderService(provider);
     }
 
     @Override
     public int getHostCount() {
         checkPermission(Permission.HOST_READ);
-
         return store.getHostCount();
     }
 
     @Override
     public Iterable<Host> getHosts() {
         checkPermission(Permission.HOST_READ);
-
         return store.getHosts();
     }
 
     @Override
     public Host getHost(HostId hostId) {
         checkPermission(Permission.HOST_READ);
-
         checkNotNull(hostId, HOST_ID_NULL);
         return store.getHost(hostId);
     }
@@ -149,14 +137,12 @@ public class HostManager
     @Override
     public Set<Host> getHostsByVlan(VlanId vlanId) {
         checkPermission(Permission.HOST_READ);
-
         return store.getHosts(vlanId);
     }
 
     @Override
     public Set<Host> getHostsByMac(MacAddress mac) {
         checkPermission(Permission.HOST_READ);
-
         checkNotNull(mac, "MAC address cannot be null");
         return store.getHosts(mac);
     }
@@ -164,7 +150,6 @@ public class HostManager
     @Override
     public Set<Host> getHostsByIp(IpAddress ip) {
         checkPermission(Permission.HOST_READ);
-
         checkNotNull(ip, "IP address cannot be null");
         return store.getHosts(ip);
     }
@@ -172,7 +157,6 @@ public class HostManager
     @Override
     public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
         checkPermission(Permission.HOST_READ);
-
         checkNotNull(connectPoint, "Connection point cannot be null");
         return store.getConnectedHosts(connectPoint);
     }
@@ -180,7 +164,6 @@ public class HostManager
     @Override
     public Set<Host> getConnectedHosts(DeviceId deviceId) {
         checkPermission(Permission.HOST_READ);
-
         checkNotNull(deviceId, "Device ID cannot be null");
         return store.getConnectedHosts(deviceId);
     }
@@ -188,34 +171,18 @@ public class HostManager
     @Override
     public void startMonitoringIp(IpAddress ip) {
         checkPermission(Permission.HOST_EVENT);
-
         monitor.addMonitoringFor(ip);
     }
 
     @Override
     public void stopMonitoringIp(IpAddress ip) {
         checkPermission(Permission.HOST_EVENT);
-
         monitor.stopMonitoring(ip);
     }
 
     @Override
     public void requestMac(IpAddress ip) {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
-    public void addListener(HostListener listener) {
-        checkPermission(Permission.HOST_EVENT);
-
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(HostListener listener) {
-        checkPermission(Permission.HOST_EVENT);
-
-        listenerRegistry.removeListener(listener);
+        // FIXME!!!! Auto-generated method stub
     }
 
     @Override
@@ -245,14 +212,12 @@ public class HostManager
     @Override
     public Set<PortAddresses> getAddressBindings() {
         checkPermission(Permission.HOST_READ);
-
         return store.getAddressBindings();
     }
 
     @Override
     public Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint) {
         checkPermission(Permission.HOST_READ);
-
         return store.getAddressBindingsForPort(connectPoint);
     }
 
@@ -324,13 +289,6 @@ public class HostManager
         }
         DefaultAnnotations newAnnotations = newBuilder.build();
         return DefaultAnnotations.union(originalAnnotations, newAnnotations);
-    }
-
-    // Posts the specified event to the local event dispatcher.
-    private void post(HostEvent event) {
-        if (event != null) {
-            eventDispatcher.post(event);
-        }
     }
 
     // Store delegate to re-post events emitted from the store.

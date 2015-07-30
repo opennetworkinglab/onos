@@ -41,6 +41,7 @@ import static org.onosproject.app.ApplicationEvent.Type.*;
 import static org.onosproject.app.ApplicationState.ACTIVE;
 import static org.onosproject.app.ApplicationState.INSTALLED;
 import static org.onosproject.app.DefaultApplicationDescriptionTest.*;
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 
 /**
  * Test of the application manager implementation.
@@ -54,7 +55,7 @@ public class ApplicationManagerTest {
 
     @Before
     public void setUp() {
-        mgr.eventDispatcher = new TestEventDispatcher();
+        injectEventDispatcher(mgr, new TestEventDispatcher());
         mgr.featuresService = new TestFeaturesService();
         mgr.store = new TestStore();
         mgr.activate();

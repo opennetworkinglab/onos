@@ -24,9 +24,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.Permission;
-import org.onosproject.event.EventDeliveryService;
-import org.onosproject.event.ListenerRegistry;
 import org.onosproject.incubator.net.config.NetworkConfigEvent;
 import org.onosproject.incubator.net.config.NetworkConfigListener;
 import org.onosproject.incubator.net.config.NetworkConfigService;
@@ -53,7 +52,6 @@ import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.link.LinkStore;
 import org.onosproject.net.link.LinkStoreDelegate;
-import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
@@ -63,8 +61,8 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.onosproject.net.LinkKey.linkKey;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -73,7 +71,7 @@ import static org.onosproject.security.AppGuard.checkPermission;
 @Component(immediate = true)
 @Service
 public class LinkManager
-        extends AbstractProviderRegistry<LinkProvider, LinkProviderService>
+        extends AbstractListenerProviderRegistry<LinkEvent, LinkListener, LinkProvider, LinkProviderService>
         implements LinkService, LinkAdminService, LinkProviderRegistry {
 
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
@@ -81,9 +79,6 @@ public class LinkManager
     private static final String CONNECT_POINT_NULL = "Connection point cannot be null";
 
     private final Logger log = getLogger(getClass());
-
-    protected final ListenerRegistry<LinkEvent, LinkListener>
-            listenerRegistry = new ListenerRegistry<>();
 
     private final LinkStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -96,9 +91,6 @@ public class LinkManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService networkConfigService;
@@ -124,21 +116,18 @@ public class LinkManager
     @Override
     public int getLinkCount() {
         checkPermission(Permission.LINK_READ);
-
         return store.getLinkCount();
     }
 
     @Override
     public Iterable<Link> getLinks() {
         checkPermission(Permission.LINK_READ);
-
         return store.getLinks();
     }
 
     @Override
     public Iterable<Link> getActiveLinks() {
         checkPermission(Permission.LINK_READ);
-
         return FluentIterable.from(getLinks())
                 .filter(new Predicate<Link>() {
 
@@ -152,7 +141,6 @@ public class LinkManager
     @Override
     public Set<Link> getDeviceLinks(DeviceId deviceId) {
         checkPermission(Permission.LINK_READ);
-
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return Sets.union(store.getDeviceEgressLinks(deviceId),
                           store.getDeviceIngressLinks(deviceId));
@@ -161,7 +149,6 @@ public class LinkManager
     @Override
     public Set<Link> getDeviceEgressLinks(DeviceId deviceId) {
         checkPermission(Permission.LINK_READ);
-
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getDeviceEgressLinks(deviceId);
     }
@@ -169,7 +156,6 @@ public class LinkManager
     @Override
     public Set<Link> getDeviceIngressLinks(DeviceId deviceId) {
         checkPermission(Permission.LINK_READ);
-
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getDeviceIngressLinks(deviceId);
     }
@@ -177,7 +163,6 @@ public class LinkManager
     @Override
     public Set<Link> getLinks(ConnectPoint connectPoint) {
         checkPermission(Permission.LINK_READ);
-
         checkNotNull(connectPoint, CONNECT_POINT_NULL);
         return Sets.union(store.getEgressLinks(connectPoint),
                           store.getIngressLinks(connectPoint));
@@ -186,7 +171,6 @@ public class LinkManager
     @Override
     public Set<Link> getEgressLinks(ConnectPoint connectPoint) {
         checkPermission(Permission.LINK_READ);
-
         checkNotNull(connectPoint, CONNECT_POINT_NULL);
         return store.getEgressLinks(connectPoint);
     }
@@ -194,7 +178,6 @@ public class LinkManager
     @Override
     public Set<Link> getIngressLinks(ConnectPoint connectPoint) {
         checkPermission(Permission.LINK_READ);
-
         checkNotNull(connectPoint, CONNECT_POINT_NULL);
         return store.getIngressLinks(connectPoint);
     }
@@ -202,7 +185,6 @@ public class LinkManager
     @Override
     public Link getLink(ConnectPoint src, ConnectPoint dst) {
         checkPermission(Permission.LINK_READ);
-
         checkNotNull(src, CONNECT_POINT_NULL);
         checkNotNull(dst, CONNECT_POINT_NULL);
         return store.getLink(src, dst);
@@ -226,18 +208,6 @@ public class LinkManager
 
     public void removeLink(ConnectPoint src, ConnectPoint dst) {
         post(store.removeLink(src, dst));
-    }
-
-    @Override
-    public void addListener(LinkListener listener) {
-        checkPermission(Permission.LINK_EVENT);
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(LinkListener listener) {
-        checkPermission(Permission.LINK_EVENT);
-        listenerRegistry.removeListener(listener);
     }
 
     // Auxiliary interceptor for device remove events to prune links that
@@ -373,13 +343,6 @@ public class LinkManager
                 log.info("Link {} removed/vanished", event.subject());
                 post(event);
             }
-        }
-    }
-
-    // Posts the specified event to the local event dispatcher.
-    private void post(LinkEvent event) {
-        if (event != null) {
-            eventDispatcher.post(event);
         }
     }
 

@@ -19,7 +19,6 @@ import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -31,10 +30,9 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.core.MetricsHelper;
 import org.onosproject.core.Permission;
-import org.onosproject.event.ListenerRegistry;
-import org.onosproject.event.EventDeliveryService;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
@@ -62,13 +60,14 @@ import static org.onlab.metrics.MetricsUtil.startTimer;
 import static org.onlab.metrics.MetricsUtil.stopTimer;
 import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
 import static org.onosproject.net.MastershipRole.MASTER;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 @Component(immediate = true)
 @Service
 public class MastershipManager
+    extends AbstractListenerManager<MastershipEvent, MastershipListener>
     implements MastershipService, MastershipAdminService, MastershipTermService,
                MetricsHelper {
 
@@ -78,16 +77,10 @@ public class MastershipManager
 
     private final Logger log = getLogger(getClass());
 
-    protected final ListenerRegistry<MastershipEvent, MastershipListener>
-    listenerRegistry = new ListenerRegistry<>();
-
     private final MastershipStoreDelegate delegate = new InternalDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipStore store;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -197,22 +190,6 @@ public class MastershipManager
     }
 
     @Override
-    public void addListener(MastershipListener listener) {
-        checkPermission(Permission.CLUSTER_EVENT);
-
-        checkNotNull(listener);
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(MastershipListener listener) {
-        checkPermission(Permission.CLUSTER_EVENT);
-
-        checkNotNull(listener);
-        listenerRegistry.removeListener(listener);
-    }
-
-    @Override
     public MetricsService metricsService() {
         return metricsService;
     }
@@ -294,21 +271,11 @@ public class MastershipManager
     }
 
 
-    // Posts the specified event to the local event dispatcher.
-    private void post(MastershipEvent event) {
-        if (event != null && eventDispatcher != null) {
-            eventDispatcher.post(event);
-        }
-    }
-
     public class InternalDelegate implements MastershipStoreDelegate {
-
         @Override
         public void notify(MastershipEvent event) {
-            log.trace("dispatching mastership event {}", event);
-            eventDispatcher.post(event);
+            post(event);
         }
-
     }
 
 }

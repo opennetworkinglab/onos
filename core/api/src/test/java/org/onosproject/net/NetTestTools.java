@@ -15,22 +15,24 @@
  */
 package org.onosproject.net;
 
-import org.onosproject.TestApplicationId;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.net.provider.ProviderId;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
+import org.onosproject.TestApplicationId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.net.provider.ProviderId;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.onlab.packet.MacAddress.valueOf;
+import static org.onlab.packet.VlanId.vlanId;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
 import static org.onosproject.net.PortNumber.portNumber;
-import static org.onlab.packet.MacAddress.valueOf;
-import static org.onlab.packet.VlanId.vlanId;
 
 /**
  * Miscellaneous tools for testing core related to the network model.
@@ -98,8 +100,8 @@ public final class NetTestTools {
      * Verifies that Annotations created by merging {@code annotations} is
      * equal to actual Annotations.
      *
-     * @param actual Annotations to check
-     * @param annotations
+     * @param actual      annotations to check
+     * @param annotations expected annotations
      */
     public static void assertAnnotationsEquals(Annotations actual, SparseAnnotations... annotations) {
         DefaultAnnotations expected = DefaultAnnotations.builder().build();
@@ -109,6 +111,27 @@ public final class NetTestTools {
         assertEquals(expected.keys(), actual.keys());
         for (String key : expected.keys()) {
             assertEquals(expected.value(key), actual.value(key));
+        }
+    }
+
+    /**
+     * Injects the given event delivery service into the specified manager
+     * component.
+     *
+     * @param manager manager component
+     * @param svc     service reference to be injected
+     */
+    public static void injectEventDispatcher(Object manager, EventDeliveryService svc) {
+        Class mc = manager.getClass();
+        for (Field f : mc.getSuperclass().getDeclaredFields()) {
+            if (f.getType().equals(EventDeliveryService.class)) {
+                try {
+                    f.setAccessible(true);
+                    f.set(manager, svc);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException("Unable to inject reference", e);
+                }
+            }
         }
     }
 

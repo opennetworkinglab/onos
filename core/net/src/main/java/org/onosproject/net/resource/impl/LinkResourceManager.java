@@ -22,11 +22,13 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.core.Permission;
-import org.onosproject.event.ListenerRegistry;
-import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.IntentId;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceRequest;
+import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.resource.link.BandwidthResourceAllocation;
 import org.onosproject.net.resource.link.BandwidthResourceRequest;
 import org.onosproject.net.resource.link.DefaultLinkResourceAllocations;
@@ -43,9 +45,6 @@ import org.onosproject.net.resource.link.LinkResourceStoreDelegate;
 import org.onosproject.net.resource.link.MplsLabel;
 import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
 import org.onosproject.net.resource.link.MplsLabelResourceRequest;
-import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceRequest;
-import org.onosproject.net.resource.ResourceType;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -57,8 +56,8 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -66,18 +65,14 @@ import static org.onosproject.security.AppGuard.checkPermission;
  */
 @Component(immediate = true)
 @Service
-public class LinkResourceManager implements LinkResourceService {
+public class LinkResourceManager
+        extends AbstractListenerManager<LinkResourceEvent, LinkResourceListener>
+        implements LinkResourceService {
 
     private final Logger log = getLogger(getClass());
 
-    protected final ListenerRegistry<LinkResourceEvent, LinkResourceListener>
-            listenerRegistry = new ListenerRegistry<>();
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private LinkResourceStore store;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
     @Activate
     public void activate() {
@@ -87,6 +82,7 @@ public class LinkResourceManager implements LinkResourceService {
 
     @Deactivate
     public void deactivate() {
+        eventDispatcher.removeSink(LinkResourceEvent.class);
         log.info("Stopped");
     }
 
@@ -218,7 +214,6 @@ public class LinkResourceManager implements LinkResourceService {
     @Override
     public void releaseResources(LinkResourceAllocations allocations) {
         checkPermission(Permission.LINK_WRITE);
-
         final LinkResourceEvent event = store.releaseResources(allocations);
         if (event != null) {
             post(event);
@@ -229,7 +224,6 @@ public class LinkResourceManager implements LinkResourceService {
     public LinkResourceAllocations updateResources(LinkResourceRequest req,
             LinkResourceAllocations oldAllocations) {
         checkPermission(Permission.LINK_WRITE);
-
         releaseResources(oldAllocations);
          return requestResources(req);
     }
@@ -237,21 +231,18 @@ public class LinkResourceManager implements LinkResourceService {
     @Override
     public Iterable<LinkResourceAllocations> getAllocations() {
         checkPermission(Permission.LINK_READ);
-
         return store.getAllocations();
     }
 
     @Override
     public Iterable<LinkResourceAllocations> getAllocations(Link link) {
         checkPermission(Permission.LINK_READ);
-
         return store.getAllocations(link);
     }
 
     @Override
     public LinkResourceAllocations getAllocations(IntentId intentId) {
         checkPermission(Permission.LINK_READ);
-
         return store.getAllocations(intentId);
     }
 
@@ -289,29 +280,6 @@ public class LinkResourceManager implements LinkResourceService {
         Set<ResourceRequest> result = Sets.newHashSet(getAvailableResources(link));
         result.removeAll(allocatedRes);
         return result;
-    }
-
-    @Override
-    public void addListener(LinkResourceListener listener) {
-        checkPermission(Permission.LINK_EVENT);
-
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(LinkResourceListener listener) {
-        checkPermission(Permission.LINK_EVENT);
-
-        listenerRegistry.removeListener(listener);
-    }
-
-    /**
-     * Posts the specified event to the local event dispatcher.
-     */
-    private void post(LinkResourceEvent event) {
-        if (event != null) {
-            eventDispatcher.post(event);
-        }
     }
 
     /**

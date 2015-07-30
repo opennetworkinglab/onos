@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.event.ListenerService;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
@@ -27,7 +28,8 @@ import org.onosproject.net.DeviceId;
  * Service for interacting with the inventory of tunnels.
  */
 @Beta
-public interface TunnelService {
+public interface TunnelService
+    extends ListenerService<TunnelEvent, TunnelListener> {
 
     /**
      * Borrows a specific tunnel. Annotations parameter is reserved.If there
@@ -196,17 +198,4 @@ public interface TunnelService {
      */
     Iterable<Tunnel> getTunnels(DeviceId deviceId);
 
-    /**
-     * Adds the specified tunnel listener.
-     *
-     * @param listener tunnel listener
-     */
-    void addListener(TunnelListener listener);
-
-    /**
-     * Removes the specified tunnel listener.
-     *
-     * @param listener tunnel listener
-     */
-    void removeListener(TunnelListener listener);
 }

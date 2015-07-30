@@ -15,21 +15,15 @@
  */
 package org.onosproject.net.group.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collection;
-import java.util.Collections;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.Permission;
-import org.onosproject.event.EventDeliveryService;
-import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -49,11 +43,14 @@ import org.onosproject.net.group.GroupService;
 import org.onosproject.net.group.GroupStore;
 import org.onosproject.net.group.GroupStore.UpdateType;
 import org.onosproject.net.group.GroupStoreDelegate;
-import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -62,13 +59,12 @@ import static org.onosproject.security.AppGuard.checkPermission;
 @Component(immediate = true)
 @Service
 public class GroupManager
-        extends AbstractProviderRegistry<GroupProvider, GroupProviderService>
+        extends AbstractListenerProviderRegistry<GroupEvent, GroupListener,
+        GroupProvider, GroupProviderService>
         implements GroupService, GroupProviderRegistry {
 
     private final Logger log = getLogger(getClass());
 
-    private final ListenerRegistry<GroupEvent, GroupListener>
-                listenerRegistry = new ListenerRegistry<>();
     private final GroupStoreDelegate delegate = new InternalGroupStoreDelegate();
     private final DeviceListener deviceListener = new InternalDeviceListener();
 
@@ -77,9 +73,6 @@ public class GroupManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
     @Activate
     public void activate() {
@@ -100,34 +93,29 @@ public class GroupManager
      * Create a group in the specified device with the provided parameters.
      *
      * @param groupDesc group creation parameters
-     *
      */
     @Override
     public void addGroup(GroupDescription groupDesc) {
         checkPermission(Permission.GROUP_WRITE);
-
-        log.trace("In addGroup API");
         store.storeGroupDescription(groupDesc);
     }
 
     /**
      * Return a group object associated to an application cookie.
-     *
+     * <p>
      * NOTE1: The presence of group object in the system does not
      * guarantee that the "group" is actually created in device.
      * GROUP_ADDED notification would confirm the creation of
      * this group in data plane.
      *
-     * @param deviceId device identifier
+     * @param deviceId  device identifier
      * @param appCookie application cookie to be used for lookup
      * @return group associated with the application cookie or
-     *               NULL if Group is not found for the provided cookie
+     * NULL if Group is not found for the provided cookie
      */
     @Override
     public Group getGroup(DeviceId deviceId, GroupKey appCookie) {
         checkPermission(Permission.GROUP_READ);
-
-        log.trace("In getGroup API");
         return store.getGroup(deviceId, appCookie);
     }
 
@@ -137,21 +125,19 @@ public class GroupManager
      * GROUP_UPDATE_FAILED notifications would be provided along with
      * cookie depending on the result of the operation on the device.
      *
-     * @param deviceId device identifier
+     * @param deviceId  device identifier
      * @param oldCookie cookie to be used to retrieve the existing group
-     * @param buckets immutable list of group bucket to be added
+     * @param buckets   immutable list of group bucket to be added
      * @param newCookie immutable cookie to be used post update operation
-     * @param appId Application Id
+     * @param appId     Application Id
      */
     @Override
     public void addBucketsToGroup(DeviceId deviceId,
-                           GroupKey oldCookie,
-                           GroupBuckets buckets,
-                           GroupKey newCookie,
-                           ApplicationId appId) {
+                                  GroupKey oldCookie,
+                                  GroupBuckets buckets,
+                                  GroupKey newCookie,
+                                  ApplicationId appId) {
         checkPermission(Permission.GROUP_WRITE);
-
-        log.trace("In addBucketsToGroup API");
         store.updateGroupDescription(deviceId,
                                      oldCookie,
                                      UpdateType.ADD,
@@ -165,21 +151,19 @@ public class GroupManager
      * GROUP_UPDATE_FAILED notifications would be provided along with
      * cookie depending on the result of the operation on the device.
      *
-     * @param deviceId device identifier
+     * @param deviceId  device identifier
      * @param oldCookie cookie to be used to retrieve the existing group
-     * @param buckets immutable list of group bucket to be removed
+     * @param buckets   immutable list of group bucket to be removed
      * @param newCookie immutable cookie to be used post update operation
-     * @param appId Application Id
+     * @param appId     Application Id
      */
     @Override
     public void removeBucketsFromGroup(DeviceId deviceId,
-                                GroupKey oldCookie,
-                                GroupBuckets buckets,
-                                GroupKey newCookie,
-                                ApplicationId appId) {
+                                       GroupKey oldCookie,
+                                       GroupBuckets buckets,
+                                       GroupKey newCookie,
+                                       ApplicationId appId) {
         checkPermission(Permission.GROUP_WRITE);
-
-        log.trace("In removeBucketsFromGroup API");
         store.updateGroupDescription(deviceId,
                                      oldCookie,
                                      UpdateType.REMOVE,
@@ -193,17 +177,15 @@ public class GroupManager
      * provided along with cookie depending on the result of the
      * operation on the device.
      *
-     * @param deviceId device identifier
+     * @param deviceId  device identifier
      * @param appCookie application cookie to be used for lookup
-     * @param appId Application Id
+     * @param appId     Application Id
      */
     @Override
     public void removeGroup(DeviceId deviceId,
                             GroupKey appCookie,
                             ApplicationId appId) {
         checkPermission(Permission.GROUP_WRITE);
-
-        log.trace("In removeGroup API");
         store.deleteGroupDescription(deviceId, appCookie);
     }
 
@@ -212,50 +194,20 @@ public class GroupManager
      * as seen by current controller instance.
      *
      * @param deviceId device identifier
-     * @param appId application id
+     * @param appId    application id
      * @return collection of immutable group objects created by the application
      */
     @Override
     public Iterable<Group> getGroups(DeviceId deviceId,
                                      ApplicationId appId) {
         checkPermission(Permission.GROUP_READ);
-
-        log.trace("In getGroups API");
         return store.getGroups(deviceId);
     }
 
     @Override
     public Iterable<Group> getGroups(DeviceId deviceId) {
         checkPermission(Permission.GROUP_READ);
-
-        log.trace("In getGroups API");
         return store.getGroups(deviceId);
-    }
-
-    /**
-     * Adds the specified group listener.
-     *
-     * @param listener group listener
-     */
-    @Override
-    public void addListener(GroupListener listener) {
-        checkPermission(Permission.GROUP_EVENT);
-
-        log.trace("In addListener API");
-        listenerRegistry.addListener(listener);
-    }
-
-    /**
-     * Removes the specified group listener.
-     *
-     * @param listener group listener
-     */
-    @Override
-    public void removeListener(GroupListener listener) {
-        checkPermission(Permission.GROUP_EVENT);
-
-        log.trace("In removeListener API");
-        listenerRegistry.removeListener(listener);
     }
 
     @Override
@@ -271,52 +223,52 @@ public class GroupManager
                     getProvider(group.deviceId());
             GroupOperations groupOps = null;
             switch (event.type()) {
-            case GROUP_ADD_REQUESTED:
-                log.debug("GROUP_ADD_REQUESTED for Group {} on device {}",
-                          group.id(), group.deviceId());
-                GroupOperation groupAddOp = GroupOperation.
-                        createAddGroupOperation(group.id(),
-                                                group.type(),
-                                                group.buckets());
-                groupOps = new GroupOperations(
-                        Collections.singletonList(groupAddOp));
-                groupProvider.performGroupOperation(group.deviceId(), groupOps);
-                break;
+                case GROUP_ADD_REQUESTED:
+                    log.debug("GROUP_ADD_REQUESTED for Group {} on device {}",
+                              group.id(), group.deviceId());
+                    GroupOperation groupAddOp = GroupOperation.
+                            createAddGroupOperation(group.id(),
+                                                    group.type(),
+                                                    group.buckets());
+                    groupOps = new GroupOperations(
+                            Collections.singletonList(groupAddOp));
+                    groupProvider.performGroupOperation(group.deviceId(), groupOps);
+                    break;
 
-            case GROUP_UPDATE_REQUESTED:
-                log.debug("GROUP_UPDATE_REQUESTED for Group {} on device {}",
-                          group.id(), group.deviceId());
-                GroupOperation groupModifyOp = GroupOperation.
-                        createModifyGroupOperation(group.id(),
-                                                group.type(),
-                                                group.buckets());
-                groupOps = new GroupOperations(
-                        Collections.singletonList(groupModifyOp));
-                groupProvider.performGroupOperation(group.deviceId(), groupOps);
-                break;
+                case GROUP_UPDATE_REQUESTED:
+                    log.debug("GROUP_UPDATE_REQUESTED for Group {} on device {}",
+                              group.id(), group.deviceId());
+                    GroupOperation groupModifyOp = GroupOperation.
+                            createModifyGroupOperation(group.id(),
+                                                       group.type(),
+                                                       group.buckets());
+                    groupOps = new GroupOperations(
+                            Collections.singletonList(groupModifyOp));
+                    groupProvider.performGroupOperation(group.deviceId(), groupOps);
+                    break;
 
-            case GROUP_REMOVE_REQUESTED:
-                log.debug("GROUP_REMOVE_REQUESTED for Group {} on device {}",
-                          group.id(), group.deviceId());
-                GroupOperation groupDeleteOp = GroupOperation.
-                        createDeleteGroupOperation(group.id(),
-                                                group.type());
-                groupOps = new GroupOperations(
-                        Collections.singletonList(groupDeleteOp));
-                groupProvider.performGroupOperation(group.deviceId(), groupOps);
-                break;
+                case GROUP_REMOVE_REQUESTED:
+                    log.debug("GROUP_REMOVE_REQUESTED for Group {} on device {}",
+                              group.id(), group.deviceId());
+                    GroupOperation groupDeleteOp = GroupOperation.
+                            createDeleteGroupOperation(group.id(),
+                                                       group.type());
+                    groupOps = new GroupOperations(
+                            Collections.singletonList(groupDeleteOp));
+                    groupProvider.performGroupOperation(group.deviceId(), groupOps);
+                    break;
 
-            case GROUP_ADDED:
-            case GROUP_UPDATED:
-            case GROUP_REMOVED:
-            case GROUP_ADD_FAILED:
-            case GROUP_UPDATE_FAILED:
-            case GROUP_REMOVE_FAILED:
-                eventDispatcher.post(event);
-                break;
+                case GROUP_ADDED:
+                case GROUP_UPDATED:
+                case GROUP_REMOVED:
+                case GROUP_ADD_FAILED:
+                case GROUP_UPDATE_FAILED:
+                case GROUP_REMOVE_FAILED:
+                    post(event);
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
             }
         }
     }
@@ -330,16 +282,14 @@ public class GroupManager
         }
 
         @Override
-        public void groupOperationFailed(DeviceId deviceId,
-                                         GroupOperation operation) {
+        public void groupOperationFailed(DeviceId deviceId, GroupOperation operation) {
             store.groupOperationFailed(deviceId, operation);
         }
 
         @Override
         public void pushGroupMetrics(DeviceId deviceId,
                                      Collection<Group> groupEntries) {
-            log.trace("Received group metrics from device {}",
-                    deviceId);
+            log.trace("Received group metrics from device {}", deviceId);
             checkValidity();
             store.pushGroupMetrics(deviceId, groupEntries);
         }
@@ -350,21 +300,17 @@ public class GroupManager
         @Override
         public void event(DeviceEvent event) {
             switch (event.type()) {
-            case DEVICE_REMOVED:
-            case DEVICE_AVAILABILITY_CHANGED:
-                if (!deviceService.isAvailable(event.subject().id())) {
-                    log.debug("GroupService DeviceListener: Received event {}."
-                            + "Device is no more available."
-                            + "Clearing device {} initial "
-                            + "AUDIT completed status",
-                            event.type(),
-                            event.subject().id());
-                    store.deviceInitialAuditCompleted(event.subject().id(), false);
-                }
-                break;
+                case DEVICE_REMOVED:
+                case DEVICE_AVAILABILITY_CHANGED:
+                    if (!deviceService.isAvailable(event.subject().id())) {
+                        log.debug("Device {} became un available; clearing initial audit status",
+                                  event.type(), event.subject().id());
+                        store.deviceInitialAuditCompleted(event.subject().id(), false);
+                    }
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
             }
         }
     }

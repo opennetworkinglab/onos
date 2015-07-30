@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.topology;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -25,7 +26,8 @@ import java.util.Set;
 /**
  * Service for providing network topology information.
  */
-public interface TopologyService {
+public interface TopologyService
+    extends ListenerService<TopologyEvent, TopologyListener> {
 
     /**
      * Returns the current topology descriptor.
@@ -129,19 +131,5 @@ public interface TopologyService {
      * @return true if broadcast is permissible
      */
     boolean isBroadcastPoint(Topology topology, ConnectPoint connectPoint);
-
-    /**
-     * Adds the specified topology listener.
-     *
-     * @param listener topology listener
-     */
-    void addListener(TopologyListener listener);
-
-    /**
-     * Removes the specified topology listener.
-     *
-     * @param listener topology listener
-     */
-    void removeListener(TopologyListener listener);
 
 }

@@ -53,6 +53,7 @@ import static org.junit.Assert.*;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.Link.Type.INDIRECT;
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 import static org.onosproject.net.link.LinkEvent.Type.*;
 
 /**
@@ -95,7 +96,7 @@ public class LinkManagerTest {
         admin = mgr;
         registry = mgr;
         mgr.store = new SimpleLinkStore();
-        mgr.eventDispatcher = new TestEventDispatcher();
+        injectEventDispatcher(mgr, new TestEventDispatcher());
         mgr.deviceService = devmgr;
         mgr.networkConfigService = new TestNetworkConfigService();
         mgr.activate();

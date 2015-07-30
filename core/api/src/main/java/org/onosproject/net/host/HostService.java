@@ -17,6 +17,7 @@ package org.onosproject.net.host;
 
 import java.util.Set;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -28,7 +29,8 @@ import org.onlab.packet.VlanId;
 /**
  * Service for interacting with the inventory of end-station hosts.
  */
-public interface HostService {
+public interface HostService
+    extends ListenerService<HostEvent, HostListener> {
 
     /**
      * Returns the number of end-station hosts known to the system.
@@ -136,19 +138,5 @@ public interface HostService {
      * @return addresses bound to the port
      */
     Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint);
-
-    /**
-     * Adds the specified host listener.
-     *
-     * @param listener host listener
-     */
-    void addListener(HostListener listener);
-
-    /**
-     * Removes the specified host listener.
-     *
-     * @param listener host listener
-     */
-    void removeListener(HostListener listener);
 
 }

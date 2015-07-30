@@ -24,8 +24,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.event.EventDeliveryService;
-import org.onosproject.event.ListenerRegistry;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.incubator.net.config.Config;
 import org.onosproject.incubator.net.config.ConfigFactory;
 import org.onosproject.incubator.net.config.NetworkConfigEvent;
@@ -49,7 +48,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Component(immediate = true)
 @Service
-public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfigService {
+public class NetworkConfigManager
+        extends AbstractListenerManager<NetworkConfigEvent, NetworkConfigListener>
+        implements NetworkConfigRegistry, NetworkConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -66,16 +67,10 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
     private final Map<Class, SubjectFactory> subjectClassKeys = Maps.newConcurrentMap();
     private final Map<ConfigIdentifier, Class<? extends Config>> configClasses = Maps.newConcurrentMap();
 
-    private final ListenerRegistry<NetworkConfigEvent, NetworkConfigListener>
-            listenerRegistry = new ListenerRegistry<>();
-
     private final NetworkConfigStoreDelegate storeDelegate = new InternalStoreDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigStore store;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
 
     @Activate
@@ -215,23 +210,12 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
         store.clearConfig(subject, configClass);
     }
 
-    @Override
-    public void addListener(NetworkConfigListener listener) {
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(NetworkConfigListener listener) {
-        listenerRegistry.removeListener(listener);
-    }
-
-
     // Auxiliary store delegate to receive notification about changes in
     // the network configuration store state - by the store itself.
     private class InternalStoreDelegate implements NetworkConfigStoreDelegate {
         @Override
         public void notify(NetworkConfigEvent event) {
-            eventDispatcher.post(event);
+            post(event);
         }
     }
 
