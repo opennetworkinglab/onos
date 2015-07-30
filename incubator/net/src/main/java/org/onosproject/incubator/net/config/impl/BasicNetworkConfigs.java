@@ -16,6 +16,7 @@
 package org.onosproject.incubator.net.config.impl;
 
 import com.google.common.collect.ImmutableSet;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,6 +29,7 @@ import org.onosproject.incubator.net.config.basics.BasicDeviceConfig;
 import org.onosproject.incubator.net.config.basics.BasicHostConfig;
 import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
 import org.onosproject.incubator.net.config.basics.BasicPortConfig;
+import org.onosproject.incubator.net.config.basics.OpticalPortConfig;
 import org.onosproject.incubator.net.config.basics.SubjectFactories;
 import org.onosproject.incubator.net.domain.IntentDomainConfig;
 import org.onosproject.incubator.net.domain.IntentDomainId;
@@ -89,6 +91,14 @@ public class BasicNetworkConfigs {
                 @Override
                 public IntentDomainConfig createConfig() {
                     return new IntentDomainConfig();
+                }
+            },
+            new ConfigFactory<ConnectPoint, OpticalPortConfig>(CONNECT_POINT_SUBJECT_FACTORY,
+                                                        OpticalPortConfig.class,
+                                                        "basic") {
+                @Override
+                public OpticalPortConfig createConfig() {
+                    return new OpticalPortConfig();
                 }
             }
     );
