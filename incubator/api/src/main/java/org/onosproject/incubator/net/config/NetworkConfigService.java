@@ -28,7 +28,7 @@ import java.util.Set;
  */
 @Beta
 public interface NetworkConfigService
-    extends ListenerService<NetworkConfigEvent, NetworkConfigListener> {
+        extends ListenerService<NetworkConfigEvent, NetworkConfigListener> {
 
     /**
      * Returns the set of subject classes for which configuration may be
@@ -57,7 +57,8 @@ public interface NetworkConfigService
     /**
      * Returns the configuration class with the specified key.
      *
-     * @param configKey subject class name
+     * @param subjectKey subject class key
+     * @param configKey  subject class name
      * @return subject class
      */
     Class<? extends Config> getConfigClass(String subjectKey, String configKey);

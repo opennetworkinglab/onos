@@ -389,6 +389,7 @@ public abstract class Tools {
     /**
      * Returns the future value when complete or if future
      * completes exceptionally returns the defaultValue.
+     *
      * @param future future
      * @param defaultValue default value
      * @param <T> future value type
@@ -409,6 +410,7 @@ public abstract class Tools {
     /**
      * Returns the future value when complete or if future
      * completes exceptionally returns the defaultValue.
+     *
      * @param future future
      * @param timeout time to wait for successful completion
      * @param timeUnit time unit
@@ -433,6 +435,7 @@ public abstract class Tools {
 
     /**
      * Returns a future that is completed exceptionally.
+     *
      * @param t exception
      * @param <T> future value type
      * @return future
@@ -448,6 +451,7 @@ public abstract class Tools {
      * <p>
      * WARNING: There is a performance cost due to array copy
      * when using this method.
+     *
      * @param buffer byte buffer
      * @return byte array containing the byte buffer contents
      */
@@ -463,10 +467,11 @@ public abstract class Tools {
     }
 
     /**
-     * Converts an Iterable to a Stream.
+     * Converts an iterable to a stream.
      *
-     * @param it Iterable to convert
-     * @return Iterable as a Stream
+     * @param it iterable to convert
+     * @param <T> type if item
+     * @return iterable as a stream
      */
     public static <T> Stream<T> stream(Iterable<T> it) {
         return StreamSupport.stream(it.spliterator(), false);

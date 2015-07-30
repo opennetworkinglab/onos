@@ -44,7 +44,7 @@ public interface NetworkConfigStore extends Store<NetworkConfigEvent, NetworkCon
      *
      * @param configClass configuration class
      * @param <S>         type of subject
-     * @param <C>          type of configuration
+     * @param <C>         type of configuration
      * @return configuration factory or null
      */
     <S, C extends Config<S>> ConfigFactory<S, C> getConfigFactory(Class<C> configClass);
@@ -112,6 +112,7 @@ public interface NetworkConfigStore extends Store<NetworkConfigEvent, NetworkCon
      * @param json        raw JSON node containing the configuration data
      * @param <S>         type of subject
      * @param <C>         type of configuration
+     * @return configuration object
      */
     <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass,
                                            ObjectNode json);

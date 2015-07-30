@@ -243,6 +243,7 @@ public abstract class Config<S> {
      * @param name         property name
      * @param defaultValue default value if property not set
      * @param enumClass    the enum class
+     * @param <E>          type of enum
      * @return property value or default value
      */
     protected <E extends Enum<E>> E get(String name, E defaultValue, Class<E> enumClass) {
@@ -254,6 +255,7 @@ public abstract class Config<S> {
      *
      * @param name  property name
      * @param value new value or null to clear the property
+     * @param <E>   type of enum
      * @return self
      */
     protected <E extends Enum> Config<S> setOrClear(String name, E value) {
@@ -268,9 +270,9 @@ public abstract class Config<S> {
     /**
      * Gets the specified array property as a list of items.
      *
-     * @param name property name
+     * @param name     property name
      * @param function mapper from string to item
-     * @param <T> type of item
+     * @param <T>      type of item
      * @return list of items
      */
     protected <T> List<T> getList(String name, Function<String, T> function) {
@@ -284,9 +286,9 @@ public abstract class Config<S> {
      * Sets the specified property as an array of items in a given collection or
      * clears it if null is given.
      *
-     * @param name propertyName
+     * @param name       propertyName
      * @param collection collection of items
-     * @param <T> type of items
+     * @param <T>        type of items
      * @return self
      */
     protected <T> Config<S> setOrClear(String name, Collection<T> collection) {

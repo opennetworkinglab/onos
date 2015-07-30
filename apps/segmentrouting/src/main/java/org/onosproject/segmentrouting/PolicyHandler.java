@@ -59,10 +59,11 @@ public class PolicyHandler {
     /**
      * Creates a reference.
      *
-     * @param appId segment routing application ID
-     * @param deviceConfiguration DeviceConfiguration reference
+     * @param appId                segment routing application ID
+     * @param deviceConfiguration  DeviceConfiguration reference
      * @param flowObjectiveService FlowObjectiveService reference
-     * @param policyStore policy store
+     * @param tunnelHandler        tunnel handler reference
+     * @param policyStore          policy store
      */
     public PolicyHandler(ApplicationId appId,
                          DeviceConfiguration deviceConfiguration,

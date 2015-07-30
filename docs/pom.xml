@@ -67,7 +67,7 @@
                         <group>
                             <title>Core Subsystems</title>
                             <packages>
-                                org.onosproject.impl:org.onosproject.core.impl:org.onosproject.cluster.impl:org.onosproject.net.device.impl:org.onosproject.net.link.impl:org.onosproject.net.host.impl:org.onosproject.net.topology.impl:org.onosproject.net.packet.impl:org.onosproject.net.flow.impl:org.onosproject.net.*.impl:org.onosproject.event.impl:org.onosproject.net.intent.impl*:org.onosproject.net.proxyarp.impl:org.onosproject.mastership.impl:org.onosproject.net.resource.impl:org.onosproject.json:org.onosproject.json.*:org.onosproject.provider.host.impl:org.onosproject.provider.lldp.impl:org.onosproject.net.statistic.impl:org.onosproject.app.impl:org.onosproject.common.*:org.onosproject.net.group.impl:org.onosproject.cfg.impl:org.onosproject.net.driver.impl:org.onosproject.net.flowobjective.impl:org.onosproject.net.flowext.impl:org.onosproject.net.tunnel.impl:org.onosproject.security.*
+                                org.onosproject.impl:org.onosproject.core.impl:org.onosproject.cluster.impl:org.onosproject.net.device.impl:org.onosproject.net.link.impl:org.onosproject.net.host.impl:org.onosproject.net.topology.impl:org.onosproject.net.packet.impl:org.onosproject.net.flow.impl:org.onosproject.net.*.impl:org.onosproject.event.impl:org.onosproject.net.intent.impl*:org.onosproject.net.proxyarp.impl:org.onosproject.mastership.impl:org.onosproject.net.resource.impl:org.onosproject.net.newresource.impl:org.onosproject.json:org.onosproject.json.*:org.onosproject.provider.host.impl:org.onosproject.provider.lldp.impl:org.onosproject.net.statistic.impl:org.onosproject.app.impl:org.onosproject.common.*:org.onosproject.net.group.impl:org.onosproject.cfg.impl:org.onosproject.net.driver.impl:org.onosproject.net.flowobjective.impl*:org.onosproject.net.flowext.impl:org.onosproject.net.tunnel.impl:org.onosproject.security.*
                             </packages>
                         </group>
                         <group>
@@ -79,7 +79,7 @@
                         <group>
                             <title>Incubator for Core Subsystems &amp; Distributed Stores</title>
                             <packages>
-                                org.onosproject.incubator.net.impl:org.onosproject.incubator.store.impl:org.onosproject.incubator.net.resource.label.impl:org.onosproject.incubator.store.resource.impl:org.onosproject.incubator.net.tunnel.impl:org.onosproject.incubator.store.tunnel.impl
+                                org.onosproject.incubator.net.impl:org.onosproject.incubator.store.impl:org.onosproject.incubator.net.resource.label.impl:org.onosproject.incubator.store.resource.impl:org.onosproject.incubator.net.tunnel.impl:org.onosproject.incubator.store.tunnel.impl:org.onosproject.incubator.net.config.impl:org.onosproject.incubator.net.domain.impl:org.onosproject.incubator.store.config.impl
                             </packages>
                         </group>
                         <group>
@@ -92,6 +92,12 @@
                             <title>NetConf Providers</title>
                             <packages>
                                 org.onosproject.provider.netconf:org.onosproject.provider.netconf*
+                            </packages>
+                        </group>
+                        <group>
+                            <title>OVSDB Providers</title>
+                            <packages>
+                                org.onosproject.provider.ovsdb*:org.onosproject.ovsdb*
                             </packages>
                         </group>
                         <group>
@@ -119,19 +125,19 @@
                             </packages>
                         </group>
                         <group>
-                            <title>Sample Applications</title>
+                            <title>Builtin Applications</title>
                             <packages>
-                                org.onosproject.tvue:org.onosproject.fwd:org.onosproject.ifwd:org.onosproject.mobility:org.onosproject.proxyarp:org.onosproject.foo:org.onosproject.calendar:org.onosproject.optical:org.onosproject.optical.*:org.onosproject.sdnip:org.onosproject.sdnip.*:org.onosproject.config:org.onosproject.routing:org.onosproject.routing*:org.onosproject.bgprouter:org.onosproject.intentperf:org.onosproject.segmentrouting:org.onosproject.segmentrouting.*:org.onosproject.reactive.routing*:org.onosproject.messagingperf:org.onosproject.virtualbng:org.onosproject.demo*:org.onosproject.election*:org.onosproject.distributedprimitives*:org.onosproject.cordfabric*:org.onosproject.xosintegration*:org.onosproject.pcep*
+                                org.onosproject.app.*:org.onosproject.acl*:org.onosproject.aaa:org.onosproject.fwd:org.onosproject.flowanalyzer:org.onosproject.mobility:org.onosproject.proxyarp:org.onosproject.calendar:org.onosproject.optical:org.onosproject.optical.*:org.onosproject.sdnip:org.onosproject.sdnip.*:org.onosproject.config:org.onosproject.routing:org.onosproject.routing*:org.onosproject.bgprouter:org.onosproject.segmentrouting:org.onosproject.segmentrouting.*:org.onosproject.reactive.routing*:org.onosproject.messagingperf:org.onosproject.virtualbng:org.onosproject.cordfabric*:org.onosproject.xosintegration*:org.onosproject.pcep*
                             </packages>
                         </group>
                         <group>
-                            <title>Test Instrumentation</title>
+                            <title>Test Instrumentation &amp; Applications</title>
                             <packages>
-                                org.onosproject.metrics.*
+                                org.onosproject.metrics.*:org.onosproject.demo*:org.onosproject.election*:org.onosproject.distributedprimitives*:org.onosproject.intentperf*:org.onosproject.messagingperf*:org.onosproject.optical.testapp*
                             </packages>
                         </group>
                     </groups>
-                    <excludePackageNames>org.onlab.thirdparty:org.onosproject.oecfg:org.onosproject.maven:org.onlab.jdvue*</excludePackageNames>
+                    <excludePackageNames>org.onlab.thirdparty:org.onosproject.oecfg:org.onosproject.maven:org.onlab.jdvue*:org.onlab.stc*</excludePackageNames>
                 </configuration>
             </plugin>
         </plugins>

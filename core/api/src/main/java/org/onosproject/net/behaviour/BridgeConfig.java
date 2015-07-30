@@ -63,7 +63,7 @@ public interface BridgeConfig extends HandlerBehaviour {
     /**
      * Delete a logical/virtual port.
      *
-     * return collection of port
+     * @return collection of port
      */
     Collection<PortDescription> getPorts();
 }

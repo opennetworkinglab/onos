@@ -37,7 +37,8 @@ public class DefaultDriverData implements DriverData {
     /**
      * Creates new driver data.
      *
-     * @param driver parent driver type
+     * @param driver   parent driver type
+     * @param deviceId device identifier
      */
     public DefaultDriverData(Driver driver, DeviceId deviceId) {
         this.driver = driver;
