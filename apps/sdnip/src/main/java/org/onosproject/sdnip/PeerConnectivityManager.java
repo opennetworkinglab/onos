@@ -26,6 +26,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.routing.config.BgpPeer;
 import org.onosproject.routing.config.BgpSpeaker;
@@ -148,9 +149,14 @@ public class PeerConnectivityManager {
 
         IpAddress bgpdAddress = null;
         for (InterfaceAddress interfaceAddress : interfaceAddresses) {
-            if (interfaceAddress.connectPoint().equals(
-                    peerInterface.connectPoint())) {
-                bgpdAddress = interfaceAddress.ipAddress();
+            if (interfaceAddress.connectPoint().equals(peerInterface.connectPoint())) {
+                for (InterfaceIpAddress interfaceIpAddress : peerInterface.ipAddresses()) {
+                    // Only add intents where the peer and ONOS's addresses are
+                    // in the same subnet
+                    if (interfaceIpAddress.subnetAddress().contains(bgpPeer.ipAddress())) {
+                        bgpdAddress = interfaceAddress.ipAddress();
+                    }
+                }
                 break;
             }
         }
