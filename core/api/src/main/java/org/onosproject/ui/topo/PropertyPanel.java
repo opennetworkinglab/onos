@@ -35,6 +35,7 @@ public class PropertyPanel {
     private String typeId;
     private String id;
     private List<Prop> properties = new ArrayList<>();
+    private List<Button> buttons = new ArrayList<>();
 
     /**
      * Constructs a property panel model with the given title and
@@ -174,6 +175,16 @@ public class PropertyPanel {
         return properties;
     }
 
+    /**
+     * Returns the list of button descriptors.
+     *
+     * @return the button list
+     */
+    // TODO: consider protecting this?
+    public List<Button> buttons() {
+        return buttons;
+    }
+
     // == MUTATORS
 
     /**
@@ -223,6 +234,17 @@ public class PropertyPanel {
      */
     public PropertyPanel removeAllProps() {
         properties.clear();
+        return this;
+    }
+
+    /**
+     * Adds a button descriptor with the given identifier, to the panel data.
+     *
+     * @param id button identifier
+     * @return self, for chaining
+     */
+    public PropertyPanel addButton(String id) {
+        buttons.add(new Button(id));
         return this;
     }
 
@@ -300,4 +322,29 @@ public class PropertyPanel {
         }
     }
 
+    /**
+     * Button descriptor. Note that these work in conjunction with
+     * "buttons" defined in the JavaScript code for the overlay.
+     */
+    public static class Button {
+        private final String id;
+
+        /**
+         * Constructs a button descriptor with the given identifier.
+         *
+         * @param id button identifier
+         */
+        public Button(String id) {
+            this.id = id;
+        }
+
+        /**
+         * Returns the identifier for this button.
+         *
+         * @return button identifier
+         */
+        public String id() {
+            return id;
+        }
+    }
 }

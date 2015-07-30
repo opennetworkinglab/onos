@@ -44,26 +44,36 @@
         $log.warn(tos + fn + '(): ' + msg);
     }
 
-    function handleGlyph(o) {
-        var gdata = fs.isO(o.glyph),
-            oid,
-            data = {};
+    function mkGlyphId(oid, gid) {
+        return (gid[0] === '*') ? oid + '-' + gid.slice(1) : gid;
+    }
 
-        if (!gdata) {
-            o._glyphId = 'unknown';
-        } else {
-            if (gdata.id) {
-                o._glyphId = gdata.id;
-            } else if (gdata.vb && gdata.d) {
-                oid = o.overlayId;
-                data['_' + oid] = gdata.vb;
-                data[oid] = gdata.d;
-                gs.registerGlyphs(data);
-                o._glyphId = oid;
-                $log.debug('registered overlay glyph:', oid);
-            } else {
-                warn('registerGlyph', 'problem with glyph data');
-            }
+    function handleGlyphs(o) {
+        var gdata = fs.isO(o.glyphs),
+            oid = o.overlayId,
+            gid = o.glyphId || 'unknown',
+            data = {},
+            note = [];
+
+        o._glyphId = mkGlyphId(oid, gid);
+
+        o.mkGid = function (g) {
+            return mkGlyphId(oid, g);
+        };
+        o.mkId = function (s) {
+            return oid + '-' + s;
+        };
+
+        // process glyphs if defined
+        if (gdata) {
+            angular.forEach(gdata, function (value, key) {
+                var fullkey = oid + '-' + key;
+                data['_' + fullkey] = value.vb;
+                data[fullkey] = value.d;
+                note.push('*' + key);
+            });
+            gs.registerGlyphs(data);
+            $log.debug('registered overlay glyphs:', oid, note);
         }
     }
 
@@ -79,7 +89,7 @@
             return warn(r, 'already registered: "' + id + '"');
         }
         overlays[id] = overlay;
-        handleGlyph(overlay);
+        handleGlyphs(overlay);
         $log.debug(tos + 'registered overlay: ' + id, overlay);
     }
 
@@ -132,6 +142,28 @@
         }
     }
 
+    // install buttons from the current overlay
+    function installButtons(bids, addFn, data) {
+        if (current) {
+            bids.forEach(function (bid) {
+                var btn = current.buttons[bid],
+                    funcWrap = function () {
+                        btn.cb(data);
+                    };
+
+                if (btn) {
+                    addFn({
+                        id: current.mkId(bid),
+                        gid: current.mkGid(btn.gid),
+                        cb: funcWrap,
+                        tt: btn.tt
+                    });
+                }
+            });
+        }
+
+    }
+
     angular.module('ovTopo')
     .factory('TopoOverlayService',
         ['$log', 'FnService', 'GlyphService', 'WebSocketService',
@@ -147,7 +179,8 @@
                 unregister: unregister,
                 list: list,
                 overlay: overlay,
-                tbSelection: tbSelection
+                tbSelection: tbSelection,
+                installButtons: installButtons
             }
         }]);
 

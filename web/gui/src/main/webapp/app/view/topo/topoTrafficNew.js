@@ -29,7 +29,7 @@
     // traffic overlay definition
     var overlay = {
         overlayId: 'traffic',
-        glyph: { id: 'allTraffic' },
+        glyphId: 'allTraffic',
         tooltip: 'Traffic Overlay',
 
         activate: activateTraffic,

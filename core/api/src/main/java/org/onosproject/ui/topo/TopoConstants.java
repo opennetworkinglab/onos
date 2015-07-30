@@ -73,4 +73,37 @@ public final class TopoConstants {
         public static final String STOP = "stop";
         public static final String CLOUD = "cloud";
     }
+
+    /**
+     * Defines constants for property names on the default summary and
+     * details panels.
+     */
+    public static final class Properties {
+        // summary panel
+        public static final String DEVICES = "Devices";
+        public static final String LINKS = "Links";
+        public static final String HOSTS = "Hosts";
+        public static final String TOPOLOGY_SSCS = "Topology SCCs";
+        public static final String INTENTS = "Intents";
+        public static final String TUNNELS = "Tunnels";
+        public static final String FLOWS = "Flows";
+        public static final String VERSION = "Version";
+
+        // device details
+        public static final String URI = "URI";
+        public static final String VENDOR = "Vendor";
+        public static final String HW_VERSION = "H/W Version";
+        public static final String SW_VERSION = "S/W Version";
+        public static final String SERIAL_NUMBER = "Serial Number";
+        public static final String PROTOCOL = "Protocol";
+        public static final String LATITUDE = "Latitude";
+        public static final String LONGITUDE = "Longitude";
+        public static final String PORTS = "Ports";
+
+        // host details
+        public static final String MAC = "MAC";
+        public static final String IP = "IP";
+        public static final String VLAN = "VLAN";
+    }
+
 }

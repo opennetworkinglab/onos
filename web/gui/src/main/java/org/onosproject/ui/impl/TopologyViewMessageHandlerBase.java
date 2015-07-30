@@ -107,6 +107,7 @@ import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.FLOW;
 import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.PORT;
+import static org.onosproject.ui.topo.TopoConstants.*;
 
 /**
  * Facility for creating messages bound for the topology viewer.
@@ -448,15 +449,15 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         Topology topology = topologyService.currentTopology();
 
         return new PropertyPanel("ONOS Summary", "node")
-            .addProp("Devices", topology.deviceCount())
-            .addProp("Links", topology.linkCount())
-            .addProp("Hosts", hostService.getHostCount())
-            .addProp("Topology SCCs", topology.clusterCount())
+            .addProp(Properties.DEVICES, topology.deviceCount())
+            .addProp(Properties.LINKS, topology.linkCount())
+            .addProp(Properties.HOSTS, hostService.getHostCount())
+            .addProp(Properties.TOPOLOGY_SSCS, topology.clusterCount())
             .addSeparator()
-            .addProp("Intents", intentService.getIntentCount())
-            .addProp("Tunnels", tunnelService.tunnelCount())
-            .addProp("Flows", flowService.getFlowRuleCount())
-            .addProp("Version", version);
+            .addProp(Properties.INTENTS, intentService.getIntentCount())
+            .addProp(Properties.TUNNELS, tunnelService.tunnelCount())
+            .addProp(Properties.FLOWS, flowService.getFlowRuleCount())
+            .addProp(Properties.VERSION, version);
     }
 
     // Returns property panel model for device details response.
@@ -472,20 +473,20 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         String typeId = device.type().toString().toLowerCase();
 
         PropertyPanel pp = new PropertyPanel(title, typeId)
-                .id(deviceId.toString())
-                .addProp("URI", deviceId.toString())
-                .addProp("Vendor", device.manufacturer())
-                .addProp("H/W Version", device.hwVersion())
-                .addProp("S/W Version", device.swVersion())
-                .addProp("Serial Number", device.serialNumber())
-                .addProp("Protocol", annot.value(AnnotationKeys.PROTOCOL))
-                .addSeparator()
-                .addProp("Latitude", annot.value(AnnotationKeys.LATITUDE))
-                .addProp("Longitude", annot.value(AnnotationKeys.LONGITUDE))
-                .addSeparator()
-                .addProp("Ports", portCount)
-                .addProp("Flows", flowCount)
-                .addProp("Tunnels", tunnelCount);
+            .id(deviceId.toString())
+            .addProp(Properties.URI, deviceId.toString())
+            .addProp(Properties.VENDOR, device.manufacturer())
+            .addProp(Properties.HW_VERSION, device.hwVersion())
+            .addProp(Properties.SW_VERSION, device.swVersion())
+            .addProp(Properties.SERIAL_NUMBER, device.serialNumber())
+            .addProp(Properties.PROTOCOL, annot.value(AnnotationKeys.PROTOCOL))
+            .addSeparator()
+            .addProp(Properties.LATITUDE, annot.value(AnnotationKeys.LATITUDE))
+            .addProp(Properties.LONGITUDE, annot.value(AnnotationKeys.LONGITUDE))
+            .addSeparator()
+            .addProp(Properties.PORTS, portCount)
+            .addProp(Properties.FLOWS, flowCount)
+            .addProp(Properties.TUNNELS, tunnelCount);
 
         // TODO: add button descriptors
 
@@ -570,13 +571,13 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         String typeId = isNullOrEmpty(type) ? "endstation" : type;
 
         PropertyPanel pp = new PropertyPanel(title, typeId)
-                .id(hostId.toString())
-                .addProp("MAC", host.mac())
-                .addProp("IP", host.ipAddresses(), "[\\[\\]]")
-                .addProp("VLAN", vlan.equals("-1") ? "none" : vlan)
-                .addSeparator()
-                .addProp("Latitude", annot.value(AnnotationKeys.LATITUDE))
-                .addProp("Longitude", annot.value(AnnotationKeys.LONGITUDE));
+            .id(hostId.toString())
+            .addProp(Properties.MAC, host.mac())
+            .addProp(Properties.IP, host.ipAddresses(), "[\\[\\]]")
+            .addProp(Properties.VLAN, vlan.equals("-1") ? "none" : vlan)
+            .addSeparator()
+            .addProp(Properties.LATITUDE, annot.value(AnnotationKeys.LATITUDE))
+            .addProp(Properties.LONGITUDE, annot.value(AnnotationKeys.LONGITUDE));
 
         // TODO: add button descriptors
         return pp;
@@ -859,6 +860,12 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         }
         result.set("propOrder", porder);
         result.set("props", pnode);
+
+        ArrayNode buttons = arrayNode();
+        for (PropertyPanel.Button b : pp.buttons()) {
+            buttons.add(b.id());
+        }
+        result.set("buttons", buttons);
         return result;
     }
 
