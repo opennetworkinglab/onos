@@ -164,11 +164,11 @@ public class DistributedNetworkConfigStore
 
     @Override
     public <S, T extends Config<S>> T getConfig(S subject, Class<T> configClass) {
-        // FIXME: There has to be a better way to absorb the timeout exceptions.
+        // FIXME: There has to be a better way to absorb the timeout exceptions!
         Versioned<ObjectNode> json = null;
         try {
             json = configs.get(key(subject, configClass));
-        } catch (ConsistentMapException.Timeout e) {
+        } catch (ConsistentMapException e) {
             Tools.randomDelay(MAX_BACKOFF);
             json = configs.get(key(subject, configClass));
         }
