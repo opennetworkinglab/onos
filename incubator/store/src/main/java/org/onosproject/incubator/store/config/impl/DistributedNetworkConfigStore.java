@@ -33,6 +33,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.Tools;
 import org.onosproject.incubator.net.config.Config;
 import org.onosproject.incubator.net.config.ConfigApplyDelegate;
 import org.onosproject.incubator.net.config.ConfigFactory;
@@ -42,6 +43,7 @@ import org.onosproject.incubator.net.config.NetworkConfigStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
@@ -65,6 +67,8 @@ import static org.onosproject.incubator.net.config.NetworkConfigEvent.Type.*;
 public class DistributedNetworkConfigStore
         extends AbstractStore<NetworkConfigEvent, NetworkConfigStoreDelegate>
         implements NetworkConfigStore {
+
+    private static final int MAX_BACKOFF = 10;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -160,7 +164,14 @@ public class DistributedNetworkConfigStore
 
     @Override
     public <S, T extends Config<S>> T getConfig(S subject, Class<T> configClass) {
-        Versioned<ObjectNode> json = configs.get(key(subject, configClass));
+        // FIXME: There has to be a better way to absorb the timeout exceptions.
+        Versioned<ObjectNode> json = null;
+        try {
+            json = configs.get(key(subject, configClass));
+        } catch (ConsistentMapException.Timeout e) {
+            Tools.randomDelay(MAX_BACKOFF);
+            json = configs.get(key(subject, configClass));
+        }
         return json != null ? createConfig(subject, configClass, json.value()) : null;
     }
 
