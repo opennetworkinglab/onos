@@ -19,7 +19,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,13 +27,17 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onlab.util.Frequency;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onlab.util.Spectrum;
 import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.GridType;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
@@ -45,6 +48,7 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
+import org.onosproject.net.device.OchPortDescription;
 import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
@@ -64,6 +68,7 @@ import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.OFPortDescPropOpticalTransport;
 import org.projectfloodlight.openflow.protocol.OFPortFeatures;
 import org.projectfloodlight.openflow.protocol.OFPortOptical;
 import org.projectfloodlight.openflow.protocol.OFPortReason;
@@ -86,6 +91,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onosproject.net.DeviceId.deviceId;
@@ -454,6 +460,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          * @return portDescription for the port.
          */
         private PortDescription buildPortDescription(PortDescPropertyType ptype, OFPortOptical port) {
+            checkArgument(port.getDesc().size() >= 1);
+
             // Minimally functional fixture. This needs to be fixed as we add better support.
             PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
 
@@ -469,6 +477,23 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 // removable once 1.4+ support complete.
                 LOG.debug("Unsupported optical port properties");
             }
+
+            OFPortDescPropOpticalTransport desc = port.getDesc().get(0);
+            switch (desc.getPortSignalType()) {
+                // FIXME: use constants once loxi has full optical extensions
+                case 2:     // OMS port
+                    // Assume complete optical spectrum and 50 GHz grid
+                    // LINC-OE is only supported optical OF device for now
+                    return new OmsPortDescription(portNo, enabled,
+                            Spectrum.U_BAND_MIN, Spectrum.O_BAND_MAX, Frequency.ofGHz(50), annotations);
+                case 5:     // OCH port
+                    OchSignal signal = new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, 0, 4);
+                    return new OchPortDescription(portNo, enabled, OduSignalType.ODU4,
+                            true, signal, annotations);
+                default:
+                    break;
+            }
+
             return new DefaultPortDescription(portNo, enabled, FIBER, 0, annotations);
         }
 
@@ -486,12 +511,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             boolean enabled = true;
             SparseAnnotations annotations = makePortNameAnnotation(port.getName());
 
-            // Wavelength range: 1260 - 1630 nm (S160 data sheet)
-            // Grid is irrelevant for this type of switch
-            Frequency minFreq = Spectrum.O_BAND_MAX;
-            Frequency maxFreq = Spectrum.U_BAND_MIN;
-            Frequency grid = Frequency.ofGHz(100);
-            return new OmsPortDescription(portNo, enabled, minFreq, maxFreq, grid, annotations);
+            // S160 data sheet
+            // Wavelength range: 1260 - 1630 nm, grid is irrelevant for this type of switch
+            return new OmsPortDescription(portNo, enabled,
+                    Spectrum.U_BAND_MIN, Spectrum.O_BAND_MAX, Frequency.ofGHz(100), annotations);
         }
 
         private PortDescription buildPortDescription(OFPortStatus status) {
