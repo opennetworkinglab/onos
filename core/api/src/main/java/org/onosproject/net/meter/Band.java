@@ -32,7 +32,7 @@ public interface Band {
 
         /**
          * defines a simple DiffServ policer that remark
-         * the drop precedence of the DSCP eld in the
+         * the drop precedence of the DSCP field in the
          * IP header of the packets that exceed the band
          * rate value.
          */
@@ -42,16 +42,32 @@ public interface Band {
     /**
      * The rate at which this meter applies.
      *
-     * @return the integer value of the rate
+     * @return the long value of the rate
      */
-    int rate();
+    long rate();
 
     /**
      * The burst size at which the meter applies.
      *
-     * @return the integer value of the size
+     * @return the long value of the size
      */
-    int burst();
+    long burst();
+
+    /**
+     * Only meaningful in the case of a REMARK band type.
+     * indicates by which amount the drop precedence of
+     * the packet should be increase if the band is exceeded.
+     *
+     * @return a short value
+     */
+    short dropPrecedence();
+
+    /**
+     * Signals the type of band to create.
+     *
+     * @return a band type
+     */
+    Type type();
 
 
 }

@@ -41,7 +41,7 @@ public final class MeterId {
      *
      * @return an integer
      */
-    int id() {
+    public int id() {
         return id;
     }
 

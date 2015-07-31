@@ -29,10 +29,10 @@ public interface MeterProviderService extends ProviderService<MeterProvider> {
     /**
      * Notifies the core that a meter operaton failed for a
      * specific reason.
-     * @param deviceId
-     * @param operation
+     * @param operation the failed operation
+     * @param reason the failure reason
      */
-    void meterOperationFailed(DeviceId deviceId, MeterOperation operation,
+    void meterOperationFailed(MeterOperation operation,
                               MeterFailReason reason);
 
     /**

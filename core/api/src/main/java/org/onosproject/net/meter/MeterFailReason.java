@@ -38,5 +38,52 @@ public enum MeterFailReason {
     /**
      * The meter that was attempted to be modified is unknown.
      */
-    UNKNOWN
+    UNKNOWN,
+
+    /**
+     * The operation for this meter installation timed out.
+     */
+    TIMEOUT,
+
+    /**
+     * Invalid meter definition.
+     */
+    INVALID_METER,
+
+    /**
+     * The target device is unknown.
+     */
+    UNKNOWN_DEVICE,
+
+    /**
+     * Unknown command.
+     */
+    UNKNOWN_COMMAND,
+
+    /**
+     * Unknown flags.
+     */
+    UNKNOWN_FLAGS,
+
+    /**
+     * Bad rate value.
+     */
+    BAD_RATE,
+
+    /**
+     * Bad burst size value.
+     */
+    BAD_BURST,
+
+    /**
+     * Bad band.
+     */
+    BAD_BAND,
+
+    /**
+     * Bad value value.
+     */
+    BAD_BAND_VALUE
+
+
 }
