@@ -58,7 +58,6 @@
         showHosts = false,      // whether hosts are displayed
         showOffline = true,     // whether offline devices are displayed
         nodeLock = false,       // whether nodes can be dragged or not (locked)
-        fTimer,                 // timer for delayed force layout
         fNodesTimer,            // timer for delayed nodes update
         fLinksTimer,            // timer for delayed links update
         dim,                    // the dimensions of the force layout [w,h]
@@ -118,7 +117,6 @@
         network.nodes.push(d);
         lu[id] = d;
         updateNodes();
-        fStart();
     }
 
     function updateDevice(data) {
@@ -172,8 +170,6 @@
             lu[d.egress] = lnk;
             updateLinks();
         }
-
-        fStart();
     }
 
     function updateHost(data) {
@@ -219,7 +215,6 @@
             aggregateLink(d, data);
             lu[d.key] = d;
             updateLinks();
-            fStart();
         }
     }
 
@@ -327,7 +322,6 @@
             // remove from lookup cache
             delete lu[removed[0].key];
             updateLinks();
-            fResume();
         }
     }
 
@@ -349,12 +343,12 @@
         // NOTE: upd is false if we were called from removeDeviceElement()
         if (upd) {
             updateNodes();
-            fResume();
         }
     }
 
     function removeDeviceElement(d) {
-        var id = d.id;
+        var id = d.id,
+            idx;
         // first, remove associated hosts and links..
         tms.findAttachedHosts(id).forEach(removeHostElement);
         tms.findAttachedLinks(id).forEach(removeLinkElement);
@@ -362,8 +356,10 @@
         // remove from lookup cache
         delete lu[id];
         // remove from nodes array
-        var idx = fs.find(id, network.nodes);
-        network.nodes.splice(idx, 1);
+        idx = fs.find(id, network.nodes);
+        if (idx > -1) {
+            network.nodes.splice(idx, 1);
+        }
 
         if (!network.nodes.length) {
             uplink.showNoDevs(true);
@@ -371,7 +367,6 @@
 
         // remove from SVG
         updateNodes();
-        fResume();
     }
 
     function updateHostVisibility() {
@@ -526,6 +521,7 @@
     }
 
     function _updateNodes() {
+        force.stop();
         // select all the nodes in the layout:
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
@@ -540,11 +536,7 @@
             .attr({
                 id: function (d) { return sus.safeId(d.id); },
                 class: mkSvgClass,
-                transform: function (d) {
-                    // sometimes says d.x and d.y are NaN?
-                    // I have a feeling it's a timing issue
-                    return sus.translate(d.x, d.y);
-                },
+                transform: function (d) { return sus.translate(d.x, d.y); },
                 opacity: 0
             })
             .call(drag)
@@ -572,6 +564,7 @@
         // exiting node specifics:
         exiting.filter('.host').each(td3.hostExit);
         exiting.filter('.device').each(td3.deviceExit);
+        fStart();
     }
 
     // ==========================
@@ -668,13 +661,11 @@
 
     function _updateLinks() {
         var th = ts.theme();
+        force.stop();
 
         link = linkG.selectAll('.link')
             .data(network.links, function (d) { return d.key; });
 
-        // This seems to do nothing? I've only triggered it on timeout errors
-        // when adding links, link var is empty because there aren't any links
-        // when removing links, link var is empty already
         // operate on existing links:
         link.each(function (d) {
             // this is supposed to be an existing link, but we have observed
@@ -723,6 +714,7 @@
             })
             .style('opacity', 0.0)
             .remove();
+        fStart();
     }
 
 
@@ -737,13 +729,8 @@
 
     function fStart() {
         if (!tos.isOblique()) {
-            if (fTimer) {
-                $timeout.cancel(fTimer);
-            }
-            fTimer = $timeout(function () {
-                $log.debug("Starting force-layout");
-                force.start();
-            }, 200);
+            $log.debug("Starting force-layout");
+            force.start();
         }
     }
 
@@ -769,15 +756,15 @@
 
     function tick() {
         // guard against null (which can happen when our view pages out)...
-        if (node) {
+        if (node && node.size()) {
             node.attr(tickStuff.nodeAttr);
         }
-        if (link) {
+        if (link && link.size()) {
             link.call(calcPosition)
                 .attr(tickStuff.linkAttr);
             td3.applyNumLinkLabels(linkNums, numLinkLblsG);
         }
-        if (linkLabel) {
+        if (linkLabel && linkLabel.size()) {
             linkLabel.attr(tickStuff.linkLabelAttr);
         }
     }
@@ -1050,9 +1037,6 @@
                 force = drag = null;
 
                 // clean up $timeout promises
-                if (fTimer) {
-                    $timeout.cancel(fTimer);
-                }
                 if (fNodesTimer) {
                     $timeout.cancel(fNodesTimer);
                 }
