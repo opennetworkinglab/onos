@@ -239,6 +239,7 @@ public class IntentSyncTest extends AbstractIntentTest {
                         .treatment(treatmentBuilder.build())
                         .ingressPoints(ingressPoints)
                         .egressPoint(SW1_ETH1)
+                        .constraints(IntentSynchronizer.CONSTRAINTS)
                         .build();
 
         // Setup the expected intents
@@ -301,6 +302,7 @@ public class IntentSyncTest extends AbstractIntentTest {
                         .treatment(treatmentBuilder.build())
                         .ingressPoints(ingressPoints)
                         .egressPoint(SW4_ETH1)
+                        .constraints(IntentSynchronizer.CONSTRAINTS)
                         .build();
 
         // Setup the expected intents
@@ -371,6 +373,7 @@ public class IntentSyncTest extends AbstractIntentTest {
                         .treatment(treatmentBuilderNew.build())
                         .ingressPoints(ingressPointsNew)
                         .egressPoint(SW2_ETH1)
+                        .constraints(IntentSynchronizer.CONSTRAINTS)
                         .build();
 
         // Set up test expectation
@@ -609,6 +612,7 @@ public class IntentSyncTest extends AbstractIntentTest {
                         .treatment(treatmentBuilder.build())
                         .ingressPoints(ingressPoints)
                         .egressPoint(egressPoint)
+                        .constraints(IntentSynchronizer.CONSTRAINTS)
                         .build();
         return intent;
     }

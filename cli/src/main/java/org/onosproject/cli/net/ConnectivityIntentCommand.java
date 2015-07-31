@@ -40,6 +40,7 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
+import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.net.resource.link.BandwidthResource;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -129,6 +130,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "-k", aliases = "--key", description = "Intent Key",
             required = false, multiValued = false)
     private String intentKey = null;
+
+    @Option(name = "--partial", description = "Allow partial installation",
+            required = false, multiValued = false)
+    private boolean partial = false;
 
 
     // Treatments
@@ -349,6 +354,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             constraints.add(new LambdaConstraint(null));
         }
         constraints.add(new LinkTypeConstraint(lambda, Link.Type.OPTICAL));
+
+        if (partial) {
+            constraints.add(new PartialFailureConstraint());
+        }
 
         return constraints;
     }

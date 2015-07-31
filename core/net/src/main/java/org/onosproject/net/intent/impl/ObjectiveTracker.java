@@ -276,31 +276,28 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                 delegate.triggerCompile(Collections.emptySet(), true);
 
             } else {
-                Set<Key> toBeRecompiled = new HashSet<>();
-                boolean recompileOnly = true;
+                Set<Key> intentsToRecompile = new HashSet<>();
+                boolean dontRecompileAllFailedIntents = true;
 
                 // Scan through the list of reasons and keep accruing all
                 // intents that need to be recompiled.
                 for (Event reason : event.reasons()) {
                     if (reason instanceof LinkEvent) {
                         LinkEvent linkEvent = (LinkEvent) reason;
-                        if (linkEvent.type() == LINK_REMOVED
-                                || (linkEvent.type() == LINK_UPDATED &&
-                                        linkEvent.subject().isDurable())) {
-                            final LinkKey linkKey = linkKey(linkEvent.subject());
-                            synchronized (intentsByLink) {
-                                Set<Key> intentKeys = intentsByLink.get(linkKey);
-                                log.debug("recompile triggered by LinkDown {} {}", linkKey, intentKeys);
-                                toBeRecompiled.addAll(intentKeys);
-                            }
+                        final LinkKey linkKey = linkKey(linkEvent.subject());
+                        synchronized (intentsByLink) {
+                            Set<Key> intentKeys = intentsByLink.get(linkKey);
+                            log.debug("recompile triggered by LinkEvent {} ({}) for {}",
+                                    linkKey, linkEvent.type(), intentKeys);
+                            intentsToRecompile.addAll(intentKeys);
                         }
-                        recompileOnly = recompileOnly &&
+                        dontRecompileAllFailedIntents = dontRecompileAllFailedIntents &&
                                 (linkEvent.type() == LINK_REMOVED ||
                                 (linkEvent.type() == LINK_UPDATED &&
                                 linkEvent.subject().isDurable()));
                     }
                 }
-                delegate.triggerCompile(toBeRecompiled, !recompileOnly);
+                delegate.triggerCompile(intentsToRecompile, !dontRecompileAllFailedIntents);
             }
         }
     }

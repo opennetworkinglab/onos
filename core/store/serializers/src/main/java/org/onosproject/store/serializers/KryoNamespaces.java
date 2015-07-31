@@ -157,6 +157,7 @@ import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
+import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.newresource.DefaultResource;
@@ -412,6 +413,7 @@ public final class KryoNamespaces {
                     ObstacleConstraint.class,
                     AnnotationConstraint.class,
                     BooleanConstraint.class,
+                    PartialFailureConstraint.class,
                     IntentOperation.class,
                     FlowRuleExtPayLoad.class,
                     Frequency.class,
