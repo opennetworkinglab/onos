@@ -32,11 +32,12 @@ public interface IntentDomainProvider {
      * can be used. Request contexts can be explictly cancelled, or they will
      * eventually time out so that resources can be reused.
      *
+     * @param domain intent domain for the request
      * @param primitive intent primitive
      * @return request contexts that contain resources to satisfy the intent
      */
     //TODO Consider an iterable and/or holds (only hold one or two reservation(s) at a time)
-    List<RequestContext> request(IntentPrimitive primitive);
+    List<RequestContext> request(IntentDomain domain, IntentPrimitive primitive);
 
     /**
      * Request that the provider attempt to modify an existing resource to satisfy

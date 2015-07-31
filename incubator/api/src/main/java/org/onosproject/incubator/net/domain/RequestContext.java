@@ -27,10 +27,21 @@ import com.google.common.annotations.Beta;
  */
 @Beta
 public class RequestContext {
-    IntentDomain domain;
-    IntentResource resource;
+    private final IntentDomain domain;
+    private final IntentResource resource;
     //TODO other common parameters:
     //String cost;
 
-    //TODO getters/setters
+    public RequestContext(IntentDomain domain, IntentResource resource) {
+        this.domain = domain;
+        this.resource = resource;
+    }
+
+    public IntentDomain domain() {
+        return domain;
+    }
+
+    public IntentResource resource() {
+        return resource;
+    }
 }

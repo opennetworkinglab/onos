@@ -15,33 +15,20 @@
  */
 package org.onosproject.incubator.net.domain;
 
-import com.google.common.annotations.Beta;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.ConnectPoint;
 
 /**
- * The abstract base class for the resource that satisfies an intent primitive.
+ * Provides connectivity through a domain.
  */
-@Beta
-public class IntentResource {
+public class TunnelPrimitive extends IntentPrimitive {
 
-    private final IntentPrimitive primitive;
-    private final long tunnelId;
+    private final ConnectPoint one;
+    private final ConnectPoint two;
 
-    // TODO add other common fields
-    //String ingressTag;
-    //String egressTag;
-    //etc.
-
-    public IntentResource(IntentPrimitive primitive, long tunnelId) {
-        this.primitive = primitive;
-        this.tunnelId = tunnelId;
+    public TunnelPrimitive(ApplicationId appId, ConnectPoint one, ConnectPoint two) {
+        super(appId);
+        this.one = one;
+        this.two = two;
     }
-
-    public IntentPrimitive primitive() {
-        return primitive;
-    }
-
-    public long tunnelId() {
-        return tunnelId;
-    }
-
 }
