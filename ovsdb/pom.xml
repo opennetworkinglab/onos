@@ -26,6 +26,14 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>
         </dependency>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-buffer</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-handler</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
