@@ -38,8 +38,8 @@ public final class Column {
      * @param obj the data of the column
      */
     public Column(ColumnSchema schema, Object obj) {
-        checkNotNull(schema, "schema is not null");
-        checkNotNull(obj, "data is not null");
+        checkNotNull(schema, "schema cannot be null");
+        checkNotNull(obj, "data cannot be null");
         this.schema = schema;
         this.data = obj;
     }

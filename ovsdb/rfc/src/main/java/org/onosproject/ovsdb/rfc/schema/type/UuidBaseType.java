@@ -16,6 +16,7 @@
 package org.onosproject.ovsdb.rfc.schema.type;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
 
@@ -62,6 +63,7 @@ public final class UuidBaseType implements BaseType {
      * @param refType refType constraint
      */
     public UuidBaseType(String refTable, String refType) {
+        checkNotNull(refType, "refType cannot be null");
         this.refTable = refTable;
         this.refType = refType;
     }

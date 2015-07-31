@@ -40,8 +40,8 @@ public final class TableSchema {
      * @param columnSchemas a map of ColumnSchema
      */
     public TableSchema(String name, Map<String, ColumnSchema> columnSchemas) {
-        checkNotNull(name, "name is not null");
-        checkNotNull(columnSchemas, "columnSchemas is not null");
+        checkNotNull(name, "name cannot be null");
+        checkNotNull(columnSchemas, "columnSchemas cannot be null");
         this.name = name;
         this.columnSchemas = columnSchemas;
     }

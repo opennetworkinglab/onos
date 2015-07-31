@@ -64,9 +64,9 @@ public final class Condition {
      * @param value column data
      */
     public Condition(String column, Function function, Object value) {
-        checkNotNull(column, "column is not null");
-        checkNotNull(function, "function is not null");
-        checkNotNull(value, "value is not null");
+        checkNotNull(column, "column cannot be null");
+        checkNotNull(function, "function cannot be null");
+        checkNotNull(value, "value cannot be null");
         this.column = column;
         this.function = function;
         this.value = value;

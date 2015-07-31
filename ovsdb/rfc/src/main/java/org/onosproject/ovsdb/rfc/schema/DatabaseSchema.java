@@ -40,9 +40,9 @@ public final class DatabaseSchema {
      */
     public DatabaseSchema(String name, String version,
                           Map<String, TableSchema> tableSchemas) {
-        checkNotNull(name, "name is not null");
-        checkNotNull(version, "version is not null");
-        checkNotNull(tableSchemas, "tableSchemas is not null");
+        checkNotNull(name, "name cannot be null");
+        checkNotNull(version, "version cannot be null");
+        checkNotNull(tableSchemas, "tableSchemas cannot be null");
         this.name = name;
         this.version = version;
         this.tableSchemas = tableSchemas;

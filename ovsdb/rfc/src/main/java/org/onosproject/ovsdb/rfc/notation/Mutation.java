@@ -65,9 +65,9 @@ public final class Mutation {
      * @param value column data
      */
     public Mutation(String column, Mutator mutator, Object value) {
-        checkNotNull(column, "column is not null");
-        checkNotNull(mutator, "mutator is not null");
-        checkNotNull(value, "value is not null");
+        checkNotNull(column, "column cannot be null");
+        checkNotNull(mutator, "mutator cannot be null");
+        checkNotNull(value, "value cannot be null");
         this.column = column;
         this.mutator = mutator;
         this.value = value;

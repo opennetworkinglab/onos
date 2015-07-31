@@ -39,8 +39,8 @@ public final class KeyValuedColumnType implements ColumnType {
      */
     public KeyValuedColumnType(BaseType keyType, BaseType valueType, int min,
                                int max) {
-        checkNotNull(keyType, "keyType is not null");
-        checkNotNull(valueType, "valueType is not null");
+        checkNotNull(keyType, "keyType cannot be null");
+        checkNotNull(valueType, "valueType cannot be null");
         this.keyType = keyType;
         this.valueType = valueType;
         this.min = min;

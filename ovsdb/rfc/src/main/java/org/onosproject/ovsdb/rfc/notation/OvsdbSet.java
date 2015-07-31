@@ -40,7 +40,7 @@ public final class OvsdbSet {
      * @param set java.util.Set
      */
     private OvsdbSet(Set set) {
-        checkNotNull(set, "set is not null");
+        checkNotNull(set, "set cannot be null");
         this.set = set;
     }
 

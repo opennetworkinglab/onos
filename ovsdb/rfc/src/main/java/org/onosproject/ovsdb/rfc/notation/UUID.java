@@ -36,7 +36,7 @@ public final class UUID {
      * @param value UUID value
      */
     private UUID(String value) {
-        checkNotNull(value, "value is not null");
+        checkNotNull(value, "value cannot be null");
         this.value = value;
     }
 

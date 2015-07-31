@@ -40,7 +40,7 @@ public final class RowUpdate {
      * @param newRow present for "initial", "insert", and "modify" updates
      */
     public RowUpdate(UUID uuid, Row oldRow, Row newRow) {
-        checkNotNull(uuid, "uuid is not null");
+        checkNotNull(uuid, "uuid cannot be null");
         this.uuid = uuid;
         this.oldRow = oldRow;
         this.newRow = newRow;

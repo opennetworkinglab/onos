@@ -32,7 +32,7 @@ public final class Comment implements Operation {
      * @param comment the comment member of comment operation
      */
     public Comment(String comment) {
-        checkNotNull(comment, "comment is not null");
+        checkNotNull(comment, "comment cannot be null");
         this.op = Operations.COMMENT.op();
         this.comment = comment;
     }

@@ -16,6 +16,7 @@
 package org.onosproject.ovsdb.rfc.message;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +45,7 @@ public final class TableUpdate {
      * @return TableUpdate entity
      */
     public static TableUpdate tableUpdate(Map<UUID, RowUpdate> rows) {
+        checkNotNull(rows, "rows cannot be null");
         return new TableUpdate(rows);
     }
 

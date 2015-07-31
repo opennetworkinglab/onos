@@ -41,7 +41,7 @@ public final class Delete implements Operation {
      * @param where the List of Condition entity
      */
     public Delete(TableSchema schema, List<Condition> where) {
-        checkNotNull(schema, "TableSchema is not null");
+        checkNotNull(schema, "TableSchema cannot be null");
         checkNotNull(where, "where is not null");
         this.tableSchema = schema;
         this.op = Operations.DELETE.op();

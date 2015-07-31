@@ -32,7 +32,7 @@ public final class Commit implements Operation {
      * @param durable the durable member of commit operation
      */
     public Commit(Boolean durable) {
-        checkNotNull(durable, "durable is not null");
+        checkNotNull(durable, "durable cannot be null");
         this.op = Operations.COMMIT.op();
         this.durable = durable;
     }

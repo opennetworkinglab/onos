@@ -50,9 +50,9 @@ public final class Update implements Operation {
      * @param where the List of Condition entity
      */
     public Update(TableSchema schema, Row row, List<Condition> where) {
-        checkNotNull(schema, "TableSchema is not null");
-        checkNotNull(row, "row is not null");
-        checkNotNull(where, "where is not null");
+        checkNotNull(schema, "TableSchema cannot be null");
+        checkNotNull(row, "row cannot be null");
+        checkNotNull(where, "where cannot be null");
         this.tableSchema = schema;
         this.op = Operations.UPDATE.op();
         this.row = Maps.newHashMap();

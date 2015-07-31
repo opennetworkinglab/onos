@@ -33,7 +33,7 @@ public final class ObjectMapperUtil {
 
     /**
      * Constructs a ObjectMapperUtil object. Utility classes should not have a
-     * public or default constructor, otherwise it will compile failed. This
+     * public or default constructor, otherwise IDE will compile unsuccessfully. This
      * class should not be instantiated.
      */
     private ObjectMapperUtil() {

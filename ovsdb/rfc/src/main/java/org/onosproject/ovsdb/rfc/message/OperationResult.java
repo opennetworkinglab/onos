@@ -50,7 +50,7 @@ public final class OperationResult {
      * @param rows List of Row entity
      */
     public OperationResult(List<Row> rows) {
-        checkNotNull(rows, "rows is not null");
+        checkNotNull(rows, "rows cannot be null");
         this.rows = rows;
     }
 
@@ -64,10 +64,10 @@ public final class OperationResult {
      */
     public OperationResult(int count, UUID uuid, List<Row> rows, String error,
                            String details) {
-        checkNotNull(uuid, "uuid is not null");
-        checkNotNull(rows, "rows is not null");
-        checkNotNull(error, "error is not null");
-        checkNotNull(details, "details is not null");
+        checkNotNull(uuid, "uuid cannot be null");
+        checkNotNull(rows, "rows cannot be null");
+        checkNotNull(error, "error cannot be null");
+        checkNotNull(details, "details cannot be null");
         this.count = count;
         this.uuid = uuid;
         this.rows = rows;
@@ -105,7 +105,7 @@ public final class OperationResult {
      * @param uuid the Operation message of uuid
      */
     public void setUuid(String uuid) {
-        checkNotNull(uuid, "uuid is not null");
+        checkNotNull(uuid, "uuid cannot be null");
         this.uuid = UUID.uuid(uuid);
     }
 
@@ -122,7 +122,7 @@ public final class OperationResult {
      * @param rows the Operation message of rows
      */
     public void setRows(List<Row> rows) {
-        checkNotNull(rows, "rows is not null");
+        checkNotNull(rows, "rows cannot be null");
         this.rows = rows;
     }
 
@@ -139,7 +139,7 @@ public final class OperationResult {
      * @param error the Operation message of error
      */
     public void setError(String error) {
-        checkNotNull(error, "error is not null");
+        checkNotNull(error, "error cannot be null");
         this.error = error;
     }
 
@@ -156,7 +156,7 @@ public final class OperationResult {
      * @param details the Operation message of details
      */
     public void setDetails(String details) {
-        checkNotNull(details, "details is not null");
+        checkNotNull(details, "details cannot be null");
         this.details = details;
     }
 }

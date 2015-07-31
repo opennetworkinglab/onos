@@ -36,8 +36,8 @@ public final class RefTableRow {
      * @param jsonNode JsonNode
      */
     public RefTableRow(String refTable, JsonNode jsonNode) {
-        checkNotNull(refTable, "refTable is not null");
-        checkNotNull(jsonNode, "jsonNode is not null");
+        checkNotNull(refTable, "refTable cannot be null");
+        checkNotNull(jsonNode, "jsonNode cannot be null");
         this.refTable = refTable;
         this.jsonNode = jsonNode;
     }

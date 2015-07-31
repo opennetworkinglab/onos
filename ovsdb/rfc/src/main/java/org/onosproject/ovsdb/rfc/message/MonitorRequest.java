@@ -42,9 +42,9 @@ public final class MonitorRequest {
      */
     public MonitorRequest(String tableName, Set<String> columns,
                           MonitorSelect select) {
-        checkNotNull(tableName, "tableName is not null");
-        checkNotNull(columns, "columns is not null");
-        checkNotNull(select, "select is not null");
+        checkNotNull(tableName, "table name cannot be null");
+        checkNotNull(columns, "columns cannot be null");
+        checkNotNull(select, "select cannot be null");
         this.tableName = tableName;
         this.columns = columns;
         this.select = select;

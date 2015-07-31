@@ -43,7 +43,7 @@ public final class TransValueUtil {
 
     /**
      * Constructs a TransValueUtil object. Utility classes should not have a
-     * public or default constructor, otherwise it will compile failed.
+     * public or default constructor, otherwise IDE will compile unsuccessfully.
      * This class should not be instantiated.
      */
     private TransValueUtil() {
@@ -81,7 +81,12 @@ public final class TransValueUtil {
         return null;
     }
 
-    // Convert AtomicColumnType JsonNode into OvsdbSet value
+    /**
+     * Convert AtomicColumnType JsonNode into OvsdbSet value.
+     * @param json AtomicColumnType JsonNode
+     * @param atoType AtomicColumnType entity
+     * @return Object OvsdbSet or the value of JsonNode
+     */
     private static Object getValueFromAtoType(JsonNode json,
                                               AtomicColumnType atoType) {
         BaseType baseType = atoType.baseType();
@@ -112,7 +117,12 @@ public final class TransValueUtil {
         }
     }
 
-    // Convert KeyValuedColumnType JsonNode into OvsdbMap value
+    /**
+     * Convert KeyValuedColumnType JsonNode into OvsdbMap value.
+     * @param json KeyValuedColumnType JsonNode
+     * @param kvType KeyValuedColumnType entity
+     * @return Object OvsdbMap
+     */
     private static Object getValueFromKvType(JsonNode json,
                                              KeyValuedColumnType kvType) {
         if (json.isArray()) {

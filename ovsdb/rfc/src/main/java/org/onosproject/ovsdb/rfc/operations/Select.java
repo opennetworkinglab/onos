@@ -43,9 +43,9 @@ public final class Select implements Operation {
      * @param columns the List of column name
      */
     public Select(TableSchema schema, List<Condition> where, List<String> columns) {
-        checkNotNull(schema, "TableSchema is not null");
-        checkNotNull(where, "where is not null");
-        checkNotNull(columns, "columns is not null");
+        checkNotNull(schema, "TableSchema cannot be null");
+        checkNotNull(where, "where cannot be null");
+        checkNotNull(columns, "columns cannot be null");
         this.tableSchema = schema;
         this.op = Operations.SELECT.op();
         this.where = where;

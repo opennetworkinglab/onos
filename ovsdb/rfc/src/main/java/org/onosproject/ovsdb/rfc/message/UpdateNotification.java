@@ -41,8 +41,8 @@ public final class UpdateNotification {
      * @param tbUpdatesJsonNode the "table-updates" in "params" of the result JsonNode
      */
     public UpdateNotification(Object context, JsonNode tbUpdatesJsonNode) {
-        checkNotNull(context, "context is not null");
-        checkNotNull(tbUpdatesJsonNode, "tbUpdatesJsonNode is not null");
+        checkNotNull(context, "context cannot be null");
+        checkNotNull(tbUpdatesJsonNode, "tablebUpdates JsonNode cannot be null");
         this.context = context;
         this.tbUpdatesJsonNode = tbUpdatesJsonNode;
     }

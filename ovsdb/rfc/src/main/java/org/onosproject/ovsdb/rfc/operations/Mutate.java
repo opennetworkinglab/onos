@@ -45,9 +45,9 @@ public final class Mutate implements Operation {
      */
     public Mutate(TableSchema schema, List<Condition> where,
                   List<Mutation> mutations) {
-        checkNotNull(schema, "TableSchema is not null");
-        checkNotNull(mutations, "mutations is not null");
-        checkNotNull(where, "where is not null");
+        checkNotNull(schema, "TableSchema cannot be null");
+        checkNotNull(mutations, "mutations cannot be null");
+        checkNotNull(where, "where cannot be null");
         this.tableSchema = schema;
         this.op = Operations.MUTATE.op();
         this.where = where;

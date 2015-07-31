@@ -44,7 +44,7 @@ public final class TableUpdates {
      * @return TableUpdates
      */
     public static TableUpdates tableUpdates(Map<String, TableUpdate> result) {
-        checkNotNull(result, "result is not null");
+        checkNotNull(result, "result cannot be null");
         return new TableUpdates(result);
     }
 

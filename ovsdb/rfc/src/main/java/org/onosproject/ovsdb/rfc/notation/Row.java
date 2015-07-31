@@ -49,7 +49,7 @@ public final class Row {
      * @param tableSchema TableSchema entity
      */
     public Row(TableSchema tableSchema) {
-        checkNotNull(tableSchema, "tableSchema is not null");
+        checkNotNull(tableSchema, "tableSchema cannot be null");
         this.tableSchema = tableSchema;
         this.columns = Maps.newHashMap();
     }
@@ -60,8 +60,8 @@ public final class Row {
      * @param columns List of Column entity
      */
     public Row(TableSchema tableSchema, List<Column> columns) {
-        checkNotNull(tableSchema, "tableSchema is not null");
-        checkNotNull(columns, "columns is not null");
+        checkNotNull(tableSchema, "tableSchema cannot be null");
+        checkNotNull(columns, "columns cannot be null");
         this.tableSchema = tableSchema;
         this.columns = Maps.newHashMap();
         for (Column column : columns) {

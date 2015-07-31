@@ -49,9 +49,9 @@ public final class Insert implements Operation {
      * @param row Row entity
      */
     public Insert(TableSchema schema, String uuidName, Row row) {
-        checkNotNull(schema, "TableSchema is not null");
-        checkNotNull(uuidName, "uuidName is not null");
-        checkNotNull(row, "row is not null");
+        checkNotNull(schema, "TableSchema cannot be null");
+        checkNotNull(uuidName, "uuid name cannot be null");
+        checkNotNull(row, "row cannot be null");
         this.tableSchema = schema;
         this.op = Operations.INSERT.op();
         this.uuidName = uuidName;

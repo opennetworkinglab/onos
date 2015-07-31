@@ -32,7 +32,7 @@ public final class Assert implements Operation {
      * @param lock the lock member of assert operation
      */
     public Assert(String lock) {
-        checkNotNull(lock, "lock is not null");
+        checkNotNull(lock, "lock cannot be null");
         this.op = Operations.ASSERT.op();
         this.lock = lock;
     }

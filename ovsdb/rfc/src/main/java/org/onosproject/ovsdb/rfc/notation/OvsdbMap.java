@@ -38,7 +38,7 @@ public final class OvsdbMap {
      * @param map java.util.Map
      */
     private OvsdbMap(Map map) {
-        checkNotNull(map, "map is not null");
+        checkNotNull(map, "map cannot be null");
         this.map = map;
     }
 

@@ -34,7 +34,7 @@ public final class AtomicColumnType implements ColumnType {
      * @param baseType BaseType entity
      */
     public AtomicColumnType(BaseType baseType) {
-        checkNotNull(baseType, "BaseType is not null");
+        checkNotNull(baseType, "BaseType cannot be null");
         this.baseType = baseType;
         this.min = 1;
         this.max = 1;
@@ -47,7 +47,7 @@ public final class AtomicColumnType implements ColumnType {
      * @param max max constraint
      */
     public AtomicColumnType(BaseType baseType, int min, int max) {
-        checkNotNull(baseType, "BaseType is not null");
+        checkNotNull(baseType, "BaseType cannot be null");
         this.baseType = baseType;
         this.min = min;
         this.max = max;

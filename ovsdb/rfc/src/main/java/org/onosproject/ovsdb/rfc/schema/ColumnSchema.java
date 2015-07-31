@@ -35,8 +35,8 @@ public final class ColumnSchema {
      * @param columnType the column type
      */
     public ColumnSchema(String name, ColumnType columnType) {
-        checkNotNull(name, "name is not null");
-        checkNotNull(columnType, "columnType is not null");
+        checkNotNull(name, "name cannot be null");
+        checkNotNull(columnType, "column type cannot be null");
         this.name = name;
         this.type = columnType;
     }
