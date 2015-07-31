@@ -25,7 +25,7 @@ public class TestStorageService extends StorageServiceAdapter {
 
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
-        throw new UnsupportedOperationException("consistentMapBuilder");
+        return TestConsistentMap.builder();
     }
 
     @Override
