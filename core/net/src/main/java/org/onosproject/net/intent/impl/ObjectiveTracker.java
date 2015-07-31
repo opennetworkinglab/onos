@@ -390,19 +390,27 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         @Override
         public void event(DeviceEvent event) {
             DeviceEvent.Type type = event.type();
-            if (type == DeviceEvent.Type.PORT_ADDED ||
-                type == DeviceEvent.Type.PORT_UPDATED ||
-                type == DeviceEvent.Type.PORT_REMOVED) {
-                // skip port events for now
-                return;
+            switch (type) {
+            case DEVICE_ADDED:
+            case DEVICE_AVAILABILITY_CHANGED:
+            case DEVICE_REMOVED:
+            case DEVICE_SUSPENDED:
+            case DEVICE_UPDATED:
+                DeviceId id = event.subject().id();
+                // TODO we need to check whether AVAILABILITY_CHANGED means up or down
+                boolean available = (type == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
+                        type == DeviceEvent.Type.DEVICE_ADDED ||
+                        type == DeviceEvent.Type.DEVICE_UPDATED);
+                executorService.execute(new DeviceAvailabilityHandler(id, available));
+                break;
+            case PORT_ADDED:
+            case PORT_REMOVED:
+            case PORT_UPDATED:
+            case PORT_STATS_UPDATED:
+            default:
+                // Don't handle port events for now
+                break;
             }
-            DeviceId id = event.subject().id();
-            // TODO we need to check whether AVAILABILITY_CHANGED means up or down
-            boolean available = (type == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
-                                 type == DeviceEvent.Type.DEVICE_ADDED ||
-                                 type == DeviceEvent.Type.DEVICE_UPDATED);
-            executorService.execute(new DeviceAvailabilityHandler(id, available));
-
         }
     }
 
