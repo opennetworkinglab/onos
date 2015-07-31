@@ -60,7 +60,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provider which uses an OpenFlow controller to handle meters.
  */
-@Component(immediate = true)
+@Component(immediate = true, enabled = false)
 public class OpenFlowMeterProvider extends AbstractProvider implements MeterProvider {
 
 
