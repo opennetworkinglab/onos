@@ -15,18 +15,10 @@
  */
 package org.onosproject.incubator.net.virtual;
 
-import com.google.common.annotations.Beta;
+import org.onosproject.store.StoreDelegate;
 
 /**
- * Abstraction of a virtual element.
+ * Network configuration store delegate abstraction.
  */
-@Beta
-public interface VirtualElement {
-
-    /**
-     * Returns the network identifier to which this virtual element belongs.
-     *
-     * @return network identifier
-     */
-    NetworkId networkId();
+public interface VirtualNetworkStoreDelegate extends StoreDelegate<VirtualNetworkEvent> {
 }

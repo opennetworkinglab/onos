@@ -13,20 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.virtual;
-
-import com.google.common.annotations.Beta;
 
 /**
- * Abstraction of a virtual element.
+ * Implementation of the virtual network subsystem.
  */
-@Beta
-public interface VirtualElement {
-
-    /**
-     * Returns the network identifier to which this virtual element belongs.
-     *
-     * @return network identifier
-     */
-    NetworkId networkId();
-}
+package org.onosproject.incubator.net.virtual.impl;

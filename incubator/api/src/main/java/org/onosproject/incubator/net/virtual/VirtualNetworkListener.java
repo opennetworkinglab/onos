@@ -15,18 +15,10 @@
  */
 package org.onosproject.incubator.net.virtual;
 
-import com.google.common.annotations.Beta;
+import org.onosproject.event.EventListener;
 
 /**
- * Abstraction of a virtual element.
+ * Represents entity capable of receiving virtual network events.
  */
-@Beta
-public interface VirtualElement {
-
-    /**
-     * Returns the network identifier to which this virtual element belongs.
-     *
-     * @return network identifier
-     */
-    NetworkId networkId();
+public interface VirtualNetworkListener extends EventListener<VirtualNetworkEvent> {
 }
