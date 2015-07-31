@@ -15,17 +15,15 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Path;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.AbstractIntentTest;
@@ -35,6 +33,10 @@ import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -92,6 +94,16 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
     }
 
     /**
+     * Mocks the device service so that a device appears available in the test.
+     */
+    private static class MockDeviceService extends DeviceServiceAdapter {
+        @Override
+        public boolean isAvailable(DeviceId deviceId) {
+            return true;
+        }
+    }
+
+    /**
      * Creates a MultiPointToSinglePoint intent for a group of ingress points
      * and an egress point.
      *
@@ -126,6 +138,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
         MultiPointToSinglePointIntentCompiler compiler =
                 new MultiPointToSinglePointIntentCompiler();
         compiler.pathService = new MockPathService(hops);
+        compiler.deviceService = new MockDeviceService();
         return compiler;
     }
 

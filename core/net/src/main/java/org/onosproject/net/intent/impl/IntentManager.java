@@ -25,8 +25,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.core.Permission;
-import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
@@ -64,9 +64,10 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.intent.IntentState.*;
+import static org.onosproject.net.intent.constraint.PartialFailureConstraint.intentAllowsPartialFailure;
 import static org.onosproject.net.intent.impl.phase.IntentProcessPhase.newInitialPhase;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -85,6 +86,8 @@ public class IntentManager
 
     private static final EnumSet<IntentState> RECOMPILE
             = EnumSet.of(INSTALL_REQ, FAILED, WITHDRAW_REQ);
+    private static final EnumSet<IntentState> WITHDRAW
+            = EnumSet.of(WITHDRAW_REQ, WITHDRAWING, WITHDRAWN);
 
     private final ListenerRegistry<IntentEvent, IntentListener>
             listenerRegistry = new ListenerRegistry<>();
@@ -282,16 +285,15 @@ public class IntentManager
             submit(intent);
         }
 
-        if (compileAllFailed) {
-            // If required, compile all currently failed intents.
-            for (Intent intent : getIntents()) {
-                IntentState state = getIntentState(intent.key());
-                if (RECOMPILE.contains(state)) {
-                    if (state == WITHDRAW_REQ) {
-                        withdraw(intent);
-                    } else {
-                        submit(intent);
-                    }
+        // If required, compile all currently failed intents.
+        for (Intent intent : getIntents()) {
+            IntentState state = getIntentState(intent.key());
+            if ((compileAllFailed && RECOMPILE.contains(state))
+                    || intentAllowsPartialFailure(intent)) {
+                if (WITHDRAW.contains(state)) {
+                    withdraw(intent);
+                } else {
+                    submit(intent);
                 }
             }
         }
