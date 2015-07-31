@@ -49,7 +49,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     private final Logger log = getLogger(getClass());
 
     // Default number of millis a sink can take to process an event.
-    private static final long DEFAULT_EXECUTE_MS = 2_000; // ms
+    private static final long DEFAULT_EXECUTE_MS = 5_000; // ms
     private static final long WATCHDOG_MS = 250; // ms
 
     private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
@@ -122,6 +122,8 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
                         break;
                     }
                     process(event);
+                } catch (InterruptedException e) {
+                    log.warn("Dispatch loop interrupted");
                 } catch (Exception e) {
                     log.warn("Error encountered while dispatching event:", e);
                 }

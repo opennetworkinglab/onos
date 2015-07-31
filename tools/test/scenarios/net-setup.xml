@@ -34,13 +34,14 @@
         <step name="Check-Summary" requires="Wait-For-Mininet"
               exec="onos-check-summary ${OC1} [0-9]* 25 140 0"/>
 
-        <step name="Check-Flows" requires="Wait-For-Mininet"
-              exec="onos-check-flows ${OC1}"/>
-
         <step name="Balance-Masters" requires="Check-Summary"
               exec="onos ${OC1} balance-masters"/>
 
         <step name="Pause-For-Masters" requires="Balance-Masters"
               exec="sleep 10"/>
+
+        <step name="Check-Flows" requires="~Pause-For-Masters"
+              exec="onos-check-flows ${OC1}"/>
+
     </group>
 </scenario>
