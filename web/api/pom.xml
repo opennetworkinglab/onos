@@ -59,4 +59,13 @@
         <web.context>/onos/v1</web.context>
     </properties>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

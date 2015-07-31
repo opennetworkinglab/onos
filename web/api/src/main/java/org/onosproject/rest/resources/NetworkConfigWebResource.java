@@ -240,9 +240,8 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      */
     @DELETE
     @Path("{subjectKey}/{subject}")
-    @Consumes(MediaType.APPLICATION_JSON)
     @SuppressWarnings("unchecked")
-    public Response upload(@PathParam("subjectKey") String subjectKey,
+    public Response delete(@PathParam("subjectKey") String subjectKey,
                            @PathParam("subject") String subject) {
         NetworkConfigService service = get(NetworkConfigService.class);
         Object s = service.getSubjectFactory(subjectKey).createSubject(subject);
@@ -261,9 +260,8 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      */
     @DELETE
     @Path("{subjectKey}/{subject}/{configKey}")
-    @Consumes(MediaType.APPLICATION_JSON)
     @SuppressWarnings("unchecked")
-    public Response upload(@PathParam("subjectKey") String subjectKey,
+    public Response delete(@PathParam("subjectKey") String subjectKey,
                            @PathParam("subject") String subject,
                            @PathParam("configKey") String configKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
@@ -279,9 +277,8 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      * @return empty response
      */
     @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
     @SuppressWarnings("unchecked")
-    public Response upload() {
+    public Response delete() {
         NetworkConfigService service = get(NetworkConfigService.class);
         service.getSubjectClasses().forEach(subjectClass -> {
             service.getSubjects(subjectClass).forEach(subject -> {
@@ -303,9 +300,8 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      */
     @DELETE
     @Path("{subjectKey}/")
-    @Consumes(MediaType.APPLICATION_JSON)
     @SuppressWarnings("unchecked")
-    public Response upload(@PathParam("subjectKey") String subjectKey) {
+    public Response delete(@PathParam("subjectKey") String subjectKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
         service.getSubjects(service.getSubjectFactory(subjectKey).getClass()).forEach(subject -> {
             service.getConfigs(subject).forEach(config -> {
