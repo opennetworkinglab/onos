@@ -191,11 +191,14 @@ public class DistributedLeadershipManager implements LeadershipService {
 
     @Deactivate
     public void deactivate() {
-        leaderBoard.forEach((topic, leadership) -> {
-            if (localNodeId.equals(leadership.leader())) {
-                withdraw(topic);
-            }
-        });
+        if (clusterService.getNodes().size() > 1) {
+            // FIXME: Determine why this takes ~50 seconds to shutdown on a single node!
+            leaderBoard.forEach((topic, leadership) -> {
+                if (localNodeId.equals(leadership.leader())) {
+                    withdraw(topic);
+                }
+            });
+        }
 
         clusterService.removeListener(clusterEventListener);
         eventDispatcher.removeSink(LeadershipEvent.class);
