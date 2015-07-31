@@ -1,0 +1,28 @@
+{
+  "domains" : {
+    "domain1" : {
+      "basic" : {
+        "name" : "Domain 1",
+        "applicationName" : "org.onosproject.meshdomain",
+        "internalDevices" : [ "of:0000000000001001", "of:0000000000001002", "of:0000000000001003" ],
+        "edgePorts" : [ "of:0000000000010000/1", "of:0000000003010000/2", "of:0000000002010000/1" ]
+      }
+    },
+    "domain2" : {
+      "basic" : {
+        "name" : "Domain 2",
+        "applicationName" : "org.onosproject.meshdomain",
+        "internalDevices" : [ "of:0000000000002001", "of:0000000000002002", "of:0000000000002003" ],
+        "edgePorts" : [ "of:0000000000020000/1", "of:0000000003020000/1", "of:0000000002010000/2" ]
+      }
+    },
+    "domain3" : {
+      "basic" : {
+        "name" : "Domain 3",
+        "applicationName" : "org.onosproject.meshdomain",
+        "internalDevices" : [ "of:0000000000003001", "of:0000000000003002", "of:0000000000003003" ],
+        "edgePorts" : [ "of:0000000000030000/1", "of:0000000003010000/1", "of:0000000003020000/2" ]
+      }
+    }
+  }
+}
