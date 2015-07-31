@@ -15,14 +15,14 @@
  */
 package org.onosproject.store.consistent.impl;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
-
 import org.onosproject.core.ApplicationId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.Serializer;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Default Consistent Map builder.
@@ -38,6 +38,7 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
     private boolean purgeOnUninstall = false;
     private boolean partitionsEnabled = true;
     private boolean readOnly = false;
+    private boolean metering = true;
     private final DatabaseManager manager;
 
     public DefaultConsistentMapBuilder(DatabaseManager manager) {
@@ -61,6 +62,12 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
     @Override
     public ConsistentMapBuilder<K, V> withPurgeOnUninstall() {
         purgeOnUninstall = true;
+        return this;
+    }
+
+    @Override
+    public ConsistentMapBuilder<K, V> withMeteringDisabled() {
+        metering = false;
         return this;
     }
 
@@ -109,7 +116,8 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
                 partitionsEnabled ? manager.partitionedDatabase : manager.inMemoryDatabase,
                 serializer,
                 readOnly,
-                purgeOnUninstall);
+                purgeOnUninstall,
+                metering);
         return manager.registerMap(asyncMap);
     }
 }

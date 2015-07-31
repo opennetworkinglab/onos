@@ -15,11 +15,8 @@
  */
 package org.onosproject.store.consistent.impl;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.MapEvent;
@@ -27,8 +24,10 @@ import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.SetEvent;
 import org.onosproject.store.service.SetEventListener;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Implementation of distributed set that is backed by a ConsistentMap.
@@ -37,96 +36,178 @@ import com.google.common.collect.Sets;
  */
 public class DefaultDistributedSet<E> implements DistributedSet<E> {
 
+    private static final String CONTAINS = "contains";
+    private static final String PRIMITIVE_NAME = "distributedSet";
+    private static final String SIZE = "size";
+    private static final String IS_EMPTY = "isEmpty";
+    private static final String ITERATOR = "iterator";
+    private static final String TO_ARRAY = "toArray";
+    private static final String ADD = "add";
+    private static final String REMOVE = "remove";
+    private static final String CONTAINS_ALL = "containsAll";
+    private static final String ADD_ALL = "addAll";
+    private static final String RETAIN_ALL = "retainAll";
+    private static final String REMOVE_ALL = "removeAll";
+    private static final String CLEAR = "clear";
+
     private final String name;
     private final ConsistentMap<E, Boolean> backingMap;
     private final Map<SetEventListener<E>, MapEventListener<E, Boolean>> listenerMapping = Maps.newIdentityHashMap();
+    private final MeteringAgent monitor;
 
-    public DefaultDistributedSet(String name, ConsistentMap<E, Boolean> backingMap) {
+    public DefaultDistributedSet(String name, boolean meteringEnabled, ConsistentMap<E, Boolean> backingMap) {
         this.name = name;
         this.backingMap = backingMap;
+        monitor = new MeteringAgent(PRIMITIVE_NAME, name, meteringEnabled);
     }
 
     @Override
     public int size() {
-        return backingMap.size();
+        final MeteringAgent.Context timer = monitor.startTimer(SIZE);
+        try {
+            return backingMap.size();
+        } finally {
+            timer.stop();
+        }
     }
 
     @Override
     public boolean isEmpty() {
-        return backingMap.isEmpty();
+        final MeteringAgent.Context timer = monitor.startTimer(IS_EMPTY);
+        try {
+            return backingMap.isEmpty();
+        } finally {
+            timer.stop();
+        }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public boolean contains(Object o) {
-        return backingMap.containsKey((E) o);
+        final MeteringAgent.Context timer = monitor.startTimer(CONTAINS);
+        try {
+            return backingMap.containsKey((E) o);
+        } finally {
+            timer.stop();
+        }
     }
 
     @Override
     public Iterator<E> iterator() {
-        return backingMap.keySet().iterator();
+        final MeteringAgent.Context timer = monitor.startTimer(ITERATOR);
+        //Do we have to measure this guy?
+        try {
+            return backingMap.keySet().iterator();
+        } finally {
+            timer.stop();
+        }
     }
 
     @Override
     public Object[] toArray() {
-        return backingMap.keySet().stream().toArray();
+        final MeteringAgent.Context timer = monitor.startTimer(TO_ARRAY);
+        try {
+            return backingMap.keySet().stream().toArray();
+        } finally {
+            timer.stop();
+        }
     }
 
     @Override
     public <T> T[] toArray(T[] a) {
-        return backingMap.keySet().stream().toArray(size -> a);
+        final MeteringAgent.Context timer = monitor.startTimer(TO_ARRAY);
+        try {
+            return backingMap.keySet().stream().toArray(size -> a);
+        } finally {
+            timer.stop();
+        }
     }
 
     @Override
     public boolean add(E e) {
-        return backingMap.putIfAbsent(e, true) == null;
+        final MeteringAgent.Context timer = monitor.startTimer(ADD);
+        try {
+            return backingMap.putIfAbsent(e, true) == null;
+        } finally {
+            timer.stop();
+        }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public boolean remove(Object o) {
-        return backingMap.remove((E) o) != null;
+        final MeteringAgent.Context timer = monitor.startTimer(REMOVE);
+        try {
+            return backingMap.remove((E) o) != null;
+        } finally {
+            timer.stop();
+        }
     }
 
     @Override
     public boolean containsAll(Collection<?> c) {
-        return c.stream()
+        final MeteringAgent.Context timer = monitor.startTimer(CONTAINS_ALL);
+        try {
+           return c.stream()
                 .allMatch(this::contains);
+        } finally {
+            timer.stop();
+        }
     }
 
     @Override
     public boolean addAll(Collection<? extends E> c) {
-        return c.stream()
+        final MeteringAgent.Context timer = monitor.startTimer(ADD_ALL);
+        try {
+            return c.stream()
                 .map(this::add)
                 .reduce(Boolean::logicalOr)
                 .orElse(false);
+        } finally {
+            timer.stop();
+        }
     }
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        Set<?> retainSet = Sets.newHashSet(c);
-        return backingMap.keySet()
+        final MeteringAgent.Context timer = monitor.startTimer(RETAIN_ALL);
+        try {
+            Set<?> retainSet = Sets.newHashSet(c);
+            return backingMap.keySet()
                 .stream()
                 .filter(k -> !retainSet.contains(k))
                 .map(this::remove)
                 .reduce(Boolean::logicalOr)
                 .orElse(false);
+        } finally {
+            timer.stop();
+        }
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        Set<?> removeSet = Sets.newHashSet(c);
-        return backingMap.keySet()
-            .stream()
-            .filter(removeSet::contains)
-            .map(this::remove)
-            .reduce(Boolean::logicalOr)
-            .orElse(false);
+        final MeteringAgent.Context timer = monitor.startTimer(REMOVE_ALL);
+        try {
+            Set<?> removeSet = Sets.newHashSet(c);
+            return backingMap.keySet()
+                .stream()
+                .filter(removeSet::contains)
+                .map(this::remove)
+                .reduce(Boolean::logicalOr)
+                .orElse(false);
+        } finally {
+            timer.stop();
+        }
     }
 
     @Override
     public void clear() {
-        backingMap.clear();
+        final MeteringAgent.Context timer = monitor.startTimer(CLEAR);
+        try {
+            backingMap.clear();
+        } finally {
+            timer.stop();
+        }
     }
 
     @Override

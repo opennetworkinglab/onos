@@ -15,11 +15,11 @@
  */
 package org.onosproject.store.consistent.impl;
 
-import java.util.concurrent.ScheduledExecutorService;
-
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.AtomicCounterBuilder;
+
+import java.util.concurrent.ScheduledExecutorService;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -33,6 +33,7 @@ public class DefaultAtomicCounterBuilder implements AtomicCounterBuilder {
     private final Database partitionedDatabase;
     private final Database inMemoryDatabase;
     private boolean retryOnFailure = false;
+    private boolean metering = true;
     private ScheduledExecutorService retryExecutor = null;
 
     public DefaultAtomicCounterBuilder(Database inMemoryDatabase, Database partitionedDatabase) {
@@ -57,19 +58,25 @@ public class DefaultAtomicCounterBuilder implements AtomicCounterBuilder {
     public AtomicCounter build() {
         validateInputs();
         Database database = partitionsEnabled ? partitionedDatabase : inMemoryDatabase;
-        return new DefaultAtomicCounter(name, database, retryOnFailure, retryExecutor);
+        return new DefaultAtomicCounter(name, database, retryOnFailure, metering, retryExecutor);
     }
 
     @Override
     public AsyncAtomicCounter buildAsyncCounter() {
         validateInputs();
         Database database = partitionsEnabled ? partitionedDatabase : inMemoryDatabase;
-        return new DefaultAsyncAtomicCounter(name, database, retryOnFailure, retryExecutor);
+        return new DefaultAsyncAtomicCounter(name, database, retryOnFailure, metering, retryExecutor);
     }
 
     @Override
     public AtomicCounterBuilder withRetryOnFailure() {
         retryOnFailure = true;
+        return this;
+    }
+
+    @Override
+    public AtomicCounterBuilder withMeteringDisabled() {
+        metering = false;
         return this;
     }
 

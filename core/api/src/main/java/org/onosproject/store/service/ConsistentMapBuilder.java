@@ -105,6 +105,14 @@ public interface ConsistentMapBuilder<K, V> {
     ConsistentMapBuilder<K, V> withPurgeOnUninstall();
 
     /**
+     * Instantiates Metering service to gather usage and performance metrics.
+     * By default, usage data will be stored.
+     *
+     * @return this ConsistentMapBuilder
+     */
+    ConsistentMapBuilder<K, V> withMeteringDisabled();
+
+    /**
      * Builds an consistent map based on the configuration options
      * supplied to this builder.
      *

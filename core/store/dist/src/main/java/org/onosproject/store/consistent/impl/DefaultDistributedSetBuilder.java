@@ -30,9 +30,11 @@ public class DefaultDistributedSetBuilder<E> implements DistributedSetBuilder<E>
 
     private String name;
     private ConsistentMapBuilder<E, Boolean>  mapBuilder;
+    private boolean metering = true;
 
     public DefaultDistributedSetBuilder(DatabaseManager manager) {
         this.mapBuilder = manager.consistentMapBuilder();
+        mapBuilder.withMeteringDisabled();
     }
 
     @Override
@@ -73,7 +75,13 @@ public class DefaultDistributedSetBuilder<E> implements DistributedSetBuilder<E>
     }
 
     @Override
+    public DistributedSetBuilder<E> withMeteringDisabled() {
+        metering = false;
+        return this;
+    }
+
+    @Override
     public DistributedSet<E> build() {
-        return new DefaultDistributedSet<E>(name, mapBuilder.build());
+        return new DefaultDistributedSet<E>(name, metering, mapBuilder.build());
     }
 }

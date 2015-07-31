@@ -92,6 +92,13 @@ public interface DistributedSetBuilder<E> {
     DistributedSetBuilder<E> withPartitionsDisabled();
 
     /**
+     * Instantiate Metrics service to gather usage and performance metrics.
+     * By default usage information is enabled
+     * @return this DistributedSetBuilder
+     */
+    DistributedSetBuilder<E> withMeteringDisabled();
+
+    /**
      * Purges set contents when the application owning the set is uninstalled.
      * <p>
      * When this option is enabled, the caller must provide a applicationId via

@@ -59,6 +59,14 @@ public interface AtomicCounterBuilder {
     AtomicCounterBuilder withRetryOnFailure();
 
     /**
+     * Instantiates Metering service to gather usage and performance metrics.
+     * By default, usage data will be stored.
+     *
+     * @return this AtomicCounterBuilder
+     */
+    AtomicCounterBuilder withMeteringDisabled();
+
+    /**
      * Sets the executor service to use for retrying failed operations.
      * <p>
      * Note: Must be set when retries are enabled

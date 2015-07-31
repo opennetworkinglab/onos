@@ -15,18 +15,17 @@
  */
 package org.onosproject.store.consistent.impl;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
+import com.google.common.base.Charsets;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.DistributedQueue;
 import org.onosproject.store.service.DistributedQueueBuilder;
 import org.onosproject.store.service.Serializer;
 
-import com.google.common.base.Charsets;
+import java.util.Set;
+import java.util.function.Consumer;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Default implementation of a {@code DistributedQueueBuilder}.
@@ -39,6 +38,7 @@ public class DefaultDistributedQueueBuilder<E> implements DistributedQueueBuilde
     private String name;
     private boolean persistenceEnabled = true;
     private final DatabaseManager databaseManager;
+    private boolean metering = true;
 
     public DefaultDistributedQueueBuilder(
             DatabaseManager databaseManager) {
@@ -56,6 +56,12 @@ public class DefaultDistributedQueueBuilder<E> implements DistributedQueueBuilde
     public DistributedQueueBuilder<E> withSerializer(Serializer serializer) {
         checkArgument(serializer != null);
         this.serializer = serializer;
+        return this;
+    }
+
+    @Override
+    public DistributedQueueBuilder<E> withMeteringDisabled() {
+        metering = false;
         return this;
     }
 
@@ -81,6 +87,7 @@ public class DefaultDistributedQueueBuilder<E> implements DistributedQueueBuilde
                 persistenceEnabled ? databaseManager.partitionedDatabase : databaseManager.inMemoryDatabase,
                 serializer,
                 databaseManager.localNodeId,
+                metering,
                 notifyOthers);
         databaseManager.registerQueue(queue);
         return queue;
