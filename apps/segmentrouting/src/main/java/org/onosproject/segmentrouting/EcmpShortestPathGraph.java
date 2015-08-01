@@ -39,7 +39,9 @@ import java.util.Comparator;
  * instantiation.
  */
 public class EcmpShortestPathGraph {
+
     static class DeviceDistance {
+
         private DeviceId deviceId;
         private int distance;
 
@@ -58,6 +60,7 @@ public class EcmpShortestPathGraph {
     }
 
     static class PQsort implements Comparator<DeviceDistance> {
+
         public int compare(DeviceDistance devDist1, DeviceDistance devDist2) {
             return devDist1.distance() - devDist2.distance();
         }

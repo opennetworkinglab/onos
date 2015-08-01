@@ -53,6 +53,7 @@ public class DefaultRoutingHandler {
     private DeviceConfiguration config;
     private final Lock statusLock = new ReentrantLock();
     private volatile Status populationStatus;
+    private boolean linkHasWeight;
 
     /**
      * Represents the default routing population status.
@@ -77,12 +78,13 @@ public class DefaultRoutingHandler {
      *
      * @param srManager SegmentRoutingManager object
      */
-    public DefaultRoutingHandler(SegmentRoutingManager srManager) {
+    public DefaultRoutingHandler(SegmentRoutingManager srManager, boolean linkHasWeight) {
         this.srManager = srManager;
         this.rulePopulator = checkNotNull(srManager.routingRulePopulator);
         this.config = checkNotNull(srManager.deviceConfiguration);
         this.populationStatus = Status.IDLE;
         this.currentEcmpSpgMap = Maps.newHashMap();
+        this.linkHasWeight = linkHasWeight;
     }
 
     /**
@@ -108,7 +110,7 @@ public class DefaultRoutingHandler {
                     continue;
                 }
 
-                EcmpShortestPathGraph ecmpSpg = new EcmpShortestPathGraph(sw.id(), srManager, false);
+                EcmpShortestPathGraph ecmpSpg = new EcmpShortestPathGraph(sw.id(), srManager, linkHasWeight);
                 if (!populateEcmpRoutingRules(sw.id(), ecmpSpg)) {
                     log.debug("populateAllRoutingRules: populationStatus is ABORTED");
                     populationStatus = Status.ABORTED;
@@ -155,7 +157,7 @@ public class DefaultRoutingHandler {
                     continue;
                 }
                 EcmpShortestPathGraph ecmpSpgUpdated =
-                        new EcmpShortestPathGraph(sw.id(), srManager, false);
+                        new EcmpShortestPathGraph(sw.id(), srManager, linkHasWeight);
                 updatedEcmpSpgMap.put(sw.id(), ecmpSpgUpdated);
             }
 
@@ -205,7 +207,7 @@ public class DefaultRoutingHandler {
             // When only the source device is defined, reinstall routes to all other devices
             if (link.size() == 1) {
                 log.trace("repopulateRoutingRulesForRoutes: running ECMP graph for device {}", link.get(0));
-                EcmpShortestPathGraph ecmpSpg = new EcmpShortestPathGraph(link.get(0), srManager, false);
+                EcmpShortestPathGraph ecmpSpg = new EcmpShortestPathGraph(link.get(0), srManager, linkHasWeight);
                 if (populateEcmpRoutingRules(link.get(0), ecmpSpg)) {
                     log.debug("Populating flow rules from {} to all is successful",
                               link.get(0));

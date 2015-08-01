@@ -89,6 +89,7 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -156,6 +157,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private InternalEventHandler eventHandler = new InternalEventHandler();
     private final InternalHostListener hostListener = new InternalHostListener();
 
+    private LinkStatsService linkStatsService = null;
+
     private ScheduledExecutorService executorService = Executors
             .newScheduledThreadPool(1);
 
@@ -216,6 +219,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             };
 
     private Object threadSchedulerLock = new Object();
+    private Object statsCollectionLock = new Object();
     private static int numOfEventsQueued = 0;
     private static int numOfEventsExecuted = 0;
     private static int numOfHandlerExecution = 0;
@@ -653,15 +657,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 while (true) {
                     @SuppressWarnings("rawtypes")
                     Event event = null;
-                    synchronized (threadSchedulerLock) {
-                        if (!eventQueue.isEmpty()) {
-                            event = eventQueue.poll();
-                            numOfEventsExecuted++;
-                        } else {
-                            numOfHandlerExecution++;
-                            log.debug("numOfHandlerExecution {} numOfEventsExecuted {}",
-                                      numOfHandlerExecution, numOfEventsExecuted);
-                            break;
+                    synchronized (statsCollectionLock) {
+                        synchronized (threadSchedulerLock) {
+                            if (!eventQueue.isEmpty()) {
+                                event = eventQueue.poll();
+                                numOfEventsExecuted++;
+                            } else {
+                                numOfHandlerExecution++;
+                                log.debug("numOfHandlerExecution {} numOfEventsExecuted {}",
+                                        numOfHandlerExecution, numOfEventsExecuted);
+                                break;
+                            }
                         }
                     }
                     if (event.type() == LinkEvent.Type.LINK_ADDED) {
@@ -825,13 +831,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             icmpHandler = new IcmpHandler(segmentRoutingManager);
             ipHandler = new IpHandler(segmentRoutingManager);
             routingRulePopulator = new RoutingRulePopulator(segmentRoutingManager);
-            defaultRoutingHandler = new DefaultRoutingHandler(segmentRoutingManager);
+            defaultRoutingHandler = new DefaultRoutingHandler(this, false); // 'true' if links have weight
 
             tunnelHandler = new TunnelHandler(linkService, deviceConfiguration,
                                               groupHandlerMap, tunnelStore);
             policyHandler = new PolicyHandler(appId, deviceConfiguration,
                                               flowObjectiveService,
                                               tunnelHandler, policyStore);
+            linkStatsService = new LinkStatsService(this);
 
             for (Device device : deviceService.getDevices()) {
                 // Irrespective of whether the local is a MASTER or not for this device,
@@ -1183,4 +1190,27 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             }
         }
     }
+
+    private class LinkStatsCollector implements Runnable {
+
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    synchronized (statsCollectionLock) {
+                        HashMap<Link, LinkStatsService.LinkStats> linkStatsMapper =
+                                            linkStatsService.getStats();
+                        // haloAlgorithm(linkStatsMapper);
+                        while (!defaultRoutingHandler.populateAllRoutingRules()) {
+                            continue;
+                        }
+                    }
+                    Thread.sleep(1000); // sleep for 1 sec.
+                }
+            } catch (Exception e) {
+                log.error("LinkStatsCollector threw an Exception {}", e);
+            }
+        }
+    }
+
 }
