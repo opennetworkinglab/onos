@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.meter;
+package org.onosproject.incubator.net.meter;
 
-
-import org.onosproject.net.provider.ProviderRegistry;
+import org.onosproject.event.EventListener;
 
 /**
- * Abstraction for a meter provider registry.
+ * Entity capable of receiving Meter related events.
  */
-public interface MeterProviderRegistry
-        extends ProviderRegistry<MeterProvider, MeterProviderService> {
+public interface MeterListener extends EventListener<MeterEvent> {
 }
-

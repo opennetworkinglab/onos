@@ -16,9 +16,11 @@
 
 package org.onosproject.provider.of.meter.impl;
 
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
+
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
@@ -27,13 +29,13 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.meter.Meter;
-import org.onosproject.net.meter.MeterFailReason;
-import org.onosproject.net.meter.MeterOperation;
-import org.onosproject.net.meter.MeterOperations;
-import org.onosproject.net.meter.MeterProvider;
-import org.onosproject.net.meter.MeterProviderRegistry;
-import org.onosproject.net.meter.MeterProviderService;
+import org.onosproject.incubator.net.meter.Meter;
+import org.onosproject.incubator.net.meter.MeterFailReason;
+import org.onosproject.incubator.net.meter.MeterOperation;
+import org.onosproject.incubator.net.meter.MeterOperations;
+import org.onosproject.incubator.net.meter.MeterProvider;
+import org.onosproject.incubator.net.meter.MeterProviderRegistry;
+import org.onosproject.incubator.net.meter.MeterProviderService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.Dpid;

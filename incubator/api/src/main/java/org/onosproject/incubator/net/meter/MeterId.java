@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.meter;
+package org.onosproject.incubator.net.meter;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -31,7 +31,7 @@ public final class MeterId {
     public static final MeterId CONTROLLER = new MeterId(0xFFFFFFFE);
     public static final MeterId ALL = new MeterId(0xFFFFFFFF);
 
-    protected MeterId(int id) {
+    private MeterId(int id) {
         checkArgument(id <= MAX, "id cannot be larger than 0xFFFF0000");
         this.id = id;
     }

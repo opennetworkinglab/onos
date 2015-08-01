@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.meter;
+package org.onosproject.incubator.net.meter;
 
 /**
  * Enum used to represent a meter failure condition.

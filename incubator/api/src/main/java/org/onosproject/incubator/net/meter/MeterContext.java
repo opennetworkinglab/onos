@@ -13,8 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.incubator.net.meter;
 
 /**
- * Flow meter model and related services.
+ * Created by ash on 01/08/15.
  */
-package org.onosproject.net.meter;
+public interface MeterContext {
+
+    /**
+     * Invoked on successful installation of the meter.
+     *
+     * @param op a meter operation
+     */
+    default void onSuccess(MeterOperation op) {
+    }
+
+    /**
+     * Invoked when error is encountered while installing a meter.
+     *
+     * @param op a meter operation
+     * @param reason the reason why it failed
+     */
+    default void onError(MeterOperation op, MeterFailReason reason) {
+    }
+}

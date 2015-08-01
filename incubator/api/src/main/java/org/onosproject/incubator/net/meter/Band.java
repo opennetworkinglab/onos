@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.meter;
+package org.onosproject.incubator.net.meter;
 
 /**
  * Represents a band used within a meter.
@@ -68,6 +68,52 @@ public interface Band {
      * @return a band type
      */
     Type type();
+
+    interface Builder {
+
+        /**
+         * Assigns a rate to this band. The units for this rate
+         * are defined in the encapsulating meter.
+         *
+         * @param rate a long value
+         * @return this
+         */
+        Builder withRate(long rate);
+
+        /**
+         * Assigns a burst size to this band. Only meaningful if
+         * the encapsulating meter is of burst type.
+         *
+         * @param burstSize a long value.
+         * @return this
+         */
+        Builder burstSize(long burstSize);
+
+        /**
+         * Assigns the drop precedence for this band. Only meaningful if
+         * the band is of REMARK type.
+         *
+         * @param prec a short value
+         * @return this
+         */
+        Builder dropPrecedence(short prec);
+
+        /**
+         * Assigns the @See Type of this band.
+         *
+         * @param type a band type
+         * @return this
+         */
+        Builder ofType(Type type);
+
+        /**
+         * Builds the band.
+         *
+         * @return a band
+         */
+        Band build();
+
+    }
 
 
 }
