@@ -234,11 +234,6 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
         consumers.remove(consumer);
     }
 
-    @Override
-    public boolean hasChangeNotificationSupport() {
-        return false;
-    }
-
     private class InternalStateMachineWatcher implements TriConsumer<String, Object, Object> {
         @Override
         public void accept(String name, Object input, Object output) {
