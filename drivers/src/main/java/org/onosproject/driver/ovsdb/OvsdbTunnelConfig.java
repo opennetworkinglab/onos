@@ -111,7 +111,7 @@ public class OvsdbTunnelConfig extends AbstractHandlerBehaviour
     private OvsdbNodeId changeDeviceIdToNodeId(DeviceId deviceId) {
         int lastColon = deviceId.toString().lastIndexOf(":");
         int fistColon = deviceId.toString().indexOf(":");
-        String ip = deviceId.toString().substring(fistColon + 1, lastColon - 1);
+        String ip = deviceId.toString().substring(fistColon + 1, lastColon);
         String port = deviceId.toString().substring(lastColon + 1);
         IpAddress ipAddress = IpAddress.valueOf(ip);
         long portL = Long.valueOf(port).longValue();
