@@ -112,8 +112,9 @@ public class HostsWebResource extends AbstractWebResource {
             ObjectNode root = (ObjectNode) mapper().readTree(stream);
 
             HostProviderRegistry hostProviderRegistry = get(HostProviderRegistry.class);
-            InternalHostProvider hostProvider = new InternalHostProvider(hostProviderRegistry);
-            hostProvider.register();
+            InternalHostProvider hostProvider = new InternalHostProvider();
+            HostProviderService hostProviderService = hostProviderRegistry.register(hostProvider);
+            hostProvider.setHostProviderService(hostProviderService);
             HostId hostId = hostProvider.parseHost(root);
 
             UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
@@ -121,7 +122,7 @@ public class HostsWebResource extends AbstractWebResource {
                     .path(hostId.mac().toString())
                     .path(hostId.vlanId().toString());
             location = locationBuilder.build();
-            hostProvider.unregister();
+            hostProviderRegistry.unregister(hostProvider);
 
         } catch (IOException ex) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -131,49 +132,24 @@ public class HostsWebResource extends AbstractWebResource {
                 .build();
     }
 
-    /**
-     * Produces annotations from specified JsonNode. Copied from the ConfigProvider
-     * class for use in the POST method.
-     *
-     * @param node node to be annotated
-     * @return SparseAnnotations object with information about node
-     */
-    private SparseAnnotations annotations(JsonNode node) {
-        if (node == null) {
-            return DefaultAnnotations.EMPTY;
-        }
-
-        DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
-        Iterator<String> it = node.fieldNames();
-        while (it.hasNext()) {
-            String k = it.next();
-            builder.set(k, node.get(k).asText());
-        }
-        return builder.build();
-    }
-
     private final class InternalHostProvider implements HostProvider {
         private final ProviderId providerId =
                 new ProviderId("host", "org.onosproject.rest", true);
-        private HostProviderRegistry hostProviderRegistry;
         private HostProviderService hostProviderService;
 
+        // Not implemented since there is no need to check for hosts on network
         public void triggerProbe(Host host) {
-            // No need to implement since we don't need to check if the host exists
         }
 
-        private InternalHostProvider(HostProviderRegistry hostProviderRegistry) {
-            this.hostProviderRegistry = hostProviderRegistry;
+        // Creates new InternalHostProvider with a HostProviderRegistry param.
+        private InternalHostProvider() {
         }
 
-        private void register() {
-            this.hostProviderService = hostProviderRegistry.register(this);
+        public void setHostProviderService(HostProviderService service) {
+            this.hostProviderService = service;
         }
 
-        private void unregister() {
-            hostProviderRegistry.unregister(this);
-        }
-
+        // Return the ProviderId of "this"
         public ProviderId id() {
             return providerId;
         }
@@ -204,6 +180,28 @@ public class HostsWebResource extends AbstractWebResource {
             hostProviderService.hostDetected(hostId, desc);
             return hostId;
         }
+
+        /**
+         * Produces annotations from specified JsonNode. Copied from the ConfigProvider
+         * class for use in the POST method.
+         *
+         * @param node node to be annotated
+         * @return SparseAnnotations object with information about node
+         */
+        private SparseAnnotations annotations(JsonNode node) {
+            if (node == null) {
+                return DefaultAnnotations.EMPTY;
+            }
+
+            DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
+            Iterator<String> it = node.fieldNames();
+            while (it.hasNext()) {
+                String k = it.next();
+                builder.set(k, node.get(k).asText());
+            }
+            return builder.build();
+        }
+
     }
 }
 
