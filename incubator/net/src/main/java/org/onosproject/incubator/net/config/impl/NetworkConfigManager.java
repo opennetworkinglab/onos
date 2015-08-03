@@ -226,11 +226,11 @@ public class NetworkConfigManager
     }
 
     // Auxiliary key to track config factories.
-    private static final class ConfigKey {
+    protected static final class ConfigKey {
         final Class subjectClass;
         final Class configClass;
 
-        private ConfigKey(Class subjectClass, Class configClass) {
+        protected ConfigKey(Class subjectClass, Class configClass) {
             this.subjectClass = subjectClass;
             this.configClass = configClass;
         }
@@ -258,11 +258,11 @@ public class NetworkConfigManager
         return new ConfigIdentifier(factory.subjectFactory().subjectKey(), factory.configKey());
     }
 
-    private static final class ConfigIdentifier {
+    protected static final class ConfigIdentifier {
         final String subjectKey;
         final String configKey;
 
-        private ConfigIdentifier(String subjectKey, String configKey) {
+        protected ConfigIdentifier(String subjectKey, String configKey) {
             this.subjectKey = subjectKey;
             this.configKey = configKey;
         }
