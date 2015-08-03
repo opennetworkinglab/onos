@@ -62,7 +62,7 @@ public class NetworkConfigManager
     // Inventory of configuration factories
     private final Map<ConfigKey, ConfigFactory> factories = Maps.newConcurrentMap();
 
-    // Secondary indeces to retrieve subject and config classes by keys
+    // Secondary indices to retrieve subject and config classes by keys
     private final Map<String, SubjectFactory> subjectClasses = Maps.newConcurrentMap();
     private final Map<Class, SubjectFactory> subjectClassKeys = Maps.newConcurrentMap();
     private final Map<ConfigIdentifier, Class<? extends Config>> configClasses = Maps.newConcurrentMap();
@@ -106,7 +106,7 @@ public class NetworkConfigManager
     public void unregisterConfigFactory(ConfigFactory configFactory) {
         checkNotNull(configFactory, NULL_FACTORY_MSG);
         factories.remove(key(configFactory));
-        configClasses.remove(configFactory.configKey());
+        configClasses.remove(identifier(configFactory));
 
         // Note that we are deliberately not removing subject factory key bindings.
         store.removeConfigFactory(configFactory);
