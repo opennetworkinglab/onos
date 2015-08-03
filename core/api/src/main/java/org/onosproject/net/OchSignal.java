@@ -17,7 +17,6 @@ package org.onosproject.net;
 
 import com.google.common.base.MoreObjects;
 import org.onlab.util.Frequency;
-import org.onosproject.net.resource.link.LambdaResourceAllocation;
 
 import java.util.Objects;
 
@@ -67,15 +66,13 @@ public class OchSignal implements Lambda {
     }
 
     /**
-     * Create OCh signal from lambda resource allocation.
+     * Create OCh signal from channel number.
      *
-     * @param alloc lambda resource allocation
+     * @param channel channel number
      * @param maxFrequency maximum frequency
      * @param grid grid spacing frequency
      */
-    public OchSignal(LambdaResourceAllocation alloc, Frequency maxFrequency, Frequency grid) {
-        int channel = alloc.lambda().toInt();
-
+    public OchSignal(int channel, Frequency maxFrequency, Frequency grid) {
         // Calculate center frequency
         Frequency centerFrequency = maxFrequency.subtract(grid.multiply(channel - 1));
 

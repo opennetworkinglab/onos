@@ -672,7 +672,7 @@ public class FlowEntryBuilder {
                 CircuitSignalID sigId = match.get(MatchField.OCH_SIGID);
                 builder.add(matchLambda(Lambda.ochSignal(
                                 lookupGridType(sigId.getGridType()), lookupChannelSpacing(sigId.getChannelSpacing()),
-                                sigId.getChannelNumber(), sigId.getChannelSpacing())
+                                sigId.getChannelNumber(), sigId.getSpectralWidth())
                 ));
                 break;
             case OCH_SIGTYPE:
