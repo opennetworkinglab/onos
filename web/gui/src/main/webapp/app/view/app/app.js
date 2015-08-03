@@ -82,7 +82,9 @@
                 $log.debug('Initiating ' + action + ' of ' + $scope.selId);
                 wss.sendEvent(APP_MGMENT_REQ, {
                     action: action,
-                    name: $scope.selId
+                    name: $scope.selId,
+                    sortCol: $scope.sortParams.sortCol,
+                    sortDir: $scope.sortParams.sortDir
                 });
             }
         };
