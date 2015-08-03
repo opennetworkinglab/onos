@@ -23,6 +23,7 @@ function validateIp {
 # Clean the previous Karaf directory if requested and if it exists.
 if [ "$1" = "clean" ]; then
     shift
+    CLEAN="true"
     [ -d $KARAF_ROOT ] && rm -fr $KARAF_ROOT $STAGE/apps $STAGE/config
 fi
 
@@ -104,6 +105,12 @@ cat > $STAGE/config/tablets.json <<EOF
     { "nodes": [ { "ip": "$IP", "id": "$IP", "tcpPort": 9876 }],
       "partitions": { "p1": [ { "ip": "$IP", "id": "$IP", "tcpPort": 9876 }]}}
 EOF
+
+if [ "$CLEAN" = "true" ]; then
+    echo "Copying package configs..."
+    cp -r $ONOS_ROOT/tools/package/etc/* $KARAF_ROOT/etc/
+    cp -r $ONOS_ROOT/tools/package/config/* $STAGE/config/
+fi
 
 echo "Staging builtin apps..."
 rm -fr $STAGE/apps
