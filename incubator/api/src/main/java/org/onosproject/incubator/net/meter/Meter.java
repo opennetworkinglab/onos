@@ -62,7 +62,7 @@ public interface Meter {
     /**
      * The unit used within this meter.
      *
-     * @return
+     * @return the unit
      */
     Unit unit();
 
