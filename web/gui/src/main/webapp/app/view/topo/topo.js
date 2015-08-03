@@ -367,6 +367,10 @@
         toggleInstances(prefsState.insts);
         toggleSummary(prefsState.summary);
         toggleUseDetailsFlag(prefsState.detail);
+        toggleHosts(prefsState.hosts);
+        toggleOffline(prefsState.offdev);
+        togglePorts(prefsState.porthl);
+        toggleMap(prefsState.bg);
         toggleSprites(prefsState.spr);
         flash.enable(true);
     }
