@@ -15,6 +15,7 @@
  */
 package org.onlab.stc;
 
+import com.google.common.io.Files;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -23,6 +24,7 @@ import org.onlab.util.Tools;
 import java.io.File;
 import java.io.IOException;
 
+import static com.google.common.base.Preconditions.checkState;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.onlab.stc.Coordinator.Status.SUCCEEDED;
@@ -32,14 +34,13 @@ import static org.onlab.stc.Coordinator.Status.SUCCEEDED;
  */
 public class StepProcessorTest {
 
-    static final File DIR = new File("/tmp/stc/foo");
-
+    static final File DIR = Files.createTempDir();
     private final Listener delegate = new Listener();
 
     @BeforeClass
     public static void setUpClass() {
         StepProcessor.launcher = "echo";
-        DIR.mkdirs();
+        checkState(DIR.mkdirs(), "Unable to create directory");
     }
 
     @AfterClass
@@ -49,13 +50,13 @@ public class StepProcessorTest {
 
     @Test
     public void basics() {
-        Step step = new Step("foo", "ls /tmp", null, null, null);
+        Step step = new Step("foo", "ls " + DIR.getAbsolutePath(), null, null, null);
         StepProcessor processor = new StepProcessor(step, DIR, delegate);
         processor.run();
         assertTrue("should be started", delegate.started);
-        assertTrue("should have output", delegate.output);
         assertTrue("should be stopped", delegate.stopped);
         assertEquals("incorrect status", SUCCEEDED, delegate.status);
+        assertTrue("should have output", delegate.output);
     }
 
     private class Listener implements StepProcessListener {

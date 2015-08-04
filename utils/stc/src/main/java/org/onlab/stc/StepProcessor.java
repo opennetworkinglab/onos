@@ -74,6 +74,7 @@ class StepProcessor implements Runnable {
      */
     private int execute() {
         try (PrintWriter pw = new PrintWriter(logFile())) {
+            System.out.println("cmd: [" + command() + "]");
             process = Runtime.getRuntime().exec(command());
             processOutput(pw);
 
