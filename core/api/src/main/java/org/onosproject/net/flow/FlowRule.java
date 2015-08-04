@@ -138,6 +138,34 @@ public interface FlowRule {
     int tableId();
 
     /**
+     * {@inheritDoc}
+     *
+     * Equality for flow rules only considers 'match equality'. This means that
+     * two flow rules with the same match conditions will be equal, regardless
+     * of the treatment or other characteristics of the flow.
+     *
+     * @param   obj   the reference object with which to compare.
+     * @return  {@code true} if this object is the same as the obj
+     *          argument; {@code false} otherwise.
+     */
+    boolean equals(Object obj);
+
+    /**
+     * Returns whether this flow rule is an exact match to the flow rule given
+     * in the argument.
+     * <p>
+     * Exact match means that deviceId, priority, selector,
+     * tableId, flowId and treatment are equal. Note that this differs from
+     * the notion of object equality for flow rules, which does not consider the
+     * flowId or treatment when testing equality.
+     * </p>
+     *
+     * @param rule other rule to match against
+     * @return true if the rules are an exact match, otherwise false
+     */
+    boolean exactMatch(FlowRule rule);
+
+    /**
      * A flowrule builder.
      */
     interface Builder {

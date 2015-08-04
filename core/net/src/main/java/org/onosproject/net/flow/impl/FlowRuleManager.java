@@ -387,12 +387,22 @@ public class FlowRuleManager
 
         @Override
         public void pushFlowMetrics(DeviceId deviceId, Iterable<FlowEntry> flowEntries) {
-            Set<FlowEntry> storedRules = Sets.newHashSet(store.getFlowEntries(deviceId));
+            Map<FlowEntry, FlowEntry> storedRules = Maps.newHashMap();
+            store.getFlowEntries(deviceId).forEach(f -> storedRules.put(f, f));
+
             for (FlowEntry rule : flowEntries) {
                 try {
-                    if (storedRules.remove(rule)) {
-                        // we both have the rule, let's update some info then.
-                        flowAdded(rule);
+                    FlowEntry storedRule = storedRules.remove(rule);
+                    if (storedRule != null) {
+                        if (storedRule.exactMatch(rule)) {
+                            // we both have the rule, let's update some info then.
+                            flowAdded(rule);
+                        } else {
+                            // the two rules are not an exact match - remove the
+                            // switch's rule and install our rule
+                            extraneousFlow(rule);
+                            flowMissing(storedRule);
+                        }
                     } else {
                         // the device has a rule the store does not have
                         if (!allowExtraneousRules) {
@@ -404,7 +414,7 @@ public class FlowRuleManager
                     continue;
                 }
             }
-            for (FlowEntry rule : storedRules) {
+            for (FlowEntry rule : storedRules.keySet()) {
                 try {
                     // there are rules in the store that aren't on the switch
                     log.debug("Adding rule in store, but not on switch {}", rule);
