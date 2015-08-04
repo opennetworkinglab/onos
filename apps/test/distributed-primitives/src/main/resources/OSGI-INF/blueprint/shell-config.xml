@@ -28,6 +28,12 @@
         <command>
             <action class="org.onosproject.distributedprimitives.cli.SetTestRemoveCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.distributedprimitives.cli.TransactionalMapTestGetCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.distributedprimitives.cli.TransactionalMapTestPutCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>
