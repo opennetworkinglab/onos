@@ -251,8 +251,9 @@
             $log.log('OvDeviceCtrl has been created');
         }])
 
-    .directive('deviceDetailsPanel', ['$rootScope', '$window', 'KeyService',
-    function ($rootScope, $window, ks) {
+    .directive('deviceDetailsPanel',
+    ['$rootScope', '$window', '$timeout', 'KeyService',
+    function ($rootScope, $window, $timeout, ks) {
         return function (scope) {
             var unbindWatch;
 
@@ -262,10 +263,19 @@
                 wSize = fs.windowSize(pStartY);
                 pHeight = wSize.height;
             }
-            heightCalc();
 
-            createDetailsPane();
+            function initPanel() {
+                heightCalc();
+                createDetailsPane();
+            }
 
+            // Safari has a bug where it renders the fixed-layout table wrong
+            // if you ask for the window's size too early
+            if (scope.onos.browser === 'safari') {
+                $timeout(initPanel);
+            } else {
+                initPanel();
+            }
             // create key bindings to handle panel
             ks.keyBindings({
                 esc: [closePanel, 'Close the details panel'],
@@ -276,6 +286,7 @@
                 ['scroll down', 'See more devices']
             ]);
 
+            // if the panelData changes
             scope.$watch('panelData', function () {
                 if (!fs.isEmptyObject(scope.panelData)) {
                     populateDetails(scope.panelData);
@@ -283,6 +294,7 @@
                 }
             });
 
+            // if the window size changes
             unbindWatch = $rootScope.$watchCollection(
                 function () {
                     return {
