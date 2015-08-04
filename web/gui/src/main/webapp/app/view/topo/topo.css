@@ -298,7 +298,12 @@ html[data-platform='iPad'] #topo-p-detail {
 .dark #topo-p-instance .onosInst.mastership.affinity svg rect {
     filter: url(#yellow-glow);
 }
-
+.light.firefox #topo-p-instance .onosInst.mastership.affinity svg rect {
+    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"blue-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#blue-glow");
+}
+.dark.firefox #topo-p-instance .onosInst.mastership.affinity svg rect {
+    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"yellow-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  1.0 0 0 0 0  1.0 0 0 0 0  0.3 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#yellow-glow");
+}
 
 /* --- Topo Nodes --- */
 
@@ -319,6 +324,14 @@ html[data-platform='iPad'] #topo-p-detail {
 .dark #ov-topo svg .node.selected circle {
     fill: #f90;
     filter: url(#yellow-glow);
+}
+.light.firefox #ov-topo svg .node.selected rect,
+.light.firefox #ov-topo svg .node.selected circle {
+    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"blue-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#blue-glow");
+}
+.dark.firefox #ov-topo svg .node.selected rect,
+.dark.firefox #ov-topo svg .node.selected circle {
+    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"yellow-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  1.0 0 0 0 0  1.0 0 0 0 0  0.3 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#yellow-glow");
 }
 
 #ov-topo svg .node text {
@@ -445,6 +458,15 @@ html[data-platform='iPad'] #topo-p-detail {
 .dark #ov-topo svg .link.selected,
 .dark #ov-topo svg .link.enhanced {
     filter: url(#yellow-glow);
+}
+.light.firefox #ov-topo svg .link.selected,
+.light.firefox #ov-topo svg .link.enhanced {
+    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"blue-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#blue-glow");
+}
+.dark.firefox #ov-topo svg .link.selected,
+.dark.firefox #ov-topo svg .link.enhanced {
+    filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"yellow-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  1.0 0 0 0 0  1.0 0 0 0 0  0.3 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#yellow-glow");
+
 }
 
 #ov-topo svg .link.inactive {

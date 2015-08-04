@@ -58,15 +58,7 @@
 
     function createArrow(panel) {
         var arrowDiv = panel.append('div')
-            .classed('tbarArrow', true)
-            .style({
-                'position': 'absolute',
-                'top': '53%',
-                'left': '96%',
-                'margin-right': '-4%',
-                'transform': 'translate(-50%, -50%)',
-                'cursor': 'pointer'
-            });
+            .classed('tbar-arrow', true);
         is.loadIcon(arrowDiv, 'triangleUp', arrowSize, true);
         return arrowDiv;
     }
