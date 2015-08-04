@@ -69,12 +69,12 @@
     angular.module('onosApp', moduleDependencies)
 
         .controller('OnosCtrl', [
-            '$log', '$route', '$routeParams', '$location',
+            '$log', '$scope', '$route', '$routeParams', '$location',
             'KeyService', 'ThemeService', 'GlyphService', 'VeilService',
             'PanelService', 'FlashService', 'QuickHelpService',
             'WebSocketService',
 
-            function ($log, $route, $routeParams, $location,
+            function ($log, $scope, $route, $routeParams, $location,
                       ks, ts, gs, vs, ps, flash, qhs, wss) {
                 var self = this;
 
@@ -82,6 +82,9 @@
                 self.$routeParams = $routeParams;
                 self.$location = $location;
                 self.version = '1.2.0';
+
+                // shared object inherited by all views:
+                $scope.onos = {};
 
                 // initialize services...
                 ts.init();
@@ -131,5 +134,29 @@
                     });
                 }
             });
+        }])
+
+        .directive('detectBrowser', ['$log', 'FnService',
+            function ($log, fs) {
+                return function (scope) {
+                    var body = d3.select('body'),
+                        browser = '';
+                    if (fs.isChrome()) {
+                        browser = 'chrome';
+                    } else if (fs.isSafari()) {
+                        browser = 'safari';
+                    } else if (fs.isFirefox()) {
+                        browser = 'firefox';
+                    }
+                    body.classed(browser, true);
+                    scope.onos.browser = browser;
+
+                    if (fs.isMobile()) {
+                        body.classed('mobile', true);
+                        scope.onos.mobile = true;
+                    }
+
+                    $log.debug('Detected browser is', fs.cap(browser));
+                };
         }]);
 }());

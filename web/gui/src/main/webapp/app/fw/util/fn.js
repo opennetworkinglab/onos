@@ -122,6 +122,28 @@
         return patt.test(ua);
     }
 
+    // Returns true if the current browser determined to be Chrome
+    function isChrome() {
+        var isChromium = $window.chrome,
+            vendorName = $window.navigator.vendor,
+            isOpera = $window.navigator.userAgent.indexOf("OPR") > -1;
+        return (isChromium !== null &&
+        isChromium !== undefined &&
+        vendorName === "Google Inc." &&
+        isOpera == false);
+    }
+
+    // Returns true if the current browser determined to be Safari
+    function isSafari() {
+        return ($window.navigator.userAgent.indexOf('Safari') !== -1 &&
+        $window.navigator.userAgent.indexOf('Chrome') === -1);
+    }
+
+    // Returns true if the current browser determined to be Firefox
+    function isFirefox() {
+        return typeof InstallTrigger !== 'undefined';
+    }
+
     // search through an array of objects, looking for the one with the
     // tagged property matching the given key. tag defaults to 'id'.
     // returns the index of the matching object, or -1 for no match.
@@ -222,6 +244,9 @@
                 areFunctionsNonStrict: areFunctionsNonStrict,
                 windowSize: windowSize,
                 isMobile: isMobile,
+                isChrome: isChrome,
+                isSafari: isSafari,
+                isFirefox: isFirefox,
                 debugOn: debugOn,
                 find: find,
                 inArray: inArray,

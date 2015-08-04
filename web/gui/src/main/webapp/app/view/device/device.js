@@ -267,33 +267,46 @@
             $log.log('OvDeviceCtrl has been created');
         }])
 
-        .directive('deviceDetailsPanel', ['$rootScope', '$window',
-        function ($rootScope, $window) {
-            return function (scope) {
+    .directive('deviceDetailsPanel', ['$rootScope', '$window', '$timeout',
+    function ($rootScope, $window, $timeout) {
+        return function (scope) {
+            var unbindWatch;
 
-                function heightCalc() {
-                    pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
-                                            + mast.mastHeight() + topPdg;
-                    wSize = fs.windowSize(pStartY);
-                    pHeight = wSize.height;
-                }
+            function heightCalc() {
+                pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
+                                        + mast.mastHeight() + topPdg;
+                wSize = fs.windowSize(pStartY);
+                pHeight = wSize.height;
+            }
+
+            function initPanel() {
                 heightCalc();
-
                 createDetailsPane();
+            }
 
-                scope.$watch('panelData', function () {
-                    if (!fs.isEmptyObject(scope.panelData)) {
-                        populateDetails(scope.panelData);
-                        detailsPanel.show();
-                    }
-                });
+            // Safari has a bug where it renders the fixed-layout table wrong
+            // if you ask for the window's size too early
+            if (scope.onos.browser === 'safari') {
+                $timeout(initPanel);
+            } else {
+                initPanel();
+            }
 
-                $rootScope.$watchCollection(
+            // if the panelData changes
+            scope.$watch('panelData', function () {
+                if (!fs.isEmptyObject(scope.panelData)) {
+                    populateDetails(scope.panelData);
+                    detailsPanel.show();
+                }
+            });
+
+            // if the window size changes
+            unbindWatch = $rootScope.$watchCollection(
                     function () {
                         return {
                             h: $window.innerHeight,
                             w: $window.innerWidth
-                        }
+                        };
                     }, function () {
                         if (!fs.isEmptyObject(scope.panelData)) {
                             heightCalc();
@@ -303,6 +316,7 @@
                 );
 
                 scope.$on('$destroy', function () {
+                    unbindWatch();
                     ps.destroyPanel(pName);
                 });
             };
