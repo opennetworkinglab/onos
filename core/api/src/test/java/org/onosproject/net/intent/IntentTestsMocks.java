@@ -426,6 +426,11 @@ public class IntentTestsMocks {
         }
 
         @Override
+        public boolean exactMatch(FlowRule rule) {
+            return this.equals(rule);
+        }
+
+        @Override
         public int tableId() {
             return tableId;
         }

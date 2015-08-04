@@ -362,6 +362,13 @@ public class DefaultFlowRule implements FlowRule {
     }
 
     @Override
+    public boolean exactMatch(FlowRule rule) {
+        return this.equals(rule) &&
+                Objects.equals(this.id, rule.id()) &&
+                Objects.equals(this.treatment, rule.treatment());
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("id", Long.toHexString(id.value()))
@@ -483,7 +490,7 @@ public class DefaultFlowRule implements FlowRule {
         }
 
         private int hash() {
-            return Objects.hash(deviceId, selector, treatment, tableId);
+            return Objects.hash(deviceId, priority, selector, tableId);
         }
 
     }
