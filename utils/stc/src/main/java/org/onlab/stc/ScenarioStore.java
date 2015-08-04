@@ -157,7 +157,7 @@ class ScenarioStore {
             cfg.getKeys().forEachRemaining(prop -> add(StepEvent.fromString(cfg.getString(prop))));
             cfg.save();
         } catch (ConfigurationException e) {
-            print("Unable to store file %s", storeFile);
+            print("Unable to load file %s", storeFile);
         }
     }
 

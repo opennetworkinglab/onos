@@ -23,7 +23,7 @@
               exec="onos-check-apps ${OC1} drivers,openflow,proxyarp,fwd"/>
 
         <step name="Ping-All-And-Verify" requires="Check-Apps"
-              exec="onos-mininet sendAndExpect py net.pingAll(1) --expect Results: .% dropped"/>
+              exec="onos-mininet sendAndExpect py net.pingAll(1) --expect 600/600 received"/>
 
         <step name="Check-Summary-For-Hosts" requires="~Ping-All-And-Verify"
               exec="onos-check-summary ${OC1} [0-9]* 25 140 25"/>
