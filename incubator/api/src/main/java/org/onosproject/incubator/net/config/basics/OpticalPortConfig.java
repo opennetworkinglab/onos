@@ -3,7 +3,6 @@ package org.onosproject.incubator.net.config.basics;
 import java.util.Optional;
 
 import org.onosproject.incubator.net.config.Config;
-import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Port;
 
@@ -19,9 +18,11 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
 
     // port name. "name" is the alphanumeric name of the port, but "port" refers
     // to the port number used as a name string (i.e., for ports without
-    // alphanumeric names). this should be linked to ConnectPoint.
+    // alphanumeric names).
     public static final String NAME = "name";
     public static final String PORT = "port";
+    public static final String STATIC_PORT = "staticPort";
+    public static final String STATIC_LAMBDA = "staticLambda";
 
     /**
      * Returns the Enum value representing the type of port.
@@ -38,14 +39,22 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
 
     /**
      * Returns the port name associated with this port configuration. The Name
-     * may either be an alphanumeric string, or a string representation of the
-     * port number, falling back on the latter if the former doesn't exist.
+     * is an alphanumeric string.
      *
      * @return the name of this port, else, an empty string
      */
     public String name() {
-        String name = getStringValue(NAME);
-        return name.isEmpty() ? getStringValue(PORT) : name;
+        return getStringValue(NAME);
+    }
+
+    /**
+     * Returns a stringified representation of the port number, configured in
+     * some port types without an alphanumeric name as the port name.
+     *
+     * @return A string representation of the port number
+     */
+    public String numberName() {
+        return getStringValue(PORT);
     }
 
     /**
@@ -56,7 +65,7 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
      * @return the name of this port, else, an empty string
      */
     public String staticPort() {
-        return getStringValue(AnnotationKeys.STATIC_PORT);
+        return getStringValue(STATIC_PORT);
     }
 
     private String getStringValue(String field) {
@@ -71,7 +80,7 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
      * @return an Optional that may contain a frequency value.
      */
     public Optional<Long> staticLambda() {
-        JsonNode sl = node.path(AnnotationKeys.STATIC_LAMBDA);
+        JsonNode sl = node.path(STATIC_LAMBDA);
         if (sl.isMissingNode()) {
             return Optional.empty();
         }
@@ -121,7 +130,7 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
      * @return this OpticalPortConfig instance
      */
     public OpticalPortConfig staticPort(String name) {
-        return (OpticalPortConfig) setOrClear(AnnotationKeys.STATIC_PORT, name);
+        return (OpticalPortConfig) setOrClear(STATIC_PORT, name);
     }
 
     /**
@@ -132,7 +141,7 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
      * @return this OpticalPortConfig instance
      */
     public OpticalPortConfig staticLambda(Long index) {
-        return (OpticalPortConfig) setOrClear(AnnotationKeys.STATIC_LAMBDA, index);
+        return (OpticalPortConfig) setOrClear(STATIC_LAMBDA, index);
     }
 
 }

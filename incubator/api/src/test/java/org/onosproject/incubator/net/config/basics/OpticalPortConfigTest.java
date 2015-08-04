@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.onosproject.incubator.net.config.basics.OpticalPortConfig.TYPE;
 import static org.onosproject.incubator.net.config.basics.OpticalPortConfig.NAME;
 import static org.onosproject.incubator.net.config.basics.OpticalPortConfig.PORT;
+import static org.onosproject.incubator.net.config.basics.OpticalPortConfig.STATIC_LAMBDA;
+import static org.onosproject.incubator.net.config.basics.OpticalPortConfig.STATIC_PORT;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -14,7 +16,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.incubator.net.config.Config;
 import org.onosproject.incubator.net.config.ConfigApplyDelegate;
-import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -103,7 +104,8 @@ public class OpticalPortConfigTest {
 
         assertEquals(Port.Type.OMS, op0.type());
         assertEquals(jn0.path(NAME).asText(), op0.name());
-        assertEquals(jn1.path(PORT).asText(), op1.name());
+        assertEquals(jn1.path(PORT).asText(), op1.numberName());
+        assertEquals("", op1.name());
         assertEquals("", op2.name());
     }
 
@@ -116,8 +118,8 @@ public class OpticalPortConfigTest {
         Long sl = 1L;
 
         // see config entity 2 in DEMOTREE
-        op2.staticLambda(jn2.path("annotations").path(AnnotationKeys.STATIC_LAMBDA).asLong());
-        op2.staticPort(jn2.path("annotations").path(AnnotationKeys.STATIC_PORT).asText());
+        op2.staticLambda(jn2.path("annotations").path(STATIC_LAMBDA).asLong());
+        op2.staticPort(jn2.path("annotations").path(STATIC_PORT).asText());
 
         assertEquals(sl, op2.staticLambda().get());
         assertFalse(op1.staticLambda().isPresent());
