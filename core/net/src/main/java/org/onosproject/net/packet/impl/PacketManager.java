@@ -170,6 +170,7 @@ public class PacketManager
      * @param request the packet request
      */
     private void pushToAllDevices(PacketRequest request) {
+        log.debug("Pushing packet request {} to all devices", request);
         for (Device device : deviceService.getDevices()) {
             pushRule(device, request);
         }
@@ -202,7 +203,8 @@ public class PacketManager
                 .add(new ObjectiveContext() {
                     @Override
                     public void onError(Objective objective, ObjectiveError error) {
-                        log.warn("Failed to install packet request {}: {}", request, error);
+                        log.warn("Failed to install packet request {} to {}: {}",
+                                 request, device.id(), error);
                     }
                 });
 
@@ -224,7 +226,8 @@ public class PacketManager
                 .remove(new ObjectiveContext() {
                     @Override
                     public void onError(Objective objective, ObjectiveError error) {
-                        log.warn("Failed to withdraw packet request {}: {}", request, error);
+                        log.warn("Failed to withdraw packet request {} from {}: {}",
+                                 request, device.id(), error);
                     }
                 });
 
@@ -308,6 +311,7 @@ public class PacketManager
                     case DEVICE_ADDED:
                     case DEVICE_AVAILABILITY_CHANGED:
                         if (deviceService.isAvailable(event.subject().id())) {
+                            log.debug("Pushing packet requests to device {}", event.subject().id());
                             for (PacketRequest request : store.existingRequests()) {
                                 pushRule(device, request);
                             }
