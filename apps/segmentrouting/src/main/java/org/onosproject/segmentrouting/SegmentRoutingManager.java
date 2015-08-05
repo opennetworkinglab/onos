@@ -120,6 +120,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private InternalEventHandler eventHandler = new InternalEventHandler();
 
     private LinkStatsService linkStatsService = null;
+    private LinkCostFunctions linkCostFunctions = new LinkCostFunctions();
 
     private ScheduledExecutorService executorService = Executors
             .newScheduledThreadPool(1);
@@ -527,8 +528,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 while (true) {
                     synchronized (statsCollectionLock) {
                         HashMap<Link, LinkStatsService.LinkStats> linkStatsMapper =
-                                            linkStatsService.getStats();
-                        // haloAlgorithm(linkStatsMapper);
+                                            linkStatsService.stats();
+                        HashMap<Link, Double> flowRatesMapper =
+                                            linkCostFunctions.flowRates(linkStatsMapper);
+                        // haloAlgorithm(flowRatesMapper);
                         while (!defaultRoutingHandler.populateAllRoutingRules()) {
                             continue;
                         }
