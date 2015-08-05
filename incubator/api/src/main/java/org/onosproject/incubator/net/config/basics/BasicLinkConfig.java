@@ -63,9 +63,9 @@ public class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
      * @param latency new latency; null to clear
      * @return self
      */
-    public BasicElementConfig latency(Duration latency) {
+    public BasicLinkConfig latency(Duration latency) {
         Long nanos = latency == null ? null : latency.toNanos();
-        return (BasicElementConfig) setOrClear(LATENCY, nanos);
+        return (BasicLinkConfig) setOrClear(LATENCY, nanos);
     }
 
     /**
@@ -83,8 +83,8 @@ public class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
      * @param bandwidth new bandwidth; null to clear
      * @return self
      */
-    public BasicElementConfig bandwidth(Long bandwidth) {
-        return (BasicElementConfig) setOrClear(BANDWIDTH, bandwidth);
+    public BasicLinkConfig bandwidth(Long bandwidth) {
+        return (BasicLinkConfig) setOrClear(BANDWIDTH, bandwidth);
     }
 
 }
