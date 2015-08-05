@@ -22,9 +22,7 @@ import java.util.List;
 import org.onosproject.ovsdb.rfc.notation.Row;
 import org.onosproject.ovsdb.rfc.notation.UUID;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * All results of ovs table operations. refer to RFC7047 5.2.
@@ -32,7 +30,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class OperationResult {
     private int count;
-    @JsonIgnore
     private UUID uuid;
     private List<Row> rows;
     private String error;
@@ -95,7 +92,6 @@ public final class OperationResult {
      * Return uuid.
      * @return uuid
      */
-    @JsonProperty("uuid")
     public UUID getUuid() {
         return uuid;
     }
@@ -104,9 +100,9 @@ public final class OperationResult {
      * Set uuid value.
      * @param uuid the Operation message of uuid
      */
-    public void setUuid(String uuid) {
+    public void setUuid(UUID uuid) {
         checkNotNull(uuid, "uuid cannot be null");
-        this.uuid = UUID.uuid(uuid);
+        this.uuid = uuid;
     }
 
     /**

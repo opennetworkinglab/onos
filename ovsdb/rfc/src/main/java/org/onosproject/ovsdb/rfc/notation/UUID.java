@@ -20,14 +20,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
 
+import org.onosproject.ovsdb.rfc.notation.json.UUIDConverter;
 import org.onosproject.ovsdb.rfc.notation.json.UUIDSerializer;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Handles both uuid and named-uuid.
  */
 @JsonSerialize(using = UUIDSerializer.class)
+@JsonDeserialize(converter = UUIDConverter.class)
 public final class UUID {
     private final String value;
 
