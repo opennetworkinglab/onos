@@ -323,6 +323,9 @@
         <command>
             <action class="org.onosproject.cli.net.AddressBindingsListCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.cli.net.InterfacesListCommand"/>
+        </command>
 
         <command>
             <action class="org.onosproject.cli.net.GroupsListCommand"/>
@@ -365,7 +368,7 @@
                 <entry key="-a" value-ref="allAppNameCompleter"/>
             </optional-completers>
         </command>
-        
+
         <command>
             <action class="org.onosproject.cli.net.GlobalLabelCommand"/>
         </command>

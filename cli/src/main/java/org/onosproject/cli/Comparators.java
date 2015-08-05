@@ -15,11 +15,10 @@
  */
 package org.onosproject.cli;
 
-import java.util.Comparator;
-
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Element;
 import org.onosproject.net.ElementId;
@@ -28,6 +27,8 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.topology.TopologyCluster;
+
+import java.util.Comparator;
 
 /**
  * Various comparators.
@@ -118,5 +119,8 @@ public final class Comparators {
             return CONNECT_POINT_COMPARATOR.compare(arg0.connectPoint(), arg1.connectPoint());
         }
     };
+
+    public static final Comparator<Interface> INTERFACES_COMPARATOR = (intf1, intf2) ->
+            CONNECT_POINT_COMPARATOR.compare(intf1.connectPoint(), intf2.connectPoint());
 
 }

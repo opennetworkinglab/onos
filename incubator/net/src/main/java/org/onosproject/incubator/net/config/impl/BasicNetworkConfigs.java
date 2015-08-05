@@ -28,7 +28,7 @@ import org.onosproject.incubator.net.config.NetworkConfigRegistry;
 import org.onosproject.incubator.net.config.basics.BasicDeviceConfig;
 import org.onosproject.incubator.net.config.basics.BasicHostConfig;
 import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
-import org.onosproject.incubator.net.config.basics.BasicPortConfig;
+import org.onosproject.incubator.net.config.basics.InterfaceConfig;
 import org.onosproject.incubator.net.config.basics.OpticalPortConfig;
 import org.onosproject.incubator.net.config.basics.SubjectFactories;
 import org.onosproject.incubator.net.domain.IntentDomainConfig;
@@ -61,12 +61,12 @@ public class BasicNetworkConfigs {
                     return new BasicDeviceConfig();
                 }
             },
-            new ConfigFactory<ConnectPoint, BasicPortConfig>(CONNECT_POINT_SUBJECT_FACTORY,
-                                                             BasicPortConfig.class,
-                                                             "basic") {
+            new ConfigFactory<ConnectPoint, InterfaceConfig>(CONNECT_POINT_SUBJECT_FACTORY,
+                                                             InterfaceConfig.class,
+                                                             "interfaces") {
                 @Override
-                public BasicPortConfig createConfig() {
-                    return new BasicPortConfig();
+                public InterfaceConfig createConfig() {
+                    return new InterfaceConfig();
                 }
             },
             new ConfigFactory<HostId, BasicHostConfig>(HOST_SUBJECT_FACTORY,
