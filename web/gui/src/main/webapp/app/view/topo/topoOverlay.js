@@ -30,7 +30,7 @@
     var tos = 'TopoOverlayService: ';
 
     // injected refs
-    var $log, fs, gs, wss;
+    var $log, fs, gs, wss, ns;
 
     // internal state
     var overlays = {},
@@ -142,37 +142,53 @@
         }
     }
 
-    // install buttons from the current overlay
-    function installButtons(bids, addFn, data) {
-        if (current) {
-            bids.forEach(function (bid) {
-                var btn = current.buttons[bid],
-                    funcWrap = function () {
-                        btn.cb(data);
-                    };
+    var coreButtonPath = {
+        showDeviceView: 'device',
+        showFlowView: 'flow',
+        showPortView: 'port',
+        showGroupView: 'group'
+    };
 
-                if (btn) {
-                    addFn({
-                        id: current.mkId(bid),
-                        gid: current.mkGid(btn.gid),
-                        cb: funcWrap,
-                        tt: btn.tt
-                    });
-                }
-            });
-        }
+    // install core buttons, and include any additional from the current overlay
+    function installButtons(buttons, addFn, data, devId) {
+
+        angular.forEach(buttons, function (btn) {
+            var path = coreButtonPath[btn.id],
+                _id,
+                _gid,
+                _cb,
+                action;
+
+            if (path) {
+                // core callback function
+                _id = btn.id;
+                _gid = btn.gid;
+                action = function () {
+                    ns.navTo(path, { devId: devId });
+                };
+            } else if (current) {
+                _id = current.mkId(btn.id);
+                _gid = current.mkGid(btn.gid);
+                action = current.buttonActions[btn.id] || function () {};
+            }
+
+            _cb = function () { action(data); };
+
+            addFn({ id: _id, gid: _gid, cb: _cb, tt: btn.tt});
+        });
 
     }
 
     angular.module('ovTopo')
     .factory('TopoOverlayService',
-        ['$log', 'FnService', 'GlyphService', 'WebSocketService',
+        ['$log', 'FnService', 'GlyphService', 'WebSocketService', 'NavService',
 
-        function (_$log_, _fs_, _gs_, _wss_) {
+        function (_$log_, _fs_, _gs_, _wss_, _ns_) {
             $log = _$log_;
             fs = _fs_;
             gs = _gs_;
             wss = _wss_;
+            ns = _ns_;
 
             return {
                 register: register,

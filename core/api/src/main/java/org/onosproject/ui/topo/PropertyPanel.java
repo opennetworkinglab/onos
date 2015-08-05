@@ -35,7 +35,7 @@ public class PropertyPanel {
     private String typeId;
     private String id;
     private List<Prop> properties = new ArrayList<>();
-    private List<Button> buttons = new ArrayList<>();
+    private List<ButtonDescriptor> buttons = new ArrayList<>();
 
     /**
      * Constructs a property panel model with the given title and
@@ -181,7 +181,7 @@ public class PropertyPanel {
      * @return the button list
      */
     // TODO: consider protecting this?
-    public List<Button> buttons() {
+    public List<ButtonDescriptor> buttons() {
         return buttons;
     }
 
@@ -216,14 +216,14 @@ public class PropertyPanel {
      * @return self, for chaining
      */
     public PropertyPanel removeProps(String... keys) {
-        Set<String> keysForRemoval = Sets.newHashSet(keys);
-        List<Prop> propsToKeep = new ArrayList<>();
+        Set<String> forRemoval = Sets.newHashSet(keys);
+        List<Prop> toKeep = new ArrayList<>();
         for (Prop p: properties) {
-            if (!keysForRemoval.contains(p.key())) {
-                propsToKeep.add(p);
+            if (!forRemoval.contains(p.key())) {
+                toKeep.add(p);
             }
         }
-        properties = propsToKeep;
+        properties = toKeep;
         return this;
     }
 
@@ -238,13 +238,41 @@ public class PropertyPanel {
     }
 
     /**
-     * Adds a button descriptor with the given identifier, to the panel data.
+     * Adds the given button descriptor to the panel data.
      *
-     * @param id button identifier
+     * @param button button descriptor
      * @return self, for chaining
      */
-    public PropertyPanel addButton(String id) {
-        buttons.add(new Button(id));
+    public PropertyPanel addButton(ButtonDescriptor button) {
+        buttons.add(button);
+        return this;
+    }
+
+    /**
+     * Removes buttons with the given descriptors from the list.
+     *
+     * @param descriptors descriptors to remove
+     * @return self, for chaining
+     */
+    public PropertyPanel removeButtons(ButtonDescriptor... descriptors) {
+        Set<ButtonDescriptor> forRemoval = Sets.newHashSet(descriptors);
+        List<ButtonDescriptor> toKeep = new ArrayList<>();
+        for (ButtonDescriptor bd: buttons) {
+            if (!forRemoval.contains(bd)) {
+                toKeep.add(bd);
+            }
+        }
+        buttons = toKeep;
+        return this;
+    }
+
+    /**
+     * Removes all currently defined buttons.
+     *
+     * @return self, for chaining
+     */
+    public PropertyPanel removeAllButtons() {
+        buttons.clear();
         return this;
     }
 
@@ -322,29 +350,4 @@ public class PropertyPanel {
         }
     }
 
-    /**
-     * Button descriptor. Note that these work in conjunction with
-     * "buttons" defined in the JavaScript code for the overlay.
-     */
-    public static class Button {
-        private final String id;
-
-        /**
-         * Constructs a button descriptor with the given identifier.
-         *
-         * @param id button identifier
-         */
-        public Button(String id) {
-            this.id = id;
-        }
-
-        /**
-         * Returns the identifier for this button.
-         *
-         * @return button identifier
-         */
-        public String id() {
-            return id;
-        }
-    }
 }

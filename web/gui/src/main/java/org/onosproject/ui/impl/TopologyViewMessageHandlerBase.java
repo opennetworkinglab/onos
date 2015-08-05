@@ -72,6 +72,7 @@ import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.topo.ButtonDescriptor;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +108,8 @@ import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.FLOW;
 import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.PORT;
-import static org.onosproject.ui.topo.TopoConstants.*;
+import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
+import static org.onosproject.ui.topo.TopoConstants.Properties;
 
 /**
  * Facility for creating messages bound for the topology viewer.
@@ -474,6 +476,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         PropertyPanel pp = new PropertyPanel(title, typeId)
             .id(deviceId.toString())
+
             .addProp(Properties.URI, deviceId.toString())
             .addProp(Properties.VENDOR, device.manufacturer())
             .addProp(Properties.HW_VERSION, device.hwVersion())
@@ -481,14 +484,19 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             .addProp(Properties.SERIAL_NUMBER, device.serialNumber())
             .addProp(Properties.PROTOCOL, annot.value(AnnotationKeys.PROTOCOL))
             .addSeparator()
+
             .addProp(Properties.LATITUDE, annot.value(AnnotationKeys.LATITUDE))
             .addProp(Properties.LONGITUDE, annot.value(AnnotationKeys.LONGITUDE))
             .addSeparator()
+
             .addProp(Properties.PORTS, portCount)
             .addProp(Properties.FLOWS, flowCount)
-            .addProp(Properties.TUNNELS, tunnelCount);
+            .addProp(Properties.TUNNELS, tunnelCount)
 
-        // TODO: add button descriptors
+            .addButton(CoreButtons.SHOW_DEVICE_VIEW)
+            .addButton(CoreButtons.SHOW_FLOW_VIEW)
+            .addButton(CoreButtons.SHOW_PORT_VIEW)
+            .addButton(CoreButtons.SHOW_GROUP_VIEW);
 
         return pp;
     }
@@ -862,12 +870,21 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         result.set("props", pnode);
 
         ArrayNode buttons = arrayNode();
-        for (PropertyPanel.Button b : pp.buttons()) {
-            buttons.add(b.id());
+        for (ButtonDescriptor b : pp.buttons()) {
+            buttons.add(json(b));
         }
         result.set("buttons", buttons);
         return result;
     }
+
+    // translates the button descriptor into JSON
+    private ObjectNode json(ButtonDescriptor bdesc) {
+        return objectNode()
+                .put("id", bdesc.id())
+                .put("gid", bdesc.glyphId())
+                .put("tt", bdesc.tooltip());
+    }
+
 
     // Produces canonical link key, i.e. one that will match link and its inverse.
     static LinkKey canonicalLinkKey(Link link) {

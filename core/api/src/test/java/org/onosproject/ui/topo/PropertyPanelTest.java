@@ -25,9 +25,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for {@link PropertyPanel}.
@@ -43,11 +41,20 @@ public class PropertyPanelTest {
     private static final String KEY_A = "A";
     private static final String KEY_B = "B";
     private static final String KEY_C = "C";
+    private static final String SEP = "-";
     private static final String KEY_Z = "Z";
     private static final String VALUE_A = "Hay";
     private static final String VALUE_B = "Bee";
     private static final String VALUE_C = "Sea";
     private static final String VALUE_Z = "Zed";
+    private static final String GID_A = "gid-A";
+    private static final String GID_B = "gid-B";
+    private static final String GID_C = "gid-C";
+    private static final String GID_Z = "gid-Z";
+    private static final String TT_A = "toolTip-A";
+    private static final String TT_B = "toolTip-B";
+    private static final String TT_C = "toolTip-C";
+    private static final String TT_Z = "toolTip-Z";
 
     private static final Map<String, Prop> PROP_MAP = new HashMap<>();
 
@@ -73,6 +80,7 @@ public class PropertyPanelTest {
         PROP_MAP.put(KEY_B, new Prop(KEY_B, VALUE_B));
         PROP_MAP.put(KEY_C, new Prop(KEY_C, VALUE_C));
         PROP_MAP.put(KEY_Z, new Prop(KEY_Z, VALUE_Z));
+        PROP_MAP.put(SEP, new PropertyPanel.Separator());
     }
 
     @Test
@@ -82,6 +90,7 @@ public class PropertyPanelTest {
         assertEquals("wrong type", TYPE_ORIG, pp.typeId());
         assertNull("id?", pp.id());
         assertEquals("unexpected props", 0, pp.properties().size());
+        assertEquals("unexpected buttons", 0, pp.buttons().size());
     }
 
     @Test
@@ -141,6 +150,16 @@ public class PropertyPanelTest {
     }
 
     @Test
+    public void separator() {
+        props();
+        pp.addSeparator()
+            .addProp(KEY_Z, VALUE_Z);
+
+        assertEquals("bad props", 5, pp.properties().size());
+        validateProps(KEY_A, KEY_B, KEY_C, SEP, KEY_Z);
+    }
+
+    @Test
     public void removeAllProps() {
         props();
         assertEquals("wrong props", 3, pp.properties().size());
@@ -192,4 +211,40 @@ public class PropertyPanelTest {
         validateProp(KEY_B, ">byyy<");
     }
 
+    private static final ButtonDescriptor BD_A =
+            new ButtonDescriptor(KEY_A, GID_A, TT_A);
+    private static final ButtonDescriptor BD_B =
+            new ButtonDescriptor(KEY_B, GID_B, TT_B);
+    private static final ButtonDescriptor BD_C =
+            new ButtonDescriptor(KEY_C, GID_C, TT_C);
+    private static final ButtonDescriptor BD_Z =
+            new ButtonDescriptor(KEY_Z, GID_Z, TT_Z);
+
+    private void verifyButtons(String... keys) {
+        Iterator<ButtonDescriptor> iter = pp.buttons().iterator();
+        for (String k: keys) {
+            assertEquals("wrong button", k, iter.next().id());
+        }
+        assertFalse("too many buttons", iter.hasNext());
+    }
+
+    @Test
+    public void buttons() {
+        basic();
+        pp.addButton(BD_A)
+                .addButton(BD_B);
+        assertEquals("wrong buttons", 2, pp.buttons().size());
+        verifyButtons(KEY_A, KEY_B);
+
+        pp.removeButtons(BD_B)
+                .addButton(BD_C)
+                .addButton(BD_Z);
+        assertEquals("wrong buttons", 3, pp.buttons().size());
+        verifyButtons(KEY_A, KEY_C, KEY_Z);
+
+        pp.removeAllButtons()
+                .addButton(BD_B);
+        assertEquals("wrong buttons", 1, pp.buttons().size());
+        verifyButtons(KEY_B);
+    }
 }

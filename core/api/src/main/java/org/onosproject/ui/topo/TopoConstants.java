@@ -79,6 +79,8 @@ public final class TopoConstants {
      * details panels.
      */
     public static final class Properties {
+        public static final String SEPARATOR = "-";
+
         // summary panel
         public static final String DEVICES = "Devices";
         public static final String LINKS = "Links";
@@ -104,6 +106,32 @@ public final class TopoConstants {
         public static final String MAC = "MAC";
         public static final String IP = "IP";
         public static final String VLAN = "VLAN";
+    }
+
+    private static final class CoreButton extends ButtonDescriptor {
+        private CoreButton(String tag, String glyphId, boolean extra) {
+            super("show" + tag + "View",
+                  glyphId,
+                  "Show " + tag + " View" + (extra ? " for this Device" : ""));
+        }
+    }
+
+    /**
+     * Defines constants for core buttons that appear on the topology
+     * details panel.
+     */
+    public static final class CoreButtons {
+        public static final ButtonDescriptor SHOW_DEVICE_VIEW =
+                new CoreButton("Device", Glyphs.SWITCH, false);
+
+        public static final ButtonDescriptor SHOW_FLOW_VIEW =
+                new CoreButton("Flow", Glyphs.FLOW_TABLE, true);
+
+        public static final ButtonDescriptor SHOW_PORT_VIEW =
+                new CoreButton("Port", Glyphs.PORT_TABLE, true);
+
+        public static final ButtonDescriptor SHOW_GROUP_VIEW =
+                new CoreButton("Group", Glyphs.GROUP_TABLE, true);
     }
 
 }

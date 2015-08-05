@@ -229,13 +229,14 @@
     //  Event Handlers
 
     function showDetails(data) {
-        var buttons = fs.isA(data.buttons);
+        var buttons = fs.isA(data.buttons) || [];
 
         // display the data for the single selected node
         tps.displaySingle(data);
 
-        // TODO: use server-side-button-descriptors to add buttons
+        tov.installButtons(buttons, tps.addAction, data, data.props['URI']);
 
+        // TODO: MOVE traffic buttons to the traffic overlay
         // always add the 'show traffic' action
         tps.addAction({
             id: '-sin-rel-traf-btn',
@@ -251,49 +252,6 @@
                 gid: 'flows',
                 cb: tts.showDeviceLinkFlowsAction,
                 tt: 'Show Device Flows'
-            });
-        }
-
-        // TODO: for now, install overlay buttons here
-        if (buttons) {
-            tov.installButtons(buttons, tps.addAction, data);
-        }
-
-
-        // TODO: have the server return explicit class and ID of each node
-        // for now, we assume the node is a device if it has a URI
-        if ((data.props).hasOwnProperty('URI')) {
-            tps.addAction({
-                id: 'device-table-btn',
-                gid: data.type,
-                cb: function () {
-                    ns.navTo(devPath, { devId: data.props['URI'] });
-                },
-                tt: 'Show device view'
-            });
-            tps.addAction({
-                id: 'flows-table-btn',
-                gid: 'flowTable',
-                cb: function () {
-                    ns.navTo(flowPath, { devId: data.props['URI'] });
-                },
-                tt: 'Show flow view for this device'
-            });
-            tps.addAction({
-                id: 'ports-table-btn',
-                gid: 'portTable',
-                cb: function () {
-                    ns.navTo(portPath, { devId: data.props['URI'] });
-                },
-                tt: 'Show port view for this device'
-            });
-            tps.addAction({
-                id: 'groups-table-btn',
-                gid: 'groupTable',
-                cb: function () {
-                    ns.navTo(groupPath, { devId: data.props['URI'] });
-                },
-                tt: 'Show group view for this device'
             });
         }
 

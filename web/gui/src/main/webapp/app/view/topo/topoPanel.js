@@ -272,7 +272,7 @@
             .select('.actionBtns')
             .append('div')
             .classed('actionBtn', true);
-        bns.button(btnDiv, idDet + o.id, o.gid, o.cb, o.tt);
+        bns.button(btnDiv, idDet + '-' + o.id, o.gid, o.cb, o.tt);
     }
 
     var friendlyIndex = {
