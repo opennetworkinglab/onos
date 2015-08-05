@@ -30,18 +30,10 @@
         activate: activateOverlay,
         deactivate: deactivateOverlay,
 
-        // button descriptors - these can be added to overview or detail panels
-        buttons: {
-            foo: {
-                gid: 'chain',
-                tt: 'a FOO action',
-                cb: fooCb
-            },
-            bar: {
-                gid: '*banner',
-                tt: 'a BAR action',
-                cb: barCb
-            }
+        // button callbacks matching button identifiers
+        buttonActions: {
+            foo: fooCb,
+            bar: barCb
         }
     };
 

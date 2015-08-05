@@ -18,7 +18,9 @@
 package org.meowster.over;
 
 import org.onosproject.ui.UiTopoOverlay;
+import org.onosproject.ui.topo.ButtonDescriptor;
 import org.onosproject.ui.topo.PropertyPanel;
+import org.onosproject.ui.topo.TopoConstants.CoreButtons;
 import org.onosproject.ui.topo.TopoConstants.Glyphs;
 
 import static org.onosproject.ui.topo.TopoConstants.Properties.*;
@@ -33,8 +35,12 @@ public class AppUiTopoOverlay extends UiTopoOverlay {
 
     private static final String MY_TITLE = "I changed the title";
     private static final String MY_VERSION = "Beta-1.0.0042";
-    private static final String FOO = "foo";
-    private static final String BAR = "bar";
+
+    private static final ButtonDescriptor FOO_DESCRIPTOR =
+            new ButtonDescriptor("foo", "chain", "A FOO action");
+
+    private static final ButtonDescriptor BAR_DESCRIPTOR =
+            new ButtonDescriptor("bar", "*banner", "A BAR action");
 
 
     public AppUiTopoOverlay() {
@@ -61,9 +67,12 @@ public class AppUiTopoOverlay extends UiTopoOverlay {
     public void modifyDeviceDetails(PropertyPanel pp) {
         pp.title(MY_TITLE);
         pp.removeProps(LATITUDE, LONGITUDE);
-        pp.addButton(FOO).addButton(BAR);
-    }
 
-// TODO: override more methods, as required...
+        pp.addButton(FOO_DESCRIPTOR)
+                .addButton(BAR_DESCRIPTOR);
+
+        pp.removeButtons(CoreButtons.SHOW_PORT_VIEW)
+                .removeButtons(CoreButtons.SHOW_GROUP_VIEW);
+    }
 
 }
