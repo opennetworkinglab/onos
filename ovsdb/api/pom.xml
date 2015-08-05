@@ -31,6 +31,11 @@
             <artifactId>netty-transport-native-epoll</artifactId>
             <version>${netty4.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-ovsdb-rfc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
