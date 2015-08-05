@@ -20,7 +20,6 @@ package org.onosproject.provider.of.meter.impl;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
-
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
@@ -28,7 +27,10 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.net.DeviceId;
+import org.onosproject.core.CoreService;
+import org.onosproject.incubator.net.meter.Band;
+import org.onosproject.incubator.net.meter.DefaultBand;
+import org.onosproject.incubator.net.meter.DefaultMeter;
 import org.onosproject.incubator.net.meter.Meter;
 import org.onosproject.incubator.net.meter.MeterFailReason;
 import org.onosproject.incubator.net.meter.MeterOperation;
@@ -36,6 +38,8 @@ import org.onosproject.incubator.net.meter.MeterOperations;
 import org.onosproject.incubator.net.meter.MeterProvider;
 import org.onosproject.incubator.net.meter.MeterProviderRegistry;
 import org.onosproject.incubator.net.meter.MeterProviderService;
+import org.onosproject.incubator.net.meter.MeterState;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.Dpid;
@@ -47,15 +51,23 @@ import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
 import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFMeterBandStats;
+import org.projectfloodlight.openflow.protocol.OFMeterConfigStatsReply;
+import org.projectfloodlight.openflow.protocol.OFMeterStats;
+import org.projectfloodlight.openflow.protocol.OFMeterStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
+import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.errormsg.OFMeterModFailedErrorMsg;
 import org.slf4j.Logger;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -74,6 +86,9 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MeterProviderRegistry providerRegistry;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
     private MeterProviderService providerService;
 
     private static final AtomicLong XID_COUNTER = new AtomicLong(1);
@@ -81,8 +96,7 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
     static final int POLL_INTERVAL = 10;
     static final long TIMEOUT = 30;
 
-    private Cache<Integer, MeterOperation> pendingOperations;
-    private Cache<Long, MeterOperation> pendingXid;
+    private Cache<Long, MeterOperation> pendingOperations;
 
 
     private InternalMeterListener listener = new InternalMeterListener();
@@ -101,7 +115,7 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
 
         pendingOperations = CacheBuilder.newBuilder()
                 .expireAfterWrite(TIMEOUT, TimeUnit.SECONDS)
-                .removalListener((RemovalNotification<Integer, MeterOperation> notification) -> {
+                .removalListener((RemovalNotification<Long, MeterOperation> notification) -> {
                     if (notification.getCause() == RemovalCause.EXPIRED) {
                         providerService.meterOperationFailed(notification.getValue(),
                                                              MeterFailReason.TIMEOUT);
@@ -148,6 +162,8 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
                                                  MeterFailReason.UNKNOWN_DEVICE);
             return;
         }
+
+        performOperation(sw, meterOp);
 
     }
 
@@ -203,7 +219,57 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
     }
 
     private void pushMeterStats(Dpid dpid, OFStatsReply msg) {
+        DeviceId deviceId = DeviceId.deviceId(Dpid.uri(dpid));
 
+        if (msg.getStatsType() == OFStatsType.METER) {
+            OFMeterStatsReply reply = (OFMeterStatsReply) msg;
+            Collection<Meter> meters = buildMeters(deviceId, reply.getEntries());
+            //TODO do meter accounting here.
+            providerService.pushMeterMetrics(deviceId, meters);
+        } else if (msg.getStatsType() == OFStatsType.METER_CONFIG) {
+            OFMeterConfigStatsReply reply  = (OFMeterConfigStatsReply) msg;
+            // FIXME: Map<Long, Meter> meters = collectMeters(deviceId, reply);
+        }
+
+    }
+
+    private Map<Long, Meter> collectMeters(DeviceId deviceId,
+                                           OFMeterConfigStatsReply reply) {
+        return Maps.newHashMap();
+        //TODO: Needs a fix to be applied to loxi MeterConfig stat is incorrect
+    }
+
+    private Collection<Meter> buildMeters(DeviceId deviceId,
+                                          List<OFMeterStats> entries) {
+        return entries.stream().map(stat -> {
+            DefaultMeter.Builder builder = DefaultMeter.builder();
+            Collection<Band> bands = buildBands(stat.getBandStats());
+            builder.forDevice(deviceId)
+                    .withId(stat.getMeterId())
+                    //FIXME: need to encode appId in meter id, but that makes
+                    // things a little annoying for debugging
+                    .fromApp(coreService.getAppId("org.onosproject.core"))
+                    .withBands(bands);
+            DefaultMeter meter = builder.build();
+            meter.setState(MeterState.ADDED);
+            meter.setLife(stat.getDurationSec());
+            meter.setProcessedBytes(stat.getByteInCount().getValue());
+            meter.setProcessedPackets(stat.getPacketInCount().getValue());
+            meter.setReferenceCount(stat.getFlowCount());
+
+            // marks the meter as seen on the dataplane
+            pendingOperations.invalidate(stat.getMeterId());
+            return meter;
+        }).collect(Collectors.toSet());
+    }
+
+    private Collection<Band> buildBands(List<OFMeterBandStats> bandStats) {
+        return bandStats.stream().map(stat -> {
+            DefaultBand band = DefaultBand.builder().build();
+            band.setBytes(stat.getByteBandCount().getValue());
+            band.setPackets(stat.getPacketBandCount().getValue());
+            return band;
+        }).collect(Collectors.toSet());
     }
 
     private void signalMeterError(OFMeterModFailedErrorMsg meterError,

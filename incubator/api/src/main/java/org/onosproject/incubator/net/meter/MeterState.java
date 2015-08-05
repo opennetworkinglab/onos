@@ -16,23 +16,28 @@
 package org.onosproject.incubator.net.meter;
 
 /**
- * Created by ash on 01/08/15.
+ * Represents the state of the meter as seen by the store.
  */
-public interface MeterContext {
+public enum MeterState {
 
     /**
-     * Invoked on successful installation of the meter.
-     *
-     * @param op a meter operation
+     * The meter is in the process of being added.
      */
-    default void onSuccess(MeterOperation op) {
-    }
+    PENDING_ADD,
 
     /**
-     * Invoked when error is encountered while installing a meter.
-     *
-     * @param op a meter operation
-     * @param reason the reason why it failed
+     * THe meter has been added.
      */
-    default void onError(MeterOperation op, MeterFailReason reason) {}
+    ADDED,
+
+    /**
+     * The meter is in the process of being removed.
+     */
+    PENDING_REMOVE,
+
+    /**
+     * The meter has been removed.
+     */
+    REMOVED,
+
 }

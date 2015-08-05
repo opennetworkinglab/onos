@@ -16,23 +16,22 @@
 package org.onosproject.incubator.net.meter;
 
 /**
- * Created by ash on 01/08/15.
+ * Represents a stored band.
  */
-public interface MeterContext {
+public interface BandEntry extends Band {
 
     /**
-     * Invoked on successful installation of the meter.
+     * Sets the number of packets seen by this band.
      *
-     * @param op a meter operation
+     * @param packets a packet count
      */
-    default void onSuccess(MeterOperation op) {
-    }
+    void setPackets(long packets);
 
     /**
-     * Invoked when error is encountered while installing a meter.
+     * Sets the number of bytes seen by this band.
      *
-     * @param op a meter operation
-     * @param reason the reason why it failed
+     * @param bytes a byte counter
      */
-    default void onError(MeterOperation op, MeterFailReason reason) {}
+    void setBytes(long bytes);
+
 }

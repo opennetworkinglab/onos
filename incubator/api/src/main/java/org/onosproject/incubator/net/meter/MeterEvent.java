@@ -20,20 +20,12 @@ import org.onosproject.event.AbstractEvent;
 /**
  * Entity that represents Meter events.
  */
-public class MeterEvent extends AbstractEvent<MeterEvent.Type, Meter> {
+public class MeterEvent extends AbstractEvent<MeterEvent.Type, MeterOperation> {
 
 
-    enum Type {
+    private final MeterFailReason reason;
 
-        /**
-         * Signals that a new meter has been added.
-         */
-        METER_ADDED,
-
-        /**
-         * Signals that a meter has been removed.
-         */
-        METER_REMOVED,
+    public enum Type {
 
         /**
          * Signals that a meter has been added.
@@ -41,19 +33,15 @@ public class MeterEvent extends AbstractEvent<MeterEvent.Type, Meter> {
         METER_UPDATED,
 
         /**
-         * Signals that a meter addition failed.
-         */
-        METER_ADD_FAILED,
-
-        /**
-         * Signals that a meter removal failed.
-         */
-        METER_REMOVE_FAILED,
-
-        /**
          * Signals that a meter update failed.
          */
-        METER_UPDATE_FAILED
+        METER_OP_FAILED,
+
+        /**
+         * A meter operation was requested.
+         */
+        METER_OP_REQ,
+
     }
 
 
@@ -62,21 +50,32 @@ public class MeterEvent extends AbstractEvent<MeterEvent.Type, Meter> {
      * current time.
      *
      * @param type  meter event type
-     * @param meter event subject
+     * @param op event subject
      */
-    public MeterEvent(Type type, Meter meter) {
-        super(type, meter);
+    public MeterEvent(Type type, MeterOperation op) {
+        super(type, op);
+        this.reason = null;
     }
 
     /**
      * Creates an event of a given type and for the specified meter and time.
      *
      * @param type  meter event type
-     * @param meter event subject
+     * @param op event subject
      * @param time  occurrence time
      */
-    public MeterEvent(Type type, Meter meter, long time) {
-        super(type, meter, time);
+    public MeterEvent(Type type, MeterOperation op, long time) {
+        super(type, op, time);
+        this.reason = null;
+    }
+
+    public MeterEvent(Type type, MeterOperation op, MeterFailReason reason) {
+        super(type, op);
+        this.reason = reason;
+    }
+
+    public MeterFailReason reason() {
+        return reason;
     }
 
 }

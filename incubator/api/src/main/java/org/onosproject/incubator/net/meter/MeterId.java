@@ -19,19 +19,19 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * A representation of a meter id.
- * Uniquely identifies a meter for a given device.
+ * Uniquely identifies a meter system wide.
  */
 public final class MeterId {
 
     static final long MAX = 0xFFFF0000;
 
-    private final int id;
+    private final long id;
 
     public static final MeterId SLOWPATH = new MeterId(0xFFFFFFFD);
     public static final MeterId CONTROLLER = new MeterId(0xFFFFFFFE);
     public static final MeterId ALL = new MeterId(0xFFFFFFFF);
 
-    private MeterId(int id) {
+    private MeterId(long id) {
         checkArgument(id <= MAX, "id cannot be larger than 0xFFFF0000");
         this.id = id;
     }
@@ -39,9 +39,9 @@ public final class MeterId {
     /**
      * The integer representation of the meter id.
      *
-     * @return an integer
+     * @return a long
      */
-    public int id() {
+    public long id() {
         return id;
     }
 
@@ -62,10 +62,10 @@ public final class MeterId {
 
     @Override
     public int hashCode() {
-        return id;
+        return Long.hashCode(id);
     }
 
-    public static MeterId meterId(int id) {
+    public static MeterId meterId(long id) {
         return new MeterId(id);
 
     }

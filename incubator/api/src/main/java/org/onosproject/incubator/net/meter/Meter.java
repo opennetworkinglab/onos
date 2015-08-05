@@ -89,6 +89,41 @@ public interface Meter {
     Optional<MeterContext> context();
 
     /**
+     * Fetches the state of this meter.
+     *
+     * @return a meter state
+     */
+    MeterState state();
+
+    /**
+     * The lifetime in seconds of this meter.
+     *
+     * @return number of seconds
+     */
+    long life();
+
+    /**
+     * The number of flows pointing to this meter.
+     *
+     * @return a reference count
+     */
+    long referenceCount();
+
+    /**
+     * Number of packets processed by this meter.
+     *
+     * @return a packet count
+     */
+    long packetsSeen();
+
+    /**
+     * Number of bytes processed by this meter.
+     *
+     * @return a byte count
+     */
+    long bytesSeen();
+
+    /**
      * A meter builder.
      */
     interface Builder {
@@ -104,10 +139,10 @@ public interface Meter {
         /**
          * Assigns the id to this meter.
          *
-         * @param id an integer
+         * @param id a long
          * @return this
          */
-        Builder withId(int id);
+        Builder withId(long id);
 
         /**
          * Assigns the application that built this meter.

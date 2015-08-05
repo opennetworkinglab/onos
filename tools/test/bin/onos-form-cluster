@@ -29,4 +29,4 @@ fi
 
 set -x
 
-ssh $ONOS_USER@$node /tmp/$ONOS_BITS/bin/onos-form-cluster -u $user -p $password $nodes
+ssh $ONOS_USER@$node $ONOS_INSTALL_DIR/bin/onos-form-cluster -u $user -p $password $nodes

@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * A default implementation of a meter.
  */
-public final class DefaultMeter implements Meter {
+public final class DefaultMeter implements Meter, MeterEntry  {
 
 
     private final MeterId id;
@@ -38,6 +38,12 @@ public final class DefaultMeter implements Meter {
     private final Collection<Band> bands;
     private final DeviceId deviceId;
     private final Optional<MeterContext> context;
+
+    private MeterState state;
+    private long life;
+    private long refCount;
+    private long packets;
+    private long bytes;
 
     private DefaultMeter(DeviceId deviceId, MeterId id, ApplicationId appId,
                         Unit unit, boolean burst,
@@ -86,8 +92,58 @@ public final class DefaultMeter implements Meter {
         return null;
     }
 
+    @Override
+    public MeterState state() {
+        return state;
+    }
+
+    @Override
+    public long life() {
+        return life;
+    }
+
+    @Override
+    public long referenceCount() {
+        return refCount;
+    }
+
+    @Override
+    public long packetsSeen() {
+        return packets;
+    }
+
+    @Override
+    public long bytesSeen() {
+        return bytes;
+    }
+
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public void setState(MeterState state) {
+        this.state = state;
+    }
+
+    @Override
+    public void setLife(long life) {
+        this.life = life;
+    }
+
+    @Override
+    public void setReferenceCount(long count) {
+        this.refCount = count;
+    }
+
+    @Override
+    public void setProcessedPackets(long packets) {
+        this.packets = packets;
+    }
+
+    @Override
+    public void setProcessedBytes(long bytes) {
+        this.bytes = bytes;
     }
 
     public static final class Builder implements Meter.Builder {
@@ -108,7 +164,7 @@ public final class DefaultMeter implements Meter {
         }
 
         @Override
-        public Meter.Builder withId(int id) {
+        public Meter.Builder withId(long id) {
             this.id = MeterId.meterId(id);
             return this;
         }
@@ -144,7 +200,7 @@ public final class DefaultMeter implements Meter {
         }
 
         @Override
-        public Meter build() {
+        public DefaultMeter build() {
             checkNotNull(deviceId, "Must specify a device");
             checkNotNull(bands, "Must have bands.");
             checkArgument(bands.size() > 0, "Must have at least one band.");

@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.incubator.net.meter.DefaultMeter;
 import org.onosproject.incubator.net.meter.Meter;
 import org.onosproject.incubator.net.meter.MeterEvent;
 import org.onosproject.incubator.net.meter.MeterFailReason;
@@ -31,6 +32,8 @@ import org.onosproject.incubator.net.meter.MeterProvider;
 import org.onosproject.incubator.net.meter.MeterProviderRegistry;
 import org.onosproject.incubator.net.meter.MeterProviderService;
 import org.onosproject.incubator.net.meter.MeterService;
+import org.onosproject.incubator.net.meter.MeterState;
+import org.onosproject.incubator.net.meter.MeterStore;
 import org.onosproject.incubator.net.meter.MeterStoreDelegate;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
@@ -41,6 +44,7 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -59,6 +63,9 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    MeterStore store;
 
     private AtomicCounter meterIdCounter;
 
@@ -82,27 +89,35 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
 
     @Override
     public void addMeter(Meter meter) {
-
+        DefaultMeter m = (DefaultMeter) meter;
+        m.setState(MeterState.PENDING_ADD);
+        store.storeMeter(m);
     }
 
     @Override
     public void updateMeter(Meter meter) {
-
+        DefaultMeter m = (DefaultMeter) meter;
+        m.setState(MeterState.PENDING_ADD);
+        store.updateMeter(m);
     }
 
     @Override
     public void removeMeter(Meter meter) {
-
+        DefaultMeter m = (DefaultMeter) meter;
+        m.setState(MeterState.PENDING_REMOVE);
+        store.deleteMeter(m);
     }
 
     @Override
     public void removeMeter(MeterId id) {
-
+        DefaultMeter meter = (DefaultMeter) store.getMeter(id);
+        checkNotNull(meter, "No such meter {}", id);
+        removeMeter(meter);
     }
 
     @Override
     public Meter getMeter(MeterId id) {
-        return null;
+        return store.getMeter(id);
     }
 
     @Override
@@ -125,13 +140,14 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
         }
 
         @Override
-        public void meterOperationFailed(MeterOperation operation, MeterFailReason reason) {
-
+        public void meterOperationFailed(MeterOperation operation,
+                                         MeterFailReason reason) {
+            store.failedMeter(operation, reason);
         }
 
         @Override
         public void pushMeterMetrics(DeviceId deviceId, Collection<Meter> meterEntries) {
-
+            meterEntries.forEach(m -> store.updateMeterState(m));
         }
     }
 
@@ -139,6 +155,21 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
 
         @Override
         public void notify(MeterEvent event) {
+            DeviceId deviceId = event.subject().meter().deviceId();
+            MeterProvider p = getProvider(event.subject().meter().deviceId());
+            switch (event.type()) {
+                case METER_UPDATED:
+                    break;
+                case METER_OP_FAILED:
+                    event.subject().meter().context().ifPresent(c ->
+                        c.onError(event.subject(), event.reason()));
+                    break;
+                case METER_OP_REQ:
+                    p.performMeterOperation(deviceId, event.subject());
+                    break;
+                default:
+                    log.warn("Unknown meter event {}", event.type());
+            }
 
         }
     }

@@ -46,7 +46,7 @@ public final class MeterModBuilder {
     private final OFFactory factory;
     private Meter.Unit unit = Meter.Unit.KB_PER_SEC;
     private boolean burst = false;
-    private Integer id;
+    private Long id;
     private Collection<Band> bands;
 
     public MeterModBuilder(long xid, OFFactory factory) {

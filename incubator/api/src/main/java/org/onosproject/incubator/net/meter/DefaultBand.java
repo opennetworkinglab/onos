@@ -20,12 +20,14 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * A default implementation for a Band.
  */
-public final class DefaultBand implements Band {
+public final class DefaultBand implements Band, BandEntry {
 
     private final Type type;
     private final long rate;
     private final long burstSize;
     private final short prec;
+    private long packets;
+    private long bytes;
 
     public DefaultBand(Type type, long rate,
                        long burstSize, short prec) {
@@ -53,6 +55,26 @@ public final class DefaultBand implements Band {
     @Override
     public Type type() {
         return type;
+    }
+
+    @Override
+    public long packets() {
+        return packets;
+    }
+
+    @Override
+    public long bytes() {
+        return bytes;
+    }
+
+    @Override
+    public void setPackets(long packets) {
+        this.packets = packets;
+    }
+
+    @Override
+    public void setBytes(long bytes) {
+        this.bytes = bytes;
     }
 
     public static Builder builder() {
@@ -91,7 +113,7 @@ public final class DefaultBand implements Band {
         }
 
         @Override
-        public Band build() {
+        public DefaultBand build() {
             checkArgument(prec != null && type == Type.REMARK,
                           "Only REMARK bands can have a precendence.");
 

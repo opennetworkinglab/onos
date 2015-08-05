@@ -69,6 +69,20 @@ public interface Band {
      */
     Type type();
 
+    /**
+     * Returns the packets seen by this band.
+     *
+     * @return a long value
+     */
+    long packets();
+
+    /**
+     * Return the bytes seen by this band.
+     *
+     * @return a byte counter
+     */
+    long bytes();
+
     interface Builder {
 
         /**
