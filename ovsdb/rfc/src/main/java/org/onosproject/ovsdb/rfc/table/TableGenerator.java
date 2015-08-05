@@ -75,6 +75,26 @@ public final class TableGenerator {
             return new OpenVSwitch(dbSchema, row);
         case PORT:
             return new Port(dbSchema, row);
+        case FLWTABLE:
+            return new FlowTable(dbSchema, row);
+        case QOS:
+            return new Qos(dbSchema, row);
+        case QUEUE:
+            return new Queue(dbSchema, row);
+        case MIRROR:
+            return new Mirror(dbSchema, row);
+        case MANAGER:
+            return new Manager(dbSchema, row);
+        case NETFLOW:
+            return new Netflow(dbSchema, row);
+        case SSL:
+            return new Ssl(dbSchema, row);
+        case SFLOW:
+            return new Sflow(dbSchema, row);
+        case IPFIX:
+            return new Ipfix(dbSchema, row);
+        case FLOWSAMPLECOLLECTORSET:
+            return new FlowSampleCollectorSet(dbSchema, row);
         default:
             return null;
         }
