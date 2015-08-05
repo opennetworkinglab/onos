@@ -36,7 +36,6 @@ import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onosproject.core.Permission;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
-import org.onosproject.net.HostId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -50,6 +49,7 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.proxyarp.ProxyArpService;
+import org.onosproject.net.proxyarp.ProxyArpStore;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -59,6 +59,8 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.packet.VlanId.vlanId;
+import static org.onosproject.net.HostId.hostId;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -90,25 +92,29 @@ public class ProxyArpManager implements ProxyArpService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ProxyArpStore store;
+
     /**
      * Listens to both device service and link service to determine
      * whether a port is internal or external.
      */
     @Activate
     public void activate() {
+        store.setDelegate(this::sendTo);
         log.info("Started");
     }
 
 
     @Deactivate
     public void deactivate() {
+        store.setDelegate(null);
         log.info("Stopped");
     }
 
     @Override
     public boolean isKnown(IpAddress addr) {
         checkPermission(Permission.PACKET_READ);
-
         checkNotNull(addr, MAC_ADDR_NULL);
         Set<Host> hosts = hostService.getHostsByIp(addr);
         return !hosts.isEmpty();
@@ -117,7 +123,6 @@ public class ProxyArpManager implements ProxyArpService {
     @Override
     public void reply(Ethernet eth, ConnectPoint inPort) {
         checkPermission(Permission.PACKET_WRITE);
-
         checkNotNull(eth, REQUEST_NULL);
 
         if (eth.getEtherType() == Ethernet.TYPE_ARP) {
@@ -133,7 +138,7 @@ public class ProxyArpManager implements ProxyArpService {
         checkNotNull(inPort);
         Ip4Address targetAddress = Ip4Address.valueOf(arp.getTargetProtocolAddress());
 
-        VlanId vlan = VlanId.vlanId(eth.getVlanID());
+        VlanId vlan = vlanId(eth.getVlanID());
 
         if (isOutsidePort(inPort)) {
             // If the request came from outside the network, only reply if it was
@@ -158,8 +163,8 @@ public class ProxyArpManager implements ProxyArpService {
         Set<Host> hosts = hostService.getHostsByIp(targetAddress);
 
         Host dst = null;
-        Host src = hostService.getHost(HostId.hostId(eth.getSourceMAC(),
-                VlanId.vlanId(eth.getVlanID())));
+        Host src = hostService.getHost(hostId(eth.getSourceMAC(),
+                                              vlanId(eth.getVlanID())));
 
         for (Host host : hosts) {
             if (host.vlan().equals(vlan)) {
@@ -202,17 +207,15 @@ public class ProxyArpManager implements ProxyArpService {
         // Flood the request on all ports except the incoming port.
         //
         flood(eth, inPort);
-        return;
     }
 
     private void replyNdp(Ethernet eth, ConnectPoint inPort) {
-
         IPv6 ipv6 = (IPv6) eth.getPayload();
         ICMP6 icmpv6 = (ICMP6) ipv6.getPayload();
         NeighborSolicitation nsol = (NeighborSolicitation) icmpv6.getPayload();
         Ip6Address targetAddress = Ip6Address.valueOf(nsol.getTargetAddress());
 
-        VlanId vlan = VlanId.vlanId(eth.getVlanID());
+        VlanId vlan = vlanId(eth.getVlanID());
 
         // If the request came from outside the network, only reply if it was
         // for one of our external addresses.
@@ -259,8 +262,8 @@ public class ProxyArpManager implements ProxyArpService {
         Set<Host> hosts = hostService.getHostsByIp(targetAddress);
 
         Host dst = null;
-        Host src = hostService.getHost(HostId.hostId(eth.getSourceMAC(),
-                VlanId.vlanId(eth.getVlanID())));
+        Host src = hostService.getHost(hostId(eth.getSourceMAC(),
+                                              vlanId(eth.getVlanID())));
 
         for (Host host : hosts) {
             if (host.vlan().equals(vlan)) {
@@ -293,6 +296,10 @@ public class ProxyArpManager implements ProxyArpService {
      * @param outPort the port to send it out
      */
     private void sendTo(Ethernet packet, ConnectPoint outPort) {
+        sendTo(outPort, ByteBuffer.wrap(packet.serialize()));
+    }
+
+    private void sendTo(ConnectPoint outPort, ByteBuffer packet) {
         if (!edgeService.isEdgePoint(outPort)) {
             // Sanity check to make sure we don't send the packet out an
             // internal port and create a loop (could happen due to
@@ -303,7 +310,7 @@ public class ProxyArpManager implements ProxyArpService {
         TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
         builder.setOutput(outPort.port());
         packetService.emit(new DefaultOutboundPacket(outPort.deviceId(),
-                builder.build(), ByteBuffer.wrap(packet.serialize())));
+                                                     builder.build(), packet));
     }
 
     /**
@@ -329,31 +336,25 @@ public class ProxyArpManager implements ProxyArpService {
      * @return true if the port is an outside-facing port, otherwise false
      */
     private boolean isOutsidePort(ConnectPoint port) {
-        //
-        // TODO: Is this sufficient to identify outside-facing ports: just
-        // having IP addresses on a port?
-        //
+        // TODO: Is this sufficient to identify outside-facing ports: just having IP addresses on a port?
         return !hostService.getAddressBindingsForPort(port).isEmpty();
     }
 
     @Override
     public void forward(Ethernet eth, ConnectPoint inPort) {
         checkPermission(Permission.PACKET_WRITE);
-
         checkNotNull(eth, REQUEST_NULL);
 
-        Host h = hostService.getHost(HostId.hostId(eth.getDestinationMAC(),
-                VlanId.vlanId(eth.getVlanID())));
+        Host h = hostService.getHost(hostId(eth.getDestinationMAC(),
+                                            vlanId(eth.getVlanID())));
 
         if (h == null) {
             flood(eth, inPort);
         } else {
-            TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
-            builder.setOutput(h.location().port());
-            packetService.emit(new DefaultOutboundPacket(h.location().deviceId(),
-                    builder.build(), ByteBuffer.wrap(eth.serialize())));
+            Host subject = hostService.getHost(hostId(eth.getSourceMAC(),
+                                                      vlanId(eth.getVlanID())));
+            store.forward(h.location(), subject, ByteBuffer.wrap(eth.serialize()));
         }
-
     }
 
     @Override
@@ -424,7 +425,7 @@ public class ProxyArpManager implements ProxyArpService {
             builder = DefaultTrafficTreatment.builder();
             builder.setOutput(connectPoint.port());
             packetService.emit(new DefaultOutboundPacket(connectPoint.deviceId(),
-                    builder.build(), buf));
+                                                         builder.build(), buf));
         }
 
     }
@@ -439,7 +440,6 @@ public class ProxyArpManager implements ProxyArpService {
      */
     private Ethernet buildNdpReply(Ip6Address srcIp, MacAddress srcMac,
                                    Ethernet request) {
-
         Ethernet eth = new Ethernet();
         eth.setDestinationMACAddress(request.getSourceMAC());
         eth.setSourceMACAddress(srcMac);
@@ -461,7 +461,7 @@ public class ProxyArpManager implements ProxyArpService {
         nadv.setSolicitedFlag((byte) 1);
         nadv.setOverrideFlag((byte) 1);
         nadv.addOption(NeighborDiscoveryOptions.TYPE_TARGET_LL_ADDRESS,
-                srcMac.toBytes());
+                       srcMac.toBytes());
 
         icmp6.setPayload(nadv);
         ipv6.setPayload(icmp6);

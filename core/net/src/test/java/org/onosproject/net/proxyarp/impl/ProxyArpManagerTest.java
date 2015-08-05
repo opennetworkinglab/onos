@@ -38,6 +38,8 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.edgeservice.impl.EdgeManager;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.host.HostService;
@@ -45,24 +47,22 @@ import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.proxyarp.ProxyArpStore;
+import org.onosproject.net.proxyarp.ProxyArpStoreDelegate;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
 
 /**
  * Tests for the {@link ProxyArpManager} class.
@@ -110,6 +110,7 @@ public class ProxyArpManagerTest {
         proxyArp = new ProxyArpManager();
         packetService = new TestPacketService();
         proxyArp.packetService = packetService;
+        proxyArp.store = new TestProxyArpStoreAdapter();
 
         proxyArp.edgeService = new TestEdgePortService();
 
@@ -455,8 +456,11 @@ public class ProxyArpManagerTest {
     public void testForwardToHost() {
         Host host1 = new DefaultHost(PID, HID1, MAC1, VLAN1, LOC1,
                 Collections.singleton(IP1));
+        Host host2 = new DefaultHost(PID, HID2, MAC2, VLAN1, LOC2,
+                                     Collections.singleton(IP2));
 
         expect(hostService.getHost(HID1)).andReturn(host1);
+        expect(hostService.getHost(HID2)).andReturn(host2);
         replay(hostService);
 
         Ethernet arpRequest = buildArp(ARP.OP_REPLY, MAC2, MAC1, IP2, IP1);
@@ -623,6 +627,18 @@ public class ProxyArpManagerTest {
         @Override
         public Iterable<ConnectPoint> getEdgePoints() {
             return getEdgePointsNoArg;
+        }
+    }
+
+    private class TestProxyArpStoreAdapter implements ProxyArpStore {
+        @Override
+        public void forward(ConnectPoint outPort, Host subject, ByteBuffer packet) {
+            TrafficTreatment tt = DefaultTrafficTreatment.builder().setOutput(outPort.port()).build();
+            packetService.emit(new DefaultOutboundPacket(outPort.deviceId(), tt, packet));
+        }
+
+        @Override
+        public void setDelegate(ProxyArpStoreDelegate delegate) {
         }
     }
 }

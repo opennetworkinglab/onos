@@ -15,6 +15,7 @@
  */
 package org.onosproject.common;
 
+import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
@@ -77,17 +78,20 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private final Supplier<ImmutableMap<ClusterId, TopologyCluster>> clusters;
     private final Supplier<ImmutableSet<ConnectPoint>> infrastructurePoints;
     private final Supplier<ImmutableSetMultimap<ClusterId, ConnectPoint>> broadcastSets;
-
+    private final Function<ConnectPoint, Boolean> broadcastFunction;
     private final Supplier<ClusterIndexes> clusterIndexes;
 
     /**
      * Creates a topology descriptor attributed to the specified provider.
      *
-     * @param providerId  identity of the provider
-     * @param description data describing the new topology
+     * @param providerId        identity of the provider
+     * @param description       data describing the new topology
+     * @param broadcastFunction broadcast point function
      */
-    public DefaultTopology(ProviderId providerId, GraphDescription description) {
+    public DefaultTopology(ProviderId providerId, GraphDescription description,
+                           Function<ConnectPoint, Boolean> broadcastFunction) {
         super(providerId);
+        this.broadcastFunction = broadcastFunction;
         this.time = description.timestamp();
         this.creationTime = description.creationTime();
 
@@ -104,6 +108,16 @@ public class DefaultTopology extends AbstractModel implements Topology {
         this.broadcastSets = Suppliers.memoize(() -> buildBroadcastSets());
         this.infrastructurePoints = Suppliers.memoize(() -> findInfrastructurePoints());
         this.computeCost = Math.max(0, System.nanoTime() - time);
+    }
+
+    /**
+     * Creates a topology descriptor attributed to the specified provider.
+     *
+     * @param providerId  identity of the provider
+     * @param description data describing the new topology
+     */
+    public DefaultTopology(ProviderId providerId, GraphDescription description) {
+        this(providerId, description, null);
     }
 
     @Override
@@ -223,6 +237,10 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * @return true if in broadcast set
      */
     public boolean isBroadcastPoint(ConnectPoint connectPoint) {
+        if (broadcastFunction != null) {
+            return broadcastFunction.apply(connectPoint);
+        }
+
         // Any non-infrastructure, i.e. edge points are assumed to be OK.
         if (!isInfrastructure(connectPoint)) {
             return true;
