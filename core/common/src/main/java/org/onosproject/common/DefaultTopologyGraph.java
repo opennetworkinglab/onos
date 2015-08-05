@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.trivial;
+package org.onosproject.common;
 
 import org.onlab.graph.AdjacencyListsGraph;
 import org.onosproject.net.topology.TopologyEdge;

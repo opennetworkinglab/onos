@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.topology.impl;
+package org.onosproject.common;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
-import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
-import static org.onosproject.net.Link.State.ACTIVE;
-import static org.onosproject.net.Link.State.INACTIVE;
-import static org.onosproject.net.Link.Type.INDIRECT;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.ImmutableSetMultimap.Builder;
 import org.onlab.graph.DijkstraGraphSearch;
 import org.onlab.graph.GraphPathSearch;
 import org.onlab.graph.GraphPathSearch.Result;
@@ -50,14 +44,18 @@ import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyGraph;
 import org.onosproject.net.topology.TopologyVertex;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.ImmutableSetMultimap.Builder;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-// FIXME: Move to onos-core-common when ready
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
+import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
+import static org.onosproject.net.Link.State.ACTIVE;
+import static org.onosproject.net.Link.State.INACTIVE;
+import static org.onosproject.net.Link.Type.INDIRECT;
+
 /**
  * Default implementation of the topology descriptor. This carries the backing
  * topology data.
@@ -83,19 +81,17 @@ public class DefaultTopology extends AbstractModel implements Topology {
     /**
      * Creates a topology descriptor attributed to the specified provider.
      *
-     * @param providerId
-     *            identity of the provider
-     * @param description
-     *            data describing the new topology
+     * @param providerId  identity of the provider
+     * @param description data describing the new topology
      */
-    DefaultTopology(ProviderId providerId, GraphDescription description) {
+    public DefaultTopology(ProviderId providerId, GraphDescription description) {
         super(providerId);
         this.time = description.timestamp();
         this.creationTime = description.creationTime();
 
         // Build the graph
         this.graph = new DefaultTopologyGraph(description.vertexes(),
-                description.edges());
+                                              description.edges());
 
         this.clusterResults = Suppliers.memoize(() -> searchForClusters());
         this.clusters = Suppliers.memoize(() -> buildTopologyClusters());
@@ -104,8 +100,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
         this.weight = new HopCountLinkWeight(graph.getVertexes().size());
         this.broadcastSets = Suppliers.memoize(() -> buildBroadcastSets());
-        this.infrastructurePoints = Suppliers
-                .memoize(() -> findInfrastructurePoints());
+        this.infrastructurePoints = Suppliers.memoize(() -> findInfrastructurePoints());
         this.computeCost = Math.max(0, System.nanoTime() - time);
     }
 
@@ -156,7 +151,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      *
      * @return topology graph
      */
-    TopologyGraph getGraph() {
+    public TopologyGraph getGraph() {
         return graph;
     }
 
@@ -165,7 +160,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      *
      * @return set of clusters
      */
-    Set<TopologyCluster> getClusters() {
+    public Set<TopologyCluster> getClusters() {
         return ImmutableSet.copyOf(clusters.get().values());
     }
 
@@ -173,10 +168,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Returns the specified topology cluster.
      *
      * @param clusterId cluster identifier
-     *
      * @return topology cluster
      */
-    TopologyCluster getCluster(ClusterId clusterId) {
+    public TopologyCluster getCluster(ClusterId clusterId) {
         return clusters.get().get(clusterId);
     }
 
@@ -184,10 +178,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Returns the topology cluster that contains the given device.
      *
      * @param deviceId device identifier
-     *
      * @return topology cluster
      */
-    TopologyCluster getCluster(DeviceId deviceId) {
+    public TopologyCluster getCluster(DeviceId deviceId) {
         return clustersByDevice().get(deviceId);
     }
 
@@ -195,10 +188,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Returns the set of cluster devices.
      *
      * @param cluster topology cluster
-     *
      * @return cluster devices
      */
-    Set<DeviceId> getClusterDevices(TopologyCluster cluster) {
+    public Set<DeviceId> getClusterDevices(TopologyCluster cluster) {
         return devicesByCluster().get(cluster);
     }
 
@@ -206,10 +198,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Returns the set of cluster links.
      *
      * @param cluster topology cluster
-     *
      * @return cluster links
      */
-    Set<Link> getClusterLinks(TopologyCluster cluster) {
+    public Set<Link> getClusterLinks(TopologyCluster cluster) {
         return linksByCluster().get(cluster);
     }
 
@@ -217,10 +208,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Indicates whether the given point is an infrastructure link end-point.
      *
      * @param connectPoint connection point
-     *
      * @return true if infrastructure
      */
-    boolean isInfrastructure(ConnectPoint connectPoint) {
+    public boolean isInfrastructure(ConnectPoint connectPoint) {
         return infrastructurePoints.get().contains(connectPoint);
     }
 
@@ -228,10 +218,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Indicates whether the given point is part of a broadcast set.
      *
      * @param connectPoint connection point
-     *
      * @return true if in broadcast set
      */
-    boolean isBroadcastPoint(ConnectPoint connectPoint) {
+    public boolean isBroadcastPoint(ConnectPoint connectPoint) {
         // Any non-infrastructure, i.e. edge points are assumed to be OK.
         if (!isInfrastructure(connectPoint)) {
             return true;
@@ -241,7 +230,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
         TopologyCluster cluster = clustersByDevice().get(connectPoint.deviceId());
         if (cluster == null) {
             throw new IllegalArgumentException("No cluster found for device "
-                    + connectPoint.deviceId());
+                                                       + connectPoint.deviceId());
         }
 
         // If the broadcast set is null or empty, or if the point explicitly
@@ -254,10 +243,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Returns the size of the cluster broadcast set.
      *
      * @param clusterId cluster identifier
-     *
      * @return size of the cluster broadcast set
      */
-    int broadcastSetSize(ClusterId clusterId) {
+    public int broadcastSetSize(ClusterId clusterId) {
         return broadcastSets.get().get(clusterId).size();
     }
 
@@ -266,12 +254,10 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * destination devices.
      *
      * @param src source device
-     *
      * @param dst destination device
-     *
      * @return set of shortest paths
      */
-    Set<Path> getPaths(DeviceId src, DeviceId dst) {
+    public Set<Path> getPaths(DeviceId src, DeviceId dst) {
         return getPaths(src, dst, null);
     }
 
@@ -279,15 +265,12 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Computes on-demand the set of shortest paths between source and
      * destination devices.
      *
-     * @param src source device
-     *
-     * @param dst destination device
-     *
+     * @param src    source device
+     * @param dst    destination device
      * @param weight link weight function
-     *
      * @return set of shortest paths
      */
-    Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeight weight) {
+    public Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeight weight) {
         final DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
         final DefaultTopologyVertex dstV = new DefaultTopologyVertex(dst);
         Set<TopologyVertex> vertices = graph.getVertexes();
@@ -470,10 +453,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
         final ImmutableSetMultimap<TopologyCluster, DeviceId> devicesByCluster;
         final ImmutableSetMultimap<TopologyCluster, Link> linksByCluster;
 
-        public ClusterIndexes(
-                ImmutableMap<DeviceId, TopologyCluster> clustersByDevice,
-                ImmutableSetMultimap<TopologyCluster, DeviceId> devicesByCluster,
-                ImmutableSetMultimap<TopologyCluster, Link> linksByCluster) {
+        public ClusterIndexes(ImmutableMap<DeviceId, TopologyCluster> clustersByDevice,
+                              ImmutableSetMultimap<TopologyCluster, DeviceId> devicesByCluster,
+                              ImmutableSetMultimap<TopologyCluster, Link> linksByCluster) {
             this.clustersByDevice = clustersByDevice;
             this.devicesByCluster = devicesByCluster;
             this.linksByCluster = linksByCluster;

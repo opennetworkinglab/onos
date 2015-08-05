@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.topology.impl;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.net.topology.TopologyEvent.Type.TOPOLOGY_CHANGED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
@@ -25,6 +27,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.common.DefaultTopology;
 import org.onosproject.event.Event;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -48,23 +51,23 @@ import org.slf4j.Logger;
 /**
  * Manages inventory of topology snapshots using trivial in-memory
  * structures implementation.
- *
+ * <p>
  * Note: This component is not distributed per-se. It runs on every
  * instance and feeds off of other distributed stores.
  */
 @Component(immediate = true)
 @Service
 public class DistributedTopologyStore
-extends AbstractStore<TopologyEvent, TopologyStoreDelegate>
-implements TopologyStore {
+        extends AbstractStore<TopologyEvent, TopologyStoreDelegate>
+        implements TopologyStore {
 
     private final Logger log = getLogger(getClass());
 
     private volatile DefaultTopology current =
             new DefaultTopology(ProviderId.NONE,
-                    new DefaultGraphDescription(0L,
-                            Collections.<Device>emptyList(),
-                            Collections.<Link>emptyList()));
+                                new DefaultGraphDescription(0L, 0L,
+                                                            Collections.<Device>emptyList(),
+                                                            Collections.<Link>emptyList()));
 
     @Activate
     public void activate() {
@@ -75,6 +78,7 @@ implements TopologyStore {
     public void deactivate() {
         log.info("Stopped");
     }
+
     @Override
     public Topology currentTopology() {
         return current;
@@ -118,7 +122,7 @@ implements TopologyStore {
 
     @Override
     public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst,
-            LinkWeight weight) {
+                              LinkWeight weight) {
         return defaultTopology(topology).getPaths(src, dst, weight);
     }
 
@@ -134,8 +138,8 @@ implements TopologyStore {
 
     @Override
     public TopologyEvent updateTopology(ProviderId providerId,
-            GraphDescription graphDescription,
-            List<Event> reasons) {
+                                        GraphDescription graphDescription,
+                                        List<Event> reasons) {
         // First off, make sure that what we're given is indeed newer than
         // what we already have.
         if (current != null && graphDescription.timestamp() < current.time()) {
@@ -149,18 +153,15 @@ implements TopologyStore {
         // Promote the new topology to current and return a ready-to-send event.
         synchronized (this) {
             current = newTopology;
-            return new TopologyEvent(TopologyEvent.Type.TOPOLOGY_CHANGED,
-                                     current, reasons);
+            return new TopologyEvent(TOPOLOGY_CHANGED, current, reasons);
         }
     }
 
     // Validates the specified topology and returns it as a default
     private DefaultTopology defaultTopology(Topology topology) {
-        if (topology instanceof DefaultTopology) {
-            return (DefaultTopology) topology;
-        }
-        throw new IllegalArgumentException("Topology class " + topology.getClass() +
-                " not supported");
+        checkArgument(topology instanceof DefaultTopology,
+                      "Topology class %s not supported", topology.getClass());
+        return (DefaultTopology) topology;
     }
 
 }
