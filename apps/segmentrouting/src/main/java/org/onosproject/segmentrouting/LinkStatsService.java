@@ -31,13 +31,19 @@ public class LinkStatsService {
         private long bytesTransferred;
         private long packetsTransferred;
         private long packetsDropped;
+        private long durationInNanosec; // total duration the port has been live
+        private long durationInSec; // total duration the port has been live
 
         public LinkStats(long bytesTransferred,
                          long packetsTransferred,
-                         long packetsDropped) {
+                         long packetsDropped,
+                         long durationInNanosec,
+                         long durationInSec) {
             this.bytesTransferred = bytesTransferred;
             this.packetsTransferred = packetsTransferred;
             this.packetsDropped = packetsDropped;
+            this.durationInNanosec = durationInNanosec;
+            this.durationInSec = durationInSec;
         }
 
         public long bytesTransferred() {
@@ -51,6 +57,14 @@ public class LinkStatsService {
         public long packetsDropped() {
             return packetsDropped;
         }
+
+        public long durationInNanosec() {
+            return durationInNanosec;
+        }
+
+        public long durationInSec() {
+            return durationInSec;
+        }
     }
 
     private static Logger log = LoggerFactory.getLogger(LinkStatsService.class);
@@ -60,7 +74,7 @@ public class LinkStatsService {
         this.srManager = srManager;
     }
 
-    public HashMap<Link, LinkStats> getStats() {
+    public HashMap<Link, LinkStats> stats() {
         HashMap<Link, LinkStats> linkStatsMapper = new HashMap<Link, LinkStats>();
         /* Lists all the switches in the network */
         for (Device sw : srManager.deviceService.getDevices()) {
@@ -73,7 +87,9 @@ public class LinkStatsService {
                                                   .build();
                 LinkStats linkStats = new LinkStats(portStats.bytesSent(),
                                                     portStats.packetsSent(),
-                                                    portStats.packetsTxDropped());
+                                                    portStats.packetsTxDropped(),
+                                                    portStats.durationNano(),
+                                                    portStats.durationSec());
                 linkStatsMapper.put(link, linkStats);
             }
             /* Stats for all the incoming links */
@@ -85,7 +101,9 @@ public class LinkStatsService {
                                                   .build();
                 LinkStats linkStats = new LinkStats(portStats.bytesReceived(),
                                                     portStats.packetsReceived(),
-                                                    portStats.packetsRxDropped());
+                                                    portStats.packetsRxDropped(),
+                                                    portStats.durationNano(),
+                                                    portStats.durationSec());
                 linkStatsMapper.put(link, linkStats);
             }
         }
