@@ -15,6 +15,7 @@
  */
 package org.onosproject.net;
 
+import org.onlab.junit.TestUtils;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
 import org.onosproject.TestApplicationId;
@@ -126,11 +127,11 @@ public final class NetTestTools {
         for (Field f : mc.getSuperclass().getDeclaredFields()) {
             if (f.getType().equals(EventDeliveryService.class)) {
                 try {
-                    f.setAccessible(true);
-                    f.set(manager, svc);
-                } catch (IllegalAccessException e) {
+                    TestUtils.setField(manager, f.getName(), svc);
+                } catch (TestUtils.TestUtilsException e) {
                     throw new IllegalArgumentException("Unable to inject reference", e);
                 }
+                break;
             }
         }
     }
