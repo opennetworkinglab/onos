@@ -26,6 +26,10 @@
             manufacturer="Nicira, Inc\." hwVersion="Open vSwitch" swVersion="2\..*">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.NiciraSwitchHandshaker"/>
+        <behaviour api="org.onosproject.net.behaviour.TunnelConfig"
+                   impl="org.onosproject.driver.ovsdb.OvsdbTunnelConfig"/>
+        <behaviour api="org.onosproject.net.behaviour.BridgeConfig"
+                   impl="org.onosproject.driver.ovsdb.OvsdbBridgeConfig"/>
     </driver>
     <driver name="ovs-corsa" extends="ovs"
             manufacturer="Corsa" hwVersion="emulation" swVersion="0.0.0">

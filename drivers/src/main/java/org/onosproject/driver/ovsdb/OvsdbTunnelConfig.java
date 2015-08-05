@@ -42,7 +42,7 @@ import com.google.common.collect.Sets;
 public class OvsdbTunnelConfig extends AbstractHandlerBehaviour
         implements TunnelConfig {
 
-    private static final String DEFAULT_ADDRESS = "0:0:0:0";
+    private static final String DEFAULT_ADDRESS = "0.0.0.0";
 
     @Override
     public void createTunnel(TunnelDescription tunnel) {
