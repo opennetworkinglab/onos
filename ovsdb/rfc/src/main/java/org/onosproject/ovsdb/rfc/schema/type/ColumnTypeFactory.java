@@ -61,7 +61,7 @@ public final class ColumnTypeFactory {
      * @return ColumnType
      */
     public static ColumnType getColumnTypeFromJson(JsonNode json) {
-        if (json.isObject() && !json.has(Type.VALUE.type())) {
+        if (!json.isObject() || !json.has(Type.VALUE.type())) {
             return createAtomicColumnType(json);
         } else if (!json.isValueNode() && json.has(Type.VALUE.type())) {
             return createKeyValuedColumnType(json);

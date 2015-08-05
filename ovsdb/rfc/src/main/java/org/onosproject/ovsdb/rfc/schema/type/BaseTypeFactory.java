@@ -121,8 +121,8 @@ public final class BaseTypeFactory {
         if (node != null) {
             max = node.asInt();
         }
-        if (node.has("enum")) {
-            JsonNode anEnum = node.get("enum").get(1);
+        if (type.has("enum")) {
+            JsonNode anEnum = type.get("enum").get(1);
             for (JsonNode n : anEnum) {
                 enums.add(n.asInt());
             }
@@ -148,8 +148,8 @@ public final class BaseTypeFactory {
         if (node != null) {
             max = node.asDouble();
         }
-        if (node.has("enum")) {
-            JsonNode anEnum = node.get("enum").get(1);
+        if (type.has("enum")) {
+            JsonNode anEnum = type.get("enum").get(1);
             for (JsonNode n : anEnum) {
                 enums.add(n.asDouble());
             }
@@ -175,8 +175,8 @@ public final class BaseTypeFactory {
         if (node != null) {
             maxLength = node.asInt();
         }
-        if (node.has("enum")) {
-            JsonNode enumVal = node.get("enum");
+        if (type.has("enum")) {
+            JsonNode enumVal = type.get("enum");
             if (enumVal.isArray()) {
                 JsonNode anEnum = enumVal.get(1);
                 for (JsonNode n : anEnum) {
