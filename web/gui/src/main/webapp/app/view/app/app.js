@@ -35,7 +35,7 @@
 
     function ($log, $scope, $http, fs, tbs, wss, ufs, ks) {
         $scope.ctrlBtnState = {};
-        $scope.uploadTip = 'Upload an application';
+        $scope.uploadTip = 'Upload an application (.oar file)';
         $scope.activateTip = 'Activate selected application';
         $scope.deactivateTip = 'Deactivate selected application';
         $scope.uninstallTip = 'Uninstall selected application';
@@ -120,7 +120,7 @@
             link: function (scope, elem) {
                 elem.bind('click', function () {
                     document.getElementById('uploadFile')
-                        .dispatchEvent(new Event('click'));
+                        .dispatchEvent(new MouseEvent('click'));
                 });
             }
         };
