@@ -30,8 +30,9 @@ import org.slf4j.Logger;
  * Implementations of merge policies for various sources of device configuration
  * information. This includes applications, provides, and network configurations.
  */
-public final class BasicDeviceOperator extends BasicDeviceConfig {
+public final class BasicDeviceOperator {
 
+    protected static final double DEFAULT_COORD = -1.0;
     private static final Logger log = getLogger(BasicDeviceOperator.class);
 
     private BasicDeviceOperator() {
@@ -70,7 +71,7 @@ public final class BasicDeviceOperator extends BasicDeviceConfig {
      */
     public static SparseAnnotations combine(BasicDeviceConfig bdc, SparseAnnotations an) {
         DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
-        if (bdc.driver() != an.value(DRIVER)) {
+        if (bdc.driver() != an.value(AnnotationKeys.DRIVER)) {
             newBuilder.set(AnnotationKeys.DRIVER, bdc.driver());
         }
         if (bdc.name() != null) {
@@ -83,10 +84,10 @@ public final class BasicDeviceOperator extends BasicDeviceConfig {
             newBuilder.set(AnnotationKeys.LONGITUDE, Double.toString(bdc.longitude()));
         }
         if (bdc.rackAddress() != null) {
-            newBuilder.set(RACK_ADDRESS, bdc.rackAddress());
+            newBuilder.set(AnnotationKeys.RACK_ADDRESS, bdc.rackAddress());
         }
         if (bdc.owner() != null) {
-            newBuilder.set(OWNER, bdc.owner());
+            newBuilder.set(AnnotationKeys.OWNER, bdc.owner());
         }
         DefaultAnnotations newAnnotations = newBuilder.build();
         return DefaultAnnotations.union(an, newAnnotations);
