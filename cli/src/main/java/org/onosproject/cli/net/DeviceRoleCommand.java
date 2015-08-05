@@ -22,6 +22,8 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.net.MastershipRole;
 
+import com.google.common.util.concurrent.Futures;
+
 import static org.onosproject.net.DeviceId.deviceId;
 
 /**
@@ -47,7 +49,7 @@ public class DeviceRoleCommand extends AbstractShellCommand {
     protected void execute() {
         MastershipAdminService service = get(MastershipAdminService.class);
         MastershipRole mastershipRole = MastershipRole.valueOf(role.toUpperCase());
-        service.setRole(new NodeId(node), deviceId(uri), mastershipRole);
+        Futures.getUnchecked(service.setRole(new NodeId(node), deviceId(uri), mastershipRole));
     }
 
 }
