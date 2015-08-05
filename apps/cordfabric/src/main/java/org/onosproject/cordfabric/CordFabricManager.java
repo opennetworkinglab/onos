@@ -81,6 +81,7 @@ public class CordFabricManager implements FabricService {
     private InternalDeviceListener deviceListener = new InternalDeviceListener();
 
     private static final int PRIORITY = 50000;
+    private static final int TESTPRIO = 49999;
 
     private short radiusPort = 1812;
 
@@ -89,6 +90,10 @@ public class CordFabricManager implements FabricService {
     private DeviceId fabricDeviceId = DeviceId.deviceId("of:5e3e486e73000187");
 
     private final Multimap<VlanId, ConnectPoint> vlans = HashMultimap.create();
+
+    //TODO make this configurable
+    private boolean testMode = true;
+
 
     @Activate
     public void activate() {
@@ -169,6 +174,22 @@ public class CordFabricManager implements FabricService {
                 .setOutput(PortNumber.portNumber(5))
                 .build();
 
+        TrafficTreatment testPort = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.portNumber(8))
+                .build();
+
+        ForwardingObjective ofTestPath = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(TESTPRIO)
+                .withSelector(
+                        DefaultTrafficSelector.builder()
+                                .matchInPort(PortNumber.portNumber(2))
+                                .build())
+                .withTreatment(testPort)
+                .add();
+
         ForwardingObjective radiusToServer = DefaultForwardingObjective.builder()
                 .fromApp(appId)
                 .makePermanent()
@@ -225,6 +246,9 @@ public class CordFabricManager implements FabricService {
                 .withTreatment(toOlt)
                 .add();
 
+        if (testMode) {
+            flowObjectiveService.forward(fabricDeviceId, ofTestPath);
+        }
 
         flowObjectiveService.forward(fabricDeviceId, upCtrl);
         flowObjectiveService.forward(fabricDeviceId, downCtrl);
