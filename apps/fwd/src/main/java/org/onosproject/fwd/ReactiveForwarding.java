@@ -474,11 +474,10 @@ public class ReactiveForwarding {
 
             // Otherwise, pick a path that does not lead back to where we
             // came from; if no such path, flood and bail.
-            Path path = pickForwardPath(paths, pkt.receivedFrom().port());
+            Path path = pickForwardPathIfPossible(paths, pkt.receivedFrom().port());
             if (path == null) {
-                log.warn("Doh... don't know where to go... {} -> {} received on {}",
-                         ethPkt.getSourceMAC(), ethPkt.getDestinationMAC(),
-                         pkt.receivedFrom());
+                log.warn("Don't know where to go from here {} for {} -> {}",
+                         pkt.receivedFrom(), ethPkt.getSourceMAC(), ethPkt.getDestinationMAC());
                 flood(context);
                 return;
             }
@@ -501,14 +500,16 @@ public class ReactiveForwarding {
     }
 
     // Selects a path from the given set that does not lead back to the
-    // specified port.
-    private Path pickForwardPath(Set<Path> paths, PortNumber notToPort) {
+    // specified port if possible.
+    private Path pickForwardPathIfPossible(Set<Path> paths, PortNumber notToPort) {
+        Path lastPath = null;
         for (Path path : paths) {
+            lastPath = path;
             if (!path.src().port().equals(notToPort)) {
                 return path;
             }
         }
-        return null;
+        return lastPath;
     }
 
     // Floods the specified packet if permissible.
@@ -734,7 +735,7 @@ public class ReactiveForwarding {
                 Set<Path> pathsFromCurDevice =
                         topologyService.getPaths(topologyService.currentTopology(),
                                                  curDevice, dstId);
-                if (pickForwardPath(pathsFromCurDevice, curLink.src().port()) != null) {
+                if (pickForwardPathIfPossible(pathsFromCurDevice, curLink.src().port()) != null) {
                     break;
                 } else {
                     if (i + 1 == pathLinks.size()) {
@@ -792,8 +793,8 @@ public class ReactiveForwarding {
         return builder.build();
     }
 
-    // Returns set of flowEntries which were created by this application and which egress from the
-    // specified connection port
+    // Returns set of flow entries which were created by this application and
+    // which egress from the specified connection port
     private Set<FlowEntry> getFlowRulesFrom(ConnectPoint egress) {
         ImmutableSet.Builder<FlowEntry> builder = ImmutableSet.builder();
         flowRuleService.getFlowEntries(egress.deviceId()).forEach(r -> {

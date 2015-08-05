@@ -65,7 +65,7 @@ public class DistributedTopologyStore
 
     private volatile DefaultTopology current =
             new DefaultTopology(ProviderId.NONE,
-                                new DefaultGraphDescription(0L, 0L,
+                                new DefaultGraphDescription(0L, System.currentTimeMillis(),
                                                             Collections.<Device>emptyList(),
                                                             Collections.<Link>emptyList()));
 
@@ -147,8 +147,7 @@ public class DistributedTopologyStore
         }
 
         // Have the default topology construct self from the description data.
-        DefaultTopology newTopology =
-                new DefaultTopology(providerId, graphDescription);
+        DefaultTopology newTopology = new DefaultTopology(providerId, graphDescription);
 
         // Promote the new topology to current and return a ready-to-send event.
         synchronized (this) {

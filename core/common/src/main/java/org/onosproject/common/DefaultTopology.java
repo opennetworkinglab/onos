@@ -50,7 +50,9 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
+import static org.onlab.util.Tools.isNullOrEmpty;
 import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
 import static org.onosproject.net.Link.State.ACTIVE;
 import static org.onosproject.net.Link.State.INACTIVE;
@@ -228,15 +230,12 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
         // Find the cluster to which the device belongs.
         TopologyCluster cluster = clustersByDevice().get(connectPoint.deviceId());
-        if (cluster == null) {
-            throw new IllegalArgumentException("No cluster found for device "
-                                                       + connectPoint.deviceId());
-        }
+        checkArgument(cluster != null, "No cluster found for device %s", connectPoint.deviceId());
 
         // If the broadcast set is null or empty, or if the point explicitly
-        // belongs to it, return true;
+        // belongs to it, return true.
         Set<ConnectPoint> points = broadcastSets.get().get(cluster.id());
-        return (points == null) || points.isEmpty() || points.contains(connectPoint);
+        return isNullOrEmpty(points) || points.contains(connectPoint);
     }
 
     /**
@@ -247,6 +246,16 @@ public class DefaultTopology extends AbstractModel implements Topology {
      */
     public int broadcastSetSize(ClusterId clusterId) {
         return broadcastSets.get().get(clusterId).size();
+    }
+
+    /**
+     * Returns the set of the cluster broadcast points.
+     *
+     * @param clusterId cluster identifier
+     * @return set of cluster broadcast points
+     */
+    public Set<ConnectPoint> broadcastPoints(ClusterId clusterId) {
+        return broadcastSets.get().get(clusterId);
     }
 
     /**

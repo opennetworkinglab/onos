@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -133,9 +134,7 @@ public class DefaultGraphDescription extends AbstractDescription
     private TopologyVertex vertexOf(ConnectPoint connectPoint) {
         DeviceId id = connectPoint.deviceId();
         TopologyVertex vertex = vertexesById.get(id);
-        if (vertex == null) {
-            throw new IllegalArgumentException("Vertex missing for " + id);
-        }
+        checkArgument(vertex != null, "Vertex missing for %s", id);
         return vertex;
     }
 
