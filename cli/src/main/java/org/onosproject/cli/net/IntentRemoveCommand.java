@@ -22,13 +22,14 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentEvent;
-import org.onosproject.net.intent.IntentListener;
-import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.Key;
 
 import java.math.BigInteger;
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -64,10 +65,17 @@ public class IntentRemoveCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private boolean sync = false;
 
+    private static final EnumSet<IntentState> CAN_PURGE = EnumSet.of(WITHDRAWN, FAILED);
+
     @Override
     protected void execute() {
         IntentService intentService = get(IntentService.class);
         CoreService coreService = get(CoreService.class);
+
+        if (sync) {
+            print("Use Sync to remove intents - this may take a while...");
+            print("Check \"summary\" to see remove progress.");
+        }
 
         ApplicationId appId = appId();
         if (!isNullOrEmpty(applicationIdString)) {
@@ -137,21 +145,19 @@ public class IntentRemoveCommand extends AbstractShellCommand {
             } catch (InterruptedException e) {
                 print("Timed out waiting for intent {} withdraw", key);
             }
-            // double check the state
-            IntentState state = intentService.getIntentState(key);
-            if (purgeAfterRemove && (state == WITHDRAWN || state == FAILED)) {
+            if (purgeAfterRemove && CAN_PURGE.contains(intentService.getIntentState(key))) {
                 intentService.purge(intent);
-            }
-            if (sync) { // wait for purge event
+                if (sync) { // wait for purge event
                     /* TODO
                        Technically, the event comes before map.remove() is called.
                        If we depend on sync and purge working together, we will
                        need to address this.
                     */
-                try {
-                    purgeLatch.await(5, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    print("Timed out waiting for intent {} purge", key);
+                    try {
+                        purgeLatch.await(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        print("Timed out waiting for intent {} purge", key);
+                    }
                 }
             }
         }
