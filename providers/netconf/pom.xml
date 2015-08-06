@@ -34,6 +34,7 @@
     <modules>
         <module>device</module>
         <module>app</module>
+        <module>flow</module>
     </modules>
 
     <dependencies>
