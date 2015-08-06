@@ -49,7 +49,8 @@
         <module>apps</module>
         <module>incubator</module>
         <module>features</module>
-        <module>tools/package/archetypes</module>
+        <module>pcep</module>
+	<module>tools/package/archetypes</module>
         <module>tools/package/branding</module>
         <!-- FIXME remove before release -->
         <module>tools/package/maven-plugin</module>
@@ -394,6 +395,18 @@
             <dependency>
                 <groupId>org.onosproject</groupId>
                 <artifactId>onos-of-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-pcepio</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-pcep-controller-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
