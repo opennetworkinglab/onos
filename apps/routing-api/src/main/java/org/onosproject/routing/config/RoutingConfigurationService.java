@@ -98,6 +98,14 @@ public interface RoutingConfigurationService {
     Interface getInterface(ConnectPoint connectPoint);
 
     /**
+     * Retrieves the interface associated with the given IP address.
+     *
+     * @param ip IP address of the interface
+     * @return the interface
+     */
+    Interface getInterface(IpAddress ip);
+
+    /**
      * Retrieves the interface that matches the given IP address. Matching
      * means that the IP address is in one of the interface's assigned subnets.
      *

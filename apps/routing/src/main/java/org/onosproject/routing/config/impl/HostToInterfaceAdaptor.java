@@ -63,6 +63,20 @@ public class HostToInterfaceAdaptor {
         return null;
     }
 
+    public Interface getInterface(IpAddress ip) {
+        Set<PortAddresses> portAddresses = hostService.getAddressBindings();
+
+        for (PortAddresses portAddress : portAddresses) {
+            for (InterfaceIpAddress portIp : portAddress.ipAddresses()) {
+                if (portIp.ipAddress().equals(ip)) {
+                    return new Interface(portAddress);
+                }
+            }
+        }
+
+        return null;
+    }
+
     public Interface getMatchingInterface(IpAddress ipAddress) {
         checkNotNull(ipAddress);
 

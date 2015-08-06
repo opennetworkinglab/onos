@@ -15,13 +15,7 @@
  */
 package org.onosproject.sdnip;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -52,7 +46,12 @@ import org.onosproject.routing.config.Interface;
 import org.onosproject.routing.config.InterfaceAddress;
 import org.onosproject.routing.config.RoutingConfigurationService;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -144,7 +143,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 "00:00:00:00:00:01");
         List<InterfaceAddress> interfaceAddresses1 = new LinkedList<>();
         interfaceAddresses1.add(new InterfaceAddress(dpid1, 1, "192.168.10.101"));
-        interfaceAddresses1.add(new InterfaceAddress(dpid2, 1, "192.168.20.101"));
         bgpSpeaker1.setInterfaceAddresses(interfaceAddresses1);
         configuredBgpSpeakers.put(bgpSpeaker1.name(), bgpSpeaker1);
 
@@ -154,20 +152,10 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 "00:00:00:00:00:00:00:01", 100,
                 "00:00:00:00:00:02");
         List<InterfaceAddress> interfaceAddresses2 = new LinkedList<>();
-        interfaceAddresses2.add(new InterfaceAddress(dpid1, 1, "192.168.10.102"));
-        interfaceAddresses2.add(new InterfaceAddress(dpid2, 1, "192.168.20.102"));
+        interfaceAddresses2.add(new InterfaceAddress(dpid2, 1, "192.168.20.101"));
+        interfaceAddresses2.add(new InterfaceAddress(dpid2, 1, "192.168.30.101"));
         bgpSpeaker2.setInterfaceAddresses(interfaceAddresses2);
         configuredBgpSpeakers.put(bgpSpeaker2.name(), bgpSpeaker2);
-
-        BgpSpeaker bgpSpeaker3 = new BgpSpeaker(
-                "bgpSpeaker3",
-                "00:00:00:00:00:00:00:02", 100,
-                "00:00:00:00:00:03");
-        List<InterfaceAddress> interfaceAddresses3 = new LinkedList<>();
-        interfaceAddresses3.add(new InterfaceAddress(dpid1, 1, "192.168.10.103"));
-        interfaceAddresses3.add(new InterfaceAddress(dpid2, 1, "192.168.20.103"));
-        bgpSpeaker3.setInterfaceAddresses(interfaceAddresses3);
-        configuredBgpSpeakers.put(bgpSpeaker3.name(), bgpSpeaker3);
 
         return configuredBgpSpeakers;
     }
@@ -184,7 +172,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
         String interfaceSw1Eth1 = "s1-eth1";
         InterfaceIpAddress ia1 =
-            new InterfaceIpAddress(IpAddress.valueOf("192.168.10.1"),
+            new InterfaceIpAddress(IpAddress.valueOf("192.168.10.101"),
                                    IpPrefix.valueOf("192.168.10.0/24"));
         Interface intfsw1eth1 = new Interface(s1Eth1,
                 Collections.singleton(ia1),
@@ -194,7 +182,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         configuredInterfaces.put(interfaceSw1Eth1, intfsw1eth1);
         String interfaceSw2Eth1 = "s2-eth1";
         InterfaceIpAddress ia2 =
-            new InterfaceIpAddress(IpAddress.valueOf("192.168.20.2"),
+            new InterfaceIpAddress(IpAddress.valueOf("192.168.20.101"),
                                    IpPrefix.valueOf("192.168.20.0/24"));
         Interface intfsw2eth1 = new Interface(s2Eth1,
                 Collections.singleton(ia2),
@@ -202,10 +190,28 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 VlanId.NONE);
         configuredInterfaces.put(interfaceSw2Eth1, intfsw2eth1);
 
+        String interfaceSw2Eth1intf2 = "s2-eth1_2";
+        InterfaceIpAddress ia3 =
+                new InterfaceIpAddress(IpAddress.valueOf("192.168.30.101"),
+                        IpPrefix.valueOf("192.168.30.0/24"));
+        Interface intfsw2eth1intf2 = new Interface(s2Eth1,
+                Collections.singleton(ia3),
+                MacAddress.valueOf("00:00:00:00:00:03"),
+                VlanId.NONE);
+        configuredInterfaces.put(interfaceSw2Eth1intf2, intfsw2eth1intf2);
+
         expect(routingConfig.getInterface(s1Eth1))
+                .andReturn(intfsw1eth1).anyTimes();
+        expect(routingConfig.getInterface(IpAddress.valueOf("192.168.10.101")))
                 .andReturn(intfsw1eth1).anyTimes();
         expect(routingConfig.getInterface(s2Eth1))
                 .andReturn(intfsw2eth1).anyTimes();
+        expect(routingConfig.getInterface(IpAddress.valueOf("192.168.20.101")))
+                .andReturn(intfsw2eth1).anyTimes();
+        //expect(routingConfig.getInterface(s2Eth1))
+        //        .andReturn(intfsw2eth1intf2).anyTimes();
+        expect(routingConfig.getInterface(IpAddress.valueOf("192.168.30.101")))
+                .andReturn(intfsw2eth1intf2).anyTimes();
 
         // Non-existent interface used during one of the tests
         expect(routingConfig.getInterface(new ConnectPoint(
@@ -237,7 +243,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         configuredPeers.put(IpAddress.valueOf(peer1Sw2Eth1),
                 new BgpPeer(dpid2, 1, peer1Sw2Eth1));
 
-        String peer2Sw2Eth1 = "192.168.20.2";
+        String peer2Sw2Eth1 = "192.168.30.1";
         configuredPeers.put(IpAddress.valueOf(peer2Sw2Eth1),
                 new BgpPeer(dpid2, 1, peer2Sw2Eth1));
 
@@ -338,111 +344,21 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 "192.168.20.1/32", "192.168.20.101/32", bgpPort, null,
                 s2Eth1, s1Eth100);
 
-        // Start to build intents between BGP speaker1 and BGP peer3
-        bgpPathintentConstructor(
-                "192.168.20.101/32", "192.168.20.2/32", null, bgpPort,
-                s1Eth100, s2Eth1);
-        bgpPathintentConstructor(
-                "192.168.20.101/32", "192.168.20.2/32", bgpPort, null,
-                s1Eth100, s2Eth1);
-
-        bgpPathintentConstructor(
-                "192.168.20.2/32", "192.168.20.101/32", null, bgpPort,
-                s2Eth1, s1Eth100);
-        bgpPathintentConstructor(
-                "192.168.20.2/32", "192.168.20.101/32", bgpPort, null,
-                s2Eth1, s1Eth100);
-
-        //
-        // Start to build intents between BGP speaker2 and BGP peer1
-        bgpPathintentConstructor(
-                "192.168.10.102/32", "192.168.10.1/32", null, bgpPort,
-                s1Eth100, s1Eth1);
-        bgpPathintentConstructor(
-                "192.168.10.102/32", "192.168.10.1/32", bgpPort, null,
-                s1Eth100, s1Eth1);
-
-        bgpPathintentConstructor(
-                "192.168.10.1/32", "192.168.10.102/32", null, bgpPort,
-                s1Eth1, s1Eth100);
-        bgpPathintentConstructor(
-                "192.168.10.1/32", "192.168.10.102/32", bgpPort, null,
-                s1Eth1, s1Eth100);
-        // Start to build intents between BGP speaker2 and BGP peer2
-        bgpPathintentConstructor(
-                "192.168.20.102/32", "192.168.20.1/32", null, bgpPort,
-                s1Eth100, s2Eth1);
-        bgpPathintentConstructor(
-                "192.168.20.102/32", "192.168.20.1/32", bgpPort, null,
-                s1Eth100, s2Eth1);
-
-        bgpPathintentConstructor(
-                "192.168.20.1/32", "192.168.20.102/32", null, bgpPort,
-                s2Eth1, s1Eth100);
-        bgpPathintentConstructor(
-                "192.168.20.1/32", "192.168.20.102/32", bgpPort, null,
-                s2Eth1, s1Eth100);
-
-        // Start to build intents between BGP speaker2 and BGP peer3
-        bgpPathintentConstructor(
-                "192.168.20.102/32", "192.168.20.2/32", null, bgpPort,
-                s1Eth100, s2Eth1);
-        bgpPathintentConstructor(
-                "192.168.20.102/32", "192.168.20.2/32", bgpPort, null,
-                s1Eth100, s2Eth1);
-
-        bgpPathintentConstructor(
-                "192.168.20.2/32", "192.168.20.102/32", null, bgpPort,
-                s2Eth1, s1Eth100);
-        bgpPathintentConstructor(
-                "192.168.20.2/32", "192.168.20.102/32", bgpPort, null,
-                s2Eth1, s1Eth100);
-
         //
         // Start to build intents between BGP speaker3 and BGP peer1
         bgpPathintentConstructor(
-                "192.168.10.103/32", "192.168.10.1/32", null, bgpPort,
-                s2Eth100, s1Eth1);
+                "192.168.30.101/32", "192.168.30.1/32", null, bgpPort,
+                s1Eth100, s2Eth1);
         bgpPathintentConstructor(
-                "192.168.10.103/32", "192.168.10.1/32", bgpPort, null,
-                s2Eth100, s1Eth1);
+                "192.168.30.101/32", "192.168.30.1/32", bgpPort, null,
+                s1Eth100, s2Eth1);
 
         bgpPathintentConstructor(
-                "192.168.10.1/32", "192.168.10.103/32", null, bgpPort,
-                s1Eth1, s2Eth100);
+                "192.168.30.1/32", "192.168.30.101/32", null, bgpPort,
+                s2Eth1, s1Eth100);
         bgpPathintentConstructor(
-                "192.168.10.1/32", "192.168.10.103/32", bgpPort, null,
-                s1Eth1, s2Eth100);
-
-        // Start to build intents between BGP speaker3 and BGP peer2
-        bgpPathintentConstructor(
-                "192.168.20.103/32", "192.168.20.1/32", null, bgpPort,
-                s2Eth100, s2Eth1);
-        bgpPathintentConstructor(
-                "192.168.20.103/32", "192.168.20.1/32", bgpPort, null,
-                s2Eth100, s2Eth1);
-
-        bgpPathintentConstructor(
-                "192.168.20.1/32", "192.168.20.103/32", null, bgpPort,
-                s2Eth1, s2Eth100);
-        bgpPathintentConstructor(
-                "192.168.20.1/32", "192.168.20.103/32", bgpPort, null,
-                s2Eth1, s2Eth100);
-
-        // Start to build intents between BGP speaker3 and BGP peer3
-        bgpPathintentConstructor(
-                "192.168.20.103/32", "192.168.20.2/32", null, bgpPort,
-                s2Eth100, s2Eth1);
-        bgpPathintentConstructor(
-                "192.168.20.103/32", "192.168.20.2/32", bgpPort, null,
-                s2Eth100, s2Eth1);
-
-        bgpPathintentConstructor(
-                "192.168.20.2/32", "192.168.20.103/32", null, bgpPort,
-                s2Eth1, s2Eth100);
-        bgpPathintentConstructor(
-                "192.168.20.2/32", "192.168.20.103/32", bgpPort, null,
-                s2Eth1, s2Eth100);
+                "192.168.30.1/32", "192.168.30.101/32", bgpPort, null,
+                s2Eth1, s1Eth100);
     }
 
     /**
@@ -494,49 +410,10 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         icmpPathintentConstructor(
                 "192.168.20.1/32", "192.168.20.101/32", s2Eth1, s1Eth100);
 
-        // Start to build intents between BGP speaker1 and BGP peer3
         icmpPathintentConstructor(
-                "192.168.20.101/32", "192.168.20.2/32", s1Eth100, s2Eth1);
+                "192.168.30.101/32", "192.168.30.1/32", s1Eth100, s2Eth1);
         icmpPathintentConstructor(
-                "192.168.20.2/32", "192.168.20.101/32", s2Eth1, s1Eth100);
-
-        //
-        // Start to build intents between BGP speaker2 and BGP peer1
-        icmpPathintentConstructor(
-                "192.168.10.102/32", "192.168.10.1/32", s1Eth100, s1Eth1);
-        icmpPathintentConstructor(
-                "192.168.10.1/32", "192.168.10.102/32", s1Eth1, s1Eth100);
-
-        // Start to build intents between BGP speaker2 and BGP peer2
-        icmpPathintentConstructor(
-                "192.168.20.102/32", "192.168.20.1/32", s1Eth100, s2Eth1);
-        icmpPathintentConstructor(
-                "192.168.20.1/32", "192.168.20.102/32", s2Eth1, s1Eth100);
-
-        // Start to build intents between BGP speaker2 and BGP peer3
-        icmpPathintentConstructor(
-                "192.168.20.102/32", "192.168.20.2/32", s1Eth100, s2Eth1);
-        icmpPathintentConstructor(
-                "192.168.20.2/32", "192.168.20.102/32", s2Eth1, s1Eth100);
-
-        //
-        // Start to build intents between BGP speaker3 and BGP peer1
-        icmpPathintentConstructor(
-                "192.168.10.103/32", "192.168.10.1/32", s2Eth100, s1Eth1);
-        icmpPathintentConstructor(
-                "192.168.10.1/32", "192.168.10.103/32", s1Eth1, s2Eth100);
-
-        // Start to build intents between BGP speaker3 and BGP peer2
-        icmpPathintentConstructor(
-                "192.168.20.103/32", "192.168.20.1/32", s2Eth100, s2Eth1);
-        icmpPathintentConstructor(
-                "192.168.20.1/32", "192.168.20.103/32", s2Eth1, s2Eth100);
-
-        // Start to build intents between BGP speaker3 and BGP peer3
-        icmpPathintentConstructor(
-                "192.168.20.103/32", "192.168.20.2/32", s2Eth100, s2Eth1);
-        icmpPathintentConstructor(
-                "192.168.20.2/32", "192.168.20.103/32", s2Eth1, s2Eth100);
+                "192.168.30.1/32", "192.168.30.101/32", s2Eth1, s1Eth100);
 
     }
 
@@ -601,6 +478,12 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 .andReturn(null).anyTimes();
         expect(routingConfig.getInterface(s1Eth1))
         .andReturn(null).anyTimes();
+        expect(routingConfig.getInterface(IpAddress.valueOf("192.168.10.101")))
+                .andReturn(null).anyTimes();
+        expect(routingConfig.getInterface(IpAddress.valueOf("192.168.20.101")))
+                .andReturn(null).anyTimes();
+        expect(routingConfig.getInterface(IpAddress.valueOf("192.168.30.101")))
+                .andReturn(null).anyTimes();
 
         expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
         expect(routingConfig.getBgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
