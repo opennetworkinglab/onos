@@ -522,21 +522,23 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private class LinkStatsCollector implements Runnable {
 
+        private long statsCollectionInterval = 1; // unit in seconds
+
         @Override
         public void run() {
             try {
                 while (true) {
                     synchronized (statsCollectionLock) {
-                        HashMap<Link, LinkStatsService.LinkStats> linkStatsMapper =
-                                            linkStatsService.stats();
-                        HashMap<Link, Double> flowRatesMapper =
-                                            linkCostFunctions.flowRates(linkStatsMapper);
+                        HashMap<Link, LinkStatsService.LinkStats> linkStatsMapper = linkStatsService
+                                                                                    .stats();
+                        HashMap<Link, Double> flowRatesMapper = linkCostFunctions
+                                                                .flowRates(linkStatsMapper);
                         // haloAlgorithm(flowRatesMapper);
                         while (!defaultRoutingHandler.populateAllRoutingRules()) {
                             continue;
                         }
                     }
-                    Thread.sleep(1000); // sleep for 1 sec.
+                    Thread.sleep(statsCollectionInterval * 1000); // sleep for 1 sec.
                 }
             } catch (Exception e) {
                 log.error("LinkStatsCollector threw an Exception {}", e);
