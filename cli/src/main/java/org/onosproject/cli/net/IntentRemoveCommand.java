@@ -72,9 +72,9 @@ public class IntentRemoveCommand extends AbstractShellCommand {
         IntentService intentService = get(IntentService.class);
         CoreService coreService = get(CoreService.class);
 
-        if (sync) {
-            print("Use Sync to remove intents - this may take a while...");
-            print("Check \"summary\" to see remove progress.");
+        if (purgeAfterRemove || sync) {
+            print("Using \"sync\" to remove/purge intents - this may take a while...");
+            print("Check \"summary\" to see remove/purge progress.");
         }
 
         ApplicationId appId = appId();
