@@ -40,7 +40,7 @@ public class StepProcessorTest {
     @BeforeClass
     public static void setUpClass() {
         StepProcessor.launcher = "echo";
-        checkState(DIR.mkdirs(), "Unable to create directory");
+        checkState(DIR.exists() || DIR.mkdirs(), "Unable to create directory");
     }
 
     @AfterClass
