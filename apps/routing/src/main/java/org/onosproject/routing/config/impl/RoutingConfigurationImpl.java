@@ -159,6 +159,11 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     }
 
     @Override
+    public Interface getInterface(IpAddress ip) {
+        return hostAdaptor.getInterface(ip);
+    }
+
+    @Override
     public Interface getMatchingInterface(IpAddress ipAddress) {
         return hostAdaptor.getMatchingInterface(ipAddress);
     }

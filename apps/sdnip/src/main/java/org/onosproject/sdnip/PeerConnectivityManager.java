@@ -139,24 +139,22 @@ public class PeerConnectivityManager {
         List<InterfaceAddress> interfaceAddresses =
                 bgpSpeaker.interfaceAddresses();
 
-        Interface peerInterface = configService.getInterface(
-                bgpPeer.connectPoint());
-
-        if (peerInterface == null) {
-            log.error("No interface found for peer {}", bgpPeer.ipAddress());
-            return intents;
-        }
-
         IpAddress bgpdAddress = null;
         for (InterfaceAddress interfaceAddress : interfaceAddresses) {
-            if (interfaceAddress.connectPoint().equals(peerInterface.connectPoint())) {
-                for (InterfaceIpAddress interfaceIpAddress : peerInterface.ipAddresses()) {
-                    // Only add intents where the peer and ONOS's addresses are
-                    // in the same subnet
-                    if (interfaceIpAddress.subnetAddress().contains(bgpPeer.ipAddress())) {
-                        bgpdAddress = interfaceAddress.ipAddress();
-                    }
+            Interface peerInterface = configService.getInterface(interfaceAddress.ipAddress());
+            if (peerInterface == null) {
+                continue;
+            }
+
+            for (InterfaceIpAddress interfaceIpAddress : peerInterface.ipAddresses()) {
+                // Only add intents where the peer and ONOS's addresses are
+                // in the same subnet
+                if (interfaceIpAddress.subnetAddress().contains(bgpPeer.ipAddress())) {
+                    bgpdAddress = interfaceAddress.ipAddress();
+                    break;
                 }
+            }
+            if (bgpdAddress != null) {
                 break;
             }
         }
@@ -167,7 +165,7 @@ public class PeerConnectivityManager {
         }
 
         IpAddress bgpdPeerAddress = bgpPeer.ipAddress();
-        ConnectPoint bgpdPeerConnectPoint = peerInterface.connectPoint();
+        ConnectPoint bgpdPeerConnectPoint = bgpPeer.connectPoint();
 
         if (bgpdAddress.version() != bgpdPeerAddress.version()) {
             return intents;
