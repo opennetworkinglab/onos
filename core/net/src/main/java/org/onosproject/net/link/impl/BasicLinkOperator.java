@@ -20,6 +20,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.time.Duration;
 
 import org.onosproject.net.AnnotationKeys;
+import org.onosproject.incubator.net.config.ConfigOperator;
 import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Link;
@@ -32,8 +33,10 @@ import org.slf4j.Logger;
  * Implementations of merge policies for various sources of link configuration
  * information. This includes applications, provides, and network configurations.
  */
-public final class BasicLinkOperator {
+public final class BasicLinkOperator implements ConfigOperator {
 
+    private static final long DEF_BANDWIDTH = -1L;
+    private static final Duration DEF_DURATION = Duration.ofNanos(-1L);
     private static final Logger log = getLogger(BasicLinkOperator.class);
 
     private BasicLinkOperator() {
@@ -72,10 +75,10 @@ public final class BasicLinkOperator {
      */
     public static SparseAnnotations combine(BasicLinkConfig cfg, SparseAnnotations an) {
         DefaultAnnotations.Builder b = DefaultAnnotations.builder();
-        if (cfg.latency() != Duration.ofNanos(-1)) {
+        if (cfg.latency() != DEF_DURATION) {
             b.set(AnnotationKeys.LATENCY, cfg.latency().toString());
         }
-        if (cfg.bandwidth() != -1) {
+        if (cfg.bandwidth() != DEF_BANDWIDTH) {
             b.set(AnnotationKeys.BANDWIDTH, String.valueOf(cfg.bandwidth()));
         }
         return DefaultAnnotations.union(an, b.build());

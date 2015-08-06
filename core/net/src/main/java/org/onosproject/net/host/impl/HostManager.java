@@ -31,13 +31,10 @@ import org.onosproject.incubator.net.config.NetworkConfigListener;
 import org.onosproject.incubator.net.config.NetworkConfigService;
 import org.onosproject.incubator.net.config.basics.BasicHostConfig;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
-import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostAdminService;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostEvent;
@@ -246,14 +243,8 @@ public class HostManager
         private HostDescription validateHost(HostDescription hostDescription, HostId hostId) {
             BasicHostConfig cfg = networkConfigService.getConfig(hostId, BasicHostConfig.class);
             checkState(cfg == null || cfg.isAllowed(), "Host {} is not allowed", hostId);
-            if (cfg != null) {
-                SparseAnnotations finalSparse = processAnnotations(cfg, hostDescription);
-                hostDescription = new DefaultHostDescription(hostId.mac(),
-                                                             hostDescription.vlan(),
-                                                             hostDescription.location(),
-                                                             finalSparse);
-            }
-            return hostDescription;
+
+            return BasicHostOperator.combine(cfg, hostDescription);
         }
 
         @Override
@@ -265,30 +256,6 @@ public class HostManager
                 post(event);
             }
         }
-    }
-
-    // Supplements or replaces hostDescriptions's annotations with BasicHostConfig's
-    // annotations
-    private SparseAnnotations processAnnotations(BasicHostConfig cfg, HostDescription hostDescription) {
-        SparseAnnotations originalAnnotations = hostDescription.annotations();
-        DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
-        if (cfg.name() != null) {
-            newBuilder.set(cfg.NAME, cfg.name());
-        }
-        if (cfg.latitude() != -1) {
-            newBuilder.set(cfg.LATITUDE, Double.toString(cfg.latitude()));
-        }
-        if (cfg.longitude() != -1) {
-            newBuilder.set(cfg.LONGITUDE, Double.toString(cfg.longitude()));
-        }
-        if (cfg.rackAddress() != null) {
-            newBuilder.set(cfg.RACK_ADDRESS, cfg.rackAddress());
-        }
-        if (cfg.owner() != null) {
-            newBuilder.set(cfg.OWNER, cfg.owner());
-        }
-        DefaultAnnotations newAnnotations = newBuilder.build();
-        return DefaultAnnotations.union(originalAnnotations, newAnnotations);
     }
 
     // Store delegate to re-post events emitted from the store.

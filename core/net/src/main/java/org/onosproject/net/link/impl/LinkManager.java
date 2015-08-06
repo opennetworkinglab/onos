@@ -31,17 +31,14 @@ import org.onosproject.incubator.net.config.NetworkConfigListener;
 import org.onosproject.incubator.net.config.NetworkConfigService;
 import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Link.State;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.MastershipRole;
-import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkAdminService;
 import org.onosproject.net.link.LinkDescription;
 import org.onosproject.net.link.LinkEvent;
@@ -55,7 +52,6 @@ import org.onosproject.net.link.LinkStoreDelegate;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import java.time.Duration;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -206,6 +202,7 @@ public class LinkManager
         removeLinks(getDeviceLinks(deviceId), false);
     }
 
+    @Override
     public void removeLink(ConnectPoint src, ConnectPoint dst) {
         post(store.removeLink(src, dst));
     }
@@ -264,38 +261,8 @@ public class LinkManager
 
             checkState(cfg == null || cfg.isAllowed(), "Link " + linkDescription.toString() + " is not allowed");
             checkState(cfgTwo == null || cfgTwo.isAllowed(), "Link " + linkDescription.toString() + " is not allowed");
-            if (cfg != null) {
-                SparseAnnotations finalSparse = processAnnotations(cfg, linkDescription);
-                // check whether config has a specified type
-                if (cfg.type() != Link.Type.DIRECT) {
-                    linkDescription = new DefaultLinkDescription(linkDescription.src(),
-                                                                 linkDescription.dst(),
-                                                                 cfg.type(), finalSparse);
-                } else {
-                    linkDescription = new DefaultLinkDescription(linkDescription.src(),
-                                                                 linkDescription.dst(),
-                                                                 linkDescription.type(), finalSparse);
-                }
-            }
-            return linkDescription;
-        }
 
-        // supplements or replaces linkDescriptions's annotations with BasicLinkConfig's
-        // annotations
-        private SparseAnnotations processAnnotations(BasicLinkConfig cfg, LinkDescription linkDescription) {
-            SparseAnnotations originalAnnotations = linkDescription.annotations();
-            DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
-            if (cfg.type() != Link.Type.DIRECT) {
-                newBuilder.set(cfg.TYPE, cfg.type().toString());
-            }
-            if (cfg.latency() != Duration.ofNanos(-1)) {
-                newBuilder.set(cfg.LATENCY, cfg.latency().toString());
-            }
-            if (cfg.bandwidth() != -1) {
-                newBuilder.set(cfg.BANDWIDTH, String.valueOf(cfg.bandwidth()));
-            }
-            DefaultAnnotations newAnnotations = newBuilder.build();
-            return DefaultAnnotations.union(originalAnnotations, newAnnotations);
+            return BasicLinkOperator.combine(cfg, linkDescription);
         }
 
         @Override

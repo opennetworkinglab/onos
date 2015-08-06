@@ -37,14 +37,12 @@ import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.mastership.MastershipTermService;
-import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.Device.Type;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceAdminService;
@@ -334,17 +332,8 @@ public class DeviceManager
             BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
             checkState(cfg == null || cfg.isAllowed(), "Device " + deviceId + " is not allowed");
             log.info("Device {} connected", deviceId);
-            if (cfg != null) {
-                SparseAnnotations finalSparse = processAnnotations(cfg, deviceDescription, deviceId);
-                if (cfg.type() != Type.SWITCH) {
-                    deviceDescription = new DefaultDeviceDescription(deviceDescription,
-                                                                     cfg.type(), finalSparse);
-                } else {
-                    deviceDescription = new DefaultDeviceDescription(deviceDescription,
-                                                                     deviceDescription.type(), finalSparse);
-                }
-            }
-            return deviceDescription;
+
+            return BasicDeviceOperator.combine(cfg, deviceDescription);
         }
 
         @Override
@@ -499,37 +488,6 @@ public class DeviceManager
             DeviceEvent event = store.updatePortStatistics(this.provider().id(),
                                                            deviceId, portStatistics);
             post(event);
-        }
-
-        // supplements or replaces deviceDescription annotations with
-        // BasicDeviceConfig annotations
-        private SparseAnnotations processAnnotations(BasicDeviceConfig cfg, DeviceDescription deviceDescription,
-                                                     DeviceId deviceId) {
-            SparseAnnotations originalAnnotations = deviceDescription.annotations();
-            DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
-            if (cfg.driver() != deviceId.toString()) {
-                newBuilder.set(cfg.DRIVER, cfg.driver());
-            }
-            if (cfg.type() != Type.SWITCH) {
-                newBuilder.set(cfg.TYPE, cfg.type().toString());
-            }
-            if (cfg.name() != null) {
-                newBuilder.set(cfg.NAME, cfg.name());
-            }
-            if (cfg.latitude() != -1) {
-                newBuilder.set(cfg.LATITUDE, Double.toString(cfg.latitude()));
-            }
-            if (cfg.longitude() != -1) {
-                newBuilder.set(cfg.LONGITUDE, Double.toString(cfg.longitude()));
-            }
-            if (cfg.rackAddress() != null) {
-                newBuilder.set(cfg.RACK_ADDRESS, cfg.rackAddress());
-            }
-            if (cfg.owner() != null) {
-                newBuilder.set(cfg.OWNER, cfg.owner());
-            }
-            DefaultAnnotations newAnnotations = newBuilder.build();
-            return DefaultAnnotations.union(originalAnnotations, newAnnotations);
         }
     }
 
