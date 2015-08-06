@@ -23,85 +23,44 @@
     'use strict';
 
     // injected refs
-    var $log, fs, flash, wss;
+    var $log, fs, flash, wss, api;
 
-    // api to topoForce
-    var api;
     /*
-     clearLinkTrafficStyle()
-     removeLinkLabels()
-     updateLinks()
-     findLinkById( id )
-     hovered()
-     validateSelectionContext()
+       API to topoForce
+         hovered()
+         somethingSelected()
+         selectOrder()
      */
 
-    // constants
-    var hoverModeNone = 0,
-        hoverModeAll = 1,
-        hoverModeFlows = 2,
-        hoverModeIntents = 3;
-
     // internal state
-    var hoverMode = hoverModeNone;
+    var trafficMode = null,
+        hoverMode = null;
 
-
-    // === -----------------------------------------------------
-    //  Event Handlers
-
-    function showTraffic(data) {
-        var paths = data.paths;
-
-        api.clearLinkTrafficStyle();
-        api.removeLinkLabels();
-
-        // Now highlight all links in the paths payload, and attach
-        //  labels to them, if they are defined.
-        paths.forEach(function (p) {
-            var n = p.links.length,
-                i, ldata, lab, units, magnitude, portcls;
-
-            for (i=0; i<n; i++) {
-                ldata = api.findLinkById(p.links[i]);
-                lab = p.labels[i];
-
-                if (ldata && !ldata.el.empty()) {
-                    ldata.el.classed(p.class, true);
-                    ldata.label = lab;
-
-                    if (fs.endsWith(lab, 'bps')) {
-                        // inject additional styling for port-based traffic
-                        units = lab.substring(lab.length-4);
-                        portcls = 'port-traffic-' + units;
-
-                        // for GBps
-                        if (units.substring(0,1) === 'G') {
-                            magnitude = fs.parseBitRate(lab);
-                            if (magnitude >= 9) {
-                                portcls += '-choked'
-                            }
-                        }
-                        ldata.el.classed(portcls, true);
-                    }
-                }
-            }
-        });
-
-        api.updateLinks();
-    }
 
     // === -----------------------------------------------------
     //  Helper functions
 
+    // invoked in response to change in selection and/or mouseover/out:
+    function requestTrafficForMode() {
+        if (hoverMode === 'flows') {
+            requestDeviceLinkFlows();
+        } else if (hoverMode === 'intents') {
+            requestRelatedIntents();
+        } else {
+            cancelTraffic();
+        }
+    }
+
     function requestDeviceLinkFlows() {
+        // generates payload based on current hover-state
         var hov = api.hovered();
 
         function hoverValid() {
-            return hoverMode === hoverModeFlows &&
+            return hoverMode === 'flows' &&
                 hov && (hov.class === 'device');
         }
 
-        if (api.validateSelectionContext()) {
+        if (api.somethingSelected()) {
             wss.sendEvent('requestDeviceLinkFlows', {
                 ids: api.selectOrder(),
                 hover: hoverValid() ? hov.id : ''
@@ -110,14 +69,15 @@
     }
 
     function requestRelatedIntents() {
+        // generates payload based on current hover-state
         var hov = api.hovered();
 
         function hoverValid() {
-            return hoverMode === hoverModeIntents &&
+            return hoverMode === 'intents' &&
                 hov && (hov.class === 'host' || hov.class === 'device');
         }
 
-        if (api.validateSelectionContext()) {
+        if (api.somethingSelected()) {
             wss.sendEvent('requestRelatedIntents', {
                 ids: api.selectOrder(),
                 hover: hoverValid() ? hov.id : ''
@@ -126,71 +86,75 @@
     }
 
 
-    // === -----------------------------------------------------
-    //  Traffic requests
+    // === -------------------------------------------------------------
+    //  Traffic requests invoked from keystrokes or toolbar buttons...
 
     function cancelTraffic() {
-        wss.sendEvent('cancelTraffic');
-    }
-
-    // invoked in response to change in selection and/or mouseover/out:
-    function requestTrafficForMode() {
-        if (hoverMode === hoverModeFlows) {
-            requestDeviceLinkFlows();
-        } else if (hoverMode === hoverModeIntents) {
-            requestRelatedIntents();
+        if (!trafficMode) {
+            return false;
         }
+
+        trafficMode = hoverMode = null;
+        wss.sendEvent('cancelTraffic');
+        flash.flash('Traffic monitoring canceled');
+        return true;
     }
 
-    // === -----------------------------
-    // keystroke commands
-
-    // keystroke-right-arrow (see topo.js)
-    function showNextIntentAction() {
-        hoverMode = hoverModeNone;
-        wss.sendEvent('requestNextRelatedIntent');
-        flash.flash('Next related intent');
-    }
-
-    // keystroke-left-arrow (see topo.js)
-    function showPrevIntentAction() {
-        hoverMode = hoverModeNone;
-        wss.sendEvent('requestPrevRelatedIntent');
-        flash.flash('Previous related intent');
-    }
-
-    // keystroke-W (see topo.js)
-    function showSelectedIntentTrafficAction() {
-        hoverMode = hoverModeNone;
-        wss.sendEvent('requestSelectedIntentTraffic');
-        flash.flash('Traffic on Selected Path');
-    }
-
-    // keystroke-A (see topo.js)
-    function showAllFlowTrafficAction() {
-        hoverMode = hoverModeAll;
+    function showAllFlowTraffic() {
+        trafficMode = 'allFlow';
+        hoverMode = 'all';
         wss.sendEvent('requestAllFlowTraffic');
         flash.flash('All Flow Traffic');
     }
 
-    // keystroke-A (see topo.js)
-    function showAllPortTrafficAction() {
-        hoverMode = hoverModeAll;
+    function showAllPortTraffic() {
+        trafficMode = 'allPort';
+        hoverMode = 'all';
         wss.sendEvent('requestAllPortTraffic');
         flash.flash('All Port Traffic');
     }
 
-    // === -----------------------------
-    // action buttons on detail panel
+    function showDeviceLinkFlows () {
+        trafficMode = hoverMode = 'flows';
+        requestDeviceLinkFlows();
+        flash.flash('Device Flows');
+    }
 
-    // also, keystroke-V (see topo.js)
-    function showRelatedIntentsAction () {
-        hoverMode = hoverModeIntents;
+    function showRelatedIntents () {
+        trafficMode = hoverMode = 'intents';
         requestRelatedIntents();
         flash.flash('Related Paths');
     }
 
-    function addHostIntentAction () {
+    function showPrevIntent() {
+        if (trafficMode === 'intents') {
+            hoverMode = null;
+            wss.sendEvent('requestPrevRelatedIntent');
+            flash.flash('Previous related intent');
+        }
+    }
+
+    function showNextIntent() {
+        if (trafficMode === 'intents') {
+            hoverMode = null;
+            wss.sendEvent('requestNextRelatedIntent');
+            flash.flash('Next related intent');
+        }
+    }
+
+    function showSelectedIntentTraffic() {
+        if (trafficMode === 'intents') {
+            hoverMode = null;
+            wss.sendEvent('requestSelectedIntentTraffic');
+            flash.flash('Traffic on Selected Path');
+        }
+    }
+
+
+    // === ------------------------------------------------------
+    // action buttons on detail panel (multiple selection)
+
+    function addHostIntent () {
         var so = api.selectOrder();
         wss.sendEvent('addHostIntent', {
             one: so[0],
@@ -200,7 +164,7 @@
         flash.flash('Host-to-Host flow added');
     }
 
-    function addMultiSourceIntentAction () {
+    function addMultiSourceIntent () {
         var so = api.selectOrder();
         wss.sendEvent('addMultiSourceIntent', {
             src: so.slice(0, so.length - 1),
@@ -210,12 +174,6 @@
         flash.flash('Multi-Source flow added');
     }
 
-    // also, keystroke-F (see topo.js)
-    function showDeviceLinkFlowsAction () {
-        hoverMode = hoverModeFlows;
-        requestDeviceLinkFlows();
-        flash.flash('Device Flows');
-    }
 
 
     // === -----------------------------------------------------
@@ -231,29 +189,26 @@
             flash = _flash_;
             wss = _wss_;
 
-            function initTraffic(_api_) {
-                api = _api_;
-            }
-
-            function destroyTraffic() { }
-
             return {
-                initTraffic: initTraffic,
-                destroyTraffic: destroyTraffic,
+                initTraffic: function (_api_) { api = _api_; },
+                destroyTraffic: function () { },
 
-                showTraffic: showTraffic,
-
+                // invoked from toolbar overlay buttons or keystrokes
                 cancelTraffic: cancelTraffic,
+                showAllFlowTraffic: showAllFlowTraffic,
+                showAllPortTraffic: showAllPortTraffic,
+                showDeviceLinkFlows: showDeviceLinkFlows,
+                showRelatedIntents: showRelatedIntents,
+                showPrevIntent: showPrevIntent,
+                showNextIntent: showNextIntent,
+                showSelectedIntentTraffic: showSelectedIntentTraffic,
+
+                // invoked from mouseover/mouseout and selection change
                 requestTrafficForMode: requestTrafficForMode,
-                showRelatedIntentsAction: showRelatedIntentsAction,
-                addHostIntentAction: addHostIntentAction,
-                addMultiSourceIntentAction: addMultiSourceIntentAction,
-                showDeviceLinkFlowsAction: showDeviceLinkFlowsAction,
-                showNextIntentAction: showNextIntentAction,
-                showPrevIntentAction: showPrevIntentAction,
-                showSelectedIntentTrafficAction: showSelectedIntentTrafficAction,
-                showAllFlowTrafficAction: showAllFlowTrafficAction,
-                showAllPortTrafficAction: showAllPortTrafficAction
+
+                // invoked from buttons on detail (multi-select) panel
+                addHostIntent: addHostIntent,
+                addMultiSourceIntent: addMultiSourceIntent
             };
         }]);
 }());

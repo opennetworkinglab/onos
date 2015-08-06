@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, $timeout, fs, sus, is, ts, flash, wss,
+    var $log, $timeout, fs, sus, ts, flash, wss, tov,
         tis, tms, td3, tss, tts, tos, fltr, tls, uplink, svg;
 
     // configuration
@@ -797,9 +797,10 @@
         return true;
     }
 
-    // ==========================
-    // function entry points for traffic module
+    // =============================================
+    // function entry points for overlay module
 
+    // TODO: find an automatic way of tracking via the "showHighlights" events
     var allTrafficClasses = 'primary secondary optical animated ' +
         'port-traffic-Kbps port-traffic-Mbps port-traffic-Gbps ' +
         'port-traffic-Gbps-choked';
@@ -845,7 +846,7 @@
         };
     }
 
-    function mkD3Api(uplink) {
+    function mkD3Api() {
         return {
             node: function () { return node; },
             link: function () { return link; },
@@ -859,7 +860,7 @@
         };
     }
 
-    function mkSelectApi(uplink) {
+    function mkSelectApi() {
         return {
             node: function () { return node; },
             zoomingOrPanning: zoomingOrPanning,
@@ -868,15 +869,20 @@
         };
     }
 
-    function mkTrafficApi(uplink) {
+    function mkTrafficApi() {
+        return {
+            hovered: tss.hovered,
+            somethingSelected: tss.somethingSelected,
+            selectOrder: tss.selectOrder
+        };
+    }
+
+    function mkOverlayApi() {
         return {
             clearLinkTrafficStyle: clearLinkTrafficStyle,
             removeLinkLabels: removeLinkLabels,
             updateLinks: updateLinks,
-            findLinkById: tms.findLinkById,
-            hovered: tss.hovered,
-            validateSelectionContext: tss.validateSelectionContext,
-            selectOrder: tss.selectOrder
+            findLinkById: tms.findLinkById
         };
     }
 
@@ -904,7 +910,7 @@
         };
     }
 
-    function mkFilterApi(uplink) {
+    function mkFilterApi() {
         return {
             node: function () { return node; },
             link: function () { return link; }
@@ -925,11 +931,11 @@
     .factory('TopoForceService',
         ['$log', '$timeout', 'FnService', 'SvgUtilService',
             'ThemeService', 'FlashService', 'WebSocketService',
-            'TopoInstService', 'TopoModelService',
+            'TopoOverlayService', 'TopoInstService', 'TopoModelService',
             'TopoD3Service', 'TopoSelectService', 'TopoTrafficService',
             'TopoObliqueService', 'TopoFilterService', 'TopoLinkService',
 
-        function (_$log_, _$timeout_, _fs_, _sus_, _ts_, _flash_, _wss_,
+        function (_$log_, _$timeout_, _fs_, _sus_, _ts_, _flash_, _wss_, _tov_,
                   _tis_, _tms_, _td3_, _tss_, _tts_, _tos_, _fltr_, _tls_) {
             $log = _$log_;
             $timeout = _$timeout_;
@@ -938,6 +944,7 @@
             ts = _ts_;
             flash = _flash_;
             wss = _wss_;
+            tov = _tov_;
             tis = _tis_;
             tms = _tms_;
             td3 = _td3_;
@@ -966,12 +973,13 @@
 
                 $log.debug('initForce().. dim = ' + dim);
 
+                tov.setApi(mkOverlayApi(), tss);
                 tms.initModel(mkModelApi(uplink), dim);
-                td3.initD3(mkD3Api(uplink));
-                tss.initSelect(mkSelectApi(uplink));
-                tts.initTraffic(mkTrafficApi(uplink));
+                td3.initD3(mkD3Api());
+                tss.initSelect(mkSelectApi());
+                tts.initTraffic(mkTrafficApi());
                 tos.initOblique(mkObliqueApi(uplink, fltr));
-                fltr.initFilter(mkFilterApi(uplink));
+                fltr.initFilter(mkFilterApi());
                 tls.initLink(mkLinkApi(svg, uplink), td3);
 
                 settings = angular.extend({}, defaultSettings, opts);
@@ -1016,6 +1024,7 @@
                 tss.destroySelect();
                 td3.destroyD3();
                 tms.destroyModel();
+                // note: no need to destroy overlay service
                 ts.removeListener(themeListener);
                 themeListener = null;
 

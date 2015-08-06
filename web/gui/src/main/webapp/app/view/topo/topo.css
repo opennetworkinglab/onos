@@ -305,6 +305,21 @@ html[data-platform='iPad'] #topo-p-detail {
     filter: url("data:image/svg+xml;utf8, <svg xmlns = \'http://www.w3.org/2000/svg\'><filter x=\"-50%\" y=\"-50%\" width=\"200%\" height=\"200%\" id=\"yellow-glow\"><feColorMatrix type=\"matrix\" values=\"0 0 0 0  1.0 0 0 0 0  1.0 0 0 0 0  0.3 0 0 0 1  0 \"></feColorMatrix><feGaussianBlur stdDeviation=\"3\" result=\"coloredBlur\"></feGaussianBlur><feMerge><feMergeNode in=\"coloredBlur\"></feMergeNode><feMergeNode in=\"SourceGraphic\"></feMergeNode></feMerge></filter></svg>#yellow-glow");
 }
 
+
+/* --- Toolbar --- */
+
+#toolbar-topo-tbar .tbar-row.right {
+    width: 100%;
+}
+
+#toolbar-topo-tbar .tbar-row-text {
+    height: 21px;
+    text-align: right;
+    padding: 8px 60px 0 0;
+    font-style: italic;
+}
+
+
 /* --- Topo Nodes --- */
 
 #ov-topo svg .suppressed {

@@ -45,6 +45,10 @@
             "C429.9,285.5,426.7,293.2,427.7,300.4z"
         },
 
+    // TODO: ONOS-2566 glyphs for device types:
+    //          otn, roadm_otn, firewall, balancer, ips, ids,
+    //          controller, virtual, fiber_switch, other
+
         glyphDataSet = {
             _viewbox: "0 0 110 110",
 

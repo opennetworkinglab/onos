@@ -72,7 +72,7 @@ import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
-import org.onosproject.ui.topo.ButtonDescriptor;
+import org.onosproject.ui.topo.ButtonId;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,6 +122,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     private static final ProviderId PID =
             new ProviderId("core", "org.onosproject.core", true);
     private static final String COMPACT = "%s/%s-%s/%s";
+
+    private static final String SHOW_HIGHLIGHTS = "showHighlights";
 
     private static final double KILO = 1024;
     private static final double MEGA = 1024 * KILO;
@@ -642,7 +644,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 labelsN.add("");
             }
         }
-        return JsonUtils.envelope("showTraffic", 0, payload);
+        return JsonUtils.envelope(SHOW_HIGHLIGHTS, 0, payload);
     }
 
     private Load getLinkLoad(Link link) {
@@ -679,7 +681,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 addLinkFlows(link, paths, counts.get(link));
             }
         }
-        return JsonUtils.envelope("showTraffic", 0, payload);
+        return JsonUtils.envelope(SHOW_HIGHLIGHTS, 0, payload);
     }
 
     private void addLinkFlows(Link link, ArrayNode paths, Integer count) {
@@ -723,7 +725,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             ((ArrayNode) pathNode.path("labels")).add(hasTraffic ? formatBytes(biLink.bytes) : "");
         }
 
-        return JsonUtils.envelope("showTraffic", 0, payload);
+        return JsonUtils.envelope(SHOW_HIGHLIGHTS, 0, payload);
     }
 
     // Classifies the link traffic according to the specified classes.
@@ -870,19 +872,11 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         result.set("props", pnode);
 
         ArrayNode buttons = arrayNode();
-        for (ButtonDescriptor b : pp.buttons()) {
-            buttons.add(json(b));
+        for (ButtonId b : pp.buttons()) {
+            buttons.add(b.id());
         }
         result.set("buttons", buttons);
         return result;
-    }
-
-    // translates the button descriptor into JSON
-    private ObjectNode json(ButtonDescriptor bdesc) {
-        return objectNode()
-                .put("id", bdesc.id())
-                .put("gid", bdesc.glyphId())
-                .put("tt", bdesc.tooltip());
     }
 
 

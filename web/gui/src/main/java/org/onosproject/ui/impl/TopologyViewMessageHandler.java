@@ -214,6 +214,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 new UpdateMeta(),
                 new EqMasters(),
 
+                // TODO: implement "showHighlights" event (replaces "showTraffic")
+
                 // TODO: migrate traffic related to separate app
                 new AddHostIntent(),
                 new AddMultiSourceIntent(),
@@ -965,6 +967,14 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void processItems(List<Event> items) {
+            // Start-of-Debugging
+            long now = System.currentTimeMillis();
+            String me = this.toString();
+            String miniMe = me.replaceAll("^.*@", "me@");
+            log.debug("Time: {}; this: {}, processing items ({} events)",
+                      now, miniMe, items.size());
+            // End-of-Debugging
+
             try {
                 if (summaryRunning) {
                     msgSender.execute(() -> requestSummary(0));

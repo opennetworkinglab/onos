@@ -3,7 +3,10 @@
     'use strict';
 
     // injected refs
-    var $log;
+    var $log, tov;
+
+    // internal state
+    var someStateValue = true;
 
     // our overlay definition
     var overlay = {
@@ -27,40 +30,127 @@
             }
         },
 
-        activate: activateOverlay,
-        deactivate: deactivateOverlay,
+        activate: function () {
+            $log.debug("sample topology overlay ACTIVATED");
+        },
+        deactivate: function () {
+            $log.debug("sample topology overlay DEACTIVATED");
+        },
 
-        // button callbacks matching button identifiers
-        buttonActions: {
-            foo: fooCb,
-            bar: barCb
+
+
+
+
+        // detail panel button definitions
+        buttons: {
+            foo: {
+                gid: 'chain',
+                tt: 'A FOO action',
+                cb: function (data) {
+                    $log.debug('FOO action invoked with data:', data);
+                }
+            },
+            bar: {
+                gid: '*banner',
+                tt: 'A BAR action',
+                cb: function (data) {
+                    $log.debug('BAR action invoked with data:', data);
+                }
+            }
+        },
+
+        // Key bindings for traffic overlay buttons
+        // NOTE: fully qual. button ID is derived from overlay-id and key-name
+        keyBindings: {
+            V: {
+                cb: buttonCallback,
+                tt: 'Uses the V key',
+                gid: '*banner'
+            },
+            F: {
+                cb: buttonCallback,
+                tt: 'Uses the F key',
+                gid: 'chain'
+            },
+            G: {
+                cb: buttonCallback,
+                tt: 'Uses the G key',
+                gid: 'crown'
+            },
+
+            T: {
+                cb: buttonCallback,
+                tt: 'Uses the T key',
+                gid: 'switch'
+            },
+
+            R: {
+                cb: buttonCallback,
+                tt: 'Uses the R key',
+                gid: 'endstation'
+            },
+
+            0: {
+                cb: buttonCallback,
+                tt: 'Uses the ZERO key',
+                gid: 'xMark'
+            },
+
+            _keyOrder: [
+                '0', 'V', 'F', 'G', 'T', 'R'
+            ]
+
+            // NOTE: T and R should be rejected (not installed)
+            //       T is reserved for 'toggle Theme'
+            //       R is reserved for 'Reset pan and zoom'
+        },
+
+        hooks: {
+            // hook for handling escape key
+            // Must return true to consume ESC, false otherwise.
+            escape: cancelState,
+
+            // hooks for when the selection changes...
+            empty: function () {
+                selectionCallback('empty');
+            },
+            single: function (data) {
+                selectionCallback('single', data);
+            },
+            multi: function (selectOrder) {
+                selectionCallback('multi', selectOrder);
+                tov.addDetailButton('foo');
+                tov.addDetailButton('bar');
+            }
         }
+
     };
 
-    function fooCb(data) {
-        $log.debug('FOO callback with data:', data);
+    // invoked when the escape key is pressed
+    function cancelState() {
+        if (someStateValue) {
+            someStateValue = false;
+            // we consumed the ESC event
+            return true;
+        }
+        return false;
     }
 
-    function barCb(data) {
-        $log.debug('BAR callback with data:', data);
+    function buttonCallback(x) {
+        $log.debug('Toolbar-button callback', x);
     }
 
-    // === implementation of overlay API (essentially callbacks)
-    function activateOverlay() {
-        $log.debug("sample topology overlay ACTIVATED");
+    function selectionCallback(x, d) {
+        $log.debug('Selection callback', x, d);
     }
-
-    function deactivateOverlay() {
-        $log.debug("sample topology overlay DEACTIVATED");
-    }
-
 
     // invoke code to register with the overlay service
     angular.module('ovSample')
         .run(['$log', 'TopoOverlayService',
 
-            function (_$log_, tov) {
+            function (_$log_, _tov_) {
                 $log = _$log_;
+                tov = _tov_;
                 tov.register(overlay);
             }]);
 

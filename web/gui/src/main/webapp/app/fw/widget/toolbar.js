@@ -18,6 +18,7 @@
  ONOS GUI -- Widget -- Toolbar Service
  */
 // TODO: Augment service to allow toolbars to exist on right edge of screen
+// TODO: also - make toolbar more object aware (rows etc.)
 
 
 (function () {
@@ -80,6 +81,7 @@
             panel = ps.createPanel(tbid, settings),
             arrowDiv = createArrow(panel),
             currentRow = panel.append('div').classed('tbar-row', true),
+            rowButtonIds = [],          // for removable buttons
             tbWidth = arrowSize + 2,    // empty toolbar width
             maxWidth = panel.width();
 
@@ -162,7 +164,41 @@
             } else {
                 panel.append('br');
                 currentRow = panel.append('div').classed('tbar-row', true);
+
+                // return API to allow caller more access to the row
+                return {
+                    clear: rowClear,
+                    setText: rowSetText,
+                    addButton: rowAddButton,
+                    classed: rowClassed
+                };
             }
+        }
+
+        function rowClear() {
+            currentRow.selectAll('*').remove();
+            rowButtonIds.forEach(function (bid) {
+                delete items[bid];
+            });
+            rowButtonIds = [];
+        }
+
+        // installs a div with text into the button row
+        function rowSetText(text) {
+            rowClear();
+            currentRow.append('div').classed('tbar-row-text', true)
+                .html(text);
+        }
+
+        function rowAddButton(id, gid, cb, tooltip) {
+            var b = addButton(id, gid, cb, tooltip);
+            if (b) {
+                rowButtonIds.push(id);
+            }
+        }
+
+        function rowClassed(classes, bool) {
+            currentRow.classed(classes, bool);
         }
 
         function show(cb) {

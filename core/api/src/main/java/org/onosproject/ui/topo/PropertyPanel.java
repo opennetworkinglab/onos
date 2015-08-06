@@ -35,7 +35,7 @@ public class PropertyPanel {
     private String typeId;
     private String id;
     private List<Prop> properties = new ArrayList<>();
-    private List<ButtonDescriptor> buttons = new ArrayList<>();
+    private List<ButtonId> buttons = new ArrayList<>();
 
     /**
      * Constructs a property panel model with the given title and
@@ -181,7 +181,7 @@ public class PropertyPanel {
      * @return the button list
      */
     // TODO: consider protecting this?
-    public List<ButtonDescriptor> buttons() {
+    public List<ButtonId> buttons() {
         return buttons;
     }
 
@@ -243,7 +243,7 @@ public class PropertyPanel {
      * @param button button descriptor
      * @return self, for chaining
      */
-    public PropertyPanel addButton(ButtonDescriptor button) {
+    public PropertyPanel addButton(ButtonId button) {
         buttons.add(button);
         return this;
     }
@@ -254,10 +254,10 @@ public class PropertyPanel {
      * @param descriptors descriptors to remove
      * @return self, for chaining
      */
-    public PropertyPanel removeButtons(ButtonDescriptor... descriptors) {
-        Set<ButtonDescriptor> forRemoval = Sets.newHashSet(descriptors);
-        List<ButtonDescriptor> toKeep = new ArrayList<>();
-        for (ButtonDescriptor bd: buttons) {
+    public PropertyPanel removeButtons(ButtonId... descriptors) {
+        Set<ButtonId> forRemoval = Sets.newHashSet(descriptors);
+        List<ButtonId> toKeep = new ArrayList<>();
+        for (ButtonId bd: buttons) {
             if (!forRemoval.contains(bd)) {
                 toKeep.add(bd);
             }

@@ -17,29 +17,22 @@
 
 package org.onosproject.ui.topo;
 
+import com.google.common.base.MoreObjects;
+
 /**
- * Designates a descriptor for a button on the topology view panels.
+ * Designates the identity of a button on the topology view panels.
  */
-public class ButtonDescriptor {
+public class ButtonId {
 
     private final String id;
-    private final String glyphId;
-    private final String tooltip;
 
     /**
-     * Creates a button descriptor with the given identifier, glyph ID, and
-     * tooltip text. To reference a custom glyph defined in the overlay itself,
-     * prefix its ID with an asterisk, (e.g. {@code "*myGlyph"}). Alternatively,
-     * use one of the {@link TopoConstants.Glyphs predefined constant}.
+     * Creates a button ID with the given identifier.
      *
      * @param id identifier for the button
-     * @param glyphId identifier for the glyph
-     * @param tooltip tooltip text
      */
-    public ButtonDescriptor(String id, String glyphId, String tooltip) {
+    public ButtonId(String id) {
         this.id = id;
-        this.glyphId = glyphId;
-        this.tooltip = tooltip;
     }
 
     /**
@@ -51,22 +44,10 @@ public class ButtonDescriptor {
         return id;
     }
 
-    /**
-     * Returns the glyph identifier for this button.
-     *
-     * @return glyph identifier
-     */
-    public String glyphId() {
-        return glyphId;
-    }
-
-    /**
-     * Returns the tooltip text for this button.
-     *
-     * @return tooltip text
-     */
-    public String tooltip() {
-        return tooltip;
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("id", id()).toString();
     }
 
     @Override
@@ -78,9 +59,8 @@ public class ButtonDescriptor {
             return false;
         }
 
-        ButtonDescriptor that = (ButtonDescriptor) o;
+        ButtonId that = (ButtonId) o;
         return id.equals(that.id);
-
     }
 
     @Override

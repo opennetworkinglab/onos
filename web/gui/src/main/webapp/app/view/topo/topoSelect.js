@@ -40,12 +40,6 @@
         selectOrder = [],       // the order in which we made selections
         consumeClick = false;   // used to coordinate with SVG click handler
 
-    // constants
-    var devPath = 'device',
-        flowPath = 'flow',
-        portPath ='port',
-        groupPath = 'group';
-
     // ==========================
 
     function nSel() {
@@ -157,8 +151,7 @@
 
     // === -----------------------------------------------------
 
-    function requestDetails() {
-        var data = getSel(0).obj;
+    function requestDetails(data) {
         wss.sendEvent('requestDetails', {
             id: data.id,
             class: data.class
@@ -179,91 +172,62 @@
     }
 
     function emptySelect() {
-        tts.cancelTraffic();
+        tov.hooks.emptySelect();
         tps.displayNothing();
     }
 
     function singleSelect() {
-        // NOTE: detail is shown from 'showDetails' event callback
-        requestDetails();
-        tts.cancelTraffic();
-        tts.requestTrafficForMode();
+        var data = getSel(0).obj;
+        requestDetails(data);
+        // NOTE: detail panel is shown as a response to receiving
+        //       a 'showDetails' event from the server. See 'showDetails'
+        //       callback function below...
     }
 
     function multiSelect() {
         // display the selected nodes in the detail panel
         tps.displayMulti(selectOrder);
-
-        // always add the 'show traffic' action
-        tps.addAction({
-            id: '-mult-rel-traf-btn',
-            gid: 'allTraffic',
-            cb:  tts.showRelatedIntentsAction,
-            tt: 'Show Related Traffic'
-        });
-
-        // add other actions, based on what is selected...
-        if (nSel() === 2 && allSelectionsClass('host')) {
-            tps.addAction({
-                id: 'host-flow-btn',
-                gid: 'endstation',
-                cb: tts.addHostIntentAction,
-                tt: 'Create Host-to-Host Flow'
-            });
-        } else if (nSel() >= 2 && allSelectionsClass('host')) {
-            tps.addAction({
-                id: 'mult-src-flow-btn',
-                gid: 'flows',
-                cb: tts.addMultiSourceIntentAction,
-                tt: 'Create Multi-Source Flow'
-            });
-        }
-
-        tts.cancelTraffic();
-        tts.requestTrafficForMode();
+        addHostSelectionActions();
+        tov.hooks.multiSelect(selectOrder);
         tps.displaySomething();
+    }
+
+    function addHostSelectionActions() {
+        if (allSelectionsClass('host')) {
+            if (nSel() === 2) {
+                tps.addAction({
+                    id: 'host-flow-btn',
+                    gid: 'endstation',
+                    cb: tts.addHostIntent,
+                    tt: 'Create Host-to-Host Flow'
+                });
+            } else if (nSel() >= 2) {
+                tps.addAction({
+                    id: 'mult-src-flow-btn',
+                    gid: 'flows',
+                    cb: tts.addMultiSourceIntent,
+                    tt: 'Create Multi-Source Flow'
+                });
+            }
+        }
     }
 
 
     // === -----------------------------------------------------
     //  Event Handlers
 
+    // display the data for the single selected node
     function showDetails(data) {
         var buttons = fs.isA(data.buttons) || [];
-
-        // display the data for the single selected node
         tps.displaySingle(data);
-
-        tov.installButtons(buttons, tps.addAction, data, data.props['URI']);
-
-        // TODO: MOVE traffic buttons to the traffic overlay
-        // always add the 'show traffic' action
-        tps.addAction({
-            id: '-sin-rel-traf-btn',
-            gid: 'intentTraffic',
-            cb: tts.showRelatedIntentsAction,
-            tt: 'Show Related Traffic'
-        });
-
-        // add other actions, based on what is selected...
-        if (data.type === 'switch') {
-            tps.addAction({
-                id: 'sin-dev-flows-btn',
-                gid: 'flows',
-                cb: tts.showDeviceLinkFlowsAction,
-                tt: 'Show Device Flows'
-            });
-        }
-
+        tov.installButtons(buttons, data, data.props['URI']);
+        tov.hooks.singleSelect(data);
         tps.displaySomething();
     }
 
-    function validateSelectionContext() {
-        if (!hovered && !nSel()) {
-            tts.cancelTraffic();
-            return false;
-        }
-        return true;
+    // returns true if we are hovering over a node, or any nodes are selected
+    function somethingSelected() {
+        return hovered || nSel();
     }
 
     function clickConsumed(x) {
@@ -306,10 +270,11 @@
                 selectObject: selectObject,
                 deselectObject: deselectObject,
                 deselectAll: deselectAll,
+                updateDetail: updateDetail,
 
                 hovered: function () { return hovered; },
                 selectOrder: function () { return selectOrder; },
-                validateSelectionContext: validateSelectionContext,
+                somethingSelected: somethingSelected,
 
                 clickConsumed: clickConsumed
             };

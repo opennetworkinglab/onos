@@ -27,14 +27,14 @@
     'use strict';
 
     // injected refs
-    var $log, $interval, wss, tps, tis, tfs, tss, tts, tspr;
+    var $log, $interval, wss, tps, tis, tfs, tss, tov, tspr;
 
     // internal state
     var handlerMap,
         openListener,
         heartbeatTimer;
 
-    var heartbeatPeriod = 5000; // 5 seconds
+    var heartbeatPeriod = 9000; // 9 seconds
 
     // ==========================
 
@@ -44,7 +44,7 @@
 
             showDetails: tss,
 
-            showTraffic: tts,
+            showHighlights: tov,
 
             addInstance: tis,
             updateInstance: tis,
@@ -90,10 +90,10 @@
     .factory('TopoEventService',
         ['$log', '$interval', 'WebSocketService',
             'TopoPanelService', 'TopoInstService', 'TopoForceService',
-            'TopoSelectService', 'TopoTrafficService', 'TopoSpriteService',
+            'TopoSelectService', 'TopoOverlayService', 'TopoSpriteService',
 
         function (_$log_,  _$interval_, _wss_,
-                  _tps_, _tis_, _tfs_, _tss_, _tts_, _tspr_) {
+                  _tps_, _tis_, _tfs_, _tss_, _tov_, _tspr_) {
             $log = _$log_;
             $interval = _$interval_;
             wss = _wss_;
@@ -101,7 +101,7 @@
             tis = _tis_;
             tfs = _tfs_;
             tss = _tss_;
-            tts = _tts_;
+            tov = _tov_;
             tspr = _tspr_;
 
             createHandlerMap();

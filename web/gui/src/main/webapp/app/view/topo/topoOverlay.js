@@ -30,7 +30,7 @@
     var tos = 'TopoOverlayService: ';
 
     // injected refs
-    var $log, fs, gs, wss, ns;
+    var $log, fs, gs, wss, ns, tss, tps, api;
 
     // internal state
     var overlays = {},
@@ -80,6 +80,7 @@
     function register(overlay) {
         var r = 'register',
             over = fs.isO(overlay),
+            kb = over ? fs.isO(overlay.keyBindings) : null,
             id = over ? over.overlayId : '';
 
         if (!id) {
@@ -90,11 +91,26 @@
         }
         overlays[id] = overlay;
         handleGlyphs(overlay);
+
+        if (kb) {
+            if (!fs.isA(kb._keyOrder)) {
+                warn(r, 'no _keyOrder array defined on keyBindings');
+            } else {
+                kb._keyOrder.forEach(function (k) {
+                    if (k !== '-' && !kb[k]) {
+                        warn(r, 'no "' + k + '" property defined on keyBindings');
+                    }
+                });
+            }
+        }
+
         $log.debug(tos + 'registered overlay: ' + id, overlay);
     }
 
+    // TODO: remove this redundant code.......
     // NOTE: unregister needs to be called if an app is ever
     //       deactivated/uninstalled via the applications view
+/*
     function unregister(overlay) {
         var u = 'unregister',
             over = fs.isO(overlay),
@@ -108,21 +124,33 @@
         }
         delete overlays[id];
         $log.debug(tos + 'unregistered overlay: ' + id);
-        // TODO: rebuild the toolbar overlay radio button set
     }
+*/
 
+
+    // returns the list of overlay identifiers
     function list() {
         return d3.map(overlays).keys();
     }
 
-    function overlay(id) {
-        return overlays[id];
+    // add a radio button for each registered overlay
+    function augmentRbset(rset, switchFn) {
+        angular.forEach(overlays, function (ov) {
+            rset.push({
+                gid: ov._glyphId,
+                tooltip: (ov.tooltip || '(no tooltip)'),
+                cb: function () {
+                    tbSelection(ov.overlayId, switchFn);
+                }
+            });
+        });
     }
 
     // an overlay was selected via toolbar radio button press from user
-    function tbSelection(id) {
+    function tbSelection(id, switchFn) {
         var same = current && current.overlayId === id,
-            payload = {};
+            payload = {},
+            actions;
 
         function doop(op) {
             var oid = current.overlayId;
@@ -133,70 +161,211 @@
 
         if (!same) {
             current && doop('deactivate');
-            current = overlay(id);
+            current = overlays[id];
             current && doop('activate');
+            actions = current && fs.isO(current.keyBindings);
+            switchFn(id, actions);
+
             wss.sendEvent('topoSelectOverlay', payload);
 
-            // TODO: refactor to emit "flush on overlay change" messages
+            // Ensure summary and details panels are updated immediately..
             wss.sendEvent('requestSummary');
+            tss.updateDetail();
         }
     }
 
-    var coreButtonPath = {
-        showDeviceView: 'device',
-        showFlowView: 'flow',
-        showPortView: 'port',
-        showGroupView: 'group'
+    var coreButtons = {
+        showDeviceView: {
+            gid: 'switch',
+            tt: 'Show Device View',
+            path: 'device'
+        },
+        showFlowView: {
+            gid: 'flowTable',
+            tt: 'Show Flow View for this Device',
+            path: 'flow'
+        },
+        showPortView: {
+            gid: 'portTable',
+            tt: 'Show Port View for this Device',
+            path: 'port'
+        },
+        showGroupView: {
+            gid: 'groupTable',
+            tt: 'Show Group View for this Device',
+            path: 'group'
+        }
     };
 
+    // retrieves a button definition from the current overlay and generates
+    //  a button descriptor to be added to the panel, with the data baked in
+    function _getButtonDef(id, data) {
+        var btns = current && current.buttons,
+            b = btns && btns[id],
+            cb = fs.isF(b.cb),
+            f = cb ? function () { cb(data); } : function () {};
+
+        return b ? {
+            id: current.mkId(id),
+            gid: current.mkGid(b.gid),
+            tt: b.tt,
+            cb: f
+        } : null;
+    }
+
     // install core buttons, and include any additional from the current overlay
-    function installButtons(buttons, addFn, data, devId) {
+    function installButtons(buttons, data, devId) {
+        buttons.forEach(function (id) {
+            var btn = coreButtons[id],
+                gid = btn && btn.gid,
+                tt = btn && btn.tt,
+                path = btn && btn.path;
 
-        angular.forEach(buttons, function (btn) {
-            var path = coreButtonPath[btn.id],
-                _id,
-                _gid,
-                _cb,
-                action;
-
-            if (path) {
-                // core callback function
-                _id = btn.id;
-                _gid = btn.gid;
-                action = function () {
-                    ns.navTo(path, { devId: devId });
-                };
-            } else if (current) {
-                _id = current.mkId(btn.id);
-                _gid = current.mkGid(btn.gid);
-                action = current.buttonActions[btn.id] || function () {};
+            if (btn) {
+                tps.addAction({
+                    id: 'core-' + id,
+                    gid: gid,
+                    tt: tt,
+                    cb: function () { ns.navTo(path, {devId: devId }); }
+                });
+            } else if (btn = _getButtonDef(id, data)) {
+                tps.addAction(btn);
             }
+        });
+    }
 
-            _cb = function () { action(data); };
+    function addDetailButton(id) {
+        var b = _getButtonDef(id);
+        if (b) {
+            tps.addAction({
+                id: current.mkId(id),
+                gid: current.mkGid(b.gid),
+                cb: b.cb,
+                tt: b.tt
+            });
+        }
+    }
 
-            addFn({ id: _id, gid: _gid, cb: _cb, tt: btn.tt});
+
+    // === -----------------------------------------------------
+    //  Hooks for overlays
+
+    function _hook(x) {
+        var h = current && current.hooks;
+        return h && fs.isF(h[x]);
+    }
+
+    function escapeHook() {
+        var eh = _hook('escape');
+        return eh ? eh() : false;
+    }
+
+    function emptySelectHook() {
+        var cb = _hook('empty');
+        cb && cb();
+    }
+
+    function singleSelectHook(data) {
+        var cb = _hook('single');
+        cb && cb(data);
+    }
+
+    function multiSelectHook(selectOrder) {
+        var cb = _hook('multi');
+        cb && cb(selectOrder);
+    }
+
+    // === -----------------------------------------------------
+    //  Event (from server) Handlers
+
+    function setApi(_api_, _tss_) {
+        api = _api_;
+        tss = _tss_;
+    }
+
+    // TODO: refactor this (currently using showTraffic data structure)
+    function showHighlights(data) {
+        /*
+           API to topoForce
+             clearLinkTrafficStyle()
+             removeLinkLabels()
+             updateLinks()
+             findLinkById( id )
+         */
+
+        var paths = data.paths;
+
+        api.clearLinkTrafficStyle();
+        api.removeLinkLabels();
+
+        // Now highlight all links in the paths payload, and attach
+        //  labels to them, if they are defined.
+        paths.forEach(function (p) {
+            var n = p.links.length,
+                i, ldata, lab, units, magnitude, portcls;
+
+            for (i=0; i<n; i++) {
+                ldata = api.findLinkById(p.links[i]);
+                lab = p.labels[i];
+
+                if (ldata && !ldata.el.empty()) {
+                    ldata.el.classed(p.class, true);
+                    ldata.label = lab;
+
+                    if (fs.endsWith(lab, 'bps')) {
+                        // inject additional styling for port-based traffic
+                        units = lab.substring(lab.length-4);
+                        portcls = 'port-traffic-' + units;
+
+                        // for GBps
+                        if (units.substring(0,1) === 'G') {
+                            magnitude = fs.parseBitRate(lab);
+                            if (magnitude >= 9) {
+                                portcls += '-choked'
+                            }
+                        }
+                        ldata.el.classed(portcls, true);
+                    }
+                }
+            }
         });
 
+        api.updateLinks();
     }
+
+    // ========================================================================
 
     angular.module('ovTopo')
     .factory('TopoOverlayService',
         ['$log', 'FnService', 'GlyphService', 'WebSocketService', 'NavService',
+            'TopoPanelService',
 
-        function (_$log_, _fs_, _gs_, _wss_, _ns_) {
+        function (_$log_, _fs_, _gs_, _wss_, _ns_, _tps_) {
             $log = _$log_;
             fs = _fs_;
             gs = _gs_;
             wss = _wss_;
             ns = _ns_;
+            tps = _tps_;
 
             return {
                 register: register,
-                unregister: unregister,
+                //unregister: unregister,
+                setApi: setApi,
                 list: list,
-                overlay: overlay,
+                augmentRbset: augmentRbset,
+                mkGlyphId: mkGlyphId,
                 tbSelection: tbSelection,
-                installButtons: installButtons
+                installButtons: installButtons,
+                addDetailButton: addDetailButton,
+                hooks: {
+                    escape: escapeHook,
+                    emptySelect: emptySelectHook,
+                    singleSelect: singleSelectHook,
+                    multiSelect: multiSelectHook
+                },
+
+                showHighlights: showHighlights
             }
         }]);
 

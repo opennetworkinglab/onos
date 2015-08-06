@@ -18,7 +18,7 @@
 package org.meowster.over;
 
 import org.onosproject.ui.UiTopoOverlay;
-import org.onosproject.ui.topo.ButtonDescriptor;
+import org.onosproject.ui.topo.ButtonId;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.onosproject.ui.topo.TopoConstants.CoreButtons;
 import org.onosproject.ui.topo.TopoConstants.Glyphs;
@@ -36,12 +36,8 @@ public class AppUiTopoOverlay extends UiTopoOverlay {
     private static final String MY_TITLE = "I changed the title";
     private static final String MY_VERSION = "Beta-1.0.0042";
 
-    private static final ButtonDescriptor FOO_DESCRIPTOR =
-            new ButtonDescriptor("foo", "chain", "A FOO action");
-
-    private static final ButtonDescriptor BAR_DESCRIPTOR =
-            new ButtonDescriptor("bar", "*banner", "A BAR action");
-
+    private static final ButtonId FOO_BUTTON = new ButtonId("foo");
+    private static final ButtonId BAR_BUTTON = new ButtonId("bar");
 
     public AppUiTopoOverlay() {
         super(OVERLAY_ID);
@@ -68,8 +64,8 @@ public class AppUiTopoOverlay extends UiTopoOverlay {
         pp.title(MY_TITLE);
         pp.removeProps(LATITUDE, LONGITUDE);
 
-        pp.addButton(FOO_DESCRIPTOR)
-                .addButton(BAR_DESCRIPTOR);
+        pp.addButton(FOO_BUTTON)
+                .addButton(BAR_BUTTON);
 
         pp.removeButtons(CoreButtons.SHOW_PORT_VIEW)
                 .removeButtons(CoreButtons.SHOW_GROUP_VIEW);

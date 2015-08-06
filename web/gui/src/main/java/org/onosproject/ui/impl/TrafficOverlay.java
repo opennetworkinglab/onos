@@ -18,6 +18,8 @@
 package org.onosproject.ui.impl;
 
 import org.onosproject.ui.UiTopoOverlay;
+import org.onosproject.ui.topo.ButtonId;
+import org.onosproject.ui.topo.PropertyPanel;
 
 /**
  * Topology Overlay for network traffic.
@@ -25,12 +27,21 @@ import org.onosproject.ui.UiTopoOverlay;
 public class TrafficOverlay extends UiTopoOverlay {
     private static final String TRAFFIC_ID = "traffic";
 
-    /**
-     * Constructs the traffic overlay.
-     */
+    private static final String SDF_ID = "showDeviceFlows";
+    private static final String SRT_ID = "showRelatedTraffic";
+
+    private static final ButtonId SHOW_DEVICE_FLOWS = new ButtonId(SDF_ID);
+    private static final ButtonId SHOW_RELATED_TRAFFIC = new ButtonId(SRT_ID);
+
+
     public TrafficOverlay() {
         super(TRAFFIC_ID);
     }
 
-    // TODO : override init(), activate(), deactivate(), destroy()
+    @Override
+    public void modifyDeviceDetails(PropertyPanel pp) {
+        pp.addButton(SHOW_DEVICE_FLOWS)
+            .addButton(SHOW_RELATED_TRAFFIC);
+    }
+
 }

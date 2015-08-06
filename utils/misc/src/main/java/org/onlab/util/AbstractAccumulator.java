@@ -112,7 +112,10 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
             if (isReady()) {
                 try {
                     maxTask = cancelIfActive(maxTask);
-                    processItems(finalizeCurrentBatch());
+                    List<T> items = finalizeCurrentBatch();
+                    if (!items.isEmpty()) {
+                        processItems(items);
+                    }
                 } catch (Exception e) {
                     log.warn("Unable to process batch due to {}", e);
                 }

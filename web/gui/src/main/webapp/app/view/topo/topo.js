@@ -40,7 +40,7 @@
 
     // --- Short Cut Keys ------------------------------------------------
 
-    function setUpKeys() {
+    function setUpKeys(overlayKeys) {
         // key bindings need to be made after the services have been injected
         // thus, deferred to here...
         actionMap = {
@@ -63,14 +63,6 @@
             R: [resetZoom, 'Reset pan / zoom'],
             dot: [ttbs.toggleToolbar, 'Toggle Toolbar'],
 
-            V: [tts.showRelatedIntentsAction, 'Show all related intents'],
-            rightArrow: [tts.showNextIntentAction, 'Show next related intent'],
-            leftArrow: [tts.showPrevIntentAction, 'Show previous related intent'],
-            W: [tts.showSelectedIntentTrafficAction, 'Monitor traffic of selected intent'],
-            A: [tts.showAllFlowTrafficAction, 'Monitor all traffic using flow stats'],
-            Q: [tts.showAllPortTrafficAction, 'Monitor all traffic using port stats'],
-            F: [tts.showDeviceLinkFlowsAction, 'Show device link flows'],
-
             E: [equalizeMasters, 'Equalize mastership roles'],
 
             esc: handleEscape,
@@ -78,11 +70,15 @@
             _keyListener: ttbs.keyListener,
 
             _helpFormat: [
-                ['I', 'O', 'D', '-', 'H', 'M', 'P', 'dash', 'B' ],
-                ['X', 'Z', 'N', 'L', 'U', 'R', '-', 'dot'],
-                ['V', 'rightArrow', 'leftArrow', 'W', 'A', 'F', '-', 'E' ]
+                ['I', 'O', 'D', 'H', 'M', 'P', 'dash', 'B', 'S' ],
+                ['X', 'Z', 'N', 'L', 'U', 'R', '-', 'E', '-', 'dot'],
+                []   // this column reserved for overlay actions
             ]
         };
+
+        if (fs.isO(overlayKeys)) {
+            mergeKeys(overlayKeys);
+        }
 
         ks.keyBindings(actionMap);
 
@@ -93,6 +89,22 @@
             ['cmd-scroll', 'Zoom in / out'],
             ['cmd-drag', 'Pan']
         ]);
+    }
+
+    // when a topology overlay is activated, we need to bind their keystrokes
+    // and include them in the quick-help panel
+    function mergeKeys(extra) {
+        var _hf = actionMap._helpFormat[2];
+        extra._keyOrder.forEach(function (k) {
+            var d = extra[k],
+                cb = d && d.cb,
+                tt = d && d.tt;
+            // NOTE: ignore keys that are already defined
+            if (d && !actionMap[k]) {
+                actionMap[k] = [cb, tt];
+                _hf.push(k);
+            }
+        });
     }
 
     // --- Keystroke functions -------------------------------------------
@@ -153,6 +165,10 @@
             // if an instance is selected, cancel the affinity mapping
             tis.cancelAffinity()
 
+        } else if (tov.hooks.escape()) {
+            // else if the overlay consumed the ESC event...
+            // (work already done)
+
         } else if (tss.deselectAll()) {
             // else if we have node selections, deselect them all
             // (work already done)
@@ -169,19 +185,15 @@
         } else if (tps.summaryVisible()) {
             // else if the Summary Panel is visible, hide it
             tps.hideSummaryPanel();
-
-        } else {
-            // TODO: set hover mode to hoverModeNone
-            // talk to Thomas about this: shouldn't it be done
-            // when we deselect the node (if tss.haveDetails()...)
         }
     }
 
     // --- Toolbar Functions ---------------------------------------------
 
     function notValid(what) {
-        $log.warn('Topo.js getActionEntry(): Not a valid ' + what);
+        $log.warn('topo.js getActionEntry(): Not a valid ' + what);
     }
+
     function getActionEntry(key) {
         var entry;
 
@@ -201,7 +213,8 @@
 
     function setUpToolbar() {
         ttbs.init({
-            getActionEntry: getActionEntry
+            getActionEntry: getActionEntry,
+            setUpKeys: setUpKeys
         });
         ttbs.createToolbar();
     }
@@ -503,7 +516,6 @@
             restoreConfigFromPrefs();
 
             $log.debug('registered overlays...', tov.list());
-
             $log.log('OvTopoCtrl has been created');
         }]);
 }());

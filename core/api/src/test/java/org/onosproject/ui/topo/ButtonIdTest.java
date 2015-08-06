@@ -19,27 +19,38 @@ package org.onosproject.ui.topo;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Unit tests for {@link ButtonDescriptor}.
+ * Unit tests for {@link ButtonId}.
  */
-public class ButtonDescriptorTest {
+public class ButtonIdTest {
 
-    private static final String ID = "my-id";
-    private static final String GID = "my-glyphId";
-    private static final String TT = "my-tewltyp";
+    private static final String ID1 = "id-1";
+    private static final String ID2 = "id-2";
 
-    private ButtonDescriptor bd;
+    private ButtonId b1, b2;
 
 
     @Test
     public void basic() {
-        bd = new ButtonDescriptor(ID, GID, TT);
-
-        assertEquals("bad id", ID, bd.id());
-        assertEquals("bad gid", GID, bd.glyphId());
-        assertEquals("bad tt", TT, bd.tooltip());
+        b1 = new ButtonId(ID1);
     }
 
+    @Test
+    public void same() {
+        b1 = new ButtonId(ID1);
+        b2 = new ButtonId(ID1);
+        assertFalse("same ref?", b1 == b2);
+        assertTrue("not equal?", b1.equals(b2));
+    }
+
+    @Test
+    public void notSame() {
+        b1 = new ButtonId(ID1);
+        b2 = new ButtonId(ID2);
+        assertFalse("same ref?", b1 == b2);
+        assertFalse("equal?", b1.equals(b2));
+    }
 }

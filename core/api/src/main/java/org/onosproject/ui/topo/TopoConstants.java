@@ -108,30 +108,22 @@ public final class TopoConstants {
         public static final String VLAN = "VLAN";
     }
 
-    private static final class CoreButton extends ButtonDescriptor {
-        private CoreButton(String tag, String glyphId, boolean extra) {
-            super("show" + tag + "View",
-                  glyphId,
-                  "Show " + tag + " View" + (extra ? " for this Device" : ""));
-        }
-    }
-
     /**
-     * Defines constants for core buttons that appear on the topology
+     * Defines identities of core buttons that appear on the topology
      * details panel.
      */
     public static final class CoreButtons {
-        public static final ButtonDescriptor SHOW_DEVICE_VIEW =
-                new CoreButton("Device", Glyphs.SWITCH, false);
+        public static final ButtonId SHOW_DEVICE_VIEW =
+                new ButtonId("showDeviceView");
 
-        public static final ButtonDescriptor SHOW_FLOW_VIEW =
-                new CoreButton("Flow", Glyphs.FLOW_TABLE, true);
+        public static final ButtonId SHOW_FLOW_VIEW =
+                new ButtonId("showFlowView");
 
-        public static final ButtonDescriptor SHOW_PORT_VIEW =
-                new CoreButton("Port", Glyphs.PORT_TABLE, true);
+        public static final ButtonId SHOW_PORT_VIEW =
+                new ButtonId("showPortView");
 
-        public static final ButtonDescriptor SHOW_GROUP_VIEW =
-                new CoreButton("Group", Glyphs.GROUP_TABLE, true);
+        public static final ButtonId SHOW_GROUP_VIEW =
+                new ButtonId("showGroupView");
     }
 
 }

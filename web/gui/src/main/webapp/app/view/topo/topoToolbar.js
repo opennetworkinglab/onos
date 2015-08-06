@@ -25,19 +25,25 @@
     // injected references
     var $log, fs, tbs, ps, tov, api;
 
+    // API:
+    //  getActionEntry
+    //  setUpKeys
+
     // internal state
-    var toolbar, keyData, cachedState;
+    var toolbar, keyData, cachedState, thirdRow;
 
     // constants
     var name = 'topo-tbar',
-        cooktag = 'topo_prefs';
+        cooktag = 'topo_prefs',
+        soa = 'switchOverlayActions: ',
+        selOver = 'Select overlay here &#x21e7;';
+
 
     // key to button mapping data
     var k2b = {
         O: { id: 'summary-tog', gid: 'summary', isel: true},
         I: { id: 'instance-tog', gid: 'uiAttached', isel: true },
         D: { id: 'details-tog', gid: 'details', isel: true },
-
         H: { id: 'hosts-tog', gid: 'endstation', isel: false },
         M: { id: 'offline-tog', gid: 'switch', isel: true },
         P: { id: 'ports-tog', gid: 'ports', isel: true },
@@ -50,15 +56,15 @@
         L: { id: 'cycleLabels-btn', gid: 'cycleLabels' },
         R: { id: 'resetZoom-btn', gid: 'resetZoom' },
 
-        E: { id: 'eqMaster-btn', gid: 'eqMaster' },
-
-        V: { id: 'relatedIntents-btn', gid: 'relatedIntents' },
-        leftArrow: { id: 'prevIntent-btn', gid: 'prevIntent' },
-        rightArrow: { id: 'nextIntent-btn', gid: 'nextIntent' },
-        W: { id: 'intentTraffic-btn', gid: 'intentTraffic' },
-        A: { id: 'allTraffic-btn', gid: 'allTraffic' },
-        F: { id: 'flows-btn', gid: 'flows' }
+        E: { id: 'eqMaster-btn', gid: 'eqMaster' }
     };
+
+    var prohibited = [
+        'T', 'backSlash', 'slash',
+        'X' // needed until we re-instate X above.
+    ];
+    prohibited = prohibited.concat(d3.map(k2b).keys());
+
 
     // initial toggle state: default settings and tag to key mapping
     var defaultPrefsState = {
@@ -112,6 +118,7 @@
     }
 
     function initKeyData() {
+        // TODO: use angular forEach instead of d3.map
         keyData = d3.map(k2b);
         keyData.forEach(function(key, value) {
             var data = api.getActionEntry(key);
@@ -124,6 +131,7 @@
         var v = keyData.get(key);
         v.btn = toolbar.addButton(v.id, v.gid, v.cb, v.tt);
     }
+
     function addToggle(key, suppressIfMobile) {
         var v = keyData.get(key);
         if (suppressIfMobile && fs.isMobile()) { return; }
@@ -158,36 +166,60 @@
 
         // generate radio button set for overlays; start with 'none'
         var rset = [{
-                gid: 'unknown',
+                gid: 'topo',
                 tooltip: 'No Overlay',
                 cb: function () {
-                    tov.tbSelection(null);
+                    tov.tbSelection(null, switchOverlayActions);
                 }
             }];
-
-        tov.list().forEach(function (key) {
-            var ov = tov.overlay(key);
-            rset.push({
-                gid: ov._glyphId,
-                tooltip: (ov.tooltip || '(no tooltip)'),
-                cb: function () {
-                    tov.tbSelection(ov.overlayId);
-                }
-            });
-        });
-
+        tov.augmentRbset(rset, switchOverlayActions);
         toolbar.addRadioSet('topo-overlays', rset);
     }
 
-    // TODO: 3rd row needs to be swapped in/out based on selected overlay
-    // NOTE: This particular row of buttons is for the traffic overlay
-    function addThirdRow() {
-        addButton('V');
-        addButton('leftArrow');
-        addButton('rightArrow');
-        addButton('W');
-        addButton('A');
-        addButton('F');
+    // invoked by overlay service to switch out old buttons and switch in new
+    function switchOverlayActions(oid, keyBindings) {
+        var prohibits = [],
+            kb = fs.isO(keyBindings) || {},
+            order = fs.isA(kb._keyOrder) || [];
+
+        if (keyBindings && !keyBindings._keyOrder) {
+            $log.warn(soa + 'no _keyOrder property defined');
+        } else {
+            // sanity removal of reserved property names
+            ['esc', '_keyListener', '_helpFormat'].forEach(function (k) {
+                fs.removeFromArray(k, order);
+            });
+        }
+
+        thirdRow.clear();
+
+        if (!order.length) {
+            thirdRow.setText(selOver);
+            thirdRow.classed('right', true);
+            api.setUpKeys(); // clear previous overlay key bindings
+
+        } else {
+            thirdRow.classed('right', false);
+            angular.forEach(order, function (key) {
+                var value, bid, gid, tt;
+
+                if (prohibited.indexOf(key) > -1) {
+                    prohibits.push(key);
+
+                } else {
+                    value = keyBindings[key];
+                    bid = oid + '-' + key;
+                    gid = tov.mkGlyphId(oid, value.gid);
+                    tt = value.tt + ' (' + key + ')';
+                    thirdRow.addButton(bid, gid, value.cb, tt);
+                }
+            });
+            api.setUpKeys(keyBindings); // add overlay key bindings
+        }
+
+        if (prohibits.length) {
+            $log.warn(soa + 'Prohibited key bindings ignored:', prohibits);
+        }
     }
 
     function createToolbar() {
@@ -197,8 +229,9 @@
         toolbar.addRow();
         addSecondRow();
         addOverlays();
-        toolbar.addRow();
-        addThirdRow();
+        thirdRow = toolbar.addRow();
+        thirdRow.setText(selOver);
+        thirdRow.classed('right', true);
 
         if (cachedState.toolbar) {
             toolbar.show();

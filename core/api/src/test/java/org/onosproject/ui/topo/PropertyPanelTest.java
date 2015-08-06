@@ -47,14 +47,6 @@ public class PropertyPanelTest {
     private static final String VALUE_B = "Bee";
     private static final String VALUE_C = "Sea";
     private static final String VALUE_Z = "Zed";
-    private static final String GID_A = "gid-A";
-    private static final String GID_B = "gid-B";
-    private static final String GID_C = "gid-C";
-    private static final String GID_Z = "gid-Z";
-    private static final String TT_A = "toolTip-A";
-    private static final String TT_B = "toolTip-B";
-    private static final String TT_C = "toolTip-C";
-    private static final String TT_Z = "toolTip-Z";
 
     private static final Map<String, Prop> PROP_MAP = new HashMap<>();
 
@@ -211,17 +203,13 @@ public class PropertyPanelTest {
         validateProp(KEY_B, ">byyy<");
     }
 
-    private static final ButtonDescriptor BD_A =
-            new ButtonDescriptor(KEY_A, GID_A, TT_A);
-    private static final ButtonDescriptor BD_B =
-            new ButtonDescriptor(KEY_B, GID_B, TT_B);
-    private static final ButtonDescriptor BD_C =
-            new ButtonDescriptor(KEY_C, GID_C, TT_C);
-    private static final ButtonDescriptor BD_Z =
-            new ButtonDescriptor(KEY_Z, GID_Z, TT_Z);
+    private static final ButtonId BD_A = new ButtonId(KEY_A);
+    private static final ButtonId BD_B = new ButtonId(KEY_B);
+    private static final ButtonId BD_C = new ButtonId(KEY_C);
+    private static final ButtonId BD_Z = new ButtonId(KEY_Z);
 
     private void verifyButtons(String... keys) {
-        Iterator<ButtonDescriptor> iter = pp.buttons().iterator();
+        Iterator<ButtonId> iter = pp.buttons().iterator();
         for (String k: keys) {
             assertEquals("wrong button", k, iter.next().id());
         }
