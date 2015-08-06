@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.newresource.DefaultResource;
 import org.onosproject.net.newresource.DefaultResourceAllocation;
 import org.onosproject.net.newresource.Resource;
+import org.onosproject.net.newresource.ResourceAdminService;
 import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourceConsumer;
 import org.onosproject.net.newresource.ResourceService;
@@ -34,6 +35,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -44,7 +48,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Component(immediate = true, enabled = false)
 @Service
 @Beta
-public final class ResourceManager implements ResourceService {
+public final class ResourceManager implements ResourceService, ResourceAdminService {
+
+    private final ConcurrentMap<Class<?>, Predicate<?>> boundaries = new ConcurrentHashMap<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceStore store;
@@ -175,6 +181,24 @@ public final class ResourceManager implements ResourceService {
         return !consumer.isPresent();
     }
 
+    @Override
+    public <T> void defineResourceBoundary(Class<T> cls, Predicate<T> predicate) {
+        boundaries.put(cls, predicate);
+    }
+
+    /**
+     * Returns the predicate associated with the specified resource.
+     *
+     * @param resource resource whose associated predicate is to be returned
+     * @param <T> type of the resource
+     * @return predicate associated with the resource
+     * Null if the resource doesn't have an associated predicate.
+     */
+    @SuppressWarnings("unchecked")
+    private <T> Predicate<T> lookupPredicate(T resource) {
+        return (Predicate<T>) boundaries.get(resource.getClass());
+    }
+
     /**
      * Returns if the specified resource is in the resource range.
      * E.g. VLAN ID against a link must be within 12 bit address space.
@@ -184,8 +208,12 @@ public final class ResourceManager implements ResourceService {
      * @param <T> type of the resource
      * @return true if the resource within the range, false otherwise
      */
-    private <S, T> boolean isValid(Resource<S, T> resource) {
-        // TODO: implement
-        return true;
+    <S, T> boolean isValid(Resource<S, T> resource) {
+        Predicate<T> predicate = lookupPredicate(resource.resource());
+        if (predicate == null) {
+            return true;
+        }
+
+        return predicate.test(resource.resource());
     }
 }
