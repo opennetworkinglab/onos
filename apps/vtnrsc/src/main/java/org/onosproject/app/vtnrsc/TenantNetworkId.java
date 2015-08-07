@@ -23,35 +23,36 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class TenantNetworkId {
 
-    private final String networkid;
+    private final String networkId;
 
     // Public construction is prohibited
-    private TenantNetworkId(String networkid) {
-        this.networkid = networkid;
+    private TenantNetworkId(String networkId) {
+        this.networkId = networkId;
     }
 
     /**
-     * Creates a tenantNetwork id using the networkid.
+     * Creates a TenantNetwork identifier.
      *
-     * @param networkid tenantnetwork String
-     * @return NetworkId
+     * @param networkId tenantNetwork identify string
+     * @return the attached tenantNetwork identifier
      */
-    public static TenantNetworkId networkId(String networkid) {
-        checkNotNull(networkid, "Networkid cannot be null");
-        return new TenantNetworkId(networkid);
+    public static TenantNetworkId networkId(String networkId) {
+        checkNotNull(networkId, "Networkid cannot be null");
+        return new TenantNetworkId(networkId);
     }
 
     /**
+     * Returns tenantNetwork identifier.
      *
-     * @return tenantNetworkid
+     * @return the tenantNetwork identifier
      */
-    public String networkid() {
-        return networkid;
+    public String networkId() {
+        return networkId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(networkid);
+        return Objects.hash(networkId);
     }
 
     @Override
@@ -62,14 +63,14 @@ public final class TenantNetworkId {
         if (obj instanceof TenantNetworkId) {
             final TenantNetworkId that = (TenantNetworkId) obj;
             return this.getClass() == that.getClass()
-                    && Objects.equals(this.networkid, that.networkid);
+                    && Objects.equals(this.networkId, that.networkId);
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return networkid;
+        return networkId;
     }
 
 }

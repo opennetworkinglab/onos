@@ -55,6 +55,7 @@
         <module>flowanalyzer</module>
         <module>vtnrsc</module>
         <module>vtn</module>
+        <module>vtnweb</module>
     </modules>
 
     <properties>

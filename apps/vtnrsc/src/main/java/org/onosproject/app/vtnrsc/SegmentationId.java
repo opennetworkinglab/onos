@@ -20,39 +20,40 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Immutable representation of a Segmentation identity.
+ * Immutable representation of a Segmentation identifier.
  */
 public final class SegmentationId {
 
-    private final String segmentationid;
+    private final String segmentationId;
 
     // Public construction is prohibited
-    private SegmentationId(String segmentationid) {
-        checkNotNull(segmentationid, "Segmentationid cannot be null");
-        this.segmentationid = segmentationid;
+    private SegmentationId(String segmentationId) {
+        checkNotNull(segmentationId, "SegmentationId cannot be null");
+        this.segmentationId = segmentationId;
     }
 
     /**
-     * Creates a network id using the segmentationid.
+     * Creates a  SegmentationId object.
      *
-     * @param segmentationid network String
+     * @param segmentationId segmentation identifier
      * @return SegmentationId
      */
-    public static SegmentationId segmentationID(String segmentationid) {
-        return new SegmentationId(segmentationid);
+    public static SegmentationId segmentationId(String segmentationId) {
+        return new SegmentationId(segmentationId);
     }
 
     /**
+     * Returns the segmentation identifier.
      *
-     * @return segmentationid
+     * @return segmentationId
      */
-    public String segmentationid() {
-        return segmentationid;
+    public String segmentationId() {
+        return segmentationId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(segmentationid);
+        return Objects.hash(segmentationId);
     }
 
     @Override
@@ -63,14 +64,14 @@ public final class SegmentationId {
         if (obj instanceof SegmentationId) {
             final SegmentationId that = (SegmentationId) obj;
             return this.getClass() == that.getClass()
-                    && Objects.equals(this.segmentationid, that.segmentationid);
+                    && Objects.equals(this.segmentationId, that.segmentationId);
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return segmentationid;
+        return segmentationId;
     }
 
 }
