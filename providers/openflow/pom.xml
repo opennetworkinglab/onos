@@ -36,6 +36,7 @@
         <module>packet</module>
         <module>flow</module>
         <module>group</module>
+        <module>meter</module>
         <module>app</module>
     </modules>
 

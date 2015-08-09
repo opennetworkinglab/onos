@@ -17,6 +17,7 @@ package org.onosproject.incubator.net.config;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.Beta;
+import org.onosproject.event.ListenerService;
 
 import java.util.Set;
 
@@ -26,7 +27,8 @@ import java.util.Set;
  * should act on or configure the network.
  */
 @Beta
-public interface NetworkConfigService {
+public interface NetworkConfigService
+        extends ListenerService<NetworkConfigEvent, NetworkConfigListener> {
 
     /**
      * Returns the set of subject classes for which configuration may be
@@ -55,10 +57,11 @@ public interface NetworkConfigService {
     /**
      * Returns the configuration class with the specified key.
      *
-     * @param configKey subject class name
+     * @param subjectKey subject class key
+     * @param configKey  subject class name
      * @return subject class
      */
-    Class<? extends Config> getConfigClass(String configKey);
+    Class<? extends Config> getConfigClass(String subjectKey, String configKey);
 
     /**
      * Returns the set of subjects for which some configuration is available.
@@ -140,17 +143,4 @@ public interface NetworkConfigService {
      */
     <S, C extends Config<S>> void removeConfig(S subject, Class<C> configClass);
 
-    /**
-     * Adds the specified network config listener.
-     *
-     * @param listener network config listener
-     */
-    void addListener(NetworkConfigListener listener);
-
-    /**
-     * Removes the specified network config listener.
-     *
-     * @param listener network config listener
-     */
-    void removeListener(NetworkConfigListener listener);
 }

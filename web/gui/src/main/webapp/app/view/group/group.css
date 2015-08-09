@@ -57,6 +57,20 @@
     background-color: #333;
 }
 
+/* highlighted color */
+.light #ov-group tr:nth-child(4n + 1).data-change,
+.light #ov-group tr:nth-child(4n + 2).data-change,
+.light #ov-group tr:nth-child(4n + 3).data-change,
+.light #ov-group tr:nth-child(4n).data-change {
+    background-color: #FDFFDC;
+}
+.dark #ov-group tr:nth-child(4n + 1).data-change,
+.dark #ov-group tr:nth-child(4n + 2).data-change,
+.dark #ov-group tr:nth-child(4n + 3).data-change,
+.dark #ov-group tr:nth-child(4n).data-change {
+    background-color: #5A5600;
+}
+
 #ov-group td.buckets {
     padding-left: 36px;
     opacity: 0.65;

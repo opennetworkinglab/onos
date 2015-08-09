@@ -2,7 +2,7 @@
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014,2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,19 @@
  */
 package ${package};
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
-import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -62,8 +56,10 @@ public class AppUiComponent {
             );
 
     // Application UI extension
-    protected UiExtension extension = new UiExtension(uiViews, messageHandlerFactory,
-                                                      getClass().getClassLoader());
+    protected UiExtension extension =
+            new UiExtension.Builder(getClass().getClassLoader(), uiViews)
+                    .messageHandlerFactory(messageHandlerFactory)
+                    .build();
 
     @Activate
     protected void activate() {
@@ -75,26 +71,6 @@ public class AppUiComponent {
     protected void deactivate() {
         uiExtensionService.unregister(extension);
         log.info("Stopped");
-    }
-
-    // Application UI message handler
-    private class AppUiMessageHandler extends UiMessageHandler {
-
-        @Override
-        protected Collection<RequestHandler> createRequestHandlers() {
-            return ImmutableSet.of(new SampleRequest());
-        }
-
-        private class SampleRequest extends RequestHandler {
-            public SampleRequest() {
-                super("sampleRequest");
-            }
-
-            @Override
-            public void process(long sid, ObjectNode objectNode) {
-                log.info("We got a message: {}", objectNode);
-            }
-        }
     }
 
 }

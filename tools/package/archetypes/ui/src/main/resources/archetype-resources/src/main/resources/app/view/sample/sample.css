@@ -1,16 +1,35 @@
 /* css for sample app view */
 
-#ov-sample p {
-    margin: 0 30px;
-    padding: 10px;
-    border: 2px solid;
+#ov-sample h2 {
+    display: inline-block;
 }
 
-.light #ov-sample p {
-    color: darkblue;
-    border-color: #88c;
+/* Panel Styling */
+#item-details-panel.floatpanel {
+    position: absolute;
+    top: 115px;
 }
-.dark #ov-sample p {
-    color: #aac;
-    border-color: #448;
+
+.light #item-details-panel.floatpanel {
+    background-color: rgb(229, 234, 237);
+}
+.dark #item-details-panel.floatpanel {
+    background-color: #3A4042;
+}
+
+#item-details-panel h3 {
+    margin: 0;
+    font-size: large;
+}
+
+#item-details-panel h4 {
+    margin: 0;
+}
+
+#item-details-panel td {
+    padding: 5px;
+}
+#item-details-panel td.label {
+    font-style: italic;
+    opacity: 0.8;
 }

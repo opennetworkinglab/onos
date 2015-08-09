@@ -6,6 +6,8 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
+export MAX_WAIT=60
+
 cmd="$1" && shift
 log="screenlog.0"
 remote="$ONOS_USER@$OCN"
@@ -25,8 +27,9 @@ sendAndExpect)
 
 wait)
     ssh $remote "
-        sleep 1 && while test ! -f $log; do sleep 1; done
-        while ! (tail -n1 $log | egrep -q '^mininet>'); do sleep 1; done
+        let count=0
+        sleep 1 && while test ! -f $log; do if test \$count -ge $MAX_WAIT; then exit 1; fi; sleep 1; let count=count+1; done
+        while ! (tail -n1 $log | egrep -q '^mininet>'); do if [ \$count -ge $MAX_WAIT ]; then exit 1; fi; sleep 1; done
         sleep ${1-:1}
     "
     ;;
@@ -36,12 +39,17 @@ expect)
     ssh $remote "
         sleep 1
         if [ ! -f $log ]; then exit 1; fi;
-        while ! (tail -n1 $log | egrep -q '^mininet>'); do sleep 1; done
+        let count=0
+        while ! (tail -n1 $log | egrep -q '^mininet>'); do if test \$count -ge $MAX_WAIT; then exit 1; fi; sleep 1; let count=count+1; done
         tac $log | awk '{ print \$0; } /^mininet>/ { if (on) { exit 0; } on=1; }' | tac > $aux
         cat $aux
         set -x
         egrep \"$@\" $aux
     "
+    ;;
+
+attach)
+    $mininet -x
     ;;
 
 start)

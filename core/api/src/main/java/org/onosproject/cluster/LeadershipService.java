@@ -15,6 +15,8 @@
  */
 package org.onosproject.cluster;
 
+import org.onosproject.event.ListenerService;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +29,8 @@ import java.util.concurrent.CompletableFuture;
  * Listeners can be added to receive notifications asynchronously for various
  * leadership contests.
  */
-public interface LeadershipService {
+public interface LeadershipService
+    extends ListenerService<LeadershipEvent, LeadershipEventListener> {
 
     /**
      * Returns the current leader for the topic.
@@ -118,17 +121,4 @@ public interface LeadershipService {
      */
     List<NodeId> getCandidates(String path);
 
-    /**
-     * Registers a event listener to be notified of leadership events.
-     *
-     * @param listener listener that will asynchronously notified of leadership events.
-     */
-    void addListener(LeadershipEventListener listener);
-
-    /**
-     * Unregisters a event listener for leadership events.
-     *
-     * @param listener listener to be removed.
-     */
-    void removeListener(LeadershipEventListener listener);
 }

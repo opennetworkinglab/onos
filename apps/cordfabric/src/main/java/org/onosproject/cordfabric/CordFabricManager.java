@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -124,6 +125,16 @@ public class CordFabricManager implements FabricService {
                 .matchInPort(PortNumber.portNumber(1))
                 .build();
 
+        TrafficSelector oltMgmtUp = DefaultTrafficSelector.builder()
+                .matchEthSrc(MacAddress.valueOf("00:0c:d5:00:01:01"))
+                .matchInPort(PortNumber.portNumber(2))
+                .build();
+
+        TrafficSelector oltMgmtDown = DefaultTrafficSelector.builder()
+                .matchEthDst(MacAddress.valueOf("00:0c:d5:00:01:01"))
+                .matchInPort(PortNumber.portNumber(9))
+                .build();
+
         TrafficTreatment up = DefaultTrafficTreatment.builder()
                 .setOutput(PortNumber.portNumber(1))
                 .build();
@@ -150,6 +161,9 @@ public class CordFabricManager implements FabricService {
                 .setOutput(PortNumber.portNumber(2))
                 .build();
 
+        TrafficTreatment toVolt = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.portNumber(9))
+                .build();
 
         TrafficTreatment sentToRadius = DefaultTrafficTreatment.builder()
                 .setOutput(PortNumber.portNumber(5))
@@ -193,12 +207,31 @@ public class CordFabricManager implements FabricService {
                 .withTreatment(down)
                 .add();
 
+        ForwardingObjective upOltMgmt = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(PRIORITY)
+                .withSelector(oltMgmtUp)
+                .withTreatment(toVolt)
+                .add();
+
+        ForwardingObjective downOltMgmt = DefaultForwardingObjective.builder()
+                .fromApp(appId)
+                .makePermanent()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(PRIORITY)
+                .withSelector(oltMgmtDown)
+                .withTreatment(toOlt)
+                .add();
 
 
         flowObjectiveService.forward(fabricDeviceId, upCtrl);
         flowObjectiveService.forward(fabricDeviceId, downCtrl);
         flowObjectiveService.forward(fabricDeviceId, radiusToServer);
         flowObjectiveService.forward(fabricDeviceId, serverToRadius);
+        flowObjectiveService.forward(fabricDeviceId, upOltMgmt);
+        flowObjectiveService.forward(fabricDeviceId, downOltMgmt);
     }
 
     @Override

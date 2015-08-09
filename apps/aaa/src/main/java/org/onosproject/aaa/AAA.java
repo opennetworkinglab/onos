@@ -204,7 +204,7 @@ public class AAA {
         // "org.onosproject.aaa" is the FQDN of our app
         appId = coreService.registerApplication("org.onosproject.aaa");
         // register our event handler
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
+        packetService.addProcessor(processor, PacketProcessor.director(2));
         requestIntercepts();
         // Instantiate the map of the state machines
         stateMachineMap = Collections.synchronizedMap(Maps.newHashMap());
@@ -232,6 +232,14 @@ public class AAA {
         selector.matchEthType(EthType.EtherType.EAPOL.ethType().toShort());
         packetService.requestPackets(selector.build(),
                                      CONTROL, appId);
+
+        TrafficSelector radSelector = DefaultTrafficSelector.builder()
+                .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
+                .matchIPProtocol(IPv4.PROTOCOL_UDP)
+                .matchUdpDst((short) 1812)
+                .matchUdpSrc((short) 1812)
+                .build();
+        packetService.requestPackets(radSelector, CONTROL, appId);
     }
 
     /**
@@ -241,6 +249,14 @@ public class AAA {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(EthType.EtherType.EAPOL.ethType().toShort());
         packetService.cancelPackets(selector.build(), CONTROL, appId);
+
+        TrafficSelector radSelector = DefaultTrafficSelector.builder()
+                .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
+                .matchIPProtocol(IPv4.PROTOCOL_UDP)
+                .matchUdpDst((short) 1812)
+                .matchUdpSrc((short) 1812)
+                .build();
+        packetService.cancelPackets(radSelector, CONTROL, appId);
     }
 
     /**

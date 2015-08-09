@@ -26,7 +26,7 @@ public interface Device extends Element {
      * Coarse classification of the type of the infrastructure device.
      */
     public enum Type {
-        SWITCH, ROUTER, ROADM, OTN, ROADM_OTN, FIREWALL, BALANCER, IPS, IDS, CONTROLLER, OTHER
+        SWITCH, ROUTER, ROADM, OTN, ROADM_OTN, FIREWALL, BALANCER, IPS, IDS, CONTROLLER, VIRTUAL, FIBER_SWITCH, OTHER
     }
 
     /**
@@ -78,11 +78,5 @@ public interface Device extends Element {
      * @return chassis id
      */
     ChassisId chassisId();
-
-    // Device realizedBy(); ?
-
-    // ports are not provided directly, but rather via DeviceService.getPorts(Device device);
-
-    // Set<Behavior> behaviours(); // set of supported behaviours
 
 }

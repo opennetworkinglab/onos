@@ -151,7 +151,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
 
         providerService = providerRegistry.register(this);
         deviceService.addListener(listener);
-        packetService.addProcessor(listener, 0);
+        packetService.addProcessor(listener, PacketProcessor.advisor(0));
         masterService.addListener(roleListener);
 
         LinkDiscovery ld;
@@ -163,16 +163,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             ld = new LinkDiscovery(device, packetService, masterService,
                                    providerService, useBDDP);
             discoverers.put(device.id(), ld);
-            for (Port p : deviceService.getPorts(device.id())) {
-                if (rules.isSuppressed(p)) {
-                    log.debug("LinkDiscovery from {}@{} disabled by configuration",
-                              p.number(), device.id());
-                    continue;
-                }
-                if (!p.number().isLogical()) {
-                    ld.addPort(p);
-                }
-            }
+            addPorts(ld, device.id());
         }
 
         executor = newSingleThreadScheduledExecutor(groupedThreads("onos/device", "sync-%d"));
@@ -181,6 +172,17 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         requestIntercepts();
 
         log.info("Started");
+    }
+
+    private void addPorts(LinkDiscovery discoverer, DeviceId deviceId) {
+        for (Port p : deviceService.getPorts(deviceId)) {
+            if (rules.isSuppressed(p)) {
+                continue;
+            }
+            if (!p.number().isLogical()) {
+                discoverer.addPort(p);
+            }
+        }
     }
 
     @Deactivate
@@ -431,26 +433,20 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             }
             // check what deviceService sees, to see if we are missing anything
             try {
-                LinkDiscovery ld = null;
                 for (Device dev : deviceService.getDevices()) {
                     if (rules.isSuppressed(dev)) {
                         continue;
                     }
                     DeviceId did = dev.id();
                     synchronized (discoverers) {
-                        if (!discoverers.containsKey(did)) {
-                            ld = new LinkDiscovery(dev, packetService,
-                                                   masterService, providerService, useBDDP);
-                            discoverers.put(did, ld);
-                            for (Port p : deviceService.getPorts(did)) {
-                                if (rules.isSuppressed(p)) {
-                                    continue;
-                                }
-                                if (!p.number().isLogical()) {
-                                    ld.addPort(p);
-                                }
-                            }
+                        LinkDiscovery discoverer = discoverers.get(did);
+                        if (discoverer == null) {
+                            discoverer = new LinkDiscovery(dev, packetService,
+                                    masterService, providerService, useBDDP);
+                            discoverers.put(did, discoverer);
                         }
+
+                        addPorts(discoverer, did);
                     }
                 }
             } catch (Exception e) {

@@ -224,6 +224,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 case L0MODIFICATION:
                 case L2MODIFICATION:
                 case L3MODIFICATION:
+                case L4MODIFICATION:
                     current.add(instruction);
                     break;
                 case TABLE:
@@ -382,6 +383,31 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         @Override
         public Builder writeMetadata(long metadata, long metadataMask) {
             return add(Instructions.writeMetadata(metadata, metadataMask));
+        }
+
+        @Override
+        public Builder setTunnelId(long tunnelId) {
+            return add(Instructions.modTunnelId(tunnelId));
+        }
+
+        @Override
+        public TrafficTreatment.Builder setTcpSrc(short port) {
+            return add(Instructions.modTcpSrc(port));
+        }
+
+        @Override
+        public TrafficTreatment.Builder setTcpDst(short port) {
+            return add(Instructions.modTcpDst(port));
+        }
+
+        @Override
+        public TrafficTreatment.Builder setUdpSrc(short port) {
+            return add(Instructions.modUdpSrc(port));
+        }
+
+        @Override
+        public TrafficTreatment.Builder setUdpDst(short port) {
+            return add(Instructions.modUdpDst(port));
         }
 
         @Override

@@ -25,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.onosproject.cluster.NodeId;
@@ -82,14 +83,14 @@ public class PartitionedDatabase implements Database {
     }
 
     @Override
-    public CompletableFuture<Set<String>> tableNames() {
+    public CompletableFuture<Set<String>> maps() {
         checkState(isOpen.get(), DB_NOT_OPEN);
-        Set<String> tableNames = Sets.newConcurrentHashSet();
+        Set<String> mapNames = Sets.newConcurrentHashSet();
         return CompletableFuture.allOf(partitions
                 .stream()
-                .map(db -> db.tableNames().thenApply(tableNames::addAll))
+                .map(db -> db.maps().thenApply(mapNames::addAll))
                 .toArray(CompletableFuture[]::new))
-            .thenApply(v -> tableNames);
+            .thenApply(v -> mapNames);
     }
 
     @Override
@@ -108,155 +109,97 @@ public class PartitionedDatabase implements Database {
     }
 
     @Override
-    public CompletableFuture<Integer> size(String tableName) {
+    public CompletableFuture<Integer> mapSize(String mapName) {
         checkState(isOpen.get(), DB_NOT_OPEN);
         AtomicInteger totalSize = new AtomicInteger(0);
         return CompletableFuture.allOf(partitions
                     .stream()
-                    .map(p -> p.size(tableName).thenApply(totalSize::addAndGet))
+                    .map(p -> p.mapSize(mapName).thenApply(totalSize::addAndGet))
                     .toArray(CompletableFuture[]::new))
                 .thenApply(v -> totalSize.get());
     }
 
     @Override
-    public CompletableFuture<Boolean> isEmpty(String tableName) {
+    public CompletableFuture<Boolean> mapIsEmpty(String mapName) {
         checkState(isOpen.get(), DB_NOT_OPEN);
-        return size(tableName).thenApply(size -> size == 0);
+        return mapSize(mapName).thenApply(size -> size == 0);
     }
 
     @Override
-    public CompletableFuture<Boolean> containsKey(String tableName, String key) {
+    public CompletableFuture<Boolean> mapContainsKey(String mapName, String key) {
         checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(tableName, key).containsKey(tableName, key);
+        return partitioner.getPartition(mapName, key).mapContainsKey(mapName, key);
     }
 
     @Override
-    public CompletableFuture<Boolean> containsValue(String tableName, byte[] value) {
+    public CompletableFuture<Boolean> mapContainsValue(String mapName, byte[] value) {
         checkState(isOpen.get(), DB_NOT_OPEN);
         AtomicBoolean containsValue = new AtomicBoolean(false);
         return CompletableFuture.allOf(partitions
                     .stream()
-                    .map(p -> p.containsValue(tableName, value).thenApply(v -> containsValue.compareAndSet(false, v)))
+                    .map(p -> p.mapContainsValue(mapName, value)
+                               .thenApply(v -> containsValue.compareAndSet(false, v)))
                     .toArray(CompletableFuture[]::new))
                 .thenApply(v -> containsValue.get());
     }
 
     @Override
-    public CompletableFuture<Versioned<byte[]>> get(String tableName, String key) {
+    public CompletableFuture<Versioned<byte[]>> mapGet(String mapName, String key) {
         checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(tableName, key).get(tableName, key);
+        return partitioner.getPartition(mapName, key).mapGet(mapName, key);
     }
 
     @Override
-    public CompletableFuture<Result<Versioned<byte[]>>> put(String tableName, String key, byte[] value) {
-        checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(tableName, key).put(tableName, key, value);
+    public CompletableFuture<Result<UpdateResult<String, byte[]>>> mapUpdate(
+            String mapName, String key, Match<byte[]> valueMatch,
+            Match<Long> versionMatch, byte[] value) {
+        return partitioner.getPartition(mapName, key).mapUpdate(mapName, key, valueMatch, versionMatch, value);
+
     }
 
     @Override
-    public CompletableFuture<Result<UpdateResult<Versioned<byte[]>>>> putAndGet(String tableName,
-            String key,
-            byte[] value) {
-        checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(tableName, key).putAndGet(tableName, key, value);
-    }
-
-    @Override
-    public CompletableFuture<Result<UpdateResult<Versioned<byte[]>>>> putIfAbsentAndGet(String tableName,
-            String key,
-            byte[] value) {
-        checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(tableName, key).putIfAbsentAndGet(tableName, key, value);
-    }
-
-    @Override
-    public CompletableFuture<Result<Versioned<byte[]>>> remove(String tableName, String key) {
-        checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(tableName, key).remove(tableName, key);
-    }
-
-    @Override
-    public CompletableFuture<Result<Void>> clear(String tableName) {
+    public CompletableFuture<Result<Void>> mapClear(String mapName) {
         AtomicBoolean isLocked = new AtomicBoolean(false);
         checkState(isOpen.get(), DB_NOT_OPEN);
         return CompletableFuture.allOf(partitions
                     .stream()
-                    .map(p -> p.clear(tableName)
+                    .map(p -> p.mapClear(mapName)
                             .thenApply(v -> isLocked.compareAndSet(false, Result.Status.LOCKED == v.status())))
                     .toArray(CompletableFuture[]::new))
                 .thenApply(v -> isLocked.get() ? Result.locked() : Result.ok(null));
     }
 
     @Override
-    public CompletableFuture<Set<String>> keySet(String tableName) {
+    public CompletableFuture<Set<String>> mapKeySet(String mapName) {
         checkState(isOpen.get(), DB_NOT_OPEN);
         Set<String> keySet = Sets.newConcurrentHashSet();
         return CompletableFuture.allOf(partitions
                     .stream()
-                    .map(p -> p.keySet(tableName).thenApply(keySet::addAll))
+                    .map(p -> p.mapKeySet(mapName).thenApply(keySet::addAll))
                     .toArray(CompletableFuture[]::new))
                 .thenApply(v -> keySet);
     }
 
     @Override
-    public CompletableFuture<Collection<Versioned<byte[]>>> values(String tableName) {
+    public CompletableFuture<Collection<Versioned<byte[]>>> mapValues(String mapName) {
         checkState(isOpen.get(), DB_NOT_OPEN);
         List<Versioned<byte[]>> values = new CopyOnWriteArrayList<>();
         return CompletableFuture.allOf(partitions
                     .stream()
-                    .map(p -> p.values(tableName).thenApply(values::addAll))
+                    .map(p -> p.mapValues(mapName).thenApply(values::addAll))
                     .toArray(CompletableFuture[]::new))
                 .thenApply(v -> values);
     }
 
     @Override
-    public CompletableFuture<Set<Entry<String, Versioned<byte[]>>>> entrySet(String tableName) {
+    public CompletableFuture<Set<Entry<String, Versioned<byte[]>>>> mapEntrySet(String mapName) {
         checkState(isOpen.get(), DB_NOT_OPEN);
         Set<Entry<String, Versioned<byte[]>>> entrySet = Sets.newConcurrentHashSet();
         return CompletableFuture.allOf(partitions
                     .stream()
-                    .map(p -> p.entrySet(tableName).thenApply(entrySet::addAll))
+                    .map(p -> p.mapEntrySet(mapName).thenApply(entrySet::addAll))
                     .toArray(CompletableFuture[]::new))
                 .thenApply(v -> entrySet);
-    }
-
-    @Override
-    public CompletableFuture<Result<Versioned<byte[]>>> putIfAbsent(String tableName, String key, byte[] value) {
-        checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(tableName, key).putIfAbsent(tableName, key, value);
-    }
-
-    @Override
-    public CompletableFuture<Result<Boolean>> remove(String tableName, String key, byte[] value) {
-        checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(tableName, key).remove(tableName, key, value);
-    }
-
-    @Override
-    public CompletableFuture<Result<Boolean>> remove(String tableName, String key, long version) {
-        checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(tableName, key).remove(tableName, key, version);
-    }
-
-    @Override
-    public CompletableFuture<Result<Boolean>> replace(
-            String tableName, String key, byte[] oldValue, byte[] newValue) {
-        checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(tableName, key).replace(tableName, key, oldValue, newValue);
-    }
-
-    @Override
-    public CompletableFuture<Result<Boolean>> replace(
-            String tableName, String key, long oldVersion, byte[] newValue) {
-        checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(tableName, key).replace(tableName, key, oldVersion, newValue);
-    }
-
-    @Override
-    public CompletableFuture<Result<UpdateResult<Versioned<byte[]>>>> replaceAndGet(
-            String tableName, String key, long oldVersion, byte[] newValue) {
-        checkState(isOpen.get(), DB_NOT_OPEN);
-        return partitioner.getPartition(tableName, key).replaceAndGet(tableName, key, oldVersion, newValue);
     }
 
     @Override
@@ -408,7 +351,7 @@ public class PartitionedDatabase implements Database {
             Transaction transaction) {
         Map<Database, List<DatabaseUpdate>> perPartitionUpdates = Maps.newHashMap();
         for (DatabaseUpdate update : transaction.updates()) {
-            Database partition = partitioner.getPartition(update.tableName(), update.key());
+            Database partition = partitioner.getPartition(update.mapName(), update.key());
             List<DatabaseUpdate> partitionUpdates =
                     perPartitionUpdates.computeIfAbsent(partition, k -> Lists.newLinkedList());
             partitionUpdates.add(update);
@@ -420,5 +363,15 @@ public class PartitionedDatabase implements Database {
 
     protected void setTransactionManager(TransactionManager transactionManager) {
         this.transactionManager = transactionManager;
+    }
+
+    @Override
+    public void registerConsumer(Consumer<StateMachineUpdate> consumer) {
+        partitions.forEach(p -> p.registerConsumer(consumer));
+    }
+
+    @Override
+    public void unregisterConsumer(Consumer<StateMachineUpdate> consumer) {
+        partitions.forEach(p -> p.unregisterConsumer(consumer));
     }
 }

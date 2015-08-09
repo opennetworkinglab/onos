@@ -16,6 +16,7 @@
 package org.onosproject.incubator.store.config.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -32,6 +33,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.Tools;
 import org.onosproject.incubator.net.config.Config;
 import org.onosproject.incubator.net.config.ConfigApplyDelegate;
 import org.onosproject.incubator.net.config.ConfigFactory;
@@ -41,6 +43,7 @@ import org.onosproject.incubator.net.config.NetworkConfigStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
@@ -65,6 +68,8 @@ public class DistributedNetworkConfigStore
         extends AbstractStore<NetworkConfigEvent, NetworkConfigStoreDelegate>
         implements NetworkConfigStore {
 
+    private static final int MAX_BACKOFF = 10;
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -81,7 +86,7 @@ public class DistributedNetworkConfigStore
     public void activate() {
         KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
                 .register(KryoNamespaces.API)
-                .register(ConfigKey.class, ObjectNode.class,
+                .register(ConfigKey.class, ObjectNode.class, ArrayNode.class,
                           JsonNodeFactory.class, LinkedHashMap.class,
                           TextNode.class, BooleanNode.class,
                           LongNode.class, DoubleNode.class, ShortNode.class);
@@ -103,11 +108,15 @@ public class DistributedNetworkConfigStore
     @Override
     public void addConfigFactory(ConfigFactory configFactory) {
         factoriesByConfig.put(configFactory.configClass().getName(), configFactory);
+        notifyDelegate(new NetworkConfigEvent(CONFIG_REGISTERED, configFactory.configKey(),
+                                              configFactory.configClass()));
     }
 
     @Override
     public void removeConfigFactory(ConfigFactory configFactory) {
         factoriesByConfig.remove(configFactory.configClass().getName());
+        notifyDelegate(new NetworkConfigEvent(CONFIG_UNREGISTERED, configFactory.configKey(),
+                                              configFactory.configClass()));
     }
 
     @Override
@@ -155,7 +164,14 @@ public class DistributedNetworkConfigStore
 
     @Override
     public <S, T extends Config<S>> T getConfig(S subject, Class<T> configClass) {
-        Versioned<ObjectNode> json = configs.get(key(subject, configClass));
+        // FIXME: There has to be a better way to absorb the timeout exceptions!
+        Versioned<ObjectNode> json = null;
+        try {
+            json = configs.get(key(subject, configClass));
+        } catch (ConsistentMapException e) {
+            Tools.randomDelay(MAX_BACKOFF);
+            json = configs.get(key(subject, configClass));
+        }
         return json != null ? createConfig(subject, configClass, json.value()) : null;
     }
 

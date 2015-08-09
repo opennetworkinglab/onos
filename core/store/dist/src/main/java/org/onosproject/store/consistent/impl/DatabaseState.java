@@ -45,67 +45,40 @@ public interface DatabaseState<K, V> {
   void init(StateContext<DatabaseState<K, V>> context);
 
   @Query
-  Set<String> tableNames();
+  Set<String> maps();
 
   @Query
   Map<String, Long> counters();
 
   @Query
-  int size(String tableName);
+  int mapSize(String mapName);
 
   @Query
-  boolean isEmpty(String tableName);
+  boolean mapIsEmpty(String mapName);
 
   @Query
-  boolean containsKey(String tableName, K key);
+  boolean mapContainsKey(String mapName, K key);
 
   @Query
-  boolean containsValue(String tableName, V value);
+  boolean mapContainsValue(String mapName, V value);
 
   @Query
-  Versioned<V> get(String tableName, K key);
+  Versioned<V> mapGet(String mapName, K key);
 
   @Command
-  Result<Versioned<V>> put(String tableName, K key, V value);
+  Result<UpdateResult<K, V>> mapUpdate(String mapName, K key, Match<V> valueMatch, Match<Long> versionMatch, V value);
 
   @Command
-  Result<UpdateResult<Versioned<V>>> putAndGet(String tableName, K key, V value);
-
-  @Command
-  Result<UpdateResult<Versioned<V>>> putIfAbsentAndGet(String tableName, K key, V value);
-
-  @Command
-  Result<Versioned<V>> remove(String tableName, K key);
-
-  @Command
-  Result<Void> clear(String tableName);
+  Result<Void> mapClear(String mapName);
 
   @Query
-  Set<K> keySet(String tableName);
+  Set<K> mapKeySet(String mapName);
 
   @Query
-  Collection<Versioned<V>> values(String tableName);
+  Collection<Versioned<V>> mapValues(String mapName);
 
   @Query
-  Set<Entry<K, Versioned<V>>> entrySet(String tableName);
-
-  @Command
-  Result<Versioned<V>> putIfAbsent(String tableName, K key, V value);
-
-  @Command
-  Result<Boolean> remove(String tableName, K key, V value);
-
-  @Command
-  Result<Boolean> remove(String tableName, K key, long version);
-
-  @Command
-  Result<Boolean> replace(String tableName, K key, V oldValue, V newValue);
-
-  @Command
-  Result<Boolean> replace(String tableName, K key, long oldVersion, V newValue);
-
-  @Command
-  Result<UpdateResult<Versioned<V>>> replaceAndGet(String tableName, K key, long oldVersion, V newValue);
+  Set<Entry<K, Versioned<V>>> mapEntrySet(String mapName);
 
   @Command
   Long counterAddAndGet(String counterName, long delta);

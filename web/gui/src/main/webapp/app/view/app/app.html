@@ -37,6 +37,8 @@
     </div>
 
     <div class="summary-list" onos-table-resize>
+        <div ng-show="loading" class="loading-wheel"
+             icon icon-id="loading" icon-size="75"></div>
 
         <div class="table-header" onos-sortable-header>
             <table>
@@ -51,7 +53,7 @@
         </div>
 
         <div class="table-body">
-            <table>
+            <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="5">
                         No Applications found
@@ -60,7 +62,8 @@
 
                 <tr ng-repeat="app in tableData track by $index"
                     ng-click="selectCallback($event, app)"
-                    ng-class="{selected: app.id === selId}">
+                    ng-class="{selected: app.id === selId}"
+                    ng-repeat-complete row-id="{{app.id}}">
                     <td class="table-icon">
                         <div icon icon-id="{{app._iconid_state}}"></div>
                     </td>

@@ -19,9 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
 import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
 import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
@@ -30,6 +30,9 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onosproject.incubator.net.config.ConfigFactory;
+import org.onosproject.incubator.net.config.NetworkConfigRegistry;
+import org.onosproject.incubator.net.config.basics.SubjectFactories;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.HostService;
 import org.onosproject.routing.config.BgpPeer;
@@ -68,6 +71,9 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry registry;
+
     private Map<String, BgpSpeaker> bgpSpeakers = new ConcurrentHashMap<>();
     private Map<IpAddress, BgpPeer> bgpPeers = new ConcurrentHashMap<>();
     private Set<IpAddress> gatewayIpAddresses = new HashSet<>();
@@ -83,11 +89,26 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     private MacAddress virtualGatewayMacAddress;
     private HostToInterfaceAdaptor hostAdaptor;
 
+    private ConfigFactory configFactory =
+            new ConfigFactory(SubjectFactories.APP_SUBJECT_FACTORY, BgpConfig.class, "bgp") {
+        @Override
+        public BgpConfig createConfig() {
+            return new BgpConfig();
+        }
+    };
+
     @Activate
     public void activate() {
+        registry.registerConfigFactory(configFactory);
         readConfiguration();
         hostAdaptor = new HostToInterfaceAdaptor(hostService);
         log.info("Routing configuration service started");
+    }
+
+    @Deactivate
+    public void deactivate() {
+        registry.unregisterConfigFactory(configFactory);
+        log.info("Routing configuration service stopped");
     }
 
     /**

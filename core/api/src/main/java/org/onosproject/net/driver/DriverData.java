@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.driver;
 
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.MutableAnnotations;
 
 /**
@@ -29,6 +30,13 @@ public interface DriverData extends MutableAnnotations {
      * @return device driver
      */
     Driver driver();
+
+    /**
+     * Returns the device identifier.
+     *
+     * @return device identifier
+     */
+    DeviceId deviceId();
 
     /**
      * Returns the specified facet of behaviour to access the device data.

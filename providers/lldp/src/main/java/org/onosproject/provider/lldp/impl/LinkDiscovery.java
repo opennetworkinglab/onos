@@ -17,7 +17,6 @@ package org.onosproject.provider.lldp.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.onosproject.net.MastershipRole.MASTER;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -141,14 +140,19 @@ public class LinkDiscovery implements TimerTask {
      * @param port the port
      */
     public void addPort(final Port port) {
-        this.log.debug("Sending init probe to port {}@{}",
-                       port.number().toLong(), device.id());
-        boolean isMaster = mastershipService.getLocalRole(device.id()) == MASTER;
-        if (isMaster) {
-            sendProbes(port.number().toLong());
-        }
+        boolean newPort = false;
         synchronized (this) {
-            this.slowPorts.add(port.number().toLong());
+            if (!containsPort(port.number().toLong())) {
+                newPort = true;
+                this.slowPorts.add(port.number().toLong());
+            }
+        }
+
+        boolean isMaster = mastershipService.isLocalMaster(device.id());
+        if (newPort && isMaster) {
+            this.log.debug("Sending init probe to port {}@{}",
+                    port.number().toLong(), device.id());
+            sendProbes(port.number().toLong());
         }
     }
 
@@ -229,7 +233,12 @@ public class LinkDiscovery implements TimerTask {
             } else {
                 ld = new DefaultLinkDescription(src, dst, Type.DIRECT);
             }
-            linkProvider.linkDetected(ld);
+
+            try {
+                linkProvider.linkDetected(ld);
+            } catch (IllegalStateException e) {
+                return true;
+            }
             return true;
         }
         return false;
@@ -248,8 +257,7 @@ public class LinkDiscovery implements TimerTask {
         if (isStopped()) {
             return;
         }
-        boolean isMaster = mastershipService.getLocalRole(device.id()) == MASTER;
-        if (!isMaster) {
+        if (!mastershipService.isLocalMaster(device.id())) {
             if (!isStopped()) {
                 // reschedule timer
                 timeout = Timer.getTimer().newTimeout(this, this.probeRate, MILLISECONDS);

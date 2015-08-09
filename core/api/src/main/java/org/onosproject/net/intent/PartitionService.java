@@ -17,12 +17,14 @@ package org.onosproject.net.intent;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.event.ListenerService;
 
 /**
  * Service for interacting with the partition-to-instance assignments.
  */
 @Beta
-public interface PartitionService {
+public interface PartitionService
+    extends ListenerService<PartitionEvent, PartitionEventListener> {
 
     /**
      * Returns whether the given intent key is in a partition owned by this
@@ -43,17 +45,4 @@ public interface PartitionService {
 
     // TODO add API for rebalancing partitions
 
-    /**
-     * Registers a event listener to be notified of partition events.
-     *
-     * @param listener listener that will asynchronously notified of partition events.
-     */
-    void addListener(PartitionEventListener listener);
-
-    /**
-     * Unregisters a event listener for partition events.
-     *
-     * @param listener listener to be removed.
-     */
-    void removeListener(PartitionEventListener listener);
 }

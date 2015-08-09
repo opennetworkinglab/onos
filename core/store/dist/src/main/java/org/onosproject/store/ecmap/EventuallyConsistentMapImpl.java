@@ -310,7 +310,7 @@ public class EventuallyConsistentMapImpl<K, V>
         MapValue<V> newValue = new MapValue<>(value, timestampProvider.apply(key, value));
         if (putInternal(key, newValue)) {
             notifyPeers(new UpdateEntry<>(key, newValue), peerUpdateFunction.apply(key, value));
-            notifyListeners(new EventuallyConsistentMapEvent<>(PUT, key, value));
+            notifyListeners(new EventuallyConsistentMapEvent<>(mapName, PUT, key, value));
         }
     }
 
@@ -335,7 +335,7 @@ public class EventuallyConsistentMapImpl<K, V>
         if (previousValue != null) {
             notifyPeers(new UpdateEntry<>(key, tombstone), peerUpdateFunction.apply(key, previousValue.get()));
             if (previousValue.isAlive()) {
-                notifyListeners(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get()));
+                notifyListeners(new EventuallyConsistentMapEvent<>(mapName, REMOVE, key, previousValue.get()));
             }
         }
         return previousValue != null ? previousValue.get() : null;
@@ -378,6 +378,38 @@ public class EventuallyConsistentMapImpl<K, V>
             }
         }
         return previousValue.get();
+    }
+
+    @Override
+    public V compute(K key, BiFunction<K, V, V> recomputeFunction) {
+        checkState(!destroyed, destroyedMessage);
+        checkNotNull(key, ERROR_NULL_KEY);
+        checkNotNull(recomputeFunction, "Recompute function cannot be null");
+
+        AtomicBoolean updated = new AtomicBoolean(false);
+        AtomicReference<MapValue<V>> previousValue = new AtomicReference<>();
+        MapValue<V> computedValue = items.compute(key, (k, mv) -> {
+            previousValue.set(mv);
+            V newRawValue = recomputeFunction.apply(key, mv == null ? null : mv.get());
+            MapValue<V> newValue = new MapValue<>(newRawValue, timestampProvider.apply(key, newRawValue));
+            if (mv == null || newValue.isNewerThan(mv)) {
+                updated.set(true);
+                return newValue;
+            } else {
+                return mv;
+            }
+        });
+        if (updated.get()) {
+            notifyPeers(new UpdateEntry<>(key, computedValue), peerUpdateFunction.apply(key, computedValue.get()));
+            EventuallyConsistentMapEvent.Type updateType = computedValue.isTombstone() ? REMOVE : PUT;
+            V value = computedValue.isTombstone()
+                    ? previousValue.get() == null ? null : previousValue.get().get()
+                    : computedValue.get();
+            if (value != null) {
+                notifyListeners(new EventuallyConsistentMapEvent<>(mapName, updateType, key, value));
+            }
+        }
+        return computedValue.get();
     }
 
     @Override
@@ -577,7 +609,7 @@ public class EventuallyConsistentMapImpl<K, V>
                                                            Optional.empty(),
                                                            MapValue.tombstone(remoteValueDigest.timestamp()));
                 if (previousValue != null && previousValue.isAlive()) {
-                    externalEvents.add(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get()));
+                    externalEvents.add(new EventuallyConsistentMapEvent<>(mapName, REMOVE, key, previousValue.get()));
                 }
             }
         });
@@ -594,10 +626,10 @@ public class EventuallyConsistentMapImpl<K, V>
             if (value.isTombstone()) {
                 MapValue<V> previousValue = removeInternal(key, Optional.empty(), value);
                 if (previousValue != null && previousValue.isAlive()) {
-                    notifyListeners(new EventuallyConsistentMapEvent<>(REMOVE, key, previousValue.get()));
+                    notifyListeners(new EventuallyConsistentMapEvent<>(mapName, REMOVE, key, previousValue.get()));
                 }
             } else if (putInternal(key, value)) {
-                notifyListeners(new EventuallyConsistentMapEvent<>(PUT, key, value.get()));
+                notifyListeners(new EventuallyConsistentMapEvent<>(mapName, PUT, key, value.get()));
             }
         });
     }
@@ -621,7 +653,7 @@ public class EventuallyConsistentMapImpl<K, V>
         public void processItems(List<UpdateEntry<K, V>> items) {
             Map<K, UpdateEntry<K, V>> map = Maps.newHashMap();
             items.forEach(item -> map.compute(item.key(), (key, existing) ->
-                    existing == null || item.compareTo(existing) > 0 ? item : existing));
+                    item.isNewerThan(existing) ? item : existing));
             communicationExecutor.submit(() -> {
                 clusterCommunicator.unicast(ImmutableList.copyOf(map.values()),
                                             updateMessageSubject,

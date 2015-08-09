@@ -194,14 +194,12 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     @Override
     public void filter(DeviceId deviceId, FilteringObjective filteringObjective) {
         checkPermission(Permission.FLOWRULE_WRITE);
-
         executorService.submit(new ObjectiveInstaller(deviceId, filteringObjective));
     }
 
     @Override
     public void forward(DeviceId deviceId, ForwardingObjective forwardingObjective) {
         checkPermission(Permission.FLOWRULE_WRITE);
-
         if (queueObjective(deviceId, forwardingObjective)) {
             return;
         }
@@ -211,16 +209,17 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     @Override
     public void next(DeviceId deviceId, NextObjective nextObjective) {
         checkPermission(Permission.FLOWRULE_WRITE);
-
         executorService.submit(new ObjectiveInstaller(deviceId, nextObjective));
     }
 
     @Override
     public int allocateNextId() {
         checkPermission(Permission.FLOWRULE_WRITE);
-
         return flowObjectiveStore.allocateNextId();
     }
+
+    @Override
+    public void initPolicy(String policy) {}
 
     private boolean queueObjective(DeviceId deviceId, ForwardingObjective fwd) {
         if (fwd.nextId() != null &&
@@ -238,8 +237,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     // Retrieves the device pipeline behaviour from the cache.
     private Pipeliner getDevicePipeliner(DeviceId deviceId) {
-        Pipeliner pipeliner = pipeliners.get(deviceId);
-        return pipeliner;
+        return pipeliners.get(deviceId);
     }
 
     private void setupPipelineHandler(DeviceId deviceId) {
@@ -250,10 +248,13 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
         // Attempt to lookup the handler in the cache
         DriverHandler handler = driverHandlers.get(deviceId);
+        cTime = now();
+
         if (handler == null) {
             try {
                 // Otherwise create it and if it has pipeline behaviour, cache it
                 handler = driverService.createHandler(deviceId);
+                dTime = now();
                 if (!handler.driver().hasBehaviour(Pipeliner.class)) {
                     log.warn("Pipeline behaviour not supported for device {}",
                              deviceId);
@@ -265,12 +266,15 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             }
 
             driverHandlers.put(deviceId, handler);
+            eTime = now();
         }
 
         // Always (re)initialize the pipeline behaviour
         log.info("Driver {} bound to device {} ... initializing driver",
                  handler.driver().name(), deviceId);
+        hTime = now();
         Pipeliner pipeliner = handler.behaviour(Pipeliner.class);
+        hbTime = now();
         pipeliner.init(deviceId, context);
         pipeliners.putIfAbsent(deviceId, pipeliner);
     }
@@ -282,9 +286,11 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             switch (event.type()) {
                 case MASTER_CHANGED:
                     log.debug("mastership changed on device {}", event.subject());
+                    start = now();
                     if (deviceService.isAvailable(event.subject())) {
                         setupPipelineHandler(event.subject());
                     }
+                    stopWatch();
                     break;
                 case BACKUPS_CHANGED:
                     break;
@@ -302,11 +308,13 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 case DEVICE_ADDED:
                 case DEVICE_AVAILABILITY_CHANGED:
                     log.debug("Device either added or availability changed {}",
-                             event.subject().id());
+                              event.subject().id());
+                    start = now();
                     if (deviceService.isAvailable(event.subject().id())) {
                         log.debug("Device is now available {}", event.subject().id());
                         setupPipelineHandler(event.subject().id());
                     }
+                    stopWatch();
                     break;
                 case DEVICE_UPDATED:
                     break;
@@ -324,6 +332,31 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                     break;
             }
         }
+    }
+
+    // Temporary mechanism to monitor pipeliner setup time-cost; there are
+    // intermittent time where this takes in excess of 2 seconds. Why?
+    private long start = 0, totals = 0, count = 0;
+    private long cTime, dTime, eTime, hTime, hbTime;
+    private static final long LIMIT = 500;
+
+    private long now() {
+        return System.currentTimeMillis();
+    }
+
+    private void stopWatch() {
+        long duration = System.currentTimeMillis() - start;
+        totals += duration;
+        count += 1;
+        if (duration > LIMIT) {
+            log.info("Pipeline setup took {} ms; avg {} ms; cTime={}, dTime={}, eTime={}, hTime={}, hbTime={}",
+                     duration, totals / count, diff(cTime), diff(dTime), diff(eTime), diff(hTime), diff(hbTime));
+        }
+    }
+
+    private long diff(long bTime) {
+        long diff = bTime - start;
+        return diff < 0 ? 0 : diff;
     }
 
     // Processing context for initializing pipeline driver behaviours.

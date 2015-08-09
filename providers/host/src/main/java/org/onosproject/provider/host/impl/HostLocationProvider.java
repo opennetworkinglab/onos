@@ -130,7 +130,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         appId = coreService.registerApplication("org.onosproject.provider.host");
 
         providerService = providerRegistry.register(this);
-        packetService.addProcessor(processor, 1);
+        packetService.addProcessor(processor, PacketProcessor.advisor(1));
         deviceService.addListener(deviceListener);
         readComponentConfiguration(context);
         requestIntercepts();
@@ -270,7 +270,11 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         private void updateLocation(HostId hid, MacAddress mac,
                                     VlanId vlan, HostLocation hloc) {
             HostDescription desc = new DefaultHostDescription(mac, vlan, hloc);
-            providerService.hostDetected(hid, desc);
+            try {
+                providerService.hostDetected(hid, desc);
+            } catch (IllegalStateException e) {
+                log.debug("Host {} suppressed", hid);
+            }
         }
 
         /**
@@ -286,7 +290,11 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                                       VlanId vlan, HostLocation hloc,
                                       IpAddress ip) {
             HostDescription desc = new DefaultHostDescription(mac, vlan, hloc, ip);
-            providerService.hostDetected(hid, desc);
+            try {
+                providerService.hostDetected(hid, desc);
+            } catch (IllegalStateException e) {
+                log.debug("Host {} suppressed", hid);
+            }
         }
 
         @Override

@@ -41,7 +41,6 @@
         <module>sdnip</module>
         <module>optical</module>
         <module>metrics</module>
-        <module>oecfg</module>
         <module>routing</module>
         <module>routing-api</module>
         <module>reactive-routing</module>
@@ -53,6 +52,9 @@
         <module>xos-integration</module>
         <module>pcep-api</module>
         <module>olt</module>
+        <module>flowanalyzer</module>
+        <module>vtnrsc</module>
+        <module>vtn</module>
     </modules>
 
     <properties>

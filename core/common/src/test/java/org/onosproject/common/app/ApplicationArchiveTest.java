@@ -17,6 +17,7 @@ package org.onosproject.common.app;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +28,6 @@ import org.onosproject.app.ApplicationException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Random;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -38,20 +38,19 @@ import static org.onosproject.app.DefaultApplicationDescriptionTest.*;
  */
 public class ApplicationArchiveTest {
 
-    static final String ROOT = "/tmp/app-junit/";
-    static final String STORE = ROOT + new Random().nextInt(1000) + "/foo";
+    static final File STORE = Files.createTempDir();
 
     private ApplicationArchive aar = new ApplicationArchive();
 
     @Before
     public void setUp() {
-        aar.setRootPath(STORE);
+        aar.setRootPath(STORE.getAbsolutePath());
     }
 
     @After
     public void tearDown() throws IOException {
-        if (new File(ROOT).exists()) {
-            Tools.removeDirectory(ROOT);
+        if (STORE.exists()) {
+            Tools.removeDirectory(STORE);
         }
     }
 

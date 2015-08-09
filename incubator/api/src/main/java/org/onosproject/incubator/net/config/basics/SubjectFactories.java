@@ -16,7 +16,9 @@
 package org.onosproject.incubator.net.config.basics;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.SubjectFactory;
+import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
@@ -33,12 +35,14 @@ public final class SubjectFactories {
     private SubjectFactories() {
     }
 
+    // Required for resolving application identifiers
+    private static CoreService coreService;
+
     public static final SubjectFactory<ApplicationId> APP_SUBJECT_FACTORY =
             new SubjectFactory<ApplicationId>(ApplicationId.class, "apps") {
                 @Override
                 public ApplicationId createSubject(String key) {
-                    // FIXME: figure out how to safely create sanctioned app ids
-                    return null;
+                    return coreService.registerApplication(key);
                 }
             };
 
@@ -47,6 +51,14 @@ public final class SubjectFactories {
                 @Override
                 public DeviceId createSubject(String key) {
                     return DeviceId.deviceId(key);
+                }
+            };
+
+    public static final SubjectFactory<ConnectPoint> CONNECT_POINT_SUBJECT_FACTORY =
+            new SubjectFactory<ConnectPoint>(ConnectPoint.class, "ports") {
+                @Override
+                public ConnectPoint createSubject(String key) {
+                    return ConnectPoint.deviceConnectPoint(key);
                 }
             };
 
@@ -68,5 +80,23 @@ public final class SubjectFactories {
                                            ConnectPoint.deviceConnectPoint(cps[1]));
                 }
             };
+
+    public static final SubjectFactory<IntentDomainId> INTENT_DOMAIN_SUBJECT_FACTORY =
+            new SubjectFactory<IntentDomainId>(IntentDomainId.class, "domains") {
+                @Override
+                public IntentDomainId createSubject(String key) {
+                    return IntentDomainId.valueOf(key);
+                }
+            };
+
+    /**
+     * Provides reference to the core service, which is required for
+     * application subject factory.
+     *
+     * @param service core service reference
+     */
+    public static void setCoreService(CoreService service) {
+        coreService = service;
+    }
 
 }

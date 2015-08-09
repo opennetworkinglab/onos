@@ -23,7 +23,7 @@
     'use strict';
 
     // injected references
-    var $log, fs, tbs, ps, api;
+    var $log, fs, tbs, ps, tov, api;
 
     // internal state
     var toolbar, keyData, cachedState;
@@ -50,14 +50,14 @@
         L: { id: 'cycleLabels-btn', gid: 'cycleLabels' },
         R: { id: 'resetZoom-btn', gid: 'resetZoom' },
 
+        E: { id: 'eqMaster-btn', gid: 'eqMaster' },
+
         V: { id: 'relatedIntents-btn', gid: 'relatedIntents' },
         leftArrow: { id: 'prevIntent-btn', gid: 'prevIntent' },
         rightArrow: { id: 'nextIntent-btn', gid: 'nextIntent' },
         W: { id: 'intentTraffic-btn', gid: 'intentTraffic' },
         A: { id: 'allTraffic-btn', gid: 'allTraffic' },
-        F: { id: 'flows-btn', gid: 'flows' },
-
-        E: { id: 'eqMaster-btn', gid: 'eqMaster' }
+        F: { id: 'flows-btn', gid: 'flows' }
     };
 
     // initial toggle state: default settings and tag to key mapping
@@ -142,13 +142,45 @@
         addToggle('B');
         addToggle('S', true);
     }
+
     function addSecondRow() {
         //addToggle('X');
         addToggle('Z');
         addButton('N');
         addButton('L');
         addButton('R');
+        toolbar.addSeparator();
+        addButton('E');
     }
+
+    function addOverlays() {
+        toolbar.addSeparator();
+
+        // generate radio button set for overlays; start with 'none'
+        var rset = [{
+                gid: 'unknown',
+                tooltip: 'No Overlay',
+                cb: function () {
+                    tov.tbSelection(null);
+                }
+            }];
+
+        tov.list().forEach(function (key) {
+            var ov = tov.overlay(key);
+            rset.push({
+                gid: ov._glyphId,
+                tooltip: (ov.tooltip || '(no tooltip)'),
+                cb: function () {
+                    tov.tbSelection(ov.overlayId);
+                }
+            });
+        });
+
+        toolbar.addRadioSet('topo-overlays', rset);
+    }
+
+    // TODO: 3rd row needs to be swapped in/out based on selected overlay
+    // NOTE: This particular row of buttons is for the traffic overlay
     function addThirdRow() {
         addButton('V');
         addButton('leftArrow');
@@ -156,8 +188,6 @@
         addButton('W');
         addButton('A');
         addButton('F');
-        toolbar.addSeparator();
-        addButton('E');
     }
 
     function createToolbar() {
@@ -166,8 +196,10 @@
         addFirstRow();
         toolbar.addRow();
         addSecondRow();
+        addOverlays();
         toolbar.addRow();
         addThirdRow();
+
         if (cachedState.toolbar) {
             toolbar.show();
         } else {
@@ -199,12 +231,14 @@
     angular.module('ovTopo')
         .factory('TopoToolbarService',
         ['$log', 'FnService', 'ToolbarService', 'PrefsService',
+            'TopoOverlayService',
 
-        function (_$log_, _fs_, _tbs_, _ps_) {
+        function (_$log_, _fs_, _tbs_, _ps_, _tov_) {
             $log = _$log_;
             fs = _fs_;
             tbs = _tbs_;
             ps = _ps_;
+            tov = _tov_;
 
             return {
                 init: init,

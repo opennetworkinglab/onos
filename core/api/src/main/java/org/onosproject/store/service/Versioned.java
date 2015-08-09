@@ -21,6 +21,7 @@ import java.util.function.Function;
 import org.joda.time.DateTime;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 /**
  * Versioned value.
@@ -90,12 +91,28 @@ public class Versioned<V> {
     /**
      * Maps this instance into another after transforming its
      * value while retaining the same version and creationTime.
-     * @param transformer function to mapping the value
+     * @param transformer function for mapping the value
      * @param <U> value type of the returned instance
      * @return mapped instance
      */
     public <U> Versioned<U> map(Function<V, U> transformer) {
         return new Versioned<>(transformer.apply(value), version, creationTime);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value, version, creationTime);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof Versioned)) {
+            return false;
+        }
+        Versioned<V> that = (Versioned) other;
+        return Objects.equal(this.value, that.value) &&
+               Objects.equal(this.version, that.version) &&
+               Objects.equal(this.creationTime, that.creationTime);
     }
 
     @Override

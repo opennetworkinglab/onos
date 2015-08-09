@@ -71,7 +71,9 @@ import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.Masked;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.TransportPort;
 import org.projectfloodlight.openflow.types.U32;
+import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
@@ -402,6 +404,31 @@ public class FlowEntryBuilder {
             OFOxm<U32> labelId = (OFOxm<U32>) oxm;
             builder.setMpls(MplsLabel.mplsLabel((int) labelId.getValue().getValue()));
             break;
+        case TUNNEL_ID:
+            @SuppressWarnings("unchecked")
+            OFOxm<U64> tunnelId = (OFOxm<U64>) oxm;
+            builder.setTunnelId(tunnelId.getValue().getValue());
+            break;
+        case TCP_DST:
+            @SuppressWarnings("unchecked")
+            OFOxm<TransportPort> tcpdst = (OFOxm<TransportPort>) oxm;
+            builder.setTcpDst((short) tcpdst.getValue().getPort());
+            break;
+        case TCP_SRC:
+            @SuppressWarnings("unchecked")
+            OFOxm<TransportPort> tcpsrc = (OFOxm<TransportPort>) oxm;
+            builder.setTcpSrc((short) tcpsrc.getValue().getPort());
+            break;
+        case UDP_DST:
+            @SuppressWarnings("unchecked")
+            OFOxm<TransportPort> udpdst = (OFOxm<TransportPort>) oxm;
+            builder.setUdpDst((short) udpdst.getValue().getPort());
+            break;
+        case UDP_SRC:
+            @SuppressWarnings("unchecked")
+            OFOxm<TransportPort> udpsrc = (OFOxm<TransportPort>) oxm;
+            builder.setUdpSrc((short) udpsrc.getValue().getPort());
+            break;
         case ARP_OP:
         case ARP_SHA:
         case ARP_SPA:
@@ -449,11 +476,6 @@ public class FlowEntryBuilder {
         case OCH_SIGTYPE_BASIC:
         case SCTP_DST:
         case SCTP_SRC:
-        case TCP_DST:
-        case TCP_SRC:
-        case TUNNEL_ID:
-        case UDP_DST:
-        case UDP_SRC:
         default:
             log.warn("Set field type {} not yet implemented.", oxm.getMatchField().id);
             break;
@@ -508,7 +530,11 @@ public class FlowEntryBuilder {
                         vlanId = VlanId.ANY;
                     }
                 } else {
-                    vlanId = VlanId.vlanId(match.get(MatchField.VLAN_VID).getVlan());
+                    if (!match.get(MatchField.VLAN_VID).isPresentBitSet()) {
+                        vlanId = VlanId.NONE;
+                    } else {
+                        vlanId = VlanId.vlanId(match.get(MatchField.VLAN_VID).getVlan());
+                    }
                 }
                 if (vlanId != null) {
                     builder.matchVlanId(vlanId);
@@ -640,18 +666,22 @@ public class FlowEntryBuilder {
                 break;
             case IPV6_EXTHDR:
                 builder.matchIPv6ExthdrFlags((short) match.get(MatchField.IPV6_EXTHDR)
-                                            .getValue());
+                        .getValue());
                 break;
             case OCH_SIGID:
                 CircuitSignalID sigId = match.get(MatchField.OCH_SIGID);
                 builder.add(matchLambda(Lambda.ochSignal(
                                 lookupGridType(sigId.getGridType()), lookupChannelSpacing(sigId.getChannelSpacing()),
-                                sigId.getChannelNumber(), sigId.getChannelSpacing())
+                                sigId.getChannelNumber(), sigId.getSpectralWidth())
                 ));
                 break;
             case OCH_SIGTYPE:
                 U8 sigType = match.get(MatchField.OCH_SIGTYPE);
                 builder.add(matchOchSignalType(lookupOchSignalType((byte) sigType.getValue())));
+                break;
+            case TUNNEL_ID:
+                long tunnelId = match.get(MatchField.TUNNEL_ID).getValue();
+                builder.matchTunnelId(tunnelId);
                 break;
             case ARP_OP:
             case ARP_SHA:
@@ -659,7 +689,6 @@ public class FlowEntryBuilder {
             case ARP_THA:
             case ARP_TPA:
             case MPLS_TC:
-            case TUNNEL_ID:
             default:
                 log.warn("Match type {} not yet implemented.", field.id);
             }

@@ -26,6 +26,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultHost;
 import org.onosproject.net.DeviceId;
@@ -90,6 +91,7 @@ public class RouterAsyncArpTest {
         fibListener = createMock(FibListener.class);
 
         router = new Router();
+        router.coreService = createNiceMock(CoreService.class);
         router.hostService = hostService;
         router.routingConfigurationService = routingConfigurationService;
         router.bgpService = bgpService;

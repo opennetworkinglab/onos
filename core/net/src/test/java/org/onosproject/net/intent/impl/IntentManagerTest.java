@@ -63,6 +63,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 import static org.onlab.junit.TestTools.assertAfter;
 import static org.onlab.util.Tools.delay;
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 import static org.onosproject.net.intent.IntentState.*;
 import static org.onosproject.net.intent.IntentTestsMocks.MockFlowRule;
 import static org.onosproject.net.intent.IntentTestsMocks.MockIntent;
@@ -226,7 +227,7 @@ public class IntentManagerTest {
         manager = new IntentManager();
         flowRuleService = new MockFlowRuleService();
         manager.store = new SimpleIntentStore();
-        manager.eventDispatcher = new TestEventDispatcher();
+        injectEventDispatcher(manager, new TestEventDispatcher());
         manager.trackerService = new TestIntentTracker();
         manager.flowRuleService = flowRuleService;
         manager.coreService = new TestCoreManager();

@@ -19,6 +19,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.Policy;
+import org.onosproject.segmentrouting.PolicyHandler;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.TunnelPolicy;
 
@@ -31,7 +32,7 @@ public class PolicyAddCommand extends AbstractShellCommand {
 
     // TODO: Need to support skipping some parameters
 
-    @Argument(index = 0, name = "policy ID",
+    @Argument(index = 0, name = "ID",
             description = "policy ID",
             required = true, multiValued = false)
     String policyId;
@@ -41,37 +42,37 @@ public class PolicyAddCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     int priority;
 
-    @Argument(index = 2, name = "src IP",
+    @Argument(index = 2, name = "src_IP",
             description = "src IP",
             required = false, multiValued = false)
     String srcIp;
 
-    @Argument(index = 3, name = "src port",
+    @Argument(index = 3, name = "src_port",
             description = "src port",
             required = false, multiValued = false)
     short srcPort;
 
-    @Argument(index = 4, name = "dst IP",
+    @Argument(index = 4, name = "dst_IP",
             description = "dst IP",
             required = false, multiValued = false)
     String dstIp;
 
-    @Argument(index = 5, name = "dst port",
+    @Argument(index = 5, name = "dst_port",
             description = "dst port",
             required = false, multiValued = false)
     short dstPort;
 
     @Argument(index = 6, name = "proto",
-            description = "proto",
+            description = "IP protocol",
             required = false, multiValued = false)
     String proto;
 
-    @Argument(index = 7, name = "policy type",
+    @Argument(index = 7, name = "policy_type",
             description = "policy type",
             required = true, multiValued = false)
     String policyType;
 
-    @Argument(index = 8, name = "tunnel ID",
+    @Argument(index = 8, name = "tunnel_ID",
             description = "tunnel ID",
             required = false, multiValued = false)
     String tunnelId;
@@ -103,11 +104,29 @@ public class PolicyAddCommand extends AbstractShellCommand {
         }
         if (Policy.Type.valueOf(policyType) == Policy.Type.TUNNEL_FLOW) {
             if (tunnelId == null) {
-                // TODO: handle errors
+                error("tunnel ID must be specified for TUNNEL_FLOW policy");
                 return;
             }
             tpb.setTunnelId(tunnelId);
         }
-        srService.createPolicy(tpb.build());
+        PolicyHandler.Result result = srService.createPolicy(tpb.build());
+
+        switch (result) {
+            case POLICY_EXISTS:
+                error("the same policy exists");
+                break;
+            case ID_EXISTS:
+                error("the same policy ID exists");
+                break;
+            case TUNNEL_NOT_FOUND:
+                error("the tunnel is not found");
+                break;
+            case UNSUPPORTED_TYPE:
+                error("the policy type specified is not supported");
+                break;
+            default:
+                break;
+        }
+
     }
 }

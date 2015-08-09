@@ -103,8 +103,8 @@ public class IntentCodecTest extends AbstractIntentTest {
         final IntentService mockIntentService = new IntentServiceAdapter();
         context.registerService(IntentService.class, mockIntentService);
         context.registerService(CoreService.class, mockCoreService);
-        expect(mockCoreService.getAppId((short) 2))
-                .andReturn(new DefaultApplicationId(2, "app"));
+        expect(mockCoreService.getAppId(appId.name()))
+                .andReturn(appId);
         replay(mockCoreService);
     }
 

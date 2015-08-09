@@ -20,6 +20,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -89,7 +90,7 @@ public class GroupManagerTest {
         groupService = mgr;
         mgr.deviceService = new DeviceManager();
         mgr.store = new SimpleGroupStore();
-        mgr.eventDispatcher = new TestEventDispatcher();
+        injectEventDispatcher(mgr, new TestEventDispatcher());
         providerRegistry = mgr;
 
         mgr.activate();
@@ -110,7 +111,7 @@ public class GroupManagerTest {
                     providerRegistry.getProviders().contains(provider.id()));
         mgr.removeListener(listener);
         mgr.deactivate();
-        mgr.eventDispatcher = null;
+        injectEventDispatcher(mgr, null);
     }
 
     /**

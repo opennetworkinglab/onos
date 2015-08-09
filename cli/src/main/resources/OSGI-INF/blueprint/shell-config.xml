@@ -30,6 +30,10 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.FlowObjectiveCompositionCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.app.ApplicationsListCommand"/>
         </command>
 
@@ -60,6 +64,9 @@
 
         <command>
             <action class="org.onosproject.cli.MetricsListCommand"/>
+            <completers>
+                <ref component-id="metricNameCompleter"/>
+            </completers>
         </command>
 
         <command>
@@ -440,6 +447,7 @@
     <bean id="ExtHeaderCompleter" class="org.onosproject.cli.net.ExtHeaderCompleter"/>
 
     <bean id="startStopCompleter" class="org.onosproject.cli.StartStopCompleter"/>
+    <bean id="metricNameCompleter" class="org.onosproject.cli.MetricNameCompleter"/>
     <bean id="upDownCompleter" class="org.onosproject.cli.UpDownCompleter"/>
 
 </blueprint>

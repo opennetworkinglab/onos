@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -412,12 +413,11 @@ public class OpenFlowPacketProviderTest {
         }
 
         @Override
-        public boolean isOptical() {
-            return false;
-        }
-
-        @Override
         public void returnRoleReply(RoleState requested, RoleState reponse) {
+        }
+        @Override
+        public Device.Type deviceType() {
+            return Device.Type.SWITCH;
         }
 
         @Override

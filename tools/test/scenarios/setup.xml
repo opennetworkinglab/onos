@@ -33,6 +33,8 @@
             <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
                   requires="Install-${#},~Secure-SSH"/>
 
+            <step name="Check-Nodes-${#}" exec="onos-check-nodes ${OC#}"
+                  requires="~Wait-for-Start-${#}"/>
             <step name="Check-Logs-${#}" exec="onos-check-logs ${OC#}"
                   requires="~Wait-for-Start-${#}"/>
             <step name="Check-Components-${#}"

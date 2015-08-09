@@ -63,7 +63,7 @@ public class NetworkConfigCommand extends AbstractShellCommand {
                 if (isNullOrEmpty(configKey)) {
                     addSubject(root, s);
                 } else {
-                    addSubjectConfig(root, getConfig(s, configKey));
+                    root = getSubjectConfig(getConfig(s, subjectKey, configKey));
                 }
             }
         }
@@ -86,18 +86,15 @@ public class NetworkConfigCommand extends AbstractShellCommand {
     }
 
     private void addSubject(ObjectNode root, Object s) {
-        service.getConfigs(s)
-                .forEach(c -> addSubjectConfig(newObject(root, c.key()), getConfig(s, c.key())));
+        service.getConfigs(s).forEach(c -> root.set(c.key(), c.node()));
     }
 
-    private void addSubjectConfig(ObjectNode root, Config config) {
-        if (config != null) {
-            root.set(config.key(), config.node());
-        }
+    private ObjectNode getSubjectConfig(Config config) {
+        return config != null ? config.node() : null;
     }
 
-    private Config getConfig(Object s, String ck) {
-        Class<? extends Config> configClass = service.getConfigClass(ck);
+    private Config getConfig(Object s, String subjectKey, String ck) {
+        Class<? extends Config> configClass = service.getConfigClass(subjectKey, ck);
         return configClass != null ? service.getConfig(s, configClass) : null;
     }
 

@@ -16,7 +16,7 @@
 package org.onosproject.store.service;
 
 /**
- * An atomic counter dispenses monotonically increasing values.
+ * Distributed version of java.util.concurrent.atomic.AtomicLong.
  */
 public interface AtomicCounter {
 

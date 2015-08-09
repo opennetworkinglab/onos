@@ -24,7 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import static org.onlab.packet.PacketUtils.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  *
@@ -54,15 +55,32 @@ public class DHCP extends BasePacket {
     public static final byte HWTYPE_ETHERNET = 0x1;
 
     public enum DHCPOptionCode {
-        OptionCode_SubnetMask((byte) 1), OptionCode_RequestedIP((byte) 50), OptionCode_LeaseTime(
-                (byte) 51), OptionCode_MessageType((byte) 53), OptionCode_DHCPServerIp(
-                        (byte) 54), OptionCode_RequestedParameters((byte) 55), OptionCode_RenewalTime(
-                                (byte) 58), OPtionCode_RebindingTime((byte) 59), OptionCode_ClientID(
-                                        (byte) 61), OptionCode_END((byte) 255);
+        OptionCode_SubnetMask((byte) 1), OptionCode_RouterAddress((byte) 3), OptionCode_DomainServer((byte) 6),
+        OptionCode_HostName((byte) 12), OptionCode_DomainName((byte) 15), OptionCode_BroadcastAddress((byte) 28),
+        OptionCode_RequestedIP((byte) 50), OptionCode_LeaseTime((byte) 51), OptionCode_MessageType((byte) 53),
+        OptionCode_DHCPServerIp((byte) 54), OptionCode_RequestedParameters((byte) 55),
+        OptionCode_RenewalTime((byte) 58), OPtionCode_RebindingTime((byte) 59), OptionCode_ClientID((byte) 61),
+        OptionCode_END((byte) 255);
 
         protected byte value;
 
         private DHCPOptionCode(final byte value) {
+            this.value = value;
+        }
+
+        public byte getValue() {
+            return this.value;
+        }
+    }
+
+    public enum DHCPMessageType {
+        MessageType_Discover((byte) 1), MessageType_Offer((byte) 2), MessageType_Request((byte) 3),
+        MessageType_Decline((byte) 4), MessageType_ACK((byte) 5), MessageType_Nak((byte) 6),
+        MessageType_Release((byte) 7), MessageType_Inform((byte) 8);
+
+        protected byte value;
+
+        private DHCPMessageType(final byte value) {
             this.value = value;
         }
 
@@ -406,6 +424,8 @@ public class DHCP extends BasePacket {
         bb.putInt(this.yourIPAddress);
         bb.putInt(this.serverIPAddress);
         bb.putInt(this.gatewayIPAddress);
+        checkArgument(this.clientHardwareAddress.length <= 16,
+                "Hardware address is too long (%s bytes)", this.clientHardwareAddress.length);
         bb.put(this.clientHardwareAddress);
         if (this.clientHardwareAddress.length < 16) {
             for (int i = 0; i < 16 - this.clientHardwareAddress.length; ++i) {

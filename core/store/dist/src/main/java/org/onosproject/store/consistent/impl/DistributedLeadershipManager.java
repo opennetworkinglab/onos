@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onosproject.store.consistent.impl;
 
 import com.google.common.collect.ImmutableList;
@@ -176,11 +191,14 @@ public class DistributedLeadershipManager implements LeadershipService {
 
     @Deactivate
     public void deactivate() {
-        leaderBoard.forEach((topic, leadership) -> {
-            if (localNodeId.equals(leadership.leader())) {
-                withdraw(topic);
-            }
-        });
+        if (clusterService.getNodes().size() > 1) {
+            // FIXME: Determine why this takes ~50 seconds to shutdown on a single node!
+            leaderBoard.forEach((topic, leadership) -> {
+                if (localNodeId.equals(leadership.leader())) {
+                    withdraw(topic);
+                }
+            });
+        }
 
         clusterService.removeListener(clusterEventListener);
         eventDispatcher.removeSink(LeadershipEvent.class);
@@ -356,6 +374,10 @@ public class DistributedLeadershipManager implements LeadershipService {
                             leader.value(),
                             leader.version(),
                             leader.creationTime());
+                    // Since reads only go through the local copy of leader board, we ought to update it
+                    // first before returning from this method.
+                    // This is to ensure a subsequent read will not read a stale value.
+                    onLeadershipEvent(new LeadershipEvent(LeadershipEvent.Type.LEADER_ELECTED, newLeadership));
                     return newLeadership;
                 }
             } catch (Exception e) {

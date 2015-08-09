@@ -18,12 +18,14 @@ package org.onosproject.cluster;
 import java.util.Set;
 
 import org.joda.time.DateTime;
+import org.onosproject.event.ListenerService;
 
 /**
  * Service for obtaining information about the individual nodes within
  * the controller cluster.
  */
-public interface ClusterService {
+public interface ClusterService
+    extends ListenerService<ClusterEvent, ClusterEventListener> {
 
     /**
      * Returns the local controller node.
@@ -62,19 +64,5 @@ public interface ClusterService {
      * @return system time when the availability state was last updated.
      */
     DateTime getLastUpdated(NodeId nodeId);
-
-    /**
-     * Adds the specified cluster event listener.
-     *
-     * @param listener the cluster listener
-     */
-    void addListener(ClusterEventListener listener);
-
-    /**
-     * Removes the specified cluster event listener.
-     *
-     * @param listener the cluster listener
-     */
-    void removeListener(ClusterEventListener listener);
 
 }

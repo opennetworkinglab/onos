@@ -31,10 +31,11 @@
     .controller('OvAppCtrl',
         ['$log', '$scope', '$http',
         'FnService', 'TableBuilderService', 'WebSocketService', 'UrlFnService',
+        'KeyService',
 
-    function ($log, $scope, $http, fs, tbs, wss, ufs) {
+    function ($log, $scope, $http, fs, tbs, wss, ufs, ks) {
         $scope.ctrlBtnState = {};
-        $scope.uploadTip = 'Upload an application';
+        $scope.uploadTip = 'Upload an application (.oar file)';
         $scope.activateTip = 'Activate selected application';
         $scope.deactivateTip = 'Deactivate selected application';
         $scope.uninstallTip = 'Uninstall selected application';
@@ -42,8 +43,6 @@
         function selCb($event, row) {
             // selId comes from tableBuilder
             $scope.ctrlBtnState.selection = !!$scope.selId;
-            $log.debug('Got a click on:', row);
-
             refreshCtrls();
         }
 
@@ -68,12 +67,24 @@
             respCb: refreshCtrls
         });
 
+        // TODO: reexamine where keybindings should be - directive or controller?
+        ks.keyBindings({
+            esc: [$scope.selectCallback, 'Deselect app'],
+            _helpFormat: ['esc']
+        });
+        ks.gestureNotes([
+            ['click row', 'Select / deselect app'],
+            ['scroll down', 'See more apps']
+        ]);
+
         $scope.appAction = function (action) {
             if ($scope.ctrlBtnState.selection) {
                 $log.debug('Initiating ' + action + ' of ' + $scope.selId);
                 wss.sendEvent(APP_MGMENT_REQ, {
                     action: action,
-                    name: $scope.selId
+                    name: $scope.selId,
+                    sortCol: $scope.sortParams.sortCol,
+                    sortDir: $scope.sortParams.sortDir
                 });
             }
         };
@@ -95,6 +106,10 @@
             }
         });
 
+        $scope.$on('$destroy', function () {
+            ks.unbindKeys();
+        });
+
         $log.log('OvAppCtrl has been created');
     }])
 
@@ -105,7 +120,7 @@
             link: function (scope, elem) {
                 elem.bind('click', function () {
                     document.getElementById('uploadFile')
-                        .dispatchEvent(new Event('click'));
+                        .dispatchEvent(new MouseEvent('click'));
                 });
             }
         };

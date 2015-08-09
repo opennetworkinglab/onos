@@ -68,7 +68,7 @@ public final class DatabaseUpdate {
     }
 
     private Type type;
-    private String tableName;
+    private String mapName;
     private String key;
     private byte[] value;
     private byte[] currentValue;
@@ -83,11 +83,11 @@ public final class DatabaseUpdate {
     }
 
     /**
-     * Returns the tableName being updated.
-     * @return table name.
+     * Returns the name of map being updated.
+     * @return map name.
      */
-    public String tableName() {
-        return tableName;
+    public String mapName() {
+        return mapName;
     }
 
     /**
@@ -126,7 +126,7 @@ public final class DatabaseUpdate {
     public String toString() {
         return MoreObjects.toStringHelper(this)
             .add("type", type)
-            .add("tableName", tableName)
+            .add("mapName", mapName)
             .add("key", key)
             .add("value", value)
             .add("currentValue", currentValue)
@@ -161,8 +161,8 @@ public final class DatabaseUpdate {
             return this;
         }
 
-        public Builder withTableName(String tableName) {
-            update.tableName = checkNotNull(tableName, "tableName cannot be null");
+        public Builder withMapName(String mapName) {
+            update.mapName = checkNotNull(mapName, "mapName cannot be null");
             return this;
         }
 
@@ -189,7 +189,7 @@ public final class DatabaseUpdate {
 
         private void validateInputs() {
             checkNotNull(update.type, "type must be specified");
-            checkNotNull(update.tableName, "table name must be specified");
+            checkNotNull(update.mapName, "map name must be specified");
             checkNotNull(update.key, "key must be specified");
             switch (update.type) {
             case PUT:

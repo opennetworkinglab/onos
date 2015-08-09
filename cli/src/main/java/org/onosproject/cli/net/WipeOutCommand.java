@@ -19,25 +19,25 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
+import org.onosproject.net.Link;
 import org.onosproject.net.device.DeviceAdminService;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostAdminService;
-import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.link.LinkAdminService;
 
 /**
  * Wipes-out the entire network information base, i.e. devices, links, hosts, intents.
  */
 @Command(scope = "onos", name = "wipe-out",
-         description = "Wipes-out the entire network information base, i.e. devices, links, hosts")
+        description = "Wipes-out the entire network information base, i.e. devices, links, hosts")
 public class WipeOutCommand extends ClustersListCommand {
 
     private static final String PLEASE = "please";
 
     @Argument(index = 0, name = "please", description = "Confirmation phrase",
-              required = false, multiValued = false)
+            required = false, multiValued = false)
     String please = null;
 
     @Override
@@ -47,25 +47,62 @@ public class WipeOutCommand extends ClustersListCommand {
             return;
         }
 
-        print("Wiping devices");
-        DeviceAdminService deviceAdminService = get(DeviceAdminService.class);
-        DeviceService deviceService = get(DeviceService.class);
-        for (Device device : deviceService.getDevices()) {
-            deviceAdminService.removeDevice(device.id());
-        }
+        wipeOutIntents();
+        wipeOutHosts();
+        wipeOutDevices();
+        wipeOutLinks();
+    }
 
-        print("Wiping hosts");
-        HostAdminService hostAdminService = get(HostAdminService.class);
-        HostService hostService = get(HostService.class);
-        for (Host host : hostService.getHosts()) {
-            hostAdminService.removeHost(host.id());
-        }
-
+    private void wipeOutIntents() {
         print("Wiping intents");
         IntentService intentService = get(IntentService.class);
         for (Intent intent : intentService.getIntents()) {
-            if (intentService.getIntentState(intent.key()) == IntentState.INSTALLED) {
+            if (intentService.getIntentState(intent.key()) != IntentState.WITHDRAWN) {
                 intentService.withdraw(intent);
+            }
+            intentService.purge(intent);
+        }
+    }
+
+    private void wipeOutHosts() {
+        print("Wiping hosts");
+        HostAdminService hostAdminService = get(HostAdminService.class);
+        while (hostAdminService.getHostCount() > 0) {
+            try {
+                for (Host host : hostAdminService.getHosts()) {
+                    hostAdminService.removeHost(host.id());
+                }
+            } catch (Exception e) {
+                log.warn("Unable to wipe-out hosts", e);
+            }
+        }
+    }
+
+    private void wipeOutDevices() {
+        print("Wiping devices");
+        DeviceAdminService deviceAdminService = get(DeviceAdminService.class);
+        while (deviceAdminService.getDeviceCount() > 0) {
+            try {
+                for (Device device : deviceAdminService.getDevices()) {
+                    deviceAdminService.removeDevice(device.id());
+                }
+            } catch (Exception e) {
+                log.warn("Unable to wipe-out devices", e);
+            }
+        }
+    }
+
+    private void wipeOutLinks() {
+        print("Wiping links");
+        LinkAdminService linkAdminService = get(LinkAdminService.class);
+        while (linkAdminService.getLinkCount() > 0) {
+            try {
+                for (Link link : linkAdminService.getLinks()) {
+                    linkAdminService.removeLinks(link.src());
+                    linkAdminService.removeLinks(link.dst());
+                }
+            } catch (Exception e) {
+                log.warn("Unable to wipe-out links", e);
             }
         }
     }

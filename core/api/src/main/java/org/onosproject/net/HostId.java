@@ -61,9 +61,9 @@ public final class HostId extends ElementId {
     }
 
     /**
-     * Returns the host MAC address.
+     * Returns the host vlan Id.
      *
-     * @return MAC address
+     * @return vlan Id
      */
     public VlanId vlanId() {
         return vlanId;

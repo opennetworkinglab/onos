@@ -22,7 +22,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Describes a single update event in an EventuallyConsistentMap.
  */
-final class UpdateEntry<K, V> implements Comparable<UpdateEntry<K, V>> {
+final class UpdateEntry<K, V> {
     private final K key;
     private final MapValue<V> value;
 
@@ -55,9 +55,13 @@ final class UpdateEntry<K, V> implements Comparable<UpdateEntry<K, V>> {
         return value;
     }
 
-    @Override
-    public int compareTo(UpdateEntry<K, V> o) {
-        return this.value.timestamp().compareTo(o.value.timestamp());
+    /**
+     * Returns if this entry is newer than other entry.
+     * @param other other entry
+     * @return true if this entry is newer; false otherwise
+     */
+    public boolean isNewerThan(UpdateEntry<K, V> other) {
+        return other == null || value.isNewerThan(other.value);
     }
 
     @Override

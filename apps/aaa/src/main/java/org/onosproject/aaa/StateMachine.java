@@ -23,6 +23,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.xosintegration.VoltTenant;
 import org.onosproject.xosintegration.VoltTenantService;
 import org.slf4j.Logger;
+
 import java.util.BitSet;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -111,7 +112,9 @@ class StateMachine {
 
     /**
      * State Machine Constructor.
-     * @param sessionId Session Id represented by the switch dpid +  port number
+     *
+     * @param sessionId   session Id represented by the switch dpid +  port number
+     * @param voltService volt service reference
      */
     public StateMachine(String sessionId, VoltTenantService voltService) {
         log.info("Creating a new state machine for {}", sessionId);
@@ -122,6 +125,7 @@ class StateMachine {
 
     /**
      * Get the client id that is requesting for access.
+     *
      * @return The client id.
      */
     public String getSessionId() {
@@ -154,15 +158,18 @@ class StateMachine {
 
     /**
      * Set the challenge identifier and the state issued by the RADIUS.
+     *
      * @param challengeIdentifier The challenge identifier set into the EAP packet from the RADIUS message.
-     * @param challengeState The challenge state from the RADIUS.
+     * @param challengeState      The challenge state from the RADIUS.
      */
     protected void setChallengeInfo(byte challengeIdentifier, byte[] challengeState) {
         this.challengeIdentifier = challengeIdentifier;
         this.challengeState = challengeState;
     }
+
     /**
      * Set the challenge identifier issued by the RADIUS on the access challenge request.
+     *
      * @param challengeIdentifier The challenge identifier set into the EAP packet from the RADIUS message.
      */
     protected void setChallengeIdentifier(byte challengeIdentifier) {
@@ -172,6 +179,7 @@ class StateMachine {
 
     /**
      * Get the challenge EAP identifier set by the RADIUS.
+     *
      * @return The challenge EAP identifier.
      */
     protected byte getChallengeIdentifier() {
@@ -181,6 +189,7 @@ class StateMachine {
 
     /**
      * Set the challenge state info issued by the RADIUS.
+     *
      * @param challengeState The challenge state from the RADIUS.
      */
     protected void setChallengeState(byte[] challengeState) {
@@ -190,6 +199,7 @@ class StateMachine {
 
     /**
      * Get the challenge state set by the RADIUS.
+     *
      * @return The challenge state.
      */
     protected byte[] getChallengeState() {
@@ -198,6 +208,7 @@ class StateMachine {
 
     /**
      * Set the username.
+     *
      * @param username The username sent to the RADIUS upon access request.
      */
     protected void setUsername(byte[] username) {
@@ -207,6 +218,7 @@ class StateMachine {
 
     /**
      * Get the username.
+     *
      * @return The requestAuthenticator.
      */
     protected byte[] getReqeustAuthenticator() {
@@ -215,6 +227,7 @@ class StateMachine {
 
     /**
      * Set the username.
+     *
      * @param authenticator The username sent to the RADIUS upon access request.
      */
     protected void setRequestAuthenticator(byte[] authenticator) {
@@ -224,6 +237,7 @@ class StateMachine {
 
     /**
      * Get the username.
+     *
      * @return The username.
      */
     protected byte[] getUsername() {
@@ -232,6 +246,7 @@ class StateMachine {
 
     /**
      * Return the identifier of the state machine.
+     *
      * @return The state machine identifier.
      */
     public byte getIdentifier() {
@@ -251,15 +266,18 @@ class StateMachine {
 
     /**
      * Move to the next state.
+     *
      * @param msg
      */
-    private void next(int msg)  {
+    private void next(int msg) {
         currentState = transition[currentState][msg];
         log.info("Current State " + currentState);
     }
 
     /**
      * Client has requested the start action to allow network access.
+     *
+     * @throws StateMachineException if authentication protocol is violated
      */
     public void start() throws StateMachineException {
         try {
@@ -275,6 +293,8 @@ class StateMachine {
     /**
      * An Identification information has been sent by the supplicant.
      * Move to the next state if possible.
+     *
+     * @throws StateMachineException if authentication protocol is violated
      */
     public void requestAccess() throws StateMachineException {
         try {
@@ -289,6 +309,8 @@ class StateMachine {
     /**
      * RADIUS has accepted the identification.
      * Move to the next state if possible.
+     *
+     * @throws StateMachineException if authentication protocol is violated
      */
     public void authorizeAccess() throws StateMachineException {
         try {
@@ -317,6 +339,8 @@ class StateMachine {
     /**
      * RADIUS has denied the identification.
      * Move to the next state if possible.
+     *
+     * @throws StateMachineException if authentication protocol is violated
      */
     public void denyAccess() throws StateMachineException {
         try {
@@ -332,6 +356,8 @@ class StateMachine {
     /**
      * Logoff request has been requested.
      * Move to the next state if possible.
+     *
+     * @throws StateMachineException if authentication protocol is violated
      */
     public void logoff() throws StateMachineException {
         try {
@@ -345,6 +371,7 @@ class StateMachine {
 
     /**
      * Get the current state.
+     *
      * @return The current state. Could be STATE_IDLE, STATE_STARTED, STATE_PENDING, STATE_AUTHORIZED,
      * STATE_UNAUTHORIZED.
      */
@@ -353,12 +380,13 @@ class StateMachine {
     }
 
 
-
     public String toString() {
         return ("sessionId: " + this.sessionId) + "\t" + ("identifier: " + this.identifier) + "\t" +
                 ("state: " + this.currentState);
     }
 }
+
+// FIXME: A source file should contain no more than one top-level entity!
 
 abstract class State {
     private final Logger log = getLogger(getClass());
@@ -368,15 +396,19 @@ abstract class State {
     public void start() throws StateMachineInvalidTransitionException {
         log.warn("START transition from this state is not allowed.");
     }
+
     public void requestAccess() throws StateMachineInvalidTransitionException {
         log.warn("REQUEST ACCESS transition from this state is not allowed.");
     }
+
     public void radiusAccepted() throws StateMachineInvalidTransitionException {
         log.warn("AUTHORIZE ACCESS transition from this state is not allowed.");
     }
+
     public void radiusDenied() throws StateMachineInvalidTransitionException {
         log.warn("DENY ACCESS transition from this state is not allowed.");
     }
+
     public void logoff() throws StateMachineInvalidTransitionException {
         log.warn("LOGOFF transition from this state is not allowed.");
     }
@@ -457,6 +489,7 @@ class StateMachineException extends Exception {
 
     }
 }
+
 /**
  * Exception raised when the transition from one state to another is invalid.
  */

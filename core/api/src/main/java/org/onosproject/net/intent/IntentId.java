@@ -16,18 +16,19 @@
 package org.onosproject.net.intent;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.newresource.ResourceConsumer;
 
 /**
  * Intent identifier suitable as an external key.
  * <p>This class is immutable.</p>
  */
 @Beta
-public final class IntentId {
+public final class IntentId implements ResourceConsumer {
 
     private final long value;
 
     /**
-     * Creates an intent identifier from the specified string representation.
+     * Creates an intent identifier from the specified long representation.
      *
      * @param value long value
      * @return intent identifier

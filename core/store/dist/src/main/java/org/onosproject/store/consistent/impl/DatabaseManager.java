@@ -63,6 +63,7 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.ecmap.EventuallyConsistentMapBuilderImpl;
 import org.onosproject.store.service.AtomicCounterBuilder;
+import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.DistributedQueueBuilder;
@@ -321,7 +322,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
             .withName(name)
             .withElectionTimeout(electionTimeoutMillis(replicas))
             .withHeartbeatInterval(heartbeatTimeoutMillis(replicas))
-            .withConsistency(Consistency.STRONG)
+            .withConsistency(Consistency.DEFAULT)
             .withLog(log)
             .withDefaultSerializer(new DatabaseSerializer())
             .withReplicas(replicas);
@@ -383,6 +384,11 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     }
 
     @Override
+    public <V> AtomicValueBuilder<V> atomicValueBuilder() {
+        return new DefaultAtomicValueBuilder<>(this);
+    }
+
+    @Override
     public List<MapInfo> getMapInfo() {
         List<MapInfo> maps = Lists.newArrayList();
         maps.addAll(getMapInfo(inMemoryDatabase));
@@ -391,9 +397,9 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     }
 
     private List<MapInfo> getMapInfo(Database database) {
-        return complete(database.tableNames())
+        return complete(database.maps())
             .stream()
-            .map(name -> new MapInfo(name, complete(database.size(name))))
+            .map(name -> new MapInfo(name, complete(database.mapSize(name))))
             .filter(info -> info.size() > 0)
             .collect(Collectors.toList());
     }

@@ -11,6 +11,8 @@
     </div>
 
     <div class="summary-list" onos-table-resize>
+        <div ng-show="loading" class="loading-wheel"
+             icon icon-id="loading" icon-size="75"></div>
 
         <div class="table-header" onos-sortable-header>
             <table>
@@ -26,14 +28,15 @@
         </div>
 
         <div class="table-body">
-            <table>
+            <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="6">
                         No Settings found
                     </td>
                 </tr>
 
-                <tr ng-repeat="prop in tableData track by $index">
+                <tr ng-repeat="prop in tableData track by $index"
+                    ng-repeat-complete row-id="{{prop.id}}">
                     <td>{{prop.component}}</td>
                     <td>{{prop.id}}</td>
                     <td>{{prop.type}}</td>

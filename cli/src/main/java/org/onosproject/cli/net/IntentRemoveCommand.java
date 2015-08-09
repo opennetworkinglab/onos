@@ -22,17 +22,19 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentEvent;
-import org.onosproject.net.intent.IntentListener;
-import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.Key;
 
 import java.math.BigInteger;
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.net.intent.IntentState.FAILED;
 import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 
@@ -40,17 +42,17 @@ import static org.onosproject.net.intent.IntentState.WITHDRAWN;
  * Removes an intent.
  */
 @Command(scope = "onos", name = "remove-intent",
-         description = "Removes the specified intent")
+        description = "Removes the specified intent")
 public class IntentRemoveCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "app",
-              description = "Application ID",
-              required = true, multiValued = false)
+            description = "Application ID",
+            required = false, multiValued = false)
     String applicationIdString = null;
 
     @Argument(index = 1, name = "key",
-              description = "Intent Key",
-              required = true, multiValued = false)
+            description = "Intent Key",
+            required = false, multiValued = false)
     String keyString = null;
 
     @Option(name = "-p", aliases = "--purge",
@@ -63,13 +65,20 @@ public class IntentRemoveCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private boolean sync = false;
 
+    private static final EnumSet<IntentState> CAN_PURGE = EnumSet.of(WITHDRAWN, FAILED);
+
     @Override
     protected void execute() {
         IntentService intentService = get(IntentService.class);
         CoreService coreService = get(CoreService.class);
 
+        if (purgeAfterRemove || sync) {
+            print("Using \"sync\" to remove/purge intents - this may take a while...");
+            print("Check \"summary\" to see remove/purge progress.");
+        }
+
         ApplicationId appId = appId();
-        if (applicationIdString != null) {
+        if (!isNullOrEmpty(applicationIdString)) {
             appId = coreService.getAppId(applicationIdString);
             if (appId == null) {
                 print("Cannot find application Id %s", applicationIdString);
@@ -77,55 +86,67 @@ public class IntentRemoveCommand extends AbstractShellCommand {
             }
         }
 
-        final Key key;
-        if (keyString.startsWith("0x")) {
-            // The intent uses a LongKey
-            keyString = keyString.replaceFirst("0x", "");
-            key = Key.of(new BigInteger(keyString, 16).longValue(), appId);
-        } else {
-            // The intent uses a StringKey
-            key = Key.of(keyString, appId);
-        }
-
-        Intent intent = intentService.getIntent(key);
-        if (intent != null) {
-            IntentListener listener = null;
-            final CountDownLatch withdrawLatch, purgeLatch;
-            if (purgeAfterRemove || sync) {
-                // set up latch and listener to track uninstall progress
-                withdrawLatch = new CountDownLatch(1);
-                purgeLatch = purgeAfterRemove ? new CountDownLatch(1) : null;
-                listener = (IntentEvent event) -> {
-                    if (Objects.equals(event.subject().key(), key)) {
-                        if (event.type() == IntentEvent.Type.WITHDRAWN ||
-                                event.type() == IntentEvent.Type.FAILED) {
-                            withdrawLatch.countDown();
-                        } else if (purgeAfterRemove &&
-                                event.type() == IntentEvent.Type.PURGED) {
-                            purgeLatch.countDown();
-                        }
-                    }
-                };
-                intentService.addListener(listener);
-            } else {
-                purgeLatch = null;
-                withdrawLatch = null;
+        if (isNullOrEmpty(keyString)) {
+            for (Intent intent : intentService.getIntents()) {
+                if (intent.appId().equals(appId)) {
+                    removeIntent(intentService, intent);
+                }
             }
 
-            // request the withdraw
-            intentService.withdraw(intent);
+        } else {
+            final Key key;
+            if (keyString.startsWith("0x")) {
+                // The intent uses a LongKey
+                keyString = keyString.replaceFirst("0x", "");
+                key = Key.of(new BigInteger(keyString, 16).longValue(), appId);
+            } else {
+                // The intent uses a StringKey
+                key = Key.of(keyString, appId);
+            }
 
-            if (purgeAfterRemove || sync) {
-                try { // wait for withdraw event
-                    withdrawLatch.await(5, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    print("Timed out waiting for intent {} withdraw", key);
+            Intent intent = intentService.getIntent(key);
+            if (intent != null) {
+                removeIntent(intentService, intent);
+            }
+        }
+    }
+
+    private void removeIntent(IntentService intentService, Intent intent) {
+        IntentListener listener = null;
+        Key key = intent.key();
+        final CountDownLatch withdrawLatch, purgeLatch;
+        if (purgeAfterRemove || sync) {
+            // set up latch and listener to track uninstall progress
+            withdrawLatch = new CountDownLatch(1);
+            purgeLatch = purgeAfterRemove ? new CountDownLatch(1) : null;
+            listener = (IntentEvent event) -> {
+                if (Objects.equals(event.subject().key(), key)) {
+                    if (event.type() == IntentEvent.Type.WITHDRAWN ||
+                            event.type() == IntentEvent.Type.FAILED) {
+                        withdrawLatch.countDown();
+                    } else if (purgeAfterRemove &&
+                            event.type() == IntentEvent.Type.PURGED) {
+                        purgeLatch.countDown();
+                    }
                 }
-                // double check the state
-                IntentState state = intentService.getIntentState(key);
-                if (purgeAfterRemove && (state == WITHDRAWN || state == FAILED)) {
-                    intentService.purge(intent);
-                }
+            };
+            intentService.addListener(listener);
+        } else {
+            purgeLatch = null;
+            withdrawLatch = null;
+        }
+
+        // request the withdraw
+        intentService.withdraw(intent);
+
+        if (purgeAfterRemove || sync) {
+            try { // wait for withdraw event
+                withdrawLatch.await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                print("Timed out waiting for intent {} withdraw", key);
+            }
+            if (purgeAfterRemove && CAN_PURGE.contains(intentService.getIntentState(key))) {
+                intentService.purge(intent);
                 if (sync) { // wait for purge event
                     /* TODO
                        Technically, the event comes before map.remove() is called.
@@ -139,11 +160,11 @@ public class IntentRemoveCommand extends AbstractShellCommand {
                     }
                 }
             }
+        }
 
-            if (listener != null) {
-                // clean up the listener
-                intentService.removeListener(listener);
-            }
+        if (listener != null) {
+            // clean up the listener
+            intentService.removeListener(listener);
         }
     }
 }

@@ -18,9 +18,11 @@ package org.onosproject.provider.of.device.impl;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -84,8 +86,9 @@ public class OpenFlowDeviceProviderTest {
     public void startUp() {
         provider.providerRegistry = registry;
         provider.controller = controller;
+        provider.cfgService = new ComponentConfigAdapter();
         controller.switchMap.put(DPID1, SW1);
-        provider.activate();
+        provider.activate(null);
         assertNotNull("provider should be registered", registry.provider);
         assertNotNull("listener should be registered", controller.listener);
         assertEquals("devices not added", 1, registry.connected.size());
@@ -94,7 +97,7 @@ public class OpenFlowDeviceProviderTest {
 
     @After
     public void tearDown() {
-        provider.deactivate();
+        provider.deactivate(null);
         assertNull("listener should be removed", controller.listener);
         provider.controller = null;
         provider.providerRegistry = null;
@@ -381,8 +384,8 @@ public class OpenFlowDeviceProviderTest {
         }
 
         @Override
-        public boolean isOptical() {
-            return false;
+        public Device.Type deviceType() {
+            return Device.Type.SWITCH;
         }
 
         @Override

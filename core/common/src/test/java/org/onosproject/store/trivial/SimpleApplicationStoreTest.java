@@ -16,6 +16,7 @@
 package org.onosproject.store.trivial;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,20 +26,15 @@ import org.onosproject.app.ApplicationStoreDelegate;
 import org.onosproject.common.app.ApplicationArchive;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.Permission;
 import org.onosproject.core.ApplicationIdStoreAdapter;
 import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.core.Permission;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
-import static org.onosproject.app.ApplicationEvent.Type.APP_INSTALLED;
-import static org.onosproject.app.ApplicationEvent.Type.APP_DEACTIVATED;
-import static org.onosproject.app.ApplicationEvent.Type.APP_ACTIVATED;
-import static org.onosproject.app.ApplicationEvent.Type.APP_UNINSTALLED;
-import static org.onosproject.app.ApplicationEvent.Type.APP_PERMISSIONS_CHANGED;
+import static org.onosproject.app.ApplicationEvent.Type.*;
 import static org.onosproject.app.ApplicationState.ACTIVE;
 import static org.onosproject.app.ApplicationState.INSTALLED;
 
@@ -47,8 +43,7 @@ import static org.onosproject.app.ApplicationState.INSTALLED;
  */
 public class SimpleApplicationStoreTest {
 
-    static final String ROOT = "/tmp/app-junit/";
-    static final String STORE = ROOT + new Random().nextInt(1000) + "/foo";
+    static final File STORE = Files.createTempDir();
 
     private TestApplicationStore store = new TestApplicationStore();
     private TestDelegate delegate = new TestDelegate();
@@ -57,15 +52,15 @@ public class SimpleApplicationStoreTest {
     @Before
     public void setUp() {
         store.idStore = new TestIdStore();
-        store.setRootPath(STORE);
+        store.setRootPath(STORE.getAbsolutePath());
         store.setDelegate(delegate);
         store.activate();
     }
 
     @After
     public void tearDown() throws IOException {
-        if (new File(ROOT).exists()) {
-            Tools.removeDirectory(ROOT);
+        if (STORE.exists()) {
+            Tools.removeDirectory(STORE);
         }
         store.deactivate();
     }

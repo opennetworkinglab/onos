@@ -100,8 +100,8 @@ public class DefaultTopologyProviderTest {
         assertEquals(1, topologyChangedCounts.awaitAdvanceInterruptibly(0, 1, TimeUnit.SECONDS));
         validateSubmission();
 
-        deviceService.post(new DeviceEvent(DEVICE_ADDED, device("z"), null));
-        linkService.post(new LinkEvent(LINK_ADDED, link("z", 1, "a", 4)));
+        deviceService.postEvent(new DeviceEvent(DEVICE_ADDED, device("z"), null));
+        linkService.postEvent(new LinkEvent(LINK_ADDED, link("z", 1, "a", 4)));
         assertThat(topologyChangedCounts.awaitAdvanceInterruptibly(1, 1, TimeUnit.SECONDS),
                 is(greaterThanOrEqualTo(2)));
         // Note: posting event, to trigger topologyChanged call,
@@ -162,7 +162,7 @@ public class DefaultTopologyProviderTest {
             return getDevices();
         }
 
-        void post(DeviceEvent event) {
+        void postEvent(DeviceEvent event) {
             eventDispatcher.post(event);
         }
     }
@@ -187,7 +187,7 @@ public class DefaultTopologyProviderTest {
             return getLinks();
         }
 
-        void post(LinkEvent event) {
+        void postEvent(LinkEvent event) {
             eventDispatcher.post(event);
         }
     }

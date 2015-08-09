@@ -29,4 +29,5 @@
     <artifact>mvn:${project.groupId}/onos-of-provider-packet/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-of-provider-flow/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-of-provider-group/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-of-provider-meter/${project.version}</artifact>
 </app>

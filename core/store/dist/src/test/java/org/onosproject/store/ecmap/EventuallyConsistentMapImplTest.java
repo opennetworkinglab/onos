@@ -274,9 +274,9 @@ public class EventuallyConsistentMapImplTest {
         EventuallyConsistentMapListener<String, String> listener
                 = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE2));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE2));
         replay(listener);
 
         ecMap.addListener(listener);
@@ -325,11 +325,11 @@ public class EventuallyConsistentMapImplTest {
         EventuallyConsistentMapListener<String, String> listener
                 = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.REMOVE, KEY1, VALUE1));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.REMOVE, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY2, VALUE2));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY2, VALUE2));
         replay(listener);
 
         ecMap.addListener(listener);
@@ -382,6 +382,68 @@ public class EventuallyConsistentMapImplTest {
     }
 
     @Test
+    public void testCompute() throws Exception {
+        // Set up expectations of external events to be sent to listeners during
+        // the test. These don't use timestamps so we can set them all up at once.
+        EventuallyConsistentMapListener<String, String> listener
+                = getListener();
+        listener.event(new EventuallyConsistentMapEvent<>(
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
+        listener.event(new EventuallyConsistentMapEvent<>(
+                MAP_NAME, EventuallyConsistentMapEvent.Type.REMOVE, KEY1, VALUE1));
+        listener.event(new EventuallyConsistentMapEvent<>(
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY2, VALUE2));
+        replay(listener);
+
+        ecMap.addListener(listener);
+
+        // Put in an initial value
+        expectPeerMessage(clusterCommunicator);
+        ecMap.compute(KEY1, (k, v) -> VALUE1);
+        assertEquals(VALUE1, ecMap.get(KEY1));
+
+        // Remove the value and check the correct internal cluster messages
+        // are sent
+        expectSpecificMulticastMessage(generateRemoveMessage(KEY1, clockService.peekAtNextTimestamp()),
+                UPDATE_MESSAGE_SUBJECT, clusterCommunicator);
+
+        ecMap.compute(KEY1, (k, v) -> null);
+        assertNull(ecMap.get(KEY1));
+
+        verify(clusterCommunicator);
+
+        // Remove the same value again. Even though the value is no longer in
+        // the map, we expect that the tombstone is updated and another remove
+        // event is sent to the cluster and external listeners.
+        expectSpecificMulticastMessage(generateRemoveMessage(KEY1, clockService.peekAtNextTimestamp()),
+                UPDATE_MESSAGE_SUBJECT, clusterCommunicator);
+
+        ecMap.compute(KEY1, (k, v) -> null);
+        assertNull(ecMap.get(KEY1));
+
+        verify(clusterCommunicator);
+
+        // Put in a new value for us to try and remove
+        expectPeerMessage(clusterCommunicator);
+
+        ecMap.compute(KEY2, (k, v) -> VALUE2);
+
+        clockService.turnBackTime();
+
+        // Remove should have no effect, since it has an older timestamp than
+        // the put. Expect no notifications to be sent out
+        reset(clusterCommunicator);
+        replay(clusterCommunicator);
+
+        ecMap.compute(KEY2, (k, v) -> null);
+
+        verify(clusterCommunicator);
+
+        // Check that our listener received the correct events during the test
+        verify(listener);
+    }
+
+    @Test
     public void testPutAll() throws Exception {
         // putAll() with an empty map is a no-op - no messages will be sent
         reset(clusterCommunicator);
@@ -395,9 +457,9 @@ public class EventuallyConsistentMapImplTest {
         EventuallyConsistentMapListener<String, String> listener
                 = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.PUT, KEY2, VALUE2));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.PUT, KEY2, VALUE2));
         replay(listener);
 
         ecMap.addListener(listener);
@@ -423,9 +485,9 @@ public class EventuallyConsistentMapImplTest {
         EventuallyConsistentMapListener<String, String> listener
                 = getListener();
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.REMOVE, KEY1, VALUE1));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.REMOVE, KEY1, VALUE1));
         listener.event(new EventuallyConsistentMapEvent<>(
-                EventuallyConsistentMapEvent.Type.REMOVE, KEY2, VALUE2));
+                MAP_NAME, EventuallyConsistentMapEvent.Type.REMOVE, KEY2, VALUE2));
         replay(listener);
 
         // clear() on an empty map is a no-op - no messages will be sent

@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, $window, $rootScope, fs, ps, gs, flash, wss, bns, mast;
+    var $log, $window, $rootScope, fs, ps, gs, flash, wss, bns, mast, ns;
 
     // constants
     var pCls = 'topo-p',
@@ -33,7 +33,8 @@
             width: 260
         },
         sumMax = 240,
-        padTop = 20;
+        padTop = 20,
+        devPath = 'device';
 
     // internal state
     var useDetails = true,      // should we show details if we have 'em?
@@ -202,30 +203,52 @@
                 .append('svg'),
             title = summary.appendHeader('h2'),
             table = summary.appendBody('table'),
-            tbody = table.append('tbody');
+            tbody = table.append('tbody'),
+            glyphId = data.type || 'node';
 
-        gs.addGlyph(svg, 'node', 40);
-        gs.addGlyph(svg, 'bird', 24, true, [8,12]);
+        gs.addGlyph(svg, glyphId, 40);
 
-        title.text(data.id);
+        if (glyphId === 'node') {
+            gs.addGlyph(svg, 'bird', 24, true, [8,12]);
+        }
+
+        title.text(data.title);
         listProps(tbody, data);
     }
 
     // === -----------------------------------------------------
     //  Functions for populating the detail panel
 
+    var isDevice = {
+        switch: 1,
+        roadm: 1
+    };
+
     function displaySingle(data) {
         detail.setup();
 
         var svg = detail.appendHeader('div')
-                .classed('icon', true)
+                .classed('icon clickable', true)
                 .append('svg'),
-            title = detail.appendHeader('h2'),
+            title = detail.appendHeader('h2')
+                .classed('clickable', true),
             table = detail.appendBody('table'),
-            tbody = table.append('tbody');
+            tbody = table.append('tbody'),
+            navFn;
 
         gs.addGlyph(svg, (data.type || 'unknown'), 40);
-        title.text(data.id);
+        title.text(data.title);
+
+        // only add navigation when displaying a device
+        if (isDevice[data.type]) {
+            navFn = function () {
+                ns.navTo(devPath, { devId: data.id });
+            };
+
+            svg.on('click', navFn);
+            title.on('click', navFn);
+        }
+
         listProps(tbody, data);
         addBtnFooter();
     }
@@ -249,7 +272,7 @@
             .select('.actionBtns')
             .append('div')
             .classed('actionBtn', true);
-        bns.button(btnDiv, idDet + o.id, o.gid, o.cb, o.tt);
+        bns.button(btnDiv, idDet + '-' + o.id, o.gid, o.cb, o.tt);
     }
 
     var friendlyIndex = {
@@ -475,9 +498,10 @@
     .factory('TopoPanelService',
         ['$log', '$window', '$rootScope', 'FnService', 'PanelService', 'GlyphService',
             'FlashService', 'WebSocketService', 'ButtonService', 'MastService',
+            'NavService',
 
         function (_$log_, _$window_, _$rootScope_,
-                  _fs_, _ps_, _gs_, _flash_, _wss_, _bns_, _mast_) {
+                  _fs_, _ps_, _gs_, _flash_, _wss_, _bns_, _mast_, _ns_) {
             $log = _$log_;
             $window = _$window_;
             $rootScope = _$rootScope_;
@@ -488,6 +512,7 @@
             wss = _wss_;
             bns = _bns_;
             mast = _mast_;
+            ns = _ns_;
 
             return {
                 initPanels: initPanels,

@@ -281,6 +281,7 @@ public class IntentData { //FIXME need to make this "immutable"
             return true;
 
         case PURGE_REQ:
+            // TODO we should enforce that only WITHDRAWN intents can be purged
             return true;
 
         case COMPILING:

@@ -177,7 +177,7 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
         checkPermission(Permission.DRIVER_WRITE);
 
         Driver driver = getDriver(deviceId);
-        return new DefaultDriverHandler(new DefaultDriverData(driver));
+        return new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
     }
 
     // Produces a composite driver key using the specified components.

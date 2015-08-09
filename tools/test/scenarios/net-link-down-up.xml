@@ -1,0 +1,38 @@
+<!--
+  ~ Copyright 2015 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="net-link-down-up" description="Network link up-down test">
+    <!-- TODO: parametrize this via recipes -->
+    <group name="Net-Link-Down-Up">
+        <step name="Ping-1"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
+        <step name="Link-1-Down" requires="Ping-1"
+              exec="onos-mininet sendAndExpect link s4 s7 down --expect ."/>
+        <step name="Ping-2" requires="Link-1-Down"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
+        <step name="Link-2-Down" requires="Ping-2"
+              exec="onos-mininet sendAndExpect link s4 s5 down --expect ."/>
+        <step name="Ping-3" requires="Link-2-Down"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect 100% packet loss"/>
+        <step name="Link-1-Up" requires="Ping-3"
+              exec="onos-mininet sendAndExpect link s4 s7 up --expect ."/>
+        <step name="Ping-4" requires="Link-1-Up"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
+        <step name="Link-2-Up" requires="Ping-4"
+              exec="onos-mininet sendAndExpect link s4 s5 up --expect ."/>
+        <step name="Ping-5" requires="Link-2-Up"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
+    </group>
+</scenario>

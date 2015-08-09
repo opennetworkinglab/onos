@@ -24,8 +24,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.event.EventDeliveryService;
-import org.onosproject.event.ListenerRegistry;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.incubator.net.config.Config;
 import org.onosproject.incubator.net.config.ConfigFactory;
 import org.onosproject.incubator.net.config.NetworkConfigEvent;
@@ -49,7 +48,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Component(immediate = true)
 @Service
-public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfigService {
+public class NetworkConfigManager
+        extends AbstractListenerManager<NetworkConfigEvent, NetworkConfigListener>
+        implements NetworkConfigRegistry, NetworkConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -61,21 +62,15 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
     // Inventory of configuration factories
     private final Map<ConfigKey, ConfigFactory> factories = Maps.newConcurrentMap();
 
-    // Secondary indeces to retrieve subject and config classes by keys
+    // Secondary indices to retrieve subject and config classes by keys
     private final Map<String, SubjectFactory> subjectClasses = Maps.newConcurrentMap();
     private final Map<Class, SubjectFactory> subjectClassKeys = Maps.newConcurrentMap();
-    private final Map<String, Class<? extends Config>> configClasses = Maps.newConcurrentMap();
-
-    private final ListenerRegistry<NetworkConfigEvent, NetworkConfigListener>
-            listenerRegistry = new ListenerRegistry<>();
+    private final Map<ConfigIdentifier, Class<? extends Config>> configClasses = Maps.newConcurrentMap();
 
     private final NetworkConfigStoreDelegate storeDelegate = new InternalStoreDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigStore store;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
 
     @Activate
@@ -98,7 +93,7 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
     public void registerConfigFactory(ConfigFactory configFactory) {
         checkNotNull(configFactory, NULL_FACTORY_MSG);
         factories.put(key(configFactory), configFactory);
-        configClasses.put(configFactory.configKey(), configFactory.configClass());
+        configClasses.put(identifier(configFactory), configFactory.configClass());
 
         SubjectFactory subjectFactory = configFactory.subjectFactory();
         subjectClasses.putIfAbsent(subjectFactory.subjectKey(), subjectFactory);
@@ -111,7 +106,7 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
     public void unregisterConfigFactory(ConfigFactory configFactory) {
         checkNotNull(configFactory, NULL_FACTORY_MSG);
         factories.remove(key(configFactory));
-        configClasses.remove(configFactory.configKey());
+        configClasses.remove(identifier(configFactory));
 
         // Note that we are deliberately not removing subject factory key bindings.
         store.removeConfigFactory(configFactory);
@@ -160,8 +155,8 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
     }
 
     @Override
-    public Class<? extends Config> getConfigClass(String configKey) {
-        return configClasses.get(configKey);
+    public Class<? extends Config> getConfigClass(String subjectKey, String configKey) {
+        return configClasses.get(new ConfigIdentifier(subjectKey, configKey));
     }
 
     @Override
@@ -215,23 +210,12 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
         store.clearConfig(subject, configClass);
     }
 
-    @Override
-    public void addListener(NetworkConfigListener listener) {
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(NetworkConfigListener listener) {
-        listenerRegistry.removeListener(listener);
-    }
-
-
     // Auxiliary store delegate to receive notification about changes in
     // the network configuration store state - by the store itself.
     private class InternalStoreDelegate implements NetworkConfigStoreDelegate {
         @Override
         public void notify(NetworkConfigEvent event) {
-            eventDispatcher.post(event);
+            post(event);
         }
     }
 
@@ -242,11 +226,11 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
     }
 
     // Auxiliary key to track config factories.
-    private static final class ConfigKey {
+    protected static final class ConfigKey {
         final Class subjectClass;
         final Class configClass;
 
-        private ConfigKey(Class subjectClass, Class configClass) {
+        protected ConfigKey(Class subjectClass, Class configClass) {
             this.subjectClass = subjectClass;
             this.configClass = configClass;
         }
@@ -270,4 +254,35 @@ public class NetworkConfigManager implements NetworkConfigRegistry, NetworkConfi
         }
     }
 
+    private static ConfigIdentifier identifier(ConfigFactory factory) {
+        return new ConfigIdentifier(factory.subjectFactory().subjectKey(), factory.configKey());
+    }
+
+    protected static final class ConfigIdentifier {
+        final String subjectKey;
+        final String configKey;
+
+        protected ConfigIdentifier(String subjectKey, String configKey) {
+            this.subjectKey = subjectKey;
+            this.configKey = configKey;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(subjectKey, configKey);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ConfigIdentifier) {
+                final ConfigIdentifier other = (ConfigIdentifier) obj;
+                return Objects.equals(this.subjectKey, other.subjectKey)
+                        && Objects.equals(this.configKey, other.configKey);
+            }
+            return false;
+        }
+    }
 }

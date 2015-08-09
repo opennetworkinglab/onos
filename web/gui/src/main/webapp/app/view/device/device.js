@@ -22,13 +22,13 @@
     'use strict';
 
     // injected refs
-    var $log, $scope, fs, mast, ps, wss, is, ns;
+    var $log, $scope, $location, fs, mast, ps, wss, is, ns;
 
     // internal state
     var detailsPanel,
         pStartY, pHeight,
         top, bottom, iconDiv,
-        wSize, selRow;
+        wSize;
 
     // constants
     var topPdg = 13,
@@ -55,14 +55,17 @@
             'Enabled', 'ID', 'Speed', 'Type', 'Egress Links', 'Name'
         ];
 
+    function closePanel() {
+        if (detailsPanel.isVisible()) {
+            $scope.selId = null;
+            detailsPanel.hide();
+        }
+    }
+
     function addCloseBtn(div) {
         is.loadEmbeddedIcon(div, 'plus', 30);
         div.select('g').attr('transform', 'translate(25, 0) rotate(45)');
-
-        div.on('click', function () {
-            detailsPanel.hide();
-            selRow.removeClass('selected');
-        });
+        div.on('click', closePanel);
     }
 
     function setUpPanel() {
@@ -182,37 +185,49 @@
             position: 'absolute',
             top: pStartY + 'px'
         });
+        $scope.hidePanel = function () { detailsPanel.hide(); };
         detailsPanel.hide();
     }
 
     angular.module('ovDevice', [])
     .controller('OvDeviceCtrl',
-        ['$log', '$scope', 'TableBuilderService', 'FnService',
+        ['$log', '$scope', '$location', 'TableBuilderService', 'FnService',
             'MastService', 'PanelService', 'WebSocketService', 'IconService',
             'NavService',
 
-        function (_$log_, _$scope_,
+        function (_$log_, _$scope_, _$location_,
                   tbs, _fs_, _mast_, _ps_, _wss_, _is_, _ns_) {
             $log = _$log_;
             $scope = _$scope_;
+            $location = _$location_;
             fs = _fs_;
             mast = _mast_;
             ps = _ps_;
             wss = _wss_;
             is = _is_;
             ns = _ns_;
-            var handlers = {};
-            $scope.panelData = [];
+            var params = $location.search(),
+                handlers = {};
+            $scope.panelData = {};
             $scope.flowTip = 'Show flow view for selected device';
             $scope.portTip = 'Show port view for selected device';
             $scope.groupTip = 'Show group view for selected device';
 
+            // details panel handlers
+            handlers[detailsResp] = respDetailsCb;
+            wss.bindHandlers(handlers);
+
+            // query for if a certain device needs to be highlighted
+            if (params.hasOwnProperty('devId')) {
+                $scope.selId = params['devId'];
+                wss.sendEvent(detailsReq, { id: $scope.selId });
+            }
+
             function selCb($event, row) {
-                selRow = angular.element($event.currentTarget);
                 if ($scope.selId) {
                     wss.sendEvent(detailsReq, { id: row.id });
                 } else {
-                    detailsPanel.hide();
+                    $scope.hidePanel();
                 }
                 $log.debug('Got a click on:', row);
             }
@@ -222,10 +237,6 @@
                 tag: 'device',
                 selCb: selCb
             });
-
-            // details panel handlers
-            handlers[detailsResp] = respDetailsCb;
-            wss.bindHandlers(handlers);
 
             $scope.nav = function (path) {
                 if ($scope.selId) {
@@ -240,44 +251,69 @@
             $log.log('OvDeviceCtrl has been created');
         }])
 
-        .directive('deviceDetailsPanel', ['$rootScope', '$window',
-        function ($rootScope, $window) {
-            return function (scope) {
+    .directive('deviceDetailsPanel',
+    ['$rootScope', '$window', '$timeout', 'KeyService',
+    function ($rootScope, $window, $timeout, ks) {
+        return function (scope) {
+            var unbindWatch;
 
-                function heightCalc() {
-                    pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
-                                            + mast.mastHeight() + topPdg;
-                    wSize = fs.windowSize(pStartY);
-                    pHeight = wSize.height;
-                }
+            function heightCalc() {
+                pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
+                                        + mast.mastHeight() + topPdg;
+                wSize = fs.windowSize(pStartY);
+                pHeight = wSize.height;
+            }
+
+            function initPanel() {
                 heightCalc();
-
                 createDetailsPane();
+            }
 
-                scope.$watch('panelData', function () {
+            // Safari has a bug where it renders the fixed-layout table wrong
+            // if you ask for the window's size too early
+            if (scope.onos.browser === 'safari') {
+                $timeout(initPanel);
+            } else {
+                initPanel();
+            }
+            // create key bindings to handle panel
+            ks.keyBindings({
+                esc: [closePanel, 'Close the details panel'],
+                _helpFormat: ['esc']
+            });
+            ks.gestureNotes([
+                ['click', 'Select a row to show device details'],
+                ['scroll down', 'See more devices']
+            ]);
+
+            // if the panelData changes
+            scope.$watch('panelData', function () {
+                if (!fs.isEmptyObject(scope.panelData)) {
+                    populateDetails(scope.panelData);
+                    detailsPanel.show();
+                }
+            });
+
+            // if the window size changes
+            unbindWatch = $rootScope.$watchCollection(
+                function () {
+                    return {
+                        h: $window.innerHeight,
+                        w: $window.innerWidth
+                    };
+                }, function () {
                     if (!fs.isEmptyObject(scope.panelData)) {
+                        heightCalc();
                         populateDetails(scope.panelData);
-                        detailsPanel.show();
                     }
-                });
+                }
+            );
 
-                $rootScope.$watchCollection(
-                    function () {
-                        return {
-                            h: $window.innerHeight,
-                            w: $window.innerWidth
-                        };
-                    }, function () {
-                        if (!fs.isEmptyObject(scope.panelData)) {
-                            heightCalc();
-                            populateDetails(scope.panelData);
-                        }
-                    }
-                );
-
-                scope.$on('$destroy', function () {
-                    ps.destroyPanel(pName);
-                });
-            };
-        }]);
+            scope.$on('$destroy', function () {
+                unbindWatch();
+                ks.unbindKeys();
+                ps.destroyPanel(pName);
+            });
+        };
+    }]);
 }());

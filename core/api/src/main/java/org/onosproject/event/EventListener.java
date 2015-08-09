@@ -18,7 +18,7 @@ package org.onosproject.event;
 /**
  * Entity capable of receiving events.
  */
-public interface EventListener<E extends Event> {
+public interface EventListener<E extends Event> extends EventFilter<E> {
 
     /**
      * Reacts to the specified event.

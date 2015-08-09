@@ -38,7 +38,7 @@
     <properties>
         <onos.version>1.3.0-SNAPSHOT</onos.version>
         <onos.app.name>org.onosproject.acl</onos.app.name>
-        <onos.app.origin>Pengfei Lu</onos.app.origin>
+        <onos.app.origin>DLUT</onos.app.origin>
         <web.context>/onos/v1/acl</web.context>
     </properties>
 

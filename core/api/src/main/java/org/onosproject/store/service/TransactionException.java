@@ -20,7 +20,7 @@ package org.onosproject.store.service;
  * Top level exception for Transaction failures.
  */
 @SuppressWarnings("serial")
-public class TransactionException extends RuntimeException {
+public class TransactionException extends StorageException {
     public TransactionException() {
     }
 

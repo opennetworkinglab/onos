@@ -58,13 +58,13 @@
         showHosts = false,      // whether hosts are displayed
         showOffline = true,     // whether offline devices are displayed
         nodeLock = false,       // whether nodes can be dragged or not (locked)
-        fTimer,                 // timer for delayed force layout
         fNodesTimer,            // timer for delayed nodes update
         fLinksTimer,            // timer for delayed links update
-        dim;                    // the dimensions of the force layout [w,h]
+        dim,                    // the dimensions of the force layout [w,h]
+        linkNums = [];          // array of link number labels
 
     // SVG elements;
-    var linkG, linkLabelG, portLabelG, nodeG;
+    var linkG, linkLabelG, numLinkLblsG, portLabelG, nodeG;
 
     // D3 selections;
     var link, linkLabel, node;
@@ -117,7 +117,6 @@
         network.nodes.push(d);
         lu[id] = d;
         updateNodes();
-        fStart();
     }
 
     function updateDevice(data) {
@@ -171,8 +170,6 @@
             lu[d.egress] = lnk;
             updateLinks();
         }
-
-        fStart();
     }
 
     function updateHost(data) {
@@ -218,7 +215,6 @@
             aggregateLink(d, data);
             lu[d.key] = d;
             updateLinks();
-            fStart();
         }
     }
 
@@ -326,7 +322,6 @@
             // remove from lookup cache
             delete lu[removed[0].key];
             updateLinks();
-            fResume();
         }
     }
 
@@ -348,12 +343,12 @@
         // NOTE: upd is false if we were called from removeDeviceElement()
         if (upd) {
             updateNodes();
-            fResume();
         }
     }
 
     function removeDeviceElement(d) {
-        var id = d.id;
+        var id = d.id,
+            idx;
         // first, remove associated hosts and links..
         tms.findAttachedHosts(id).forEach(removeHostElement);
         tms.findAttachedLinks(id).forEach(removeLinkElement);
@@ -361,8 +356,10 @@
         // remove from lookup cache
         delete lu[id];
         // remove from nodes array
-        var idx = fs.find(id, network.nodes);
-        network.nodes.splice(idx, 1);
+        idx = fs.find(id, network.nodes);
+        if (idx > -1) {
+            network.nodes.splice(idx, 1);
+        }
 
         if (!network.nodes.length) {
             uplink.showNoDevs(true);
@@ -370,7 +367,6 @@
 
         // remove from SVG
         updateNodes();
-        fResume();
     }
 
     function updateHostVisibility() {
@@ -525,6 +521,7 @@
     }
 
     function _updateNodes() {
+        force.stop();
         // select all the nodes in the layout:
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
@@ -539,11 +536,7 @@
             .attr({
                 id: function (d) { return sus.safeId(d.id); },
                 class: mkSvgClass,
-                transform: function (d) {
-                    // sometimes says d.x and d.y are NaN?
-                    // I have a feeling it's a timing issue
-                    return sus.translate(d.x, d.y);
-                },
+                transform: function (d) { return sus.translate(d.x, d.y); },
                 opacity: 0
             })
             .call(drag)
@@ -571,9 +564,93 @@
         // exiting node specifics:
         exiting.filter('.host').each(td3.hostExit);
         exiting.filter('.device').each(td3.deviceExit);
+        fStart();
     }
 
     // ==========================
+
+    function getDefaultPos(link) {
+        return {
+            x1: link.source.x,
+            y1: link.source.y,
+            x2: link.target.x,
+            y2: link.target.y
+        };
+    }
+
+    // returns amount of adjustment along the normal for given link
+    function amt(numLinks, linkIdx) {
+        var gap = 6;
+        return (linkIdx - ((numLinks - 1) / 2)) * gap;
+    }
+
+    function calcMovement(d, amt, flipped) {
+        var pos = getDefaultPos(d),
+            mult = flipped ? -amt : amt,
+            dx = pos.x2 - pos.x1,
+            dy = pos.y2 - pos.y1,
+            length = Math.sqrt((dx * dx) + (dy * dy));
+
+        return {
+            x1: pos.x1 + (mult * dy / length),
+            y1: pos.y1 + (mult * -dx / length),
+            x2: pos.x2 + (mult * dy / length),
+            y2: pos.y2 + (mult * -dx / length)
+        };
+    }
+
+    function calcPosition() {
+        var lines = this,
+            linkSrcId;
+        linkNums = [];
+        lines.each(function (d) {
+            if (d.type() === 'hostLink') {
+                d.position = getDefaultPos(d);
+            }
+        });
+
+        function normalizeLinkSrc(link) {
+            // ensure source device is consistent across set of links
+            // temporary measure until link modeling is refactored
+            if (!linkSrcId) {
+                linkSrcId = link.source.id;
+                return false;
+            }
+
+            return link.source.id !== linkSrcId;
+        }
+
+        angular.forEach(network.linksByDevice, function (linkArr, key) {
+            var numLinks = linkArr.length,
+                link;
+
+            if (numLinks === 1) {
+                link = linkArr[0];
+                link.position = getDefaultPos(link);
+                link.position.multiLink = false;
+            } else if (numLinks >= 5) {
+                // this code is inefficient, in the future the way links
+                // are modeled will be changed
+                angular.forEach(linkArr, function (link) {
+                    link.position = getDefaultPos(link);
+                    link.position.multiLink = true;
+                });
+                linkNums.push({
+                    id: key,
+                    num: numLinks,
+                    linkCoords: linkArr[0].position
+                });
+            } else {
+                linkSrcId = null;
+                angular.forEach(linkArr, function (link, index) {
+                    var offsetAmt = amt(numLinks, index),
+                        needToFlip = normalizeLinkSrc(link);
+                    link.position = calcMovement(link, offsetAmt, needToFlip);
+                    link.position.multiLink = false;
+                });
+            }
+        });
+    }
 
     function updateLinks() {
         if (fLinksTimer) {
@@ -584,13 +661,11 @@
 
     function _updateLinks() {
         var th = ts.theme();
+        force.stop();
 
         link = linkG.selectAll('.link')
             .data(network.links, function (d) { return d.key; });
 
-        // This seems to do nothing? I've only triggered it on timeout errors
-        // when adding links, link var is empty because there aren't any links
-        // when removing links, link var is empty already
         // operate on existing links:
         link.each(function (d) {
             // this is supposed to be an existing link, but we have observed
@@ -602,14 +677,14 @@
         });
 
         // operate on entering links:
-        // FIXME: x and y position calculated here - calculate position and add it to the link
         var entering = link.enter()
             .append('line')
+            .call(calcPosition)
             .attr({
-                x1: function (d) { return d.source.x; },
-                y1: function (d) { return d.source.y; },
-                x2: function (d) { return d.target.x; },
-                y2: function (d) { return d.target.y; },
+                x1: function (d) { return d.position.x1; },
+                y1: function (d) { return d.position.y1; },
+                x2: function (d) { return d.position.x2; },
+                y2: function (d) { return d.position.y2; },
                 stroke: linkConfig[th].inColor,
                 'stroke-width': linkConfig.inWidth
             });
@@ -619,6 +694,9 @@
 
         // operate on both existing and new links:
         //link.each(...)
+
+        // add labels for how many links are in a thick line
+        td3.applyNumLinkLabels(linkNums, numLinkLblsG);
 
         // apply or remove labels
         td3.applyLinkLabels();
@@ -636,6 +714,7 @@
             })
             .style('opacity', 0.0)
             .remove();
+        fStart();
     }
 
 
@@ -650,13 +729,8 @@
 
     function fStart() {
         if (!tos.isOblique()) {
-            if (fTimer) {
-                $timeout.cancel(fTimer);
-            }
-            fTimer = $timeout(function () {
-                $log.debug("Starting force-layout");
-                force.start();
-            }, 200);
+            $log.debug("Starting force-layout");
+            force.start();
         }
     }
 
@@ -664,24 +738,17 @@
         nodeAttr: {
             transform: function (d) { return sus.translate(d.x, d.y); }
         },
-        // FIXME: x and y position calculated here, will be deleted
         linkAttr: {
-            x1: function (d) { return d.source.x; },
-            y1: function (d) { return d.source.y; },
-            x2: function (d) { return d.target.x; },
-            y2: function (d) { return d.target.y; }
+            x1: function (d) { return d.position.x1; },
+            y1: function (d) { return d.position.y1; },
+            x2: function (d) { return d.position.x2; },
+            y2: function (d) { return d.position.y2; }
         },
         linkLabelAttr: {
             transform: function (d) {
                 var lnk = tms.findLinkById(d.key);
                 if (lnk) {
-                    // FIXME: x and y position calculated here, use link.position object
-                    return td3.transformLabel({
-                        x1: lnk.source.x,
-                        y1: lnk.source.y,
-                        x2: lnk.target.x,
-                        y2: lnk.target.y
-                    });
+                    return td3.transformLabel(lnk.position);
                 }
             }
         }
@@ -689,14 +756,15 @@
 
     function tick() {
         // guard against null (which can happen when our view pages out)...
-        if (node) {
+        if (node && node.size()) {
             node.attr(tickStuff.nodeAttr);
         }
-        if (link) {
-            // FIXME: instead of tickStuff here, use link.position object
-            link.attr(tickStuff.linkAttr);
+        if (link && link.size()) {
+            link.call(calcPosition)
+                .attr(tickStuff.linkAttr);
+            td3.applyNumLinkLabels(linkNums, numLinkLblsG);
         }
-        if (linkLabel) {
+        if (linkLabel && linkLabel.size()) {
             linkLabel.attr(tickStuff.linkLabelAttr);
         }
     }
@@ -786,7 +854,8 @@
             posNode: tms.positionNode,
             showHosts: function () { return showHosts; },
             restyleLinkElement: restyleLinkElement,
-            updateLinkLabelModel: updateLinkLabelModel
+            updateLinkLabelModel: updateLinkLabelModel,
+            linkConfig: function () { return linkConfig; }
         };
     }
 
@@ -827,7 +896,11 @@
                 return old;
             },
             opacifyMap: uplink.opacifyMap,
-            inLayer: fltr.inLayer
+            inLayer: fltr.inLayer,
+            calcLinkPos: calcPosition,
+            applyNumLinkLabels: function () {
+                td3.applyNumLinkLabels(linkNums, numLinkLblsG);
+            }
         };
     }
 
@@ -905,6 +978,7 @@
 
                 linkG = forceG.append('g').attr('id', 'topo-links');
                 linkLabelG = forceG.append('g').attr('id', 'topo-linkLabels');
+                numLinkLblsG = forceG.append('g').attr('id', 'topo-numLinkLabels');
                 nodeG = forceG.append('g').attr('id', 'topo-nodes');
                 portLabelG = forceG.append('g').attr('id', 'topo-portLabels');
 
@@ -956,14 +1030,13 @@
                 network.lookup = {};
                 network.revLinkToKey = {};
 
-                linkG = linkLabelG = nodeG = portLabelG = null;
+                linkNums = [];
+
+                linkG = linkLabelG = numLinkLblsG = nodeG = portLabelG = null;
                 link = linkLabel = node = null;
                 force = drag = null;
 
                 // clean up $timeout promises
-                if (fTimer) {
-                    $timeout.cancel(fTimer);
-                }
                 if (fNodesTimer) {
                     $timeout.cancel(fNodesTimer);
                 }

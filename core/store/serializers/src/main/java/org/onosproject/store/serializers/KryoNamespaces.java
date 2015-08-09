@@ -18,6 +18,7 @@ package org.onosproject.store.serializers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.EthType;
@@ -44,6 +45,7 @@ import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.Version;
+import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ChannelSpacing;
@@ -119,6 +121,7 @@ import org.onosproject.net.flow.criteria.OpticalSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
@@ -126,6 +129,7 @@ import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.intent.ConnectivityIntent;
@@ -155,6 +159,8 @@ import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.newresource.DefaultResource;
+import org.onosproject.net.newresource.DefaultResourceAllocation;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.PacketPriority;
@@ -220,6 +226,7 @@ public final class KryoNamespaces {
                       LinkedList.class,
                       HashSet.class
                       )
+            .register(Maps.immutableEntry("a", "b").getClass())
             .register(new ArraysAsListSerializer(), Arrays.asList().getClass())
             .register(Collections.singletonList(1).getClass())
             .register(Duration.class)
@@ -320,6 +327,7 @@ public final class KryoNamespaces {
                     IPv6NDTargetAddressCriterion.class,
                     IPv6NDLinkLayerAddressCriterion.class,
                     MplsCriterion.class,
+                    TunnelIdCriterion.class,
                     IPv6ExthdrFlagsCriterion.class,
                     LambdaCriterion.class,
                     IndexedLambdaCriterion.class,
@@ -346,11 +354,15 @@ public final class KryoNamespaces {
                     L2ModificationInstruction.PopVlanInstruction.class,
                     L2ModificationInstruction.ModMplsLabelInstruction.class,
                     L2ModificationInstruction.ModMplsTtlInstruction.class,
+                    L2ModificationInstruction.ModTunnelIdInstruction.class,
                     L3ModificationInstruction.class,
                     L3ModificationInstruction.L3SubType.class,
                     L3ModificationInstruction.ModIPInstruction.class,
                     L3ModificationInstruction.ModIPv6FlowLabelInstruction.class,
                     L3ModificationInstruction.ModTtlInstruction.class,
+                    L4ModificationInstruction.class,
+                    L4ModificationInstruction.L4SubType.class,
+                    L4ModificationInstruction.ModTransportPortInstruction.class,
                     RoleInfo.class,
                     FlowRuleBatchEvent.class,
                     FlowRuleBatchEvent.Type.class,
@@ -389,6 +401,8 @@ public final class KryoNamespaces {
                     DefaultLinkResourceAllocations.class,
                     BandwidthResourceAllocation.class,
                     LambdaResourceAllocation.class,
+                    DefaultResource.class,
+                    DefaultResourceAllocation.class,
                     // Constraints
                     LambdaConstraint.class,
                     BandwidthConstraint.class,
@@ -403,7 +417,8 @@ public final class KryoNamespaces {
                     Frequency.class,
                     DefaultAnnotations.class,
                     PortStatistics.class,
-                    DefaultPortStatistics.class
+                    DefaultPortStatistics.class,
+                    IntentDomainId.class
             )
             .register(new DefaultApplicationIdSerializer(), DefaultApplicationId.class)
             .register(new URISerializer(), URI.class)

@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
@@ -217,7 +218,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
 
         // Set the new label only if the label on the packet is
         // different
-        if (prevLabel.equals(outLabel)) {
+        if (!prevLabel.equals(outLabel)) {
             treat.setMpls(outLabel.label());
         }
 
@@ -257,16 +258,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
         if (intent.egressLabel().isPresent()) {
             treat.setMpls(intent.egressLabel().get());
         } else {
-            // if the ingress ethertype is defined, the egress traffic
-            // will be use that value, otherwise the IPv4 ethertype is used.
-            Criterion c = intent.selector().getCriterion(Criterion.Type.ETH_TYPE);
-            if (c != null && c instanceof EthTypeCriterion) {
-                EthTypeCriterion ethertype = (EthTypeCriterion) c;
-                treat.popMpls(ethertype.ethType().toShort());
-            } else {
-                treat.popMpls(Ethernet.TYPE_IPV4);
-            }
-
+                treat.popMpls(outputEthType(intent.selector()));
         }
         treat.setOutput(link.src().port());
         return createFlowRule(intent, link.src().deviceId(),
@@ -283,5 +275,17 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
                 .fromApp(appId)
                 .makePermanent()
                 .build();
+    }
+
+    // if the ingress ethertype is defined, the egress traffic
+    // will be use that value, otherwise the IPv4 ethertype is used.
+    private EthType outputEthType(TrafficSelector selector) {
+        Criterion c = selector.getCriterion(Criterion.Type.ETH_TYPE);
+        if (c != null && c instanceof EthTypeCriterion) {
+            EthTypeCriterion ethertype = (EthTypeCriterion) c;
+            return ethertype.ethType();
+        } else {
+            return EthType.EtherType.IPV4.ethType();
+        }
     }
 }

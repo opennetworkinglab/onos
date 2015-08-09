@@ -20,7 +20,6 @@ import org.onlab.util.Bandwidth;
 import org.onosproject.net.OmsPort;
 import org.onosproject.net.device.DeviceService;
 import org.slf4j.Logger;
-import org.onlab.util.KryoNamespace;
 import org.onlab.util.PositionalParameterStringFormatter;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
@@ -85,8 +84,7 @@ public class ConsistentLinkResourceStore extends
     /** IntentId -> LinkResourceAllocations. */
     private static final String INTENT_ALLOCATIONS = "LinkIntentAllocations";
 
-    private static final Serializer SERIALIZER = Serializer.using(
-            new KryoNamespace.Builder().register(KryoNamespaces.API).build());
+    private static final Serializer SERIALIZER = Serializer.using(KryoNamespaces.API);
 
     // for reading committed values.
     private ConsistentMap<IntentId, LinkResourceAllocations> intentAllocMap;

@@ -370,7 +370,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
                                               + " tell us which one.");
                         }
                     }
-
+                    break;
                 default:
                     log.debug("Unhandled message type: {}", msg.getType());
             }

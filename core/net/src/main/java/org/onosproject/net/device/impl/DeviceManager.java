@@ -16,6 +16,8 @@
 package org.onosproject.net.device.impl;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -24,15 +26,19 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.Permission;
-import org.onosproject.event.ListenerRegistry;
-import org.onosproject.event.EventDeliveryService;
+import org.onosproject.incubator.net.config.NetworkConfigEvent;
+import org.onosproject.incubator.net.config.NetworkConfigListener;
+import org.onosproject.incubator.net.config.NetworkConfigService;
+import org.onosproject.incubator.net.config.basics.BasicDeviceConfig;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.mastership.MastershipTermService;
 import org.onosproject.net.Device;
+import org.onosproject.net.Device.Type;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
@@ -40,7 +46,6 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceAdminService;
-import org.onosproject.net.device.DeviceClockProviderService;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -52,24 +57,26 @@ import org.onosproject.net.device.DeviceStore;
 import org.onosproject.net.device.DeviceStoreDelegate;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
-import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.MastershipRole.*;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -78,7 +85,7 @@ import static org.onosproject.security.AppGuard.checkPermission;
 @Component(immediate = true)
 @Service
 public class DeviceManager
-        extends AbstractProviderRegistry<DeviceProvider, DeviceProviderService>
+        extends AbstractListenerProviderRegistry<DeviceEvent, DeviceListener, DeviceProvider, DeviceProviderService>
         implements DeviceService, DeviceAdminService, DeviceProviderRegistry {
 
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
@@ -88,9 +95,6 @@ public class DeviceManager
 
     private final Logger log = getLogger(getClass());
 
-    protected final ListenerRegistry<DeviceEvent, DeviceListener> listenerRegistry =
-            new ListenerRegistry<>();
-
     private final DeviceStoreDelegate delegate = new InternalStoreDelegate();
 
     private final MastershipListener mastershipListener = new InternalMastershipListener();
@@ -98,11 +102,10 @@ public class DeviceManager
 
     private ScheduledExecutorService backgroundService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceStore store;
+    private final NetworkConfigListener networkConfigListener = new InternalNetworkConfigListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
+    protected DeviceStore store;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -114,7 +117,7 @@ public class DeviceManager
     protected MastershipTermService termService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceClockProviderService deviceClockProviderService;
+    protected NetworkConfigService networkConfigService;
 
     @Activate
     public void activate() {
@@ -124,16 +127,13 @@ public class DeviceManager
         store.setDelegate(delegate);
         eventDispatcher.addSink(DeviceEvent.class, listenerRegistry);
         mastershipService.addListener(mastershipListener);
+        networkConfigService.addListener(networkConfigListener);
 
-        backgroundService.scheduleWithFixedDelay(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    mastershipCheck();
-                } catch (Exception e) {
-                    log.error("Exception thrown during integrity check", e);
-                }
+        backgroundService.scheduleWithFixedDelay(() -> {
+            try {
+                mastershipCheck();
+            } catch (Exception e) {
+                log.error("Exception thrown during integrity check", e);
             }
         }, 1, 1, TimeUnit.MINUTES);
         log.info("Started");
@@ -142,7 +142,7 @@ public class DeviceManager
     @Deactivate
     public void deactivate() {
         backgroundService.shutdown();
-
+        networkConfigService.removeListener(networkConfigListener);
         store.unsetDelegate(delegate);
         mastershipService.removeListener(mastershipListener);
         eventDispatcher.removeSink(DeviceEvent.class);
@@ -152,28 +152,24 @@ public class DeviceManager
     @Override
     public int getDeviceCount() {
         checkPermission(Permission.DEVICE_READ);
-
         return store.getDeviceCount();
     }
 
     @Override
     public Iterable<Device> getDevices() {
         checkPermission(Permission.DEVICE_READ);
-
         return store.getDevices();
     }
 
     @Override
     public Iterable<Device> getAvailableDevices() {
         checkPermission(Permission.DEVICE_READ);
-
         return store.getAvailableDevices();
     }
 
     @Override
     public Device getDevice(DeviceId deviceId) {
         checkPermission(Permission.DEVICE_READ);
-
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getDevice(deviceId);
     }
@@ -181,7 +177,6 @@ public class DeviceManager
     @Override
     public MastershipRole getRole(DeviceId deviceId) {
         checkPermission(Permission.DEVICE_READ);
-
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return mastershipService.getLocalRole(deviceId);
     }
@@ -189,7 +184,6 @@ public class DeviceManager
     @Override
     public List<Port> getPorts(DeviceId deviceId) {
         checkPermission(Permission.DEVICE_READ);
-
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getPorts(deviceId);
     }
@@ -197,7 +191,6 @@ public class DeviceManager
     @Override
     public List<PortStatistics> getPortStatistics(DeviceId deviceId) {
         checkPermission(Permission.DEVICE_READ);
-
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getPortStatistics(deviceId);
     }
@@ -205,7 +198,6 @@ public class DeviceManager
     @Override
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         checkPermission(Permission.DEVICE_READ);
-
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(portNumber, PORT_NUMBER_NULL);
         return store.getPort(deviceId, portNumber);
@@ -244,20 +236,6 @@ public class DeviceManager
     }
 
     @Override
-    public void addListener(DeviceListener listener) {
-        checkPermission(Permission.DEVICE_EVENT);
-
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(DeviceListener listener) {
-        checkPermission(Permission.DEVICE_EVENT);
-
-        listenerRegistry.removeListener(listener);
-    }
-
-    @Override
     protected DeviceProviderService createProviderService(
             DeviceProvider provider) {
         return new InternalDeviceProviderService(provider);
@@ -280,7 +258,8 @@ public class DeviceManager
                 continue;
             }
 
-            log.info("{} is reachable but did not have a valid role, reasserting", deviceId);
+            log.info("{} is reachable but did not have a valid role, reasserting",
+                     deviceId);
 
             // isReachable but was not MASTER or STANDBY, get a role and apply
             // Note: NONE triggers request to MastershipService
@@ -300,8 +279,8 @@ public class DeviceManager
         /**
          * Apply role in reaction to provider event.
          *
-         * @param deviceId  device identifier
-         * @param newRole   new role to apply to the device
+         * @param deviceId device identifier
+         * @param newRole  new role to apply to the device
          * @return true if the request was sent to provider
          */
         private boolean applyRole(DeviceId deviceId, MastershipRole newRole) {
@@ -313,7 +292,8 @@ public class DeviceManager
 
             DeviceProvider provider = provider();
             if (provider == null) {
-                log.warn("Provider for {} was not found. Cannot apply role {}", deviceId, newRole);
+                log.warn("Provider for {} was not found. Cannot apply role {}",
+                         deviceId, newRole);
                 return false;
             }
             provider.roleChanged(deviceId, newRole);
@@ -329,41 +309,31 @@ public class DeviceManager
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             checkValidity();
+            deviceDescription = validateDevice(deviceDescription, deviceId);
 
-            log.info("Device {} connected", deviceId);
-            // check my Role
-            CompletableFuture<MastershipRole> role = mastershipService.requestRoleFor(deviceId);
-            try {
-                // Device subsystem must wait for role assignment
-                // to avoid losing Device information.
-                // (This node could be the only Node connected to the Device.)
-                role.get();
-            } catch (InterruptedException e) {
-                log.warn("Interrupted while waiting role-assignment for {}", deviceId);
-                Thread.currentThread().interrupt();
-            } catch (ExecutionException e) {
-                log.error("Exception thrown while waiting role-assignment for {}",
-                          deviceId, e);
-            }
+            // Establish my Role
+            Futures.getUnchecked(mastershipService.requestRoleFor(deviceId)
+                    .thenAccept(role -> {
+                        log.info("Local role is {} for {}", role, deviceId);
+                        applyRole(deviceId, role);
+                    }));
 
-            final MastershipTerm term = termService.getMastershipTerm(deviceId);
-            if (term == null || !localNodeId.equals(term.master())) {
-                log.info("Role of this node is STANDBY for {}", deviceId);
-                applyRole(deviceId, MastershipRole.STANDBY);
-            } else {
-                log.info("Role of this node is MASTER for {}", deviceId);
-                // tell clock provider if this instance is the master
-                deviceClockProviderService.setMastershipTerm(deviceId, term);
-                applyRole(deviceId, MastershipRole.MASTER);
-            }
-
-            DeviceEvent event = store.createOrUpdateDevice(provider().id(),
-                                                           deviceId, deviceDescription);
-
+            DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
+                                                           deviceDescription);
             if (event != null) {
                 log.trace("event: {} {}", event.type(), event);
                 post(event);
             }
+        }
+
+        // returns a DeviceDescription made from the union of the BasicDeviceConfig
+        // annotations if it exists
+        private DeviceDescription validateDevice(DeviceDescription deviceDescription, DeviceId deviceId) {
+            BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
+            checkState(cfg == null || cfg.isAllowed(), "Device " + deviceId + " is not allowed");
+            log.info("Device {} connected", deviceId);
+
+            return BasicDeviceOperator.combine(cfg, deviceDescription);
         }
 
         @Override
@@ -376,12 +346,12 @@ public class DeviceManager
             List<Port> ports = store.getPorts(deviceId);
             List<PortDescription> descs = Lists.newArrayList();
             ports.forEach(port ->
-                descs.add(new DefaultPortDescription(port.number(),
-                                                     false, port.type(),
-                                                     port.portSpeed())));
+                                  descs.add(new DefaultPortDescription(port.number(),
+                                                                       false, port.type(),
+                                                                       port.portSpeed())));
             store.updatePorts(this.provider().id(), deviceId, descs);
             try {
-                if (mastershipService.getLocalRole(deviceId) == MASTER) {
+                if (mastershipService.isLocalMaster(deviceId)) {
                     post(store.markOffline(deviceId));
                 }
             } catch (IllegalStateException e) {
@@ -403,7 +373,6 @@ public class DeviceManager
                     // TODO: Move this type of check inside device clock manager, etc.
                     if (term != null && localNodeId.equals(term.master())) {
                         log.info("Retry marking {} offline", deviceId);
-                        deviceClockProviderService.setMastershipTerm(deviceId, term);
                         post(store.markOffline(deviceId));
                     } else {
                         log.info("Failed again marking {} offline. {}", deviceId, role);
@@ -429,7 +398,7 @@ public class DeviceManager
             checkNotNull(portDescriptions,
                          "Port descriptions list cannot be null");
             checkValidity();
-            if (!deviceClockProviderService.isTimestampAvailable(deviceId)) {
+            if (!mastershipService.isLocalMaster(deviceId)) {
                 // Never been a master for this device
                 // any update will be ignored.
                 log.trace("Ignoring {} port updates on standby node. {}", deviceId, portDescriptions);
@@ -450,10 +419,11 @@ public class DeviceManager
             checkNotNull(portDescription, PORT_DESCRIPTION_NULL);
             checkValidity();
 
-            if (!deviceClockProviderService.isTimestampAvailable(deviceId)) {
+            if (!mastershipService.isLocalMaster(deviceId)) {
                 // Never been a master for this device
                 // any update will be ignored.
-                log.trace("Ignoring {} port update on standby node. {}", deviceId, portDescription);
+                log.trace("Ignoring {} port update on standby node. {}", deviceId,
+                          portDescription);
                 return;
             }
 
@@ -480,7 +450,7 @@ public class DeviceManager
             // FIXME: implement response to this notification
 
             log.debug("got reply to a role request for {}: asked for {}, and got {}",
-                     deviceId, requested, response);
+                      deviceId, requested, response);
 
             if (requested == null && response == null) {
                 // something was off with DeviceProvider, maybe check channel too?
@@ -521,19 +491,13 @@ public class DeviceManager
         }
     }
 
-    // Posts the specified event to the local event dispatcher.
-    private void post(DeviceEvent event) {
-        if (event != null && eventDispatcher != null) {
-            eventDispatcher.post(event);
-        }
-    }
-
     // Applies the specified role to the device; ignores NONE
+
     /**
      * Apply role to device and send probe if MASTER.
      *
-     * @param deviceId  device identifier
-     * @param newRole   new role to apply to the device
+     * @param deviceId device identifier
+     * @param newRole  new role to apply to the device
      * @return true if the request was sent to provider
      */
     private boolean applyRoleAndProbe(DeviceId deviceId, MastershipRole newRole) {
@@ -559,9 +523,9 @@ public class DeviceManager
     /**
      * Reaasert role for specified device connected to this node.
      *
-     * @param did         device identifier
-     * @param nextRole    role to apply. If NONE is specified,
-     *        it will ask mastership service for a role and apply it.
+     * @param did      device identifier
+     * @param nextRole role to apply. If NONE is specified,
+     *                 it will ask mastership service for a role and apply it.
      */
     private void reassertRole(final DeviceId did,
                               final MastershipRole nextRole) {
@@ -578,46 +542,46 @@ public class DeviceManager
         }
 
         switch (myNextRole) {
-        case MASTER:
-            final Device device = getDevice(did);
-            if ((device != null) && !isAvailable(did)) {
-                //flag the device as online. Is there a better way to do this?
-                DefaultDeviceDescription deviceDescription
-                    = new DefaultDeviceDescription(did.uri(),
-                                                   device.type(),
-                                                   device.manufacturer(),
-                                                   device.hwVersion(),
-                                                   device.swVersion(),
-                                                   device.serialNumber(),
-                                                   device.chassisId());
-                DeviceEvent devEvent =
-                        store.createOrUpdateDevice(device.providerId(), did,
-                                                   deviceDescription);
-                post(devEvent);
-            }
-            // TODO: should apply role only if there is mismatch
-            log.debug("Applying role {} to {}", myNextRole, did);
-            if (!applyRoleAndProbe(did, MASTER)) {
-                log.warn("Unsuccessful applying role {} to {}", myNextRole, did);
-                // immediately failed to apply role
-                mastershipService.relinquishMastership(did);
-                // FIXME disconnect?
-            }
-            break;
-        case STANDBY:
-            log.debug("Applying role {} to {}", myNextRole, did);
-            if (!applyRoleAndProbe(did, STANDBY)) {
-                log.warn("Unsuccessful applying role {} to {}", myNextRole, did);
-                // immediately failed to apply role
-                mastershipService.relinquishMastership(did);
-                // FIXME disconnect?
-            }
-            break;
-        case NONE:
-        default:
-            // should never reach here
-            log.error("You didn't see anything. I did not exist.");
-            break;
+            case MASTER:
+                final Device device = getDevice(did);
+                if ((device != null) && !isAvailable(did)) {
+                    //flag the device as online. Is there a better way to do this?
+                    DefaultDeviceDescription deviceDescription
+                            = new DefaultDeviceDescription(did.uri(),
+                                                           device.type(),
+                                                           device.manufacturer(),
+                                                           device.hwVersion(),
+                                                           device.swVersion(),
+                                                           device.serialNumber(),
+                                                           device.chassisId());
+                    DeviceEvent devEvent =
+                            store.createOrUpdateDevice(device.providerId(), did,
+                                                       deviceDescription);
+                    post(devEvent);
+                }
+                // TODO: should apply role only if there is mismatch
+                log.debug("Applying role {} to {}", myNextRole, did);
+                if (!applyRoleAndProbe(did, MASTER)) {
+                    log.warn("Unsuccessful applying role {} to {}", myNextRole, did);
+                    // immediately failed to apply role
+                    mastershipService.relinquishMastership(did);
+                    // FIXME disconnect?
+                }
+                break;
+            case STANDBY:
+                log.debug("Applying role {} to {}", myNextRole, did);
+                if (!applyRoleAndProbe(did, STANDBY)) {
+                    log.warn("Unsuccessful applying role {} to {}", myNextRole, did);
+                    // immediately failed to apply role
+                    mastershipService.relinquishMastership(did);
+                    // FIXME disconnect?
+                }
+                break;
+            case NONE:
+            default:
+                // should never reach here
+                log.error("You didn't see anything. I did not exist.");
+                break;
         }
     }
 
@@ -636,7 +600,6 @@ public class DeviceManager
             MastershipTerm term = termService.getMastershipTerm(did);
             final boolean iHaveControl = term != null && localNodeId.equals(term.master());
             if (iHaveControl) {
-                deviceClockProviderService.setMastershipTerm(did, term);
                 myNextRole = MASTER;
             } else {
                 myNextRole = STANDBY;
@@ -653,8 +616,8 @@ public class DeviceManager
             // device is not connected to this node
             if (myNextRole != NONE) {
                 log.warn("Node was instructed to be {} role for {}, "
-                        + "but this node cannot reach the device.  "
-                        + "Relinquishing role.  ",
+                                 + "but this node cannot reach the device.  "
+                                 + "Relinquishing role.  ",
                          myNextRole, did);
                 mastershipService.relinquishMastership(did);
             }
@@ -689,6 +652,63 @@ public class DeviceManager
         @Override
         public void notify(DeviceEvent event) {
             post(event);
+        }
+    }
+
+    @Override
+    public Iterable<Device> getDevices(Type type) {
+        checkPermission(Permission.DEVICE_READ);
+        Set<Device> results = new HashSet<>();
+        Iterable<Device> devices = store.getDevices();
+        if (devices != null) {
+            devices.forEach(d -> {
+                if (type.equals(d.type())) {
+                    results.add(d);
+                }
+            });
+        }
+        return results;
+    }
+
+    @Override
+    public Iterable<Device> getAvailableDevices(Type type) {
+        checkPermission(Permission.DEVICE_READ);
+        Set<Device> results = new HashSet<>();
+        Iterable<Device> availableDevices = store.getAvailableDevices();
+        if (availableDevices != null) {
+            availableDevices.forEach(d -> {
+                if (type.equals(d.type())) {
+                    results.add(d);
+                }
+            });
+        }
+        return results;
+    }
+
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            return (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)
+                    && event.configClass().equals(BasicDeviceConfig.class);
+        }
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            log.info("Detected Device network config event {}", event.type());
+            kickOutBadDevice(((DeviceId) event.subject()));
+        }
+    }
+
+    // checks if the specified device is allowed by the BasicDeviceConfig
+    // and if not, removes it
+    private void kickOutBadDevice(DeviceId deviceId) {
+        BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
+        if (!cfg.isAllowed()) {
+            Device badDevice = getDevice(deviceId);
+            if (badDevice != null) {
+                removeDevice(deviceId);
+            }
         }
     }
 }

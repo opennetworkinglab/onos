@@ -21,16 +21,20 @@ import net.kuujo.copycat.resource.internal.AbstractResource;
 import net.kuujo.copycat.resource.internal.ResourceManager;
 import net.kuujo.copycat.state.internal.DefaultStateMachine;
 import net.kuujo.copycat.util.concurrent.Futures;
+import net.kuujo.copycat.util.function.TriConsumer;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
+
+import com.google.common.collect.Sets;
 
 /**
  * Default database.
@@ -38,11 +42,24 @@ import org.onosproject.store.service.Versioned;
 public class DefaultDatabase extends AbstractResource<Database> implements Database {
     private final StateMachine<DatabaseState<String, byte[]>> stateMachine;
     private DatabaseProxy<String, byte[]> proxy;
+    private final Set<Consumer<StateMachineUpdate>> consumers = Sets.newCopyOnWriteArraySet();
+    private final TriConsumer<String, Object, Object> watcher = new InternalStateMachineWatcher();
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public DefaultDatabase(ResourceManager context) {
         super(context);
-        this.stateMachine = new DefaultStateMachine(context, DatabaseState.class, DefaultDatabaseState.class);
+        this.stateMachine = new DefaultStateMachine(context,
+                DatabaseState.class,
+                DefaultDatabaseState.class,
+                DefaultDatabase.class.getClassLoader());
+        this.stateMachine.addStartupTask(() -> {
+            stateMachine.registerWatcher(watcher);
+            return CompletableFuture.completedFuture(null);
+        });
+        this.stateMachine.addShutdownTask(() -> {
+            stateMachine.unregisterWatcher(watcher);
+            return CompletableFuture.completedFuture(null);
+        });
     }
 
     /**
@@ -61,8 +78,8 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     }
 
     @Override
-    public CompletableFuture<Set<String>> tableNames() {
-        return checkOpen(() -> proxy.tableNames());
+    public CompletableFuture<Set<String>> maps() {
+        return checkOpen(() -> proxy.maps());
     }
 
     @Override
@@ -71,105 +88,54 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     }
 
     @Override
-    public CompletableFuture<Integer> size(String tableName) {
-        return checkOpen(() -> proxy.size(tableName));
+    public CompletableFuture<Integer> mapSize(String mapName) {
+        return checkOpen(() -> proxy.mapSize(mapName));
     }
 
     @Override
-    public CompletableFuture<Boolean> isEmpty(String tableName) {
-        return checkOpen(() -> proxy.isEmpty(tableName));
+    public CompletableFuture<Boolean> mapIsEmpty(String mapName) {
+        return checkOpen(() -> proxy.mapIsEmpty(mapName));
     }
 
     @Override
-    public CompletableFuture<Boolean> containsKey(String tableName, String key) {
-        return checkOpen(() -> proxy.containsKey(tableName, key));
+    public CompletableFuture<Boolean> mapContainsKey(String mapName, String key) {
+        return checkOpen(() -> proxy.mapContainsKey(mapName, key));
     }
 
     @Override
-    public CompletableFuture<Boolean> containsValue(String tableName, byte[] value) {
-        return checkOpen(() -> proxy.containsValue(tableName, value));
+    public CompletableFuture<Boolean> mapContainsValue(String mapName, byte[] value) {
+        return checkOpen(() -> proxy.mapContainsValue(mapName, value));
     }
 
     @Override
-    public CompletableFuture<Versioned<byte[]>> get(String tableName, String key) {
-        return checkOpen(() -> proxy.get(tableName, key));
+    public CompletableFuture<Versioned<byte[]>> mapGet(String mapName, String key) {
+        return checkOpen(() -> proxy.mapGet(mapName, key));
     }
 
     @Override
-    public CompletableFuture<Result<Versioned<byte[]>>> put(String tableName, String key, byte[] value) {
-        return checkOpen(() -> proxy.put(tableName, key, value));
+    public CompletableFuture<Result<UpdateResult<String, byte[]>>> mapUpdate(
+            String mapName, String key, Match<byte[]> valueMatch, Match<Long> versionMatch, byte[] value) {
+        return checkOpen(() -> proxy.mapUpdate(mapName, key, valueMatch, versionMatch, value));
     }
 
     @Override
-    public CompletableFuture<Result<UpdateResult<Versioned<byte[]>>>> putAndGet(String tableName,
-            String key,
-            byte[] value) {
-        return checkOpen(() -> proxy.putAndGet(tableName, key, value));
+    public CompletableFuture<Result<Void>> mapClear(String mapName) {
+        return checkOpen(() -> proxy.mapClear(mapName));
     }
 
     @Override
-    public CompletableFuture<Result<UpdateResult<Versioned<byte[]>>>> putIfAbsentAndGet(String tableName,
-            String key,
-            byte[] value) {
-        return checkOpen(() -> proxy.putIfAbsentAndGet(tableName, key, value));
+    public CompletableFuture<Set<String>> mapKeySet(String mapName) {
+        return checkOpen(() -> proxy.mapKeySet(mapName));
     }
 
     @Override
-    public CompletableFuture<Result<Versioned<byte[]>>> remove(String tableName, String key) {
-        return checkOpen(() -> proxy.remove(tableName, key));
+    public CompletableFuture<Collection<Versioned<byte[]>>> mapValues(String mapName) {
+        return checkOpen(() -> proxy.mapValues(mapName));
     }
 
     @Override
-    public CompletableFuture<Result<Void>> clear(String tableName) {
-        return checkOpen(() -> proxy.clear(tableName));
-    }
-
-    @Override
-    public CompletableFuture<Set<String>> keySet(String tableName) {
-        return checkOpen(() -> proxy.keySet(tableName));
-    }
-
-    @Override
-    public CompletableFuture<Collection<Versioned<byte[]>>> values(String tableName) {
-        return checkOpen(() -> proxy.values(tableName));
-    }
-
-    @Override
-    public CompletableFuture<Set<Map.Entry<String, Versioned<byte[]>>>> entrySet(String tableName) {
-        return checkOpen(() -> proxy.entrySet(tableName));
-    }
-
-    @Override
-    public CompletableFuture<Result<Versioned<byte[]>>> putIfAbsent(String tableName, String key, byte[] value) {
-        return checkOpen(() -> proxy.putIfAbsent(tableName, key, value));
-    }
-
-    @Override
-    public CompletableFuture<Result<Boolean>> remove(String tableName, String key, byte[] value) {
-        return checkOpen(() -> proxy.remove(tableName, key, value));
-    }
-
-    @Override
-    public CompletableFuture<Result<Boolean>> remove(String tableName, String key, long version) {
-        return checkOpen(() -> proxy.remove(tableName, key, version));
-    }
-
-    @Override
-    public CompletableFuture<Result<Boolean>> replace(String tableName, String key, byte[] oldValue, byte[] newValue) {
-        return checkOpen(() -> proxy.replace(tableName, key, oldValue, newValue));
-    }
-
-    @Override
-    public CompletableFuture<Result<Boolean>> replace(String tableName, String key, long oldVersion, byte[] newValue) {
-        return checkOpen(() -> proxy.replace(tableName, key, oldVersion, newValue));
-    }
-
-    @Override
-    public CompletableFuture<Result<UpdateResult<Versioned<byte[]>>>> replaceAndGet(String tableName,
-            String key,
-            long oldVersion,
-            byte[] newValue) {
-        return checkOpen(() -> proxy.replaceAndGet(tableName, key, oldVersion, newValue));
+    public CompletableFuture<Set<Map.Entry<String, Versioned<byte[]>>>> mapEntrySet(String mapName) {
+        return checkOpen(() -> proxy.mapEntrySet(mapName));
     }
 
     @Override
@@ -256,5 +222,23 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
             return name().equals(((Database) other).name());
         }
         return false;
+    }
+
+    @Override
+    public void registerConsumer(Consumer<StateMachineUpdate> consumer) {
+        consumers.add(consumer);
+    }
+
+    @Override
+    public void unregisterConsumer(Consumer<StateMachineUpdate> consumer) {
+        consumers.remove(consumer);
+    }
+
+    private class InternalStateMachineWatcher implements TriConsumer<String, Object, Object> {
+        @Override
+        public void accept(String name, Object input, Object output) {
+            StateMachineUpdate update = new StateMachineUpdate(name, input, output);
+            consumers.forEach(consumer -> consumer.accept(update));
+        }
     }
 }

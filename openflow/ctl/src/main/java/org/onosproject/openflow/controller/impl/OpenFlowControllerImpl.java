@@ -38,6 +38,8 @@ import org.onosproject.openflow.controller.PacketListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.driver.OpenFlowAgent;
 import org.osgi.service.component.ComponentContext;
+import org.projectfloodlight.openflow.protocol.OFCalientFlowStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFCalientFlowStatsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFExperimenter;
 import org.projectfloodlight.openflow.protocol.OFFactories;
@@ -55,12 +57,17 @@ import org.projectfloodlight.openflow.protocol.OFPortStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsReplyFlags;
+import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -290,7 +297,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                             (OFGroupDescStatsReply) reply);
                     if (groupDescStats != null) {
                         OFGroupDescStatsReply.Builder rep =
-                            OFFactories.getFactory(msg.getVersion()).buildGroupDescStatsReply();
+                                OFFactories.getFactory(msg.getVersion()).buildGroupDescStatsReply();
                         rep.setEntries(Lists.newLinkedList(groupDescStats));
                         rep.setXid(reply.getXid());
                         executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
@@ -299,16 +306,63 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 case PORT:
                     executorMsgs.submit(new OFMessageHandler(dpid, reply));
                     break;
+                case EXPERIMENTER:
+                    if (reply instanceof OFCalientFlowStatsReply) {
+                        // Convert Calient flow statistics to regular flow stats
+                        // TODO: parse remaining fields such as power levels etc. when we have proper monitoring API
+                        OFFlowStatsReply.Builder fsr = getSwitch(dpid).factory().buildFlowStatsReply();
+                        List<OFFlowStatsEntry> entries = new LinkedList<>();
+                        for (OFCalientFlowStatsEntry entry : ((OFCalientFlowStatsReply) msg).getEntries()) {
+
+                            // Single instruction, i.e., output to port
+                            OFActionOutput action = OFFactories
+                                    .getFactory(msg.getVersion())
+                                    .actions()
+                                    .buildOutput()
+                                    .setPort(entry.getOutPort())
+                                    .build();
+                            OFInstruction instruction = OFFactories
+                                    .getFactory(msg.getVersion())
+                                    .instructions()
+                                    .applyActions(Collections.singletonList(action));
+                            OFFlowStatsEntry fs = getSwitch(dpid).factory().buildFlowStatsEntry()
+                                    .setMatch(entry.getMatch())
+                                    .setTableId(entry.getTableId())
+                                    .setDurationSec(entry.getDurationSec())
+                                    .setDurationNsec(entry.getDurationNsec())
+                                    .setPriority(entry.getPriority())
+                                    .setIdleTimeout(entry.getIdleTimeout())
+                                    .setHardTimeout(entry.getHardTimeout())
+                                    .setFlags(entry.getFlags())
+                                    .setCookie(entry.getCookie())
+                                    .setInstructions(Collections.singletonList(instruction))
+                                    .build();
+                            entries.add(fs);
+                        }
+                        fsr.setEntries(entries);
+
+                        flowStats = publishFlowStats(dpid, fsr.build());
+                        if (flowStats != null) {
+                            OFFlowStatsReply.Builder rep =
+                                    OFFactories.getFactory(msg.getVersion()).buildFlowStatsReply();
+                            rep.setEntries(Lists.newLinkedList(flowStats));
+                            executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
+                        }
+                    } else {
+                        log.warn("Unsupported stats type : {}", reply.getStatsType());
+                    }
+                    break;
                 default:
-                    log.warn("Unsupported stats type : {}", reply.getStatsType());
+                    break;
             }
             break;
         case BARRIER_REPLY:
             executorBarrier.submit(new OFMessageHandler(dpid, msg));
             break;
         case EXPERIMENTER:
-            // Handle optical port stats
-            if (((OFExperimenter) msg).getExperimenter() == 0x748771) {
+            long experimenter = ((OFExperimenter) msg).getExperimenter();
+            if (experimenter == 0x748771) {
+                // LINC-OE port stats
                 OFCircuitPortStatus circuitPortStatus = (OFCircuitPortStatus) msg;
                 OFPortStatus.Builder portStatus = this.getSwitch(dpid).factory().buildPortStatus();
                 OFPortDesc.Builder portDesc = this.getSwitch(dpid).factory().buildPortDesc();

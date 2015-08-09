@@ -70,7 +70,7 @@ public class CompilerTest {
 
         assertSame("incorrect scenario", scenario, compiler.scenario());
         assertEquals("incorrect step count", 24, flow.getVertexes().size());
-        assertEquals("incorrect dependency count", 17, flow.getEdges().size());
+        assertEquals("incorrect dependency count", 16, flow.getEdges().size());
         assertEquals("incorrect logDir",
                      new File(TEST_DIR.getAbsolutePath(), "foo"), compiler.logDir());
 

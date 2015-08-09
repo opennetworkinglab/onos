@@ -51,7 +51,12 @@ public interface Link extends Annotated, Provided, NetworkResource {
         /**
          * Signifies that this link is realized by fiber (either single channel or WDM).
          */
-        OPTICAL
+        OPTICAL,
+
+        /**
+         * Signifies that this link is a virtual link or a pseudo-wire.
+         */
+        VIRTUAL
     }
 
     /**

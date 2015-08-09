@@ -25,9 +25,9 @@ public interface Partitioner<K> {
 
     /**
      * Returns the database partition.
-     * @param tableName table name
+     * @param mapName map name
      * @param key key
      * @return Database partition
      */
-    Database getPartition(String tableName, K key);
+    Database getPartition(String mapName, K key);
 }

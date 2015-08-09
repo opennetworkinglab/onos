@@ -26,9 +26,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.event.Event;
-import org.onosproject.event.EventDeliveryService;
-import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
@@ -64,7 +63,9 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class EdgeManager implements EdgePortService {
+public class EdgeManager
+        extends AbstractListenerManager<EdgePortEvent, EdgePortListener>
+        implements EdgePortService {
 
     private final Logger log = getLogger(getClass());
 
@@ -72,13 +73,7 @@ public class EdgeManager implements EdgePortService {
 
     private final Map<DeviceId, Set<ConnectPoint>> connectionPoints = Maps.newConcurrentMap();
 
-    private final ListenerRegistry<EdgePortEvent, EdgePortListener>
-            listenerRegistry = new ListenerRegistry<>();
-
     private final TopologyListener topologyListener = new InnerTopologyListener();
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
@@ -147,17 +142,6 @@ public class EdgeManager implements EdgePortService {
         return new DefaultOutboundPacket(point.deviceId(), builder.build(), data);
     }
 
-    @Override
-    public void addListener(EdgePortListener listener) {
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(EdgePortListener listener) {
-        listenerRegistry.removeListener(listener);
-    }
-
-
     // Internal listener for topo events used to keep our edge-port cache
     // up to date.
     private class InnerTopologyListener implements TopologyListener {
@@ -174,6 +158,8 @@ public class EdgeManager implements EdgePortService {
                     }
                 });
             } else {
+                //FIXME special case of preexisting edgeport & no triggerless events could cause this to never hit and
+                //never discover an edgeport that should have been discovered.
                 loadAllEdgePorts();
             }
         }
@@ -198,6 +184,7 @@ public class EdgeManager implements EdgePortService {
 
     // Processes a device event by adding or removing its end-points in our cache.
     private void processDeviceEvent(DeviceEvent event) {
+        //FIXME handle the case where a device is suspended, this may or may not come up
         DeviceEvent.Type type = event.type();
         DeviceId id = event.subject().id();
 
@@ -231,7 +218,7 @@ public class EdgeManager implements EdgePortService {
                 connectionPoints.put(point.deviceId(), set);
             }
             if (set.add(point)) {
-                eventDispatcher.post(new EdgePortEvent(EDGE_PORT_ADDED, point));
+                post(new EdgePortEvent(EDGE_PORT_ADDED, point));
             }
         }
     }
@@ -244,7 +231,7 @@ public class EdgeManager implements EdgePortService {
                 return;
             }
             if (set.remove(point)) {
-                eventDispatcher.post(new EdgePortEvent(EDGE_PORT_REMOVED, point));
+                post(new EdgePortEvent(EDGE_PORT_REMOVED, point));
             }
             if (set.isEmpty()) {
                 connectionPoints.remove(point.deviceId());

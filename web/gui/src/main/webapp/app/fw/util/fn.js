@@ -122,6 +122,28 @@
         return patt.test(ua);
     }
 
+    // Returns true if the current browser determined to be Chrome
+    function isChrome() {
+        var isChromium = $window.chrome,
+            vendorName = $window.navigator.vendor,
+            isOpera = $window.navigator.userAgent.indexOf("OPR") > -1;
+        return (isChromium !== null &&
+        isChromium !== undefined &&
+        vendorName === "Google Inc." &&
+        isOpera == false);
+    }
+
+    // Returns true if the current browser determined to be Safari
+    function isSafari() {
+        return ($window.navigator.userAgent.indexOf('Safari') !== -1 &&
+        $window.navigator.userAgent.indexOf('Chrome') === -1);
+    }
+
+    // Returns true if the current browser determined to be Firefox
+    function isFirefox() {
+        return typeof InstallTrigger !== 'undefined';
+    }
+
     // search through an array of objects, looking for the one with the
     // tagged property matching the given key. tag defaults to 'id'.
     // returns the index of the matching object, or -1 for no match.
@@ -170,6 +192,33 @@
             return false;
         }
         return true;
+    }
+
+    // returns true if the two objects have all the same properties
+    function sameObjProps(obj1, obj2) {
+        var key;
+        for (key in obj1) {
+            if (obj1.hasOwnProperty(key)) {
+                if (!(obj1[key] === obj2[key])) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // returns true if the array contains the object
+    // does NOT use strict object reference equality,
+        // instead checks each property individually for equality
+    function containsObj(arr, obj) {
+        var i,
+            len = arr.length;
+        for (i = 0; i < len; i++) {
+            if (sameObjProps(arr[i], obj)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // return the given string with the first character capitalized.
@@ -222,11 +271,16 @@
                 areFunctionsNonStrict: areFunctionsNonStrict,
                 windowSize: windowSize,
                 isMobile: isMobile,
+                isChrome: isChrome,
+                isSafari: isSafari,
+                isFirefox: isFirefox,
                 debugOn: debugOn,
                 find: find,
                 inArray: inArray,
                 removeFromArray: removeFromArray,
                 isEmptyObject: isEmptyObject,
+                sameObjProps: sameObjProps,
+                containsObj: containsObj,
                 cap: cap,
                 noPx: noPx,
                 noPxStyle: noPxStyle,

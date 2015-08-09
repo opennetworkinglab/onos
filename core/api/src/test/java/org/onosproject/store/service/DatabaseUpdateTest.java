@@ -33,7 +33,7 @@ public class DatabaseUpdateTest extends TestCase {
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
-            .withTableName("5")
+            .withMapName("5")
             .withType(DatabaseUpdate.Type.PUT)
             .build();
 
@@ -42,7 +42,7 @@ public class DatabaseUpdateTest extends TestCase {
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
-            .withTableName("5")
+            .withMapName("5")
             .withType(DatabaseUpdate.Type.REMOVE)
             .build();
 
@@ -51,7 +51,7 @@ public class DatabaseUpdateTest extends TestCase {
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
-            .withTableName("5")
+            .withMapName("5")
             .withType(DatabaseUpdate.Type.REMOVE_IF_VALUE_MATCH)
             .build();
 
@@ -60,7 +60,7 @@ public class DatabaseUpdateTest extends TestCase {
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
-            .withTableName("5")
+            .withMapName("5")
             .withType(DatabaseUpdate.Type.REMOVE_IF_VERSION_MATCH)
             .build();
 
@@ -69,7 +69,7 @@ public class DatabaseUpdateTest extends TestCase {
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
-            .withTableName("5")
+            .withMapName("5")
             .withType(DatabaseUpdate.Type.PUT_IF_VALUE_MATCH)
             .build();
 
@@ -78,7 +78,7 @@ public class DatabaseUpdateTest extends TestCase {
             .withValue("2".getBytes())
             .withCurrentVersion(3)
             .withKey("4")
-            .withTableName("5")
+            .withMapName("5")
             .withType(DatabaseUpdate.Type.PUT_IF_VERSION_MATCH)
             .build();
 
@@ -91,7 +91,7 @@ public class DatabaseUpdateTest extends TestCase {
         assertThat(stats1.value(), is("2".getBytes()));
         assertThat(stats1.currentVersion(), is(3L));
         assertThat(stats1.key(), is("4"));
-        assertThat(stats1.tableName(), is("5"));
+        assertThat(stats1.mapName(), is("5"));
         assertThat(stats1.type(), is(DatabaseUpdate.Type.PUT));
     }
 

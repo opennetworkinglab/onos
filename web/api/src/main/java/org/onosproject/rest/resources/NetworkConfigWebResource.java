@@ -87,7 +87,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = mapper().createObjectNode();
         produceSubjectJson(service, root,
-                           service.getSubjectFactory(subjectKey).createSubject(subject));
+                service.getSubjectFactory(subjectKey).createSubject(subject));
         return ok(root).build();
     }
 
@@ -109,7 +109,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                              @PathParam("configKey") String configKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
         return ok(service.getConfig(service.getSubjectFactory(subjectKey).createSubject(subject),
-                                    service.getConfigClass(configKey)).node()).build();
+                                    service.getConfigClass(subjectKey, configKey)).node()).build();
     }
 
     @SuppressWarnings("unchecked")
@@ -129,7 +129,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      * Uploads network configuration in bulk.
      *
      * @param request network configuration JSON rooted at the top node
-     * @throws IOException
+     * @throws IOException if unable to parse the request
      * @return empty response
      */
     @POST
@@ -140,7 +140,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         ObjectNode root = (ObjectNode) mapper().readTree(request);
         root.fieldNames()
                 .forEachRemaining(sk -> consumeJson(service, (ObjectNode) root.path(sk),
-                                                    service.getSubjectFactory(sk)));
+                        service.getSubjectFactory(sk)));
         return Response.ok().build();
     }
 
@@ -150,7 +150,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      * @param subjectKey subject class key
      * @param request    network configuration JSON rooted at the top node
      * @return empty response
-     * @throws IOException
+     * @throws IOException if unable to parse the request
      */
     @POST
     @Path("{subjectKey}")
@@ -171,7 +171,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      * @param subject    subject key
      * @param request    network configuration JSON rooted at the top node
      * @return empty response
-     * @throws IOException
+     * @throws IOException if unable to parse the request
      */
     @POST
     @Path("{subjectKey}/{subject}")
@@ -183,7 +183,8 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
         consumeSubjectJson(service, root,
-                           service.getSubjectFactory(subjectKey).createSubject(subject));
+                service.getSubjectFactory(subjectKey).createSubject(subject),
+                subjectKey);
         return Response.ok().build();
     }
 
@@ -196,7 +197,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      * @param configKey  configuration class key
      * @param request    network configuration JSON rooted at the top node
      * @return empty response
-     * @throws IOException
+     * @throws IOException if unable to parse the request
      */
     @POST
     @Path("{subjectKey}/{subject}/{configKey}")
@@ -209,22 +210,24 @@ public class NetworkConfigWebResource extends AbstractWebResource {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
         service.applyConfig(service.getSubjectFactory(subjectKey).createSubject(subject),
-                            service.getConfigClass(configKey), root);
+                service.getConfigClass(subjectKey, configKey), root);
         return Response.ok().build();
     }
 
     private void consumeJson(NetworkConfigService service, ObjectNode classNode,
                              SubjectFactory subjectFactory) {
         classNode.fieldNames().forEachRemaining(s ->
-            consumeSubjectJson(service, (ObjectNode) classNode.path(s),
-                               subjectFactory.createSubject(s)));
+                consumeSubjectJson(service, (ObjectNode) classNode.path(s),
+                        subjectFactory.createSubject(s),
+                        subjectFactory.subjectKey()));
     }
 
     private void consumeSubjectJson(NetworkConfigService service,
-                                    ObjectNode subjectNode, Object subject) {
+                                    ObjectNode subjectNode, Object subject,
+                                    String subjectKey) {
         subjectNode.fieldNames().forEachRemaining(c ->
-            service.applyConfig(subject, service.getConfigClass(c),
-                                (ObjectNode) subjectNode.path(c)));
+            service.applyConfig(subject, service.getConfigClass(subjectKey, c),
+                    (ObjectNode) subjectNode.path(c)));
     }
 
 
@@ -237,9 +240,8 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      */
     @DELETE
     @Path("{subjectKey}/{subject}")
-    @Consumes(MediaType.APPLICATION_JSON)
     @SuppressWarnings("unchecked")
-    public Response upload(@PathParam("subjectKey") String subjectKey,
+    public Response delete(@PathParam("subjectKey") String subjectKey,
                            @PathParam("subject") String subject) {
         NetworkConfigService service = get(NetworkConfigService.class);
         Object s = service.getSubjectFactory(subjectKey).createSubject(subject);
@@ -258,15 +260,54 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      */
     @DELETE
     @Path("{subjectKey}/{subject}/{configKey}")
-    @Consumes(MediaType.APPLICATION_JSON)
     @SuppressWarnings("unchecked")
-    public Response upload(@PathParam("subjectKey") String subjectKey,
+    public Response delete(@PathParam("subjectKey") String subjectKey,
                            @PathParam("subject") String subject,
                            @PathParam("configKey") String configKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
         service.removeConfig(service.getSubjectFactory(subjectKey).createSubject(subject),
-                service.getConfigClass(configKey));
+                service.getConfigClass(subjectKey, configKey));
         return Response.ok().build();
     }
 
+
+    /**
+     * Clears all network configurations.
+     *
+     * @return empty response
+     */
+    @DELETE
+    @SuppressWarnings("unchecked")
+    public Response delete() {
+        NetworkConfigService service = get(NetworkConfigService.class);
+        service.getSubjectClasses().forEach(subjectClass -> {
+            service.getSubjects(subjectClass).forEach(subject -> {
+                service.getConfigs(subject).forEach(config -> {
+                    service.removeConfig(subject, config.getClass());
+                });
+            });
+        });
+        return Response.ok().build();
+    }
+
+
+    // TODO: this one below doesn't work correctly
+    /**
+     * Clears network configuration for the specified subject class.
+     *
+     * @param subjectKey subject class key
+     * @return empty response
+     */
+    @DELETE
+    @Path("{subjectKey}/")
+    @SuppressWarnings("unchecked")
+    public Response delete(@PathParam("subjectKey") String subjectKey) {
+        NetworkConfigService service = get(NetworkConfigService.class);
+        service.getSubjects(service.getSubjectFactory(subjectKey).getClass()).forEach(subject -> {
+            service.getConfigs(subject).forEach(config -> {
+                service.removeConfig(subject, config.getClass());
+            });
+        });
+        return Response.ok().build();
+    }
 }

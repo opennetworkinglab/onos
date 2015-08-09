@@ -78,7 +78,7 @@ describe('factory: fw/widget/toolbar.js', function () {
 
         // NOTE: toolbar service prefixes id with 'toolbar-'
         var tbar = d3.select('#toolbar-test'),
-            arrow = tbar.select('.tbarArrow');
+            arrow = tbar.select('.tbar-arrow');
 
         expect(arrow.size()).toBe(1);
         expect(arrow.select('svg').size()).toBe(1);

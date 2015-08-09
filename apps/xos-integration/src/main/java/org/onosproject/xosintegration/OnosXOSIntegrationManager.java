@@ -57,7 +57,9 @@ import java.util.stream.IntStream;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.net.MediaType.JSON_UTF_8;
-import static java.net.HttpURLConnection.*;
+import static java.net.HttpURLConnection.HTTP_CREATED;
+import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -86,6 +88,9 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
     private static final String FABRIC_CONTROLLER_ADDRESS = "10.0.3.136";
     private static final int FABRIC_SERVER_PORT = 8181;
     private static final String FABRIC_BASE_URI = "/onos/cordfabric/vlans/add";
+
+    private static final DeviceId OLT_DEVICE_ID = DeviceId.deviceId("of:90e2ba82f97791e9");
+    private static final int OLT_UPLINK_PORT = 129;
 
     private static final ConnectPoint FABRIC_PORT = new ConnectPoint(
             DeviceId.deviceId("of:000090e2ba82f974"),
@@ -154,11 +159,11 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
                                                                   PortNumber.portNumber(3)));
 
         portToVlan = Maps.newHashMap();
-        portToVlan.putIfAbsent(2L, (short) 201);
+        portToVlan.putIfAbsent(1L, (short) 201);
         portToVlan.putIfAbsent(6L, (short) 401);
 
         portToSsid = Maps.newHashMap();
-        portToSsid.put(new ConnectPoint(FABRIC_DEVICE_ID, PortNumber.portNumber(2)), "0");
+        portToSsid.put(new ConnectPoint(OLT_DEVICE_ID, PortNumber.portNumber(1)), "0");
         portToSsid.put(new ConnectPoint(FABRIC_DEVICE_ID, PortNumber.portNumber(6)), "1");
     }
 
@@ -333,19 +338,24 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         if (providerServiceId == -1) {
             providerServiceId = xosProviderService;
         }
+
+        PortNumber onuPort = newTenant.port().port();
+        VlanId subscriberVlan = VlanId.vlanId(portToVlan.get(onuPort.toLong()));
+
         VoltTenant tenantToCreate = VoltTenant.builder()
                 .withProviderService(providerServiceId)
                 .withServiceSpecificId(portToSsid.get(newTenant.port()))
-                .withVlanId(newTenant.vlanId())
+                .withVlanId(String.valueOf(subscriberVlan.toShort()))
                 .withPort(newTenant.port())
                 .build();
         String json = tenantToJson(tenantToCreate);
 
-        //provisionDataPlane(tenantToCreate);
+
+        provisionVlanOnPort(OLT_DEVICE_ID, OLT_UPLINK_PORT, onuPort, subscriberVlan.toShort());
 
         String retJson = postRest(json);
 
-        fetchCPELocation(newTenant, retJson);
+        fetchCPELocation(tenantToCreate, retJson);
 
         return newTenant;
     }
@@ -355,10 +365,11 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
 
         if (json.get("computeNodeName") != null) {
             ConnectPoint point = nodeToPort.get(json.get("computeNodeName").asString());
-            ConnectPoint fromPoint = newTenant.port();
+            //ConnectPoint fromPoint = newTenant.port();
+            ConnectPoint oltPort = new ConnectPoint(FABRIC_DEVICE_ID, FABRIC_OLT_CONNECT_POINT);
 
             provisionFabric(VlanId.vlanId(Short.parseShort(newTenant.vlanId())),
-                            point, fromPoint);
+                            point, oltPort);
         }
 
     }
@@ -372,6 +383,52 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
         } else {
             return null;
         }
+    }
+
+    private void provisionVlanOnPort(DeviceId deviceId, int uplinkPort, PortNumber p, short vlanId) {
+
+        TrafficSelector upstream = DefaultTrafficSelector.builder()
+                .matchVlanId(VlanId.ANY)
+                .matchInPort(p)
+                .build();
+
+        TrafficSelector downstream = DefaultTrafficSelector.builder()
+                .matchVlanId(VlanId.vlanId(vlanId))
+                .matchInPort(PortNumber.portNumber(uplinkPort))
+                .build();
+
+        TrafficTreatment upstreamTreatment = DefaultTrafficTreatment.builder()
+                .setVlanId(VlanId.vlanId(vlanId))
+                .setOutput(PortNumber.portNumber(uplinkPort))
+                .build();
+
+        TrafficTreatment downstreamTreatment = DefaultTrafficTreatment.builder()
+                .popVlan()
+                .setOutput(p)
+                .build();
+
+
+        ForwardingObjective upFwd = DefaultForwardingObjective.builder()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(1000)
+                .makePermanent()
+                .withSelector(upstream)
+                .fromApp(appId)
+                .withTreatment(upstreamTreatment)
+                .add();
+
+        ForwardingObjective downFwd = DefaultForwardingObjective.builder()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(1000)
+                .makePermanent()
+                .withSelector(downstream)
+                .fromApp(appId)
+                .withTreatment(downstreamTreatment)
+                .add();
+
+        flowObjectiveService.forward(deviceId, upFwd);
+        flowObjectiveService.forward(deviceId, downFwd);
+
     }
 
     private void provisionDataPlane(VoltTenant tenant) {
@@ -420,15 +477,8 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
     }
 
     private void provisionFabric(VlanId vlanId, ConnectPoint point, ConnectPoint fromPoint) {
-        //String json = "{\"vlan\":" + vlanId + ",\"ports\":[";
-        //json += "{\"device\":\"" + FABRIC_DEVICE_ID.toString() + "\",\"port\":\""
-        //       + FABRIC_OLT_CONNECT_POINT.toString() + "\"},";
-        //json += "{\"device\":\"" + FABRIC_DEVICE_ID.toString() + "\",\"port\":\""
-        //        + FABRIC_VCPE_CONNECT_POINT.toString() + "\"}";
-        //json += "]}";
 
-        long vlan = portToVlan.get(fromPoint.port().toLong());
-
+        long vlan = vlanId.toShort();
 
         JsonObject node = new JsonObject();
         node.add("vlan", vlan);

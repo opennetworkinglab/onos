@@ -83,10 +83,11 @@ public class MapValue<V> implements Comparable<MapValue<V>> {
         return Objects.hashCode(timestamp, value);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object other) {
         if (other instanceof MapValue) {
-            MapValue<V> that = (MapValue) other;
+            MapValue<V> that = (MapValue<V>) other;
             return Objects.equal(this.timestamp, that.timestamp) &&
                     Objects.equal(this.value, that.value);
         }

@@ -15,6 +15,8 @@
  */
 package org.onosproject.pcep.api;
 
+import org.onosproject.net.Port;
+
 /**
  * Abstraction of a network infrastructure link.
  */
@@ -118,17 +120,17 @@ public interface PcepLink extends PcepOperator {
     public PcepDpid linkDstDeviceId();
 
     /**
-     * Returns the source port number of a link.
+     * Returns the source port of a link.
      *
      * @return port number
      */
-    public long linkSrcPort();
+    public Port linkSrcPort();
 
     /**
-     * Returns the destination port number of a link.
+     * Returns the destination port of a link.
      *
      * @return port number
      */
-    public long linkDstPort();
+    public Port linkDstPort();
 
 }

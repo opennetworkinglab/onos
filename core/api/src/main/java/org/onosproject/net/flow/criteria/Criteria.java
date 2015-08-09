@@ -356,6 +356,16 @@ public final class Criteria {
     }
 
     /**
+     * Creates a match on Tunnel ID.
+     *
+     * @param tunnelId Tunnel ID (64 bits)
+     * @return match criterion
+     */
+    public static Criterion matchTunnelId(long tunnelId) {
+        return new TunnelIdCriterion(tunnelId);
+    }
+
+    /**
      * Creates a match on IPv6 Extension Header pseudo-field fiags.
      * Those are defined in Criterion.IPv6ExthdrFlags.
      *

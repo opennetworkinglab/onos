@@ -26,6 +26,10 @@
             manufacturer="Nicira, Inc\." hwVersion="Open vSwitch" swVersion="2\..*">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.NiciraSwitchHandshaker"/>
+        <behaviour api="org.onosproject.net.behaviour.TunnelConfig"
+                   impl="org.onosproject.driver.ovsdb.OvsdbTunnelConfig"/>
+        <behaviour api="org.onosproject.net.behaviour.BridgeConfig"
+                   impl="org.onosproject.driver.ovsdb.OvsdbBridgeConfig"/>
     </driver>
     <driver name="ovs-corsa" extends="ovs"
             manufacturer="Corsa" hwVersion="emulation" swVersion="0.0.0">
@@ -104,6 +108,12 @@
             hwVersion="OF1.3 Software Switch from CPqD" swVersion="for Group Chaining">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.CpqdOFDPA1Pipeline"/>
+    </driver>
+    <driver name="calient" extends="default"
+            manufacturer="calient inc" hwVersion="calient hardware"
+            swVersion="ocs switch">
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.CalientFiberSwitchHandshaker"/>
     </driver>
 </drivers>
 

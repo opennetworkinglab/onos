@@ -72,6 +72,8 @@ import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.topo.ButtonDescriptor;
+import org.onosproject.ui.topo.PropertyPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,13 +108,12 @@ import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.FLOW;
 import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.PORT;
+import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
+import static org.onosproject.ui.topo.TopoConstants.Properties;
 
 /**
  * Facility for creating messages bound for the topology viewer.
- *
- * @deprecated in Cardinal Release
  */
-@Deprecated
 public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     protected static final Logger log =
@@ -442,56 +443,68 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                    JsonUtils.node(payload, "memento"));
     }
 
-    // Returns summary response.
-    protected ObjectNode summmaryMessage(long sid) {
+    // -----------------------------------------------------------------------
+    // Create models of the data to return, that overlays can adjust / augment
+
+    // Returns property panel model for summary response.
+    protected PropertyPanel summmaryMessage(long sid) {
         Topology topology = topologyService.currentTopology();
-        return JsonUtils.envelope("showSummary", sid,
-                                  json("ONOS Summary", "node",
-                                       new Prop("Devices", format(topology.deviceCount())),
-                                       new Prop("Links", format(topology.linkCount())),
-                                       new Prop("Hosts", format(hostService.getHostCount())),
-                                       new Prop("Topology SCCs", format(topology.clusterCount())),
-                                       new Separator(),
-                                       new Prop("Intents", format(intentService.getIntentCount())),
-                                       new Prop("Tunnels", format(tunnelService.tunnelCount())),
-                                       new Prop("Flows", format(flowService.getFlowRuleCount())),
-                                       new Prop("Version", version)));
+
+        return new PropertyPanel("ONOS Summary", "node")
+            .addProp(Properties.DEVICES, topology.deviceCount())
+            .addProp(Properties.LINKS, topology.linkCount())
+            .addProp(Properties.HOSTS, hostService.getHostCount())
+            .addProp(Properties.TOPOLOGY_SSCS, topology.clusterCount())
+            .addSeparator()
+            .addProp(Properties.INTENTS, intentService.getIntentCount())
+            .addProp(Properties.TUNNELS, tunnelService.tunnelCount())
+            .addProp(Properties.FLOWS, flowService.getFlowRuleCount())
+            .addProp(Properties.VERSION, version);
     }
 
-    // Returns device details response.
-    protected ObjectNode deviceDetails(DeviceId deviceId, long sid) {
+    // Returns property panel model for device details response.
+    protected PropertyPanel deviceDetails(DeviceId deviceId, long sid) {
         Device device = deviceService.getDevice(deviceId);
         Annotations annot = device.annotations();
         String name = annot.value(AnnotationKeys.NAME);
         int portCount = deviceService.getPorts(deviceId).size();
         int flowCount = getFlowCount(deviceId);
         int tunnelCount = getTunnelCount(deviceId);
-        return JsonUtils.envelope("showDetails", sid,
-                                  json(isNullOrEmpty(name) ? deviceId.toString() : name,
-                                       device.type().toString().toLowerCase(),
-                                       new Prop("URI", deviceId.toString()),
-                                       new Prop("Vendor", device.manufacturer()),
-                                       new Prop("H/W Version", device.hwVersion()),
-                                       new Prop("S/W Version", device.swVersion()),
-                                       new Prop("Serial Number", device.serialNumber()),
-                                       new Prop("Protocol", annot.value(AnnotationKeys.PROTOCOL)),
-                                       new Separator(),
-                                       new Prop("Master", master(deviceId)),
-                                       new Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)),
-                                       new Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE)),
-                                       new Separator(),
-                                       new Prop("Ports", Integer.toString(portCount)),
-                                       new Prop("Flows", Integer.toString(flowCount)),
-                                       new Prop("Tunnels", Integer.toString(tunnelCount))
-                                  ));
+
+        String title = isNullOrEmpty(name) ? deviceId.toString() : name;
+        String typeId = device.type().toString().toLowerCase();
+
+        PropertyPanel pp = new PropertyPanel(title, typeId)
+            .id(deviceId.toString())
+
+            .addProp(Properties.URI, deviceId.toString())
+            .addProp(Properties.VENDOR, device.manufacturer())
+            .addProp(Properties.HW_VERSION, device.hwVersion())
+            .addProp(Properties.SW_VERSION, device.swVersion())
+            .addProp(Properties.SERIAL_NUMBER, device.serialNumber())
+            .addProp(Properties.PROTOCOL, annot.value(AnnotationKeys.PROTOCOL))
+            .addSeparator()
+
+            .addProp(Properties.LATITUDE, annot.value(AnnotationKeys.LATITUDE))
+            .addProp(Properties.LONGITUDE, annot.value(AnnotationKeys.LONGITUDE))
+            .addSeparator()
+
+            .addProp(Properties.PORTS, portCount)
+            .addProp(Properties.FLOWS, flowCount)
+            .addProp(Properties.TUNNELS, tunnelCount)
+
+            .addButton(CoreButtons.SHOW_DEVICE_VIEW)
+            .addButton(CoreButtons.SHOW_FLOW_VIEW)
+            .addButton(CoreButtons.SHOW_PORT_VIEW)
+            .addButton(CoreButtons.SHOW_GROUP_VIEW);
+
+        return pp;
     }
 
     protected int getFlowCount(DeviceId deviceId) {
         int count = 0;
-        Iterator<FlowEntry> it = flowService.getFlowEntries(deviceId).iterator();
-        while (it.hasNext()) {
+        for (FlowEntry flowEntry : flowService.getFlowEntries(deviceId)) {
             count++;
-            it.next();
         }
         return count;
     }
@@ -504,8 +517,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             OpticalTunnelEndPoint dst = (OpticalTunnelEndPoint) tunnel.dst();
             DeviceId srcDevice = (DeviceId) src.elementId().get();
             DeviceId dstDevice = (DeviceId) dst.elementId().get();
-            if (srcDevice.toString().equals(deviceId.toString())
-             || dstDevice.toString().equals(deviceId.toString())) {
+            if (srcDevice.toString().equals(deviceId.toString()) ||
+                dstDevice.toString().equals(deviceId.toString())) {
                 count++;
             }
         }
@@ -517,9 +530,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         List<FlowEntry> entries = new ArrayList<>();
         Set<Link> links = new HashSet<>(linkService.getDeviceEgressLinks(deviceId));
         Set<Host> hosts = hostService.getConnectedHosts(deviceId);
-        Iterator<FlowEntry> it = flowService.getFlowEntries(deviceId).iterator();
-        while (it.hasNext()) {
-            entries.add(it.next());
+        for (FlowEntry flowEntry : flowService.getFlowEntries(deviceId)) {
+            entries.add(flowEntry);
         }
 
         // Add all edge links to the set
@@ -556,24 +568,31 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
 
     // Returns host details response.
-    protected ObjectNode hostDetails(HostId hostId, long sid) {
+    protected PropertyPanel hostDetails(HostId hostId, long sid) {
         Host host = hostService.getHost(hostId);
         Annotations annot = host.annotations();
         String type = annot.value(AnnotationKeys.TYPE);
         String name = annot.value(AnnotationKeys.NAME);
         String vlan = host.vlan().toString();
-        return JsonUtils.envelope("showDetails", sid,
-                                  json(isNullOrEmpty(name) ? hostId.toString() : name,
-                                       isNullOrEmpty(type) ? "endstation" : type,
-                                       new Prop("MAC", host.mac().toString()),
-                                       new Prop("IP", host.ipAddresses().toString().replaceAll("[\\[\\]]", "")),
-                                       new Prop("VLAN", vlan.equals("-1") ? "none" : vlan),
-                                       new Separator(),
-                                       new Prop("Latitude", annot.value(AnnotationKeys.LATITUDE)),
-                                       new Prop("Longitude", annot.value(AnnotationKeys.LONGITUDE))));
+
+        String title = isNullOrEmpty(name) ? hostId.toString() : name;
+        String typeId = isNullOrEmpty(type) ? "endstation" : type;
+
+        PropertyPanel pp = new PropertyPanel(title, typeId)
+            .id(hostId.toString())
+            .addProp(Properties.MAC, host.mac())
+            .addProp(Properties.IP, host.ipAddresses(), "[\\[\\]]")
+            .addProp(Properties.VLAN, vlan.equals("-1") ? "none" : vlan)
+            .addSeparator()
+            .addProp(Properties.LATITUDE, annot.value(AnnotationKeys.LATITUDE))
+            .addProp(Properties.LONGITUDE, annot.value(AnnotationKeys.LONGITUDE));
+
+        // TODO: add button descriptors
+        return pp;
     }
 
 
+    // TODO: migrate to Traffic overlay
     // Produces JSON message to trigger flow traffic overview visualization
     protected ObjectNode trafficSummaryMessage(StatsType type) {
         ObjectNode payload = objectNode();
@@ -828,32 +847,44 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return format.format(value) + " " + unit;
     }
 
-    // Formats the given number into a string.
-    private String format(Number number) {
-        DecimalFormat format = new DecimalFormat("#,###");
-        return format.format(number);
-    }
-
     // Produces compact string representation of a link.
     private static String compactLinkString(Link link) {
         return String.format(COMPACT, link.src().elementId(), link.src().port(),
                              link.dst().elementId(), link.dst().port());
     }
 
-    // Produces JSON property details.
-    private ObjectNode json(String id, String type, Prop... props) {
+    // translates the property panel into JSON, for returning to the client
+    protected ObjectNode json(PropertyPanel pp) {
         ObjectNode result = objectNode()
-                .put("id", id).put("type", type);
+                .put("title", pp.title())
+                .put("type", pp.typeId())
+                .put("id", pp.id());
+
         ObjectNode pnode = objectNode();
         ArrayNode porder = arrayNode();
-        for (Prop p : props) {
-            porder.add(p.key);
-            pnode.put(p.key, p.value);
+        for (PropertyPanel.Prop p : pp.properties()) {
+            porder.add(p.key());
+            pnode.put(p.key(), p.value());
         }
         result.set("propOrder", porder);
         result.set("props", pnode);
+
+        ArrayNode buttons = arrayNode();
+        for (ButtonDescriptor b : pp.buttons()) {
+            buttons.add(json(b));
+        }
+        result.set("buttons", buttons);
         return result;
     }
+
+    // translates the button descriptor into JSON
+    private ObjectNode json(ButtonDescriptor bdesc) {
+        return objectNode()
+                .put("id", bdesc.id())
+                .put("gid", bdesc.glyphId())
+                .put("tt", bdesc.tooltip());
+    }
+
 
     // Produces canonical link key, i.e. one that will match link and its inverse.
     static LinkKey canonicalLinkKey(Link link) {
@@ -926,24 +957,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         }
     }
 
-    // Auxiliary key/value carrier.
-    static class Prop {
-        public final String key;
-        public final String value;
 
-        protected Prop(String key, String value) {
-            this.key = key;
-            this.value = value;
-        }
-    }
-
-    // Auxiliary properties separator
-    static class Separator extends Prop {
-        protected Separator() {
-            super("-", "");
-        }
-    }
-
+    // TODO: move this to traffic overlay component
     // Auxiliary carrier of data for requesting traffic message.
     static class TrafficClass {
         public final boolean showTraffic;

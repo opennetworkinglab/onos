@@ -81,7 +81,12 @@ public abstract class L2ModificationInstruction implements Instruction {
         /**
          * VLAN Push modification.
          */
-        VLAN_PUSH
+        VLAN_PUSH,
+
+        /**
+         * Tunnle id modification.
+         */
+        TUNNEL_ID
     }
 
     // TODO: Create factory class 'Instructions' that will have various factory
@@ -397,6 +402,52 @@ public abstract class L2ModificationInstruction implements Instruction {
             }
             if (obj instanceof ModMplsTtlInstruction) {
                 return true;
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Represents a Tunnel id modification.
+     */
+    public static final class ModTunnelIdInstruction
+            extends L2ModificationInstruction {
+
+        private final long tunnelId;
+
+        ModTunnelIdInstruction(long tunnelId) {
+            this.tunnelId = tunnelId;
+        }
+
+        public long tunnelId() {
+            return this.tunnelId;
+        }
+
+        @Override
+        public L2SubType subtype() {
+            return L2SubType.TUNNEL_ID;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(subtype().toString())
+                    .add("id", Long.toHexString(tunnelId))
+                    .toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype(), tunnelId);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModTunnelIdInstruction) {
+                ModTunnelIdInstruction that = (ModTunnelIdInstruction) obj;
+                return  Objects.equals(tunnelId, that.tunnelId);
             }
             return false;
         }

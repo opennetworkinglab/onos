@@ -21,6 +21,8 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.onlab.util.ItemNotFoundException;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.Driver;
@@ -43,6 +45,8 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.openflow.controller.Dpid.uri;
 
 
 /**
@@ -204,13 +208,22 @@ public class Controller {
     protected OpenFlowSwitchDriver getOFSwitchInstance(long dpid,
                                                        OFDescStatsReply desc,
                                                        OFVersion ofv) {
-        Driver driver = driverService
-                .getDriver(desc.getMfrDesc(), desc.getHwDesc(), desc.getSwDesc());
+        Dpid dpidObj = new Dpid(dpid);
+
+        Driver driver;
+        try {
+             driver = driverService.getDriver(DeviceId.deviceId(Dpid.uri(dpidObj)));
+        } catch (ItemNotFoundException e) {
+            driver = driverService.getDriver(desc.getMfrDesc(), desc.getHwDesc(), desc.getSwDesc());
+        }
 
         if (driver != null && driver.hasBehaviour(OpenFlowSwitchDriver.class)) {
-            OpenFlowSwitchDriver ofSwitchDriver = driver.createBehaviour(new DefaultDriverHandler(
-                    new DefaultDriverData(driver)), OpenFlowSwitchDriver.class);
-            ofSwitchDriver.init(new Dpid(dpid), desc, ofv);
+            Dpid did = new Dpid(dpid);
+            DefaultDriverHandler handler =
+                    new DefaultDriverHandler(new DefaultDriverData(driver, deviceId(uri(did))));
+            OpenFlowSwitchDriver ofSwitchDriver =
+                    driver.createBehaviour(handler, OpenFlowSwitchDriver.class);
+            ofSwitchDriver.init(did, desc, ofv);
             ofSwitchDriver.setAgent(agent);
             ofSwitchDriver.setRoleHandler(new RoleManager(ofSwitchDriver));
             log.info("OpenFlow handshaker found for device {}: {}", dpid, ofSwitchDriver);

@@ -16,10 +16,14 @@
 package org.onosproject.rest;
 
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.sun.jersey.api.client.ClientResponse;
 import org.hamcrest.Description;
+import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
@@ -36,6 +40,8 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.host.HostProviderRegistry;
+import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.ProviderId;
 
@@ -45,10 +51,9 @@ import com.google.common.collect.ImmutableSet;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import javax.ws.rs.core.MediaType;
+
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -65,6 +70,8 @@ import static org.onosproject.net.PortNumber.portNumber;
  */
 public class HostResourceTest extends ResourceTest {
     final HostService mockHostService = createMock(HostService.class);
+    final HostProviderRegistry mockHostProviderRegistry = createMock(HostProviderRegistry.class);
+    final HostProviderService mockHostProviderService = createMock(HostProviderService.class);
     final HashSet<Host> hosts = new HashSet<>();
 
     /**
@@ -80,8 +87,8 @@ public class HostResourceTest extends ResourceTest {
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
                         .add(HostService.class, mockHostService)
-                        .add(CodecService.class, codecService);
-
+                        .add(CodecService.class, codecService)
+                        .add(HostProviderRegistry.class, mockHostProviderRegistry);
         BaseResource.setServiceDirectory(testDirectory);
     }
 
@@ -352,5 +359,32 @@ public class HostResourceTest extends ResourceTest {
         }
     }
 
+    /**
+     * Tests post of a single host via JSON stream.
+     */
+    @Test
+    public void testPost() {
+        mockHostProviderService.hostDetected(anyObject(), anyObject());
+        expectLastCall();
+        replay(mockHostProviderService);
+
+        expect(mockHostProviderRegistry.register(anyObject())).andReturn(mockHostProviderService);
+        mockHostProviderRegistry.unregister(anyObject());
+        expectLastCall();
+        replay(mockHostProviderRegistry);
+
+        replay(mockHostService);
+
+        InputStream jsonStream = IntentsResourceTest.class
+                .getResourceAsStream("post-host.json");
+        WebResource rs = resource();
+
+        ClientResponse response = rs.path("hosts")
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, jsonStream);
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
+        String location = response.getLocation().getPath();
+        assertThat(location, Matchers.startsWith("/hosts/11:22:33:44:55:66/-1"));
+    }
 }
 

@@ -166,7 +166,7 @@ public final class Main {
     // Processes the scenario 'list' command.
     private void processList() {
         coordinator.getRecords()
-                .forEach(event -> logStatus(event.time(), event.name(), event.status()));
+                .forEach(event -> logStatus(event.time(), event.name(), event.status(), event.command()));
     }
 
     // Processes the scenario 'run' command for range of steps.
@@ -188,12 +188,12 @@ public final class Main {
     private static class Listener implements StepProcessListener {
         @Override
         public void onStart(Step step) {
-            logStatus(currentTimeMillis(), step.name(), IN_PROGRESS);
+            logStatus(currentTimeMillis(), step.name(), IN_PROGRESS, step.command());
         }
 
         @Override
         public void onCompletion(Step step, Status status) {
-            logStatus(currentTimeMillis(), step.name(), status);
+            logStatus(currentTimeMillis(), step.name(), status, null);
         }
 
         @Override
@@ -202,8 +202,12 @@ public final class Main {
     }
 
     // Logs the step status.
-    private static void logStatus(long time, String name, Status status) {
-        print("%s  %s%s %s%s", time(time), color(status), name, action(status), color(null));
+    private static void logStatus(long time, String name, Status status, String cmd) {
+        if (cmd != null) {
+            print("%s  %s%s %s%s -- %s", time(time), color(status), name, action(status), color(null), cmd);
+        } else {
+            print("%s  %s%s %s%s", time(time), color(status), name, action(status), color(null));
+        }
     }
 
     // Produces a description of event using the specified step status.

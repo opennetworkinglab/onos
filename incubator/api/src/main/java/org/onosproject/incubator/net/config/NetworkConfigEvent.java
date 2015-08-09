@@ -29,10 +29,20 @@ public class NetworkConfigEvent extends AbstractEvent<NetworkConfigEvent.Type, O
      */
     public enum Type {
         /**
+         * Signifies that a network configuration was registered.
+         */
+        CONFIG_REGISTERED,
+
+        /**
+         * Signifies that a network configuration was unregistered.
+         */
+        CONFIG_UNREGISTERED,
+
+        /**
          * Signifies that network configuration was added.
          */
-
         CONFIG_ADDED,
+
         /**
          * Signifies that network configuration was updated.
          */

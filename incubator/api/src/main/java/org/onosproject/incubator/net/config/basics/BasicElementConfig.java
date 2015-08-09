@@ -30,6 +30,8 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
     public static final String RACK_ADDRESS = "rackAddress";
     public static final String OWNER = "owner";
 
+    protected static final double DEFAULT_COORD = -1.0;
+
     /**
      * Returns friendly label for the element.
      *
@@ -55,7 +57,7 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
      * @return element latitude; -1 if not set
      */
     public double latitude() {
-        return get(LATITUDE, -1.0);
+        return get(LATITUDE, DEFAULT_COORD);
     }
 
     /**
@@ -74,7 +76,7 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
      * @return element latitude; -1 if not set
      */
     public double longitude() {
-        return get(LONGITUDE, -1.0);
+        return get(LONGITUDE, DEFAULT_COORD);
     }
 
     /**

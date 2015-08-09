@@ -199,10 +199,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         ipHandler = new IpHandler(this);
         routingRulePopulator = new RoutingRulePopulator(this);
         defaultRoutingHandler = new DefaultRoutingHandler(this);
-        tunnelHandler = new TunnelHandler(this, tunnelStore);
-        policyHandler = new PolicyHandler(this, policyStore);
+        tunnelHandler = new TunnelHandler(linkService, deviceConfiguration,
+                groupHandlerMap, tunnelStore);
+        policyHandler = new PolicyHandler(appId, deviceConfiguration,
+                flowObjectiveService, tunnelHandler, policyStore);
 
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
+        packetService.addProcessor(processor, PacketProcessor.director(2));
         linkService.addListener(new InternalLinkListener());
         deviceService.addListener(new InternalDeviceListener());
 
@@ -240,33 +242,32 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
-    public void createTunnel(Tunnel tunnel) {
-        tunnelHandler.createTunnel(tunnel);
+    public TunnelHandler.Result createTunnel(Tunnel tunnel) {
+        return tunnelHandler.createTunnel(tunnel);
     }
 
     @Override
-    public void removeTunnel(Tunnel tunnel) {
+    public TunnelHandler.Result removeTunnel(Tunnel tunnel) {
         for (Policy policy: policyHandler.getPolicies()) {
             if (policy.type() == Policy.Type.TUNNEL_FLOW) {
                 TunnelPolicy tunnelPolicy = (TunnelPolicy) policy;
                 if (tunnelPolicy.tunnelId().equals(tunnel.id())) {
                     log.warn("Cannot remove the tunnel used by a policy");
-                    return;
+                    return TunnelHandler.Result.TUNNEL_IN_USE;
                 }
             }
         }
-        tunnelHandler.removeTunnel(tunnel);
+        return tunnelHandler.removeTunnel(tunnel);
     }
 
     @Override
-    public void removePolicy(Policy policy) {
-        policyHandler.removePolicy(policy);
-
+    public PolicyHandler.Result removePolicy(Policy policy) {
+        return policyHandler.removePolicy(policy);
     }
 
     @Override
-    public void createPolicy(Policy policy) {
-        policyHandler.createPolicy(policy);
+    public PolicyHandler.Result createPolicy(Policy policy) {
+        return policyHandler.createPolicy(policy);
     }
 
     @Override
@@ -317,35 +318,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             log.warn("getNextObjectiveId query in device {} not found", deviceId);
             return -1;
         }
-    }
-
-    /**
-     * Checks if the next objective ID (group) for the neighbor set exists or not in the device.
-     *
-     * @param deviceId Device ID to check
-     * @param ns neighbor set to check
-     * @return true if it exists, false otherwise
-     */
-    public boolean hasNextObjectiveId(DeviceId deviceId, NeighborSet ns) {
-        if (groupHandlerMap.get(deviceId) != null) {
-            log.trace("getNextObjectiveId query in device {}", deviceId);
-            return groupHandlerMap
-                    .get(deviceId).hasNextObjectiveId(ns);
-        } else {
-            log.warn("getNextObjectiveId query in device {} not found", deviceId);
-            return false;
-        }
-    }
-
-    /**
-     * Removes the next objective ID.
-     *
-     * @param deviceId Device ID
-     * @param objectiveId next objective ID to remove
-     * @return true, if succeeds, false otherwise
-     */
-    public boolean removeNextObjective(DeviceId deviceId, int objectiveId) {
-        return groupHandlerMap.get(deviceId).removeGroup(objectiveId);
     }
 
     private class InternalPacketProcessor implements PacketProcessor {

@@ -367,17 +367,10 @@
             .classed('linkLabel', true)
             .attr('id', function (d) { return d.id; });
 
-        // FIXME: x and y position calculated here, use link.position obj
         entering.each(function (d) {
             var el = d3.select(this),
                 rect,
-                text,
-                parms = {
-                    x1: d.ldata.source.x,
-                    y1: d.ldata.source.y,
-                    x2: d.ldata.target.x,
-                    y2: d.ldata.target.y
-                };
+                text;
 
             if (d.ldata.type() === 'hostLink') {
                 el.classed('hostLinkLabel', true);
@@ -390,7 +383,7 @@
             rect.attr(rectAroundText(el));
             text.attr('dy', linkLabelOffset);
 
-            el.attr('transform', transformLabel(parms));
+            el.attr('transform', transformLabel(d.ldata.position));
         });
 
         // Remove any labels that are no longer required.
@@ -411,7 +404,6 @@
         return box;
     }
 
-    // FIXME: x and y position calculated here
     function transformLabel(p) {
         var dx = p.x2 - p.x1,
             dy = p.y2 - p.y1,
@@ -435,6 +427,100 @@
             text.attr('dy', linkLabelOffset);
             el.attr('transform', sus.translate(d.x, d.y));
         });
+    }
+
+    function labelPoint(linkPos) {
+        var lengthUpLine = 1 / 3,
+            dx = linkPos.x2 - linkPos.x1,
+            dy = linkPos.y2 - linkPos.y1,
+            movedX = dx * lengthUpLine,
+            movedY = dy * lengthUpLine;
+
+        return {
+            x: movedX,
+            y: movedY
+        };
+    }
+
+    function calcGroupPos(linkPos) {
+        var moved = labelPoint(linkPos);
+        return sus.translate(linkPos.x1 + moved.x, linkPos.y1 + moved.y);
+    }
+
+    // calculates where on the link that the hash line for 5+ label appears
+    function hashAttrs(linkPos) {
+        var hashLength = 25,
+            halfLength = hashLength / 2,
+            dx = linkPos.x2 - linkPos.x1,
+            dy = linkPos.y2 - linkPos.y1,
+            length = Math.sqrt((dx * dx) + (dy * dy)),
+            moveAmtX = (dx / length) * halfLength,
+            moveAmtY = (dy / length) * halfLength,
+            mid = labelPoint(linkPos),
+            angle = Math.atan(dy / dx) + 45;
+
+        return {
+            x1: mid.x - moveAmtX,
+            y1: mid.y - moveAmtY,
+            x2: mid.x + moveAmtX,
+            y2: mid.y + moveAmtY,
+            stroke: api.linkConfig()[ts.theme()].baseColor,
+            transform: 'rotate(' + angle + ',' + mid.x + ',' + mid.y + ')'
+        };
+    }
+
+    function textLabelPos(linkPos) {
+        var point = labelPoint(linkPos),
+            dist = 20;
+        return {
+            x: point.x + dist,
+            y: point.y + dist
+        };
+    }
+
+    function applyNumLinkLabels(data, lblsG) {
+        var labels = lblsG.selectAll('g.numLinkLabel')
+                .data(data, function (d) { return 'pair-' + d.id; }),
+            entering;
+
+        // update existing labels
+        labels.each(function (d) {
+            var el = d3.select(this);
+
+            el.attr({
+                transform: function (d) { return calcGroupPos(d.linkCoords); }
+            });
+            el.select('line')
+                .attr(hashAttrs(d.linkCoords));
+            el.select('text')
+                .attr(textLabelPos(d.linkCoords))
+                .text(d.num);
+        });
+
+        // add new labels
+        entering = labels
+            .enter()
+            .append('g')
+            .attr({
+                transform: function (d) { return calcGroupPos(d.linkCoords); },
+                id: function (d) { return 'pair-' + d.id; }
+            })
+            .classed('numLinkLabel', true);
+
+        entering.each(function (d) {
+            var el = d3.select(this);
+
+            el.append('line')
+                .classed('numLinkHash', true)
+                .attr(hashAttrs(d.linkCoords));
+            el.append('text')
+                .classed('numLinkText', true)
+                .attr(textLabelPos(d.linkCoords))
+                .text(d.num);
+        });
+
+        // remove old labels
+        labels.exit().remove();
     }
 
     // ==========================
@@ -483,7 +569,8 @@
                 linkEntering: linkEntering,
                 applyLinkLabels: applyLinkLabels,
                 transformLabel: transformLabel,
-                applyPortLabels: applyPortLabels
+                applyPortLabels: applyPortLabels,
+                applyNumLinkLabels: applyNumLinkLabels
             };
         }]);
 }());

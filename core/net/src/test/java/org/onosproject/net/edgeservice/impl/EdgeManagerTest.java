@@ -52,6 +52,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.*;
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.onosproject.net.edge.EdgePortEvent.Type.EDGE_PORT_ADDED;
 import static org.onosproject.net.edge.EdgePortEvent.Type.EDGE_PORT_REMOVED;
@@ -78,7 +79,7 @@ public class EdgeManagerTest {
     @Before
     public void setUp() {
         mgr = new EdgeManager();
-        mgr.eventDispatcher = new TestEventDispatcher();
+        injectEventDispatcher(mgr, new TestEventDispatcher());
         testTopologyManager = new TestTopologyManager(infrastructurePorts);
         mgr.topologyService = testTopologyManager;
         mgr.deviceService = new TestDeviceManager(devices);

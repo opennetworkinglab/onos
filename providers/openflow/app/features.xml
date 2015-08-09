@@ -29,5 +29,6 @@
         <bundle>mvn:${project.groupId}/onos-of-provider-packet/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-of-provider-flow/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-of-provider-group/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-of-provider-meter/${project.version}</bundle>
     </feature>
 </features>

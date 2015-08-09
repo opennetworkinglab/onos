@@ -36,7 +36,7 @@ public class DefaultDriverHandlerTest {
                                                 TestBehaviourTwo.class,
                                                 TestBehaviourTwoImpl.class),
                                 ImmutableMap.of("foo", "bar"));
-        data = new DefaultDriverData(ddc);
+        data = new DefaultDriverData(ddc, DefaultDriverDataTest.DEVICE_ID);
         handler = new DefaultDriverHandler(data);
     }
 

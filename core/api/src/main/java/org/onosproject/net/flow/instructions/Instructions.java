@@ -32,6 +32,8 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModTtlInstruction;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction.L4SubType;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
 
 import java.util.Objects;
 
@@ -347,6 +349,61 @@ public final class Instructions {
      */
     public static Instruction writeMetadata(long metadata, long metadataMask) {
         return new MetadataInstruction(metadata, metadataMask);
+    }
+
+    /**
+     * Creates a Tunnel ID modification.
+     *
+     * @param tunnelId the Tunnel ID to modify to
+     * @return a L2 modification
+     */
+    public static L2ModificationInstruction modTunnelId(long tunnelId) {
+        checkNotNull(tunnelId, "Tunnel id cannot be null");
+        return new L2ModificationInstruction.ModTunnelIdInstruction(tunnelId);
+    }
+
+    /**
+     * Creates a TCP src modification.
+     *
+     * @param port the TCP port number to modify to
+     * @return a L4 modification
+     */
+    public static L4ModificationInstruction modTcpSrc(short port) {
+       checkNotNull(port, "Src TCP port cannot be null");
+       return new ModTransportPortInstruction(L4SubType.TCP_SRC, port);
+    }
+
+    /**
+     * Creates a TCP dst modification.
+     *
+     * @param port the TCP port number to modify to
+     * @return a L4 modification
+     */
+    public static L4ModificationInstruction modTcpDst(short port) {
+        checkNotNull(port, "Dst TCP port cannot be null");
+        return new ModTransportPortInstruction(L4SubType.TCP_DST, port);
+    }
+
+    /**
+     * Creates a UDP src modification.
+     *
+     * @param port the UDP port number to modify to
+     * @return a L4 modification
+     */
+    public static L4ModificationInstruction modUdpSrc(short port) {
+        checkNotNull(port, "Src UDP port cannot be null");
+        return new ModTransportPortInstruction(L4SubType.UDP_SRC, port);
+    }
+
+    /**
+     * Creates a UDP dst modification.
+     *
+     * @param port the UDP port number to modify to
+     * @return a L4 modification
+     */
+    public static L4ModificationInstruction modUdpDst(short port) {
+        checkNotNull(port, "Dst UDP port cannot be null");
+        return new ModTransportPortInstruction(L4SubType.UDP_DST, port);
     }
 
     /**

@@ -28,6 +28,7 @@ import org.onosproject.net.intent.PointToPointIntent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.net.UrlEscapers;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
@@ -40,7 +41,6 @@ public final class IntentCodec extends JsonCodec<Intent> {
     protected static final String TYPE = "type";
     protected static final String ID = "id";
     protected static final String APP_ID = "appId";
-    protected static final String DETAILS = "details";
     protected static final String STATE = "state";
     protected static final String PRIORITY = "priority";
     protected static final String RESOURCES = "resources";
@@ -50,11 +50,12 @@ public final class IntentCodec extends JsonCodec<Intent> {
     @Override
     public ObjectNode encode(Intent intent, CodecContext context) {
         checkNotNull(intent, "Intent cannot be null");
+
         final ObjectNode result = context.mapper().createObjectNode()
                 .put(TYPE, intent.getClass().getSimpleName())
                 .put(ID, intent.id().toString())
-                .put(APP_ID, intent.appId().toString())
-                .put(DETAILS, intent.toString());
+                .put(APP_ID, UrlEscapers.urlPathSegmentEscaper()
+                        .escape(intent.appId().name()));
 
         final ArrayNode jsonResources = result.putArray(RESOURCES);
 
@@ -98,8 +99,8 @@ public final class IntentCodec extends JsonCodec<Intent> {
      */
     public static void intentAttributes(ObjectNode json, CodecContext context,
                                     Intent.Builder builder) {
-        short appId = (short) nullIsIllegal(json.get(IntentCodec.APP_ID),
-                IntentCodec.TYPE + IntentCodec.MISSING_MEMBER_MESSAGE).asInt();
+        String appId = nullIsIllegal(json.get(IntentCodec.APP_ID),
+                IntentCodec.APP_ID + IntentCodec.MISSING_MEMBER_MESSAGE).asText();
         CoreService service = context.getService(CoreService.class);
         builder.appId(service.getAppId(appId));
 

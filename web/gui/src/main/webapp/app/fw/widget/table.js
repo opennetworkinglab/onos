@@ -26,6 +26,7 @@
     // constants
     var tableIconTdSize = 33,
         pdg = 22,
+        flashTime = 1500,
         colWidth = 'col-width',
         tableIcon = 'table-icon',
         asc = 'asc',
@@ -208,7 +209,64 @@
                 scope.$on('$destroy', function () {
                     resetSort();
                 });
-            }
+            };
+        }])
+
+        .directive('onosFlashChanges',
+            ['$log', '$parse', '$timeout', 'FnService',
+            function ($log, $parse, $timeout, fs) {
+
+            return function (scope, element, attrs) {
+                var idProp = attrs.idProp,
+                    table = d3.select(element[0]),
+                    trs, promise;
+
+                function highlightRows() {
+                    var changedRows = [];
+                    function classRows(b) {
+                        if (changedRows.length) {
+                            angular.forEach(changedRows, function (tr) {
+                                tr.classed('data-change', b);
+                            });
+                        }
+                    }
+                    // timeout because 'row-id' was the un-interpolated value
+                    // "{{link.one}}" for example, instead of link.one evaluated
+                    // timeout executes on the next digest -- after evaluation
+                    $timeout(function () {
+                        if (scope.tableData.length) {
+                            trs = table.selectAll('tr');
+                        }
+
+                        if (trs && !trs.empty()) {
+                            trs.each(function () {
+                                var tr = d3.select(this);
+                                if (fs.find(tr.attr('row-id'),
+                                        scope.changedData,
+                                        idProp) > -1) {
+                                    changedRows.push(tr);
+                                }
+                            });
+                            classRows(true);
+                            promise = $timeout(function () {
+                                classRows(false);
+                            }, flashTime);
+                            trs = undefined;
+                        }
+                    });
+                }
+
+                // new items added:
+                scope.$on('ngRepeatComplete', highlightRows);
+                // items changed in existing set:
+                scope.$watchCollection('changedData', highlightRows);
+
+                scope.$on('$destroy', function () {
+                    if (promise) {
+                        $timeout.cancel(promise);
+                    }
+                });
+            };
         }]);
 
 }());

@@ -45,6 +45,8 @@
     </div>
 
     <div class="summary-list" onos-table-resize>
+        <div ng-show="loading" class="loading-wheel"
+             icon icon-id="loading" icon-size="75"></div>
 
         <div class="table-header" onos-sortable-header>
             <table>
@@ -62,14 +64,15 @@
         </div>
 
         <div class="table-body">
-            <table>
+            <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="8">
                         No Ports found
                     </td>
                 </tr>
 
-                <tr ng-repeat="port in tableData track by $index">
+                <tr ng-repeat="port in tableData track by $index"
+                    ng-repeat-complete row-id="{{port.id}}">
                     <td>{{port.id}}</td>
                     <td>{{port.pkt_rx}}</td>
                     <td>{{port.pkt_tx}}</td>

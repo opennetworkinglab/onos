@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.device;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -26,7 +27,8 @@ import java.util.List;
 /**
  * Service for interacting with the inventory of infrastructure devices.
  */
-public interface DeviceService {
+public interface DeviceService
+    extends ListenerService<DeviceEvent, DeviceListener> {
 
     /**
      * Returns the number of infrastructure devices known to the system.
@@ -44,12 +46,29 @@ public interface DeviceService {
     Iterable<Device> getDevices();
 
     /**
+     * Returns a collection of the currently known infrastructure
+     * devices by device type.
+     *
+     * @param type device type
+     * @return collection of devices
+     */
+    Iterable<Device> getDevices(Device.Type type);
+
+    /**
      * Returns an iterable collection of all devices
      * currently available to the system.
      *
      * @return device collection
      */
     Iterable<Device> getAvailableDevices();
+
+    /**
+     * Returns an iterable collection of all devices currently available to the system by device type.
+     *
+     * @param type device type
+     * @return device collection
+     */
+    Iterable<Device> getAvailableDevices(Device.Type type);
 
     /**
      * Returns the device with the specified identifier.
@@ -101,19 +120,5 @@ public interface DeviceService {
      * @return true if the device is available
      */
     boolean isAvailable(DeviceId deviceId);
-
-    /**
-     * Adds the specified device listener.
-     *
-     * @param listener device listener
-     */
-    void addListener(DeviceListener listener);
-
-    /**
-     * Removes the specified device listener.
-     *
-     * @param listener device listener
-     */
-    void removeListener(DeviceListener listener);
 
 }

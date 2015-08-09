@@ -209,7 +209,7 @@
                     t = lnk.fromTarget,
                     ws = (s && s.linkWidth) || 0,
                     wt = (t && t.linkWidth) || 0;
-                return Math.max(ws, wt);
+                return lnk.position.multiLink ? 5 : Math.max(ws, wt);
             }
         });
         return lnk;
@@ -301,7 +301,10 @@
                         // remove link out of aggregate linksByDevice list
                         var linksForDevPair = linksByDevice[ldata.devicePair],
                             rmvIdx = fs.find(ldata.key, linksForDevPair, 'key');
-                        linksForDevPair.splice(rmvIdx, 1);
+                        if (rmvIdx >= 0) {
+                            linksForDevPair.splice(rmvIdx, 1);
+                        }
+                        ldata.position.multilink = linksForDevPair.length >= 5;
 
                         if (link) {
                             // remove fromSource

@@ -67,8 +67,9 @@ public abstract class SubjectFactory<S> {
     /**
      * Creates a configuration subject from its key image.
      *
+     * @param subjectKey subject class key
      * @return configuration subject
      */
-    public abstract S createSubject(String key);
+    public abstract S createSubject(String subjectKey);
 
 }

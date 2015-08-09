@@ -16,11 +16,17 @@
 <scenario name="net-pingall" description="Network pingall test">
     <!-- TODO: parametrize this via recipes -->
     <group name="Net-Pingall">
-        <step name="Ping-All-And-Verify"
-              exec="onos-mininet sendAndExpect py net.pingAll(1) --expect Results: .* dropped"/>
+        <step name="Install-Apps"
+              exec="onos ${OC1} app activate org.onosproject.openflow org.onosproject.proxyarp org.onosproject.fwd"/>
+
+        <step name="Check-Apps" requires="Install-Apps"
+              exec="onos-check-apps ${OC1} drivers,openflow,proxyarp,fwd"/>
+
+        <step name="Ping-All-And-Verify" requires="Check-Apps"
+              exec="onos-mininet sendAndExpect py net.pingAll(1) --expect 600/600 received"/>
 
         <step name="Check-Summary-For-Hosts" requires="~Ping-All-And-Verify"
-              exec="onos-check-summary ${OC1} [0-9]* 25 112 25"/>
+              exec="onos-check-summary ${OC1} [0-9]* 25 140 25"/>
 
         <step name="Config-Topo" requires="Check-Summary-For-Hosts"
               exec="onos-topo-cfg ${OC1} ${ONOS_ROOT}/tools/test/topos/attmpls.json"/>

@@ -41,7 +41,7 @@ public class PortStatsCollector implements TimerTask {
     private final HashedWheelTimer timer = Timer.getTimer();
     private final OpenFlowSwitch sw;
     private final Logger log = getLogger(getClass());
-    private final int refreshInterval;
+    private int refreshInterval;
     private final AtomicLong xidAtomic = new AtomicLong(1);
 
     private Timeout timeout;
@@ -72,6 +72,13 @@ public class PortStatsCollector implements TimerTask {
                     this.refreshInterval, this.sw.getStringId());
             timeout.getTimer().newTimeout(this, refreshInterval, TimeUnit.SECONDS);
         }
+    }
+
+    synchronized void adjustPollInterval(int pollInterval) {
+        this.refreshInterval = pollInterval;
+        // task.cancel();
+        // task = new InternalTimerTask();
+        // timer.scheduleAtFixedRate(task, pollInterval * SECONDS, pollInterval * 1000);
     }
 
     private void sendPortStatistic() {

@@ -27,6 +27,8 @@
     </div>
 
     <div class="summary-list" onos-table-resize>
+        <div ng-show="loading" class="loading-wheel"
+             icon icon-id="loading" icon-size="75"></div>
 
         <div class="table-header" onos-sortable-header>
             <table>
@@ -42,14 +44,15 @@
         </div>
 
         <div class="table-body">
-            <table>
+            <table onos-flash-changes id-prop="one">
                 <tr ng-if="!tableData.length" class="no-data">
                     <td colspan="6">
                         No Links found
                     </td>
                 </tr>
 
-                <tr ng-repeat="link in tableData track by $index">
+                <tr ng-repeat="link in tableData track by $index"
+                    ng-repeat-complete row-id="{{link.one}}">
                     <td class="table-icon">
                         <div icon icon-id="{{link._iconid_state}}"></div>
                     </td>

@@ -16,16 +16,24 @@
 package org.onosproject.incubator.net.config.impl;
 
 import com.google.common.collect.ImmutableSet;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.ConfigFactory;
 import org.onosproject.incubator.net.config.NetworkConfigRegistry;
 import org.onosproject.incubator.net.config.basics.BasicDeviceConfig;
 import org.onosproject.incubator.net.config.basics.BasicHostConfig;
 import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
+import org.onosproject.incubator.net.config.basics.BasicPortConfig;
+import org.onosproject.incubator.net.config.basics.OpticalPortConfig;
+import org.onosproject.incubator.net.config.basics.SubjectFactories;
+import org.onosproject.incubator.net.domain.IntentDomainConfig;
+import org.onosproject.incubator.net.domain.IntentDomainId;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.LinkKey;
@@ -53,6 +61,14 @@ public class BasicNetworkConfigs {
                     return new BasicDeviceConfig();
                 }
             },
+            new ConfigFactory<ConnectPoint, BasicPortConfig>(CONNECT_POINT_SUBJECT_FACTORY,
+                                                             BasicPortConfig.class,
+                                                             "basic") {
+                @Override
+                public BasicPortConfig createConfig() {
+                    return new BasicPortConfig();
+                }
+            },
             new ConfigFactory<HostId, BasicHostConfig>(HOST_SUBJECT_FACTORY,
                                                        BasicHostConfig.class,
                                                        "basic") {
@@ -68,14 +84,34 @@ public class BasicNetworkConfigs {
                 public BasicLinkConfig createConfig() {
                     return new BasicLinkConfig();
                 }
+            },
+            new ConfigFactory<IntentDomainId, IntentDomainConfig>(INTENT_DOMAIN_SUBJECT_FACTORY,
+                                                                  IntentDomainConfig.class,
+                                                                  "basic") {
+                @Override
+                public IntentDomainConfig createConfig() {
+                    return new IntentDomainConfig();
+                }
+            },
+            new ConfigFactory<ConnectPoint, OpticalPortConfig>(CONNECT_POINT_SUBJECT_FACTORY,
+                                                        OpticalPortConfig.class,
+                                                        "basic") {
+                @Override
+                public OpticalPortConfig createConfig() {
+                    return new OpticalPortConfig();
+                }
             }
     );
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry registry;
 
     @Activate
     public void activate() {
+        SubjectFactories.setCoreService(coreService);
         factories.forEach(registry::registerConfigFactory);
         log.info("Started");
     }

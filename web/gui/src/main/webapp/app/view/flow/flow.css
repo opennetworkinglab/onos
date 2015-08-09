@@ -61,6 +61,24 @@
     background-color: #333;
 }
 
+/* highlighted color */
+.light #ov-flow tr:nth-child(6n + 1).data-change,
+.light #ov-flow tr:nth-child(6n + 2).data-change,
+.light #ov-flow tr:nth-child(6n + 3).data-change,
+.light #ov-flow tr:nth-child(6n + 4).data-change,
+.light #ov-flow tr:nth-child(6n + 5).data-change,
+.light #ov-flow tr:nth-child(6n).data-change {
+    background-color: #FDFFDC;
+}
+.dark #ov-flow tr:nth-child(6n + 1).data-change,
+.dark #ov-flow tr:nth-child(6n + 2).data-change,
+.dark #ov-flow tr:nth-child(6n + 3).data-change,
+.dark #ov-flow tr:nth-child(6n + 4).data-change,
+.dark #ov-flow tr:nth-child(6n + 5).data-change,
+.dark #ov-flow tr:nth-child(6n).data-change {
+    background-color: #5A5600;
+}
+
 #ov-flow td.selector,
 #ov-flow td.treatment {
     padding-left: 36px;

@@ -15,6 +15,7 @@
  */
 package org.onosproject.openflow.controller;
 
+import org.onosproject.net.Device;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
@@ -136,11 +137,11 @@ public interface OpenFlowSwitch {
     void returnRoleReply(RoleState requested, RoleState response);
 
     /**
-     * Indicates if this switch is optical.
+     * Returns the switch device type.
      *
-     * @return true if optical
+     * @return device type
      */
-    boolean isOptical();
+    Device.Type deviceType();
 
     /**
      * Identifies the channel used to communicate with the switch.

@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.joda.time.LocalDateTime;
 import org.onlab.metrics.MetricsService;
@@ -45,11 +46,15 @@ import com.google.common.collect.TreeMultimap;
          description = "Prints metrics in the system")
 public class MetricsListCommand extends AbstractShellCommand {
 
+    @Argument(index = 0, name = "metricName", description = "Name of Metric",
+            required = false, multiValued = false)
+    String metricName = null;
+
     @Override
     protected void execute() {
         MetricsService metricsService = get(MetricsService.class);
 
-        MetricFilter filter = MetricFilter.ALL;
+        MetricFilter filter = metricName != null ? (name, metric) -> name.equals(metricName) : MetricFilter.ALL;
 
         TreeMultimap<String, Metric> matched = listMetrics(metricsService, filter);
         matched.asMap().forEach((name, metrics) -> {

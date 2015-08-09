@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 
 import com.google.common.collect.Multimap;
@@ -12,7 +13,8 @@ import com.google.common.collect.Multimap;
  * Service for providing label resource allocation.
  */
 @Beta
-public interface LabelResourceService {
+public interface LabelResourceService
+    extends ListenerService<LabelResourceEvent, LabelResourceListener> {
 
     /**
      * Returns labels from resource pool by a specific device id.
@@ -95,17 +97,4 @@ public interface LabelResourceService {
      */
     LabelResourcePool getGlobalLabelResourcePool();
 
-    /**
-     * Adds the specified label resource listener.
-     *
-     * @param listener label resource listener
-     */
-    void addListener(LabelResourceListener listener);
-
-    /**
-     * Removes the specified label resource listener.
-     *
-     * @param listener label resource listener
-     */
-    void removeListener(LabelResourceListener listener);
 }

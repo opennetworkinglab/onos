@@ -32,7 +32,7 @@ public class SimpleKeyHashPartitioner extends DatabasePartitioner {
     }
 
     @Override
-    public Database getPartition(String tableName, String key) {
+    public Database getPartition(String mapName, String key) {
         return partitions.get(hash(key) % partitions.size());
     }
 }

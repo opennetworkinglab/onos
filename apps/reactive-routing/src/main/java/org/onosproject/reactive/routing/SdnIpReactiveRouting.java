@@ -84,7 +84,7 @@ public class SdnIpReactiveRouting {
     @Activate
     public void activate() {
         appId = coreService.registerApplication(APP_NAME);
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
+        packetService.addProcessor(processor, PacketProcessor.director(2));
         requestIntercepts();
         log.info("SDN-IP Reactive Routing Started");
     }

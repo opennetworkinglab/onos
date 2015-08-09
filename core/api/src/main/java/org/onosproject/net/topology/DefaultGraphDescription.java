@@ -15,10 +15,8 @@
  */
 package org.onosproject.net.topology;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Map;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.onosproject.net.AbstractDescription;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -27,14 +25,16 @@ import org.onosproject.net.Link;
 import org.onosproject.net.SparseAnnotations;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Default implementation of an immutable topology graph data carrier.
  */
 public class DefaultGraphDescription extends AbstractDescription
-implements GraphDescription {
+        implements GraphDescription {
 
     private static final Logger log = getLogger(DefaultGraphDescription.class);
 
@@ -43,26 +43,22 @@ implements GraphDescription {
     private final ImmutableSet<TopologyVertex> vertexes;
     private final ImmutableSet<TopologyEdge> edges;
 
-    private final Map<DeviceId, TopologyVertex> vertexesById = Maps
-            .newHashMap();
+    private final Map<DeviceId, TopologyVertex> vertexesById = Maps.newHashMap();
 
     /**
      * Creates a minimal topology graph description to allow core to construct
      * and process the topology graph.
      *
-     * @param nanos time in nanos of when the topology description was created
-     *
-     * @param devices collection of infrastructure devices
-     *
-     * @param links collection of infrastructure links
-     *
+     * @param nanos       time in nanos of when the topology description was created
+     * @param devices     collection of infrastructure devices
+     * @param links       collection of infrastructure links
      * @param annotations optional key/value annotations map
      * @deprecated in Cardinal Release
      */
     @Deprecated
     public DefaultGraphDescription(long nanos, Iterable<Device> devices,
-            Iterable<Link> links,
-            SparseAnnotations... annotations) {
+                                   Iterable<Link> links,
+                                   SparseAnnotations... annotations) {
         this(nanos, System.currentTimeMillis(), devices, links, annotations);
     }
 
@@ -70,21 +66,16 @@ implements GraphDescription {
      * Creates a minimal topology graph description to allow core to construct
      * and process the topology graph.
      *
-     * @param nanos time in nanos of when the topology description was created
-     *
-     * @param millis time in millis of when the topology description was created
-     *
-     * @param devices collection of infrastructure devices
-     *
-     * @param links collection of infrastructure links
-     *
+     * @param nanos       time in nanos of when the topology description was created
+     * @param millis      time in millis of when the topology description was created
+     * @param devices     collection of infrastructure devices
+     * @param links       collection of infrastructure links
      * @param annotations optional key/value annotations map
-     *
      */
     public DefaultGraphDescription(long nanos, long millis,
-            Iterable<Device> devices,
-            Iterable<Link> links,
-            SparseAnnotations... annotations) {
+                                   Iterable<Device> devices,
+                                   Iterable<Link> links,
+                                   SparseAnnotations... annotations) {
         super(annotations);
         this.nanos = nanos;
         this.creationTime = millis;
@@ -114,8 +105,7 @@ implements GraphDescription {
     }
 
     // Builds a set of topology vertexes from the specified list of devices
-    private ImmutableSet<TopologyVertex>
-            buildVertexes(Iterable<Device> devices) {
+    private ImmutableSet<TopologyVertex> buildVertexes(Iterable<Device> devices) {
         ImmutableSet.Builder<TopologyVertex> vertexes = ImmutableSet.builder();
         for (Device device : devices) {
             TopologyVertex vertex = new DefaultTopologyVertex(device.id());
@@ -144,9 +134,7 @@ implements GraphDescription {
     private TopologyVertex vertexOf(ConnectPoint connectPoint) {
         DeviceId id = connectPoint.deviceId();
         TopologyVertex vertex = vertexesById.get(id);
-        if (vertex == null) {
-            throw new IllegalArgumentException("Vertex missing for " + id);
-        }
+        checkArgument(vertex != null, "Vertex missing for %s", id);
         return vertex;
     }
 

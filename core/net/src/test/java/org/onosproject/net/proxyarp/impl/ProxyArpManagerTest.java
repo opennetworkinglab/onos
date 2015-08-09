@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.proxyarp.impl;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,9 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.edgeservice.impl.EdgeManager;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.host.HostService;
@@ -43,10 +47,14 @@ import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.net.proxyarp.ProxyArpStore;
+import org.onosproject.net.proxyarp.ProxyArpStoreDelegate;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -85,6 +93,11 @@ public class ProxyArpManagerTest {
     private static final HostLocation LOC2 = new HostLocation(DID2, P1, 123L);
     private static final byte[] ZERO_MAC_ADDRESS = MacAddress.ZERO.toBytes();
 
+    //Return values used for various functions of the TestPacketService inner class.
+    private boolean isEdgePointReturn;
+    private List<ConnectPoint> getEdgePointsNoArg;
+
+
     private ProxyArpManager proxyArp;
 
     private TestPacketService packetService;
@@ -97,6 +110,9 @@ public class ProxyArpManagerTest {
         proxyArp = new ProxyArpManager();
         packetService = new TestPacketService();
         proxyArp.packetService = packetService;
+        proxyArp.store = new TestProxyArpStoreAdapter();
+
+        proxyArp.edgeService = new TestEdgePortService();
 
         // Create a host service mock here. Must be replayed by tests once the
         // expectations have been set up
@@ -112,7 +128,7 @@ public class ProxyArpManagerTest {
 
     /**
      * Creates a fake topology to feed into the ARP module.
-     * <p/>
+     * <p>
      * The default topology is a unidirectional ring topology. Each switch has
      * 3 ports. Ports 2 and 3 have the links to neighbor switches, and port 1
      * is free (edge port).
@@ -205,12 +221,12 @@ public class ProxyArpManagerTest {
             InterfaceIpAddress ia2 = new InterfaceIpAddress(addr2, prefix2);
             PortAddresses pa1 =
                     new PortAddresses(cp, Sets.newHashSet(ia1),
-                                      MacAddress.valueOf(2 * i - 1),
-                                      VlanId.vlanId((short) 1));
+                            MacAddress.valueOf(2 * i - 1),
+                            VlanId.vlanId((short) 1));
             PortAddresses pa2 =
                     new PortAddresses(cp, Sets.newHashSet(ia2),
-                                      MacAddress.valueOf(2 * i),
-                                      VlanId.NONE);
+                            MacAddress.valueOf(2 * i),
+                            VlanId.NONE);
 
             addresses.add(pa1);
             addresses.add(pa2);
@@ -223,7 +239,7 @@ public class ProxyArpManagerTest {
 
         for (int i = 1; i <= NUM_FLOOD_PORTS; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(i + NUM_ADDRESS_PORTS),
-                                               P1);
+                    P1);
             expect(hostService.getAddressBindingsForPort(cp))
                     .andReturn(Collections.<PortAddresses>emptySet()).anyTimes();
         }
@@ -266,11 +282,14 @@ public class ProxyArpManagerTest {
      */
     @Test
     public void testReplyKnown() {
+        //Set the return value of isEdgePoint from the edgemanager.
+        isEdgePointReturn = true;
+
         Host replyer = new DefaultHost(PID, HID1, MAC1, VLAN1, getLocation(4),
-                                       Collections.singleton(IP1));
+                Collections.singleton(IP1));
 
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
-                                         Collections.singleton(IP2));
+                Collections.singleton(IP2));
 
         expect(hostService.getHostsByIp(IP1))
                 .andReturn(Collections.singleton(replyer));
@@ -294,16 +313,24 @@ public class ProxyArpManagerTest {
      */
     @Test
     public void testReplyUnknown() {
+        isEdgePointReturn = true;
+
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
-                                         Collections.singleton(IP2));
+                Collections.singleton(IP2));
 
         expect(hostService.getHostsByIp(IP1))
                 .andReturn(Collections.<Host>emptySet());
         expect(hostService.getHost(HID2)).andReturn(requestor);
 
+
         replay(hostService);
 
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
+
+        //Setup the set of edge ports to be used in the reply method
+        getEdgePointsNoArg = Lists.newLinkedList();
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("5"), PortNumber.portNumber(1)));
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("4"), PortNumber.portNumber(1)));
 
         proxyArp.reply(arpRequest, getLocation(6));
 
@@ -318,11 +345,12 @@ public class ProxyArpManagerTest {
      */
     @Test
     public void testReplyDifferentVlan() {
+
         Host replyer = new DefaultHost(PID, HID1, MAC1, VLAN2, getLocation(4),
-                                       Collections.singleton(IP1));
+                Collections.singleton(IP1));
 
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
-                                         Collections.singleton(IP2));
+                Collections.singleton(IP2));
 
         expect(hostService.getHostsByIp(IP1))
                 .andReturn(Collections.singleton(replyer));
@@ -332,6 +360,10 @@ public class ProxyArpManagerTest {
 
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
 
+        //Setup for flood test
+        getEdgePointsNoArg = Lists.newLinkedList();
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("5"), PortNumber.portNumber(1)));
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("4"), PortNumber.portNumber(1)));
         proxyArp.reply(arpRequest, getLocation(6));
 
         verifyFlood(arpRequest);
@@ -346,13 +378,13 @@ public class ProxyArpManagerTest {
         MacAddress secondMac = MacAddress.valueOf(2L);
 
         Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, LOC1,
-                                         Collections.singleton(theirIp));
+                Collections.singleton(theirIp));
 
         expect(hostService.getHost(HID2)).andReturn(requestor);
         replay(hostService);
 
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, theirIp, ourFirstIp);
-
+        isEdgePointReturn = true;
         proxyArp.reply(arpRequest, LOC1);
 
         assertEquals(1, packetService.packets.size());
@@ -378,7 +410,7 @@ public class ProxyArpManagerTest {
 
         // Request for a valid external IP address but coming in the wrong port
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC1, null, theirIp,
-                                       Ip4Address.valueOf("10.0.3.1"));
+                Ip4Address.valueOf("10.0.3.1"));
         proxyArp.reply(arpRequest, LOC1);
         assertEquals(0, packetService.packets.size());
 
@@ -402,8 +434,10 @@ public class ProxyArpManagerTest {
         // This is a request from something inside our network (like a BGP
         // daemon) to an external host.
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, ourMac, null, ourIp, theirIp);
-        proxyArp.reply(arpRequest, getLocation(5));
+        //Ensure the packet is allowed through (it is not to an internal port)
+        isEdgePointReturn = true;
 
+        proxyArp.reply(arpRequest, getLocation(5));
         assertEquals(1, packetService.packets.size());
         verifyPacketOut(arpRequest, getLocation(1), packetService.packets.get(0));
 
@@ -421,9 +455,12 @@ public class ProxyArpManagerTest {
     @Test
     public void testForwardToHost() {
         Host host1 = new DefaultHost(PID, HID1, MAC1, VLAN1, LOC1,
-                                     Collections.singleton(IP1));
+                Collections.singleton(IP1));
+        Host host2 = new DefaultHost(PID, HID2, MAC2, VLAN1, LOC2,
+                                     Collections.singleton(IP2));
 
         expect(hostService.getHost(HID1)).andReturn(host1);
+        expect(hostService.getHost(HID2)).andReturn(host2);
         replay(hostService);
 
         Ethernet arpRequest = buildArp(ARP.OP_REPLY, MAC2, MAC1, IP2, IP1);
@@ -448,6 +485,13 @@ public class ProxyArpManagerTest {
 
         Ethernet arpRequest = buildArp(ARP.OP_REPLY, MAC2, MAC1, IP2, IP1);
 
+        //populate the list of edges when so that when forward hits flood in the manager it contains the values
+        //that should continue on
+        getEdgePointsNoArg = Lists.newLinkedList();
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("3"), PortNumber.portNumber(1)));
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("5"), PortNumber.portNumber(1)));
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("4"), PortNumber.portNumber(1)));
+
         proxyArp.forward(arpRequest, getLocation(6));
 
         verifyFlood(arpRequest);
@@ -464,17 +508,17 @@ public class ProxyArpManagerTest {
         assertEquals(NUM_FLOOD_PORTS - 1, packetService.packets.size());
 
         Collections.sort(packetService.packets,
-                         new Comparator<OutboundPacket>() {
-                             @Override
-                             public int compare(OutboundPacket o1, OutboundPacket o2) {
-                                 return o1.sendThrough().uri().compareTo(o2.sendThrough().uri());
-                             }
-                         });
+                new Comparator<OutboundPacket>() {
+                    @Override
+                    public int compare(OutboundPacket o1, OutboundPacket o2) {
+                        return o1.sendThrough().uri().compareTo(o2.sendThrough().uri());
+                    }
+                });
 
 
         for (int i = 0; i < NUM_FLOOD_PORTS - 1; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(NUM_ADDRESS_PORTS + i + 1),
-                                               PortNumber.portNumber(1));
+                    PortNumber.portNumber(1));
 
             OutboundPacket outboundPacket = packetService.packets.get(i);
             verifyPacketOut(packet, cp, outboundPacket);
@@ -571,5 +615,30 @@ public class ProxyArpManagerTest {
             packets.add(packet);
         }
 
+    }
+
+    class TestEdgePortService extends EdgeManager {
+
+        @Override
+        public boolean isEdgePoint(ConnectPoint connectPoint) {
+            return isEdgePointReturn;
+        }
+
+        @Override
+        public Iterable<ConnectPoint> getEdgePoints() {
+            return getEdgePointsNoArg;
+        }
+    }
+
+    private class TestProxyArpStoreAdapter implements ProxyArpStore {
+        @Override
+        public void forward(ConnectPoint outPort, Host subject, ByteBuffer packet) {
+            TrafficTreatment tt = DefaultTrafficTreatment.builder().setOutput(outPort.port()).build();
+            packetService.emit(new DefaultOutboundPacket(outPort.deviceId(), tt, packet));
+        }
+
+        @Override
+        public void setDelegate(ProxyArpStoreDelegate delegate) {
+        }
     }
 }

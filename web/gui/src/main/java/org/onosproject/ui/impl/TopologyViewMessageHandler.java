@@ -57,6 +57,7 @@ import org.onosproject.net.link.LinkListener;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
+import org.onosproject.ui.topo.PropertyPanel;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,6 +85,7 @@ import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
  */
 public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
+    // incoming event types
     private static final String REQ_DETAILS = "requestDetails";
     private static final String UPDATE_META = "updateMeta";
     private static final String ADD_HOST_INTENT = "addHostIntent";
@@ -103,7 +105,35 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String SPRITE_DATA_REQ = "spriteDataRequest";
     private static final String TOPO_START = "topoStart";
     private static final String TOPO_HEARTBEAT = "topoHeartbeat";
+    private static final String TOPO_SELECT_OVERLAY = "topoSelectOverlay";
     private static final String TOPO_STOP = "topoStop";
+
+    // outgoing event types
+    private static final String SHOW_SUMMARY = "showSummary";
+    private static final String SHOW_DETAILS = "showDetails";
+    private static final String SPRITE_LIST_RESPONSE = "spriteListResponse";
+    private static final String SPRITE_DATA_RESPONSE = "spriteDataResponse";
+    private static final String UPDATE_INSTANCE = "updateInstance";
+
+    // fields
+    private static final String ID = "id";
+    private static final String IDS = "ids";
+    private static final String HOVER = "hover";
+    private static final String DEVICE = "device";
+    private static final String HOST = "host";
+    private static final String CLASS = "class";
+    private static final String UNKNOWN = "unknown";
+    private static final String ONE = "one";
+    private static final String TWO = "two";
+    private static final String SRC = "src";
+    private static final String DST = "dst";
+    private static final String DATA = "data";
+    private static final String NAME = "name";
+    private static final String NAMES = "names";
+    private static final String ACTIVATE = "activate";
+    private static final String DEACTIVATE = "deactivate";
+    private static final String PRIMARY = "primary";
+    private static final String SECONDARY = "secondary";
 
 
     private static final String APP_ID = "org.onosproject.gui";
@@ -134,6 +164,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private final Accumulator<Event> eventAccummulator = new InternalEventAccummulator();
     private final ExecutorService msgSender =
             newSingleThreadExecutor(groupedThreads("onos/gui", "msg-sender"));
+
+    private TopoOverlayCache overlayCache;
 
     private TimerTask trafficTask = null;
     private TrafficEvent trafficEvent = null;
@@ -172,6 +204,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         return ImmutableSet.of(
                 new TopoStart(),
                 new TopoHeartbeat(),
+                new TopoSelectOverlay(),
                 new TopoStop(),
                 new ReqSummary(),
                 new CancelSummary(),
@@ -195,12 +228,17 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         );
     }
 
+    /**
+     * Injects the topology overlay cache.
+     *
+     * @param overlayCache injected cache
+     */
+    void setOverlayCache(TopoOverlayCache overlayCache) {
+        this.overlayCache = overlayCache;
+    }
+
     // ==================================================================
 
-    /**
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
     private final class TopoStart extends RequestHandler {
         private TopoStart() {
             super(TOPO_START);
@@ -216,10 +254,6 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
-    /**
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
     private final class TopoHeartbeat extends RequestHandler {
         private TopoHeartbeat() {
             super(TOPO_HEARTBEAT);
@@ -231,10 +265,19 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
-    /**
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
+    private final class TopoSelectOverlay extends RequestHandler {
+        private TopoSelectOverlay() {
+            super(TOPO_SELECT_OVERLAY);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            String deact = string(payload, DEACTIVATE);
+            String act = string(payload, ACTIVATE);
+            overlayCache.switchOverlay(deact, act);
+        }
+    }
+
     private final class TopoStop extends RequestHandler {
         private TopoStop() {
             super(TOPO_STOP);
@@ -247,10 +290,6 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
-    /**
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
     private final class ReqSummary extends RequestHandler {
         private ReqSummary() {
             super(REQ_SUMMARY);
@@ -284,8 +323,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             ObjectNode root = objectNode();
             ArrayNode names = arrayNode();
             get(SpriteService.class).getNames().forEach(names::add);
-            root.set("names", names);
-            sendMessage("spriteListResponse", sid, root);
+            root.set(NAMES, names);
+            sendMessage(SPRITE_LIST_RESPONSE, sid, root);
         }
     }
 
@@ -296,10 +335,10 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            String name = string(payload, "name");
+            String name = string(payload, NAME);
             ObjectNode root = objectNode();
-            root.set("data", get(SpriteService.class).get(name));
-            sendMessage("spriteDataResponse", sid, root);
+            root.set(DATA, get(SpriteService.class).get(name));
+            sendMessage(SPRITE_DATA_RESPONSE, sid, root);
         }
     }
 
@@ -310,14 +349,20 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            String type = string(payload, "class", "unknown");
-            String id = JsonUtils.string(payload, "id");
+            String type = string(payload, CLASS, UNKNOWN);
+            String id = string(payload, ID);
+            PropertyPanel pp = null;
 
-            if (type.equals("device")) {
-                sendMessage(deviceDetails(deviceId(id), sid));
-            } else if (type.equals("host")) {
-                sendMessage(hostDetails(hostId(id), sid));
+            if (type.equals(DEVICE)) {
+                pp = deviceDetails(deviceId(id), sid);
+                overlayCache.currentOverlay().modifyDeviceDetails(pp);
+            } else if (type.equals(HOST)) {
+                pp = hostDetails(hostId(id), sid);
+                overlayCache.currentOverlay().modifyHostDetails(pp);
             }
+
+            ObjectNode json = JsonUtils.envelope(SHOW_DETAILS, sid, json(pp));
+            sendMessage(json);
         }
     }
 
@@ -353,8 +398,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void process(long sid, ObjectNode payload) {
             // TODO: add protection against device ids and non-existent hosts.
-            HostId one = hostId(string(payload, "one"));
-            HostId two = hostId(string(payload, "two"));
+            HostId one = hostId(string(payload, ONE));
+            HostId two = hostId(string(payload, TWO));
 
             HostToHostIntent intent = HostToHostIntent.builder()
                     .appId(appId)
@@ -375,8 +420,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void process(long sid, ObjectNode payload) {
             // TODO: add protection against device ids and non-existent hosts.
-            Set<HostId> src = getHostIds((ArrayNode) payload.path("src"));
-            HostId dst = hostId(string(payload, "dst"));
+            Set<HostId> src = getHostIds((ArrayNode) payload.path(SRC));
+            HostId dst = hostId(string(payload, DST));
             Host dstHost = hostService.getHost(dst);
 
             Set<ConnectPoint> ingressPoints = getHostLocations(src);
@@ -410,12 +455,12 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             // Cancel any other traffic monitoring mode.
             stopTrafficMonitoring();
 
-            if (!payload.has("ids")) {
+            if (!payload.has(IDS)) {
                 return;
             }
 
             // Get the set of selected hosts and their intents.
-            ArrayNode ids = (ArrayNode) payload.path("ids");
+            ArrayNode ids = (ArrayNode) payload.path(IDS);
             selectedHosts = getHosts(ids);
             selectedDevices = getDevices(ids);
             selectedIntents = intentFilter.findPathIntents(
@@ -424,7 +469,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
             if (haveSelectedIntents()) {
                 // Send a message to highlight all links of all monitored intents.
-                sendMessage(trafficMessage(new TrafficClass("primary", selectedIntents)));
+                sendMessage(trafficMessage(new TrafficClass(PRIMARY, selectedIntents)));
             }
 
             // TODO: Re-introduce once the client click vs hover gesture stuff is sorted out.
@@ -535,7 +580,10 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // Subscribes for summary messages.
     private synchronized void requestSummary(long sid) {
-        sendMessage(summmaryMessage(sid));
+        PropertyPanel pp = summmaryMessage(sid);
+        overlayCache.currentOverlay().modifySummary(pp);
+        ObjectNode json = JsonUtils.envelope(SHOW_SUMMARY, sid, json(pp));
+        sendMessage(json);
     }
 
 
@@ -654,12 +702,12 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         startTrafficMonitoring();
 
         // Get the set of selected hosts and their intents.
-        ArrayNode ids = (ArrayNode) payload.path("ids");
+        ArrayNode ids = (ArrayNode) payload.path(IDS);
         Set<Host> hosts = new HashSet<>();
         Set<Device> devices = getDevices(ids);
 
         // If there is a hover node, include it in the hosts and find intents.
-        String hover = JsonUtils.string(payload, "hover");
+        String hover = JsonUtils.string(payload, HOVER);
         if (!isNullOrEmpty(hover)) {
             addHover(hosts, devices, hover);
         }
@@ -685,8 +733,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         secondary.removeAll(primary);
 
         // Send a message to highlight all links of all monitored intents.
-        sendMessage(trafficMessage(new TrafficClass("primary", primary),
-                                   new TrafficClass("secondary", secondary)));
+        sendMessage(trafficMessage(new TrafficClass(PRIMARY, primary),
+                                   new TrafficClass(SECONDARY, secondary)));
     }
 
     // Requests next or previous related intent.
@@ -706,7 +754,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     // selected intent highlighted.
     private void sendSelectedIntent() {
         Intent selectedIntent = selectedIntents.get(currentIntentIndex);
-        log.info("Requested next intent {}", selectedIntent.id());
+        log.debug("Requested next intent {}", selectedIntent.id());
 
         Set<Intent> primary = new HashSet<>();
         primary.add(selectedIntent);
@@ -715,8 +763,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         secondary.remove(selectedIntent);
 
         // Send a message to highlight all links of the selected intent.
-        sendMessage(trafficMessage(new TrafficClass("primary", primary),
-                                   new TrafficClass("secondary", secondary)));
+        sendMessage(trafficMessage(new TrafficClass(PRIMARY, primary),
+                                   new TrafficClass(SECONDARY, secondary)));
     }
 
     // Requests monitoring of traffic for the selected intent.
@@ -726,13 +774,13 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 currentIntentIndex = 0;
             }
             Intent selectedIntent = selectedIntents.get(currentIntentIndex);
-            log.info("Requested traffic for selected {}", selectedIntent.id());
+            log.debug("Requested traffic for selected {}", selectedIntent.id());
 
             Set<Intent> primary = new HashSet<>();
             primary.add(selectedIntent);
 
             // Send a message to highlight all links of the selected intent.
-            sendMessage(trafficMessage(new TrafficClass("primary", primary, true)));
+            sendMessage(trafficMessage(new TrafficClass(PRIMARY, primary, true)));
         }
     }
 
@@ -791,7 +839,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void event(MastershipEvent event) {
             msgSender.execute(() -> {
-                sendAllInstances("updateInstance");
+                sendAllInstances(UPDATE_INSTANCE);
                 Device device = deviceService.getDevice(event.subject());
                 if (device != null) {
                     sendMessage(deviceMessage(new DeviceEvent(DEVICE_UPDATED, device)));

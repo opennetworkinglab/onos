@@ -56,4 +56,10 @@ public interface FlowObjectiveService {
      */
     int allocateNextId();
 
+    /**
+     * Installs the filtering rules onto the specified device.
+     *
+     * @param policy            policy expression
+     */
+    void initPolicy(String policy);
 }

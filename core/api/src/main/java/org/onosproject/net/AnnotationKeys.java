@@ -115,6 +115,16 @@ public final class AnnotationKeys {
     public static final String STATIC_PORT = "staticPort";
 
     /**
+     * Annotation key for device location.
+     */
+    public static final String RACK_ADDRESS = "rackAddress";
+
+    /**
+     * Annotation key for device owner.
+     */
+    public static final String OWNER = "owner";
+
+    /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
      * If parsing fails, the returned value will be 1.0.

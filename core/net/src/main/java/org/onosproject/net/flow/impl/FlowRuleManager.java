@@ -32,12 +32,11 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.core.Permission;
-import org.onosproject.event.ListenerRegistry;
-import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -60,7 +59,6 @@ import org.onosproject.net.flow.FlowRuleProviderService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
-import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -77,8 +75,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_ADD_REQUESTED;
+import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVE_REQUESTED;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -87,7 +87,8 @@ import static org.onosproject.security.AppGuard.checkPermission;
 @Component(immediate = true, enabled = true)
 @Service
 public class FlowRuleManager
-        extends AbstractProviderRegistry<FlowRuleProvider, FlowRuleProviderService>
+        extends AbstractListenerProviderRegistry<FlowRuleEvent, FlowRuleListener,
+                                                 FlowRuleProvider, FlowRuleProviderService>
         implements FlowRuleService, FlowRuleProviderRegistry {
 
     public static final String FLOW_RULE_NULL = "FlowRule cannot be null";
@@ -98,9 +99,6 @@ public class FlowRuleManager
     private boolean allowExtraneousRules = ALLOW_EXTRANEOUS_RULES;
 
     private final Logger log = getLogger(getClass());
-
-    private final ListenerRegistry<FlowRuleEvent, FlowRuleListener>
-            listenerRegistry = new ListenerRegistry<>();
 
     private final FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -117,9 +115,6 @@ public class FlowRuleManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleStore store;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -171,14 +166,12 @@ public class FlowRuleManager
     @Override
     public int getFlowRuleCount() {
         checkPermission(Permission.FLOWRULE_READ);
-
         return store.getFlowRuleCount();
     }
 
     @Override
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
         checkPermission(Permission.FLOWRULE_READ);
-
         return store.getFlowEntries(deviceId);
     }
 
@@ -207,7 +200,6 @@ public class FlowRuleManager
     @Override
     public void removeFlowRulesById(ApplicationId id) {
         checkPermission(Permission.FLOWRULE_WRITE);
-
         removeFlowRules(Iterables.toArray(getFlowRulesById(id), FlowRule.class));
     }
 
@@ -245,22 +237,7 @@ public class FlowRuleManager
     @Override
     public void apply(FlowRuleOperations ops) {
         checkPermission(Permission.FLOWRULE_WRITE);
-
         operationsService.submit(new FlowOperationsProcessor(ops));
-    }
-
-    @Override
-    public void addListener(FlowRuleListener listener) {
-        checkPermission(Permission.FLOWRULE_EVENT);
-
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(FlowRuleListener listener) {
-        checkPermission(Permission.FLOWRULE_EVENT);
-
-        listenerRegistry.removeListener(listener);
     }
 
     @Override
@@ -408,13 +385,6 @@ public class FlowRuleManager
             return false;
         }
 
-        // Posts the specified event to the local event dispatcher.
-        private void post(FlowRuleEvent event) {
-            if (event != null) {
-                eventDispatcher.post(event);
-            }
-        }
-
         @Override
         public void pushFlowMetrics(DeviceId deviceId, Iterable<FlowEntry> flowEntries) {
             Set<FlowEntry> storedRules = Sets.newHashSet(store.getFlowEntries(deviceId));
@@ -473,16 +443,12 @@ public class FlowRuleManager
                             switch (op.operator()) {
 
                                 case ADD:
-                                    eventDispatcher.post(
-                                            new FlowRuleEvent(
-                                                    FlowRuleEvent.Type.RULE_ADD_REQUESTED,
-                                                    op.target()));
+                                    post(new FlowRuleEvent(RULE_ADD_REQUESTED,
+                                                           op.target()));
                                     break;
                                 case REMOVE:
-                                    eventDispatcher.post(
-                                            new FlowRuleEvent(
-                                                    FlowRuleEvent.Type.RULE_REMOVE_REQUESTED,
-                                                    op.target()));
+                                    post(new FlowRuleEvent(RULE_REMOVE_REQUESTED,
+                                                           op.target()));
                                     break;
                                 case MODIFY:
                                     //TODO: do something here when the time comes.

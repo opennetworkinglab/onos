@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
+import static org.onosproject.net.host.HostEvent.Type.HOST_UPDATED;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.REMOVE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -246,14 +247,17 @@ public class ECHostStore
     }
 
     private class HostLocationTracker implements EventuallyConsistentMapListener<HostId, DefaultHost> {
-
         @Override
         public void event(EventuallyConsistentMapEvent<HostId, DefaultHost> event) {
             DefaultHost host = checkNotNull(event.value());
             if (event.type() == PUT) {
-                locations.put(host.location(), host);
+                boolean isNew = locations.put(host.location(), host);
+                notifyDelegate(new HostEvent(isNew ? HOST_ADDED : HOST_UPDATED, host));
             } else if (event.type() == REMOVE) {
-                locations.remove(host.location(), host);
+                if (locations.remove(host.location(), host)) {
+                    notifyDelegate(new HostEvent(HOST_REMOVED, host));
+                }
+
             }
         }
     }

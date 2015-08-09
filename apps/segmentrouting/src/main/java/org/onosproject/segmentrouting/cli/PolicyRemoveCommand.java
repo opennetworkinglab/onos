@@ -19,6 +19,7 @@ package org.onosproject.segmentrouting.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.segmentrouting.PolicyHandler;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.TunnelPolicy;
 
@@ -41,6 +42,9 @@ public class PolicyRemoveCommand extends AbstractShellCommand {
                 AbstractShellCommand.get(SegmentRoutingService.class);
 
         TunnelPolicy.Builder tpb = TunnelPolicy.builder().setPolicyId(policyId);
-        srService.removePolicy(tpb.build());
+        PolicyHandler.Result result = srService.removePolicy(tpb.build());
+        if (result == PolicyHandler.Result.POLICY_NOT_FOUND) {
+            print("ERROR: the policy is not found");
+        }
     }
 }

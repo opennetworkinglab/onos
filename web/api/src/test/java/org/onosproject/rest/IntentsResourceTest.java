@@ -38,6 +38,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.intent.FakeIntentManager;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
@@ -110,9 +111,11 @@ public class IntentsResourceTest extends ResourceTest {
             }
 
             // check application id
+
             final String jsonAppId = jsonIntent.get("appId").asString();
-            if (!jsonAppId.equals(intent.appId().toString())) {
-                reason = "appId " + intent.appId().toString();
+            final String appId = intent.appId().name();
+            if (!jsonAppId.equals(appId)) {
+                reason = "appId was " + jsonAppId;
                 return false;
             }
 
@@ -120,13 +123,6 @@ public class IntentsResourceTest extends ResourceTest {
             final String jsonType = jsonIntent.get("type").asString();
             if (!jsonType.equals("MockIntent")) {
                 reason = "type MockIntent";
-                return false;
-            }
-
-            // check details field
-            final String jsonDetails = jsonIntent.get("details").asString();
-            if (!jsonDetails.equals(intent.toString())) {
-                reason = "details " + intent.toString();
                 return false;
             }
 
@@ -196,7 +192,7 @@ public class IntentsResourceTest extends ResourceTest {
         @Override
         public boolean matchesSafely(JsonArray json) {
             boolean intentFound = false;
-            final int expectedAttributes = 6;
+            final int expectedAttributes = 5;
             for (int jsonIntentIndex = 0; jsonIntentIndex < json.size();
                  jsonIntentIndex++) {
 
@@ -336,11 +332,12 @@ public class IntentsResourceTest extends ResourceTest {
                 .andReturn(intent)
                 .anyTimes();
         replay(mockIntentService);
-        expect(mockCoreService.getAppId(APP_ID.id()))
+        expect(mockCoreService.getAppId(APP_ID.name()))
                 .andReturn(APP_ID).anyTimes();
         replay(mockCoreService);
         final WebResource rs = resource();
-        final String response = rs.path("intents/1/0").get(String.class);
+        final String response = rs.path("intents/" + APP_ID.name()
+                + "/0").get(String.class);
         final JsonObject result = JsonObject.readFrom(response);
         assertThat(result, matchesIntent(intent));
     }
@@ -371,8 +368,9 @@ public class IntentsResourceTest extends ResourceTest {
      */
     @Test
     public void testPost() {
-        expect(mockCoreService.getAppId((short) 2))
-                .andReturn(new DefaultApplicationId(2, "app"));
+        ApplicationId testId = new DefaultApplicationId(2, "myApp");
+        expect(mockCoreService.getAppId("myApp"))
+                .andReturn(testId);
         replay(mockCoreService);
 
         mockIntentService.submit(anyObject());
@@ -389,5 +387,46 @@ public class IntentsResourceTest extends ResourceTest {
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
         String location = response.getLocation().getPath();
         assertThat(location, Matchers.startsWith("/intents/2/"));
+    }
+
+    /**
+     * Tests removing an intent with DELETE.
+     */
+    @Test
+    public void testRemove() {
+        final HashSet<NetworkResource> resources = new HashSet<>();
+        resources.add(new MockResource(1));
+        resources.add(new MockResource(2));
+        resources.add(new MockResource(3));
+        final Intent intent = new MockIntent(3L, resources);
+        final ApplicationId appId = new DefaultApplicationId(2, "app");
+        IntentService fakeManager = new FakeIntentManager();
+
+        expect(mockCoreService.getAppId("app"))
+                .andReturn(appId).once();
+        replay(mockCoreService);
+
+        mockIntentService.withdraw(anyObject());
+        expectLastCall().andDelegateTo(fakeManager).once();
+        expect(mockIntentService.getIntent(Key.of(2, appId)))
+                .andReturn(intent)
+                .once();
+        expect(mockIntentService.getIntent(Key.of("0x2", appId)))
+                .andReturn(null)
+                .once();
+
+        mockIntentService.addListener(anyObject());
+        expectLastCall().andDelegateTo(fakeManager).once();
+        mockIntentService.removeListener(anyObject());
+        expectLastCall().andDelegateTo(fakeManager).once();
+
+        replay(mockIntentService);
+
+        WebResource rs = resource();
+
+        ClientResponse response = rs.path("intents/app/0x2")
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .delete(ClientResponse.class);
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
     }
 }

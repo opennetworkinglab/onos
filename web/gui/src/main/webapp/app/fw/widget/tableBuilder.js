@@ -21,16 +21,18 @@
     'use strict';
 
     // injected refs
-    var $log, $interval, fs, wss;
+    var $log, $interval, $timeout, fs, wss;
 
     // constants
-    var refreshInterval = 2000;
+    var refreshInterval = 2000,
+        loadingWait = 500;
 
     // example params to buildTable:
     // {
     //    scope: $scope,     <- controller scope
     //    tag: 'device',     <- table identifier
-    //    selCb: selCb       <- row selection callback (optional)
+    //    selCb: selCb,      <- row selection callback (optional)
+    //    respCb: respCb,    <- websocket response callback (optional)
     //    query: params      <- query parameters in URL (optional)
     // }
     //          Note: selCb() is passed the row data model of the selected row,
@@ -45,33 +47,71 @@
             resp = o.tag + 'DataResponse',
             onSel = fs.isF(o.selCb),
             onResp = fs.isF(o.respCb),
-            promise;
+            oldTableData = [],
+            loaded = false,
+            refreshPromise, loadingPromise;
 
         o.scope.tableData = [];
+        o.scope.changedData = [];
         o.scope.sortParams = {};
+        o.scope.loading = true;
         o.scope.autoRefresh = true;
         o.scope.autoRefreshTip = 'Toggle auto refresh';
 
+        // === websocket functions --------------------
+        // response
         function respCb(data) {
+            loaded = true;
+            o.scope.loading = false;
             o.scope.tableData = data[root];
             onResp && onResp();
+
+            // checks if data changed for row flashing
+            if (!angular.equals(o.scope.tableData, oldTableData)) {
+                o.scope.changedData = [];
+                // only flash the row if the data already exists
+                if (oldTableData.length) {
+                    angular.forEach(o.scope.tableData, function (item) {
+                        if (!fs.containsObj(oldTableData, item)) {
+                            o.scope.changedData.push(item);
+                        }
+                    });
+                }
+                angular.copy(o.scope.tableData, oldTableData);
+            }
             o.scope.$apply();
         }
+        handlers[resp] = respCb;
+        wss.bindHandlers(handlers);
 
+        // request
         function sortCb(params) {
             var p = angular.extend({}, params, o.query);
             wss.sendEvent(req, p);
+            stillLoading();
         }
         o.scope.sortCallback = sortCb;
 
+        // show loading wheel if it's taking a while for the server to respond
+        function stillLoading() {
+            loaded = false;
+            loadingPromise = $timeout(function () {
+                if (!loaded) {
+                    o.scope.loading = true;
+                }
+            }, loadingWait);
+        }
+
+        // === selecting a row functions ----------------
         function selCb($event, selRow) {
             o.scope.selId = (o.scope.selId === selRow.id) ? null : selRow.id;
             onSel && onSel($event, selRow);
         }
         o.scope.selectCallback = selCb;
 
+        // === autoRefresh functions ------------------
         function startRefresh() {
-            promise = $interval(function () {
+            refreshPromise = $interval(function () {
                 if (fs.debugOn('widget')) {
                     $log.debug('Refreshing ' + root + ' page');
                 }
@@ -80,9 +120,9 @@
         }
 
         function stopRefresh() {
-            if (angular.isDefined(promise)) {
-                $interval.cancel(promise);
-                promise = undefined;
+            if (angular.isDefined(refreshPromise)) {
+                $interval.cancel(refreshPromise);
+                refreshPromise = undefined;
             }
         }
 
@@ -92,13 +132,14 @@
         }
         o.scope.toggleRefresh = toggleRefresh;
 
-        handlers[resp] = respCb;
-        wss.bindHandlers(handlers);
-
-        // Cleanup on destroyed scope
+        // === Cleanup on destroyed scope -----------------
         o.scope.$on('$destroy', function () {
             wss.unbindHandlers(handlers);
             stopRefresh();
+            if (angular.isDefined(loadingPromise)) {
+                $timeout.cancel(loadingPromise);
+                loadingPromise = undefined;
+            }
         });
 
         sortCb();
@@ -107,11 +148,12 @@
 
     angular.module('onosWidget')
         .factory('TableBuilderService',
-        ['$log', '$interval', 'FnService', 'WebSocketService',
+        ['$log', '$interval', '$timeout', 'FnService', 'WebSocketService',
 
-            function (_$log_, _$interval_, _fs_, _wss_) {
+            function (_$log_, _$interval_, _$timeout_, _fs_, _wss_) {
                 $log = _$log_;
                 $interval = _$interval_;
+                $timeout = _$timeout_;
                 fs = _fs_;
                 wss = _wss_;
 

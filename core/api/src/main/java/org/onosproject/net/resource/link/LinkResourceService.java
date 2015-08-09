@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.resource.link;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.resource.ResourceRequest;
@@ -22,7 +23,8 @@ import org.onosproject.net.resource.ResourceRequest;
 /**
  * Service for providing link resource allocation.
  */
-public interface LinkResourceService {
+public interface LinkResourceService
+    extends ListenerService<LinkResourceEvent, LinkResourceListener> {
 
     /**
      * Requests resources.
@@ -88,20 +90,6 @@ public interface LinkResourceService {
      * @return available resources for the target link
      */
     Iterable<ResourceRequest> getAvailableResources(Link link,
-                                          LinkResourceAllocations allocations);
-
-    /**
-     * Adds a listener for resource related events.
-     *
-     * @param listener listener to add
-     */
-    void addListener(LinkResourceListener listener);
-
-    /**
-     * Removes a listener for resource related events.
-     *
-     * @param listener listener to remove.
-     */
-    void removeListener(LinkResourceListener listener);
+                                                    LinkResourceAllocations allocations);
 
 }

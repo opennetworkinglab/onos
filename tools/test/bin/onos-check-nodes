@@ -6,15 +6,14 @@
 aux=/tmp/stc-$$.log
 trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
 
-onos ${1:-$OCI} "onos:nodes" > $aux
+onos ${1:-$OCI} "onos:nodes" | grep -v /bin/client > $aux
 cat $aux
 
 # Normalize the nodes
 cut -d= -f3 $aux | cut -d: -f1 | sort > $aux.1
 
-# Normalize the expected apps
-ONOS_NODES=$(env | egrep "OC[0-9]*=" | cut -d= -f2 | sort)
-nodes=${2:-$ONOS_NODES}
+# Normalize the expected nodes
+nodes=${2:-$ONOS_INSTANCES}
 (for node in $nodes; do echo $node; done) | sort > $aux.2
 
 # Check for differences

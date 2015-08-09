@@ -9,7 +9,7 @@
 aux=/tmp/stc-$$.log
 trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
 
-onos ${1:-$OCI} "onos:apps -s -a" > $aux
+onos ${1:-$OCI} "onos:apps -s -a" | grep -v /bin/client > $aux
 cat $aux
 
 # Normalize the installed apps

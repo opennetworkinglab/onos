@@ -16,6 +16,7 @@
 package org.onosproject.mastership;
 
 import static org.junit.Assert.assertEquals;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 import org.junit.Test;
 import org.onosproject.cluster.NodeId;
@@ -42,7 +43,15 @@ public class MastershipTermTest {
     public void testEquality() {
         new EqualsTester().addEqualityGroup(MastershipTerm.of(N1, 0), TERM1)
         .addEqualityGroup(TERM2, TERM3)
-        .addEqualityGroup(TERM4);
+        .addEqualityGroup(TERM4)
+        .testEquals();
     }
 
+    /**
+     * Checks that the MembershipTerm class is immutable.
+     */
+    @Test
+    public void testImmutability() {
+        assertThatClassIsImmutable(MastershipTerm.class);
+    }
 }

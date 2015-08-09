@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -383,8 +384,8 @@ public class OpenFlowGroupProviderTest {
         }
 
         @Override
-        public boolean isOptical() {
-            return false;
+        public Device.Type deviceType() {
+            return Device.Type.SWITCH;
         }
 
         @Override

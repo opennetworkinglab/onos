@@ -88,7 +88,7 @@ public class EAP extends BasePacket {
     /**
      * Sets the EAP identifier.
      *
-     * @param identifier
+     * @param identifier EAP identifier
      * @return this
      */
     public EAP setIdentifier(final byte identifier) {
@@ -198,7 +198,7 @@ public class EAP extends BasePacket {
             eap.identifier = bb.get();
             eap.length = bb.getShort();
 
-            checkHeaderLength(length, HEADER_LENGTH + eap.length);
+            checkHeaderLength(length, eap.length);
 
             int dataLength;
             if (eap.code == REQUEST || eap.code == RESPONSE) {

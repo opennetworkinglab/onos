@@ -48,6 +48,14 @@ public final class IpTunnelEndPoint implements TunnelEndPoint {
         return new IpTunnelEndPoint(ip);
     }
 
+    /**
+     * Returns IP address.
+     * @return IP address
+     */
+    public IpAddress ip() {
+        return ip;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(ip);

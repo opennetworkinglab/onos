@@ -73,6 +73,7 @@
                         <_wab>src/main/webapp/</_wab>
                         <Include-Resource>
                             WEB-INF/classes/index.html=src/main/webapp/index.html,
+                            WEB-INF/classes/not-ready.html=src/main/webapp/not-ready.html,
                             WEB-INF/classes/onos.js=src/main/webapp/onos.js,
                             WEB-INF/classes/nav.html=src/main/webapp/nav.html,
                             WEB-INF/classes/app/view=src/main/webapp/app/view,
