@@ -14,25 +14,12 @@
  * limitations under the License.
  */
 
-package org.onosproject.core;
+package org.onosproject.security.store;
 
-public enum ApplicationRole {
-    /**
-     * Indicates that an application has an ADMIN role.
-     */
-    ADMIN,
+import org.onosproject.store.StoreDelegate;
 
-    /**
-     * Indicates that an application has a USER role.
-     */
-    USER,
-
-    /**
-     * Indicates that an application role has not been specified.
-     */
-    UNSPECIFIED,
-
-    /**
-     * More useful roles may be defined.
-     */
+/**
+ * Security-Mode distributed store delegate abstraction.
+ */
+public interface SecurityModeStoreDelegate extends StoreDelegate<SecurityModeEvent> {
 }

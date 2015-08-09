@@ -14,25 +14,30 @@
  * limitations under the License.
  */
 
-package org.onosproject.core;
+package org.onosproject.security.store;
 
-public enum ApplicationRole {
-    /**
-     * Indicates that an application has an ADMIN role.
-     */
-    ADMIN,
-
-    /**
-     * Indicates that an application has a USER role.
-     */
-    USER,
+/**
+ * Representation of Security-Mode ONOS application review state.
+ */
+public enum SecurityModeState {
 
     /**
-     * Indicates that an application role has not been specified.
+     * Indicates that operator has accepted application security policy.
      */
-    UNSPECIFIED,
+    SECURED,
 
     /**
-     * More useful roles may be defined.
+     * Indicates that application security policy has been reviewed.
      */
+    REVIEWED,
+
+    /**
+     * Indicates that application has been installed.
+     */
+    INSTALLED,
+
+    /**
+     * Indicates that application has violated security policy.
+     */
+    POLICY_VIOLATED,
 }

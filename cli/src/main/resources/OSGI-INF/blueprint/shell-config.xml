@@ -21,11 +21,9 @@
         </command>
 
         <command>
-            <action class="org.onosproject.cli.security.PermissionCommand"/>
+            <action class="org.onosproject.cli.security.ReviewCommand"/>
             <completers>
-                <ref component-id="permCommandCompleter"/>
-                <ref component-id="permAppNameCompleter"/>
-                <ref component-id="permNameCompleter"/>
+                <ref component-id="reviewAppNameCompleter"/>
             </completers>
         </command>
 
@@ -435,9 +433,7 @@
         </command>
     </command-bundle>
 
-    <bean id="permAppNameCompleter" class="org.onosproject.cli.security.PermissionApplicationNameCompleter"/>
-    <bean id="permCommandCompleter" class="org.onosproject.cli.security.PermissionCommandCompleter"/>
-    <bean id="permNameCompleter" class="org.onosproject.cli.security.PermissionNameCompleter"/>
+    <bean id="reviewAppNameCompleter" class="org.onosproject.cli.security.ReviewApplicationNameCompleter"/>
     <bean id="appCommandCompleter" class="org.onosproject.cli.app.ApplicationCommandCompleter"/>
     <bean id="appNameCompleter" class="org.onosproject.cli.app.ApplicationNameCompleter"/>
     <bean id="allAppNameCompleter" class="org.onosproject.cli.app.AllApplicationNamesCompleter"/>

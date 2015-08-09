@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.onlab.util.Tools;
 import org.onosproject.app.ApplicationDescription;
@@ -28,9 +29,11 @@ import org.onosproject.app.ApplicationException;
 import org.onosproject.app.ApplicationStoreDelegate;
 import org.onosproject.app.DefaultApplicationDescription;
 import org.onosproject.core.ApplicationRole;
-import org.onosproject.core.Permission;
 import org.onosproject.core.Version;
+import org.onosproject.security.AppPermission;
+import org.onosproject.security.Permission;
 import org.onosproject.store.AbstractStore;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,7 +82,9 @@ public class ApplicationArchive
     private static final String DESCRIPTION = "description";
 
     private static final String ROLE = "security.role";
-    private static final String PERMISSIONS = "security.permissions.permission";
+    private static final String APP_PERMISSIONS = "security.permissions.app-perm";
+    private static final String NET_PERMISSIONS = "security.permissions.net-perm";
+    private static final String JAVA_PERMISSIONS = "security.permissions.java-perm";
 
     private static final String OAR = ".oar";
     private static final String APP_XML = "app.xml";
@@ -386,13 +391,25 @@ public class ApplicationArchive
     // Returns the set of Permissions specified in the app.xml file
     private ImmutableSet<Permission> getPermissions(XMLConfiguration cfg) {
         List<Permission> permissionList = new ArrayList();
-        for (Object o : cfg.getList(PERMISSIONS)) {
+
+        for (Object o : cfg.getList(APP_PERMISSIONS)) {
             String name = (String) o;
-            try {
-                Permission perm = Permission.valueOf(name);
-                permissionList.add(perm);
-            } catch (IllegalArgumentException e) {
-                log.debug("Unknown permission specified: %s", name);
+            permissionList.add(new Permission(AppPermission.class.getName(), name));
+        }
+        for (Object o : cfg.getList(NET_PERMISSIONS)) {
+            //TODO: TO BE FLESHED OUT WHEN NETWORK PERMISSIONS ARE SUPPORTED
+            break;
+        }
+
+        List<HierarchicalConfiguration> fields =
+                cfg.configurationsAt(JAVA_PERMISSIONS);
+        for (HierarchicalConfiguration sub : fields) {
+            String classname = sub.getString("classname");
+            String name = sub.getString("name");
+            String actions = sub.getString("actions");
+
+            if (classname != null && name != null) {
+                permissionList.add(new Permission(classname, name, actions));
             }
         }
         return ImmutableSet.copyOf(permissionList);

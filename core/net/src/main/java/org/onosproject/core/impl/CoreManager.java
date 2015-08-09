@@ -31,7 +31,6 @@ import org.onosproject.core.ApplicationIdStore;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdBlockStore;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.core.Permission;
 import org.onosproject.core.Version;
 import org.onosproject.event.EventDeliveryService;
 import org.osgi.service.component.ComponentContext;
@@ -46,6 +45,8 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.*;
+
 
 
 /**
@@ -100,28 +101,28 @@ public class CoreManager implements CoreService {
 
     @Override
     public Version version() {
-        checkPermission(Permission.APP_READ);
+        checkPermission(APP_READ);
 
         return version;
     }
 
     @Override
     public Set<ApplicationId> getAppIds() {
-        checkPermission(Permission.APP_READ);
+        checkPermission(APP_READ);
 
         return applicationIdStore.getAppIds();
     }
 
     @Override
     public ApplicationId getAppId(Short id) {
-        checkPermission(Permission.APP_READ);
+        checkPermission(APP_READ);
 
         return applicationIdStore.getAppId(id);
     }
 
     @Override
     public ApplicationId getAppId(String name) {
-        checkPermission(Permission.APP_READ);
+        checkPermission(APP_READ);
 
         return applicationIdStore.getAppId(name);
     }

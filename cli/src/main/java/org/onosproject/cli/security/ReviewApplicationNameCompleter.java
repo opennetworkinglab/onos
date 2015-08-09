@@ -18,6 +18,7 @@ package org.onosproject.cli.security;
 
 import org.apache.karaf.shell.console.completer.StringsCompleter;
 import org.onosproject.app.ApplicationService;
+import org.onosproject.app.ApplicationState;
 import org.onosproject.cli.AbstractCompleter;
 import org.onosproject.core.Application;
 
@@ -25,24 +26,30 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 
+import static org.onosproject.app.ApplicationState.INSTALLED;
 import static org.onosproject.cli.AbstractShellCommand.get;
 
 /**
- * Application name completer for permission command.
+ * Application name completer for security review command.
  */
-public class PermissionApplicationNameCompleter extends AbstractCompleter {
+public class ReviewApplicationNameCompleter extends AbstractCompleter {
     @Override
     public int complete(String buffer, int cursor, List<String> candidates) {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
 
-        // Fetch our service and feed it's offerings to the string completer
         ApplicationService service = get(ApplicationService.class);
         Iterator<Application> it = service.getApplications().iterator();
         SortedSet<String> strings = delegate.getStrings();
         while (it.hasNext()) {
             Application app = it.next();
-            strings.add(app.id().name());
+            ApplicationState state = service.getState(app.id());
+//            if (previousApps.contains(app.id().name())) {
+//                continue;
+//            }
+            if (state == INSTALLED) {
+                strings.add(app.id().name());
+            }
         }
 
         // Now let the completer do the work for figuring out what to offer.

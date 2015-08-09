@@ -28,7 +28,8 @@ import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.ApplicationIdStoreAdapter;
 import org.onosproject.core.DefaultApplicationId;
-import org.onosproject.core.Permission;
+import org.onosproject.security.AppPermission;
+import org.onosproject.security.Permission;
 
 import java.io.File;
 import java.io.IOException;
@@ -114,7 +115,8 @@ public class SimpleApplicationStoreTest {
     @Test
     public void permissions() {
         Application app = createTestApp();
-        ImmutableSet<Permission> permissions = ImmutableSet.of(Permission.FLOWRULE_WRITE);
+        ImmutableSet<Permission> permissions =
+                ImmutableSet.of(new Permission(AppPermission.class.getName(), "FLOWRULE_WRITE"));
         store.setPermissions(app.id(), permissions);
         assertEquals("incorrect app perms", 1, store.getPermissions(app.id()).size());
         assertEquals("incorrect app state", INSTALLED, store.getState(app.id()));

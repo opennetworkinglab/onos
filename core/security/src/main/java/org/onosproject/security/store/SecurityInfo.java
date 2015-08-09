@@ -14,25 +14,28 @@
  * limitations under the License.
  */
 
-package org.onosproject.security;
+package org.onosproject.security.store;
 
+import org.onosproject.security.Permission;
+
+import java.util.Set;
 
 /**
- * Aids SM-ONOS to perform API-level permission checking.
+ * Security-Mode ONOS security policy and state representation for distributed store.
  */
-public final class AppGuard {
+public class SecurityInfo {
 
-    private AppGuard() {
+    protected Set<Permission> grantedPermissions;
+    protected SecurityModeState state;
+
+    public SecurityInfo(Set<Permission> perms, SecurityModeState state) {
+        this.grantedPermissions = perms;
+        this.state = state;
     }
-
-    /**
-     * Checks if the caller has the required permission only when security-mode is enabled.
-     * @param permission permission to be checked
-     */
-    public static void checkPermission(AppPermission.Type permission) {
-        SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            System.getSecurityManager().checkPermission(new AppPermission(permission));
-        }
+    public Set<Permission> getPermissions() {
+        return grantedPermissions;
+    }
+    public SecurityModeState getState() {
+        return state;
     }
 }

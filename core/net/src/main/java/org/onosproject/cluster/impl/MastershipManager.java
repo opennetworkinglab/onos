@@ -32,7 +32,6 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.core.MetricsHelper;
-import org.onosproject.core.Permission;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
@@ -62,6 +61,8 @@ import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
 import static org.onosproject.net.MastershipRole.MASTER;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppPermission.Type.*;
+
 
 
 @Component(immediate = true)
@@ -136,7 +137,7 @@ public class MastershipManager
 
     @Override
     public MastershipRole getLocalRole(DeviceId deviceId) {
-        checkPermission(Permission.CLUSTER_READ);
+        checkPermission(CLUSTER_READ);
 
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getRole(clusterService.getLocalNode().id(), deviceId);
@@ -144,7 +145,7 @@ public class MastershipManager
 
     @Override
     public CompletableFuture<Void> relinquishMastership(DeviceId deviceId) {
-        checkPermission(Permission.CLUSTER_WRITE);
+        checkPermission(CLUSTER_WRITE);
         return store.relinquishRole(localNodeId, deviceId)
                     .thenAccept(this::post)
                     .thenApply(v -> null);
@@ -152,7 +153,7 @@ public class MastershipManager
 
     @Override
     public CompletableFuture<MastershipRole> requestRoleFor(DeviceId deviceId) {
-        checkPermission(Permission.CLUSTER_WRITE);
+        checkPermission(CLUSTER_WRITE);
 
         checkNotNull(deviceId, DEVICE_ID_NULL);
         final Context timer = startTimer(requestRoleTimer);
@@ -162,7 +163,7 @@ public class MastershipManager
 
     @Override
     public NodeId getMasterFor(DeviceId deviceId) {
-        checkPermission(Permission.CLUSTER_READ);
+        checkPermission(CLUSTER_READ);
 
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getMaster(deviceId);
@@ -170,7 +171,7 @@ public class MastershipManager
 
     @Override
     public Set<DeviceId> getDevicesOf(NodeId nodeId) {
-        checkPermission(Permission.CLUSTER_READ);
+        checkPermission(CLUSTER_READ);
 
         checkNotNull(nodeId, NODE_ID_NULL);
         return store.getDevices(nodeId);
@@ -178,7 +179,7 @@ public class MastershipManager
 
     @Override
     public RoleInfo getNodesFor(DeviceId deviceId) {
-        checkPermission(Permission.CLUSTER_READ);
+        checkPermission(CLUSTER_READ);
 
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getNodes(deviceId);

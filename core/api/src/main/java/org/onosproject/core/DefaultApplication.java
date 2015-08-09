@@ -15,6 +15,8 @@
  */
 package org.onosproject.core;
 
+import org.onosproject.security.Permission;
+
 import java.net.URI;
 import java.util.Set;
 import java.util.Optional;

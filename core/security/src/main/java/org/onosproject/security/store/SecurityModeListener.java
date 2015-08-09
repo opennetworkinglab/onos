@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package org.onosproject.cli.security;
+package org.onosproject.security.store;
 
-import com.google.common.collect.ImmutableList;
-import org.onosproject.cli.AbstractChoicesCompleter;
+import org.onosproject.event.EventListener;
 
-import java.util.List;
-
-import static org.onosproject.cli.security.PermissionCommand.*;
 /**
- * Permission command completer.
+ * Security-Mode ONOS event listener.
  */
-public class PermissionCommandCompleter extends AbstractChoicesCompleter {
-    @Override
-    protected List<String> choices() {
-        return ImmutableList.of(ADD, REMOVE, CLEAR, LIST);
-    }
+public interface SecurityModeListener extends EventListener<SecurityModeEvent> {
 }

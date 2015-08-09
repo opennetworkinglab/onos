@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright 2015 Open Networking Laboratory
   ~
@@ -21,8 +20,10 @@
     <security>
         <role>ADMIN</role>
         <permissions>
-            <permission>FLOWRULE_WRITE</permission>
-            <permission>FLOWRULE_READ</permission>
+            <app-perm>FLOWRULE_WRITE</app-perm>
+            <app-perm>FLOWRULE_READ</app-perm>
         </permissions>
+
     </security>
+
 </app>

@@ -26,7 +26,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
-import org.onosproject.core.Permission;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
@@ -57,6 +56,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppPermission.Type.*;
 
 /**
  * Provides basic implementation of the host SB &amp; NB APIs.
@@ -118,66 +118,66 @@ public class HostManager
 
     @Override
     public int getHostCount() {
-        checkPermission(Permission.HOST_READ);
+        checkPermission(HOST_READ);
         return store.getHostCount();
     }
 
     @Override
     public Iterable<Host> getHosts() {
-        checkPermission(Permission.HOST_READ);
+        checkPermission(HOST_READ);
         return store.getHosts();
     }
 
     @Override
     public Host getHost(HostId hostId) {
-        checkPermission(Permission.HOST_READ);
+        checkPermission(HOST_READ);
         checkNotNull(hostId, HOST_ID_NULL);
         return store.getHost(hostId);
     }
 
     @Override
     public Set<Host> getHostsByVlan(VlanId vlanId) {
-        checkPermission(Permission.HOST_READ);
+        checkPermission(HOST_READ);
         return store.getHosts(vlanId);
     }
 
     @Override
     public Set<Host> getHostsByMac(MacAddress mac) {
-        checkPermission(Permission.HOST_READ);
+        checkPermission(HOST_READ);
         checkNotNull(mac, "MAC address cannot be null");
         return store.getHosts(mac);
     }
 
     @Override
     public Set<Host> getHostsByIp(IpAddress ip) {
-        checkPermission(Permission.HOST_READ);
+        checkPermission(HOST_READ);
         checkNotNull(ip, "IP address cannot be null");
         return store.getHosts(ip);
     }
 
     @Override
     public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
-        checkPermission(Permission.HOST_READ);
+        checkPermission(HOST_READ);
         checkNotNull(connectPoint, "Connection point cannot be null");
         return store.getConnectedHosts(connectPoint);
     }
 
     @Override
     public Set<Host> getConnectedHosts(DeviceId deviceId) {
-        checkPermission(Permission.HOST_READ);
+        checkPermission(HOST_READ);
         checkNotNull(deviceId, "Device ID cannot be null");
         return store.getConnectedHosts(deviceId);
     }
 
     @Override
     public void startMonitoringIp(IpAddress ip) {
-        checkPermission(Permission.HOST_EVENT);
+        checkPermission(HOST_EVENT);
         monitor.addMonitoringFor(ip);
     }
 
     @Override
     public void stopMonitoringIp(IpAddress ip) {
-        checkPermission(Permission.HOST_EVENT);
+        checkPermission(HOST_EVENT);
         monitor.stopMonitoring(ip);
     }
 
@@ -212,13 +212,13 @@ public class HostManager
 
     @Override
     public Set<PortAddresses> getAddressBindings() {
-        checkPermission(Permission.HOST_READ);
+        checkPermission(HOST_READ);
         return store.getAddressBindings();
     }
 
     @Override
     public Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint) {
-        checkPermission(Permission.HOST_READ);
+        checkPermission(HOST_READ);
         return store.getAddressBindingsForPort(connectPoint);
     }
 

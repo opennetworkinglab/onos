@@ -31,7 +31,7 @@ import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.ApplicationIdStore;
 import org.onosproject.core.DefaultApplication;
-import org.onosproject.core.Permission;
+import org.onosproject.security.Permission;
 import org.slf4j.Logger;
 
 import java.io.InputStream;

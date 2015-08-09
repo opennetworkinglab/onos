@@ -27,7 +27,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
-import org.onosproject.core.Permission;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
@@ -77,6 +76,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.MastershipRole.*;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppPermission.Type.*;
 
 
 /**
@@ -151,60 +151,60 @@ public class DeviceManager
 
     @Override
     public int getDeviceCount() {
-        checkPermission(Permission.DEVICE_READ);
+        checkPermission(DEVICE_READ);
         return store.getDeviceCount();
     }
 
     @Override
     public Iterable<Device> getDevices() {
-        checkPermission(Permission.DEVICE_READ);
+        checkPermission(DEVICE_READ);
         return store.getDevices();
     }
 
     @Override
     public Iterable<Device> getAvailableDevices() {
-        checkPermission(Permission.DEVICE_READ);
+        checkPermission(DEVICE_READ);
         return store.getAvailableDevices();
     }
 
     @Override
     public Device getDevice(DeviceId deviceId) {
-        checkPermission(Permission.DEVICE_READ);
+        checkPermission(DEVICE_READ);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getDevice(deviceId);
     }
 
     @Override
     public MastershipRole getRole(DeviceId deviceId) {
-        checkPermission(Permission.DEVICE_READ);
+        checkPermission(DEVICE_READ);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return mastershipService.getLocalRole(deviceId);
     }
 
     @Override
     public List<Port> getPorts(DeviceId deviceId) {
-        checkPermission(Permission.DEVICE_READ);
+        checkPermission(DEVICE_READ);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getPorts(deviceId);
     }
 
     @Override
     public List<PortStatistics> getPortStatistics(DeviceId deviceId) {
-        checkPermission(Permission.DEVICE_READ);
+        checkPermission(DEVICE_READ);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getPortStatistics(deviceId);
     }
 
     @Override
     public List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId) {
-        checkPermission(Permission.DEVICE_READ);
+        checkPermission(DEVICE_READ);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getPortDeltaStatistics(deviceId);
     }
 
     @Override
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
-        checkPermission(Permission.DEVICE_READ);
+        checkPermission(DEVICE_READ);
         checkNotNull(deviceId, DEVICE_ID_NULL);
         checkNotNull(portNumber, PORT_NUMBER_NULL);
         return store.getPort(deviceId, portNumber);
@@ -212,7 +212,7 @@ public class DeviceManager
 
     @Override
     public boolean isAvailable(DeviceId deviceId) {
-        checkPermission(Permission.DEVICE_READ);
+        checkPermission(DEVICE_READ);
 
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.isAvailable(deviceId);
@@ -664,7 +664,7 @@ public class DeviceManager
 
     @Override
     public Iterable<Device> getDevices(Type type) {
-        checkPermission(Permission.DEVICE_READ);
+        checkPermission(DEVICE_READ);
         Set<Device> results = new HashSet<>();
         Iterable<Device> devices = store.getDevices();
         if (devices != null) {
@@ -679,7 +679,7 @@ public class DeviceManager
 
     @Override
     public Iterable<Device> getAvailableDevices(Type type) {
-        checkPermission(Permission.DEVICE_READ);
+        checkPermission(DEVICE_READ);
         Set<Device> results = new HashSet<>();
         Iterable<Device> availableDevices = store.getAvailableDevices();
         if (availableDevices != null) {

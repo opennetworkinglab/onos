@@ -17,8 +17,8 @@ package org.onosproject.app;
 
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.Permission;
 import org.onosproject.event.ListenerService;
+import org.onosproject.security.Permission;
 
 import java.util.Set;
 

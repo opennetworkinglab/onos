@@ -33,7 +33,8 @@ import org.onosproject.app.ApplicationStoreDelegate;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.Permission;
+import org.onosproject.security.Permission;
+import org.onosproject.security.SecurityUtil;
 import org.slf4j.Logger;
 
 import java.io.InputStream;
@@ -41,6 +42,7 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.app.ApplicationEvent.Type.*;
+import static org.onosproject.security.AppPermission.Type.*;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -87,34 +89,34 @@ public class ApplicationManager
 
     @Override
     public Set<Application> getApplications() {
-        checkPermission(Permission.APP_READ);
+        checkPermission(APP_READ);
         return store.getApplications();
     }
 
     @Override
     public ApplicationId getId(String name) {
-        checkPermission(Permission.APP_READ);
+        checkPermission(APP_READ);
         checkNotNull(name, "Name cannot be null");
         return store.getId(name);
     }
 
     @Override
     public Application getApplication(ApplicationId appId) {
-        checkPermission(Permission.APP_READ);
+        checkPermission(APP_READ);
         checkNotNull(appId, APP_ID_NULL);
         return store.getApplication(appId);
     }
 
     @Override
     public ApplicationState getState(ApplicationId appId) {
-        checkPermission(Permission.APP_READ);
+        checkPermission(APP_READ);
         checkNotNull(appId, APP_ID_NULL);
         return store.getState(appId);
     }
 
     @Override
     public Set<Permission> getPermissions(ApplicationId appId) {
-        checkPermission(Permission.APP_READ);
+        checkPermission(APP_READ);
         checkNotNull(appId, APP_ID_NULL);
         return store.getPermissions(appId);
     }
@@ -122,7 +124,9 @@ public class ApplicationManager
     @Override
     public Application install(InputStream appDescStream) {
         checkNotNull(appDescStream, "Application archive stream cannot be null");
-        return store.create(appDescStream);
+        Application app = store.create(appDescStream);
+        SecurityUtil.register(app.id());
+        return app;
     }
 
     @Override
@@ -138,6 +142,9 @@ public class ApplicationManager
     @Override
     public void activate(ApplicationId appId) {
         checkNotNull(appId, APP_ID_NULL);
+        if (!SecurityUtil.isAppSecured(appId)) {
+            return;
+        }
         store.activate(appId);
     }
 

@@ -17,7 +17,6 @@ package org.onosproject.openflow.controller;
 
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ethernet;
-import org.onosproject.core.Permission;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPacketOut;
 import org.projectfloodlight.openflow.protocol.OFVersion;
@@ -34,6 +33,7 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.*;
 
 
 /**
@@ -57,7 +57,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
 
     @Override
     public void send() {
-        checkPermission(Permission.PACKET_WRITE);
+        checkPermission(PACKET_WRITE);
 
         if (block() && isBuilt.get()) {
             sw.sendMsg(pktout);
@@ -97,7 +97,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
 
     @Override
     public Ethernet parsed() {
-        checkPermission(Permission.PACKET_READ);
+        checkPermission(PACKET_READ);
 
         try {
             return Ethernet.deserializer().deserialize(pktin.getData(), 0, pktin.getData().length);
@@ -111,7 +111,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
 
     @Override
     public Dpid dpid() {
-        checkPermission(Permission.PACKET_READ);
+        checkPermission(PACKET_READ);
 
         return new Dpid(sw.getId());
     }
@@ -130,7 +130,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
 
     @Override
     public Integer inPort() {
-        checkPermission(Permission.PACKET_READ);
+        checkPermission(PACKET_READ);
 
         return pktinInPort().getPortNumber();
     }
@@ -144,7 +144,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
 
     @Override
     public byte[] unparsed() {
-        checkPermission(Permission.PACKET_READ);
+        checkPermission(PACKET_READ);
 
         return pktin.getData().clone();
 
@@ -160,21 +160,21 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
 
     @Override
     public boolean block() {
-        checkPermission(Permission.PACKET_WRITE);
+        checkPermission(PACKET_WRITE);
 
         return free.getAndSet(false);
     }
 
     @Override
     public boolean isHandled() {
-        checkPermission(Permission.PACKET_READ);
+        checkPermission(PACKET_READ);
 
         return !free.get();
     }
 
     @Override
     public boolean isBuffered() {
-        checkPermission(Permission.PACKET_READ);
+        checkPermission(PACKET_READ);
 
         return isBuffered;
     }

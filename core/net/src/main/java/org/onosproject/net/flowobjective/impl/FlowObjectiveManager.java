@@ -27,7 +27,6 @@ import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.core.Permission;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
@@ -62,6 +61,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.*;
+
 
 
 /**
@@ -193,13 +194,13 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     @Override
     public void filter(DeviceId deviceId, FilteringObjective filteringObjective) {
-        checkPermission(Permission.FLOWRULE_WRITE);
+        checkPermission(FLOWRULE_WRITE);
         executorService.submit(new ObjectiveInstaller(deviceId, filteringObjective));
     }
 
     @Override
     public void forward(DeviceId deviceId, ForwardingObjective forwardingObjective) {
-        checkPermission(Permission.FLOWRULE_WRITE);
+        checkPermission(FLOWRULE_WRITE);
         if (queueObjective(deviceId, forwardingObjective)) {
             return;
         }
@@ -208,13 +209,13 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     @Override
     public void next(DeviceId deviceId, NextObjective nextObjective) {
-        checkPermission(Permission.FLOWRULE_WRITE);
+        checkPermission(FLOWRULE_WRITE);
         executorService.submit(new ObjectiveInstaller(deviceId, nextObjective));
     }
 
     @Override
     public int allocateNextId() {
-        checkPermission(Permission.FLOWRULE_WRITE);
+        checkPermission(FLOWRULE_WRITE);
         return flowObjectiveStore.allocateNextId();
     }
 
