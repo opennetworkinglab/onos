@@ -21,6 +21,8 @@
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-of-api/${project.version}</bundle>
+
         <bundle>mvn:${project.groupId}/onos-ovsdb-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-ovsdb-rfc/${project.version}</bundle>
     </feature>
 </features>
