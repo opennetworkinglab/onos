@@ -19,22 +19,16 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.onosproject.ovsdb.rfc.schema.ColumnSchema;
-import org.onosproject.ovsdb.rfc.schema.TableSchema;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Maps;
 
 /**
  * Row is the basic element of the OpenVswitch's table.
  */
 public final class Row {
-    @JsonIgnore
-    private TableSchema tableSchema;
+    private String tableName;
     private Map<String, Column> columns;
 
     /**
@@ -46,52 +40,49 @@ public final class Row {
 
     /**
      * Row constructor.
-     * @param tableSchema TableSchema entity
+     * @param tableName table name
      */
-    public Row(TableSchema tableSchema) {
-        checkNotNull(tableSchema, "tableSchema cannot be null");
-        this.tableSchema = tableSchema;
+    public Row(String tableName) {
+        checkNotNull(tableName, "tableName cannot be null");
+        this.tableName = tableName;
         this.columns = Maps.newHashMap();
     }
 
     /**
      * Row constructor.
-     * @param tableSchema TableSchema entity
-     * @param columns List of Column entity
+     * @param tableName table name
+     * @param columns Map of Column entity
      */
-    public Row(TableSchema tableSchema, List<Column> columns) {
-        checkNotNull(tableSchema, "tableSchema cannot be null");
+    public Row(String tableName, Map<String, Column> columns) {
+        checkNotNull(tableName, "table name cannot be null");
         checkNotNull(columns, "columns cannot be null");
-        this.tableSchema = tableSchema;
-        this.columns = Maps.newHashMap();
-        for (Column column : columns) {
-            this.columns.put(column.schema().name(), column);
-        }
+        this.tableName = tableName;
+        this.columns = columns;
     }
 
     /**
-     * Returns tableSchema.
-     * @return tableSchema
+     * Returns tableName.
+     * @return tableName
      */
-    public TableSchema getTableSchema() {
-        return tableSchema;
+    public String tableName() {
+        return tableName;
     }
 
     /**
-     * Set tableSchema value.
-     * @param tableSchema TableSchema entity
+     * Set tableName value.
+     * @param tableName table name
      */
-    public void setTableSchema(TableSchema tableSchema) {
-        this.tableSchema = tableSchema;
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
     }
 
     /**
      * Returns Column by ColumnSchema.
-     * @param schema ColumnSchema entity
+     * @param columnName column name
      * @return Column
      */
-    public Column getColumn(ColumnSchema schema) {
-        return (Column) columns.get(schema.name());
+    public Column getColumn(String columnName) {
+        return columns.get(columnName);
     }
 
     /**
@@ -113,7 +104,7 @@ public final class Row {
 
     @Override
     public int hashCode() {
-        return Objects.hash(tableSchema, columns);
+        return Objects.hash(tableName, columns);
     }
 
     @Override
@@ -123,7 +114,7 @@ public final class Row {
         }
         if (obj instanceof Row) {
             final Row other = (Row) obj;
-            return Objects.equals(this.tableSchema, other.tableSchema)
+            return Objects.equals(this.tableName, other.tableName)
                     && Objects.equals(this.columns, other.columns);
         }
         return false;
@@ -131,6 +122,7 @@ public final class Row {
 
     @Override
     public String toString() {
-        return toStringHelper(this).add("tableSchema", tableSchema).add("columns", columns).toString();
+        return toStringHelper(this).add("tableName", tableName)
+                .add("columns", columns).toString();
     }
 }

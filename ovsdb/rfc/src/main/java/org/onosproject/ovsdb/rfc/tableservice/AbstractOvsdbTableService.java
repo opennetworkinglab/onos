@@ -22,7 +22,6 @@ import java.util.Objects;
 
 import org.onosproject.ovsdb.rfc.error.ColumnSchemaNotFoundException;
 import org.onosproject.ovsdb.rfc.error.TableSchemaNotFoundException;
-import org.onosproject.ovsdb.rfc.error.TypedSchemaException;
 import org.onosproject.ovsdb.rfc.error.VersionMismatchException;
 import org.onosproject.ovsdb.rfc.notation.Column;
 import org.onosproject.ovsdb.rfc.notation.Row;
@@ -50,17 +49,17 @@ public abstract class AbstractOvsdbTableService implements OvsdbTableService {
      * @param table table name
      * @param formVersion the initial version
      */
-    public AbstractOvsdbTableService(DatabaseSchema dbSchema, Row row,
-                                     OvsdbTable table, VersionNum formVersion) {
+    public AbstractOvsdbTableService(DatabaseSchema dbSchema, Row row, OvsdbTable table,
+                                     VersionNum formVersion) {
         checkNotNull(dbSchema, "database schema cannot be null");
         checkNotNull(row, "row cannot be null");
         checkNotNull(table, "table cannot be null");
         checkNotNull(formVersion, "the initial version cannot be null");
         this.dbSchema = dbSchema;
+        row.setTableName(table.tableName());
         this.row = row;
         TableDescription tableDesc = new TableDescription(table, formVersion);
         this.tableDesc = tableDesc;
-        row.setTableSchema(dbSchema.getTableSchema(table.tableName()));
     }
 
     /**
@@ -107,21 +106,20 @@ public abstract class AbstractOvsdbTableService implements OvsdbTableService {
      * @param untilVersion The end of the version
      * @throws VersionMismatchException this is a version mismatch exception
      */
-    private void checkVersion(String schemaVersion, String fromVersion,
-                              String untilVersion) {
+    private void checkVersion(String schemaVersion, String fromVersion, String untilVersion) {
         VersionUtil.versionMatch(fromVersion);
         VersionUtil.versionMatch(untilVersion);
         if (!fromVersion.equals(VersionUtil.DEFAULT_VERSION_STRING)) {
             if (VersionUtil.versionCompare(schemaVersion, fromVersion) < 0) {
-                String message = VersionMismatchException
-                        .createFromMessage(schemaVersion, fromVersion);
+                String message = VersionMismatchException.createFromMessage(schemaVersion,
+                                                                            fromVersion);
                 throw new VersionMismatchException(message);
             }
         }
         if (!untilVersion.equals(VersionUtil.DEFAULT_VERSION_STRING)) {
             if (VersionUtil.versionCompare(untilVersion, schemaVersion) < 0) {
-                String message = VersionMismatchException
-                        .createToMessage(schemaVersion, untilVersion);
+                String message = VersionMismatchException.createToMessage(schemaVersion,
+                                                                          untilVersion);
                 throw new VersionMismatchException(message);
             }
         }
@@ -138,13 +136,23 @@ public abstract class AbstractOvsdbTableService implements OvsdbTableService {
 
     /**
      * Returns ColumnSchema from TableSchema by column name.
-     * @param tableSchema TableSchema entity
      * @param columnName column name
      * @return ColumnSchema
      */
-    private ColumnSchema getColumnSchema(TableSchema tableSchema,
-                                         String columnName) {
-        return tableSchema.getColumnSchema(columnName);
+    private ColumnSchema getColumnSchema(String columnName) {
+        TableSchema tableSchema = getTableSchema();
+        if (tableSchema == null) {
+            String message = TableSchemaNotFoundException.createMessage(tableDesc.name(),
+                                                                        dbSchema.name());
+            throw new TableSchemaNotFoundException(message);
+        }
+        ColumnSchema columnSchema = tableSchema.getColumnSchema(columnName);
+        if (columnSchema == null) {
+            String message = ColumnSchemaNotFoundException.createMessage(columnName,
+                                                                         tableSchema.name());
+            throw new ColumnSchemaNotFoundException(message);
+        }
+        return columnSchema;
     }
 
     @Override
@@ -154,26 +162,11 @@ public abstract class AbstractOvsdbTableService implements OvsdbTableService {
         }
         String columnName = columnDesc.name();
         checkColumnSchemaVersion(columnDesc);
-        if (columnName == null) {
-            throw new TypedSchemaException("Error processing GetColumn : "
-                    + tableDesc.name() + "." + columnDesc.method());
-        }
-        TableSchema tableSchema = getTableSchema();
-        if (tableSchema == null) {
-            String message = TableSchemaNotFoundException
-                    .createMessage(tableDesc.name(), dbSchema.name());
-            throw new TableSchemaNotFoundException(message);
-        }
-        ColumnSchema columnSchema = getColumnSchema(tableSchema, columnName);
-        if (columnSchema == null) {
-            String message = ColumnSchemaNotFoundException
-                    .createMessage(columnName, tableSchema.name());
-            throw new ColumnSchemaNotFoundException(message);
-        }
+        ColumnSchema columnSchema = getColumnSchema(columnName);
         if (row == null) {
-            return new Column(columnSchema, null);
+            return null;
         }
-        return row.getColumn(columnSchema);
+        return row.getColumn(columnSchema.name());
     }
 
     @Override
@@ -183,26 +176,11 @@ public abstract class AbstractOvsdbTableService implements OvsdbTableService {
         }
         String columnName = columnDesc.name();
         checkColumnSchemaVersion(columnDesc);
-        if (columnName == null) {
-            throw new TypedSchemaException("Error processing GetColumn : "
-                    + tableDesc.name() + "." + columnDesc.method());
-        }
-        TableSchema tableSchema = getTableSchema();
-        if (tableSchema == null) {
-            String message = TableSchemaNotFoundException
-                    .createMessage(tableDesc.name(), dbSchema.name());
-            throw new TableSchemaNotFoundException(message);
-        }
-        ColumnSchema columnSchema = getColumnSchema(tableSchema, columnName);
-        if (columnSchema == null) {
-            String message = ColumnSchemaNotFoundException
-                    .createMessage(columnName, tableSchema.name());
-            throw new ColumnSchemaNotFoundException(message);
-        }
-        if (row == null || row.getColumn(columnSchema) == null) {
+        ColumnSchema columnSchema = getColumnSchema(columnName);
+        if (row == null || row.getColumn(columnSchema.name()) == null) {
             return null;
         }
-        return row.getColumn(columnSchema).data();
+        return row.getColumn(columnSchema.name()).data();
     }
 
     @Override
@@ -212,64 +190,44 @@ public abstract class AbstractOvsdbTableService implements OvsdbTableService {
         }
         String columnName = columnDesc.name();
         checkColumnSchemaVersion(columnDesc);
-        if (columnName == null) {
-            throw new TypedSchemaException("Unable to locate Column Name for "
-                    + tableDesc.name() + "." + columnDesc.method());
-        }
-        TableSchema tableSchema = getTableSchema();
-        ColumnSchema columnSchema = getColumnSchema(tableSchema, columnName);
-        Column column = new Column(columnSchema, obj);
+        ColumnSchema columnSchema = getColumnSchema(columnName);
+        Column column = new Column(columnSchema.name(), obj);
         row.addColumn(columnName, column);
     }
 
     @Override
-    public Object getTbSchema() {
+    public UUID getTableUuid() {
         if (!isValid()) {
             return null;
         }
-        if (dbSchema == null) {
-            return null;
-        }
-        return getTableSchema();
-    }
-
-    @Override
-    public UUID getUuid() {
-        if (!isValid()) {
-            return null;
-        }
-        ColumnDescription columnDesc = new ColumnDescription("_uuid",
-                                                             "getTbUuid");
+        ColumnDescription columnDesc = new ColumnDescription("_uuid", "getTableUuid");
         return (UUID) getDataHandler(columnDesc);
     }
 
     @Override
-    public Column getUuidColumn() {
+    public Column getTableUuidColumn() {
         if (!isValid()) {
             return null;
         }
-        ColumnDescription columnDesc = new ColumnDescription("_uuid",
-                                                             "getTbUuidColumn");
+        ColumnDescription columnDesc = new ColumnDescription("_uuid", "getTableUuidColumn");
         return (Column) getColumnHandler(columnDesc);
     }
 
     @Override
-    public UUID getVersion() {
+    public UUID getTableVersion() {
         if (!isValid()) {
             return null;
         }
-        ColumnDescription columnDesc = new ColumnDescription("_version",
-                                                             "getTbVersion");
+        ColumnDescription columnDesc = new ColumnDescription("_version", "getTableVersion");
         return (UUID) getDataHandler(columnDesc);
     }
 
     @Override
-    public Column getVersionColumn() {
+    public Column getTableVersionColumn() {
         if (!isValid()) {
             return null;
         }
-        ColumnDescription columnDesc = new ColumnDescription("_version",
-                                                             "getTbVersionColumn");
+        ColumnDescription columnDesc = new ColumnDescription("_version", "getTableVersionColumn");
         return (Column) getColumnHandler(columnDesc);
     }
 
@@ -319,9 +277,8 @@ public abstract class AbstractOvsdbTableService implements OvsdbTableService {
 
     @Override
     public String toString() {
-        TableSchema schema = (TableSchema) getTbSchema();
+        TableSchema schema = (TableSchema) getTableSchema();
         String tableName = schema.name();
-        return toStringHelper(this).add("tableName", tableName).add("row", row)
-                .toString();
+        return toStringHelper(this).add("tableName", tableName).add("row", row).toString();
     }
 }

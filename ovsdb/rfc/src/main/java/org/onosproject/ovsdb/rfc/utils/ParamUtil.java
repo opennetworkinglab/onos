@@ -16,6 +16,7 @@
 package org.onosproject.ovsdb.rfc.utils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.onosproject.ovsdb.rfc.message.MonitorRequest;
@@ -24,20 +25,18 @@ import org.onosproject.ovsdb.rfc.operations.Operation;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 import org.onosproject.ovsdb.rfc.schema.TableSchema;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
- * Params utility class. Params of the request object, refer to RFC7047's Section
- * 4.1.
+ * Params utility class. Params of the request object, refer to RFC7047's
+ * Section 4.1.
  */
 public final class ParamUtil {
 
     /**
-     * Constructs a ParamUtil object. Utility classes should not have a
-     * public or default constructor, otherwise IDE will compile unsuccessfully. This
+     * Constructs a ParamUtil object. Utility classes should not have a public
+     * or default constructor, otherwise IDE will compile unsuccessfully. This
      * class should not be instantiated.
      */
     private ParamUtil() {
@@ -52,8 +51,7 @@ public final class ParamUtil {
         String tableName = tableSchema.name();
         Set<String> columns = tableSchema.getColumnNames();
         MonitorSelect select = new MonitorSelect(true, true, true, true);
-        MonitorRequest monitorRequest = new MonitorRequest(tableName, columns,
-                                                           select);
+        MonitorRequest monitorRequest = new MonitorRequest(tableName, columns, select);
         return monitorRequest;
     }
 
@@ -63,24 +61,15 @@ public final class ParamUtil {
      * @param dbSchema DatabaseSchema entity
      * @return List of Object, the params of monitor request
      */
-    public static List<Object> getMonitorParams(String monotorId,
-                                                DatabaseSchema dbSchema) {
+    public static List<Object> getMonitorParams(String monotorId, DatabaseSchema dbSchema) {
         Set<String> tables = dbSchema.getTableNames();
-        List<MonitorRequest> monitorRequests = Lists.newArrayList();
+        Map<String, MonitorRequest> mrMap = Maps.newHashMap();
         for (String tableName : tables) {
             TableSchema tableSchema = dbSchema.getTableSchema(tableName);
-            monitorRequests.add(getAllColumnsMonitorRequest(tableSchema));
+            MonitorRequest monitorRequest = getAllColumnsMonitorRequest(tableSchema);
+            mrMap.put(tableName, monitorRequest);
         }
-        ImmutableMap<String, MonitorRequest> reqMap = Maps
-                .uniqueIndex(monitorRequests,
-                             new Function<MonitorRequest, String>() {
-                                 @Override
-                                 public String apply(MonitorRequest input) {
-                                     return input.getTableName();
-                                 }
-                             });
-        return Lists.<Object>newArrayList(dbSchema.name(), monotorId,
-                                           reqMap);
+        return Lists.newArrayList(dbSchema.name(), monotorId, mrMap);
     }
 
     /**
@@ -89,10 +78,7 @@ public final class ParamUtil {
      * @param operations operation*, refer to RFC7047's Section 4.1.3.
      * @return List of Object, the params of transact request
      */
-    public static List<Object> getTransactParams(DatabaseSchema dbSchema,
-                                                 List<Operation> operations) {
-        List<Object> lists = Lists.newArrayList((Object) dbSchema.name());
-        lists.addAll(operations);
-        return lists;
+    public static List<Object> getTransactParams(DatabaseSchema dbSchema, List<Operation> operations) {
+        return Lists.newArrayList(dbSchema.name(), operations);
     }
 }

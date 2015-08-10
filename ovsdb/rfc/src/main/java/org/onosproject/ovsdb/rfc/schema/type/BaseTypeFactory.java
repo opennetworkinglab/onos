@@ -17,8 +17,9 @@ package org.onosproject.ovsdb.rfc.schema.type;
 
 import java.util.Set;
 
-import org.onosproject.ovsdb.rfc.error.TypedSchemaException;
+import org.onosproject.ovsdb.rfc.error.AbnormalJsonNodeException;
 import org.onosproject.ovsdb.rfc.schema.type.UuidBaseType.RefType;
+import org.onosproject.ovsdb.rfc.utils.ObjectMapperUtil;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
@@ -29,27 +30,29 @@ import com.google.common.collect.Sets;
 public final class BaseTypeFactory {
 
     /**
-     * Constructs a BaseTypeFactory object.
-     * This class should not be instantiated.
+     * Constructs a BaseTypeFactory object. This class should not be
+     * instantiated.
      */
     private BaseTypeFactory() {
     }
 
     /**
      * Create a BaseType from the JsonNode.
-     * @param json the BaseType JsonNode
+     * @param baseTypeJson the BaseType JsonNode
      * @param keyorval the key node or value node
      * @return BaseType
      */
-    public static BaseType getBaseTypeFromJson(JsonNode json, String keyorval) {
-        if (json.isValueNode()) {
-            String type = json.asText().trim();
+    public static BaseType getBaseTypeFromJson(JsonNode baseTypeJson, String keyorval) {
+        if (baseTypeJson.isValueNode()) {
+            String type = baseTypeJson.asText().trim();
             return fromTypeStr(type);
         } else {
-            if (!json.has(keyorval)) {
-                throw new TypedSchemaException("not a type");
+            if (!baseTypeJson.has(keyorval)) {
+                String message = "Abnormal BaseType JsonNode, it should contain 'key' or 'value' node but was not found"
+                        + ObjectMapperUtil.convertToString(baseTypeJson);
+                throw new AbnormalJsonNodeException(message);
             }
-            return fromJsonNode(json.get(keyorval));
+            return fromJsonNode(baseTypeJson.get(keyorval));
         }
     }
 

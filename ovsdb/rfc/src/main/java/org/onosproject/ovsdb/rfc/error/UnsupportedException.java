@@ -16,25 +16,26 @@
 package org.onosproject.ovsdb.rfc.error;
 
 /**
- * This is a generic exception thrown by the Typed Schema utilities.
+ * This exception is thrown when the caller invoke the unsupported method or
+ * use the encoding is not supported.
  */
-public class TypedSchemaException extends RuntimeException {
-    private static final long serialVersionUID = -1452257990783176715L;
+public class UnsupportedException extends RuntimeException {
+    private static final long serialVersionUID = 1377011546616825375L;
 
     /**
-     * Constructs a TypedSchemaException object.
+     * Constructs a UnsupportedException object.
      * @param message error message
      */
-    public TypedSchemaException(String message) {
+    public UnsupportedException(String message) {
         super(message);
     }
 
     /**
-     * Constructs a TypedSchemaException object.
+     * Constructs a UnsupportedException object.
      * @param message error message
      * @param cause Throwable
      */
-    public TypedSchemaException(String message, Throwable cause) {
+    public UnsupportedException(String message, Throwable cause) {
         super(message, cause);
     }
 }

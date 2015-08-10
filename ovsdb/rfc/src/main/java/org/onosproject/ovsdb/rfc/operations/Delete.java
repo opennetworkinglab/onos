@@ -72,6 +72,6 @@ public final class Delete implements Operation {
      */
     @JsonProperty
     public String getTable() {
-        return (tableSchema == null) ? null : tableSchema.name();
+        return tableSchema.name();
     }
 }

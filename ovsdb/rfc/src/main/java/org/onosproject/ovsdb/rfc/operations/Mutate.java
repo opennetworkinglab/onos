@@ -86,6 +86,6 @@ public final class Mutate implements Operation {
      */
     @JsonProperty
     public String getTable() {
-        return (tableSchema == null) ? null : tableSchema.name();
+        return tableSchema.name();
     }
 }

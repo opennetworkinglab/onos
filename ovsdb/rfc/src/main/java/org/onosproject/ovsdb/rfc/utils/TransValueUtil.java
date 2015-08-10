@@ -87,33 +87,29 @@ public final class TransValueUtil {
      * @param atoType AtomicColumnType entity
      * @return Object OvsdbSet or the value of JsonNode
      */
-    private static Object getValueFromAtoType(JsonNode json,
-                                              AtomicColumnType atoType) {
+    private static Object getValueFromAtoType(JsonNode json, AtomicColumnType atoType) {
         BaseType baseType = atoType.baseType();
         // If "min" or "max" is not specified, If "min" is not 1 or "max" is not
-        // 1,
-        // or both, and "value" is not specified, the type is a set of scalar
-        // type "key".
-        // Refer to RFC 7047, Section 3.2 <type>.
+        // 1, or both, and "value" is not specified, the type is a set of scalar
+        // type "key". Refer to RFC 7047, Section 3.2 <type>.
         if (atoType.min() != atoType.max()) {
             Set set = Sets.newHashSet();
             if (json.isArray()) {
                 if (json.size() == 2) {
-                    if (json.get(0).isTextual()
-                            && "set".equals(json.get(0).asText())) {
+                    if (json.get(0).isTextual() && "set".equals(json.get(0).asText())) {
                         for (JsonNode node : json.get(1)) {
-                            set.add(TransValueUtil.transToValue(node, baseType));
+                            set.add(transToValue(node, baseType));
                         }
                     } else {
-                        set.add(TransValueUtil.transToValue(json, baseType));
+                        set.add(transToValue(json, baseType));
                     }
                 }
             } else {
-                set.add(TransValueUtil.transToValue(json, baseType));
+                set.add(transToValue(json, baseType));
             }
             return OvsdbSet.ovsdbSet(set);
         } else {
-            return TransValueUtil.transToValue(json, baseType);
+            return transToValue(json, baseType);
         }
     }
 
@@ -123,19 +119,15 @@ public final class TransValueUtil {
      * @param kvType KeyValuedColumnType entity
      * @return Object OvsdbMap
      */
-    private static Object getValueFromKvType(JsonNode json,
-                                             KeyValuedColumnType kvType) {
+    private static Object getValueFromKvType(JsonNode json, KeyValuedColumnType kvType) {
         if (json.isArray()) {
             if (json.size() == 2) {
-                if (json.get(0).isTextual()
-                        && "map".equals(json.get(0).asText())) {
+                if (json.get(0).isTextual() && "map".equals(json.get(0).asText())) {
                     Map map = Maps.newHashMap();
                     for (JsonNode pairNode : json.get(1)) {
                         if (pairNode.isArray() && json.size() == 2) {
-                            Object key = TransValueUtil.transToValue(pairNode
-                                    .get(0), kvType.keyType());
-                            Object value = TransValueUtil.transToValue(pairNode
-                                    .get(1), kvType.valueType());
+                            Object key = transToValue(pairNode.get(0), kvType.keyType());
+                            Object value = transToValue(pairNode.get(1), kvType.valueType());
                             map.put(key, value);
                         }
                     }
@@ -166,14 +158,13 @@ public final class TransValueUtil {
             if (valueNode.isArray()) {
                 if (valueNode.size() == 2) {
                     if (valueNode.get(0).isTextual()
-                            && "uuid".equals(valueNode.get(0).asText())
-                            || "named-uuid".equals(valueNode.get(0).asText())) {
+                            && ("uuid".equals(valueNode.get(0).asText()) || "named-uuid"
+                                    .equals(valueNode.get(0).asText()))) {
                         return UUID.uuid(valueNode.get(1).asText());
                     }
                 }
             } else {
-                return new RefTableRow(((UuidBaseType) baseType).getRefTable(),
-                                       valueNode);
+                return new RefTableRow(((UuidBaseType) baseType).getRefTable(), valueNode);
             }
         }
         return null;

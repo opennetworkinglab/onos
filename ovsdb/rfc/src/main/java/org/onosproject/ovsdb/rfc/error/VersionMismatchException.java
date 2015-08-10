@@ -15,7 +15,6 @@
  */
 package org.onosproject.ovsdb.rfc.error;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * This exception is used when the a table or row is accessed though a typed
@@ -47,15 +46,9 @@ public class VersionMismatchException extends RuntimeException {
      * @param fromVersion the initial version
      * @return message
      */
-    public static String createFromMessage(String actualVersion,
-                                           String fromVersion) {
-        String message = toStringHelper("VersionMismatchException")
-                .addValue("The fromVersion should less than the actualVersion.\n"
-                                  + "fromVersion: "
-                                  + fromVersion
-                                  + ".\n"
-                                  + "actualVersion: " + actualVersion)
-                .toString();
+    public static String createFromMessage(String actualVersion, String fromVersion) {
+        String message = "The fromVersion should less than the actualVersion.\n fromVersion: "
+                + fromVersion + ".\n" + "actualVersion: " + actualVersion;
         return message;
     }
 
@@ -66,13 +59,8 @@ public class VersionMismatchException extends RuntimeException {
      * @return message
      */
     public static String createToMessage(String actualVersion, String toVersion) {
-        String message = toStringHelper("VersionMismatchException")
-                .addValue("The toVersion should greater than the required version.\n"
-                                  + "toVersion: "
-                                  + toVersion
-                                  + ".\n"
-                                  + "Actual Version: " + actualVersion)
-                .toString();
+        String message = "The toVersion should greater than the actualVersion.\n"
+                + "toVersion: " + toVersion + ".\n" + " actualVersion: " + actualVersion;
         return message;
     }
 }

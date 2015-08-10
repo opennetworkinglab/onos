@@ -20,27 +20,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
 
-import org.onosproject.ovsdb.rfc.schema.ColumnSchema;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /**
  * Column is the basic element of the OpenVswitch database.
  */
 public final class Column {
-    @JsonIgnore
-    private final ColumnSchema schema;
+    private final String columnName;
     private final Object data;
 
     /**
      * Column constructor.
-     * @param schema the column schema
+     * @param columnName the column name
      * @param obj the data of the column
      */
-    public Column(ColumnSchema schema, Object obj) {
-        checkNotNull(schema, "schema cannot be null");
+    public Column(String columnName, Object obj) {
+        checkNotNull(columnName, "columnName cannot be null");
         checkNotNull(obj, "data cannot be null");
-        this.schema = schema;
+        this.columnName = columnName;
         this.data = obj;
     }
 
@@ -53,16 +48,16 @@ public final class Column {
     }
 
     /**
-     * Returns ColumnSchema.
-     * @return ColumnSchema
+     * Returns columnName.
+     * @return columnName
      */
-    public ColumnSchema schema() {
-        return schema;
+    public String columnName() {
+        return columnName;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(schema, data);
+        return Objects.hash(columnName, data);
     }
 
     @Override
@@ -72,7 +67,7 @@ public final class Column {
         }
         if (obj instanceof Column) {
             final Column other = (Column) obj;
-            return Objects.equals(this.schema, other.schema)
+            return Objects.equals(this.columnName, other.columnName)
                     && Objects.equals(this.data, other.data);
         }
         return false;
@@ -80,7 +75,7 @@ public final class Column {
 
     @Override
     public String toString() {
-        return toStringHelper(this).add("schema", schema).add("data", data)
-                .toString();
+        return toStringHelper(this).add("columnName", columnName)
+                .add("data", data).toString();
     }
 }

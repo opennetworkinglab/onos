@@ -22,7 +22,6 @@ import java.util.Map;
 
 import org.onosproject.ovsdb.rfc.notation.Column;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.schema.ColumnSchema;
 import org.onosproject.ovsdb.rfc.schema.TableSchema;
 import org.onosproject.ovsdb.rfc.utils.TransValueUtil;
 
@@ -67,10 +66,10 @@ public final class Insert implements Operation {
     private void generateOperationRow(Row row) {
         Collection<Column> columns = row.getColumns();
         for (Column column : columns) {
-            ColumnSchema columnSchema = column.schema();
+            String columnName = column.columnName();
             Object value = column.data();
-            Object untypedValue = TransValueUtil.getFormatData(value);
-            this.row.put(columnSchema.name(), untypedValue);
+            Object formatValue = TransValueUtil.getFormatData(value);
+            this.row.put(columnName, formatValue);
         }
     }
 
@@ -106,6 +105,6 @@ public final class Insert implements Operation {
      */
     @JsonProperty
     public String getTable() {
-        return (tableSchema == null) ? null : tableSchema.name();
+        return tableSchema.name();
     }
 }

@@ -32,18 +32,18 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  */
 @JsonDeserialize(converter = UpdateNotificationConverter.class)
 public final class UpdateNotification {
-    private final Object context;
+    private final Object jsonValue;
     private final JsonNode tbUpdatesJsonNode;
 
     /**
      * Constructs a UpdateNotification object.
-     * @param context the "json-value" in "params" of the result JsonNode
+     * @param jsonValue the "json-value" in "params" of the result JsonNode
      * @param tbUpdatesJsonNode the "table-updates" in "params" of the result JsonNode
      */
-    public UpdateNotification(Object context, JsonNode tbUpdatesJsonNode) {
-        checkNotNull(context, "context cannot be null");
+    public UpdateNotification(Object jsonValue, JsonNode tbUpdatesJsonNode) {
+        checkNotNull(jsonValue, "jsonValue cannot be null");
         checkNotNull(tbUpdatesJsonNode, "tablebUpdates JsonNode cannot be null");
-        this.context = context;
+        this.jsonValue = jsonValue;
         this.tbUpdatesJsonNode = tbUpdatesJsonNode;
     }
 
@@ -51,8 +51,8 @@ public final class UpdateNotification {
      * Return context.
      * @return context
      */
-    public Object context() {
-        return context;
+    public Object jsonValue() {
+        return jsonValue;
     }
 
     /**
@@ -65,7 +65,7 @@ public final class UpdateNotification {
 
     @Override
     public int hashCode() {
-        return Objects.hash(context, tbUpdatesJsonNode);
+        return Objects.hash(jsonValue, tbUpdatesJsonNode);
     }
 
     @Override
@@ -75,7 +75,7 @@ public final class UpdateNotification {
         }
         if (obj instanceof UpdateNotification) {
             final UpdateNotification other = (UpdateNotification) obj;
-            return Objects.equals(this.context, other.context)
+            return Objects.equals(this.jsonValue, other.jsonValue)
                     && Objects.equals(this.tbUpdatesJsonNode,
                                       other.tbUpdatesJsonNode);
         }
@@ -84,7 +84,7 @@ public final class UpdateNotification {
 
     @Override
     public String toString() {
-        return toStringHelper(this).add("context", context)
+        return toStringHelper(this).add("jsonValue", jsonValue)
                 .add("tbUpdatesJsonNode", tbUpdatesJsonNode).toString();
     }
 }

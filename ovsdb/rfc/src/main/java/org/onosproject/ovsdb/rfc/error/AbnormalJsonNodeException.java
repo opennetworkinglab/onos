@@ -16,25 +16,25 @@
 package org.onosproject.ovsdb.rfc.error;
 
 /**
- * AbnormalSchema exception is thrown when the received schema is invalid.
+ * AbnormalJsonNodeException exception is thrown when the received JsonNode is invalid.
  */
-public class AbnormalSchemaException extends RuntimeException {
+public class AbnormalJsonNodeException extends RuntimeException {
     private static final long serialVersionUID = 8328377718334680368L;
 
     /**
-     * Constructs a AbnormalSchemaException object.
+     * Constructs a AbnormalJsonNodeException object.
      * @param message error message
      */
-    public AbnormalSchemaException(String message) {
+    public AbnormalJsonNodeException(String message) {
         super(message);
     }
 
     /**
-     * Constructs a AbnormalSchemaException object.
+     * Constructs a AbnormalJsonNodeException object.
      * @param message error message
      * @param cause Throwable
      */
-    public AbnormalSchemaException(String message, Throwable cause) {
+    public AbnormalJsonNodeException(String message, Throwable cause) {
         super(message, cause);
     }
 

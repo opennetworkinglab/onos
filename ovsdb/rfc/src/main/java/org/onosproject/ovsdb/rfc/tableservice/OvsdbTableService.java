@@ -45,32 +45,26 @@ public interface OvsdbTableService {
     public void setDataHandler(ColumnDescription columndesc, Object obj);
 
     /**
-     * Returns the TableSchema from row.
-     * @return Object TableSchema
-     */
-    public Object getTbSchema();
-
-    /**
      * Returns UUID which column name is _uuid.
      * @return UUID
      */
-    public UUID getUuid();
+    public UUID getTableUuid();
 
     /**
      * Returns UUID Column which column name is _uuid.
      * @return UUID Column
      */
-    public Column getUuidColumn();
+    public Column getTableUuidColumn();
 
     /**
      * Returns UUID which column name is _version.
      * @return UUID
      */
-    public UUID getVersion();
+    public UUID getTableVersion();
 
     /**
      * Returns UUID Column which column name is _version.
      * @return UUID Column
      */
-    public Column getVersionColumn();
+    public Column getTableVersionColumn();
 }

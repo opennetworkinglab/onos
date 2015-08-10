@@ -15,7 +15,7 @@
  */
 package org.onosproject.ovsdb.rfc.schema.type;
 
-import org.onosproject.ovsdb.rfc.error.TypedSchemaException;
+import org.onosproject.ovsdb.rfc.error.AbnormalJsonNodeException;
 import org.onosproject.ovsdb.rfc.utils.ObjectMapperUtil;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,8 +26,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 public final class ColumnTypeFactory {
 
     /**
-     * Constructs a ColumnTypeFactory object.
-     * This class should not be instantiated.
+     * Constructs a ColumnTypeFactory object. This class should not be
+     * instantiated.
      */
     private ColumnTypeFactory() {
     }
@@ -54,20 +54,22 @@ public final class ColumnTypeFactory {
     }
 
     /**
-     * JsonNode like "flow_tables":{"type":{"key":{"maxInteger":254,"minInteger":0,"type":
+     * JsonNode like
+     * "flow_tables":{"type":{"key":{"maxInteger":254,"minInteger":0,"type":
      * "integer"},"min":0,"value":{"type":"uuid","refTable":"Flow_Table"},"max":
      * "unlimited"}}.
-     * @param json the ColumnType JsonNode
+     * @param columnTypeJson the ColumnType JsonNode
      * @return ColumnType
      */
-    public static ColumnType getColumnTypeFromJson(JsonNode json) {
-        if (!json.isObject() || !json.has(Type.VALUE.type())) {
-            return createAtomicColumnType(json);
-        } else if (!json.isValueNode() && json.has(Type.VALUE.type())) {
-            return createKeyValuedColumnType(json);
+    public static ColumnType getColumnTypeFromJson(JsonNode columnTypeJson) {
+        if (!columnTypeJson.isObject() || !columnTypeJson.has(Type.VALUE.type())) {
+            return createAtomicColumnType(columnTypeJson);
+        } else if (!columnTypeJson.isValueNode() && columnTypeJson.has(Type.VALUE.type())) {
+            return createKeyValuedColumnType(columnTypeJson);
         }
-        throw new TypedSchemaException("could not find the right column type :"
-                + ObjectMapperUtil.convertToString(json));
+        String message = "Abnormal ColumnType JsonNode, it should be AtomicColumnType or KeyValuedColumnType"
+                + ObjectMapperUtil.convertToString(columnTypeJson);
+        throw new AbnormalJsonNodeException(message);
     }
 
     /**
@@ -76,12 +78,11 @@ public final class ColumnTypeFactory {
      * @return AtomicColumnType entity
      */
     private static AtomicColumnType createAtomicColumnType(JsonNode json) {
-        BaseType baseType = BaseTypeFactory
-                .getBaseTypeFromJson(json, Type.KEY.type());
+        BaseType baseType = BaseTypeFactory.getBaseTypeFromJson(json, Type.KEY.type());
         int min = 1;
         int max = 1;
         JsonNode node = json.get("min");
-        if (node != null) {
+        if (node != null && node.isNumber()) {
             min = node.asInt();
         }
         node = json.get("max");
@@ -101,14 +102,12 @@ public final class ColumnTypeFactory {
      * @return KeyValuedColumnType entity
      */
     private static KeyValuedColumnType createKeyValuedColumnType(JsonNode json) {
-        BaseType keyType = BaseTypeFactory.getBaseTypeFromJson(json,
-                                                               Type.KEY.type());
-        BaseType valueType = BaseTypeFactory
-                .getBaseTypeFromJson(json, Type.VALUE.type());
+        BaseType keyType = BaseTypeFactory.getBaseTypeFromJson(json, Type.KEY.type());
+        BaseType valueType = BaseTypeFactory.getBaseTypeFromJson(json, Type.VALUE.type());
         int min = 1;
         int max = 1;
         JsonNode node = json.get("min");
-        if (node != null) {
+        if (node != null && node.isNumber()) {
             min = node.asInt();
         }
         node = json.get("max");
