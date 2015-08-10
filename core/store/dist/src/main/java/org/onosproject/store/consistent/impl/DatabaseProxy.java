@@ -193,7 +193,7 @@ public interface DatabaseProxy<K, V> {
      * @param transaction transaction to commit (after preparation)
      * @return A completable future to be completed with the result once complete
      */
-    CompletableFuture<Boolean> prepareAndCommit(Transaction transaction);
+    CompletableFuture<CommitResponse> prepareAndCommit(Transaction transaction);
 
     /**
      * Prepare the specified transaction for commit. A successful prepare implies
@@ -213,7 +213,7 @@ public interface DatabaseProxy<K, V> {
      * @param transaction transaction to commit
      * @return A completable future to be completed with the result once complete
      */
-    CompletableFuture<Boolean> commit(Transaction transaction);
+    CompletableFuture<CommitResponse> commit(Transaction transaction);
 
     /**
      * Rollback the specified transaction. A successful rollback implies

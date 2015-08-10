@@ -33,6 +33,7 @@ import org.onosproject.store.service.DatabaseUpdate;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -246,10 +247,10 @@ public class PartitionedDatabase implements Database {
     }
 
     @Override
-    public CompletableFuture<Boolean> prepareAndCommit(Transaction transaction) {
+    public CompletableFuture<CommitResponse> prepareAndCommit(Transaction transaction) {
         Map<Database, Transaction> subTransactions = createSubTransactions(transaction);
         if (subTransactions.isEmpty()) {
-            return CompletableFuture.completedFuture(true);
+            return CompletableFuture.completedFuture(CommitResponse.success(ImmutableList.of()));
         } else if (subTransactions.size() == 1) {
             Entry<Database, Transaction> entry =
                     subTransactions.entrySet().iterator().next();
@@ -277,13 +278,22 @@ public class PartitionedDatabase implements Database {
     }
 
     @Override
-    public CompletableFuture<Boolean> commit(Transaction transaction) {
+    public CompletableFuture<CommitResponse> commit(Transaction transaction) {
         Map<Database, Transaction> subTransactions = createSubTransactions(transaction);
+        AtomicBoolean success = new AtomicBoolean(true);
+        List<UpdateResult<String, byte[]>> allUpdates = Lists.newArrayList();
         return CompletableFuture.allOf(subTransactions.entrySet()
-                .stream()
-                .map(entry -> entry.getKey().commit(entry.getValue()))
-                .toArray(CompletableFuture[]::new))
-        .thenApply(v -> true);
+                                   .stream()
+                                   .map(entry -> entry.getKey().commit(entry.getValue())
+                                                           .thenAccept(response -> {
+                                                               success.set(success.get() && response.success());
+                                                               if (success.get()) {
+                                                                   allUpdates.addAll(response.updates());
+                                                               }
+                                                           }))
+                                   .toArray(CompletableFuture[]::new))
+                               .thenApply(v -> success.get() ?
+                                       CommitResponse.success(allUpdates) : CommitResponse.failure());
     }
 
     @Override

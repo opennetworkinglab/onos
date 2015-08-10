@@ -102,13 +102,13 @@ public interface DatabaseState<K, V> {
   Long counterGet(String counterName);
 
   @Command
-  boolean prepareAndCommit(Transaction transaction);
+  CommitResponse prepareAndCommit(Transaction transaction);
 
   @Command
   boolean prepare(Transaction transaction);
 
   @Command
-  boolean commit(Transaction transaction);
+  CommitResponse commit(Transaction transaction);
 
   @Command
   boolean rollback(Transaction transaction);

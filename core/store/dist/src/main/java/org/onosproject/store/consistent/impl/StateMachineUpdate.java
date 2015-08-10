@@ -32,6 +32,11 @@ public class StateMachineUpdate {
         MAP,
 
         /**
+         * Update is a transaction commit.
+         */
+        TX_COMMIT,
+
+        /**
          * Update is for a non-map data structure.
          */
         OTHER
@@ -51,6 +56,8 @@ public class StateMachineUpdate {
         // FIXME: This check is brittle
         if (operationName.contains("mapUpdate")) {
             return Target.MAP;
+        } else if (operationName.contains("commit") || operationName.contains("prepareAndCommit")) {
+            return Target.TX_COMMIT;
         } else {
             return Target.OTHER;
         }

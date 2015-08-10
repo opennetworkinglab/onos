@@ -31,11 +31,10 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.DatabaseUpdate;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
-import org.onosproject.store.service.DatabaseUpdate.Type;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import net.kuujo.copycat.state.Initializer;
@@ -239,11 +238,11 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     @Override
-    public boolean prepareAndCommit(Transaction transaction) {
+    public CommitResponse prepareAndCommit(Transaction transaction) {
         if (prepare(transaction)) {
             return commit(transaction);
         }
-        return false;
+        return CommitResponse.failure();
     }
 
     @Override
@@ -263,9 +262,9 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     @Override
-    public boolean commit(Transaction transaction) {
-        transaction.updates().forEach(update -> commitProvisionalUpdate(update, transaction.id()));
-        return true;
+    public CommitResponse commit(Transaction transaction) {
+        return CommitResponse.success(Lists.transform(transaction.updates(),
+                                                      update -> commitProvisionalUpdate(update, transaction.id())));
     }
 
     @Override
@@ -334,32 +333,16 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         }
     }
 
-    private void commitProvisionalUpdate(DatabaseUpdate update, long transactionId) {
+    private UpdateResult<String, byte[]> commitProvisionalUpdate(DatabaseUpdate update, long transactionId) {
         String mapName = update.mapName();
         String key = update.key();
-        Type type = update.type();
         Update provisionalUpdate = getLockMap(mapName).get(key);
         if (Objects.equal(transactionId, provisionalUpdate.transactionId()))  {
             getLockMap(mapName).remove(key);
         } else {
-            return;
+            throw new IllegalStateException("Invalid transaction Id");
         }
-
-        switch (type) {
-        case PUT:
-        case PUT_IF_ABSENT:
-        case PUT_IF_VERSION_MATCH:
-        case PUT_IF_VALUE_MATCH:
-            mapUpdate(mapName, key, Match.any(), Match.any(), provisionalUpdate.value());
-            break;
-        case REMOVE:
-        case REMOVE_IF_VERSION_MATCH:
-        case REMOVE_IF_VALUE_MATCH:
-            mapUpdate(mapName, key, Match.any(), Match.any(), null);
-            break;
-        default:
-            break;
-        }
+        return mapUpdate(mapName, key, Match.any(), Match.any(), provisionalUpdate.value()).value();
     }
 
     private void undoProvisionalUpdate(DatabaseUpdate update, long transactionId) {

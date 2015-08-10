@@ -32,6 +32,7 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.store.consistent.impl.StateMachineUpdate.Target.MAP;
+import static org.onosproject.store.consistent.impl.StateMachineUpdate.Target.TX_COMMIT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -82,7 +84,6 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
     private static final String ENTRY_SET = "entrySet";
     private static final String REPLACE = "replace";
     private static final String COMPUTE_IF_ABSENT = "computeIfAbsent";
-
 
     private final Set<MapEventListener<K, V>> listeners = new CopyOnWriteArraySet<>();
 
@@ -126,6 +127,16 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
                     if (result.success() && result.value().mapName().equals(name)) {
                         MapEvent<K, V> mapEvent = result.value().<K, V>map(this::dK, serializer::decode).toMapEvent();
                         notifyListeners(mapEvent);
+                    }
+                } else if (update.target() == TX_COMMIT) {
+                    CommitResponse response = update.output();
+                    if (response.success()) {
+                        response.updates().forEach(u -> {
+                            if (u.mapName().equals(name)) {
+                                MapEvent<K, V> mapEvent = u.<K, V>map(this::dK, serializer::decode).toMapEvent();
+                                notifyListeners(mapEvent);
+                            }
+                        });
                     }
                 }
             });

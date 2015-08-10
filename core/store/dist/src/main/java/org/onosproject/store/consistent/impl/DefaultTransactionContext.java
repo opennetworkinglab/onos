@@ -25,12 +25,13 @@ import static com.google.common.base.Preconditions.*;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.DatabaseUpdate;
 import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.TransactionContext;
-import org.onosproject.store.service.TransactionException;
 import org.onosproject.store.service.TransactionalMap;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
 
 /**
  * Default TransactionContext implementation.
@@ -86,24 +87,30 @@ public class DefaultTransactionContext implements TransactionContext {
     @SuppressWarnings("unchecked")
     @Override
     public void commit() {
+        // TODO: rework commit implementation to be more intuitive
         checkState(isOpen, TX_NOT_OPEN_ERROR);
+        CommitResponse response = null;
         try {
             List<DatabaseUpdate> updates = Lists.newLinkedList();
-            txMaps.values()
-                  .forEach(m -> { updates.addAll(m.prepareDatabaseUpdates()); });
-            // FIXME: Updates made via transactional context currently do not result in notifications. (ONOS-2097)
-            database.prepareAndCommit(new DefaultTransaction(transactionId, updates));
-        } catch (Exception e) {
-            abort();
-            throw new TransactionException(e);
+            txMaps.values().forEach(m -> updates.addAll(m.prepareDatabaseUpdates()));
+            Transaction transaction = new DefaultTransaction(transactionId, updates);
+            response = Futures.getUnchecked(database.prepareAndCommit(transaction));
         } finally {
+            if (response != null && !response.success()) {
+                abort();
+            }
             isOpen = false;
         }
     }
 
     @Override
     public void abort() {
-        checkState(isOpen, TX_NOT_OPEN_ERROR);
-        txMaps.values().forEach(m -> m.rollback());
+        if (isOpen) {
+            try {
+                txMaps.values().forEach(m -> m.rollback());
+            } finally {
+                isOpen = false;
+            }
+        }
     }
 }

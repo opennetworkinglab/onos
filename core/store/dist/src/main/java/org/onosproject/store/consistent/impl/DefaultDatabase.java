@@ -174,7 +174,7 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     }
 
     @Override
-    public CompletableFuture<Boolean> prepareAndCommit(Transaction transaction) {
+    public CompletableFuture<CommitResponse> prepareAndCommit(Transaction transaction) {
         return checkOpen(() -> proxy.prepareAndCommit(transaction));
     }
 
@@ -184,7 +184,7 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     }
 
     @Override
-    public CompletableFuture<Boolean> commit(Transaction transaction) {
+    public CompletableFuture<CommitResponse> commit(Transaction transaction) {
         return checkOpen(() -> proxy.commit(transaction));
     }
 

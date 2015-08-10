@@ -32,6 +32,8 @@ import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 import org.onosproject.store.service.Transaction.State;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * Agent that runs the two phase commit protocol.
  */
@@ -71,15 +73,15 @@ public class TransactionManager {
      * @return transaction result. Result value true indicates a successful commit, false
      * indicates abort
      */
-    public CompletableFuture<Boolean> execute(Transaction transaction) {
+    public CompletableFuture<CommitResponse> execute(Transaction transaction) {
         // clean up if this transaction in already in a terminal state.
         if (transaction.state() == Transaction.State.COMMITTED ||
                 transaction.state() == Transaction.State.ROLLEDBACK) {
-            return transactions.remove(transaction.id()).thenApply(v -> true);
+            return transactions.remove(transaction.id()).thenApply(v -> CommitResponse.success(ImmutableList.of()));
         } else if (transaction.state() == Transaction.State.COMMITTING) {
             return commit(transaction);
         } else if (transaction.state() == Transaction.State.ROLLINGBACK) {
-            return rollback(transaction);
+            return rollback(transaction).thenApply(v -> CommitResponse.success(ImmutableList.of()));
         } else {
             return prepare(transaction).thenCompose(v -> v ? commit(transaction) : rollback(transaction));
         }
@@ -107,19 +109,18 @@ public class TransactionManager {
                 .thenApply(v -> status));
     }
 
-    private CompletableFuture<Boolean> commit(Transaction transaction) {
+    private CompletableFuture<CommitResponse> commit(Transaction transaction) {
         return database.commit(transaction)
-                .thenCompose(v -> transactions.put(
+                .whenComplete((r, e) -> transactions.put(
                             transaction.id(),
-                            transaction.transition(Transaction.State.COMMITTED)))
-                .thenApply(v -> true);
+                            transaction.transition(Transaction.State.COMMITTED)));
     }
 
-    private CompletableFuture<Boolean> rollback(Transaction transaction) {
+    private CompletableFuture<CommitResponse> rollback(Transaction transaction) {
         return database.rollback(transaction)
                 .thenCompose(v -> transactions.put(
                             transaction.id(),
                             transaction.transition(Transaction.State.ROLLEDBACK)))
-                .thenApply(v -> true);
+                .thenApply(v -> CommitResponse.failure());
     }
 }
