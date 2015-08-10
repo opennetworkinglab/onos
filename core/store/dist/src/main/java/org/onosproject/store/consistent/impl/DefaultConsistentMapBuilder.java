@@ -22,7 +22,6 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
-import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.Serializer;
 
 /**
@@ -110,10 +109,7 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
                 partitionsEnabled ? manager.partitionedDatabase : manager.inMemoryDatabase,
                 serializer,
                 readOnly,
-                purgeOnUninstall,
-                event -> manager.clusterCommunicator.<MapEvent<K, V>>broadcast(event,
-                        DatabaseManager.mapUpdatesSubject(name),
-                        serializer::encode));
+                purgeOnUninstall);
         return manager.registerMap(asyncMap);
     }
 }

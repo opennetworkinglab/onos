@@ -28,7 +28,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -74,7 +73,6 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     private final Serializer serializer;
     private final boolean readOnly;
     private final boolean purgeOnUninstall;
-    private final Consumer<MapEvent<K, V>> eventPublisher;
 
     private final MetricsService metricsService;
     private final MetricsComponent metricsComponent;
@@ -130,22 +128,20 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
             Database database,
             Serializer serializer,
             boolean readOnly,
-            boolean purgeOnUninstall,
-            Consumer<MapEvent<K, V>> eventPublisher) {
+            boolean purgeOnUninstall) {
         this.name = checkNotNull(name, "map name cannot be null");
         this.applicationId = applicationId;
         this.database = checkNotNull(database, "database cannot be null");
         this.serializer = checkNotNull(serializer, "serializer cannot be null");
         this.readOnly = readOnly;
         this.purgeOnUninstall = purgeOnUninstall;
-        this.eventPublisher = eventPublisher;
         this.database.registerConsumer(update -> {
             SharedExecutors.getSingleThreadExecutor().execute(() -> {
                 if (update.target() == MAP) {
                     Result<UpdateResult<String, byte[]>> result = update.output();
                     if (result.success() && result.value().mapName().equals(name)) {
                         MapEvent<K, V> mapEvent = result.value().<K, V>map(this::dK, serializer::decode).toMapEvent();
-                        notifyLocalListeners(mapEvent);
+                        notifyListeners(mapEvent);
                     }
                 }
             });
@@ -423,12 +419,7 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
                 oldVersionMatch,
                 value == null ? null : serializer.encode(value))
                 .thenApply(this::unwrapResult)
-                .thenApply(r -> r.<K, V>map(this::dK, serializer::decode))
-                .whenComplete((r, e) -> {
-                    if (r != null && e == null && !database.hasChangeNotificationSupport()) {
-                        notifyListeners(r.toMapEvent());
-                    }
-                });
+                .thenApply(r -> r.<K, V>map(this::dK, serializer::decode));
     }
 
     private <T> T unwrapResult(Result<T> result) {
@@ -458,26 +449,16 @@ public class DefaultAsyncConsistentMap<K, V> implements AsyncConsistentMap<K, V>
     }
 
     protected void notifyListeners(MapEvent<K, V> event) {
-        try {
-            if (event != null) {
-                notifyLocalListeners(event);
-                notifyRemoteListeners(event);
+        if (event == null) {
+            return;
+        }
+        listeners.forEach(listener -> {
+            try {
+                listener.event(event);
+            } catch (Exception e) {
+                log.warn("Failure notifying listener about {}", event, e);
             }
-        } catch (Exception e) {
-            log.warn("Failure notifying listeners about {}", event, e);
-        }
-    }
-
-    protected void notifyLocalListeners(MapEvent<K, V> event) {
-        if (event != null) {
-            listeners.forEach(listener -> listener.event(event));
-        }
-    }
-
-    protected void notifyRemoteListeners(MapEvent<K, V> event) {
-        if (eventPublisher != null) {
-            eventPublisher.accept(event);
-        }
+        });
     }
 
     private OperationTimer startTimer(String op) {

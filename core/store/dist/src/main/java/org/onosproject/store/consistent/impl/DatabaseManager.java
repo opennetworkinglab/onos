@@ -20,9 +20,9 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 
@@ -68,7 +68,6 @@ import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.DistributedQueueBuilder;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
-import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapInfo;
 import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.DistributedSetBuilder;
@@ -126,8 +125,8 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     private ExecutorService queuePollExecutor;
     private ApplicationListener appListener = new InternalApplicationListener();
 
-    private final Map<String, DefaultAsyncConsistentMap> maps = Maps.newConcurrentMap();
-    private final ListMultimap<ApplicationId, DefaultAsyncConsistentMap> mapsByApplication = ArrayListMultimap.create();
+    private final Multimap<String, DefaultAsyncConsistentMap> maps = ArrayListMultimap.create();
+    private final Multimap<ApplicationId, DefaultAsyncConsistentMap> mapsByApplication = ArrayListMultimap.create();
     private final Map<String, DefaultDistributedQueue> queues = Maps.newConcurrentMap();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -451,28 +450,15 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     }
 
     protected <K, V> DefaultAsyncConsistentMap<K, V> registerMap(DefaultAsyncConsistentMap<K, V> map) {
-        DefaultAsyncConsistentMap<K, V> existing = maps.putIfAbsent(map.name(), map);
-        if (existing != null) {
-            // FIXME: We need to cleanly support different map instances with same name.
-            log.info("Map by name {} already exists", map.name());
-            return existing;
-        } else {
-            if (map.applicationId() != null) {
-                mapsByApplication.put(map.applicationId(), map);
-            }
+        maps.put(map.name(), map);
+        if (map.applicationId() != null) {
+            mapsByApplication.put(map.applicationId(), map);
         }
-
-        clusterCommunicator.<MapEvent<K, V>>addSubscriber(mapUpdatesSubject(map.name()),
-                map.serializer()::decode,
-                map::notifyLocalListeners,
-                eventDispatcher);
         return map;
     }
 
     protected <K, V> void unregisterMap(DefaultAsyncConsistentMap<K, V> map) {
-        if (maps.remove(map.name()) != null) {
-            clusterCommunicator.removeSubscriber(mapUpdatesSubject(map.name()));
-        }
+        maps.remove(map.name(), map);
         if (map.applicationId() != null) {
             mapsByApplication.remove(map.applicationId(), map);
         }
@@ -483,10 +469,6 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         if (queues.putIfAbsent(queue.name(), queue) != null) {
             throw new IllegalStateException("Queue by name " + queue.name() + " already exists");
         }
-    }
-
-    protected static MessageSubject mapUpdatesSubject(String mapName) {
-        return new MessageSubject(mapName + "-map-updates");
     }
 
     private class InternalApplicationListener implements ApplicationListener {
