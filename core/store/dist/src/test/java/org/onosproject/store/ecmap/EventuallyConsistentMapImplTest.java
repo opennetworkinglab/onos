@@ -15,10 +15,22 @@
  */
 package org.onosproject.store.ecmap;
 
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.MoreExecutors;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.junit.After;
 import org.junit.Before;
@@ -32,38 +44,35 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapter;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.impl.LogicalTimestamp;
-import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.WallClockTimestamp;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.MoreExecutors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static junit.framework.TestCase.assertFalse;
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Unit tests for EventuallyConsistentMapImpl.
@@ -697,7 +706,7 @@ public class EventuallyConsistentMapImplTest {
      * Sets up a mock ClusterCommunicationService to expect a specific cluster
      * message to be broadcast to the cluster.
      *
-     * @param m message we expect to be sent
+     * @param message message we expect to be sent
      * @param clusterCommunicator a mock ClusterCommunicationService to set up
      */
     //FIXME rename
@@ -776,56 +785,7 @@ public class EventuallyConsistentMapImplTest {
      * events coming in from other instances.
      */
     private final class TestClusterCommunicationService
-            implements ClusterCommunicationService {
-
-        @Override
-        public void addSubscriber(MessageSubject subject,
-                                  ClusterMessageHandler subscriber,
-                                  ExecutorService executor) {
-        }
-
-        @Override
-        public void removeSubscriber(MessageSubject subject) {}
-
-        @Override
-        public <M> void broadcast(M message, MessageSubject subject,
-                Function<M, byte[]> encoder) {
-        }
-
-        @Override
-        public <M> void broadcastIncludeSelf(M message,
-                MessageSubject subject, Function<M, byte[]> encoder) {
-        }
-
-        @Override
-        public <M> CompletableFuture<Void> unicast(M message, MessageSubject subject,
-                Function<M, byte[]> encoder, NodeId toNodeId) {
-            return null;
-        }
-
-        @Override
-        public <M> void multicast(M message, MessageSubject subject,
-                Function<M, byte[]> encoder, Set<NodeId> nodes) {
-        }
-
-        @Override
-        public <M, R> CompletableFuture<R> sendAndReceive(M message,
-                MessageSubject subject, Function<M, byte[]> encoder,
-                Function<byte[], R> decoder, NodeId toNodeId) {
-            return null;
-        }
-
-        @Override
-        public <M, R> void addSubscriber(MessageSubject subject,
-                Function<byte[], M> decoder, Function<M, R> handler,
-                Function<R, byte[]> encoder, Executor executor) {
-        }
-
-        @Override
-        public <M, R> void addSubscriber(MessageSubject subject,
-                Function<byte[], M> decoder, Function<M, CompletableFuture<R>> handler,
-                Function<R, byte[]> encoder) {
-        }
+            extends ClusterCommunicationServiceAdapter {
 
         @Override
         public <M> void addSubscriber(MessageSubject subject,

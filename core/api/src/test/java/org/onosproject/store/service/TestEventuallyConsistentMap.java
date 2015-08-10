@@ -91,7 +91,9 @@ public final class TestEventuallyConsistentMap<K, V> extends EventuallyConsisten
         EventuallyConsistentMapEvent<K, V> addEvent =
                 new EventuallyConsistentMapEvent<>(mapName, PUT, key, value);
         notifyListeners(addEvent);
-        peerUpdateFunction.apply(key, value);
+        if (peerUpdateFunction != null) {
+            peerUpdateFunction.apply(key, value);
+        }
     }
 
     @Override

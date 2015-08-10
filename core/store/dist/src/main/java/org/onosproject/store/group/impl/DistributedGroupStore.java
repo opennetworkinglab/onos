@@ -1014,7 +1014,7 @@ public class DistributedGroupStore
     /**
      * Flattened map key to be used to store group entries.
      */
-    private class GroupStoreMapKey {
+    protected static class GroupStoreMapKey {
         private final DeviceId deviceId;
 
         public GroupStoreMapKey(DeviceId deviceId) {
@@ -1047,7 +1047,7 @@ public class DistributedGroupStore
         }
     }
 
-    private class GroupStoreKeyMapKey extends GroupStoreMapKey {
+    protected static class GroupStoreKeyMapKey extends GroupStoreMapKey {
         private final GroupKey appCookie;
         public GroupStoreKeyMapKey(DeviceId deviceId,
                                    GroupKey appCookie) {
@@ -1078,7 +1078,7 @@ public class DistributedGroupStore
         }
     }
 
-    private class GroupStoreIdMapKey extends GroupStoreMapKey {
+    protected static class GroupStoreIdMapKey extends GroupStoreMapKey {
         private final GroupId groupId;
         public GroupStoreIdMapKey(DeviceId deviceId,
                                   GroupId groupId) {
