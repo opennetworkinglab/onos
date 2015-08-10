@@ -48,9 +48,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * Installs bulk flows.
  */
-@Command(scope = "onos", name = "add-flows",
+@Command(scope = "onos", name = "add-test-flows",
          description = "Installs a number of test flow rules - for testing only")
-public class AddFlowsCommand extends AbstractShellCommand {
+public class AddTestFlowsCommand extends AbstractShellCommand {
 
     private CountDownLatch latch;
 

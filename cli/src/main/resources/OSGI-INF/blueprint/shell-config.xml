@@ -341,7 +341,7 @@
         </command>
 
         <command>
-            <action class="org.onosproject.cli.net.AddFlowsCommand"/>
+            <action class="org.onosproject.cli.net.AddTestFlowsCommand"/>
         </command>
         <command>
             <action class="org.onosproject.cli.net.LeaderCommand"/>
