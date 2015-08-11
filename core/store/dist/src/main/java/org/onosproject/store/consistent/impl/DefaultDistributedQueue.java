@@ -17,15 +17,16 @@ package org.onosproject.store.consistent.impl;
 
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
-import org.onosproject.cluster.NodeId;
+
+import org.onlab.util.SharedExecutors;
 import org.onosproject.store.service.DistributedQueue;
 import org.onosproject.store.service.Serializer;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.store.consistent.impl.StateMachineUpdate.Target.QUEUE_PUSH;
 
 /**
  * DistributedQueue implementation that provides FIFO ordering semantics.
@@ -37,9 +38,7 @@ public class DefaultDistributedQueue<E>  implements DistributedQueue<E> {
     private final String name;
     private final Database database;
     private final Serializer serializer;
-    private final NodeId localNodeId;
     private final Set<CompletableFuture<E>> pendingFutures = Sets.newIdentityHashSet();
-    private final Consumer<Set<NodeId>> notifyConsumers;
 
     private static final String PRIMITIVE_NAME = "distributedQueue";
     private static final String SIZE = "size";
@@ -53,66 +52,59 @@ public class DefaultDistributedQueue<E>  implements DistributedQueue<E> {
     public DefaultDistributedQueue(String name,
                                    Database database,
                                    Serializer serializer,
-                                   NodeId localNodeId,
-                                   boolean meteringEnabled,
-                                   Consumer<Set<NodeId>> notifyConsumers) {
+                                   boolean meteringEnabled) {
         this.name = checkNotNull(name, "queue name cannot be null");
         this.database = checkNotNull(database, "database cannot be null");
         this.serializer = checkNotNull(serializer, "serializer cannot be null");
-        this.localNodeId = localNodeId;
-        this.notifyConsumers = notifyConsumers;
         this.monitor = new MeteringAgent(PRIMITIVE_NAME, name, meteringEnabled);
-
+        this.database.registerConsumer(update -> {
+            SharedExecutors.getSingleThreadExecutor().execute(() -> {
+                if (update.target() == QUEUE_PUSH) {
+                    List<Object> input = update.input();
+                    String queueName = (String) input.get(0);
+                    if (queueName.equals(name)) {
+                        tryPoll();
+                    }
+                }
+            });
+        });
     }
 
     @Override
     public long size() {
         final MeteringAgent.Context timer = monitor.startTimer(SIZE);
-        try {
-            return Futures.getUnchecked(database.queueSize(name));
-        } finally {
-            timer.stop();
-        }
+        return Futures.getUnchecked(database.queueSize(name).whenComplete((r, e) -> timer.stop()));
     }
 
     @Override
     public void push(E entry) {
+        checkNotNull(entry, ERROR_NULL_ENTRY);
         final MeteringAgent.Context timer = monitor.startTimer(PUSH);
-        try {
-            checkNotNull(entry, ERROR_NULL_ENTRY);
-            Futures.getUnchecked(database.queuePush(name, serializer.encode(entry))
-                                         .thenAccept(notifyConsumers)
-                                         .thenApply(v -> null));
-        } finally {
-            timer.stop();
-        }
+        Futures.getUnchecked(database.queuePush(name, serializer.encode(entry))
+                                     .whenComplete((r, e) -> timer.stop()));
     }
 
     @Override
     public CompletableFuture<E> pop() {
         final MeteringAgent.Context timer = monitor.startTimer(POP);
-        return database.queuePop(name, localNodeId)
+        return database.queuePop(name)
+                       .whenComplete((r, e) -> timer.stop())
                        .thenCompose(v -> {
                            if (v != null) {
                                return CompletableFuture.completedFuture(serializer.decode(v));
-                           } else {
-                               CompletableFuture<E> newPendingFuture = new CompletableFuture<>();
-                               pendingFutures.add(newPendingFuture);
-                               return newPendingFuture;
                            }
-                       })
-                .whenComplete((r, e) -> timer.stop());
+                           CompletableFuture<E> newPendingFuture = new CompletableFuture<>();
+                           pendingFutures.add(newPendingFuture);
+                           return newPendingFuture;
+                       });
     }
 
     @Override
     public E peek() {
         final MeteringAgent.Context timer = monitor.startTimer(PEEK);
-        try {
-            return Futures.getUnchecked(database.queuePeek(name)
-                                                .thenApply(v -> v != null ? serializer.decode(v) : null));
-        } finally {
-            timer.stop();
-        }
+        return Futures.getUnchecked(database.queuePeek(name)
+                                            .thenApply(v -> v != null ? serializer.<E>decode(v) : null)
+                                            .whenComplete((r, e) -> timer.stop()));
     }
 
     public String name() {
@@ -122,7 +114,7 @@ public class DefaultDistributedQueue<E>  implements DistributedQueue<E> {
     protected void tryPoll() {
         Set<CompletableFuture<E>> completedFutures = Sets.newHashSet();
         for (CompletableFuture<E> future : pendingFutures) {
-            E entry = Futures.getUnchecked(database.queuePop(name, localNodeId)
+            E entry = Futures.getUnchecked(database.queuePop(name)
                                                    .thenApply(v -> v != null ? serializer.decode(v) : null));
             if (entry != null) {
                 future.complete(entry);

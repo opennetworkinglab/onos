@@ -15,14 +15,9 @@
  */
 package org.onosproject.store.consistent.impl;
 
-import com.google.common.base.Charsets;
-import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.DistributedQueue;
 import org.onosproject.store.service.DistributedQueueBuilder;
 import org.onosproject.store.service.Serializer;
-
-import java.util.Set;
-import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -40,8 +35,7 @@ public class DefaultDistributedQueueBuilder<E> implements DistributedQueueBuilde
     private final DatabaseManager databaseManager;
     private boolean metering = true;
 
-    public DefaultDistributedQueueBuilder(
-            DatabaseManager databaseManager) {
+    public DefaultDistributedQueueBuilder(DatabaseManager databaseManager) {
         this.databaseManager = databaseManager;
     }
 
@@ -78,18 +72,10 @@ public class DefaultDistributedQueueBuilder<E> implements DistributedQueueBuilde
     @Override
     public DistributedQueue<E> build() {
         checkState(validInputs());
-        Consumer<Set<NodeId>> notifyOthers = nodes -> databaseManager.clusterCommunicator.multicast(name,
-                        DatabaseManager.QUEUE_UPDATED_TOPIC,
-                        s -> s.getBytes(Charsets.UTF_8),
-                        nodes);
-        DefaultDistributedQueue<E> queue = new DefaultDistributedQueue<>(
+        return new DefaultDistributedQueue<>(
                 name,
                 persistenceEnabled ? databaseManager.partitionedDatabase : databaseManager.inMemoryDatabase,
                 serializer,
-                databaseManager.localNodeId,
-                metering,
-                notifyOthers);
-        databaseManager.registerQueue(queue);
-        return queue;
+                metering);
     }
 }

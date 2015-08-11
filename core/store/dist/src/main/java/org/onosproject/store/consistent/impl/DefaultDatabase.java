@@ -30,7 +30,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
@@ -159,13 +158,13 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     }
 
     @Override
-    public CompletableFuture<Set<NodeId>> queuePush(String queueName, byte[] entry) {
+    public CompletableFuture<Void> queuePush(String queueName, byte[] entry) {
         return checkOpen(() -> proxy.queuePush(queueName, entry));
     }
 
     @Override
-    public CompletableFuture<byte[]> queuePop(String queueName, NodeId nodeId) {
-        return checkOpen(() -> proxy.queuePop(queueName, nodeId));
+    public CompletableFuture<byte[]> queuePop(String queueName) {
+        return checkOpen(() -> proxy.queuePop(queueName));
     }
 
     @Override

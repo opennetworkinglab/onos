@@ -47,7 +47,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.store.consistent.impl.StateMachineUpdate.Target.MAP;
+import static org.onosproject.store.consistent.impl.StateMachineUpdate.Target.MAP_UPDATE;
 import static org.onosproject.store.consistent.impl.StateMachineUpdate.Target.TX_COMMIT;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -122,7 +122,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         this.purgeOnUninstall = purgeOnUninstall;
         this.database.registerConsumer(update -> {
             SharedExecutors.getSingleThreadExecutor().execute(() -> {
-                if (update.target() == MAP) {
+                if (update.target() == MAP_UPDATE) {
                     Result<UpdateResult<String, byte[]>> result = update.output();
                     if (result.success() && result.value().mapName().equals(name)) {
                         MapEvent<K, V> mapEvent = result.value().<K, V>map(this::dK, serializer::decode).toMapEvent();
