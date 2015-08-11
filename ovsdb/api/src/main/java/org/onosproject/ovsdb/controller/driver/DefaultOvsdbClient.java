@@ -376,7 +376,8 @@ public class DefaultOvsdbClient
                         .getTable(dbSchema, ovsTableRows.get(uuid),
                                   OvsdbTable.OPENVSWITCH);
 
-                if (((TableSchema) ovs.getTbSchema()).name().equals(dbName)) {
+                // FIXME This is a quick hack to fix the build. Functionality/logic not verified. (BOC)
+                if (ovs.dbSchema().name().equals(dbName)) {
                     return uuid;
                 }
             }
@@ -652,7 +653,7 @@ public class DefaultOvsdbClient
      *
      * @param childTableName child table name
      * @param childColumnName child column name
-     * @param childRowUuid child row uuid
+     * @param childUuid child row uuid
      * @param parentTableName parent table name
      * @param parentColumnName parent column
      *
@@ -720,22 +721,22 @@ public class DefaultOvsdbClient
     /**
      * Insert transact config.
      *
-     * @param childTable child table name
+     * @param childTableName child table name
      * @param childColumnName child column name
-     * @param childRowUuid child row uuid
      * @param parentTableName parent table name
      * @param parentColumnName parent column
+     * @param parentUuid parent uuid
      * @param row the config data
      *
      * @return uuid, empty if no uuid is find
      */
-    private String insertConfig(String childtableName, String childColumnName,
+    private String insertConfig(String childTableName, String childColumnName,
                              String parentTableName, String parentColumnName,
                              String parentUuid, Row row) {
         DatabaseSchema dbSchema = schema.get(OvsdbConstant.DATABASENAME);
-        TableSchema tableSchema = dbSchema.getTableSchema(childtableName);
+        TableSchema tableSchema = dbSchema.getTableSchema(childTableName);
 
-        String namedUuid = childtableName;
+        String namedUuid = childTableName;
         Insert insert = new Insert(tableSchema, namedUuid, row);
 
         ArrayList<Operation> operations = Lists.newArrayList();
@@ -760,7 +761,7 @@ public class DefaultOvsdbClient
             Mutate op = new Mutate(parentTableSchema, conditions, mutations);
             operations.add(op);
         }
-        if (childtableName.equalsIgnoreCase(OvsdbConstant.PORT)) {
+        if (childTableName.equalsIgnoreCase(OvsdbConstant.PORT)) {
             log.info("Handle port insert");
             Insert intfInsert = handlePortInsertTable(OvsdbConstant.INTERFACE,
                                                     row);
@@ -805,7 +806,8 @@ public class DefaultOvsdbClient
                 .getTableSchema(OvsdbConstant.PORT);
         ColumnSchema portColumnSchema = portTableSchema.getColumnSchema("name");
 
-        String portName = (String) portRow.getColumn(portColumnSchema).data();
+        // FIXME This is a quick hack to fix the build. Functionality not verified. (BOC)
+        String portName = (String) portRow.getColumn(portColumnSchema.toString()).data();
 
         Interface inf = (Interface) TableGenerator
                 .createTable(dbSchema, OvsdbTable.INTERFACE);

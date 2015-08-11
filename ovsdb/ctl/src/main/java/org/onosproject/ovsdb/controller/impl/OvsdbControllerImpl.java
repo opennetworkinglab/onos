@@ -397,12 +397,12 @@ public class OvsdbControllerImpl implements OvsdbController {
      */
     private class InternalMonitorCallBack implements Callback {
         @Override
-        public void update(UpdateNotification upadateNotification) {
-            Object key = upadateNotification.context();
+        public void update(UpdateNotification updateNotification) {
+            Object key = updateNotification.jsonValue();
             OvsdbClientService ovsdbClient = requestNotification.get(key);
 
             String dbName = requestDbName.get(key);
-            JsonNode updatesJson = upadateNotification.tbUpdatesJsonNode();
+            JsonNode updatesJson = updateNotification.tbUpdatesJsonNode();
             DatabaseSchema dbSchema = ovsdbClient.getDatabaseSchema(dbName);
             TableUpdates updates = FromJsonUtil
                     .jsonNodeToTableUpdates(updatesJson, dbSchema);
