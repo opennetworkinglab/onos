@@ -16,7 +16,7 @@
 <scenario name="setup" description="ONOS cluster setup">
     <group name="Setup">
         <step name="Push-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
-        <step name="Secure-SSH" exec="onos-secure-ssh" if="${ONOS_USE_SSH}"/>
+        <step name="Secure-SSH" exec="onos-secure-ssh -u onos -p rocks" if="${ONOS_USE_SSH}"/>
 
         <parallel var="${OC#}">
             <step name="Push-Bits-${#}" exec="onos-push-bits ${OC#}"

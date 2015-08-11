@@ -82,3 +82,21 @@ html[data-platform='iPad'] #mast {
     float: right;
     /*border: 1px solid red;*/
 }
+
+#mast-right a {
+    font-size: 12pt;
+    font-style: normal;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.light #mast-right a {
+    color: #369;
+}
+.dark #mast-right a {
+    color: #eee;
+}
+
+#mast-right a:hover {
+    color: #CE5650;
+}

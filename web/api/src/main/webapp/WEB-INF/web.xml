@@ -21,29 +21,25 @@
     <display-name>ONOS REST API v1.0</display-name>
 
     <!--
+    -->
     <security-constraint>
-        <display-name>authenticated</display-name>
         <web-resource-collection>
-            <web-resource-name>All files</web-resource-name>
-            <description/>
+            <web-resource-name>Secured</web-resource-name>
             <url-pattern>/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
-            <description/>
             <role-name>admin</role-name>
         </auth-constraint>
     </security-constraint>
+
+    <security-role>
+        <role-name>admin</role-name>
+    </security-role>
 
     <login-config>
         <auth-method>BASIC</auth-method>
         <realm-name>karaf</realm-name>
     </login-config>
-
-    <security-role>
-        <description/>
-        <role-name>admin</role-name>
-    </security-role>
-    -->
 
     <servlet>
         <servlet-name>JAX-RS Service</servlet-name>
