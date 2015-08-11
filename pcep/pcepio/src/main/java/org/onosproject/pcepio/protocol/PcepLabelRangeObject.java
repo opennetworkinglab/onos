@@ -98,7 +98,7 @@ public interface PcepLabelRangeObject {
     /**
      * Builder interface with get and set functions to build LabelRange object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds LabelRange Object.

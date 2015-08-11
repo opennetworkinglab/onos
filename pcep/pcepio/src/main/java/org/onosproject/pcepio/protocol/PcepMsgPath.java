@@ -64,7 +64,7 @@ public interface PcepMsgPath {
     /**
      * Builder interface with get and set functions to build PcepMsgPath.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds PcepMsgPath.

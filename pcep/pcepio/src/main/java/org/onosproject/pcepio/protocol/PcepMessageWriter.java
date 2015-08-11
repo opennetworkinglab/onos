@@ -31,5 +31,5 @@ public interface PcepMessageWriter<T> {
      * @param message PCEP Message
      * @throws PcepParseException while writing PCEP message.
      */
-    public void write(ChannelBuffer bb, T message) throws PcepParseException;
+    void write(ChannelBuffer bb, T message) throws PcepParseException;
 }

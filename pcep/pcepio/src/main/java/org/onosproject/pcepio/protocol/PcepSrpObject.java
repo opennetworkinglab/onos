@@ -61,14 +61,14 @@ public interface PcepSrpObject {
      *
      * @param llOptionalTlv list of optional tlvs
      */
-    public void setOptionalTlv(LinkedList<PcepValueType> llOptionalTlv);
+    void setOptionalTlv(LinkedList<PcepValueType> llOptionalTlv);
 
     /**
      * Returns list of optional tlvs.
      *
      * @return llOptionalTlv list of optional tlvs
      */
-    public LinkedList<PcepValueType> getOptionalTlv();
+    LinkedList<PcepValueType> getOptionalTlv();
 
     /**
      * Prints attributes of SRP object.
@@ -87,7 +87,7 @@ public interface PcepSrpObject {
     /**
      * Builder interface with get and set functions to build SRP object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds SRP Object.
@@ -147,7 +147,7 @@ public interface PcepSrpObject {
          *
          * @return llOptionalTlv list of optional tlvs
          */
-        public LinkedList<PcepValueType> getOptionalTlv();
+        LinkedList<PcepValueType> getOptionalTlv();
 
         /**
          * sets the optional TLvs.
@@ -155,7 +155,7 @@ public interface PcepSrpObject {
          * @param llOptionalTlv List of optional tlv
          * @return builder by setting list of optional tlv.
          */
-        public Builder setOptionalTlv(LinkedList<PcepValueType> llOptionalTlv);
+        Builder setOptionalTlv(LinkedList<PcepValueType> llOptionalTlv);
 
         /**
          * Sets P flag in SRP object header and returns its builder.

@@ -31,45 +31,45 @@ public interface PcepLabelUpdate {
      * @param bb of type channel buffer
      * @throws PcepParseException while writing LABEL UPDATE.
      */
-    public void write(ChannelBuffer bb) throws PcepParseException;
+    void write(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * Sets the Label Download object.
      *
      * @param labelDownload PCEP Label Download object
      */
-    public void setLabelDownload(PcepLabelDownload labelDownload);
+    void setLabelDownload(PcepLabelDownload labelDownload);
 
     /**
      * Returns the PcepLabelDownload object.
      *
      * @return labelDownload PCEP Label Download
      */
-    public PcepLabelDownload getLabelDownload();
+    PcepLabelDownload getLabelDownload();
 
     /**
      * Sets the Label map object.
      *
      * @param labelMap PCEP Label Map object
      */
-    public void setLabelMap(PcepLabelMap labelMap);
+    void setLabelMap(PcepLabelMap labelMap);
 
     /**
      * Returns the PcepLabelMap object.
      *
      * @return labelMap PCEP Label Map
      */
-    public PcepLabelMap getLabelMap();
+    PcepLabelMap getLabelMap();
 
     /**
      * Prints the attributes of PCEP Label update.
      */
-    public void print();
+    void print();
 
     /**
      * Builder interface with get and set functions to build Label Update message.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds PcepLableUpdate Object.

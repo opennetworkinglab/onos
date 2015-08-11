@@ -90,7 +90,7 @@ public interface PcepFecObjectIPv4UnnumberedAdjacency extends PcepFecObject {
     /**
      * Builder interface with get and set functions to build bandwidth object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds FEC Unnumbered Adjacency with IPv4 Object.

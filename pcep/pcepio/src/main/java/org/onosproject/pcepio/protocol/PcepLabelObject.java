@@ -87,7 +87,7 @@ public interface PcepLabelObject {
     /**
      * Builder interface with get and set functions to build Label object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds Label Object.
@@ -163,7 +163,7 @@ public interface PcepLabelObject {
          * @param value boolean value to set P flag
          * @return Builder by setting P flag
          */
-        public Builder setPFlag(boolean value);
+        Builder setPFlag(boolean value);
 
         /**
          * Sets I flag in Label object header and returns its builder.
@@ -171,6 +171,6 @@ public interface PcepLabelObject {
          * @param value boolean value to set I flag
          * @return Builder by setting I flag
          */
-        public Builder setIFlag(boolean value);
+        Builder setIFlag(boolean value);
     }
 }

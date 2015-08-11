@@ -122,7 +122,7 @@ public interface PcepOpenObject {
     /**
      * Builder interface with get and set functions to build Open object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds Open Object.

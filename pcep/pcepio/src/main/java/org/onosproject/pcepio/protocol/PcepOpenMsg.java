@@ -50,7 +50,7 @@ public interface PcepOpenMsg extends PcepObject, PcepMessage {
     /**
      * Builder interface with get and set functions to build Open message.
      */
-    public interface Builder extends PcepMessage.Builder {
+    interface Builder extends PcepMessage.Builder {
 
         @Override
         PcepOpenMsg build() throws PcepParseException;

@@ -33,7 +33,7 @@ public interface PcepAttribute {
      * @return object length index.
      * @throws PcepParseException while writing objects to channel buffer
      */
-    public int write(ChannelBuffer bb) throws PcepParseException;
+    int write(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * Returns PcepLspaObject.
@@ -95,12 +95,12 @@ public interface PcepAttribute {
      * Prints the attributes of AttributeList.
      */
 
-    public void print();
+    void print();
 
     /**
      * Builder interface with get and set functions to build PcepAttribute.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds PcepAttribute.

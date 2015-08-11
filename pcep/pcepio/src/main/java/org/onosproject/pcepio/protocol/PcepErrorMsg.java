@@ -19,28 +19,28 @@ public interface PcepErrorMsg extends PcepMessage {
      *
      * @return Object of ErrorObjListWithOpen
      */
-    public ErrorObjListWithOpen getErrorObjListWithOpen();
+    ErrorObjListWithOpen getErrorObjListWithOpen();
 
     /**
      * Sets errObjListWithOpen object.
      *
      * @param errObjListWithOpen error object List with open object
      */
-    public void setErrorObjListWithOpen(ErrorObjListWithOpen errObjListWithOpen);
+    void setErrorObjListWithOpen(ErrorObjListWithOpen errObjListWithOpen);
 
     /**
      * Returns Object of PcepErrorInfo.
      *
      * @return Object of PcepErrorInfo
      */
-    public PcepErrorInfo getPcepErrorInfo();
+    PcepErrorInfo getPcepErrorInfo();
 
     /**
      * Sets errInfo Object.
      *
      * @param errInfo error information
      */
-    public void setPcepErrorInfo(PcepErrorInfo errInfo);
+    void setPcepErrorInfo(PcepErrorInfo errInfo);
 
     @Override
     void writeTo(ChannelBuffer channelBuffer);
@@ -48,7 +48,7 @@ public interface PcepErrorMsg extends PcepMessage {
     /**
      * Builder interface with get and set functions to build PCEP Error message.
      */
-    public interface Builder extends PcepMessage.Builder {
+    interface Builder extends PcepMessage.Builder {
 
         @Override
         PcepErrorMsg build();
@@ -64,7 +64,7 @@ public interface PcepErrorMsg extends PcepMessage {
          *
          * @return Object of ErrorObjListWithOpen
          */
-        public ErrorObjListWithOpen getErrorObjListWithOpen();
+        ErrorObjListWithOpen getErrorObjListWithOpen();
 
         /**
          * Sets errObjListWithOpen object.
@@ -72,14 +72,14 @@ public interface PcepErrorMsg extends PcepMessage {
          * @param errObjListWithOpen error object with open object
          * @return builder by setting Object of ErrorObjListWithOpen
          */
-        public Builder setErrorObjListWithOpen(ErrorObjListWithOpen errObjListWithOpen);
+        Builder setErrorObjListWithOpen(ErrorObjListWithOpen errObjListWithOpen);
 
         /**
          * Returns Object of PcepErrorInfo.
          *
          * @return Object of PcepErrorInfo
          */
-        public PcepErrorInfo getPcepErrorInfo();
+        PcepErrorInfo getPcepErrorInfo();
 
         /**
          * Sets errInfo Object.
@@ -87,6 +87,6 @@ public interface PcepErrorMsg extends PcepMessage {
          * @param errInfo error information
          * @return builder by getting Object of PcepErrorInfo
          */
-        public Builder setPcepErrorInfo(PcepErrorInfo errInfo);
+        Builder setPcepErrorInfo(PcepErrorInfo errInfo);
     }
 }

@@ -62,7 +62,7 @@ public interface PcepFecObjectIPv4Adjacency extends PcepFecObject {
     /**
      * Builder interface with get and set functions to build FEC object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds FEC Object IPv4 Adjacency.

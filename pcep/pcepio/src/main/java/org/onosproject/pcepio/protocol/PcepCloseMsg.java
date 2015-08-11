@@ -67,7 +67,7 @@ public interface PcepCloseMsg extends PcepObject, PcepMessage {
     /**
      * Builder interface with get and set functions to build Close message.
      */
-    public interface Builder extends PcepMessage.Builder {
+    interface Builder extends PcepMessage.Builder {
 
         @Override
         PcepCloseMsg build();

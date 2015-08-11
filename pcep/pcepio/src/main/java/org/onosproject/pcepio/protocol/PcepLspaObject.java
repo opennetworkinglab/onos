@@ -142,7 +142,7 @@ public interface PcepLspaObject {
     /**
      * Builder interface with get and set functions to build bandwidth object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds LSPA Object.

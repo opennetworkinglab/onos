@@ -52,12 +52,12 @@ public interface PcepIroObject {
      * @return Returns the writerIndex of this buffer
      * @throws PcepParseException while writing IRO object.
      */
-    public int write(ChannelBuffer bb) throws PcepParseException;
+    int write(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * Builder interface with get and set functions to build IRO object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds IRO Object.

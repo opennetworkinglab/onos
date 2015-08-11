@@ -52,7 +52,7 @@ public interface PcepReportMsg extends PcepObject, PcepMessage {
     /**
      * Builder interface with get and set functions to build Report message.
      */
-    public interface Builder extends PcepMessage.Builder {
+    interface Builder extends PcepMessage.Builder {
 
         @Override
         PcepReportMsg build();

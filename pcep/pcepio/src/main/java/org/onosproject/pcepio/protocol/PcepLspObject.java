@@ -143,7 +143,7 @@ public interface PcepLspObject {
     /**
      * Builder interface with get and set functions to build LSP object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds LSP Object.

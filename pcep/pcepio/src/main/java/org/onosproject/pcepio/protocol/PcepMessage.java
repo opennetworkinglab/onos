@@ -45,7 +45,7 @@ public interface PcepMessage extends PcepObject {
     /**
      * Builder interface with get and set functions to build PCEP Message.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds PCEP Message.

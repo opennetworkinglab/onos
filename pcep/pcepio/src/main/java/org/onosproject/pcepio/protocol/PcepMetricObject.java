@@ -111,7 +111,7 @@ public interface PcepMetricObject {
     /**
      * Builder interface with get and set functions to build Metric object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds Metric Object.

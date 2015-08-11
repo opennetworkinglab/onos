@@ -53,12 +53,12 @@ public interface PcepRroObject {
      * @return Returns the writerIndex of this buffer
      * @throws PcepParseException when object header failed to write in channel buffer
      */
-    public int write(ChannelBuffer bb) throws PcepParseException;
+    int write(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * Builder interface with get and set functions to build RRO object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds RRO Object.

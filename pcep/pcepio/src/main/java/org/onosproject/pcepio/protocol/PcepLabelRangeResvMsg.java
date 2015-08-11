@@ -50,7 +50,7 @@ public interface PcepLabelRangeResvMsg extends PcepObject, PcepMessage {
     /**
      * Builder interface with get and set functions to build Label Range Reservation message.
      */
-    public interface Builder extends PcepMessage.Builder {
+    interface Builder extends PcepMessage.Builder {
 
         @Override
         PcepLabelRangeResvMsg build();

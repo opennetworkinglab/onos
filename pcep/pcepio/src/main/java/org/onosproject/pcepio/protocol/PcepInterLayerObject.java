@@ -69,7 +69,7 @@ public interface PcepInterLayerObject {
     /**
      * Builder interface with get and set functions to build INTER Layer object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds INTER Layer object.

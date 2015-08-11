@@ -49,7 +49,7 @@ public interface PcepEroObject {
      * @return Returns the writerIndex of this buffer
      * @throws PcepParseException while writing ERO Object into ChannelBuffer
      */
-    public int write(ChannelBuffer bb) throws PcepParseException;
+    int write(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * Prints attributes of ERO object.
@@ -59,7 +59,7 @@ public interface PcepEroObject {
     /**
      * Builder interface with get and set functions to build ERO object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds ERO Object.

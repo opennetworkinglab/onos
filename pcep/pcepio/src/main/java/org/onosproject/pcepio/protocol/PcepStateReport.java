@@ -27,7 +27,7 @@ public interface PcepStateReport {
     /**
      * Provides PCEP Message path for report message.
      */
-    public interface PcepMsgPath {
+    interface PcepMsgPath {
 
         /**
          * Returns PcepEroObject.
@@ -92,7 +92,7 @@ public interface PcepStateReport {
          * @return PCEP Message path
          * @throws PcepParseException when invalid buffer received
          */
-        public PcepMsgPath read(ChannelBuffer bb) throws PcepParseException;
+        PcepMsgPath read(ChannelBuffer bb) throws PcepParseException;
 
         /**
          * Writes all the objects for pcep message path.
@@ -101,12 +101,12 @@ public interface PcepStateReport {
          * @return object length index
          * @throws PcepParseException when mandatory object is not set
          */
-        public int write(ChannelBuffer bb) throws PcepParseException;
+        int write(ChannelBuffer bb) throws PcepParseException;
 
         /***
          * Prints the attribute of PCEP Message Path.
          */
-        public void print();
+        void print();
 
     }
 

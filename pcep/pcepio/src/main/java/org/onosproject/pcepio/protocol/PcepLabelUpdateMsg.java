@@ -52,7 +52,7 @@ public interface PcepLabelUpdateMsg extends PcepObject, PcepMessage {
     /**
      * Builder interface with get and set functions to build Label Update message.
      */
-    public interface Builder extends PcepMessage.Builder {
+    interface Builder extends PcepMessage.Builder {
 
         @Override
         PcepLabelUpdateMsg build();

@@ -31,7 +31,7 @@ public interface PcepErrorInfo {
      *
      * @return true if error info present, false otherwise
      */
-    public boolean isErrorInfoPresent();
+    boolean isErrorInfoPresent();
 
     /**
      * Reads from channel buffer for TE and RP objects.
@@ -39,7 +39,7 @@ public interface PcepErrorInfo {
      * @param bb of channel buffer
      * @throws PcepParseException while parsing Error info part.
      */
-    public void read(ChannelBuffer bb) throws PcepParseException;
+    void read(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * Writes byte stream of PCEP error info to channel buffer.
@@ -47,31 +47,31 @@ public interface PcepErrorInfo {
      * @param bb of type channel buffer
      * @throws PcepParseException while writing Error info part into Channel Buffer.
      */
-    public void write(ChannelBuffer bb) throws PcepParseException;
+    void write(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * Prints the attributes of error info list.
      */
-    public void print();
+    void print();
 
     /**
      * Returns Error Value in PCEP-ERROR Object.
      *
      * @return list of Error Value in PCEP-ERROR Object
      */
-    public LinkedList<Integer> getErrorValue();
+    LinkedList<Integer> getErrorValue();
 
     /**
      * Returns Error Type in PCEP-ERROR Object.
      *
      * @return list of Error Type in PCEP-ERROR Object
      */
-    public LinkedList<Integer> getErrorType();
+    LinkedList<Integer> getErrorType();
 
     /**
      * Builder interface with get and set functions to build ErrorInfo.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds ErrorInfo Object.

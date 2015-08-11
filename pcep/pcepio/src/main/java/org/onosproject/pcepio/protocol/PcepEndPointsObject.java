@@ -70,7 +70,7 @@ public interface PcepEndPointsObject {
     /**
      * Builder interface with get and set functions to build EndPoints object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds End Points Object.

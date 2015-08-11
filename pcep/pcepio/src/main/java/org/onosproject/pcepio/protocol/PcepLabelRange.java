@@ -31,28 +31,28 @@ public interface PcepLabelRange {
      *
      * @return srpObject
      */
-    public PcepSrpObject getSrpObject();
+    PcepSrpObject getSrpObject();
 
     /**
      * Sets PCEP SRP Object.
      *
      * @param srpObject SRP object.
      */
-    public void setSrpObject(PcepSrpObject srpObject);
+    void setSrpObject(PcepSrpObject srpObject);
 
     /**
      * Returns list of PcepLabelRangeObject.
      *
      * @return Label Range List
      */
-    public LinkedList<PcepLabelRangeObject> getLabelRangeList();
+    LinkedList<PcepLabelRangeObject> getLabelRangeList();
 
     /**
      * Sets list of PcepLabelRangeObject.
      *
      * @param llLabelRangeList Label Range List
      */
-    public void setLabelRangeList(LinkedList<PcepLabelRangeObject> llLabelRangeList);
+    void setLabelRangeList(LinkedList<PcepLabelRangeObject> llLabelRangeList);
 
     /**
      * Write the byte stream of PcepLabelRange to channel buffer.
@@ -61,10 +61,10 @@ public interface PcepLabelRange {
      * @return object length index
      * @throws PcepParseException while writing LABEL RANGE into Channel Buffer.
      */
-    public int write(ChannelBuffer bb) throws PcepParseException;
+    int write(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * Prints Attributes of PcepLabelRange.
      */
-    public void print();
+    void print();
 }

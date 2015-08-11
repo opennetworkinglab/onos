@@ -65,7 +65,7 @@ public interface PcepError {
      *
      * @param llErrorObjList list of type PcepErrorObject
      */
-    public void setErrorObjList(LinkedList<PcepErrorObject> llErrorObjList);
+    void setErrorObjList(LinkedList<PcepErrorObject> llErrorObjList);
 
     /**
      * Writes the byte stream of PCEP error to the channel buffer.
@@ -74,17 +74,17 @@ public interface PcepError {
      * @return object length index
      * @throws PcepParseException while writing Error part into ChannelBuffer
      */
-    public int write(ChannelBuffer bb) throws PcepParseException;
+    int write(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * Prints the attributes of PCEP Error.
      */
-    public void print();
+    void print();
 
     /**
      * Builder interface with get and set functions to build PcepError.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds PcepError Object.

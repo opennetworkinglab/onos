@@ -71,7 +71,7 @@ public interface PcepErrorObject {
     /**
      * Builder interface with get and set functions to build Error object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds Error Object.

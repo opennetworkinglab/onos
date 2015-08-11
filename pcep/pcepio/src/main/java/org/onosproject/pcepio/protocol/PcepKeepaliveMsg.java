@@ -35,7 +35,7 @@ public interface PcepKeepaliveMsg extends PcepObject, PcepMessage {
     /**
      * Builder interface with get and set functions to build Keepalive message.
      */
-    public interface Builder extends PcepMessage.Builder {
+    interface Builder extends PcepMessage.Builder {
 
         @Override
         PcepKeepaliveMsg build();

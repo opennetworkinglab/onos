@@ -128,7 +128,7 @@ public interface PcepRPObject {
     /**
      * Builder interface with get and set functions to build bandwidth object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds RP Object.

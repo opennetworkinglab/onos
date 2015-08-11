@@ -69,12 +69,12 @@ public interface PcepUpdateRequest {
     /**
      * Prints the attributes of PCEP Update Request.
      */
-    public void print();
+    void print();
 
     /**
      * Builder interface with get and set functions to build PcepUpdateRequest.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds PcepUpdateRequest.

@@ -52,7 +52,7 @@ public interface PcepInitiateMsg extends PcepObject, PcepMessage {
     /**
      * Builder interface with get and set functions to build Initiate message.
      */
-    public interface Builder extends PcepMessage.Builder {
+    interface Builder extends PcepMessage.Builder {
 
         @Override
         PcepInitiateMsg build();

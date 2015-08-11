@@ -102,7 +102,7 @@ public interface PcInitiatedLspRequest {
     /**
      * Builder interface with get and set functions to build PcInitiatedLspRequest.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds PcInitiatedLspRequest.

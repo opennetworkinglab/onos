@@ -50,12 +50,12 @@ public interface PcepBandwidthObject {
      * @return Returns the writerIndex of this buffer
      * @throws PcepParseException if bandwidth object header fails to write in channel buffer
      */
-    public int write(ChannelBuffer bb) throws PcepParseException;
+    int write(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * Builder interface with get and set functions to build bandwidth object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds BandwidthObject.

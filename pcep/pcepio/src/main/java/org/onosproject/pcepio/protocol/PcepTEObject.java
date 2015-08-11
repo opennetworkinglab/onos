@@ -123,12 +123,12 @@ public interface PcepTEObject {
      * @return Returns the writerIndex of this buffer
      * @throws PcepParseException when obj header is not written to channel buffer
      */
-    public int write(ChannelBuffer bb) throws PcepParseException;
+    int write(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * Builder interface with get and set functions to build TE object.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds TE Object.
