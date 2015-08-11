@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 
@@ -125,8 +126,10 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     private ExecutorService queuePollExecutor;
     private ApplicationListener appListener = new InternalApplicationListener();
 
-    private final Multimap<String, DefaultAsyncConsistentMap> maps = ArrayListMultimap.create();
-    private final Multimap<ApplicationId, DefaultAsyncConsistentMap> mapsByApplication = ArrayListMultimap.create();
+    private final Multimap<String, DefaultAsyncConsistentMap> maps =
+            Multimaps.synchronizedMultimap(ArrayListMultimap.create());
+    private final Multimap<ApplicationId, DefaultAsyncConsistentMap> mapsByApplication =
+            Multimaps.synchronizedMultimap(ArrayListMultimap.create());
     private final Map<String, DefaultDistributedQueue> queues = Maps.newConcurrentMap();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
