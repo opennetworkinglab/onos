@@ -21,8 +21,8 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceConsumer;
+import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.newresource.ResourceStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -60,18 +60,18 @@ public class ConsistentResourceStore implements ResourceStore {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService service;
 
-    private ConsistentMap<Resource<?, ?>, ResourceConsumer> consumers;
+    private ConsistentMap<ResourcePath, ResourceConsumer> consumers;
 
     @Activate
     public void activate() {
-        consumers = service.<Resource<?, ?>, ResourceConsumer>consistentMapBuilder()
+        consumers = service.<ResourcePath, ResourceConsumer>consistentMapBuilder()
                 .withName(MAP_NAME)
                 .withSerializer(SERIALIZER)
                 .build();
     }
 
     @Override
-    public <S, T> Optional<ResourceConsumer> getConsumer(Resource<S, T> resource) {
+    public Optional<ResourceConsumer> getConsumer(ResourcePath resource) {
         checkNotNull(resource);
 
         Versioned<ResourceConsumer> consumer = consumers.get(resource);
@@ -83,7 +83,7 @@ public class ConsistentResourceStore implements ResourceStore {
     }
 
     @Override
-    public boolean allocate(List<? extends Resource<?, ?>> resources, ResourceConsumer consumer) {
+    public boolean allocate(List<ResourcePath> resources, ResourceConsumer consumer) {
         checkNotNull(resources);
         checkNotNull(consumer);
 
@@ -91,8 +91,8 @@ public class ConsistentResourceStore implements ResourceStore {
         tx.begin();
 
         try {
-            TransactionalMap<Resource<?, ?>, ResourceConsumer> txMap = tx.getTransactionalMap(MAP_NAME, SERIALIZER);
-            for (Resource<?, ?> resource: resources) {
+            TransactionalMap<ResourcePath, ResourceConsumer> txMap = tx.getTransactionalMap(MAP_NAME, SERIALIZER);
+            for (ResourcePath resource: resources) {
                 ResourceConsumer existing = txMap.putIfAbsent(resource, consumer);
                 // if the resource is already allocated to another consumer, the whole allocation fails
                 if (existing != null) {
@@ -108,7 +108,7 @@ public class ConsistentResourceStore implements ResourceStore {
     }
 
     @Override
-    public boolean release(List<? extends Resource<?, ?>> resources, List<ResourceConsumer> consumers) {
+    public boolean release(List<ResourcePath> resources, List<ResourceConsumer> consumers) {
         checkNotNull(resources);
         checkNotNull(consumers);
         checkArgument(resources.size() == consumers.size());
@@ -117,12 +117,12 @@ public class ConsistentResourceStore implements ResourceStore {
         tx.begin();
 
         try {
-            TransactionalMap<Resource<?, ?>, ResourceConsumer> txMap = tx.getTransactionalMap(MAP_NAME, SERIALIZER);
-            Iterator<? extends Resource<?, ?>> resourceIte = resources.iterator();
+            TransactionalMap<ResourcePath, ResourceConsumer> txMap = tx.getTransactionalMap(MAP_NAME, SERIALIZER);
+            Iterator<ResourcePath> resourceIte = resources.iterator();
             Iterator<ResourceConsumer> consumerIte = consumers.iterator();
 
             while (resourceIte.hasNext() && consumerIte.hasNext()) {
-                Resource<?, ?> resource = resourceIte.next();
+                ResourcePath resource = resourceIte.next();
                 ResourceConsumer consumer = consumerIte.next();
 
                 // if this single release fails (because the resource is allocated to another consumer,
@@ -140,7 +140,7 @@ public class ConsistentResourceStore implements ResourceStore {
     }
 
     @Override
-    public Collection<Resource<?, ?>> getResources(ResourceConsumer consumer) {
+    public Collection<ResourcePath> getResources(ResourceConsumer consumer) {
         checkNotNull(consumer);
 
         // NOTE: getting all entries may become performance bottleneck
@@ -151,18 +151,17 @@ public class ConsistentResourceStore implements ResourceStore {
                 .collect(Collectors.toList());
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <S, T> Collection<Resource<S, T>> getAllocatedResources(S subject, Class<T> cls) {
-        checkNotNull(subject);
+    public <T> Collection<ResourcePath> getAllocatedResources(ResourcePath parent, Class<T> cls) {
+        checkNotNull(parent);
         checkNotNull(cls);
 
         // NOTE: getting all entries may become performance bottleneck
         // TODO: revisit for better backend data structure
         return consumers.entrySet().stream()
-                .filter(x -> x.getKey().subject().equals(subject) && x.getKey().resource().getClass() == cls)
-                // cast is ensured by the above filter method
-                .map(x -> (Resource<S, T>) x.getKey())
+                .filter(x -> x.getKey().parent().isPresent() && x.getKey().parent().get().equals(parent))
+                .filter(x -> x.getKey().lastComponent().getClass() == cls)
+                .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
     }
 

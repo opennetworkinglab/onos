@@ -31,11 +31,9 @@ public interface ResourceService {
      *
      * @param consumer resource user which the resource is allocated to
      * @param resource resource to be allocated
-     * @param <S> type of the subject which this resource belongs to
-     * @param <T> type of the resource
      * @return allocation information enclosed by Optional. If the allocation fails, the return value is empty
      */
-    <S, T> Optional<ResourceAllocation<S, T>> allocate(ResourceConsumer consumer, Resource<S, T> resource);
+    Optional<ResourceAllocation> allocate(ResourceConsumer consumer, ResourcePath resource);
 
     /**
      * Transactionally allocates the specified resources to the specified user.
@@ -45,7 +43,7 @@ public interface ResourceService {
      * @param resources resources to be allocated
      * @return non-empty list of allocation information if succeeded, otherwise empty list
      */
-    List<ResourceAllocation<?, ?>> allocate(ResourceConsumer consumer, List<? extends Resource<?, ?>> resources);
+    List<ResourceAllocation> allocate(ResourceConsumer consumer, List<ResourcePath> resources);
 
     /**
      * Transactionally allocates the specified resources to the specified user.
@@ -55,17 +53,15 @@ public interface ResourceService {
      * @param resources resources to be allocated
      * @return non-empty list of allocation information if succeeded, otherwise empty list
      */
-    List<ResourceAllocation<?, ?>> allocate(ResourceConsumer consumer, Resource<?, ?>... resources);
+    List<ResourceAllocation> allocate(ResourceConsumer consumer, ResourcePath... resources);
 
     /**
      * Releases the specified resource allocation.
      *
      * @param allocation resource allocation to be released
-     * @param <S> type of the subject which this resource belongs to
-     * @param <T> type of the device resource
      * @return true if succeeded, otherwise false
      */
-    <S, T> boolean release(ResourceAllocation<S, T> allocation);
+    boolean release(ResourceAllocation allocation);
 
     /**
      * Transactionally releases the specified resource allocations.
@@ -74,7 +70,7 @@ public interface ResourceService {
      * @param allocations resource allocations to be released
      * @return true if succeeded, otherwise false
      */
-    boolean release(List<? extends ResourceAllocation<?, ?>> allocations);
+    boolean release(List<ResourceAllocation> allocations);
 
     /**
      * Transactionally releases the specified resource allocations.
@@ -83,7 +79,7 @@ public interface ResourceService {
      * @param allocations resource allocations to be released
      * @return true if succeeded, otherwise false
      */
-    boolean release(ResourceAllocation<?, ?>... allocations);
+    boolean release(ResourceAllocation... allocations);
 
     /**
      * Transactionally releases the resources allocated to the specified consumer.
@@ -95,16 +91,14 @@ public interface ResourceService {
     boolean release(ResourceConsumer consumer);
 
     /**
-     * Returns allocated resources in the specified subject regarding the specified resource type.
+     * Returns allocated resources being as children of the specified parent and being the specified resource type.
      *
-     * @param subject subject where resource allocations are obtained
      * @param cls class to specify a type of resource
-     * @param <S> type of the subject
      * @param <T> type of the resource
      * @return non-empty collection of resource allocations if resources are allocated with the subject and type,
      * empty collection if no resource is allocated with the subject and type
      */
-    <S, T> Collection<ResourceAllocation<S, T>> getResourceAllocations(S subject, Class<T> cls);
+    <T> Collection<ResourceAllocation> getResourceAllocations(ResourcePath parent, Class<T> cls);
 
     /**
      * Returns resources allocated to the specified consumer.
@@ -112,17 +106,15 @@ public interface ResourceService {
      * @param consumer consumer whose allocated resources are to be returned
      * @return resources allocated to the consumer
      */
-    Collection<ResourceAllocation<?, ?>> getResourceAllocations(ResourceConsumer consumer);
+    Collection<ResourceAllocation> getResourceAllocations(ResourceConsumer consumer);
 
     /**
-     * Returns the availability of the specified device resource.
+     * Returns the availability of the specified resource.
      *
      * @param resource resource to check the availability
-     * @param <S> type of the subject
-     * @param <T> type of the resource
      * @return true if available, otherwise false
      */
-    <S, T> boolean isAvailable(Resource<S, T> resource);
+    boolean isAvailable(ResourcePath resource);
 
     // TODO: listener and event mechanism need to be considered
 }

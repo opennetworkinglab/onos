@@ -16,34 +16,79 @@
 package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.MoreObjects;
+
+import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Represents allocation of resource which belongs to a particular subject.
- *
- * @param <S> type of the subject
- * @param <T> type of the resource
+ * Represents allocation of resource which is identified by the specifier.
  */
 @Beta
-public interface ResourceAllocation<S, T> {
-    /**
-     * Returns the subject of the resource.
-     * The value is the identifier which this resource belongs to.
-     *
-     * @return the subject of the resource
-     */
-    S subject();
+public class ResourceAllocation {
+
+    private final ResourcePath resource;
+    private final ResourceConsumer consumer;
 
     /**
-     * Returns the resource which belongs to the subject.
+     * Creates an instance with the specified subject, resource and consumer.
      *
-     * @return the resource which belongs to the subject
+     * @param resource resource of the subject
+     * @param consumer consumer ot this resource
      */
-    T resource();
+    public ResourceAllocation(ResourcePath resource, ResourceConsumer consumer) {
+        this.resource = checkNotNull(resource);
+        this.consumer = consumer;
+    }
+
+    // for serialization
+    private ResourceAllocation() {
+        this.resource = null;
+        this.consumer = null;
+    }
+
+    /**
+     * Returns the specifier of the resource this allocation uses.
+     *
+     * @return the specifier of the resource this allocation uses
+     */
+    public ResourcePath resource() {
+        return resource;
+    }
 
     /**
      * Returns the consumer of this resource.
      *
      * @return the consumer of this resource
      */
-    ResourceConsumer consumer();
+    public ResourceConsumer consumer() {
+        return consumer;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(resource, consumer);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof ResourceAllocation)) {
+            return false;
+        }
+        final ResourceAllocation that = (ResourceAllocation) obj;
+        return Objects.equals(this.resource, that.resource)
+                && Objects.equals(this.consumer, that.consumer);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("resource", resource)
+                .add("consumer", consumer)
+                .toString();
+    }
 }

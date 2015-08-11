@@ -22,12 +22,12 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.newresource.DefaultResource;
+import org.onosproject.net.newresource.ResourcePath;
 
 import java.util.function.Predicate;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 /**
  * Unit tests for ResourceManager.
@@ -60,19 +60,19 @@ public class ResourceManagerTest {
 
         LinkKey linkKey = LinkKey.linkKey(CP1_1, CP2_1);
 
-        assertThat(manager.isValid(new DefaultResource<>(linkKey, VlanId.vlanId((short) (VLAN_LOWER_LIMIT - 1)))),
+        assertThat(manager.isValid(new ResourcePath(linkKey, VlanId.vlanId((short) (VLAN_LOWER_LIMIT - 1)))),
                 is(false));
 
-        assertThat(manager.isValid(new DefaultResource<>(linkKey, VlanId.vlanId(VLAN_LOWER_LIMIT))),
+        assertThat(manager.isValid(new ResourcePath(linkKey, VlanId.vlanId(VLAN_LOWER_LIMIT))),
                 is(true));
 
-        assertThat(manager.isValid(new DefaultResource<>(linkKey, VlanId.vlanId((short) 100))),
+        assertThat(manager.isValid(new ResourcePath(linkKey, VlanId.vlanId((short) 100))),
                 is(true));
 
-        assertThat(manager.isValid(new DefaultResource<>(linkKey, VlanId.vlanId((short) (VLAN_UPPER_LIMIT - 1)))),
+        assertThat(manager.isValid(new ResourcePath(linkKey, VlanId.vlanId((short) (VLAN_UPPER_LIMIT - 1)))),
                 is(true));
 
-        assertThat(manager.isValid(new DefaultResource<>(linkKey, VlanId.vlanId(VLAN_UPPER_LIMIT))),
+        assertThat(manager.isValid(new ResourcePath(linkKey, VlanId.vlanId(VLAN_UPPER_LIMIT))),
                 is(false));
     }
 
@@ -83,19 +83,19 @@ public class ResourceManagerTest {
     public void testWhenBoundaryNotSet() {
         LinkKey linkKey = LinkKey.linkKey(CP1_1, CP2_1);
 
-        assertThat(manager.isValid(new DefaultResource<>(linkKey, VlanId.vlanId((short) (VLAN_LOWER_LIMIT - 1)))),
+        assertThat(manager.isValid(new ResourcePath(linkKey, VlanId.vlanId((short) (VLAN_LOWER_LIMIT - 1)))),
                 is(true));
 
-        assertThat(manager.isValid(new DefaultResource<>(linkKey, VlanId.vlanId(VLAN_LOWER_LIMIT))),
+        assertThat(manager.isValid(new ResourcePath(linkKey, VlanId.vlanId(VLAN_LOWER_LIMIT))),
                 is(true));
 
-        assertThat(manager.isValid(new DefaultResource<>(linkKey, VlanId.vlanId((short) 100))),
+        assertThat(manager.isValid(new ResourcePath(linkKey, VlanId.vlanId((short) 100))),
                 is(true));
 
-        assertThat(manager.isValid(new DefaultResource<>(linkKey, VlanId.vlanId((short) (VLAN_UPPER_LIMIT - 1)))),
+        assertThat(manager.isValid(new ResourcePath(linkKey, VlanId.vlanId((short) (VLAN_UPPER_LIMIT - 1)))),
                 is(true));
 
-        assertThat(manager.isValid(new DefaultResource<>(linkKey, VlanId.vlanId(VLAN_UPPER_LIMIT))),
+        assertThat(manager.isValid(new ResourcePath(linkKey, VlanId.vlanId(VLAN_UPPER_LIMIT))),
                 is(true));
     }
 }

@@ -23,7 +23,12 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.PortNumber;
 
-public class DefaultResourceTest {
+import java.util.Optional;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
+public class ResourcePathTest {
 
     private static final DeviceId D1 = DeviceId.deviceId("of:001");
     private static final DeviceId D2 = DeviceId.deviceId("of:002");
@@ -34,16 +39,42 @@ public class DefaultResourceTest {
 
     @Test
     public void testEquals() {
-        DefaultResource<LinkKey, VlanId> resource1 =
-                new DefaultResource<>(LinkKey.linkKey(CP1_1, CP2_1), VLAN1);
-        DefaultResource<LinkKey, VlanId> sameAsResource1 =
-                new DefaultResource<>(LinkKey.linkKey(CP1_1, CP2_1), VLAN1);
-        DefaultResource<LinkKey, VlanId> resource2 =
-                new DefaultResource<>(LinkKey.linkKey(CP2_1, CP1_1), VLAN1);
+        ResourcePath resource1 = new ResourcePath(LinkKey.linkKey(CP1_1, CP2_1), VLAN1);
+        ResourcePath sameAsResource1 = new ResourcePath(LinkKey.linkKey(CP1_1, CP2_1), VLAN1);
+        ResourcePath resource2 = new ResourcePath(LinkKey.linkKey(CP2_1, CP1_1), VLAN1);
 
         new EqualsTester()
                 .addEqualityGroup(resource1, sameAsResource1)
                 .addEqualityGroup(resource2)
                 .testEquals();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreateWithZeroComponent() {
+        ResourcePath path = new ResourcePath();
+    }
+
+    @Test
+    public void testThereIsParent() {
+        ResourcePath path = new ResourcePath(LinkKey.linkKey(CP1_1, CP2_1), VLAN1);
+        ResourcePath parent = new ResourcePath(LinkKey.linkKey(CP1_1, CP2_1));
+
+        assertThat(path.parent(), is(Optional.of(parent)));
+    }
+
+    @Test
+    public void testNoParent() {
+        ResourcePath path = new ResourcePath(LinkKey.linkKey(CP1_1, CP2_1));
+
+        assertThat(path.parent(), is(Optional.empty()));
+    }
+
+    @Test
+    public void testBase() {
+        LinkKey linkKey = LinkKey.linkKey(CP1_1, CP2_1);
+        ResourcePath path = new ResourcePath(linkKey);
+
+        LinkKey child = (LinkKey) path.lastComponent();
+        assertThat(child, is(linkKey));
     }
 }
