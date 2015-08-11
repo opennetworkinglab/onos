@@ -45,32 +45,30 @@ public interface VirtualPortService {
 
     /**
      * Returns the collection of the currently known virtualPort.
-     *
-     * @return virtualPort.
      */
     Collection<VirtualPort> getPorts();
 
     /**
      * Returns the collection of the virtualPorts associated with the networkId.
      *
-     * @param networkId network identifier
-     * @return collection of virtualPort
+     * @param networkId  the network identifer
+     * @return collection of virtualPort.
      */
     Collection<VirtualPort> getPorts(TenantNetworkId networkId);
 
     /**
      * Returns the collection of the virtualPorts associated with the tenantId.
      *
-     * @param tenantId tenant identifier
-     * @return collection of virtualPort
+     * @param tenantId   the tenant identifier
+     * @return collection of virtualPorts.
      */
     Collection<VirtualPort> getPorts(TenantId tenantId);
 
     /**
      * Returns the collection of the virtualPorts associated with the deviceId.
      *
-     * @param deviceId device identifier
-     * @return collection of virtualPort
+     * @param deviceId   the device identifier
+     * @return collection of virtualPort.
      */
     Collection<VirtualPort> getPorts(DeviceId deviceId);
 
@@ -86,7 +84,7 @@ public interface VirtualPortService {
      * Updates virtualPorts by virtualPorts.
      *
      * @param virtualPorts the iterable  collection of virtualPorts
-     * @return true if all given identifiers updated successfully
+     * @return true if all given identifiers updated successfully.
      */
     boolean updatePorts(Iterable<VirtualPort> virtualPorts);
 
@@ -95,7 +93,7 @@ public interface VirtualPortService {
      *
      * @param virtualPortIds the iterable collection of virtualPort identifiers
      * @return true or false if one with the given identifier to delete is
-     *         successfully
+     *         successfully.
      */
     boolean removePorts(Iterable<VirtualPortId> virtualPortIds);
 }

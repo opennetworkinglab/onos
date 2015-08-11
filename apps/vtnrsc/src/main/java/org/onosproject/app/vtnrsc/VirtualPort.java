@@ -22,7 +22,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 
 /**
- * Representation of a virtual port.
+ * Representation of the VirtualPort.
  */
 public interface VirtualPort {
     /**
@@ -50,7 +50,7 @@ public interface VirtualPort {
     /**
      * Returns the network identifier.
      *
-     * @return tenantNetwork ID
+     * @return tenantNetwork identifier
      */
     TenantNetworkId networkId();
 
@@ -65,9 +65,9 @@ public interface VirtualPort {
      * Returns the administrative status of the port,which is up(true) or
      * down(false).
      *
-     * @return true or false
+     * @return true if the administrative status of the port is up
      */
-    Boolean adminStateUp();
+    boolean adminStateUp();
 
     /**
      * Returns the state.
@@ -145,7 +145,7 @@ public interface VirtualPort {
      *
      * @return virtualPort bindingvifDetail
      */
-    String bindingvifDetails();
+    String bindingVifDetails();
 
     /**
      * Returns the security groups.
