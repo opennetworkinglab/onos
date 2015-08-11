@@ -137,6 +137,7 @@ public class DistributedTunnelStore
 
     @Deactivate
     public void deactivate() {
+        orderRelationship.destroy();
         tunnelIdAsKeyStore.destroy();
         srcAndDstKeyStore.destroy();
         typeKeyStore.destroy();
