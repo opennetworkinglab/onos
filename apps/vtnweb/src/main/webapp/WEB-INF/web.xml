@@ -30,7 +30,9 @@
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
             <param-value>
-                org.onosproject.vtnweb.resources.TenantNetworkWebResource
+                org.onosproject.vtnweb.resources.TenantNetworkWebResource,
+                org.onosproject.vtnweb.resources.SubnetWebResource,
+                org.onosproject.vtnweb.resources.VirtualPortWebResource
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>

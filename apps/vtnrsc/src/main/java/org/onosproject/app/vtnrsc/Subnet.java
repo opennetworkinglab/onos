@@ -32,9 +32,9 @@ public interface Subnet {
     }
 
     /**
-     * Returns the ID of the subnet.
+     * Returns the subnet identifier.
      *
-     * @return id
+     * @return identifier
      */
     SubnetId id();
 
@@ -46,18 +46,16 @@ public interface Subnet {
     String subnetName();
 
     /**
-     * Returns the ID of the attached network.
+     * Returns the network identifier.
      *
-     * @return networkID
+     * @return the network identifier
      */
     TenantNetworkId networkId();
 
     /**
-     * Returns the The ID of the tenant who owns the network. Only
-     * administrative users can specify a tenant ID other than their own. You
-     * cannot change this value through authorization policies.
+     * Returns tenant identifier.
      *
-     * @return tenantID
+     * @return the tenant identifier
      */
     TenantId tenantId();
 
@@ -76,31 +74,31 @@ public interface Subnet {
     IpPrefix cidr();
 
     /**
-     * Returns the gateway IP address..
+     * Returns the gateway IP address.
      *
-     * @return gatewayIP
+     * @return gatewayIp
      */
     IpAddress gatewayIp();
 
     /**
      * Returns true if DHCP is enabled and return false if DHCP is disabled.
      *
-     * @return dhcpEnabled
+     * @return true or false
      */
     boolean dhcpEnabled();
 
     /**
      * Indicates whether this tenantNetwork is shared across all tenants. By
-     * default,only administrative user can change this value.
+     * default, only administrative user can change this value.
      *
-     * @return shared
+     * @return true or false
      */
     boolean shared();
 
     /**
-     * Returns an iterable collections of hostRoutes.
+     * Returns a collection of hostRoutes.
      *
-     * @return hostRoutes collection
+     * @return a collection of hostRoutes
      */
     Iterable<HostRoute> hostRoutes();
 
@@ -108,7 +106,8 @@ public interface Subnet {
      * Returns the ipV6AddressMode. A valid value is dhcpv6-stateful,
      * dhcpv6-stateless, or slaac.
      *
-     * @return ipV6AddressMode
+     * @return ipV6AddressMode whose value is dhcpv6-stateful, dhcpv6-stateless
+     *         or slaac
      */
     Mode ipV6AddressMode();
 
@@ -116,15 +115,15 @@ public interface Subnet {
      * Returns the ipV6RaMode.A valid value is dhcpv6-stateful,
      * dhcpv6-stateless, or slaac.
      *
-     * @return ipV6RaMode
+     * @return ipV6RaMode whose value is dhcpv6-stateful, dhcpv6-stateless or
+     *         slaac
      */
     Mode ipV6RaMode();
 
     /**
-     * Returns an iterable collection of allocation_pools.
+     * Returns a collection of allocation_pools.
      *
-     * @return allocationPools collection
+     * @return a collection of allocationPools
      */
-
     Iterable<AllocationPool> allocationPools();
 }

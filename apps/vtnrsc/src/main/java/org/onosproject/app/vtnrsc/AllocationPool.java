@@ -27,12 +27,12 @@ public interface AllocationPool {
      *
      * @return startIp
      */
-    IpAddress startIP();
+    IpAddress startIp();
 
     /**
      * The end address for the allocation pool.
      *
      * @return endIp
      */
-    IpAddress endIP();
+    IpAddress endIp();
 }

@@ -20,7 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Objects;
 
 /**
- * Immutable representation of a subnet identity.
+ * Immutable representation of a subnet identifier.
  */
 public final class SubnetId {
 
@@ -33,13 +33,22 @@ public final class SubnetId {
     }
 
     /**
-     * Creates a subnet identifier.
+     * Creates a Subnet identifier.
      *
-     * @param subnetId subnet identifier
-     * @return SubnetId SubnetId
+     * @param subnetId the subnet identifier
+     * @return the subnet identifier
      */
     public static SubnetId subnetId(String subnetId) {
         return new SubnetId(subnetId);
+    }
+
+    /**
+     * Returns the subnet identifier.
+     *
+     * @return the subnet identifier
+     */
+    public String subnetId() {
+        return subnetId;
     }
 
     @Override
@@ -64,5 +73,4 @@ public final class SubnetId {
     public String toString() {
         return subnetId;
     }
-
 }
