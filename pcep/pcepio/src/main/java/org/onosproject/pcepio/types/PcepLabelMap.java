@@ -22,6 +22,8 @@ import org.onosproject.pcepio.protocol.PcepSrpObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Provide PCEP Label Map.
  * Reference :draft-zhao-pce-pcep-extension-for-pce-controller-01.
@@ -30,11 +32,11 @@ public class PcepLabelMap {
 
     protected static final Logger log = LoggerFactory.getLogger(PcepLabelMap.class);
     //PCEP SRP Object
-    PcepSrpObject srpObject;
+    private PcepSrpObject srpObject;
     //PCEP Label Object
-    PcepLabelObject labelObject;
+    private PcepLabelObject labelObject;
     //PCEP FEC Object
-    PcepFecObject fecObject;
+    private PcepFecObject fecObject;
 
     /**
      * Sets Fec Object.
@@ -98,5 +100,14 @@ public class PcepLabelMap {
         srpObject.print();
         labelObject.print();
         fecObject.print();
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("SRP object", srpObject)
+                .add("Label object", labelObject)
+                .add("Fec object", fecObject)
+                .toString();
     }
 }

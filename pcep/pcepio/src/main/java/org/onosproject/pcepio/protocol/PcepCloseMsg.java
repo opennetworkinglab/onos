@@ -19,6 +19,7 @@ package org.onosproject.pcepio.protocol;
 import java.util.LinkedList;
 
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.types.PcepObjectHeader;
 import org.onosproject.pcepio.types.PcepValueType;
 
@@ -62,7 +63,7 @@ public interface PcepCloseMsg extends PcepObject, PcepMessage {
     void setOptionalTlv(LinkedList<PcepValueType> llOptionalTlv);
 
     @Override
-    void writeTo(ChannelBuffer channelBuffer);
+    void writeTo(ChannelBuffer channelBuffer) throws PcepParseException;
 
     /**
      * Builder interface with get and set functions to build Close message.

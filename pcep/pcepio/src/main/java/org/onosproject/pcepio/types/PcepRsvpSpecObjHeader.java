@@ -25,7 +25,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides PcepRsvpObjectHeader.
  */
-public class PcepRsvpObjectHeader {
+public class PcepRsvpSpecObjHeader {
 
     /*
     0             1              2             3
@@ -40,34 +40,29 @@ public class PcepRsvpObjectHeader {
               ERROR_SPEC object Header
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepRsvpObjectHeader.class);
+    protected static final Logger log = LoggerFactory.getLogger(PcepRsvpSpecObjHeader.class);
 
-    public static final boolean REQ_OBJ_MUST_PROCESS = true;
-    public static final boolean REQ_OBJ_OPTIONAL_PROCESS = false;
-    public static final boolean RSP_OBJ_IGNORED = true;
-    public static final boolean RSP_OBJ_PROCESSED = false;
-    public static final int OBJECT_TYPE_SHIFT_VALUE = 4;
+    private short objLen;
     private byte objClassNum;
     private byte objClassType;
-    private short objLen;
 
     /**
-     * Constructor to initialize class num , length and type.
+     * Constructor to initialize length, class num and type.
      *
-     * @param objClassNum object class number
-     * @param objClassType object class type
      * @param objLen object length
+     * @param objClassNum pcep rsvp error spec object class num
+     * @param objClassType pcep rsvp error spec object class type
      */
-    public PcepRsvpObjectHeader(byte objClassNum, byte objClassType, short objLen) {
+    public PcepRsvpSpecObjHeader(short objLen, byte objClassNum, byte objClassType) {
+        this.objLen = objLen;
         this.objClassNum = objClassNum;
         this.objClassType = objClassType;
-        this.objLen = objLen;
     }
 
     /**
      * Sets the Class num.
      *
-     * @param value object class number
+     * @param value pcep rsvp error spec object class num
      */
     public void setObjClassNum(byte value) {
         this.objClassNum = value;
@@ -76,7 +71,7 @@ public class PcepRsvpObjectHeader {
     /**
      * Sets the Class type.
      *
-     * @param value object class type
+     * @param value pcep rsvp error spec object class type
      */
     public void setObjClassType(byte value) {
         this.objClassType = value;
@@ -85,7 +80,7 @@ public class PcepRsvpObjectHeader {
     /**
      * Sets the Class Length.
      *
-     * @param value object length
+     * @param value pcep rsvp error spec object length
      */
     public void setObjLen(short value) {
         this.objLen = value;
@@ -94,7 +89,7 @@ public class PcepRsvpObjectHeader {
     /**
      * Returns Object Length.
      *
-     * @return objLen
+     * @return objLen pcep rsvp error spec object length
      */
     public short getObjLen() {
         return this.objLen;
@@ -103,7 +98,7 @@ public class PcepRsvpObjectHeader {
     /**
      * Returns Object num.
      *
-     * @return objClassNum
+     * @return objClassNum pcep rsvp error spec object class num
      */
     public byte getObjClassNum() {
         return this.objClassNum;
@@ -112,7 +107,7 @@ public class PcepRsvpObjectHeader {
     /**
      * Returns Object type.
      *
-     * @return objClassType
+     * @return objClassType pcep rsvp error spec object class type
      */
     public byte getObjClassType() {
         return this.objClassType;
@@ -122,14 +117,14 @@ public class PcepRsvpObjectHeader {
      * Writes the byte stream of PcepRsvpObjectHeader to channel buffer.
      *
      * @param bb of type channel buffer
-     * @return object length index in channel buffer
+     * @return object length index
      */
     public int write(ChannelBuffer bb) {
-        int iLenStartIndex = bb.writerIndex();
-        bb.writeShort((short) 0);
-        bb.writeByte(this.objClassNum);
-        bb.writeByte(this.objClassType);
-        return bb.writerIndex() - iLenStartIndex;
+        int objLenIndex = bb.writerIndex();
+        bb.writeShort(objLen);
+        bb.writeByte(objClassNum);
+        bb.writeByte(objClassType);
+        return bb.writerIndex() - objLenIndex;
     }
 
     /**
@@ -138,8 +133,7 @@ public class PcepRsvpObjectHeader {
      * @param bb of type channel buffer
      * @return PcepRsvpObjectHeader
      */
-    public static PcepRsvpObjectHeader read(ChannelBuffer bb) {
-        log.debug("PcepRsvpObjectHeader ::read ");
+    public static PcepRsvpSpecObjHeader read(ChannelBuffer bb) {
         byte objClassNum;
         byte objClassType;
         short objLen;
@@ -147,7 +141,7 @@ public class PcepRsvpObjectHeader {
         objClassNum = bb.readByte();
         objClassType = bb.readByte();
 
-        return new PcepRsvpObjectHeader(objClassNum, objClassType, objLen);
+        return new PcepRsvpSpecObjHeader(objLen, objClassNum, objClassType);
     }
 
     /**
@@ -160,7 +154,6 @@ public class PcepRsvpObjectHeader {
         log.debug("Object C-Type: " + objClassType);
         log.debug("Object Length: " + objLen);
     }
-
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())

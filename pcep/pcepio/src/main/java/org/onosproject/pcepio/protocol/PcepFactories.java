@@ -18,6 +18,7 @@ package org.onosproject.pcepio.protocol;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.exceptions.PcepParseException;
+import org.onosproject.pcepio.protocol.ver1.PcepFactoryVer1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,15 +36,15 @@ public final class PcepFactories {
     /*
      * Returns the instance of PCEP Version.
      *
-     * @param version
+     * @param version PCEP version
      * @return PCEP version
      */
     public static PcepFactory getFactory(PcepVersion version) {
         switch (version) {
         case PCEP_1:
-            // TODO :  to get the pcep version 1 factory
+            return PcepFactoryVer1.INSTANCE;
         default:
-            throw new IllegalArgumentException("[PcepFactory:]Unknown version: " + version);
+            throw new IllegalArgumentException("Unknown version: " + version);
         }
     }
 
@@ -53,7 +54,6 @@ public final class PcepFactories {
         public PcepMessage readFrom(ChannelBuffer bb) throws PcepParseException {
 
             if (!bb.readable()) {
-                log.debug("Empty message received");
                 throw new PcepParseException("Empty message received");
             }
 
@@ -75,13 +75,12 @@ public final class PcepFactories {
             switch (packetVersion) {
 
             case 1:
-                // TODO : get the factory for version 1
+                factory = org.onosproject.pcepio.protocol.ver1.PcepFactoryVer1.INSTANCE;
                 break;
             default:
                 throw new IllegalArgumentException("Unknown Packet version: " + packetVersion);
             }
-            // TODO : Read the PCEP message from the factory
-            return null;
+            return factory.getReader().readFrom(bb);
         }
     }
 

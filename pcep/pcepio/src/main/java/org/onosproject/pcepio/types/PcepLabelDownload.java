@@ -9,7 +9,9 @@ import org.onosproject.pcepio.protocol.PcepSrpObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/*
+import com.google.common.base.MoreObjects;
+
+/**
  * Provides Pcep Label.
  * REference :draft-zhao-pce-pcep-extension-for-pce-controller-01.
  */
@@ -18,13 +20,13 @@ public class PcepLabelDownload {
     protected static final Logger log = LoggerFactory.getLogger(PcepLabelDownload.class);
 
     //PCEP SPR Object
-    PcepSrpObject srpObject;
+    private PcepSrpObject srpObject;
     //PCEP LSP Object
-    PcepLspObject lspObject;
+    private PcepLspObject lspObject;
     //LinkList of Labels
-    LinkedList<PcepLabelObject> llLabelList;
+    private LinkedList<PcepLabelObject> llLabelList;
 
-    /*
+    /**
      * Returns SRP Object.
      *
      * @return PCEP SRP Object
@@ -33,7 +35,7 @@ public class PcepLabelDownload {
         return srpObject;
     }
 
-    /*
+    /**
      * Sets the Pcep Srp Object.
      *
      * @param srpobj PCEP SRP Object
@@ -42,7 +44,7 @@ public class PcepLabelDownload {
         this.srpObject = srpobj;
     }
 
-    /*
+    /**
      * Returns LSP Object.
      *
      * @return PCEP LSP Object
@@ -51,7 +53,7 @@ public class PcepLabelDownload {
         return lspObject;
     }
 
-    /*
+    /**
      * Sets the Pcep LSP Object.
      *
      * @param lspObject PCEP LSP Object
@@ -60,7 +62,7 @@ public class PcepLabelDownload {
         this.lspObject = lspObject;
     }
 
-    /*
+    /**
      * Returns a list of labels.
      *
      * @return llLabelList list of pcep label objects
@@ -69,7 +71,7 @@ public class PcepLabelDownload {
         return llLabelList;
     }
 
-    /*
+    /**
      * set the llLabelList list of type PcepLableObject.
      *
      * @param llLabelList list of pcep label objects
@@ -78,7 +80,7 @@ public class PcepLabelDownload {
         this.llLabelList = llLabelList;
     }
 
-    /*
+    /**
      * Prints the attribute of PcepLableObject.
      */
     public void print() {
@@ -91,5 +93,14 @@ public class PcepLabelDownload {
         while (listIterator.hasNext()) {
             listIterator.next().print();
         }
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("SRP object", srpObject)
+                .add("LSP object", lspObject)
+                .add("label object list", llLabelList)
+                .toString();
     }
 }

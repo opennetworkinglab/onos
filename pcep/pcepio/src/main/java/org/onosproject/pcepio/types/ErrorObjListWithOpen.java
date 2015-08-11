@@ -10,14 +10,17 @@ import org.onosproject.pcepio.protocol.PcepOpenObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
+
 /*
  * Provide the error object list with open object.
  */
 public class ErrorObjListWithOpen {
     //errorObjList is mandatory
-    LinkedList<PcepErrorObject> llerrorObjList;
+    private LinkedList<PcepErrorObject> llerrorObjList;
     // openObject is optional
-    PcepOpenObject openObject;
+    private PcepOpenObject openObject;
     // flag to check if open object is set or not
     public boolean isOpenObjectSet;
     protected static final Logger log = LoggerFactory.getLogger(ErrorObjListWithOpen.class);
@@ -49,6 +52,11 @@ public class ErrorObjListWithOpen {
         isOpenObjectSet = false;
     }
 
+    /**
+     * Returns error type.
+     *
+     * @return error type
+     */
     public LinkedList<Integer> getErrorType() {
         LinkedList<Integer> errorType = new LinkedList<Integer>();
         if (llerrorObjList != null) {
@@ -56,7 +64,7 @@ public class ErrorObjListWithOpen {
             int error;
             PcepErrorObject errorObj;
             while (errObjListIterator.hasNext()) {
-                errorObj =  errObjListIterator.next();
+                errorObj = errObjListIterator.next();
                 error = errorObj.getErrorType();
                 errorType.add(error);
             }
@@ -64,6 +72,11 @@ public class ErrorObjListWithOpen {
         return errorType;
     }
 
+    /**
+     * Returns error value.
+     *
+     * @return error value
+     */
     public LinkedList<Integer> getErrorValue() {
         LinkedList<Integer> errorValue = new LinkedList<Integer>();
         if (llerrorObjList != null) {
@@ -71,7 +84,7 @@ public class ErrorObjListWithOpen {
             int error;
             PcepErrorObject errorObj;
             while (errObjListIterator.hasNext()) {
-                errorObj =  errObjListIterator.next();
+                errorObj = errObjListIterator.next();
                 error = errorObj.getErrorValue();
                 errorValue.add(error);
 
@@ -79,7 +92,8 @@ public class ErrorObjListWithOpen {
         }
         return errorValue;
     }
-    /*
+
+    /**
      * Checks whether error object list is empty or not.
      *
      * @return whether error object list is empty or not
@@ -90,7 +104,7 @@ public class ErrorObjListWithOpen {
         return (!this.llerrorObjList.isEmpty()) ? true : false;
     }
 
-    /*
+    /**
      * Write Error Object List and Open Object to channel buffer.
      *
      * @param bb of type channel buffer
@@ -121,7 +135,7 @@ public class ErrorObjListWithOpen {
         return bb.writerIndex() - iLenStartIndex;
     }
 
-    /*
+    /**
      * Prints the attributes of ErrorObject List with open Object.
      */
     public void print() {
@@ -136,5 +150,20 @@ public class ErrorObjListWithOpen {
         if (openObject != null) {
             openObject.print();
         }
+    }
+
+    @Override
+    public String toString() {
+        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
+
+        if (openObject == null) {
+            toStrHelper
+            .add("error Obj List", llerrorObjList);
+        } else {
+            toStrHelper
+            .add("error Obj List", llerrorObjList)
+            .add("open Object", openObject);
+        }
+        return toStrHelper.toString();
     }
 }

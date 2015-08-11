@@ -20,6 +20,8 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Provides PCEP Object Header which is common for all the objects.
  * Reference : RFC 5440.
@@ -66,7 +68,6 @@ public class PcepObjectHeader {
      * @param bIFlag I flag
      * @param objLen PCEP object length
      */
-
     public PcepObjectHeader(byte objClass, byte objType, boolean bPFlag, boolean bIFlag, short objLen) {
         this.objClass = objClass;
         this.objType = objType;
@@ -220,5 +221,16 @@ public class PcepObjectHeader {
         log.debug("Object Length: " + objLen);
         log.debug("P flag: " + bPFlag);
         log.debug("I flag: " + bIFlag);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("Object class:", objClass)
+                .add("Object type:", objType)
+                .add("Object length:", objLen)
+                .add("P flag:", bPFlag)
+                .add("I flag:", bIFlag)
+                .toString();
     }
 }
