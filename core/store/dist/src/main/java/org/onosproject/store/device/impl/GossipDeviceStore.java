@@ -252,7 +252,7 @@ public class GossipDeviceStore
 
     @Deactivate
     public void deactivate() {
-
+        devicePortStats.destroy();
         executor.shutdownNow();
 
         backgroundExecutor.shutdownNow();
