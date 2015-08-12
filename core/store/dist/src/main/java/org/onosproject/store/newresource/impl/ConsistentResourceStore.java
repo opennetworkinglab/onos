@@ -102,7 +102,7 @@ public class ConsistentResourceStore implements ResourceStore {
             }
             tx.commit();
             return true;
-        } catch (Exception e) {
+        } catch (TransactionException e) {
             log.error("Exception thrown, abort the transaction", e);
             tx.abort();
             return false;
