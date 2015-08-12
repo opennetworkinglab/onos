@@ -1263,12 +1263,16 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
         // Ensure we receive the full packet via PacketIn
         // FIXME: We don't set the reassembly flags.
-        OFSetConfig sc = factory
-                .buildSetConfig()
-                .setMissSendLen((short) 0xffff)
-                .setXid(this.handshakeTransactionIds--)
-                .build();
-        msglist.add(sc);
+	// Only send config to switches to send full packets, if they have a buffer.
+        // Saves a packet & OFSetConfig can't be handled by certain switches.
+        if(this.featuresReply.getNBuffers() > 0) {
+            OFSetConfig sc = factory
+                    .buildSetConfig()
+                    .setMissSendLen((short) 0xffff)
+                    .setXid(this.handshakeTransactionIds--)
+                    .build();
+            msglist.add(sc);
+        }
 
         // Barrier
         OFBarrierRequest br = factory
