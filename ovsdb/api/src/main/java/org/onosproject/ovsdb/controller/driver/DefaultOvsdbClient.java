@@ -55,7 +55,6 @@ import org.onosproject.ovsdb.rfc.schema.TableSchema;
 import org.onosproject.ovsdb.rfc.table.Bridge;
 import org.onosproject.ovsdb.rfc.table.Controller;
 import org.onosproject.ovsdb.rfc.table.Interface;
-import org.onosproject.ovsdb.rfc.table.OpenVSwitch;
 import org.onosproject.ovsdb.rfc.table.OvsdbTable;
 import org.onosproject.ovsdb.rfc.table.Port;
 import org.onosproject.ovsdb.rfc.table.TableGenerator;
@@ -359,7 +358,6 @@ public class DefaultOvsdbClient
 
     @Override
     public String getOvsUuid(String dbName) {
-        DatabaseSchema dbSchema = schema.get(OvsdbConstant.DATABASENAME);
         OvsdbRowStore rowStore = getRowStore(OvsdbConstant.DATABASENAME,
                                              OvsdbConstant.DATABASENAME);
         if (rowStore == null) {
@@ -367,23 +365,15 @@ public class DefaultOvsdbClient
             return null;
         }
         ConcurrentMap<String, Row> ovsTableRows = rowStore.getRowStore();
-
         if (ovsTableRows != null) {
-
             for (String uuid : ovsTableRows.keySet()) {
-
-                OpenVSwitch ovs = (OpenVSwitch) TableGenerator
-                        .getTable(dbSchema, ovsTableRows.get(uuid),
-                                  OvsdbTable.OPENVSWITCH);
-
-                // FIXME This is a quick hack to fix the build. Functionality/logic not verified. (BOC)
-                if (ovs.dbSchema().name().equals(dbName)) {
+                Row row = ovsTableRows.get(uuid);
+                String tableName = row.tableName();
+                if (tableName.equals(dbName)) {
                     return uuid;
                 }
             }
-
         }
-
         return null;
     }
 
@@ -806,8 +796,7 @@ public class DefaultOvsdbClient
                 .getTableSchema(OvsdbConstant.PORT);
         ColumnSchema portColumnSchema = portTableSchema.getColumnSchema("name");
 
-        // FIXME This is a quick hack to fix the build. Functionality not verified. (BOC)
-        String portName = (String) portRow.getColumn(portColumnSchema.toString()).data();
+        String portName = (String) portRow.getColumn(portColumnSchema.name()).data();
 
         Interface inf = (Interface) TableGenerator
                 .createTable(dbSchema, OvsdbTable.INTERFACE);
