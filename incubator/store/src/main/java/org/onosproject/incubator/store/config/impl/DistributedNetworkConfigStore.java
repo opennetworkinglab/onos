@@ -94,6 +94,7 @@ public class DistributedNetworkConfigStore
         configs = storageService.<ConfigKey, ObjectNode>consistentMapBuilder()
                 .withSerializer(Serializer.using(kryoBuilder.build()))
                 .withName("onos-network-configs")
+                .withRelaxedReadConsistency()
                 .build();
         configs.addListener(listener);
         log.info("Started");

@@ -247,6 +247,11 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
         }
 
         @Override
+        public ConsistentMapBuilder<K, V> withRelaxedReadConsistency() {
+            return this;
+        }
+
+        @Override
         public ConsistentMapBuilder<K, V> withMeteringDisabled() {
             return this;
         }

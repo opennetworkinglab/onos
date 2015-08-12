@@ -39,6 +39,7 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
     private boolean partitionsEnabled = true;
     private boolean readOnly = false;
     private boolean metering = true;
+    private boolean relaxedReadConsistency = false;
     private final DatabaseManager manager;
 
     public DefaultConsistentMapBuilder(DatabaseManager manager) {
@@ -90,6 +91,12 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
         return this;
     }
 
+    @Override
+    public ConsistentMapBuilder<K, V> withRelaxedReadConsistency() {
+        relaxedReadConsistency = true;
+        return this;
+    }
+
     private void validateInputs() {
         checkState(name != null, "name must be specified");
         checkState(serializer != null, "serializer must be specified");
@@ -110,14 +117,25 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
 
     private DefaultAsyncConsistentMap<K, V> buildAndRegisterMap() {
         validateInputs();
-        DefaultAsyncConsistentMap<K, V> asyncMap = new DefaultAsyncConsistentMap<>(
-                name,
-                applicationId,
-                partitionsEnabled ? manager.partitionedDatabase : manager.inMemoryDatabase,
-                serializer,
-                readOnly,
-                purgeOnUninstall,
-                metering);
-        return manager.registerMap(asyncMap);
+        Database database = partitionsEnabled ? manager.partitionedDatabase : manager.inMemoryDatabase;
+        if (relaxedReadConsistency) {
+            return manager.registerMap(
+                    new AsyncCachingConsistentMap<>(name,
+                        applicationId,
+                        database,
+                        serializer,
+                        readOnly,
+                        purgeOnUninstall,
+                        metering));
+        } else {
+            return manager.registerMap(
+                    new DefaultAsyncConsistentMap<>(name,
+                        applicationId,
+                        database,
+                        serializer,
+                        readOnly,
+                        purgeOnUninstall,
+                        metering));
+        }
     }
 }
