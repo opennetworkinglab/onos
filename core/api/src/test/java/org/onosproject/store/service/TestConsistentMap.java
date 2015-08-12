@@ -82,7 +82,12 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
 
     @Override
     public Versioned<V> get(K key) {
-        return version(map.get(key));
+        V value = map.get(key);
+        if (value != null) {
+            return version(value);
+        } else {
+            return null;
+        }
     }
 
     @Override

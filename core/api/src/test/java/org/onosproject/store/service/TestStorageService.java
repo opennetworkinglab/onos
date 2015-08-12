@@ -40,7 +40,7 @@ public class TestStorageService extends StorageServiceAdapter {
 
     @Override
     public AtomicCounterBuilder atomicCounterBuilder() {
-        throw new UnsupportedOperationException("atomicCounterBuilder");
+        return TestAtomicCounter.builder();
     }
 
     @Override
