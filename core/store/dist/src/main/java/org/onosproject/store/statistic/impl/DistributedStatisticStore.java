@@ -37,8 +37,6 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.statistic.StatisticStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.cluster.messaging.ClusterMessage;
-import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.slf4j.Logger;
@@ -112,23 +110,18 @@ public class DistributedStatisticStore implements StatisticStore {
                 MESSAGE_HANDLER_THREAD_POOL_SIZE,
                 groupedThreads("onos/store/statistic", "message-handlers"));
 
-        clusterCommunicator.addSubscriber(GET_CURRENT, new ClusterMessageHandler() {
+        clusterCommunicator.<ConnectPoint, Set<FlowEntry>>addSubscriber(GET_CURRENT,
+                SERIALIZER::decode,
+                this::getCurrentStatisticInternal,
+                SERIALIZER::encode,
+                messageHandlingExecutor);
 
-            @Override
-            public void handle(ClusterMessage message) {
-                ConnectPoint cp = SERIALIZER.decode(message.payload());
-                message.respond(SERIALIZER.encode(getCurrentStatisticInternal(cp)));
-            }
-        }, messageHandlingExecutor);
+        clusterCommunicator.<ConnectPoint, Set<FlowEntry>>addSubscriber(GET_PREVIOUS,
+                SERIALIZER::decode,
+                this::getPreviousStatisticInternal,
+                SERIALIZER::encode,
+                messageHandlingExecutor);
 
-        clusterCommunicator.addSubscriber(GET_PREVIOUS, new ClusterMessageHandler() {
-
-            @Override
-            public void handle(ClusterMessage message) {
-                ConnectPoint cp = SERIALIZER.decode(message.payload());
-                message.respond(SERIALIZER.encode(getPreviousStatisticInternal(cp)));
-            }
-        }, messageHandlingExecutor);
         log.info("Started");
     }
 
