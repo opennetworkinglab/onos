@@ -49,9 +49,11 @@ public class ResourcePathTest {
                 .testEquals();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testCreateWithZeroComponent() {
         ResourcePath path = new ResourcePath();
+
+        assertThat(path, is(ResourcePath.ROOT));
     }
 
     @Test
@@ -66,7 +68,7 @@ public class ResourcePathTest {
     public void testNoParent() {
         ResourcePath path = new ResourcePath(LinkKey.linkKey(CP1_1, CP2_1));
 
-        assertThat(path.parent(), is(Optional.empty()));
+        assertThat(path.parent(), is(Optional.of(ResourcePath.ROOT)));
     }
 
     @Test

@@ -17,7 +17,8 @@ package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
 
-import java.util.function.Predicate;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Service for administering resource service behavior.
@@ -25,13 +26,26 @@ import java.util.function.Predicate;
 @Beta
 public interface ResourceAdminService {
     /**
-     * Define a boundary of the resource specified by the class.
-     * The specified predicate is expected to return true if the supplied value is
-     * in the resource boundary and return false if it is out of the boundary.
+     * Register resources as the children of the parent resource path.
      *
-     * @param cls class of the resource type
-     * @param predicate predicate returning true if the value is in the boundary
-     * @param <T> type of the resource
+     * @param parent parent resource path under which the resource are registered
+     * @param children resources to be registered as the children of the parent
+     * @param <T> type of resources
+     * @return true if registration is successfully done, false otherwise. Registration
+     * succeeds when each resource is not registered or unallocated.
      */
-    <T> void defineResourceBoundary(Class<T> cls, Predicate<T> predicate);
+    default <T> boolean registerResources(ResourcePath parent, T... children) {
+        return registerResources(parent, Arrays.asList(children));
+    }
+
+    /**
+     * Register resources as the children of the parent resource path.
+     *
+     * @param parent parent resource path under which the resource are registered
+     * @param children resources to be registered as the children of the parent
+     * @param <T> type of resources
+     * @return true if registration is successfully done, false otherwise. Registration
+     * succeeds when each resource is not registered or unallocated.
+     */
+    <T> boolean registerResources(ResourcePath parent, List<T> children);
 }

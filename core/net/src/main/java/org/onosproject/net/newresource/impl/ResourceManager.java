@@ -17,6 +17,7 @@ package org.onosproject.net.newresource.impl;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -33,9 +34,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -47,8 +45,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Service
 @Beta
 public final class ResourceManager implements ResourceService, ResourceAdminService {
-
-    private final ConcurrentMap<Class<?>, Predicate<?>> boundaries = new ConcurrentHashMap<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceStore store;
@@ -78,10 +74,6 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
                                              List<ResourcePath> resources) {
         checkNotNull(consumer);
         checkNotNull(resources);
-
-        if (resources.stream().anyMatch(x -> !isValid(x))) {
-            return ImmutableList.of();
-        }
 
         // TODO: implement support of resource hierarchy
         // allocation for a particular resource implies allocations for all of the sub-resources need to be done
@@ -177,38 +169,8 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
     }
 
     @Override
-    public <T> void defineResourceBoundary(Class<T> cls, Predicate<T> predicate) {
-        boundaries.put(cls, predicate);
-    }
-
-    /**
-     * Returns the predicate associated with the specified resource.
-     *
-     * @param resource resource whose associated predicate is to be returned
-     * @param <T> type of the resource
-     * @return predicate associated with the resource
-     * Null if the resource doesn't have an associated predicate.
-     */
-    @SuppressWarnings("unchecked")
-    private <T> Predicate<T> lookupPredicate(T resource) {
-        return (Predicate<T>) boundaries.get(resource.getClass());
-    }
-
-    /**
-     * Returns if the specified resource is in the resource range.
-     * E.g. VLAN ID against a link must be within 12 bit address space.
-     *
-     * @param resource resource to be checked if it is within the resource range
-     * @return true if the resource within the range, false otherwise
-     */
-    boolean isValid(ResourcePath resource) {
-        List<Object> flatten = resource.components();
-        Object bottom = flatten.get(flatten.size() - 1);
-        Predicate<Object> predicate = lookupPredicate(bottom);
-        if (predicate == null) {
-            return true;
-        }
-
-        return predicate.test(bottom);
+    public <T> boolean registerResources(ResourcePath parent, List<T> children) {
+        List<ResourcePath> resources = Lists.transform(children, x -> ResourcePath.child(parent, x));
+        return store.register(parent, resources);
     }
 }

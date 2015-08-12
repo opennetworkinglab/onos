@@ -35,8 +35,12 @@ import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,18 +58,25 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ConsistentResourceStore implements ResourceStore {
     private static final Logger log = LoggerFactory.getLogger(ConsistentResourceStore.class);
 
-    private static final String MAP_NAME = "onos-resource-consumers";
-    private static final Serializer SERIALIZER = Serializer.using(KryoNamespaces.API);
+    private static final String CONSUMER_MAP = "onos-resource-consumers";
+    private static final String CHILD_MAP = "onos-resource-children";
+    private static final Serializer SERIALIZER = Serializer.using(
+            Arrays.asList(KryoNamespaces.BASIC, KryoNamespaces.API));
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService service;
 
-    private ConsistentMap<ResourcePath, ResourceConsumer> consumers;
+    private ConsistentMap<ResourcePath, ResourceConsumer> consumerMap;
+    private ConsistentMap<ResourcePath, List<ResourcePath>> childMap;
 
     @Activate
     public void activate() {
-        consumers = service.<ResourcePath, ResourceConsumer>consistentMapBuilder()
-                .withName(MAP_NAME)
+        consumerMap = service.<ResourcePath, ResourceConsumer>consistentMapBuilder()
+                .withName(CONSUMER_MAP)
+                .withSerializer(SERIALIZER)
+                .build();
+        childMap = service.<ResourcePath, List<ResourcePath>>consistentMapBuilder()
+                .withName(CHILD_MAP)
                 .withSerializer(SERIALIZER)
                 .build();
     }
@@ -74,12 +85,39 @@ public class ConsistentResourceStore implements ResourceStore {
     public Optional<ResourceConsumer> getConsumer(ResourcePath resource) {
         checkNotNull(resource);
 
-        Versioned<ResourceConsumer> consumer = consumers.get(resource);
+        Versioned<ResourceConsumer> consumer = consumerMap.get(resource);
         if (consumer == null) {
             return Optional.empty();
         }
 
         return Optional.of(consumer.value());
+    }
+
+    @Override
+    public boolean register(ResourcePath resource, List<ResourcePath> children) {
+        checkNotNull(resource);
+        checkNotNull(children);
+
+        TransactionContext tx = service.transactionContextBuilder().build();
+        tx.begin();
+
+        try {
+            TransactionalMap<ResourcePath, List<ResourcePath>> childTxMap =
+                    tx.getTransactionalMap(CHILD_MAP, SERIALIZER);
+
+            if (!isRegistered(childTxMap, resource)) {
+                return abortTransaction(tx);
+            }
+
+            if (!appendValue(childTxMap, resource, children)) {
+                return abortTransaction(tx);
+            }
+
+            return commitTransaction(tx);
+        } catch (TransactionException e) {
+            log.error("Exception thrown, abort the transaction", e);
+            return abortTransaction(tx);
+        }
     }
 
     @Override
@@ -91,11 +129,18 @@ public class ConsistentResourceStore implements ResourceStore {
         tx.begin();
 
         try {
-            TransactionalMap<ResourcePath, ResourceConsumer> txMap = tx.getTransactionalMap(MAP_NAME, SERIALIZER);
+            TransactionalMap<ResourcePath, List<ResourcePath>> childTxMap =
+                    tx.getTransactionalMap(CHILD_MAP, SERIALIZER);
+            TransactionalMap<ResourcePath, ResourceConsumer> consumerTxMap =
+                    tx.getTransactionalMap(CONSUMER_MAP, SERIALIZER);
+
             for (ResourcePath resource: resources) {
-                ResourceConsumer existing = txMap.putIfAbsent(resource, consumer);
-                // if the resource is already allocated to another consumer, the whole allocation fails
-                if (existing != null) {
+                if (!isRegistered(childTxMap, resource)) {
+                    return abortTransaction(tx);
+                }
+
+                ResourceConsumer oldValue = consumerTxMap.put(resource, consumer);
+                if (oldValue != null) {
                     return abortTransaction(tx);
                 }
             }
@@ -117,7 +162,8 @@ public class ConsistentResourceStore implements ResourceStore {
         tx.begin();
 
         try {
-            TransactionalMap<ResourcePath, ResourceConsumer> txMap = tx.getTransactionalMap(MAP_NAME, SERIALIZER);
+            TransactionalMap<ResourcePath, ResourceConsumer> consumerTxMap =
+                    tx.getTransactionalMap(CONSUMER_MAP, SERIALIZER);
             Iterator<ResourcePath> resourceIte = resources.iterator();
             Iterator<ResourceConsumer> consumerIte = consumers.iterator();
 
@@ -127,7 +173,7 @@ public class ConsistentResourceStore implements ResourceStore {
 
                 // if this single release fails (because the resource is allocated to another consumer,
                 // the whole release fails
-                if (!txMap.remove(resource, consumer)) {
+                if (!consumerTxMap.remove(resource, consumer)) {
                     return abortTransaction(tx);
                 }
             }
@@ -145,7 +191,7 @@ public class ConsistentResourceStore implements ResourceStore {
 
         // NOTE: getting all entries may become performance bottleneck
         // TODO: revisit for better backend data structure
-        return consumers.entrySet().stream()
+        return consumerMap.entrySet().stream()
                 .filter(x -> x.getValue().value().equals(consumer))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
@@ -156,12 +202,14 @@ public class ConsistentResourceStore implements ResourceStore {
         checkNotNull(parent);
         checkNotNull(cls);
 
-        // NOTE: getting all entries may become performance bottleneck
-        // TODO: revisit for better backend data structure
-        return consumers.entrySet().stream()
-                .filter(x -> x.getKey().parent().isPresent() && x.getKey().parent().get().equals(parent))
-                .filter(x -> x.getKey().lastComponent().getClass() == cls)
-                .map(Map.Entry::getKey)
+        Versioned<List<ResourcePath>> children = childMap.get(parent);
+        if (children == null) {
+            return Collections.emptyList();
+        }
+
+        return children.value().stream()
+                .filter(x -> x.lastComponent().getClass().equals(cls))
+                .filter(consumerMap::containsKey)
                 .collect(Collectors.toList());
     }
 
@@ -185,5 +233,46 @@ public class ConsistentResourceStore implements ResourceStore {
     private boolean commitTransaction(TransactionContext tx) {
         tx.commit();
         return true;
+    }
+
+    /**
+     * Appends the values to the existing values associated with the specified key.
+     *
+     * @param map map holding multiple values for a key
+     * @param key key specifying values
+     * @param values values to be appended
+     * @param <K> type of the key
+     * @param <V> type of the element of the list
+     * @return true if the operation succeeds, false otherwise.
+     */
+    private <K, V> boolean appendValue(TransactionalMap<K, List<V>> map, K key, List<V> values) {
+        List<V> oldValues = map.get(key);
+        List<V> newValues;
+        if (oldValues == null) {
+            newValues = new ArrayList<>(values);
+        } else {
+            LinkedHashSet<V> newSet = new LinkedHashSet<>(oldValues);
+            newSet.addAll(values);
+            newValues = new ArrayList<>(newSet);
+        }
+
+        return map.replace(key, oldValues, newValues);
+    }
+
+    /**
+     * Checks if the specified resource is registered as a child of a resource in the map.
+     *
+     * @param map map storing parent - child relationship of resources
+     * @param resource resource to be checked
+     * @return true if the resource is registered, false otherwise.
+     */
+    private boolean isRegistered(TransactionalMap<ResourcePath, List<ResourcePath>> map, ResourcePath resource) {
+        // root is always regarded to be registered
+        if (!resource.parent().isPresent()) {
+            return true;
+        }
+
+        List<ResourcePath> value = map.get(resource.parent().get());
+        return value != null && value.contains(resource);
     }
 }

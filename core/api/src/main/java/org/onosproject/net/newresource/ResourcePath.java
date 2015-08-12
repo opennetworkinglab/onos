@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -42,6 +41,16 @@ public final class ResourcePath {
 
     private final List<Object> resources;
 
+    public static final ResourcePath ROOT = new ResourcePath(ImmutableList.of());
+
+    public static ResourcePath child(ResourcePath parent, Object child) {
+        ImmutableList<Object> components = ImmutableList.builder()
+                .addAll(parent.components())
+                .add(child)
+                .build();
+        return new ResourcePath(components);
+    }
+
     /**
      * Creates an resource path from the specified components.
      *
@@ -58,7 +67,6 @@ public final class ResourcePath {
      */
     public ResourcePath(List<Object> components) {
         checkNotNull(components);
-        checkArgument(components.size() > 0);
 
         this.resources = ImmutableList.copyOf(components);
     }
@@ -85,7 +93,7 @@ public final class ResourcePath {
      * If there is no parent, empty instance will be returned.
      */
     public Optional<ResourcePath> parent() {
-        if (resources.size() >= 2) {
+        if (resources.size() > 0) {
             return Optional.of(new ResourcePath(resources.subList(0, resources.size() - 1)));
         }
 
