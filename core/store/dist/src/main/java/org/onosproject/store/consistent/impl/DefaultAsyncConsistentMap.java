@@ -193,14 +193,14 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
     public CompletableFuture<Integer> size() {
         final MeteringAgent.Context timer = monitor.startTimer(SIZE);
         return database.mapSize(name)
-                .whenComplete((r, e) -> timer.stop());
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
         final MeteringAgent.Context timer = monitor.startTimer(IS_EMPTY);
         return database.mapIsEmpty(name)
-                .whenComplete((r, e) -> timer.stop());
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
@@ -208,7 +208,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkNotNull(key, ERROR_NULL_KEY);
         final MeteringAgent.Context timer = monitor.startTimer(CONTAINS_KEY);
         return database.mapContainsKey(name, keyCache.getUnchecked(key))
-                .whenComplete((r, e) -> timer.stop());
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
@@ -216,7 +216,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkNotNull(value, ERROR_NULL_VALUE);
         final MeteringAgent.Context timer = monitor.startTimer(CONTAINS_VALUE);
         return database.mapContainsValue(name, serializer.encode(value))
-                .whenComplete((r, e) -> timer.stop());
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
@@ -224,7 +224,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkNotNull(key, ERROR_NULL_KEY);
         final MeteringAgent.Context timer = monitor.startTimer(GET);
         return database.mapGet(name, keyCache.getUnchecked(key))
-                .whenComplete((r, e) -> timer.stop())
+                .whenComplete((r, e) -> timer.stop(e))
                 .thenApply(v -> v != null ? v.map(serializer::decode) : null);
     }
 
@@ -235,7 +235,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkNotNull(mappingFunction, "Mapping function cannot be null");
         final MeteringAgent.Context timer = monitor.startTimer(COMPUTE_IF_ABSENT);
         return updateAndGet(key, Match.ifNull(), Match.any(), mappingFunction.apply(key))
-                .whenComplete((r, e) -> timer.stop())
+                .whenComplete((r, e) -> timer.stop(e))
                 .thenApply(v -> v.newValue());
     }
 
@@ -279,7 +279,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
             Match<V> valueMatcher = r1 == null ? Match.ifNull() : Match.any();
             Match<Long> versionMatcher = r1 == null ? Match.any() : Match.ifValue(r1.version());
             return updateAndGet(key, valueMatcher, versionMatcher, computedValue.get())
-                    .whenComplete((r, e) -> timer.stop())
+                    .whenComplete((r, e) -> timer.stop(e))
                     .thenApply(v -> {
                         if (v.updated()) {
                             return v.newValue();
@@ -296,7 +296,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkNotNull(value, ERROR_NULL_VALUE);
         final MeteringAgent.Context timer = monitor.startTimer(PUT);
         return updateAndGet(key, Match.any(), Match.any(), value).thenApply(v -> v.oldValue())
-                .whenComplete((r, e) -> timer.stop());
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
@@ -305,7 +305,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkNotNull(value, ERROR_NULL_VALUE);
         final MeteringAgent.Context timer = monitor.startTimer(PUT_AND_GET);
         return updateAndGet(key, Match.any(), Match.any(), value).thenApply(v -> v.newValue())
-                .whenComplete((r, e) -> timer.stop());
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
@@ -313,7 +313,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkNotNull(key, ERROR_NULL_KEY);
         final MeteringAgent.Context timer = monitor.startTimer(REMOVE);
         return updateAndGet(key, Match.any(), Match.any(), null).thenApply(v -> v.oldValue())
-                .whenComplete((r, e) -> timer.stop());
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
@@ -321,7 +321,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkIfUnmodifiable();
         final MeteringAgent.Context timer = monitor.startTimer(CLEAR);
         return database.mapClear(name).thenApply(this::unwrapResult)
-                .whenComplete((r, e) -> timer.stop());
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
@@ -332,14 +332,14 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
                         .stream()
                         .map(this::dK)
                         .collect(Collectors.toSet()))
-                .whenComplete((r, e) -> timer.stop());
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
     public CompletableFuture<Collection<Versioned<V>>> values() {
         final MeteringAgent.Context timer = monitor.startTimer(VALUES);
         return database.mapValues(name)
-                .whenComplete((r, e) -> timer.stop())
+                .whenComplete((r, e) -> timer.stop(e))
                 .thenApply(c -> c
                         .stream()
                         .map(v -> v.<V>map(serializer::decode))
@@ -350,7 +350,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
     public CompletableFuture<Set<Entry<K, Versioned<V>>>> entrySet() {
         final MeteringAgent.Context timer = monitor.startTimer(ENTRY_SET);
         return database.mapEntrySet(name)
-                .whenComplete((r, e) -> timer.stop())
+                .whenComplete((r, e) -> timer.stop(e))
                 .thenApply(s -> s
                         .stream()
                         .map(this::mapRawEntry)
@@ -363,7 +363,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkNotNull(value, ERROR_NULL_VALUE);
         final MeteringAgent.Context timer = monitor.startTimer(PUT_IF_ABSENT);
         return updateAndGet(key, Match.ifNull(), Match.any(), value)
-                .whenComplete((r, e) -> timer.stop())
+                .whenComplete((r, e) -> timer.stop(e))
                 .thenApply(v -> v.oldValue());
     }
 
@@ -373,7 +373,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkNotNull(value, ERROR_NULL_VALUE);
         final MeteringAgent.Context timer = monitor.startTimer(REMOVE);
         return updateAndGet(key, Match.ifValue(value), Match.any(), null)
-                .whenComplete((r, e) -> timer.stop())
+                .whenComplete((r, e) -> timer.stop(e))
                 .thenApply(v -> v.updated());
     }
 
@@ -382,7 +382,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkNotNull(key, ERROR_NULL_KEY);
         final MeteringAgent.Context timer = monitor.startTimer(REMOVE);
         return updateAndGet(key, Match.any(), Match.ifValue(version), null)
-                .whenComplete((r, e) -> timer.stop())
+                .whenComplete((r, e) -> timer.stop(e))
                 .thenApply(v -> v.updated());
     }
 
@@ -393,7 +393,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkNotNull(newValue, ERROR_NULL_VALUE);
         final MeteringAgent.Context timer = monitor.startTimer(REPLACE);
         return updateAndGet(key, Match.ifValue(oldValue), Match.any(), newValue)
-                .whenComplete((r, e) -> timer.stop())
+                .whenComplete((r, e) -> timer.stop(e))
                 .thenApply(v -> v.updated());
     }
 
@@ -401,7 +401,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
     public CompletableFuture<Boolean> replace(K key, long oldVersion, V newValue) {
         final MeteringAgent.Context timer = monitor.startTimer(REPLACE);
         return updateAndGet(key, Match.any(), Match.ifValue(oldVersion), newValue)
-                .whenComplete((r, e) -> timer.stop())
+                .whenComplete((r, e) -> timer.stop(e))
                 .thenApply(v -> v.updated());
     }
 

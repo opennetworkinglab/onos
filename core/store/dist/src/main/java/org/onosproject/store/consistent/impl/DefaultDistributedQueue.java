@@ -73,7 +73,7 @@ public class DefaultDistributedQueue<E>  implements DistributedQueue<E> {
     @Override
     public long size() {
         final MeteringAgent.Context timer = monitor.startTimer(SIZE);
-        return Futures.getUnchecked(database.queueSize(name).whenComplete((r, e) -> timer.stop()));
+        return Futures.getUnchecked(database.queueSize(name).whenComplete((r, e) -> timer.stop(e)));
     }
 
     @Override
@@ -81,14 +81,14 @@ public class DefaultDistributedQueue<E>  implements DistributedQueue<E> {
         checkNotNull(entry, ERROR_NULL_ENTRY);
         final MeteringAgent.Context timer = monitor.startTimer(PUSH);
         Futures.getUnchecked(database.queuePush(name, serializer.encode(entry))
-                                     .whenComplete((r, e) -> timer.stop()));
+                                     .whenComplete((r, e) -> timer.stop(e)));
     }
 
     @Override
     public CompletableFuture<E> pop() {
         final MeteringAgent.Context timer = monitor.startTimer(POP);
         return database.queuePop(name)
-                       .whenComplete((r, e) -> timer.stop())
+                       .whenComplete((r, e) -> timer.stop(e))
                        .thenCompose(v -> {
                            if (v != null) {
                                return CompletableFuture.completedFuture(serializer.decode(v));
@@ -97,6 +97,7 @@ public class DefaultDistributedQueue<E>  implements DistributedQueue<E> {
                            pendingFutures.add(newPendingFuture);
                            return newPendingFuture;
                        });
+
     }
 
     @Override
@@ -104,7 +105,7 @@ public class DefaultDistributedQueue<E>  implements DistributedQueue<E> {
         final MeteringAgent.Context timer = monitor.startTimer(PEEK);
         return Futures.getUnchecked(database.queuePeek(name)
                                             .thenApply(v -> v != null ? serializer.<E>decode(v) : null)
-                                            .whenComplete((r, e) -> timer.stop()));
+                                            .whenComplete((r, e) -> timer.stop(e)));
     }
 
     public String name() {

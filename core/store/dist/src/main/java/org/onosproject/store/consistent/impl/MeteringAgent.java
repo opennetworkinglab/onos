@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.consistent.impl;
 
+import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.google.common.collect.Maps;
 import org.onlab.metrics.MetricsComponent;
@@ -32,6 +33,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class MeteringAgent {
 
+    private Counter exceptionCounter;
+    private Counter perObjExceptionCounter;
     private MetricsService metricsService;
     private MetricsComponent metricsComponent;
     private MetricsFeature metricsFeature;
@@ -63,6 +66,8 @@ public class MeteringAgent {
             this.wildcard = metricsComponent.registerFeature("*");
             this.perObjTimer = metricsService.createTimer(metricsComponent, metricsFeature, "*");
             this.perPrimitiveTimer = metricsService.createTimer(metricsComponent, wildcard, "*");
+            this.perObjExceptionCounter = metricsService.createCounter(metricsComponent, metricsFeature, "exceptions");
+            this.exceptionCounter = metricsService.createCounter(metricsComponent, wildcard, "exceptions");
         }
     }
 
@@ -103,19 +108,25 @@ public class MeteringAgent {
 
         /**
          * Stops timer given a specific context and updates all related metrics.
+         * @param e
          */
-        public void stop() {
+        public void stop(Throwable e) {
             if (!activated) {
                 return;
             }
-            //Stop and updates timer with specific measurements per map, per operation
-            final long time = context.stop();
-            //updates timer with aggregated measurements per map
-            perOpTimers.get(operation).update(time, TimeUnit.NANOSECONDS);
-            //updates timer with aggregated measurements per map
-            perObjTimer.update(time, TimeUnit.NANOSECONDS);
-            //updates timer with aggregated measurements per all Consistent Maps
-            perPrimitiveTimer.update(time, TimeUnit.NANOSECONDS);
+            if (e == null) {
+                //Stop and updates timer with specific measurements per map, per operation
+                final long time = context.stop();
+                //updates timer with aggregated measurements per map
+                perOpTimers.get(operation).update(time, TimeUnit.NANOSECONDS);
+                //updates timer with aggregated measurements per map
+                perObjTimer.update(time, TimeUnit.NANOSECONDS);
+                //updates timer with aggregated measurements per all Consistent Maps
+                perPrimitiveTimer.update(time, TimeUnit.NANOSECONDS);
+            } else {
+                exceptionCounter.inc();
+                perObjExceptionCounter.inc();
+            }
         }
     }
 

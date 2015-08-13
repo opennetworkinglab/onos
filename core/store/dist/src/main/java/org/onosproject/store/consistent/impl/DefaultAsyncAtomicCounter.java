@@ -51,34 +51,34 @@ public class DefaultAsyncAtomicCounter implements AsyncAtomicCounter {
     public CompletableFuture<Long> incrementAndGet() {
         final MeteringAgent.Context timer = monitor.startTimer(INCREMENT_AND_GET);
         return addAndGet(1L)
-                .whenComplete((r, e) -> timer.stop());
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
     public CompletableFuture<Long> get() {
         final MeteringAgent.Context timer = monitor.startTimer(GET);
         return database.counterGet(name)
-                .whenComplete((r, e) -> timer.stop());
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
     public CompletableFuture<Long> getAndIncrement() {
         final MeteringAgent.Context timer = monitor.startTimer(GET_AND_INCREMENT);
         return getAndAdd(1L)
-                .whenComplete((r, e) -> timer.stop());
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
     public CompletableFuture<Long> getAndAdd(long delta) {
         final MeteringAgent.Context timer = monitor.startTimer(GET_AND_ADD);
         return database.counterGetAndAdd(name, delta)
-                       .whenComplete((r, e) -> timer.stop());
+                       .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
     public CompletableFuture<Long> addAndGet(long delta) {
         final MeteringAgent.Context timer = monitor.startTimer(ADD_AND_GET);
         return database.counterAddAndGet(name, delta)
-                       .whenComplete((r, e) -> timer.stop());
+                       .whenComplete((r, e) -> timer.stop(e));
     }
 }

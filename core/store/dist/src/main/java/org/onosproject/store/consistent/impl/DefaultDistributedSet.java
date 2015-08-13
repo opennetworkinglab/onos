@@ -67,7 +67,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
         try {
             return backingMap.size();
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 
@@ -77,7 +77,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
         try {
             return backingMap.isEmpty();
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 
@@ -88,7 +88,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
         try {
             return backingMap.containsKey((E) o);
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 
@@ -99,7 +99,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
         try {
             return backingMap.keySet().iterator();
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 
@@ -109,7 +109,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
         try {
             return backingMap.keySet().stream().toArray();
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 
@@ -119,7 +119,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
         try {
             return backingMap.keySet().stream().toArray(size -> a);
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 
@@ -129,7 +129,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
         try {
             return backingMap.putIfAbsent(e, true) == null;
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 
@@ -140,7 +140,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
         try {
             return backingMap.remove((E) o) != null;
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 
@@ -151,7 +151,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
            return c.stream()
                 .allMatch(this::contains);
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 
@@ -164,7 +164,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
                 .reduce(Boolean::logicalOr)
                 .orElse(false);
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 
@@ -180,7 +180,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
                 .reduce(Boolean::logicalOr)
                 .orElse(false);
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 
@@ -196,7 +196,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
                 .reduce(Boolean::logicalOr)
                 .orElse(false);
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 
@@ -206,7 +206,7 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
         try {
             backingMap.clear();
         } finally {
-            timer.stop();
+            timer.stop(null);
         }
     }
 

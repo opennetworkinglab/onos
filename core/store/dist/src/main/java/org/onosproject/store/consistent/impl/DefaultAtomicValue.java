@@ -72,7 +72,7 @@ public class DefaultAtomicValue<V> implements AtomicValue<V> {
                 return valueMap.replace(name, serializer.encode(expect), serializer.encode(update));
             }
         } finally {
-            newTimer.stop();
+            newTimer.stop(null);
         }
     }
 
@@ -83,7 +83,7 @@ public class DefaultAtomicValue<V> implements AtomicValue<V> {
             Versioned<byte[]> rawValue = valueMap.get(name);
             return rawValue == null ? null : serializer.decode(rawValue.value());
         } finally {
-            newTimer.stop();
+            newTimer.stop(null);
         }
     }
 
@@ -95,7 +95,7 @@ public class DefaultAtomicValue<V> implements AtomicValue<V> {
                     valueMap.remove(name) : valueMap.put(name, serializer.encode(value));
             return previousValue == null ? null : serializer.decode(previousValue.value());
         } finally {
-            newTimer.stop();
+            newTimer.stop(null);
         }
     }
 
