@@ -142,21 +142,21 @@ public class FlowsWebResource extends AbstractWebResource {
                                InputStream stream) {
         URI location;
         try {
-            FlowRuleService service = get(FlowRuleService.class);
-            ObjectNode root = (ObjectNode) mapper().readTree(stream);
-            JsonNode specifiedDeviceId = root.get("deviceId");
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            JsonNode specifiedDeviceId = jsonTree.get("deviceId");
             if (specifiedDeviceId != null &&
                     !specifiedDeviceId.asText().equals(deviceId)) {
                 throw new IllegalArgumentException(
                         "Invalid deviceId in flow creation request");
             }
-            root.put("deviceId", deviceId);
-            FlowRule rule = codec(FlowRule.class).decode(root, this);
+            jsonTree.put("deviceId", deviceId);
+            FlowRule rule = codec(FlowRule.class).decode(jsonTree, this);
             service.applyFlowRules(rule);
             location = new URI(Long.toString(rule.id().value()));
         } catch (IOException | URISyntaxException ex) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            throw new IllegalArgumentException(ex);
         }
+
         return Response
                 .created(location)
                 .build();

@@ -125,7 +125,7 @@ public class HostsWebResource extends AbstractWebResource {
             hostProviderRegistry.unregister(hostProvider);
 
         } catch (IOException ex) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            throw new IllegalArgumentException(ex);
         }
         return Response
                 .created(location)
@@ -137,19 +137,20 @@ public class HostsWebResource extends AbstractWebResource {
                 new ProviderId("host", "org.onosproject.rest", true);
         private HostProviderService hostProviderService;
 
-        // Not implemented since there is no need to check for hosts on network
-        public void triggerProbe(Host host) {
+        private InternalHostProvider() {
         }
 
-        // Creates new InternalHostProvider with a HostProviderRegistry param.
-        private InternalHostProvider() {
+        public void triggerProbe(Host host) {
+            // Not implemented since there is no need to check for hosts on network
         }
 
         public void setHostProviderService(HostProviderService service) {
             this.hostProviderService = service;
         }
 
-        // Return the ProviderId of "this"
+        /*
+         * Return the ProviderId of "this"
+         */
         public ProviderId id() {
             return providerId;
         }
@@ -161,7 +162,7 @@ public class HostsWebResource extends AbstractWebResource {
          */
         private HostId parseHost(JsonNode node) {
             MacAddress mac = MacAddress.valueOf(node.get("mac").asText());
-            VlanId vlanId = VlanId.vlanId(((short) node.get("vlan").asInt((VlanId.UNTAGGED))));
+            VlanId vlanId = VlanId.vlanId((short) node.get("vlan").asInt(VlanId.UNTAGGED));
             JsonNode locationNode = node.get("location");
             String deviceAndPort = locationNode.get("elementId").asText() + "/" +
                     locationNode.get("port").asText();

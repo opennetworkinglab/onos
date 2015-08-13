@@ -280,13 +280,11 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     @SuppressWarnings("unchecked")
     public Response delete() {
         NetworkConfigService service = get(NetworkConfigService.class);
-        service.getSubjectClasses().forEach(subjectClass -> {
-            service.getSubjects(subjectClass).forEach(subject -> {
-                service.getConfigs(subject).forEach(config -> {
-                    service.removeConfig(subject, config.getClass());
-                });
-            });
-        });
+        service.getSubjectClasses()
+                .forEach(subjectClass -> service.getSubjects(subjectClass)
+                        .forEach(subject -> service.getConfigs(subject)
+                                .forEach(config -> service
+                                        .removeConfig(subject, config.getClass()))));
         return Response.ok().build();
     }
 
@@ -303,11 +301,10 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     @SuppressWarnings("unchecked")
     public Response delete(@PathParam("subjectKey") String subjectKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
-        service.getSubjects(service.getSubjectFactory(subjectKey).getClass()).forEach(subject -> {
-            service.getConfigs(subject).forEach(config -> {
-                service.removeConfig(subject, config.getClass());
-            });
-        });
+        service.getSubjects(service.getSubjectFactory(subjectKey).getClass())
+                .forEach(subject -> service.getConfigs(subject)
+                        .forEach(config -> service
+                                .removeConfig(subject, config.getClass())));
         return Response.ok().build();
     }
 }

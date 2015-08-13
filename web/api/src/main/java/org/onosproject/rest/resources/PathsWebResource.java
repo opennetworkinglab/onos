@@ -38,25 +38,16 @@ import org.onosproject.rest.AbstractWebResource;
 @Path("paths")
 public class PathsWebResource extends AbstractWebResource {
 
-    // Host id format is 00:00:00:00:00:01/-1
-    private static final int VLAN_SEPARATOR_OFFSET = 17;
-    private static final int FIRST_MAC_ADDRESS_SEPARATOR_OFFSET = 2;
-    private static final int SECOND_MAC_ADDRESS_SEPARATOR_OFFSET = 5;
-    private static final int THIRD_MAC_ADDRESS_SEPARATOR_OFFSET = 8;
-
     /**
      * Determines if the id appears to be the id of a host.
+     * Host id format is 00:00:00:00:00:01/-1
      *
      * @param id id string
      * @return HostId if the id is valid, null otherwise
      */
     private HostId isHostId(String id) {
 
-        if (id.length() < VLAN_SEPARATOR_OFFSET + 1 ||
-            id.charAt(FIRST_MAC_ADDRESS_SEPARATOR_OFFSET) != ':' ||
-            id.charAt(SECOND_MAC_ADDRESS_SEPARATOR_OFFSET) != ':' ||
-            id.charAt(THIRD_MAC_ADDRESS_SEPARATOR_OFFSET) != ':' ||
-            id.charAt(VLAN_SEPARATOR_OFFSET) != '/') {
+        if (!id.matches("..:..:..:..:..:../.*")) {
             return null;
         }
 

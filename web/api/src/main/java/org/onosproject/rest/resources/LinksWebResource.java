@@ -35,7 +35,11 @@ import static org.onosproject.net.PortNumber.portNumber;
 @Path("links")
 public class LinksWebResource extends AbstractWebResource {
 
-    enum Direction { ALL, INGRESS, EGRESS }
+    enum Direction {
+        ALL,
+        INGRESS,
+        EGRESS
+    }
 
     @GET
     public Response getLinks(@QueryParam("device") String deviceId,
