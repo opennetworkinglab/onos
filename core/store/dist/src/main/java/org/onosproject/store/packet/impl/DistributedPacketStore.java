@@ -35,8 +35,6 @@ import org.onosproject.net.packet.PacketStore;
 import org.onosproject.net.packet.PacketStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.cluster.messaging.ClusterMessage;
-import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
@@ -104,9 +102,10 @@ public class DistributedPacketStore
                 MESSAGE_HANDLER_THREAD_POOL_SIZE,
                 groupedThreads("onos/store/packet", "message-handlers"));
 
-        communicationService.addSubscriber(PACKET_OUT_SUBJECT,
-                                           new InternalClusterMessageHandler(),
-                                           messageHandlingExecutor);
+        communicationService.<OutboundPacket>addSubscriber(PACKET_OUT_SUBJECT,
+                SERIALIZER::decode,
+                packet -> notifyDelegate(new PacketEvent(Type.EMIT, packet)),
+                messageHandlingExecutor);
 
         tracker = new PacketRequestTracker();
 
@@ -134,9 +133,12 @@ public class DistributedPacketStore
             return;
         }
 
-        // TODO check unicast return value
-        communicationService.unicast(packet, PACKET_OUT_SUBJECT, SERIALIZER::encode, master);
-        // error log: log.warn("Failed to send packet-out to {}", master);
+        communicationService.unicast(packet, PACKET_OUT_SUBJECT, SERIALIZER::encode, master)
+                            .whenComplete((r, error) -> {
+                                if (error != null) {
+                                    log.warn("Failed to send packet-out to {}", master, error);
+                                }
+                            });
     }
 
     @Override
@@ -152,21 +154,6 @@ public class DistributedPacketStore
     @Override
     public Set<PacketRequest> existingRequests() {
         return tracker.requests();
-    }
-
-    /**
-     * Handles incoming cluster messages.
-     */
-    private class InternalClusterMessageHandler implements ClusterMessageHandler {
-        @Override
-        public void handle(ClusterMessage message) {
-            if (!message.subject().equals(PACKET_OUT_SUBJECT)) {
-                log.warn("Received message with wrong subject: {}", message);
-            }
-
-            OutboundPacket packet = SERIALIZER.decode(message.payload());
-            notifyDelegate(new PacketEvent(Type.EMIT, packet));
-        }
     }
 
     private class PacketRequestTracker {

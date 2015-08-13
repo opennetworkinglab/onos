@@ -17,6 +17,7 @@ package org.onosproject.store.app;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -39,8 +40,6 @@ import org.onosproject.core.ApplicationIdStore;
 import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.Permission;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.cluster.messaging.ClusterMessage;
-import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
@@ -48,10 +47,12 @@ import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
 import org.onosproject.store.service.LogicalClockService;
 import org.onosproject.store.service.MultiValuedTimestamp;
+import org.onosproject.store.service.StorageException;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -126,7 +127,17 @@ public class GossipApplicationStore extends ApplicationArchive
         messageHandlingExecutor = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/store/app", "message-handler"));
 
-        clusterCommunicator.addSubscriber(APP_BITS_REQUEST, new InternalBitServer(), messageHandlingExecutor);
+        clusterCommunicator.<String, byte[]>addSubscriber(APP_BITS_REQUEST,
+                bytes -> new String(bytes, Charsets.UTF_8),
+                name -> {
+                    try {
+                        return toByteArray(getApplicationInputStream(name));
+                    } catch (IOException e) {
+                        throw new StorageException(e);
+                    }
+                },
+                Function.identity(),
+                messageHandlingExecutor);
 
         // FIXME: Consider consolidating into a single map.
 
@@ -390,21 +401,6 @@ public class GossipApplicationStore extends ApplicationArchive
             }
         } catch (InterruptedException e) {
             log.warn("Interrupted while fetching bits for application {}", app.id().name());
-        }
-    }
-
-    /**
-     * Responder to requests for application bits.
-     */
-    private class InternalBitServer implements ClusterMessageHandler {
-        @Override
-        public void handle(ClusterMessage message) {
-            String name = new String(message.payload(), Charsets.UTF_8);
-            try {
-                message.respond(toByteArray(getApplicationInputStream(name)));
-            } catch (Exception e) {
-                log.debug("Unable to read bits for application {}", name);
-            }
         }
     }
 
