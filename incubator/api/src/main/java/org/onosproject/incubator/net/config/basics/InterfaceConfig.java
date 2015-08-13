@@ -36,19 +36,41 @@ public class InterfaceConfig extends Config<ConnectPoint> {
     public static final String MAC = "mac";
     public static final String VLAN = "vlan";
 
+    public static final String IP_MISSING_ERROR = "Must have at least one IP address";
+    public static final String MAC_MISSING_ERROR = "Must have a MAC address for each interface";
+    public static final String CONFIG_VALUE_ERROR = "Error parsing config value";
+
     /**
      * Retrieves all interfaces configured on this port.
      *
      * @return set of interfaces
+     * @throws ConfigException if there is any error in the JSON config
      */
-    public Set<Interface> getInterfaces() {
+    public Set<Interface> getInterfaces() throws ConfigException {
         Set<Interface> interfaces = Sets.newHashSet();
 
-        for (JsonNode intfNode : node.path(INTERFACES)) {
-            interfaces.add(new Interface(subject,
-                    getIps(intfNode),
-                    MacAddress.valueOf(intfNode.path(MAC).asText()),
-                    VlanId.vlanId(Short.parseShort(intfNode.path(VLAN).asText()))));
+        try {
+            for (JsonNode intfNode : node.path(INTERFACES)) {
+                Set<InterfaceIpAddress> ips = getIps(intfNode);
+                if (ips.isEmpty()) {
+                    throw new ConfigException(IP_MISSING_ERROR);
+                }
+
+                if (intfNode.path(MAC).isMissingNode()) {
+                    throw new ConfigException(MAC_MISSING_ERROR);
+                }
+
+                MacAddress mac = MacAddress.valueOf(intfNode.path(MAC).asText());
+
+                VlanId vlan = VlanId.NONE;
+                if (!intfNode.path(VLAN).isMissingNode()) {
+                    vlan = VlanId.vlanId(Short.valueOf(intfNode.path(VLAN).asText()));
+                }
+
+                interfaces.add(new Interface(subject, ips, mac, vlan));
+            }
+        } catch (IllegalArgumentException e) {
+            throw new ConfigException(CONFIG_VALUE_ERROR, e);
         }
 
         return interfaces;

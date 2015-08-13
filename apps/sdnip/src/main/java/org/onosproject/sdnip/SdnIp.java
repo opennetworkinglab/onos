@@ -26,9 +26,10 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
-import org.onosproject.config.NetworkConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.routing.RoutingService;
@@ -70,13 +71,11 @@ public class SdnIp implements SdnIpService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RoutingConfigurationService config;
 
-    //
-    // NOTE: Unused reference - needed to guarantee that the
-    // NetworkConfigReader component is activated and the network configuration
-    // is read.
-    //
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService networkConfigService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected InterfaceService interfaceService;
 
     private IntentSynchronizer intentSynchronizer;
     private PeerConnectivityManager peerConnectivity;
@@ -96,12 +95,15 @@ public class SdnIp implements SdnIpService {
 
         intentSynchronizer = new IntentSynchronizer(appId, intentService,
                                                     hostService,
-                                                    config);
+                                                    config,
+                                                    interfaceService);
         intentSynchronizer.start();
 
         peerConnectivity = new PeerConnectivityManager(appId,
                                                        intentSynchronizer,
-                                                       config);
+                                                       networkConfigService,
+                coreService.getAppId(RoutingService.ROUTER_APP_ID),
+                                                       interfaceService);
         peerConnectivity.start();
 
         routingService.addFibListener(intentSynchronizer);

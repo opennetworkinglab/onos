@@ -19,6 +19,8 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -29,8 +31,6 @@ import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.routing.config.Interface;
-import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,14 +41,14 @@ public class IcmpHandler {
     private static final Logger log = LoggerFactory.getLogger(IcmpHandler.class);
 
     private final PacketService packetService;
-    private final RoutingConfigurationService configService;
+    private final InterfaceService interfaceService;
 
     private final IcmpProcessor processor = new IcmpProcessor();
 
 
-    public IcmpHandler(RoutingConfigurationService configService,
+    public IcmpHandler(InterfaceService interfaceService,
                        PacketService packetService) {
-        this.configService = configService;
+        this.interfaceService = interfaceService;
         this.packetService = packetService;
     }
 
@@ -67,7 +67,7 @@ public class IcmpHandler {
         IPv4 ipv4 = (IPv4) ethernet.getPayload();
         ConnectPoint connectPoint = pkt.receivedFrom();
         IpAddress destIpAddress = IpAddress.valueOf(ipv4.getDestinationAddress());
-        Interface targetInterface = configService.getMatchingInterface(destIpAddress);
+        Interface targetInterface = interfaceService.getMatchingInterface(destIpAddress);
 
         if (targetInterface == null) {
             log.trace("No matching interface for {}", destIpAddress);

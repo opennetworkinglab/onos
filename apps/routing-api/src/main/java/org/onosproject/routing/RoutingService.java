@@ -18,6 +18,7 @@ package org.onosproject.routing;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.routing.config.BgpConfig;
 
 import java.util.Collection;
 
@@ -27,6 +28,8 @@ import java.util.Collection;
 public interface RoutingService {
 
     String ROUTER_APP_ID = "org.onosproject.router";
+
+    Class<BgpConfig> CONFIG_CLASS = BgpConfig.class;
 
     /**
      * Specifies the type of an IP address or an IP prefix location.

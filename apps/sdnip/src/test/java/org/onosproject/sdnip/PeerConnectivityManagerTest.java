@@ -29,6 +29,9 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -41,9 +44,9 @@ import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.routing.config.BgpConfig;
 import org.onosproject.routing.config.BgpPeer;
 import org.onosproject.routing.config.BgpSpeaker;
-import org.onosproject.routing.config.Interface;
 import org.onosproject.routing.config.InterfaceAddress;
 import org.onosproject.routing.config.RoutingConfigurationService;
 
@@ -53,6 +56,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -78,16 +82,21 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         }
     };
 
+    private static final ApplicationId CONFIG_APP_ID = APPID;
+
     private PeerConnectivityManager peerConnectivityManager;
     private IntentSynchronizer intentSynchronizer;
     private RoutingConfigurationService routingConfig;
+    private InterfaceService interfaceService;
+    private NetworkConfigService networkConfigService;
     private IntentService intentService;
 
-    private Map<String, BgpSpeaker> bgpSpeakers;
+    private Set<BgpConfig.BgpSpeakerConfig> bgpSpeakers;
     private Map<String, Interface> interfaces;
     private Map<IpAddress, BgpPeer> peers;
 
-    private Map<String, BgpSpeaker> configuredBgpSpeakers;
+    private BgpConfig bgpConfig;
+
     private Map<String, Interface> configuredInterfaces;
     private Map<IpAddress, BgpPeer> configuredPeers;
     private List<PointToPointIntent> intentList;
@@ -119,9 +128,12 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
     public void setUp() throws Exception {
         super.setUp();
         routingConfig = createMock(RoutingConfigurationService.class);
+        interfaceService = createMock(InterfaceService.class);
+        networkConfigService = createMock(NetworkConfigService.class);
+        bgpConfig = createMock(BgpConfig.class);
 
-        // These will set expectations on routingConfig
-        bgpSpeakers = Collections.unmodifiableMap(setUpBgpSpeakers());
+        // These will set expectations on routingConfig and interfaceService
+        bgpSpeakers = setUpBgpSpeakers();
         interfaces = Collections.unmodifiableMap(setUpInterfaces());
         peers = Collections.unmodifiableMap(setUpPeers());
 
@@ -134,31 +146,20 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      *
      * @return configured BGP speakers as a map from speaker name to speaker
      */
-    private Map<String, BgpSpeaker> setUpBgpSpeakers() {
+    private Set<BgpConfig.BgpSpeakerConfig> setUpBgpSpeakers() {
 
-        configuredBgpSpeakers = new HashMap<>();
+        BgpConfig.BgpSpeakerConfig speaker1 = new BgpConfig.BgpSpeakerConfig(
+                s1Eth100, Collections.singleton(IpAddress.valueOf("192.168.10.1")));
 
-        BgpSpeaker bgpSpeaker1 = new BgpSpeaker(
-                "bgpSpeaker1",
-                "00:00:00:00:00:00:00:01", 100,
-                "00:00:00:00:00:01");
-        List<InterfaceAddress> interfaceAddresses1 = new LinkedList<>();
-        interfaceAddresses1.add(new InterfaceAddress(dpid1, 1, "192.168.10.101"));
-        bgpSpeaker1.setInterfaceAddresses(interfaceAddresses1);
-        configuredBgpSpeakers.put(bgpSpeaker1.name(), bgpSpeaker1);
+        BgpConfig.BgpSpeakerConfig speaker2 = new BgpConfig.BgpSpeakerConfig(
+                s1Eth100, Sets.newHashSet(IpAddress.valueOf("192.168.20.1"),
+                IpAddress.valueOf("192.168.30.1")));
 
-        // BGP speaker2 is attached to the same switch port with speaker1
-        BgpSpeaker bgpSpeaker2 = new BgpSpeaker(
-                "bgpSpeaker2",
-                "00:00:00:00:00:00:00:01", 100,
-                "00:00:00:00:00:02");
-        List<InterfaceAddress> interfaceAddresses2 = new LinkedList<>();
-        interfaceAddresses2.add(new InterfaceAddress(dpid2, 1, "192.168.20.101"));
-        interfaceAddresses2.add(new InterfaceAddress(dpid2, 1, "192.168.30.101"));
-        bgpSpeaker2.setInterfaceAddresses(interfaceAddresses2);
-        configuredBgpSpeakers.put(bgpSpeaker2.name(), bgpSpeaker2);
+        Set<BgpConfig.BgpSpeakerConfig> bgpSpeakers = Sets.newHashSet();
+        bgpSpeakers.add(speaker1);
+        bgpSpeakers.add(speaker2);
 
-        return configuredBgpSpeakers;
+        return bgpSpeakers;
     }
 
     /**
@@ -201,26 +202,31 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 VlanId.NONE);
         configuredInterfaces.put(interfaceSw2Eth1intf2, intfsw2eth1intf2);
 
-        expect(routingConfig.getInterface(s1Eth1))
+        expect(interfaceService.getInterfacesByPort(s1Eth1))
+                .andReturn(Collections.singleton(intfsw1eth1)).anyTimes();
+        expect(interfaceService.getInterfacesByIp(IpAddress.valueOf("192.168.10.101")))
+                .andReturn(Collections.singleton(intfsw1eth1)).anyTimes();
+        expect(interfaceService.getMatchingInterface(IpAddress.valueOf("192.168.10.1")))
                 .andReturn(intfsw1eth1).anyTimes();
-        expect(routingConfig.getInterface(IpAddress.valueOf("192.168.10.101")))
-                .andReturn(intfsw1eth1).anyTimes();
-        expect(routingConfig.getInterface(s2Eth1))
+        expect(interfaceService.getInterfacesByPort(s2Eth1))
+                .andReturn(Collections.singleton(intfsw2eth1)).anyTimes();
+        expect(interfaceService.getInterfacesByIp(IpAddress.valueOf("192.168.20.101")))
+                .andReturn(Collections.singleton(intfsw2eth1)).anyTimes();
+        expect(interfaceService.getMatchingInterface(IpAddress.valueOf("192.168.20.1")))
                 .andReturn(intfsw2eth1).anyTimes();
-        expect(routingConfig.getInterface(IpAddress.valueOf("192.168.20.101")))
-                .andReturn(intfsw2eth1).anyTimes();
-        //expect(routingConfig.getInterface(s2Eth1))
-        //        .andReturn(intfsw2eth1intf2).anyTimes();
-        expect(routingConfig.getInterface(IpAddress.valueOf("192.168.30.101")))
+
+        expect(interfaceService.getInterfacesByIp(IpAddress.valueOf("192.168.30.101")))
+                .andReturn(Collections.singleton(intfsw2eth1intf2)).anyTimes();
+        expect(interfaceService.getMatchingInterface(IpAddress.valueOf("192.168.30.1")))
                 .andReturn(intfsw2eth1intf2).anyTimes();
 
         // Non-existent interface used during one of the tests
-        expect(routingConfig.getInterface(new ConnectPoint(
-                    DeviceId.deviceId(SdnIp.dpidToUri("00:00:00:00:00:00:01:00")),
-                    PortNumber.portNumber(1))))
+        expect(interfaceService.getInterfacesByPort(new ConnectPoint(
+                DeviceId.deviceId(SdnIp.dpidToUri("00:00:00:00:00:00:01:00")),
+                PortNumber.portNumber(1))))
                     .andReturn(null).anyTimes();
 
-        expect(routingConfig.getInterfaces()).andReturn(
+        expect(interfaceService.getInterfaces()).andReturn(
                 Sets.newHashSet(configuredInterfaces.values())).anyTimes();
 
         return configuredInterfaces;
@@ -398,7 +404,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      * Sets up intents for ICMP paths.
      */
     private void setUpIcmpIntents() {
-
         // Start to build intents between BGP speaker1 and BGP peer1
         icmpPathintentConstructor(
                 "192.168.10.101/32", "192.168.10.1/32", s1Eth100, s1Eth1);
@@ -415,7 +420,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 "192.168.30.101/32", "192.168.30.1/32", s1Eth100, s2Eth1);
         icmpPathintentConstructor(
                 "192.168.30.1/32", "192.168.30.101/32", s2Eth1, s1Eth100);
-
     }
 
     /**
@@ -424,22 +428,28 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      * @throws TestUtilsException if exceptions when using TestUtils
      */
     private void initPeerConnectivity() throws TestUtilsException {
-
         expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
-        expect(routingConfig.getBgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
+        expect(bgpConfig.bgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
+        replay(bgpConfig);
+        expect(networkConfigService.getConfig(APPID, BgpConfig.class)).andReturn(bgpConfig).anyTimes();
+        replay(networkConfigService);
         replay(routingConfig);
+        replay(interfaceService);
 
         intentService = createMock(IntentService.class);
         replay(intentService);
 
         intentSynchronizer = new IntentSynchronizer(APPID, intentService,
-                                                    null, routingConfig);
+                                                    null, routingConfig,
+                                                    interfaceService);
         intentSynchronizer.leaderChanged(true);
         TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
 
         peerConnectivityManager =
             new PeerConnectivityManager(APPID, intentSynchronizer,
-                                        routingConfig);
+                                        networkConfigService,
+                                        CONFIG_APP_ID,
+                                        interfaceService);
     }
 
     /**
@@ -472,42 +482,28 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      */
     @Test
     public void testNullInterfaces() {
-        reset(routingConfig);
-        expect(routingConfig.getInterfaces()).andReturn(
+        reset(interfaceService);
+
+        expect(interfaceService.getInterfaces()).andReturn(
                 Sets.<Interface>newHashSet()).anyTimes();
-        expect(routingConfig.getInterface(s2Eth1))
+        expect(interfaceService.getInterfacesByPort(s2Eth1))
+                .andReturn(Collections.emptySet()).anyTimes();
+        expect(interfaceService.getInterfacesByPort(s1Eth1))
+        .andReturn(Collections.emptySet()).anyTimes();
+        expect(interfaceService.getInterfacesByIp(IpAddress.valueOf("192.168.10.101")))
+                .andReturn(Collections.emptySet()).anyTimes();
+        expect(interfaceService.getMatchingInterface(IpAddress.valueOf("192.168.10.1")))
                 .andReturn(null).anyTimes();
-        expect(routingConfig.getInterface(s1Eth1))
-        .andReturn(null).anyTimes();
-        expect(routingConfig.getInterface(IpAddress.valueOf("192.168.10.101")))
+        expect(interfaceService.getInterfacesByIp(IpAddress.valueOf("192.168.20.101")))
+                .andReturn(Collections.emptySet()).anyTimes();
+        expect(interfaceService.getMatchingInterface(IpAddress.valueOf("192.168.20.1")))
                 .andReturn(null).anyTimes();
-        expect(routingConfig.getInterface(IpAddress.valueOf("192.168.20.101")))
-                .andReturn(null).anyTimes();
-        expect(routingConfig.getInterface(IpAddress.valueOf("192.168.30.101")))
+        expect(interfaceService.getInterfacesByIp(IpAddress.valueOf("192.168.30.101")))
+                .andReturn(Collections.emptySet()).anyTimes();
+        expect(interfaceService.getMatchingInterface(IpAddress.valueOf("192.168.30.1")))
                 .andReturn(null).anyTimes();
 
-        expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
-        expect(routingConfig.getBgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
-        replay(routingConfig);
-
-        reset(intentService);
-        replay(intentService);
-        peerConnectivityManager.start();
-        verify(intentService);
-    }
-
-    /**
-     *  Tests a corner case, when there are no BGP peers in the configuration.
-     */
-    @Test
-    public void testNullBgpPeers() {
-        reset(routingConfig);
-        expect(routingConfig.getInterfaces()).andReturn(
-                Sets.newHashSet(interfaces.values())).anyTimes();
-
-        expect(routingConfig.getBgpPeers()).andReturn(new HashMap<>()).anyTimes();
-        expect(routingConfig.getBgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
-        replay(routingConfig);
+        replay(interfaceService);
 
         reset(intentService);
         replay(intentService);
@@ -521,12 +517,11 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
     @Test
     public void testNullBgpSpeakers() {
         reset(routingConfig);
-        expect(routingConfig.getInterfaces()).andReturn(
-                Sets.newHashSet(interfaces.values())).anyTimes();
+        reset(bgpConfig);
 
+        expect(bgpConfig.bgpSpeakers()).andReturn(Collections.emptySet()).anyTimes();
+        replay(bgpConfig);
         expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
-        expect(routingConfig.getBgpSpeakers()).andReturn(
-                Collections.emptyMap()).anyTimes();
         replay(routingConfig);
 
         reset(intentService);
@@ -562,7 +557,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         interfaceAddresses100.add(new InterfaceAddress(dpid1, 1, "192.168.10.201"));
         interfaceAddresses100.add(new InterfaceAddress(dpid2, 1, "192.168.20.201"));
         bgpSpeaker100.setInterfaceAddresses(interfaceAddresses100);
-        configuredBgpSpeakers.put(bgpSpeaker100.name(), bgpSpeaker100);
         testConnectionSetup();
     }
 }

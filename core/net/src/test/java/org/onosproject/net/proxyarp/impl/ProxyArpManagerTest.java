@@ -23,8 +23,11 @@ import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultHost;
 import org.onosproject.net.Device;
@@ -44,7 +47,6 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
-import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
@@ -57,12 +59,17 @@ import org.onosproject.net.proxyarp.ProxyArpStoreDelegate;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for the {@link ProxyArpManager} class.
@@ -104,6 +111,7 @@ public class ProxyArpManagerTest {
     private DeviceService deviceService;
     private LinkService linkService;
     private HostService hostService;
+    private InterfaceService interfaceService;
 
     @Before
     public void setUp() throws Exception {
@@ -118,6 +126,9 @@ public class ProxyArpManagerTest {
         // expectations have been set up
         hostService = createMock(HostService.class);
         proxyArp.hostService = hostService;
+
+        interfaceService = createMock(InterfaceService.class);
+        proxyArp.interfaceService = interfaceService;
 
         createTopology();
         proxyArp.deviceService = deviceService;
@@ -207,7 +218,7 @@ public class ProxyArpManagerTest {
     }
 
     private void addAddressBindings() {
-        Set<PortAddresses> addresses = Sets.newHashSet();
+        Set<Interface> interfaces = Sets.newHashSet();
 
         for (int i = 1; i <= NUM_ADDRESS_PORTS; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(i), P1);
@@ -219,29 +230,28 @@ public class ProxyArpManagerTest {
             Ip4Address addr2 = Ip4Address.valueOf("10.0." + (2 * i) + ".1");
             InterfaceIpAddress ia1 = new InterfaceIpAddress(addr1, prefix1);
             InterfaceIpAddress ia2 = new InterfaceIpAddress(addr2, prefix2);
-            PortAddresses pa1 =
-                    new PortAddresses(cp, Sets.newHashSet(ia1),
-                            MacAddress.valueOf(2 * i - 1),
-                            VlanId.vlanId((short) 1));
-            PortAddresses pa2 =
-                    new PortAddresses(cp, Sets.newHashSet(ia2),
-                            MacAddress.valueOf(2 * i),
-                            VlanId.NONE);
+            Interface intf1 = new Interface(cp, Sets.newHashSet(ia1),
+                    MacAddress.valueOf(2 * i - 1),
+                    VlanId.vlanId((short) 1));
+            Interface intf2 = new Interface(cp, Sets.newHashSet(ia2),
+                    MacAddress.valueOf(2 * i),
+                    VlanId.NONE);
 
-            addresses.add(pa1);
-            addresses.add(pa2);
+            interfaces.add(intf1);
+            interfaces.add(intf2);
 
-            expect(hostService.getAddressBindingsForPort(cp))
-                    .andReturn(Sets.newHashSet(pa1, pa2)).anyTimes();
+            expect(interfaceService.getInterfacesByPort(cp))
+                    .andReturn(Sets.newHashSet(intf1, intf2)).anyTimes();
         }
 
-        expect(hostService.getAddressBindings()).andReturn(addresses).anyTimes();
+        expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
 
         for (int i = 1; i <= NUM_FLOOD_PORTS; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(i + NUM_ADDRESS_PORTS),
                     P1);
-            expect(hostService.getAddressBindingsForPort(cp))
-                    .andReturn(Collections.<PortAddresses>emptySet()).anyTimes();
+
+            expect(interfaceService.getInterfacesByPort(cp))
+                    .andReturn(Collections.emptySet()).anyTimes();
         }
     }
 
@@ -254,6 +264,7 @@ public class ProxyArpManagerTest {
     public void testNotKnown() {
         expect(hostService.getHostsByIp(IP1)).andReturn(Collections.<Host>emptySet());
         replay(hostService);
+        replay(interfaceService);
 
         assertFalse(proxyArp.isKnown(IP1));
     }
@@ -271,6 +282,7 @@ public class ProxyArpManagerTest {
         expect(hostService.getHostsByIp(IP1))
                 .andReturn(Sets.newHashSet(host1, host2));
         replay(hostService);
+        replay(interfaceService);
 
         assertTrue(proxyArp.isKnown(IP1));
     }
@@ -296,6 +308,7 @@ public class ProxyArpManagerTest {
         expect(hostService.getHost(HID2)).andReturn(requestor);
 
         replay(hostService);
+        replay(interfaceService);
 
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
 
@@ -319,11 +332,14 @@ public class ProxyArpManagerTest {
                 Collections.singleton(IP2));
 
         expect(hostService.getHostsByIp(IP1))
-                .andReturn(Collections.<Host>emptySet());
+                .andReturn(Collections.emptySet());
+        expect(interfaceService.getInterfacesByIp(IP2))
+                .andReturn(Collections.emptySet());
         expect(hostService.getHost(HID2)).andReturn(requestor);
 
 
         replay(hostService);
+        replay(interfaceService);
 
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
 
@@ -354,9 +370,12 @@ public class ProxyArpManagerTest {
 
         expect(hostService.getHostsByIp(IP1))
                 .andReturn(Collections.singleton(replyer));
+        expect(interfaceService.getInterfacesByIp(IP2))
+                .andReturn(Collections.emptySet());
         expect(hostService.getHost(HID2)).andReturn(requestor);
 
         replay(hostService);
+        replay(interfaceService);
 
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
 
@@ -382,6 +401,7 @@ public class ProxyArpManagerTest {
 
         expect(hostService.getHost(HID2)).andReturn(requestor);
         replay(hostService);
+        replay(interfaceService);
 
         Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, theirIp, ourFirstIp);
         isEdgePointReturn = true;
@@ -405,6 +425,7 @@ public class ProxyArpManagerTest {
     @Test
     public void testReplyExternalPortBadRequest() {
         replay(hostService); // no further host service expectations
+        replay(interfaceService);
 
         Ip4Address theirIp = Ip4Address.valueOf("10.0.1.254");
 
@@ -428,8 +449,13 @@ public class ProxyArpManagerTest {
         Ip4Address theirIp = Ip4Address.valueOf("10.0.1.100");
 
         expect(hostService.getHostsByIp(theirIp)).andReturn(Collections.emptySet());
+        expect(interfaceService.getInterfacesByIp(ourIp))
+                .andReturn(Collections.singleton(new Interface(getLocation(1),
+                        Collections.singleton(new InterfaceIpAddress(ourIp, IpPrefix.valueOf("10.0.1.1/24"))),
+                        ourMac, VLAN1)));
         expect(hostService.getHost(HostId.hostId(ourMac, VLAN1))).andReturn(null);
         replay(hostService);
+        replay(interfaceService);
 
         // This is a request from something inside our network (like a BGP
         // daemon) to an external host.
@@ -462,6 +488,7 @@ public class ProxyArpManagerTest {
         expect(hostService.getHost(HID1)).andReturn(host1);
         expect(hostService.getHost(HID2)).andReturn(host2);
         replay(hostService);
+        replay(interfaceService);
 
         Ethernet arpRequest = buildArp(ARP.OP_REPLY, MAC2, MAC1, IP2, IP1);
 
@@ -482,6 +509,7 @@ public class ProxyArpManagerTest {
     public void testForwardFlood() {
         expect(hostService.getHost(HID1)).andReturn(null);
         replay(hostService);
+        replay(interfaceService);
 
         Ethernet arpRequest = buildArp(ARP.OP_REPLY, MAC2, MAC1, IP2, IP1);
 
@@ -508,12 +536,7 @@ public class ProxyArpManagerTest {
         assertEquals(NUM_FLOOD_PORTS - 1, packetService.packets.size());
 
         Collections.sort(packetService.packets,
-                new Comparator<OutboundPacket>() {
-                    @Override
-                    public int compare(OutboundPacket o1, OutboundPacket o2) {
-                        return o1.sendThrough().uri().compareTo(o2.sendThrough().uri());
-                    }
-                });
+                (o1, o2) -> o1.sendThrough().uri().compareTo(o2.sendThrough().uri()));
 
 
         for (int i = 0; i < NUM_FLOOD_PORTS - 1; i++) {

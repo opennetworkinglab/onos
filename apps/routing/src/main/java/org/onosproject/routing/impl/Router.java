@@ -35,6 +35,8 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.CoreService;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostEvent;
@@ -49,7 +51,6 @@ import org.onosproject.routing.RouteEntry;
 import org.onosproject.routing.RouteListener;
 import org.onosproject.routing.RouteUpdate;
 import org.onosproject.routing.RoutingService;
-import org.onosproject.routing.config.Interface;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +61,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -108,6 +110,9 @@ public class Router implements RoutingService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected BgpService bgpService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected InterfaceService interfaceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RoutingConfigurationService routingConfigurationService;
@@ -603,8 +608,7 @@ public class Router implements RoutingService {
             RouteEntry routeEntry = getLongestMatchableRouteEntry(dstIpAddress);
             if (routeEntry != null) {
                 nextHopIpAddress = routeEntry.nextHop();
-                Interface it = routingConfigurationService
-                        .getMatchingInterface(nextHopIpAddress);
+                Interface it = interfaceService.getMatchingInterface(nextHopIpAddress);
                 if (it != null) {
                     return it.connectPoint();
                 } else {
@@ -700,18 +704,18 @@ public class Router implements RoutingService {
     private TrafficType trafficTypeClassifier(ConnectPoint srcConnectPoint,
                                               IpAddress dstIp) {
         LocationType dstIpLocationType = getLocationType(dstIp);
-        Interface srcInterface =
-                routingConfigurationService.getInterface(srcConnectPoint);
+        Optional<Interface> srcInterface =
+                interfaceService.getInterfacesByPort(srcConnectPoint).stream().findFirst();
 
         switch (dstIpLocationType) {
         case INTERNET:
-            if (srcInterface == null) {
+            if (!srcInterface.isPresent()) {
                 return TrafficType.HOST_TO_INTERNET;
             } else {
                 return TrafficType.INTERNET_TO_INTERNET;
             }
         case LOCAL:
-            if (srcInterface == null) {
+            if (!srcInterface.isPresent()) {
                 return TrafficType.HOST_TO_HOST;
             } else {
                 // TODO Currently we only consider local public prefixes.

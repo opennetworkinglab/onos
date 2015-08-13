@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.routing.config.impl;
+package org.onosproject.routing.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
@@ -32,27 +32,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class BgpConfig extends Config<ApplicationId> {
 
-    public static final String PEERS = "bgpPeers";
     public static final String SPEAKERS = "bgpSpeakers";
     public static final String CONNECT_POINT = "connectPoint";
-    public static final String IP_ADDRESS = "ipAddress";
-    public static final String LISTEN_ADDRESSES = "listenAddresses";
+    public static final String PEERS = "peers";
 
-    /**
-     * Gets the set of configured BGP peers.
-     *
-     * @return BGP peers
-     */
-    public Set<BgpPeerConfig> bgpPeers() {
-        Set<BgpPeerConfig> peers = Sets.newHashSet();
-
-        JsonNode peersNode = node.get(PEERS);
-        peersNode.forEach(jsonNode -> peers.add(
-                new BgpPeerConfig(ConnectPoint.deviceConnectPoint(jsonNode.path(CONNECT_POINT).asText()),
-                        IpAddress.valueOf(jsonNode.path(IP_ADDRESS).asText()))));
-
-        return peers;
-    }
+    // TODO add methods for updating config
 
     /**
      * Gets the set of configured BGP speakers.
@@ -65,7 +49,7 @@ public class BgpConfig extends Config<ApplicationId> {
         JsonNode speakersNode = node.get(SPEAKERS);
         speakersNode.forEach(jsonNode -> {
             Set<IpAddress> listenAddresses = Sets.newHashSet();
-            jsonNode.path(LISTEN_ADDRESSES).forEach(addressNode ->
+            jsonNode.path(PEERS).forEach(addressNode ->
                     listenAddresses.add(IpAddress.valueOf(addressNode.asText()))
             );
             speakers.add(new BgpSpeakerConfig(
@@ -77,46 +61,24 @@ public class BgpConfig extends Config<ApplicationId> {
     }
 
     /**
-     * Configuration for a BGP peer.
-     */
-    public class BgpPeerConfig {
-        private ConnectPoint connectPoint;
-        private IpAddress ipAddress;
-
-        public BgpPeerConfig(ConnectPoint connectPoint, IpAddress ipAddress) {
-            this.connectPoint = connectPoint;
-            this.ipAddress = ipAddress;
-        }
-
-        public ConnectPoint connectPoint() {
-            return connectPoint;
-        }
-
-        public IpAddress ipAddress() {
-            return ipAddress;
-        }
-
-    }
-
-    /**
      * Configuration for a BGP speaker.
      */
-    public class BgpSpeakerConfig {
+    public static class BgpSpeakerConfig {
 
         private ConnectPoint connectPoint;
-        private Set<IpAddress> listenAddresses;
+        private Set<IpAddress> peers;
 
-        public BgpSpeakerConfig(ConnectPoint connectPoint, Set<IpAddress> listenAddresses) {
+        public BgpSpeakerConfig(ConnectPoint connectPoint, Set<IpAddress> peers) {
             this.connectPoint = checkNotNull(connectPoint);
-            this.listenAddresses = checkNotNull(listenAddresses);
+            this.peers = checkNotNull(peers);
         }
 
         public ConnectPoint connectPoint() {
             return connectPoint;
         }
 
-        public Set<IpAddress> listenAddresses() {
-            return listenAddresses;
+        public Set<IpAddress> peers() {
+            return peers;
         }
     }
 }

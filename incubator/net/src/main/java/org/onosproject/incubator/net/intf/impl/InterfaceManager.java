@@ -26,19 +26,18 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.net.config.NetworkConfigEvent;
-import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.incubator.net.config.basics.ConfigException;
 import org.onosproject.incubator.net.config.basics.InterfaceConfig;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Device;
-import org.onosproject.net.Port;
-import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -55,11 +54,11 @@ public class InterfaceManager implements InterfaceService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetworkConfigService configService;
+    private static final Class<ConnectPoint> SUBJECT_CLASS = ConnectPoint.class;
+    private static final Class<InterfaceConfig> CONFIG_CLASS = InterfaceConfig.class;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
+    protected NetworkConfigService configService;
 
     private final InternalConfigListener listener = new InternalConfigListener();
 
@@ -69,14 +68,12 @@ public class InterfaceManager implements InterfaceService {
     public void activate() {
         configService.addListener(listener);
 
-        for (Device d : deviceService.getDevices()) {
-            for (Port p : deviceService.getPorts(d.id())) {
-                InterfaceConfig config =
-                    configService.getConfig(new ConnectPoint(d.id(), p.number()), InterfaceConfig.class);
+        // TODO address concurrency issues here
+        for (ConnectPoint subject : configService.getSubjects(SUBJECT_CLASS, CONFIG_CLASS)) {
+            InterfaceConfig config = configService.getConfig(subject, CONFIG_CLASS);
 
-                if (config != null) {
-                    updateInterfaces(config);
-                }
+            if (config != null) {
+                updateInterfaces(config);
             }
         }
 
@@ -100,7 +97,11 @@ public class InterfaceManager implements InterfaceService {
 
     @Override
     public Set<Interface> getInterfacesByPort(ConnectPoint port) {
-        return ImmutableSet.copyOf(interfaces.get(port));
+        Set<Interface> intfs = interfaces.get(port);
+        if (intfs == null) {
+            return Collections.emptySet();
+        }
+        return ImmutableSet.copyOf(intfs);
     }
 
     @Override
@@ -108,7 +109,9 @@ public class InterfaceManager implements InterfaceService {
         return interfaces.values()
                 .stream()
                 .flatMap(set -> set.stream())
-                .filter(intf -> intf.ipAddresses().contains(ip))
+                .filter(intf -> intf.ipAddresses()
+                        .stream()
+                        .anyMatch(ia -> ia.ipAddress().equals(ip)))
                 .collect(collectingAndThen(toSet(), ImmutableSet::copyOf));
     }
 
@@ -139,7 +142,11 @@ public class InterfaceManager implements InterfaceService {
     }
 
     private void updateInterfaces(InterfaceConfig intfConfig) {
-        interfaces.put(intfConfig.subject(), intfConfig.getInterfaces());
+        try {
+            interfaces.put(intfConfig.subject(), intfConfig.getInterfaces());
+        } catch (ConfigException e) {
+            log.error("Error in interface config", e);
+        }
     }
 
     private void removeInterfaces(ConnectPoint port) {

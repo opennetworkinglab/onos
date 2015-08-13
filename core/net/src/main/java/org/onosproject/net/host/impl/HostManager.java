@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.Permission;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -86,6 +87,9 @@ public class HostManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService networkConfigService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected InterfaceService interfaceService;
+
     private HostMonitor monitor;
 
     @Activate
@@ -93,7 +97,7 @@ public class HostManager
         store.setDelegate(delegate);
         eventDispatcher.addSink(HostEvent.class, listenerRegistry);
         networkConfigService.addListener(networkConfigListener);
-        monitor = new HostMonitor(deviceService, packetService, this);
+        monitor = new HostMonitor(packetService, this, interfaceService);
         monitor.start();
         log.info("Started");
     }

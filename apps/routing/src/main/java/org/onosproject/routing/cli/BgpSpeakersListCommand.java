@@ -22,7 +22,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.routing.RoutingService;
-import org.onosproject.routing.config.impl.BgpConfig;
+import org.onosproject.routing.config.BgpConfig;
 
 /**
  * Lists the BGP speakers configured in the system.
@@ -47,7 +47,7 @@ public class BgpSpeakersListCommand extends AbstractShellCommand {
             print("No speakers configured");
         } else {
             config.bgpSpeakers().forEach(
-                    s -> print(FORMAT, s.connectPoint(), s.listenAddresses()));
+                    s -> print(FORMAT, s.connectPoint(), s.peers()));
         }
     }
 }

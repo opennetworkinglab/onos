@@ -98,7 +98,7 @@ public class MultiPointToSinglePointIntentCompiler
                 partialTree = true;
 
                 for (Link link : path.links()) {
-                    if (links.containsKey(link.src().deviceId())) {
+                    if (links.containsKey(link.dst().deviceId())) {
                         // We've already reached the existing tree with the first
                         // part of this path. Add the merging point with different
                         // incoming port, but don't add the remainder of the path

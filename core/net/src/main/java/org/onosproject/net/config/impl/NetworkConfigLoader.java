@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.net.config.Config;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
@@ -49,11 +50,11 @@ public class NetworkConfigLoader {
 
     // FIXME: Add mutual exclusion to make sure this happens only once per startup.
 
-    private Map<InnerConfigPosition, ObjectNode> jsons = Maps.newHashMap();
+    private final Map<InnerConfigPosition, ObjectNode> jsons = Maps.newConcurrentMap();
 
     private final NetworkConfigListener configListener = new InnerConfigListener();
 
-    ObjectNode root;
+    private ObjectNode root;
 
     @Activate
     public void activate() {
@@ -101,24 +102,24 @@ public class NetworkConfigLoader {
      * Inner class that allows for tracking of JSON class configurations.
      */
     private final class InnerConfigPosition {
-        private String subjectKey, subject, classKey;
+        private final String subjectKey, subject, configKey;
 
-        private String getSubjectKey() {
+        private String subjectKey() {
             return subjectKey;
         }
 
-        private String getSubject() {
+        private String subject() {
             return subject;
         }
 
-        private String getClassKey() {
-            return classKey;
+        private String configKey() {
+            return configKey;
         }
 
-        private InnerConfigPosition(String subjectKey, String subject, String classKey) {
+        private InnerConfigPosition(String subjectKey, String subject, String configKey) {
             this.subjectKey = subjectKey;
             this.subject = subject;
-            this.classKey = classKey;
+            this.configKey = configKey;
         }
 
         @Override
@@ -128,15 +129,16 @@ public class NetworkConfigLoader {
             }
             if (obj instanceof InnerConfigPosition) {
                 final InnerConfigPosition that = (InnerConfigPosition) obj;
-                return Objects.equals(this.subjectKey, that.subjectKey) && Objects.equals(this.subject, that.subject)
-                        && Objects.equals(this.classKey, that.classKey);
+                return Objects.equals(this.subjectKey, that.subjectKey)
+                        && Objects.equals(this.subject, that.subject)
+                        && Objects.equals(this.configKey, that.configKey);
             }
             return false;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(subjectKey, subject, classKey);
+            return Objects.hash(subjectKey, subject, configKey);
         }
     }
 
@@ -174,38 +176,41 @@ public class NetworkConfigLoader {
     }
 
     /**
-     * Apply the configurations associated with all of the config classes that are imported and have not yet been
-     * applied.
+     * Apply the configurations associated with all of the config classes that
+     * are imported and have not yet been applied.
      */
-    protected void applyConfigurations() {
+    private void applyConfigurations() {
         Iterator<Map.Entry<InnerConfigPosition, ObjectNode>> iter = jsons.entrySet().iterator();
 
         Map.Entry<InnerConfigPosition, ObjectNode> entry;
         InnerConfigPosition key;
         ObjectNode node;
         String subjectKey;
-        String subject;
-        String classKey;
+        String subjectString;
+        String configKey;
 
         while (iter.hasNext()) {
             entry = iter.next();
             node = entry.getValue();
             key = entry.getKey();
-            subjectKey = key.getSubjectKey();
-            subject = key.getSubject();
-            classKey = key.getClassKey();
+            subjectKey = key.subjectKey();
+            subjectString = key.subject();
+            configKey = key.configKey();
+
+            Class<? extends Config> configClass =
+                    networkConfigService.getConfigClass(subjectKey, configKey);
             //Check that the config class has been imported
-            if (networkConfigService.getConfigClass(subjectKey, subject) != null) {
+            if (configClass != null) {
+
+                Object subject = networkConfigService.getSubjectFactory(subjectKey).
+                        createSubject(subjectString);
 
                 //Apply the configuration
-                networkConfigService.applyConfig(networkConfigService.getSubjectFactory(subjectKey).
-                                createSubject(subject),
-                        networkConfigService.getConfigClass(subjectKey, classKey), node);
+                networkConfigService.applyConfig(subject, configClass, node);
 
                 //Now that it has been applied the corresponding JSON entry is no longer needed
-                jsons.remove(key);
+                iter.remove();
             }
-
         }
     }
 

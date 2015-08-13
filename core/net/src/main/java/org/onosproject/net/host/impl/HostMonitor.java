@@ -20,26 +20,23 @@ import org.jboss.netty.util.TimerTask;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
-import org.onlab.packet.IpAddress;
 import org.onlab.packet.IPv6;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborDiscoveryOptions;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.util.Timer;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
-import org.onosproject.net.Port;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.InterfaceIpAddress;
-import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketService;
@@ -63,9 +60,9 @@ import java.util.concurrent.TimeUnit;
  * </p>
  */
 public class HostMonitor implements TimerTask {
-    private DeviceService deviceService;
     private PacketService packetService;
     private HostManager hostManager;
+    private InterfaceService interfaceService;
 
     private final Set<IpAddress> monitoredAddresses;
 
@@ -80,20 +77,19 @@ public class HostMonitor implements TimerTask {
     /**
      * Creates a new host monitor.
      *
-     * @param deviceService device service used to find edge ports
      * @param packetService packet service used to send packets on the data plane
      * @param hostManager host manager used to look up host information and
      * probe existing hosts
+     * @param interfaceService interface service for interface information
      */
-    public HostMonitor(DeviceService deviceService, PacketService packetService,
-            HostManager hostManager) {
+    public HostMonitor(PacketService packetService, HostManager hostManager,
+                       InterfaceService interfaceService) {
 
-        this.deviceService = deviceService;
         this.packetService = packetService;
         this.hostManager = hostManager;
+        this.interfaceService = interfaceService;
 
-        monitoredAddresses = Collections.newSetFromMap(
-                new ConcurrentHashMap<IpAddress, Boolean>());
+        monitoredAddresses = Collections.newSetFromMap(new ConcurrentHashMap<>());
         hostProviders = new ConcurrentHashMap<>();
     }
 
@@ -176,29 +172,21 @@ public class HostMonitor implements TimerTask {
      * @param targetIp IP address to send the request for
      */
     private void sendArpNdpRequest(IpAddress targetIp) {
-        // Find ports with an IP address in the target's subnet and sent ARP/ND
-        // probes out those ports.
-        for (Device device : deviceService.getDevices()) {
-            for (Port port : deviceService.getPorts(device.id())) {
-                ConnectPoint cp = new ConnectPoint(device.id(), port.number());
-                Set<PortAddresses> portAddressSet =
-                    hostManager.getAddressBindingsForPort(cp);
+        Interface intf = interfaceService.getMatchingInterface(targetIp);
 
-                for (PortAddresses portAddresses : portAddressSet) {
-                    for (InterfaceIpAddress ia : portAddresses.ipAddresses()) {
-                        if (ia.subnetAddress().contains(targetIp)) {
-                            sendArpNdpProbe(device.id(), port, targetIp,
-                                            ia.ipAddress(),
-                                            portAddresses.mac(),
-                                            portAddresses.vlan());
-                        }
-                    }
-                }
+        if (intf == null) {
+            return;
+        }
+
+        for (InterfaceIpAddress ia : intf.ipAddresses()) {
+            if (ia.subnetAddress().contains(targetIp)) {
+                sendArpNdpProbe(intf.connectPoint(), targetIp, ia.ipAddress(),
+                        intf.mac(), intf.vlan());
             }
         }
     }
 
-    private void sendArpNdpProbe(DeviceId deviceId, Port port,
+    private void sendArpNdpProbe(ConnectPoint connectPoint,
                                  IpAddress targetIp,
                                  IpAddress sourceIp, MacAddress sourceMac,
                                  VlanId vlan) {
@@ -215,14 +203,14 @@ public class HostMonitor implements TimerTask {
         }
 
         List<Instruction> instructions = new ArrayList<>();
-        instructions.add(Instructions.createOutput(port.number()));
+        instructions.add(Instructions.createOutput(connectPoint.port()));
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-            .setOutput(port.number())
+            .setOutput(connectPoint.port())
             .build();
 
         OutboundPacket outboundPacket =
-            new DefaultOutboundPacket(deviceId, treatment,
+            new DefaultOutboundPacket(connectPoint.deviceId(), treatment,
                                       ByteBuffer.wrap(probePacket.serialize()));
 
         packetService.emit(outboundPacket);

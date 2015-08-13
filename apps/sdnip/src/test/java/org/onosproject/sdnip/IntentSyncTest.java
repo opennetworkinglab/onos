@@ -28,6 +28,9 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -45,7 +48,6 @@ import org.onosproject.routing.FibEntry;
 import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.RouteEntry;
 import org.onosproject.routing.config.BgpPeer;
-import org.onosproject.routing.config.Interface;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.onosproject.sdnip.IntentSynchronizer.IntentKey;
 
@@ -56,7 +58,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -71,7 +77,9 @@ import static org.onosproject.sdnip.TestIntentServiceHelper.eqExceptId;
 public class IntentSyncTest extends AbstractIntentTest {
 
     private RoutingConfigurationService routingConfig;
+    private InterfaceService interfaceService;
     private IntentService intentService;
+    private NetworkConfigService configService;
 
     private static final ConnectPoint SW1_ETH1 = new ConnectPoint(
             DeviceId.deviceId("of:0000000000000001"),
@@ -90,6 +98,7 @@ public class IntentSyncTest extends AbstractIntentTest {
             PortNumber.portNumber(1));
 
     private IntentSynchronizer intentSynchronizer;
+    private final Set<Interface> interfaces = Sets.newHashSet();
 
     private static final ApplicationId APPID = new ApplicationId() {
         @Override
@@ -108,17 +117,21 @@ public class IntentSyncTest extends AbstractIntentTest {
         super.setUp();
 
         routingConfig = createMock(RoutingConfigurationService.class);
+        interfaceService = createMock(InterfaceService.class);
+        configService = createMock(NetworkConfigService.class);
 
         // These will set expectations on routingConfig
         setUpInterfaceService();
         setUpBgpPeers();
 
         replay(routingConfig);
+        replay(interfaceService);
 
         intentService = createMock(IntentService.class);
 
         intentSynchronizer = new IntentSynchronizer(APPID, intentService,
-                                                    null, routingConfig);
+                                                    null, routingConfig,
+                                                    interfaceService);
     }
 
     /**
@@ -152,9 +165,6 @@ public class IntentSyncTest extends AbstractIntentTest {
      * Sets up InterfaceService.
      */
     private void setUpInterfaceService() {
-
-        Set<Interface> interfaces = Sets.newHashSet();
-
         Set<InterfaceIpAddress> interfaceIpAddresses1 = Sets.newHashSet();
         interfaceIpAddresses1.add(new InterfaceIpAddress(
                 IpAddress.valueOf("192.168.10.101"),
@@ -190,16 +200,26 @@ public class IntentSyncTest extends AbstractIntentTest {
                                           MacAddress.valueOf("00:00:00:00:00:04"),
                                           VlanId.vlanId((short) 1));
 
-        expect(routingConfig.getInterface(SW4_ETH1)).andReturn(
-                sw4Eth1).anyTimes();
+        expect(interfaceService.getInterfacesByPort(SW4_ETH1)).andReturn(
+                Collections.singleton(sw4Eth1)).anyTimes();
+        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.40.1")))
+                .andReturn(sw4Eth1).anyTimes();
+
         interfaces.add(sw4Eth1);
 
-        expect(routingConfig.getInterface(SW1_ETH1)).andReturn(
-                sw1Eth1).anyTimes();
-        expect(routingConfig.getInterface(SW2_ETH1)).andReturn(
-                sw2Eth1).anyTimes();
-        expect(routingConfig.getInterface(SW3_ETH1)).andReturn(sw3Eth1).anyTimes();
-        expect(routingConfig.getInterfaces()).andReturn(interfaces).anyTimes();
+        expect(interfaceService.getInterfacesByPort(SW1_ETH1)).andReturn(
+                Collections.singleton(sw1Eth1)).anyTimes();
+        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.10.1")))
+                .andReturn(sw1Eth1).anyTimes();
+        expect(interfaceService.getInterfacesByPort(SW2_ETH1)).andReturn(
+                Collections.singleton(sw2Eth1)).anyTimes();
+        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.20.1")))
+                .andReturn(sw2Eth1).anyTimes();
+        expect(interfaceService.getInterfacesByPort(SW3_ETH1)).andReturn(
+                Collections.singleton(sw3Eth1)).anyTimes();
+        expect(interfaceService.getMatchingInterface(Ip4Address.valueOf("192.168.30.1")))
+                .andReturn(sw3Eth1).anyTimes();
+        expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
     }
 
     /**
@@ -599,8 +619,8 @@ public class IntentSyncTest extends AbstractIntentTest {
         treatmentBuilder.setEthDst(MacAddress.valueOf(nextHopMacAddress));
 
         Set<ConnectPoint> ingressPoints = new HashSet<>();
-        for (Interface intf : routingConfig.getInterfaces()) {
-            if (!intf.equals(routingConfig.getInterface(egressPoint))) {
+        for (Interface intf : interfaces) {
+            if (!intf.connectPoint().equals(egressPoint)) {
                 ConnectPoint srcPort = intf.connectPoint();
                 ingressPoints.add(srcPort);
             }
@@ -620,7 +640,6 @@ public class IntentSyncTest extends AbstractIntentTest {
     /**
      * A static MultiPointToSinglePointIntent builder, the returned intent is
      * equal to the input intent except that the id is different.
-     *
      *
      * @param intent the intent to be used for building a new intent
      * @param routeEntry the relative routeEntry of the intent

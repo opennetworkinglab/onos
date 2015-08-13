@@ -34,6 +34,8 @@ import org.onlab.packet.ndp.NeighborAdvertisement;
 import org.onlab.packet.ndp.NeighborDiscoveryOptions;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onosproject.core.Permission;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.device.DeviceService;
@@ -41,8 +43,6 @@ import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.host.InterfaceIpAddress;
-import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
@@ -53,9 +53,7 @@ import org.onosproject.net.proxyarp.ProxyArpStore;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -95,16 +93,14 @@ public class ProxyArpManager implements ProxyArpService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ProxyArpStore store;
 
-    /**
-     * Listens to both device service and link service to determine
-     * whether a port is internal or external.
-     */
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected InterfaceService interfaceService;
+
     @Activate
     public void activate() {
         store.setDelegate(this::sendTo);
         log.info("Started");
     }
-
 
     @Deactivate
     public void deactivate() {
@@ -140,21 +136,18 @@ public class ProxyArpManager implements ProxyArpService {
 
         VlanId vlan = vlanId(eth.getVlanID());
 
-        if (isOutsidePort(inPort)) {
+        if (hasIpAddress(inPort)) {
             // If the request came from outside the network, only reply if it was
             // for one of our external addresses.
-            Set<PortAddresses> addressSet =
-                    hostService.getAddressBindingsForPort(inPort);
 
-            for (PortAddresses addresses : addressSet) {
-                for (InterfaceIpAddress ia : addresses.ipAddresses()) {
-                    if (ia.ipAddress().equals(targetAddress)) {
-                        Ethernet arpReply =
-                                ARP.buildArpReply(targetAddress, addresses.mac(), eth);
-                        sendTo(arpReply, inPort);
-                    }
-                }
-            }
+            interfaceService.getInterfacesByPort(inPort)
+                    .stream()
+                    .filter(intf -> intf.ipAddresses()
+                            .stream()
+                            .anyMatch(ia -> ia.ipAddress().equals(targetAddress)))
+                    .forEach(intf -> buildAndSendArp(targetAddress, intf.mac(), eth, inPort));
+
+            // Stop here and don't proxy ARPs if the port has an IP address
             return;
         }
 
@@ -164,7 +157,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         Host dst = null;
         Host src = hostService.getHost(hostId(eth.getSourceMAC(),
-                                              vlanId(eth.getVlanID())));
+                vlanId(eth.getVlanID())));
 
         for (Host host : hosts) {
             if (host.vlan().equals(vlan)) {
@@ -175,8 +168,7 @@ public class ProxyArpManager implements ProxyArpService {
 
         if (src != null && dst != null) {
             // We know the target host so we can respond
-            Ethernet arpReply = ARP.buildArpReply(targetAddress, dst.mac(), eth);
-            sendTo(arpReply, inPort);
+            buildAndSendArp(targetAddress, dst.mac(), eth, inPort);
             return;
         }
 
@@ -185,16 +177,14 @@ public class ProxyArpManager implements ProxyArpService {
         // address. Forward it over to the correct port.
         Ip4Address source =
                 Ip4Address.valueOf(arp.getSenderProtocolAddress());
-        Set<PortAddresses> sourceAddresses = findPortsInSubnet(source);
+
         boolean matched = false;
-        for (PortAddresses pa : sourceAddresses) {
-            for (InterfaceIpAddress ia : pa.ipAddresses()) {
-                if (ia.ipAddress().equals(source) &&
-                        pa.vlan().equals(vlan)) {
-                    matched = true;
-                    sendTo(eth, pa.connectPoint());
-                    break;
-                }
+        Set<Interface> interfaces = interfaceService.getInterfacesByIp(source);
+        for (Interface intf : interfaces) {
+            if (intf.vlan().equals(vlan)) {
+                matched = true;
+                sendTo(eth, intf.connectPoint());
+                break;
             }
         }
 
@@ -202,10 +192,8 @@ public class ProxyArpManager implements ProxyArpService {
             return;
         }
 
-        //
         // The request couldn't be resolved.
         // Flood the request on all ports except the incoming port.
-        //
         flood(eth, inPort);
     }
 
@@ -219,42 +207,14 @@ public class ProxyArpManager implements ProxyArpService {
 
         // If the request came from outside the network, only reply if it was
         // for one of our external addresses.
-        if (isOutsidePort(inPort)) {
-            Set<PortAddresses> addressSet =
-                    hostService.getAddressBindingsForPort(inPort);
-
-            for (PortAddresses addresses : addressSet) {
-                for (InterfaceIpAddress ia : addresses.ipAddresses()) {
-                    if (ia.ipAddress().equals(targetAddress)) {
-                        Ethernet ndpReply =
-                                buildNdpReply(targetAddress, addresses.mac(), eth);
-                        sendTo(ndpReply, inPort);
-                    }
-                }
-            }
+        if (hasIpAddress(inPort)) {
+            interfaceService.getInterfacesByPort(inPort)
+                    .stream()
+                    .filter(intf -> intf.ipAddresses()
+                            .stream()
+                            .anyMatch(ia -> ia.ipAddress().equals(targetAddress)))
+                    .forEach(intf -> buildAndSendNdp(targetAddress, intf.mac(), eth, inPort));
             return;
-        } else {
-            // If the source address matches one of our external addresses
-            // it could be a request from an internal host to an external
-            // address. Forward it over to the correct ports.
-            Ip6Address source =
-                    Ip6Address.valueOf(ipv6.getSourceAddress());
-            Set<PortAddresses> sourceAddresses = findPortsInSubnet(source);
-            boolean matched = false;
-            for (PortAddresses pa : sourceAddresses) {
-                for (InterfaceIpAddress ia : pa.ipAddresses()) {
-                    if (ia.ipAddress().equals(source) &&
-                            pa.vlan().equals(vlan)) {
-                        matched = true;
-                        sendTo(eth, pa.connectPoint());
-                        break;
-                    }
-                }
-            }
-
-            if (matched) {
-                return;
-            }
         }
 
         // Continue with normal proxy ARP case
@@ -272,22 +232,48 @@ public class ProxyArpManager implements ProxyArpService {
             }
         }
 
-        if (src == null || dst == null) {
-            //
-            // The request couldn't be resolved.
-            // Flood the request on all ports except the incoming ports.
-            //
-            flood(eth, inPort);
+        if (src != null || dst != null) {
+            // We know the target host so we can respond
+            buildAndSendNdp(targetAddress, dst.mac(), eth, inPort);
             return;
         }
 
-        //
-        // Reply on the port the request was received on
-        //
-        Ethernet ndpReply = buildNdpReply(targetAddress, dst.mac(), eth);
-        sendTo(ndpReply, inPort);
+        // If the source address matches one of our external addresses
+        // it could be a request from an internal host to an external
+        // address. Forward it over to the correct port.
+        Ip6Address source =
+                Ip6Address.valueOf(ipv6.getSourceAddress());
+
+        boolean matched = false;
+
+        Set<Interface> interfaces = interfaceService.getInterfacesByIp(source);
+        for (Interface intf : interfaces) {
+            if (intf.vlan().equals(vlan)) {
+                matched = true;
+                sendTo(eth, intf.connectPoint());
+                break;
+            }
+        }
+
+        if (matched) {
+            return;
+        }
+
+        // The request couldn't be resolved.
+        // Flood the request on all ports except the incoming ports.
+        flood(eth, inPort);
     }
     //TODO checkpoint
+
+    private void buildAndSendArp(Ip4Address srcIp, MacAddress srcMac,
+                                 Ethernet request, ConnectPoint port) {
+        sendTo(ARP.buildArpReply(srcIp, srcMac, request), port);
+    }
+
+    private void buildAndSendNdp(Ip6Address srcIp, MacAddress srcMac,
+                                 Ethernet request, ConnectPoint port) {
+        sendTo(buildNdpReply(srcIp, srcMac, request), port);
+    }
 
     /**
      * Outputs the given packet out the given port.
@@ -314,30 +300,18 @@ public class ProxyArpManager implements ProxyArpService {
     }
 
     /**
-     * Finds ports with an address in the subnet of the target address.
-     *
-     * @param target the target address to find a matching port for
-     * @return a set of PortAddresses describing ports in the subnet
-     */
-    private Set<PortAddresses> findPortsInSubnet(IpAddress target) {
-        Set<PortAddresses> result = new HashSet<>();
-        for (PortAddresses addresses : hostService.getAddressBindings()) {
-            result.addAll(addresses.ipAddresses().stream().filter(ia -> ia.subnetAddress().contains(target)).
-                    map(ia -> addresses).collect(Collectors.toList()));
-        }
-        return result;
-    }
-
-    /**
-     * Returns whether the given port is an outside-facing port with an IP
-     * address configured.
+     * Returns whether the given port has any IP addresses configured or not.
      *
      * @param port the port to check
-     * @return true if the port is an outside-facing port, otherwise false
+     * @return true if the port has at least one IP address configured,
+     * otherwise false
      */
-    private boolean isOutsidePort(ConnectPoint port) {
-        // TODO: Is this sufficient to identify outside-facing ports: just having IP addresses on a port?
-        return !hostService.getAddressBindingsForPort(port).isEmpty();
+    private boolean hasIpAddress(ConnectPoint port) {
+        return interfaceService.getInterfacesByPort(port)
+                .stream()
+                .map(intf -> intf.ipAddresses())
+                .findAny()
+                .isPresent();
     }
 
     @Override
@@ -418,7 +392,7 @@ public class ProxyArpManager implements ProxyArpService {
         ByteBuffer buf = ByteBuffer.wrap(request.serialize());
 
         for (ConnectPoint connectPoint : edgeService.getEdgePoints()) {
-            if (isOutsidePort(connectPoint) || connectPoint.equals(inPort)) {
+            if (hasIpAddress(connectPoint) || connectPoint.equals(inPort)) {
                 continue;
             }
 
@@ -427,7 +401,6 @@ public class ProxyArpManager implements ProxyArpService {
             packetService.emit(new DefaultOutboundPacket(connectPoint.deviceId(),
                                                          builder.build(), buf));
         }
-
     }
 
     /**

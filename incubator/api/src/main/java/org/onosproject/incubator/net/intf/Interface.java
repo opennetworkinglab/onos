@@ -25,6 +25,8 @@ import org.onosproject.net.host.InterfaceIpAddress;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * An Interface maps network configuration information (such as addresses and
  * vlans) to a port in the network.
@@ -46,10 +48,10 @@ public class Interface {
     public Interface(ConnectPoint connectPoint,
                      Set<InterfaceIpAddress> ipAddresses,
                      MacAddress macAddress, VlanId vlan) {
-        this.connectPoint = connectPoint;
-        this.ipAddresses = Sets.newHashSet(ipAddresses);
-        this.macAddress = macAddress;
-        this.vlan = vlan;
+        this.connectPoint = checkNotNull(connectPoint);
+        this.ipAddresses = Sets.newHashSet(checkNotNull(ipAddresses));
+        this.macAddress = checkNotNull(macAddress);
+        this.vlan = checkNotNull(vlan);
     }
 
     /**
