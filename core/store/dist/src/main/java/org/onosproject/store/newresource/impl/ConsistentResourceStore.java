@@ -96,16 +96,14 @@ public class ConsistentResourceStore implements ResourceStore {
                 ResourceConsumer existing = txMap.putIfAbsent(resource, consumer);
                 // if the resource is already allocated to another consumer, the whole allocation fails
                 if (existing != null) {
-                    tx.abort();
-                    return false;
+                    return abortTransaction(tx);
                 }
             }
-            tx.commit();
-            return true;
+
+            return commitTransaction(tx);
         } catch (TransactionException e) {
             log.error("Exception thrown, abort the transaction", e);
-            tx.abort();
-            return false;
+            return abortTransaction(tx);
         }
     }
 
@@ -130,16 +128,14 @@ public class ConsistentResourceStore implements ResourceStore {
                 // if this single release fails (because the resource is allocated to another consumer,
                 // the whole release fails
                 if (!txMap.remove(resource, consumer)) {
-                    tx.abort();
-                    return false;
+                    return abortTransaction(tx);
                 }
             }
 
-            return true;
+            return commitTransaction(tx);
         } catch (TransactionException e) {
             log.error("Exception thrown, abort the transaction", e);
-            tx.abort();
-            return false;
+            return abortTransaction(tx);
         }
     }
 
@@ -168,5 +164,27 @@ public class ConsistentResourceStore implements ResourceStore {
                 // cast is ensured by the above filter method
                 .map(x -> (Resource<S, T>) x.getKey())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Abort the transaction.
+     *
+     * @param tx transaction context
+     * @return always false
+     */
+    private boolean abortTransaction(TransactionContext tx) {
+        tx.abort();
+        return false;
+    }
+
+    /**
+     * Commit the transaction.
+     *
+     * @param tx transaction context
+     * @return always true
+     */
+    private boolean commitTransaction(TransactionContext tx) {
+        tx.commit();
+        return true;
     }
 }
