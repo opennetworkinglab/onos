@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright 2014 Open Networking Laboratory
   ~
@@ -21,30 +20,37 @@
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos</artifactId>
+        <artifactId>onos-pcep-controller</artifactId>
         <version>1.3.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-pcep-controller</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>onos-pcep-controller-impl</artifactId>
+    <packaging>bundle</packaging>
 
-    <description>ONOS Pcep Protocol subsystem</description>
-
-    <modules>
-        <module>api</module>
-        <module>ctl</module>
-        <module>pcepio</module>
-    </modules>
+    <description>ONOS PCEP controller subsystem API</description>
 
     <dependencies>
         <dependency>
+            <!-- FIXME once experimenter gets merged to upstream -->
             <groupId>org.onosproject</groupId>
-            <artifactId>onlab-misc</artifactId>
+            <artifactId>onos-pcep-controller-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
+            <artifactId>onlab-misc</artifactId>
         </dependency>
     </dependencies>
 
@@ -52,7 +58,7 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
+                <artifactId>maven-scr-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

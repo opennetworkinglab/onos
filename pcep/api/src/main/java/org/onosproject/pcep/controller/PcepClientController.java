@@ -15,7 +15,7 @@
  */
 package org.onosproject.pcep.controller;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.onosproject.pcepio.protocol.PcepMessage;
 
@@ -31,7 +31,7 @@ public interface PcepClientController {
      *
      * @return list of PcepClient elements
      */
-    public List<PcepClient> getClients();
+    Collection<PcepClient> getClients();
 
     /**
      * Returns the actual pcc client for the given ip address.
@@ -39,7 +39,7 @@ public interface PcepClientController {
      * @param pccId the id of the pcc client to fetch
      * @return the interface to this pcc client
      */
-    public PcepClient getClient(PccId pccId);
+    PcepClient getClient(PccId pccId);
 
     /**
      * Register a listener for meta events that occur to pcep
@@ -47,28 +47,28 @@ public interface PcepClientController {
      *
      * @param listener the listener to notify
      */
-    public void addListener(PcepClientListener listener);
+    void addListener(PcepClientListener listener);
 
     /**
      * Unregister a listener.
      *
      * @param listener the listener to unregister
      */
-    public void removeListener(PcepClientListener listener);
+    void removeListener(PcepClientListener listener);
 
     /**
      * Register a listener for OF msg events.
      *
      * @param listener the listener to notify
      */
-    public void addEventListener(PcepEventListener listener);
+    void addEventListener(PcepEventListener listener);
 
     /**
      * Unregister a listener.
      *
      * @param listener the listener to unregister
      */
-    public void removeEventListener(PcepEventListener listener);
+    void removeEventListener(PcepEventListener listener);
 
     /**
      * Send a message to a particular pcc client.
@@ -76,7 +76,7 @@ public interface PcepClientController {
      * @param pccId the id of the client to send message.
      * @param msg the message to send
      */
-    public void writeMessage(PccId pccId, PcepMessage msg);
+    void writeMessage(PccId pccId, PcepMessage msg);
 
     /**
      * Process a message and notify the appropriate listeners.
@@ -84,10 +84,10 @@ public interface PcepClientController {
      * @param pccId id of the client the message arrived on
      * @param msg the message to process.
      */
-    public void processClientMessage(PccId pccId, PcepMessage msg);
+    void processClientMessage(PccId pccId, PcepMessage msg);
 
     /**
      * Close all connected PCC clients.
      */
-    public void closeConnectedClients();
+    void closeConnectedClients();
 }
