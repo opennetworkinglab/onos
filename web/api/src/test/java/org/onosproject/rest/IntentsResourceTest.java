@@ -331,15 +331,29 @@ public class IntentsResourceTest extends ResourceTest {
         expect(mockIntentService.getIntent(Key.of("0", APP_ID)))
                 .andReturn(intent)
                 .anyTimes();
+        expect(mockIntentService.getIntent(Key.of(0, APP_ID)))
+                .andReturn(intent)
+                .anyTimes();
+        expect(mockIntentService.getIntent(Key.of("0x0", APP_ID)))
+                .andReturn(null)
+                .anyTimes();
         replay(mockIntentService);
         expect(mockCoreService.getAppId(APP_ID.name()))
                 .andReturn(APP_ID).anyTimes();
         replay(mockCoreService);
         final WebResource rs = resource();
+
+        // Test get using key string
         final String response = rs.path("intents/" + APP_ID.name()
                 + "/0").get(String.class);
         final JsonObject result = JsonObject.readFrom(response);
         assertThat(result, matchesIntent(intent));
+
+        // Test get using numeric value
+        final String responseNumeric = rs.path("intents/" + APP_ID.name()
+                + "/0x0").get(String.class);
+        final JsonObject resultNumeric = JsonObject.readFrom(responseNumeric);
+        assertThat(resultNumeric, matchesIntent(intent));
     }
 
     /**
@@ -390,6 +404,23 @@ public class IntentsResourceTest extends ResourceTest {
     }
 
     /**
+     * Tests creating an intent with POST and illegal JSON.
+     */
+    @Test
+    public void testBadPost() {
+        replay(mockCoreService);
+        replay(mockIntentService);
+
+        String json = "this is invalid!";
+        WebResource rs = resource();
+
+        ClientResponse response = rs.path("intents")
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .post(ClientResponse.class, json);
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_BAD_REQUEST));
+    }
+
+    /**
      * Tests removing an intent with DELETE.
      */
     @Test
@@ -429,4 +460,33 @@ public class IntentsResourceTest extends ResourceTest {
                 .delete(ClientResponse.class);
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
     }
+
+    /**
+     * Tests removal of a non existent intent with DELETE.
+     */
+    @Test
+    public void testBadRemove() {
+        final ApplicationId appId = new DefaultApplicationId(2, "app");
+
+        expect(mockCoreService.getAppId("app"))
+                .andReturn(appId).once();
+        replay(mockCoreService);
+
+        expect(mockIntentService.getIntent(Key.of(2, appId)))
+                .andReturn(null)
+                .once();
+        expect(mockIntentService.getIntent(Key.of("0x2", appId)))
+                .andReturn(null)
+                .once();
+
+        replay(mockIntentService);
+
+        WebResource rs = resource();
+
+        ClientResponse response = rs.path("intents/app/0x2")
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .delete(ClientResponse.class);
+        assertThat(response.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
+    }
+
 }

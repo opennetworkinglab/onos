@@ -17,10 +17,12 @@ package org.onosproject.rest.exceptions;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
 
 /**
  * Exception mapper for WebApplicationExceptions.
  */
+@Provider
 public class WebApplicationExceptionMapper extends AbstractMapper<WebApplicationException> {
 
     /**

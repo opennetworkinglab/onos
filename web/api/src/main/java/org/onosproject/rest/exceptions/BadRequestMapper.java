@@ -16,11 +16,14 @@
 package org.onosproject.rest.exceptions;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
+
 import java.io.IOException;
 
 /**
  * Mapper for IO exceptions to the BAD_REQUEST response code.
  */
+@Provider
 public class BadRequestMapper extends AbstractMapper<IOException> {
     @Override
     protected Response.Status responseStatus() {

@@ -16,12 +16,14 @@
 package org.onosproject.rest.exceptions;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
 
 import com.sun.jersey.api.NotFoundException;
 
 /**
  * Mapper for api not found exceptions to the NOT_FOUND response code.
  */
+@Provider
 public class NotFoundMapper extends AbstractMapper<NotFoundException> {
 
     @Override

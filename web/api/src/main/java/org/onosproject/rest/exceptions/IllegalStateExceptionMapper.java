@@ -16,10 +16,12 @@
 package org.onosproject.rest.exceptions;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
 
 /**
  * Mapper for illegal state exceptions to the BAD_REQUEST response code.
  */
+@Provider
 public class IllegalStateExceptionMapper extends AbstractMapper<IllegalStateException> {
     @Override
     protected Response.Status responseStatus() {
