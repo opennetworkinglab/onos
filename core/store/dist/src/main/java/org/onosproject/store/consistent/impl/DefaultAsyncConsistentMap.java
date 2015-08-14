@@ -32,7 +32,6 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -122,22 +121,35 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         this.purgeOnUninstall = purgeOnUninstall;
         this.database.registerConsumer(update -> {
             SharedExecutors.getSingleThreadExecutor().execute(() -> {
-                if (update.target() == MAP_UPDATE) {
-                    Result<UpdateResult<String, byte[]>> result = update.output();
-                    if (result.success() && result.value().mapName().equals(name)) {
-                        MapEvent<K, V> mapEvent = result.value().<K, V>map(this::dK, serializer::decode).toMapEvent();
-                        notifyListeners(mapEvent);
+                if (listeners.isEmpty()) {
+                    return;
+                }
+                try {
+                    if (update.target() == MAP_UPDATE) {
+                        Result<UpdateResult<String, byte[]>> result = update.output();
+                        if (result.success() && result.value().mapName().equals(name)) {
+                            MapEvent<K, V> mapEvent = result.value()
+                                                            .<K, V>map(this::dK,
+                                                                       v -> serializer.decode(Tools.copyOf(v)))
+                                                            .toMapEvent();
+                            notifyListeners(mapEvent);
+                        }
+                    } else if (update.target() == TX_COMMIT) {
+                        CommitResponse response = update.output();
+                        if (response.success()) {
+                            response.updates().forEach(u -> {
+                                if (u.mapName().equals(name)) {
+                                    MapEvent<K, V> mapEvent =
+                                            u.<K, V>map(this::dK,
+                                                        v -> serializer.decode(Tools.copyOf(v)))
+                                             .toMapEvent();
+                                    notifyListeners(mapEvent);
+                                }
+                            });
+                        }
                     }
-                } else if (update.target() == TX_COMMIT) {
-                    CommitResponse response = update.output();
-                    if (response.success()) {
-                        response.updates().forEach(u -> {
-                            if (u.mapName().equals(name)) {
-                                MapEvent<K, V> mapEvent = u.<K, V>map(this::dK, serializer::decode).toMapEvent();
-                                notifyListeners(mapEvent);
-                            }
-                        });
-                    }
+                } catch (Exception e) {
+                    log.warn("Error notifying listeners", e);
                 }
             });
         });

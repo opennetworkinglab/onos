@@ -190,6 +190,16 @@ public abstract class Tools {
     }
 
     /**
+     * Returns a copy of the input byte array.
+     *
+     * @param original input
+     * @return copy of original
+     */
+    public static byte[] copyOf(byte[] original) {
+        return Arrays.copyOf(original, original.length);
+    }
+
+    /**
      * Get property as a string value.
      *
      * @param properties   properties to be looked up
