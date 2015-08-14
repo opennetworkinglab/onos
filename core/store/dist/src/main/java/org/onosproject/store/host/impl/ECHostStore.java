@@ -50,6 +50,7 @@ import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
@@ -174,7 +175,8 @@ public class ECHostStore
 
     @Override
     public Set<Host> getConnectedHosts(DeviceId deviceId) {
-        return locations.entries()
+        return ImmutableMultimap.copyOf(locations)
+                .entries()
                 .stream()
                 .filter(entry -> entry.getKey().deviceId().equals(deviceId))
                 .map(entry -> entry.getValue())
