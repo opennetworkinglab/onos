@@ -40,25 +40,13 @@ public final class DefaultNextObjective implements NextObjective {
     private final Operation op;
     private final Optional<ObjectiveContext> context;
 
-    private DefaultNextObjective(Integer id, List<TrafficTreatment> treatments,
-                                ApplicationId appId, Type type, Operation op) {
-        this.treatments = treatments;
-        this.appId = appId;
-        this.type = type;
-        this.id = id;
-        this.op = op;
-        this.context = Optional.empty();
-    }
-
-    private DefaultNextObjective(Integer id, List<TrafficTreatment> treatments,
-                                 ApplicationId appId, ObjectiveContext context,
-                                 Type type, Operation op) {
-        this.treatments = treatments;
-        this.appId = appId;
-        this.type = type;
-        this.id = id;
-        this.op = op;
-        this.context = Optional.ofNullable(context);
+    private DefaultNextObjective(Builder builder) {
+        this.treatments = builder.treatments;
+        this.appId = builder.appId;
+        this.type = builder.type;
+        this.id = builder.id;
+        this.op = builder.op;
+        this.context = Optional.ofNullable(builder.context);
     }
 
     @Override
@@ -120,12 +108,15 @@ public final class DefaultNextObjective implements NextObjective {
         private ApplicationId appId;
         private Type type;
         private Integer id;
+        private List<TrafficTreatment> treatments;
+        private Operation op;
+        private ObjectiveContext context;
 
         private final ImmutableList.Builder<TrafficTreatment> listBuilder
                 = ImmutableList.builder();
 
         @Override
-        public NextObjective.Builder withId(int nextId) {
+        public Builder withId(int nextId) {
             this.id = nextId;
             return this;
         }
@@ -164,7 +155,7 @@ public final class DefaultNextObjective implements NextObjective {
         }
 
         @Override
-        public NextObjective.Builder fromApp(ApplicationId appId) {
+        public Builder fromApp(ApplicationId appId) {
             this.appId = appId;
             return this;
         }
@@ -182,46 +173,50 @@ public final class DefaultNextObjective implements NextObjective {
 
         @Override
         public NextObjective add() {
-            List<TrafficTreatment> treatments = listBuilder.build();
+            treatments = listBuilder.build();
+            op = Operation.ADD;
             checkNotNull(appId, "Must supply an application id");
             checkNotNull(id, "id cannot be null");
             checkNotNull(type, "The type cannot be null");
             checkArgument(!treatments.isEmpty(), "Must have at least one treatment");
 
-            return new DefaultNextObjective(id, treatments, appId, type, Operation.ADD);
+            return new DefaultNextObjective(this);
         }
 
         @Override
         public NextObjective remove() {
-            List<TrafficTreatment> treatments = listBuilder.build();
+            treatments = listBuilder.build();
+            op = Operation.REMOVE;
             checkNotNull(appId, "Must supply an application id");
             checkNotNull(id, "id cannot be null");
             checkNotNull(type, "The type cannot be null");
 
-            return new DefaultNextObjective(id, treatments, appId, type, Operation.REMOVE);
+            return new DefaultNextObjective(this);
         }
 
         @Override
         public NextObjective add(ObjectiveContext context) {
-            List<TrafficTreatment> treatments = listBuilder.build();
+            treatments = listBuilder.build();
+            op = Operation.ADD;
+            this.context = context;
             checkNotNull(appId, "Must supply an application id");
             checkNotNull(id, "id cannot be null");
             checkNotNull(type, "The type cannot be null");
             checkArgument(!treatments.isEmpty(), "Must have at least one treatment");
 
-            return new DefaultNextObjective(id, treatments, appId,
-                                            context, type, Operation.ADD);
+            return new DefaultNextObjective(this);
         }
 
         @Override
         public NextObjective remove(ObjectiveContext context) {
-            List<TrafficTreatment> treatments = listBuilder.build();
+            treatments = listBuilder.build();
+            op = Operation.REMOVE;
+            this.context = context;
             checkNotNull(appId, "Must supply an application id");
             checkNotNull(id, "id cannot be null");
             checkNotNull(type, "The type cannot be null");
 
-            return new DefaultNextObjective(id, treatments, appId,
-                                            context, type, Operation.REMOVE);
+            return new DefaultNextObjective(this);
         }
     }
 }

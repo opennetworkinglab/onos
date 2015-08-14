@@ -25,12 +25,16 @@ import org.onosproject.net.flow.criteria.Criterion;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.not;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.flowobjective.FilteringObjective.Type.DENY;
 import static org.onosproject.net.flowobjective.ForwardingObjective.Flag.SPECIFIC;
 import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;
+import static org.onosproject.net.flowobjective.Objective.Operation.ADD;
+import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
 
 /**
  * Unit tests for forwarding objective class.
@@ -82,6 +86,8 @@ public class ObjectiveTest {
                 .withTreatment(treatment)
                 .withFlag(SPECIFIC)
                 .fromApp(APP_ID)
+                .withPriority(22)
+                .makeTemporary(5)
                 .nextStep(33);
     }
 
@@ -90,12 +96,24 @@ public class ObjectiveTest {
      *
      * @param objective forwarding objective to check
      */
-    private void checkForwardingBase(ForwardingObjective objective) {
+    private void checkForwardingBase(ForwardingObjective objective,
+                                     Objective.Operation op,
+                                     ObjectiveContext expectedContext) {
+        assertThat(objective.permanent(), is(false));
+        assertThat(objective.timeout(), is(5));
         assertThat(objective.selector(), is(selector));
         assertThat(objective.treatment(), is(treatment));
         assertThat(objective.flag(), is(SPECIFIC));
         assertThat(objective.appId(), is(APP_ID));
         assertThat(objective.nextId(), is(33));
+        assertThat(objective.id(), is(not(0)));
+        assertThat(objective.priority(), is(22));
+        assertThat(objective.op(), is(op));
+        if (objective.context().isPresent()) {
+            assertThat(objective.context().get(), is(expectedContext));
+        } else {
+            assertThat(expectedContext, nullValue());
+        }
     }
 
     /**
@@ -104,7 +122,7 @@ public class ObjectiveTest {
      */
     @Test
     public void testForwardingAdd() {
-        checkForwardingBase(baseForwardingBuilder().add());
+        checkForwardingBase(baseForwardingBuilder().add(), ADD, null);
     }
 
     /**
@@ -114,7 +132,7 @@ public class ObjectiveTest {
     @Test
     public void testForwardingAddWithContext() {
         ObjectiveContext context = new MockObjectiveContext();
-        checkForwardingBase(baseForwardingBuilder().add(context));
+        checkForwardingBase(baseForwardingBuilder().add(context), ADD, context);
     }
 
     /**
@@ -123,7 +141,7 @@ public class ObjectiveTest {
      */
     @Test
     public void testForwardingRemove() {
-        checkForwardingBase(baseForwardingBuilder().remove());
+        checkForwardingBase(baseForwardingBuilder().remove(), REMOVE, null);
     }
 
     /**
@@ -133,7 +151,7 @@ public class ObjectiveTest {
     @Test
     public void testForwardingRemoveWithContext() {
         ObjectiveContext context = new MockObjectiveContext();
-        checkForwardingBase(baseForwardingBuilder().remove(context));
+        checkForwardingBase(baseForwardingBuilder().remove(context), REMOVE, context);
     }
 
     // Filtering objectives
@@ -158,7 +176,9 @@ public class ObjectiveTest {
      *
      * @param objective filtering objective to check
      */
-    private void checkFilteringBase(FilteringObjective objective) {
+    private void checkFilteringBase(FilteringObjective objective,
+                                    Objective.Operation op,
+                                    ObjectiveContext expectedContext) {
         assertThat(objective.key(), is(key));
         assertThat(objective.conditions(), hasItem(criterion));
         assertThat(objective.permanent(), is(false));
@@ -166,6 +186,13 @@ public class ObjectiveTest {
         assertThat(objective.priority(), is(5));
         assertThat(objective.appId(), is(APP_ID));
         assertThat(objective.type(), is(DENY));
+        assertThat(objective.id(), is(not(0)));
+        assertThat(objective.op(), is(op));
+        if (objective.context().isPresent()) {
+            assertThat(objective.context().get(), is(expectedContext));
+        } else {
+            assertThat(expectedContext, nullValue());
+        }
     }
 
     /**
@@ -174,7 +201,7 @@ public class ObjectiveTest {
      */
     @Test
     public void testFilteringAdd() {
-        checkFilteringBase(baseFilteringBuilder().add());
+        checkFilteringBase(baseFilteringBuilder().add(), ADD, null);
     }
 
     /**
@@ -184,7 +211,7 @@ public class ObjectiveTest {
     @Test
     public void testFilteringAddWithContext() {
         ObjectiveContext context = new MockObjectiveContext();
-        checkFilteringBase(baseFilteringBuilder().add(context));
+        checkFilteringBase(baseFilteringBuilder().add(context), ADD, context);
     }
 
     /**
@@ -193,7 +220,7 @@ public class ObjectiveTest {
      */
     @Test
     public void testFilteringRemove() {
-        checkFilteringBase(baseFilteringBuilder().remove());
+        checkFilteringBase(baseFilteringBuilder().remove(), REMOVE, null);
     }
 
     /**
@@ -203,7 +230,7 @@ public class ObjectiveTest {
     @Test
     public void testFilteringRemoveWithContext() {
         ObjectiveContext context = new MockObjectiveContext();
-        checkFilteringBase(baseFilteringBuilder().remove(context));
+        checkFilteringBase(baseFilteringBuilder().remove(context), REMOVE, context);
     }
 
     // Next objectives
@@ -218,6 +245,8 @@ public class ObjectiveTest {
                 .addTreatment(treatment)
                 .withId(12)
                 .withType(HASHED)
+                .makeTemporary(777)
+                .withPriority(33)
                 .fromApp(APP_ID);
     }
 
@@ -226,11 +255,22 @@ public class ObjectiveTest {
      *
      * @param objective next objective to check
      */
-    private void checkNextBase(NextObjective objective) {
+    private void checkNextBase(NextObjective objective,
+                               Objective.Operation op,
+                               ObjectiveContext expectedContext) {
         assertThat(objective.id(), is(12));
         assertThat(objective.appId(), is(APP_ID));
         assertThat(objective.type(), is(HASHED));
         assertThat(objective.next(), hasItem(treatment));
+        assertThat(objective.permanent(), is(false));
+        assertThat(objective.timeout(), is(0));
+        assertThat(objective.priority(), is(0));
+        assertThat(objective.op(), is(op));
+        if (objective.context().isPresent()) {
+            assertThat(objective.context().get(), is(expectedContext));
+        } else {
+            assertThat(expectedContext, nullValue());
+        }
     }
 
     /**
@@ -239,7 +279,7 @@ public class ObjectiveTest {
      */
     @Test
     public void testNextAdd() {
-        checkNextBase(baseNextBuilder().add());
+        checkNextBase(baseNextBuilder().add(), ADD, null);
     }
 
     /**
@@ -249,7 +289,7 @@ public class ObjectiveTest {
     @Test
     public void testNextAddWithContext() {
         ObjectiveContext context = new MockObjectiveContext();
-        checkNextBase(baseNextBuilder().add(context));
+        checkNextBase(baseNextBuilder().add(context), ADD, context);
     }
 
     /**
@@ -258,7 +298,7 @@ public class ObjectiveTest {
      */
     @Test
     public void testNextRemove() {
-        checkNextBase(baseNextBuilder().remove());
+        checkNextBase(baseNextBuilder().remove(), REMOVE, null);
     }
 
     /**
@@ -268,6 +308,6 @@ public class ObjectiveTest {
     @Test
     public void testNextRemoveWithContext() {
         ObjectiveContext context = new MockObjectiveContext();
-        checkNextBase(baseNextBuilder().remove(context));
+        checkNextBase(baseNextBuilder().remove(context), REMOVE, context);
     }
 }

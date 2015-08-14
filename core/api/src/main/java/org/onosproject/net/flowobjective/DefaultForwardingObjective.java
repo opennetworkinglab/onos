@@ -45,47 +45,21 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
 
     private final int id;
 
-    private DefaultForwardingObjective(TrafficSelector selector,
-                                      Flag flag, boolean permanent,
-                                      int timeout, ApplicationId appId,
-                                      int priority, Integer nextId,
-                                      TrafficTreatment treatment, Operation op) {
-        this.selector = selector;
-        this.flag = flag;
-        this.permanent = permanent;
-        this.timeout = timeout;
-        this.appId = appId;
-        this.priority = priority;
-        this.nextId = nextId;
-        this.treatment = treatment;
-        this.op = op;
-        this.context = Optional.empty();
+    private DefaultForwardingObjective(Builder builder) {
+        this.selector = builder.selector;
+        this.flag = builder.flag;
+        this.permanent = builder.permanent;
+        this.timeout = builder.timeout;
+        this.appId = builder.appId;
+        this.priority = builder.priority;
+        this.nextId = builder.nextId;
+        this.treatment = builder.treatment;
+        this.op = builder.op;
+        this.context = Optional.ofNullable(builder.context);
 
         this.id = Objects.hash(selector, flag, permanent,
-                               timeout, appId, priority, nextId,
-                               treatment, op);
-    }
-
-    private DefaultForwardingObjective(TrafficSelector selector,
-                                       Flag flag, boolean permanent,
-                                       int timeout, ApplicationId appId,
-                                       int priority, Integer nextId,
-                                       TrafficTreatment treatment,
-                                       ObjectiveContext context, Operation op) {
-        this.selector = selector;
-        this.flag = flag;
-        this.permanent = permanent;
-        this.timeout = timeout;
-        this.appId = appId;
-        this.priority = priority;
-        this.nextId = nextId;
-        this.treatment = treatment;
-        this.op = op;
-        this.context = Optional.ofNullable(context);
-
-        this.id = Objects.hash(selector, flag, permanent,
-                               timeout, appId, priority, nextId,
-                               treatment, op);
+                timeout, appId, priority, nextId,
+                treatment, op);
     }
 
 
@@ -164,6 +138,8 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
         private ApplicationId appId;
         private Integer nextId;
         private TrafficTreatment treatment;
+        private Operation op;
+        private ObjectiveContext context;
 
         @Override
         public Builder withSelector(TrafficSelector selector) {
@@ -221,9 +197,8 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
             checkArgument(nextId != null || treatment != null, "Must supply at " +
                     "least a treatment and/or a nextId");
             checkNotNull(appId, "Must supply an application id");
-            return new DefaultForwardingObjective(selector, flag, permanent,
-                                                  timeout, appId, priority,
-                                                  nextId, treatment, Operation.ADD);
+            op = Operation.ADD;
+            return new DefaultForwardingObjective(this);
         }
 
         @Override
@@ -233,9 +208,8 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
             checkArgument(nextId != null || treatment != null, "Must supply at " +
                     "least a treatment and/or a nextId");
             checkNotNull(appId, "Must supply an application id");
-            return new DefaultForwardingObjective(selector, flag, permanent,
-                                                   timeout, appId, priority,
-                                                   nextId, treatment, Operation.REMOVE);
+            op = Operation.REMOVE;
+            return new DefaultForwardingObjective(this);
         }
 
         @Override
@@ -245,10 +219,10 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
             checkArgument(nextId != null || treatment != null, "Must supply at " +
                     "least a treatment and/or a nextId");
             checkNotNull(appId, "Must supply an application id");
-            return new DefaultForwardingObjective(selector, flag, permanent,
-                                                  timeout, appId, priority,
-                                                  nextId, treatment,
-                                                  context, Operation.ADD);
+            op = Operation.ADD;
+            this.context = context;
+
+            return new DefaultForwardingObjective(this);
         }
 
         @Override
@@ -258,10 +232,10 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
             checkArgument(nextId != null || treatment != null, "Must supply at " +
                     "least a treatment and/or a nextId");
             checkNotNull(appId, "Must supply an application id");
-            return new DefaultForwardingObjective(selector, flag, permanent,
-                                                  timeout, appId, priority,
-                                                  nextId, treatment,
-                                                  context, Operation.REMOVE);
+            op = Operation.REMOVE;
+            this.context = context;
+
+            return new DefaultForwardingObjective(this);
         }
     }
 }
