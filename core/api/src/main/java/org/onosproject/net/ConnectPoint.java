@@ -85,6 +85,23 @@ public class ConnectPoint {
     }
 
     /**
+     * Returns the identifier of the infrastructure device if the connection
+     * point belongs to a network element which is indeed an ip of pcc
+     * client identifier.
+     *
+     * @return network element identifier as a pcc client identifier
+     * @throws java.lang.IllegalStateException if connection point is not
+     *                                         associated with a pcc client
+     */
+    public IpElementId ipElementId() {
+        if (elementId instanceof IpElementId) {
+            return (IpElementId) elementId;
+        }
+        throw new IllegalStateException("Connection point not associated " +
+                                                "with an pcc client");
+    }
+
+    /**
      * Returns the connection port number.
      *
      * @return port number
