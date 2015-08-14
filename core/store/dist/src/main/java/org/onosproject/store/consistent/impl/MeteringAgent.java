@@ -1,5 +1,3 @@
-package org.onosproject.store.consistent.impl;
-
 /*
  * Copyright 2015 Open Networking Laboratory
  *
@@ -15,6 +13,7 @@ package org.onosproject.store.consistent.impl;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.store.consistent.impl;
 
 import com.codahale.metrics.Timer;
 import com.google.common.collect.Maps;
