@@ -19,6 +19,7 @@
         {"type":"L2MODIFICATION","subtype":"DEC_MPLS_TTL"},
         {"type":"L2MODIFICATION","subtype":"VLAN_POP"},
         {"type":"L2MODIFICATION","subtype":"VLAN_PUSH"},
+        {"type":"L2MODIFICATION","subtype":"TUNNEL_ID", "tunnelId":100},
         {"type":"L3MODIFICATION","subtype":"IPV4_SRC", "ip":"1.2.3.4"},
         {"type":"L3MODIFICATION","subtype":"IPV4_DST", "ip":"1.2.3.3"},
         {"type":"L3MODIFICATION","subtype":"IPV6_SRC", "ip":"1.2.3.2"},

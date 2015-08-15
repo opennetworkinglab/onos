@@ -41,6 +41,7 @@ import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
@@ -105,6 +106,7 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.IPV6_EXTHDR, new FormatIpV6Exthdr());
         formatMap.put(Criterion.Type.OCH_SIGID, new FormatOchSigId());
         formatMap.put(Criterion.Type.OCH_SIGTYPE, new FormatOchSigType());
+        formatMap.put(Criterion.Type.TUNNEL_ID, new FormatTunnelId());
         formatMap.put(Criterion.Type.DUMMY, new FormatDummyType());
 
         // Currently unimplemented
@@ -116,7 +118,6 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.MPLS_TC, new FormatUnknown());
         formatMap.put(Criterion.Type.MPLS_BOS, new FormatUnknown());
         formatMap.put(Criterion.Type.PBB_ISID, new FormatUnknown());
-        formatMap.put(Criterion.Type.TUNNEL_ID, new FormatUnknown());
         formatMap.put(Criterion.Type.UNASSIGNED_40, new FormatUnknown());
         formatMap.put(Criterion.Type.PBB_UCA, new FormatUnknown());
         formatMap.put(Criterion.Type.TCP_FLAGS, new FormatUnknown());
@@ -351,6 +352,15 @@ public final class EncodeCriterionCodecHelper {
             final OchSignalTypeCriterion ochSignalTypeCriterion =
                     (OchSignalTypeCriterion) criterion;
             return root.put("ochSignalType", ochSignalTypeCriterion.signalType().name());
+        }
+    }
+
+    private static class FormatTunnelId implements CriterionTypeFormatter {
+        @Override
+        public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
+            final TunnelIdCriterion tunnelIdCriterion =
+                    (TunnelIdCriterion) criterion;
+            return root.put(CriterionCodec.TUNNEL_ID, tunnelIdCriterion.tunnelId());
         }
     }
 

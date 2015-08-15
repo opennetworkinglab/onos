@@ -88,6 +88,10 @@ public final class DecodeInstructionCodecHelper {
             return Instructions.popVlan();
         } else if (subType.equals(L2ModificationInstruction.L2SubType.VLAN_PUSH.name())) {
             return Instructions.pushVlan();
+        } else if (subType.equals(L2ModificationInstruction.L2SubType.TUNNEL_ID.name())) {
+            long tunnelId = nullIsIllegal(json.get(InstructionCodec.TUNNEL_ID),
+                    InstructionCodec.TUNNEL_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asLong();
+            return Instructions.modTunnelId(tunnelId);
         }
         throw new IllegalArgumentException("L2 Instruction subtype "
                 + subType + " is not supported");

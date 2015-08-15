@@ -123,6 +123,12 @@ public final class EncodeInstructionCodecHelper {
                            pushHeaderInstructions.ethernetType().toShort());
                 break;
 
+            case TUNNEL_ID:
+                final L2ModificationInstruction.ModTunnelIdInstruction modTunnelIdInstruction =
+                        (L2ModificationInstruction.ModTunnelIdInstruction) instruction;
+                result.put(InstructionCodec.TUNNEL_ID, modTunnelIdInstruction.tunnelId());
+                break;
+
             default:
                 log.info("Cannot convert L2 subtype of {}", instruction.subtype());
                 break;

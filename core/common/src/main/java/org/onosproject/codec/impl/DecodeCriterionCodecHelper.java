@@ -93,6 +93,7 @@ public final class DecodeCriterionCodecHelper {
         decoderMap.put(Criterion.Type.IPV6_EXTHDR.name(), new IpV6ExthdrDecoder());
         decoderMap.put(Criterion.Type.OCH_SIGID.name(), new OchSigIdDecoder());
         decoderMap.put(Criterion.Type.OCH_SIGTYPE.name(), new OchSigTypeDecoder());
+        decoderMap.put(Criterion.Type.TUNNEL_ID.name(), new TunnelIdDecoder());
     }
 
     private class EthTypeDecoder implements CriterionDecoder {
@@ -414,6 +415,15 @@ public final class DecodeCriterionCodecHelper {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
             return null;
+        }
+    }
+
+    private class TunnelIdDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            long tunnelId = nullIsIllegal(json.get(CriterionCodec.TUNNEL_ID),
+                    CriterionCodec.TUNNEL_ID + MISSING_MEMBER_MESSAGE).asLong();
+            return Criteria.matchTunnelId(tunnelId);
         }
     }
 

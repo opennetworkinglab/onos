@@ -58,6 +58,7 @@ import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
@@ -205,7 +206,7 @@ public class FlowRuleCodecTest {
                             instruction.type().name() + "/" + subType, instruction);
                 });
 
-        assertThat(rule.treatment().allInstructions().size(), is(19));
+        assertThat(rule.treatment().allInstructions().size(), is(20));
 
         Instruction instruction;
 
@@ -272,6 +273,12 @@ public class FlowRuleCodecTest {
                 L2ModificationInstruction.L2SubType.VLAN_PUSH.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
         assertThat(instruction, instanceOf(L2ModificationInstruction.PushHeaderInstructions.class));
+
+        instruction = getInstruction(Instruction.Type.L2MODIFICATION,
+                L2ModificationInstruction.L2SubType.TUNNEL_ID.name());
+        assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
+        assertThat(((L2ModificationInstruction.ModTunnelIdInstruction) instruction)
+                        .tunnelId(), is(100L));
 
         instruction = getInstruction(Instruction.Type.L3MODIFICATION,
                 L3ModificationInstruction.L3SubType.IPV4_SRC.name());
@@ -347,7 +354,7 @@ public class FlowRuleCodecTest {
 
         checkCommonData(rule);
 
-        assertThat(rule.selector().criteria().size(), is(32));
+        assertThat(rule.selector().criteria().size(), is(33));
 
         rule.selector().criteria()
                 .stream()
@@ -479,6 +486,10 @@ public class FlowRuleCodecTest {
         criterion = getCriterion(Criterion.Type.OCH_SIGID);
         assertThat(((IndexedLambdaCriterion) criterion).lambda(),
                 is(Lambda.indexedLambda(122)));
+
+        criterion = getCriterion(Criterion.Type.TUNNEL_ID);
+        assertThat(((TunnelIdCriterion) criterion).tunnelId(),
+                is(100L));
     }
 
     /**
