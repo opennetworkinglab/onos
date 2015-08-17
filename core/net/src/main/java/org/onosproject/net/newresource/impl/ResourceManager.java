@@ -30,7 +30,6 @@ import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.newresource.ResourceStore;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -48,26 +47,6 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceStore store;
-
-    @Override
-    public Optional<ResourceAllocation> allocate(ResourceConsumer consumer, ResourcePath resource) {
-        checkNotNull(consumer);
-        checkNotNull(resource);
-
-        List<ResourceAllocation> allocations = allocate(consumer, ImmutableList.of(resource));
-        if (allocations.isEmpty()) {
-            return Optional.empty();
-        }
-
-        assert allocations.size() == 1;
-
-        ResourceAllocation allocation = allocations.get(0);
-
-        assert allocation.resource().equals(resource);
-
-        // cast is ensured by the assertions above
-        return Optional.of(allocation);
-    }
 
     @Override
     public List<ResourceAllocation> allocate(ResourceConsumer consumer,
@@ -89,21 +68,6 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
     }
 
     @Override
-    public List<ResourceAllocation> allocate(ResourceConsumer consumer, ResourcePath... resources) {
-        checkNotNull(consumer);
-        checkNotNull(resources);
-
-        return allocate(consumer, Arrays.asList(resources));
-    }
-
-    @Override
-    public boolean release(ResourceAllocation allocation) {
-        checkNotNull(allocation);
-
-        return release(ImmutableList.of(allocation));
-    }
-
-    @Override
     public boolean release(List<ResourceAllocation> allocations) {
         checkNotNull(allocations);
 
@@ -115,13 +79,6 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
                 .collect(Collectors.toList());
 
         return store.release(resources, consumers);
-    }
-
-    @Override
-    public boolean release(ResourceAllocation... allocations) {
-        checkNotNull(allocations);
-
-        return release(ImmutableList.copyOf(allocations));
     }
 
     @Override

@@ -16,10 +16,14 @@
 package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableList;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Service for allocating/releasing resource(s) and retrieving allocation(s) and availability.
@@ -33,7 +37,24 @@ public interface ResourceService {
      * @param resource resource to be allocated
      * @return allocation information enclosed by Optional. If the allocation fails, the return value is empty
      */
-    Optional<ResourceAllocation> allocate(ResourceConsumer consumer, ResourcePath resource);
+    default Optional<ResourceAllocation> allocate(ResourceConsumer consumer, ResourcePath resource) {
+        checkNotNull(consumer);
+        checkNotNull(resource);
+
+        List<ResourceAllocation> allocations = allocate(consumer, ImmutableList.of(resource));
+        if (allocations.isEmpty()) {
+            return Optional.empty();
+        }
+
+        assert allocations.size() == 1;
+
+        ResourceAllocation allocation = allocations.get(0);
+
+        assert allocation.resource().equals(resource);
+
+        // cast is ensured by the assertions above
+        return Optional.of(allocation);
+    }
 
     /**
      * Transactionally allocates the specified resources to the specified user.
@@ -53,7 +74,12 @@ public interface ResourceService {
      * @param resources resources to be allocated
      * @return non-empty list of allocation information if succeeded, otherwise empty list
      */
-    List<ResourceAllocation> allocate(ResourceConsumer consumer, ResourcePath... resources);
+    default List<ResourceAllocation> allocate(ResourceConsumer consumer, ResourcePath... resources) {
+        checkNotNull(consumer);
+        checkNotNull(resources);
+
+        return allocate(consumer, Arrays.asList(resources));
+    }
 
     /**
      * Releases the specified resource allocation.
@@ -61,7 +87,11 @@ public interface ResourceService {
      * @param allocation resource allocation to be released
      * @return true if succeeded, otherwise false
      */
-    boolean release(ResourceAllocation allocation);
+    default boolean release(ResourceAllocation allocation) {
+        checkNotNull(allocation);
+
+        return release(ImmutableList.of(allocation));
+    }
 
     /**
      * Transactionally releases the specified resource allocations.
@@ -79,7 +109,11 @@ public interface ResourceService {
      * @param allocations resource allocations to be released
      * @return true if succeeded, otherwise false
      */
-    boolean release(ResourceAllocation... allocations);
+    default boolean release(ResourceAllocation... allocations) {
+        checkNotNull(allocations);
+
+        return release(ImmutableList.copyOf(allocations));
+    }
 
     /**
      * Transactionally releases the resources allocated to the specified consumer.
