@@ -141,4 +141,9 @@ public class ConsistentMapAdapter<K, V> implements ConsistentMap<K, V> {
     public void removeListener(MapEventListener<K, V> listener) {
 
     }
+
+    @Override
+    public Map<K, V> asJavaMap() {
+        return null;
+    }
 }

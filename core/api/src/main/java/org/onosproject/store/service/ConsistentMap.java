@@ -17,6 +17,7 @@
 package org.onosproject.store.service;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -281,4 +282,10 @@ public interface ConsistentMap<K, V> {
      * @param listener listener to unregister
      */
     void removeListener(MapEventListener<K, V> listener);
+
+    /**
+     * Returns a java.util.Map instance backed by this ConsistentMap.
+     * @return java.util.Map
+     */
+    Map<K, V> asJavaMap();
 }
