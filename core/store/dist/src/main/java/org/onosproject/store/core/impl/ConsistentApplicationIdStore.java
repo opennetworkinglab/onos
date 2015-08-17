@@ -15,12 +15,10 @@
  */
 package org.onosproject.store.core.impl;
 
-import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -30,20 +28,21 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.ApplicationIdStore;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.AsyncAtomicCounter;
+import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageException;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Futures;
 
 /**
  * ApplicationIdStore implementation on top of {@code AtomicCounter}
@@ -58,7 +57,7 @@ public class ConsistentApplicationIdStore implements ApplicationIdStore {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
-    private AsyncAtomicCounter appIdCounter;
+    private AtomicCounter appIdCounter;
     private ConsistentMap<String, ApplicationId> registeredIds;
     private Map<String, ApplicationId> nameToAppIdCache = Maps.newConcurrentMap();
     private Map<Short, ApplicationId> idToAppIdCache = Maps.newConcurrentMap();
@@ -71,13 +70,10 @@ public class ConsistentApplicationIdStore implements ApplicationIdStore {
 
     @Activate
     public void activate() {
-        executor = Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/store/appId", "retry-handler"));
         appIdCounter = storageService.atomicCounterBuilder()
                                       .withName("onos-app-id-counter")
                                       .withPartitionsDisabled()
-                                      .withRetryOnFailure()
-                                      .withRetryExecutor(executor)
-                                      .buildAsyncCounter();
+                                      .build();
 
         registeredIds = storageService.<String, ApplicationId>consistentMapBuilder()
                 .withName("onos-app-ids")
@@ -128,7 +124,9 @@ public class ConsistentApplicationIdStore implements ApplicationIdStore {
         ApplicationId appId = nameToAppIdCache.computeIfAbsent(name, key -> {
             Versioned<ApplicationId> existingAppId = registeredIds.get(name);
             if (existingAppId == null) {
-                int id = Futures.getUnchecked(appIdCounter.incrementAndGet()).intValue();
+                int id = Tools.retryable(appIdCounter::incrementAndGet, StorageException.class, 1, 2000)
+                              .get()
+                              .intValue();
                 DefaultApplicationId newAppId = new DefaultApplicationId(id, name);
                 existingAppId = registeredIds.putIfAbsent(name, newAppId);
                 if (existingAppId != null) {

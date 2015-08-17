@@ -46,6 +46,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -224,6 +226,41 @@ public abstract class Tools {
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted", e);
         }
+    }
+
+    /**
+     * Returns a function that retries execution on failure.
+     * @param base base function
+     * @param exceptionClass type of exception for which to retry
+     * @param maxRetries max number of retries before giving up
+     * @param maxDelayBetweenRetries max delay between successive retries. The actual delay is randomly picked from
+     * the interval (0, maxDelayBetweenRetries]
+     * @return function
+     */
+    public static <U, V> Function<U, V> retryable(Function<U, V> base,
+            Class<? extends Throwable> exceptionClass,
+            int maxRetries,
+            int maxDelayBetweenRetries) {
+        return new RetryingFunction<>(base, exceptionClass, maxRetries, maxDelayBetweenRetries);
+    }
+
+    /**
+     * Returns a Supplier that retries execution on failure.
+     * @param base base supplier
+     * @param exceptionClass type of exception for which to retry
+     * @param maxRetries max number of retries before giving up
+     * @param maxDelayBetweenRetries max delay between successive retries. The actual delay is randomly picked from
+     * the interval (0, maxDelayBetweenRetries]
+     * @return supplier
+     */
+    public static <V> Supplier<V> retryable(Supplier<V> base,
+            Class<? extends Throwable> exceptionClass,
+            int maxRetries,
+            int maxDelayBetweenRetries) {
+        return () -> new RetryingFunction<>(v -> base.get(),
+                exceptionClass,
+                maxRetries,
+                maxDelayBetweenRetries).apply(null);
     }
 
     /**

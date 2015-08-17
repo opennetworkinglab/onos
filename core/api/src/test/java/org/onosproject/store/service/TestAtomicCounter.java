@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.service;
 
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -69,17 +68,7 @@ public final class TestAtomicCounter implements AtomicCounter {
         }
 
         @Override
-        public AtomicCounterBuilder withRetryOnFailure() {
-            return this;
-        }
-
-        @Override
         public AtomicCounterBuilder withMeteringDisabled() {
-            return this;
-        }
-
-        @Override
-        public AtomicCounterBuilder withRetryExecutor(ScheduledExecutorService executor) {
             return this;
         }
 

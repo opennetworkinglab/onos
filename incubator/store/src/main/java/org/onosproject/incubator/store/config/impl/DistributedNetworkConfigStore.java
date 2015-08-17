@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.node.ShortNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -165,14 +166,9 @@ public class DistributedNetworkConfigStore
 
     @Override
     public <S, T extends Config<S>> T getConfig(S subject, Class<T> configClass) {
-        // FIXME: There has to be a better way to absorb the timeout exceptions!
-        Versioned<ObjectNode> json = null;
-        try {
-            json = configs.get(key(subject, configClass));
-        } catch (ConsistentMapException e) {
-            Tools.randomDelay(MAX_BACKOFF);
-            json = configs.get(key(subject, configClass));
-        }
+        // TODO: need to identify and address the root cause for timeouts.
+        Versioned<ObjectNode> json = Tools.retryable(configs::get, ConsistentMapException.class, 1, MAX_BACKOFF)
+                                          .apply(key(subject, configClass));
         return json != null ? createConfig(subject, configClass, json.value()) : null;
     }
 
