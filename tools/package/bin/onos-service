@@ -11,6 +11,34 @@
 #export JAVA_OPTS="${JAVA_OPTS:--DenableNettyTLS=true -Djavax.net.ssl.keyStore=/home/ubuntu/onos.jks -Djavax.net.ssl.keyStorePassword=222222 -Djavax.net.ssl.trustStore=/home/ubuntu/onos.jks -Djavax.net.ssl.trustStorePassword=222222}"
 
 ONOS_HOME=/opt/onos
+KARAF_ARGS=
+SYS_APPS=drivers
 
 [ -d $ONOS_HOME ] && cd $ONOS_HOME || ONOS_HOME=$(dirname $0)/..
-${ONOS_HOME}/apache-karaf-$KARAF_VERSION/bin/karaf "$@"
+
+# Parse out arguments destinted for karaf invocation v. arguments that
+# will be processed in line
+while [ $# -gt 0 ]; do
+  case $1 in
+    apps-clean)
+      # Deactivate all applications
+      find ${ONOS_HOME}/apps -name "active" -exec rm \{\} \;
+      ;;
+    *)
+      KARAF_ARGS+=" $1"
+      ;;
+  esac
+  shift
+done
+
+# Activate the system required applications (SYS_APPS) as well as any
+# specified applications in the var ONOS_APPS
+for app in ${SYS_APPS//,/ } ${ONOS_APPS//,/ }; do
+  if [[ "$app" =~ \. ]]; then
+    touch ${ONOS_HOME}/apps/$app/active
+  else
+    touch ${ONOS_HOME}/apps/org.onosproject.$app/active
+  fi
+done
+
+exec ${ONOS_HOME}/apache-karaf-$KARAF_VERSION/bin/karaf $KARAF_ARGS
