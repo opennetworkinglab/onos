@@ -28,7 +28,7 @@ public interface PcepTunnel extends PcepOperator {
     /**
      * Describe the type of a tunnel.
      */
-    public static enum Type {
+    enum Type {
 
         /**
          * Signifies that this is a L0 OCH tunnel.
@@ -49,7 +49,7 @@ public interface PcepTunnel extends PcepOperator {
     /**
      * The ability of a tunnel.
      */
-    public static enum Ability {
+    enum Ability {
         /**
          * no protected tunnel,if the tunnel is broken ,then the user is out of
          * service.
@@ -69,7 +69,7 @@ public interface PcepTunnel extends PcepOperator {
         DIAMOND
     }
 
-    public static enum PATHTYPE {
+    enum PATHTYPE {
 
         /**
          * Indicates path is the preferred path.
@@ -84,9 +84,8 @@ public interface PcepTunnel extends PcepOperator {
 
     /**
      * Represents state of the path, work normally or broken down.
-     *
      */
-    public static enum PathState {
+    enum PathState {
         NORMAL, BROKEN
     }
 
@@ -95,63 +94,63 @@ public interface PcepTunnel extends PcepOperator {
      *
      * @return tunnel type
      */
-    public Type type();
+    Type type();
 
     /**
      * Returns the name of a tunnel.
      *
      * @return tunnel name
      */
-    public String name();
+    String name();
 
     /**
      * Returns the device id of destination endpoint of a tunnel.
      *
      * @return device id
      */
-    public PcepDpid srcDeviceID();
+    PcepDpid srcDeviceID();
 
     /**
      * Returns the device id of source endpoint of a tunnel.
      *
      * @return device id
      */
-    public PcepDpid dstDeviceId();
+    PcepDpid dstDeviceId();
 
     /**
      * Returns source port of a tunnel.
      *
      * @return port number
      */
-    public long srcPort();
+    long srcPort();
 
     /**
      * Returns destination port of a tunnel.
      *
      * @return port number
      */
-    public long dstPort();
+    long dstPort();
 
     /**
      * Returns the bandwidth of a tunnel.
      *
      * @return bandwidth
      */
-    public long bandWidth();
+    long bandWidth();
 
     /**
      * Returns the tunnel id.
      *
      * @return id of the PCEP tunnel
      */
-    public long id();
+    long id();
 
     /**
      * Returns the detail hop list of a tunnel.
      *
      * @return hop list
      */
-    public List<PcepHopNodeDescription> getHopList();
+    List<PcepHopNodeDescription> getHopList();
 
     /**
      * Returns the instance of a pcep tunnel,a instance is used to mark the times of
@@ -159,34 +158,34 @@ public interface PcepTunnel extends PcepOperator {
      *
      * @return the instance of a tunnel.
      */
-    public int getInstance();
+    int getInstance();
 
     /**
      * Returns the state of a path.
      *
      * @return normal or broken
      */
-    public PathState getPathState();
+    PathState getPathState();
 
     /**
      * Returns the ability of a tunnel.
      *
      * @return ability of the tunenl
      */
-    public Ability getSla();
+    Ability getSla();
 
     /**
      * Returns the path type of a path if the tunnel's ability is diamond .
      *
      * @return the type of a path, the preferred or alternate.
      */
-    public PATHTYPE getPathType();
+    PATHTYPE getPathType();
 
     /**
      * Get the under lay tunnel id of VLAN tunnel.
      *
      * @return the tunnel id of a OCH tunnel under lay of a VLAN tunnel.
      */
-    public long underlayTunnelId();
+    long underlayTunnelId();
 
 }

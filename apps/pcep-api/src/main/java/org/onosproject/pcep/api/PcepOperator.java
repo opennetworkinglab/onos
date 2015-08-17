@@ -18,11 +18,10 @@ package org.onosproject.pcep.api;
 /**
  * A interface defined operator type, and provide a method to get the operator
  * type.
- *
  */
 public interface PcepOperator {
 
-    public enum OperationType {
+    enum OperationType {
 
         ADD, UPDATE, DELETE,
     }
@@ -32,5 +31,5 @@ public interface PcepOperator {
      *
      * @return operation type.
      */
-    public OperationType getOperationType();
+    OperationType getOperationType();
 }

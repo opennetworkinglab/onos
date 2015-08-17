@@ -25,20 +25,20 @@ public interface PcepSwitchListener {
      *
      * @param dpid the switch where the event occurred
      */
-    public void switchAdded(PcepDpid dpid);
+    void switchAdded(PcepDpid dpid);
 
     /**
      * Notify that the switch was removed.
      *
      * @param dpid the switch where the event occurred.
      */
-    public void switchRemoved(PcepDpid dpid);
+    void switchRemoved(PcepDpid dpid);
 
     /**
      * Notify that the switch has changed in some way.
      *
      * @param dpid the switch that changed
      */
-    public void switchChanged(PcepDpid dpid);
+    void switchChanged(PcepDpid dpid);
 
 }

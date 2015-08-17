@@ -26,6 +26,6 @@ public interface PcepTunnelListener {
      *
      * @param tunnel a pceptunnel.
      */
-    public void handlePCEPTunnel(PcepTunnel tunnel);
+    void handlePCEPTunnel(PcepTunnel tunnel);
 
 }
