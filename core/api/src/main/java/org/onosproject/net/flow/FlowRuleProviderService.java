@@ -41,6 +41,15 @@ public interface FlowRuleProviderService extends ProviderService<FlowRuleProvide
     void pushFlowMetrics(DeviceId deviceId, Iterable<FlowEntry> flowEntries);
 
     /**
+     * Pushes the collection of flow entries currently applied on the given
+     * device without flowMissing process.
+     *
+     * @param deviceId device identifier
+     * @param flowEntries collection of flow rules
+     */
+    void pushFlowMetricsWithoutFlowMissing(DeviceId deviceId, Iterable<FlowEntry> flowEntries);
+
+    /**
      * Indicates to the core that the requested batch operation has
      * been completed.
      *

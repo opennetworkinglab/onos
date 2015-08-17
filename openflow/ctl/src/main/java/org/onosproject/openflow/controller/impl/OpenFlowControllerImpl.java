@@ -273,6 +273,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                         OFFlowStatsReply.Builder rep =
                                 OFFactories.getFactory(msg.getVersion()).buildFlowStatsReply();
                         rep.setEntries(Lists.newLinkedList(flowStats));
+                        rep.setXid(reply.getXid());
                         executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
                     }
                     break;
