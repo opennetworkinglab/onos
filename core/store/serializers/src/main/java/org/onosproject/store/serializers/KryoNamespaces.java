@@ -160,6 +160,7 @@ import org.onosproject.net.intent.constraint.ObstacleConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.link.DefaultLinkDescription;
+import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.packet.DefaultOutboundPacket;
@@ -271,6 +272,8 @@ public final class KryoNamespaces {
             .register(MISC)
             .nextId(KryoNamespace.INITIAL_ID + 30 + 10)
             .register(
+                    Instructions.MeterInstruction.class,
+                    MeterId.class,
                     Version.class,
                     ControllerNode.State.class,
                     ApplicationState.class,

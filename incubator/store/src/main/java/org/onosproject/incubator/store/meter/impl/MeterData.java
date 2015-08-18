@@ -16,8 +16,8 @@
 package org.onosproject.incubator.store.meter.impl;
 
 import org.onosproject.cluster.NodeId;
-import org.onosproject.incubator.net.meter.Meter;
-import org.onosproject.incubator.net.meter.MeterFailReason;
+import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterFailReason;
 
 import java.util.Optional;
 

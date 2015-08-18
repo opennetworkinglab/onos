@@ -161,6 +161,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         if (treatment.writeMetadata() != null) {
             instructions.add(buildMetadata(treatment.writeMetadata()));
         }
+        if (treatment.metered() != null) {
+            instructions.add(buildMeter(treatment.metered()));
+        }
 
         long cookie = flowRule().id().value();
 
@@ -262,6 +265,11 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 U64.of(m.metadata()), U64.of(m.metadataMask()));
         return instruction;
     }
+
+    private OFInstruction buildMeter(Instructions.MeterInstruction metered) {
+        return factory().instructions().meter(metered.meterId().id());
+    }
+
 
     private OFAction buildL0Modification(Instruction i) {
         L0ModificationInstruction l0m = (L0ModificationInstruction) i;

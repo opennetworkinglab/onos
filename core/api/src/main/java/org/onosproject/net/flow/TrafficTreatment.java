@@ -24,6 +24,7 @@ import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.meter.MeterId;
 
 import java.util.List;
 
@@ -73,6 +74,13 @@ public interface TrafficTreatment {
      * @return a metadata instruction that may be null
      */
     Instructions.MetadataInstruction writeMetadata();
+
+    /**
+     * Returns the meter instruction if there is one.
+     *
+     * @return a meter instruction that may be null
+     */
+    Instructions.MeterInstruction metered();
 
     /**
      * Builder of traffic treatment entities.
@@ -243,6 +251,13 @@ public interface TrafficTreatment {
          */
         Builder group(GroupId groupId);
 
+        /**
+         * Sets a meter to be used by this flow.
+         *
+         * @param meterId a meter id
+         * @return a treatment builder
+         */
+        Builder meter(MeterId meterId);
 
         /**
          * Sets the next table type to transition to.

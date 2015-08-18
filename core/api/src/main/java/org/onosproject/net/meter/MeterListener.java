@@ -13,26 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.meter;
+package org.onosproject.net.meter;
+
+import org.onosproject.event.EventListener;
 
 /**
- * A context permitting the application to be notified when the
- * meter installation has been successful.
+ * Entity capable of receiving Meter related events.
  */
-public interface MeterContext {
-
-    /**
-     * Invoked on successful installation of the meter.
-     *
-     * @param op a meter
-     */
-    default void onSuccess(Meter op) {}
-
-    /**
-     * Invoked when error is encountered while installing a meter.
-     *
-     * @param op a meter
-     * @param reason the reason why it failed
-     */
-    default void onError(Meter op, MeterFailReason reason) {}
+public interface MeterListener extends EventListener<MeterEvent> {
 }

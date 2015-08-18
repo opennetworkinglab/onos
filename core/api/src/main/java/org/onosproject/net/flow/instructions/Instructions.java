@@ -34,6 +34,7 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6Fl
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModTtlInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.L4SubType;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
+import org.onosproject.net.meter.MeterId;
 
 import java.util.Objects;
 
@@ -79,6 +80,11 @@ public final class Instructions {
     public static GroupInstruction createGroup(final GroupId groupId) {
         checkNotNull(groupId, "GroupId cannot be null");
         return new GroupInstruction(groupId);
+    }
+
+    public static MeterInstruction meterTraffic(final MeterId meterId) {
+        checkNotNull(meterId, "meter id cannot be null");
+        return new MeterInstruction(meterId);
     }
 
     /**
@@ -521,6 +527,50 @@ public final class Instructions {
             if (obj instanceof GroupInstruction) {
                 GroupInstruction that = (GroupInstruction) obj;
                 return Objects.equals(groupId, that.groupId);
+
+            }
+            return false;
+        }
+    }
+
+    /**
+     * A meter instruction.
+     */
+    public static final class MeterInstruction implements Instruction {
+        private final MeterId meterId;
+
+        private MeterInstruction(MeterId meterId) {
+            this.meterId = meterId;
+        }
+
+        public MeterId meterId() {
+            return meterId;
+        }
+
+        @Override
+        public Type type() {
+            return Type.METER;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("meter ID", meterId.id()).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type().ordinal(), meterId);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof MeterInstruction) {
+                MeterInstruction that = (MeterInstruction) obj;
+                return Objects.equals(meterId, that.meterId);
 
             }
             return false;

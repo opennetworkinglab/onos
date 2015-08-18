@@ -610,6 +610,11 @@ public class FlowRuleManagerTest {
             return null;
         }
 
+        @Override
+        public Instructions.MeterInstruction metered() {
+            return null;
+        }
+
     }
 
     public class TestApplicationId extends DefaultApplicationId {

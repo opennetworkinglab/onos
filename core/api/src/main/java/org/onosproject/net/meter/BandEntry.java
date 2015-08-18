@@ -13,31 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.meter;
+package org.onosproject.net.meter;
 
 /**
- * Represents the state of the meter as seen by the store.
+ * Represents a stored band.
  */
-public enum MeterState {
+public interface BandEntry extends Band {
 
     /**
-     * The meter is in the process of being added.
+     * Sets the number of packets seen by this band.
+     *
+     * @param packets a packet count
      */
-    PENDING_ADD,
+    void setPackets(long packets);
 
     /**
-     * THe meter has been added.
+     * Sets the number of bytes seen by this band.
+     *
+     * @param bytes a byte counter
      */
-    ADDED,
-
-    /**
-     * The meter is in the process of being removed.
-     */
-    PENDING_REMOVE,
-
-    /**
-     * The meter has been removed.
-     */
-    REMOVED,
+    void setBytes(long bytes);
 
 }

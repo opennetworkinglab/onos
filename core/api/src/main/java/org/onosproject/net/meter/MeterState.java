@@ -13,15 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.meter;
-
-
-import org.onosproject.net.provider.ProviderRegistry;
+package org.onosproject.net.meter;
 
 /**
- * Abstraction for a meter provider registry.
+ * Represents the state of the meter as seen by the store.
  */
-public interface MeterProviderRegistry
-        extends ProviderRegistry<MeterProvider, MeterProviderService> {
-}
+public enum MeterState {
 
+    /**
+     * The meter is in the process of being added.
+     */
+    PENDING_ADD,
+
+    /**
+     * THe meter has been added.
+     */
+    ADDED,
+
+    /**
+     * The meter is in the process of being removed.
+     */
+    PENDING_REMOVE,
+
+    /**
+     * The meter has been removed.
+     */
+    REMOVED,
+
+}

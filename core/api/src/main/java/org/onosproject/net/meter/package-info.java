@@ -17,4 +17,4 @@
 /**
  * Flow meter model and related services.
  */
-package org.onosproject.incubator.net.meter;
+package org.onosproject.net.meter;

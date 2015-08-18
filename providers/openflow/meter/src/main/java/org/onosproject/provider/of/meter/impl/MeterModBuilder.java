@@ -15,9 +15,9 @@
  */
 package org.onosproject.provider.of.meter.impl;
 
-import org.onosproject.incubator.net.meter.Band;
-import org.onosproject.incubator.net.meter.Meter;
-import org.onosproject.incubator.net.meter.MeterId;
+import org.onosproject.net.meter.Band;
+import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterId;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMeterFlags;
 import org.projectfloodlight.openflow.protocol.OFMeterMod;

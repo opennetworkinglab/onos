@@ -124,6 +124,11 @@ public class IntentTestsMocks {
         public MetadataInstruction writeMetadata() {
             return null;
         }
+
+        @Override
+        public Instructions.MeterInstruction metered() {
+            return null;
+        }
     }
 
     /**

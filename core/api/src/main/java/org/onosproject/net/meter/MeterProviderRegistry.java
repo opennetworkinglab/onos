@@ -13,25 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.meter;
+package org.onosproject.net.meter;
+
+
+import org.onosproject.net.provider.ProviderRegistry;
 
 /**
- * Represents a stored band.
+ * Abstraction for a meter provider registry.
  */
-public interface BandEntry extends Band {
-
-    /**
-     * Sets the number of packets seen by this band.
-     *
-     * @param packets a packet count
-     */
-    void setPackets(long packets);
-
-    /**
-     * Sets the number of bytes seen by this band.
-     *
-     * @param bytes a byte counter
-     */
-    void setBytes(long bytes);
-
+public interface MeterProviderRegistry
+        extends ProviderRegistry<MeterProvider, MeterProviderService> {
 }
+

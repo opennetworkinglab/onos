@@ -28,6 +28,7 @@ import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.meter.MeterId;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +51,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
     private static final DefaultTrafficTreatment EMPTY
             = new DefaultTrafficTreatment(Collections.emptyList());
+    private final Instructions.MeterInstruction meter;
 
     /**
      * Creates a new traffic treatment from the specified list of instructions.
@@ -63,6 +65,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         this.hasClear = false;
         this.table = null;
         this.meta = null;
+        this.meter = null;
     }
 
     /**
@@ -77,7 +80,8 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                                    List<Instruction> immediate,
                                    Instructions.TableTypeTransition table,
                                    boolean clear,
-                                   Instructions.MetadataInstruction meta) {
+                                   Instructions.MetadataInstruction meta,
+                                   Instructions.MeterInstruction meter) {
         this.immediate = ImmutableList.copyOf(checkNotNull(immediate));
         this.deferred = ImmutableList.copyOf(checkNotNull(deferred));
         this.all = new ImmutableList.Builder<Instruction>()
@@ -87,6 +91,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         this.table = table;
         this.meta = meta;
         this.hasClear = clear;
+        this.meter = meter;
     }
 
     @Override
@@ -117,6 +122,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
     @Override
     public Instructions.MetadataInstruction writeMetadata() {
         return meta;
+    }
+
+    @Override
+    public Instructions.MeterInstruction metered() {
+        return meter;
     }
 
     /**
@@ -193,11 +203,15 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         Instructions.MetadataInstruction meta;
 
+        Instructions.MeterInstruction meter;
+
         List<Instruction> deferred = Lists.newLinkedList();
 
         List<Instruction> immediate = Lists.newLinkedList();
 
         List<Instruction> current = immediate;
+
+
 
         // Creates a new builder
         private Builder() {
@@ -233,6 +247,8 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 case METADATA:
                     meta = (Instructions.MetadataInstruction) instruction;
                     break;
+                case METER:
+                    meter = (Instructions.MeterInstruction) instruction;
                 default:
                     throw new IllegalArgumentException("Unknown instruction type: " +
                                                                instruction.type());
@@ -343,6 +359,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public TrafficTreatment.Builder meter(MeterId meterId) {
+            return add(Instructions.meterTraffic(meterId));
+        }
+
+        @Override
         public Builder popVlan() {
             return add(Instructions.popVlan());
         }
@@ -420,7 +441,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             //        && table == null && !clear) {
             //    drop();
             //}
-            return new DefaultTrafficTreatment(deferred, immediate, table, clear, meta);
+            return new DefaultTrafficTreatment(deferred, immediate, table, clear, meta, meter);
         }
 
     }
