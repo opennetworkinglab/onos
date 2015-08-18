@@ -2,8 +2,8 @@ package org.onosproject.net.device.impl;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.incubator.net.config.Config;
-import org.onosproject.incubator.net.config.ConfigApplyDelegate;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.incubator.net.config.basics.OpticalPortConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;

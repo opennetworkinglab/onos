@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.config;
+package org.onosproject.net.config;
 
 /**
  * An interface signifying a class that implements network configuration

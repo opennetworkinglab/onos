@@ -20,7 +20,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.time.Duration;
 
 import org.onosproject.net.AnnotationKeys;
-import org.onosproject.incubator.net.config.ConfigOperator;
+import org.onosproject.net.config.ConfigOperator;
 import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Link;

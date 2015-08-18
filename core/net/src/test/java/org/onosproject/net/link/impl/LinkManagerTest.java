@@ -20,7 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.event.Event;
-import org.onosproject.incubator.net.config.NetworkConfigServiceAdapter;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;

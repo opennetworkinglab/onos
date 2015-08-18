@@ -16,8 +16,8 @@
 package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.incubator.net.config.NetworkConfigService;
-import org.onosproject.incubator.net.config.SubjectFactory;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.SubjectFactory;
 import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;

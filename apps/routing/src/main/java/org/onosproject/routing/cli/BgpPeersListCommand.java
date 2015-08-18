@@ -20,7 +20,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.config.NetworkConfigService;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.impl.BgpConfig;
 

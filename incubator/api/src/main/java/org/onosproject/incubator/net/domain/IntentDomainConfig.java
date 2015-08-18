@@ -17,7 +17,7 @@ package org.onosproject.incubator.net.domain;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSet;
-import org.onosproject.incubator.net.config.Config;
+import org.onosproject.net.config.Config;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 

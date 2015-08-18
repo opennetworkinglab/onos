@@ -15,7 +15,7 @@
  */
 package org.onosproject.incubator.net.config.basics;
 
-import org.onosproject.incubator.net.config.Config;
+import org.onosproject.net.config.Config;
 
 /**
  * Base abstraction for network entities for which admission into control

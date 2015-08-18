@@ -17,7 +17,7 @@ package org.onosproject.net.device.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import org.onosproject.incubator.net.config.ConfigOperator;
+import org.onosproject.net.config.ConfigOperator;
 import org.onosproject.incubator.net.config.basics.OpticalPortConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;

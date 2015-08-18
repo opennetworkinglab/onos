@@ -27,7 +27,7 @@ import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.event.Event;
-import org.onosproject.incubator.net.config.NetworkConfigServiceAdapter;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.mastership.MastershipTermService;

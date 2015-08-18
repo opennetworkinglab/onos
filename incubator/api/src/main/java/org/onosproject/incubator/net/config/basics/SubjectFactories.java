@@ -17,7 +17,7 @@ package org.onosproject.incubator.net.config.basics;
 
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.config.SubjectFactory;
+import org.onosproject.net.config.SubjectFactory;
 import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;

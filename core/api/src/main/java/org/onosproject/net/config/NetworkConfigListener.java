@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.config;
+package org.onosproject.net.config;
 
-import com.google.common.annotations.Beta;
+import org.onosproject.event.EventListener;
 
 /**
- * Delegate for notification when configuration changes have been applied.
+ * Entity capable of receiving network configuration related events.
  */
-@Beta
-public interface ConfigApplyDelegate {
-
-    /**
-     * Processes changes applied to the specified configuration.
-     *
-     * @param config changed configuration
-     */
-    void onApply(Config config);
-
+public interface NetworkConfigListener extends EventListener<NetworkConfigEvent> {
 }

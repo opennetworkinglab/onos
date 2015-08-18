@@ -35,12 +35,12 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
-import org.onosproject.incubator.net.config.Config;
-import org.onosproject.incubator.net.config.ConfigApplyDelegate;
-import org.onosproject.incubator.net.config.ConfigFactory;
-import org.onosproject.incubator.net.config.NetworkConfigEvent;
-import org.onosproject.incubator.net.config.NetworkConfigStore;
-import org.onosproject.incubator.net.config.NetworkConfigStoreDelegate;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.ConfigApplyDelegate;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigStore;
+import org.onosproject.net.config.NetworkConfigStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -58,7 +58,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.onosproject.incubator.net.config.NetworkConfigEvent.Type.*;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.*;
 
 /**
  * Implementation of a distributed network configuration store.

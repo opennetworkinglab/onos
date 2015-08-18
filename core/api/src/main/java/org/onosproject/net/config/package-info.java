@@ -17,4 +17,4 @@
 /**
  * Subsystem for tracking network environment configuration.
  */
-package org.onosproject.incubator.net.config;
+package org.onosproject.net.config;

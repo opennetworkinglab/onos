@@ -2,7 +2,7 @@ package org.onosproject.incubator.net.config.basics;
 
 import java.util.Optional;
 
-import org.onosproject.incubator.net.config.Config;
+import org.onosproject.net.config.Config;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Port;
 

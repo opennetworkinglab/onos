@@ -18,9 +18,9 @@ package org.onosproject.incubator.store.config.impl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.incubator.net.config.Config;
-import org.onosproject.incubator.net.config.ConfigFactory;
-import org.onosproject.incubator.net.config.SubjectFactory;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.SubjectFactory;
 import org.onosproject.store.service.TestStorageService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

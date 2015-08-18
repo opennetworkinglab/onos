@@ -14,8 +14,8 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.incubator.net.config.Config;
-import org.onosproject.incubator.net.config.ConfigApplyDelegate;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;

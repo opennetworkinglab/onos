@@ -23,9 +23,9 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.incubator.net.config.NetworkConfigEvent;
-import org.onosproject.incubator.net.config.NetworkConfigListener;
-import org.onosproject.incubator.net.config.NetworkConfigService;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

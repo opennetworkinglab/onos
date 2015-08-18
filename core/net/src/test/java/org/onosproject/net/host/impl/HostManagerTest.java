@@ -38,7 +38,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.event.Event;
 import org.onosproject.common.event.impl.TestEventDispatcher;
-import org.onosproject.incubator.net.config.NetworkConfigServiceAdapter;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
