@@ -15,6 +15,7 @@
  */
 package org.onosproject.ui.impl;
 
+import org.onosproject.rest.AbstractInjectionResource;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiView;

@@ -45,7 +45,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * REST resource for interacting with the inventory of flows.
+ * Query and program flow rules.
  */
 
 @Path("flows")
@@ -57,14 +57,13 @@ public class FlowsWebResource extends AbstractWebResource {
     final ArrayNode flowsNode = root.putArray("flows");
 
     /**
-     * Gets an array containing all the intents in the system.
+     * Get all flow entries. Returns array of all flow rules in the system.
      *
      * @return array of all the intents in the system
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFlows() {
-
         final Iterable<Device> devices = get(DeviceService.class).getDevices();
         for (final Device device : devices) {
             final Iterable<FlowEntry> deviceEntries = service.getFlowEntries(device.id());
@@ -79,9 +78,10 @@ public class FlowsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Gets the flows for a device, where the device is specified by Id.
+     * Get flow entries of a device. Returns array of all flow rules for the
+     * specified device.
      *
-     * @param deviceId Id of device to look up
+     * @param deviceId device identifier
      * @return flow data as an array
      */
     @GET
@@ -101,10 +101,11 @@ public class FlowsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Gets the flows for a device, where the device is specified by Id.
+     * Get flow rule. Returns the flow entry specified by the device id and
+     * flow rule id.
      *
-     * @param deviceId Id of device to look up
-     * @param flowId   Id of flow to look up
+     * @param deviceId device identifier
+     * @param flowId   flow rule identifier
      * @return flow data as an array
      */
     @GET
@@ -127,10 +128,11 @@ public class FlowsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Creates a flow rule from a POST of a JSON string and attempts to apply it.
+     * Create new flow rule. Creates and installs a new flow rule for the
+     * specified device.
      *
      * @param deviceId device identifier
-     * @param stream input JSON
+     * @param stream   flow rule JSON
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
      */
@@ -163,16 +165,16 @@ public class FlowsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Removes the flows for a given device with the given flow id.
+     * Remove flow rule. Removes the specified flow rule.
      *
-     * @param deviceId Id of device to look up
-     * @param flowId   Id of flow to look up
+     * @param deviceId device identifier
+     * @param flowId   flow rule identifier
      */
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}/{flowId}")
     public void deleteFlowByDeviceIdAndFlowId(@PathParam("deviceId") String deviceId,
-                                                  @PathParam("flowId") long flowId) {
+                                              @PathParam("flowId") long flowId) {
         final Iterable<FlowEntry> deviceEntries =
                 service.getFlowEntries(DeviceId.deviceId(deviceId));
 

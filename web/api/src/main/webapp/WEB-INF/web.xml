@@ -61,6 +61,7 @@
                 org.onosproject.rest.exceptions.IllegalStateExceptionMapper,
                 org.onosproject.rest.resources.JsonBodyWriter,
 
+                org.onosproject.rest.resources.ApiDocResource,
                 org.onosproject.rest.resources.ApplicationsWebResource,
                 org.onosproject.rest.resources.ComponentConfigWebResource,
                 org.onosproject.rest.resources.NetworkConfigWebResource,

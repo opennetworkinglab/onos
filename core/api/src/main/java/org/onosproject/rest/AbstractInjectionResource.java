@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.ui.impl;
-
-import org.onlab.rest.BaseResource;
+package org.onosproject.rest;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -28,7 +26,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * Resource for serving semi-static resources.
  */
-public class AbstractInjectionResource extends BaseResource {
+public class AbstractInjectionResource extends AbstractWebResource {
 
     /**
      * Returns the index into the supplied string where the end of the
@@ -63,7 +61,7 @@ public class AbstractInjectionResource extends BaseResource {
     protected class StreamEnumeration implements Enumeration<InputStream> {
         private final Iterator<InputStream> iterator;
 
-        StreamEnumeration(List<InputStream> streams) {
+        public StreamEnumeration(List<InputStream> streams) {
             this.iterator = streams.iterator();
         }
 

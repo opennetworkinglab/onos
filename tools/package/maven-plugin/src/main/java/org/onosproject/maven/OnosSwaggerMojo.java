@@ -18,6 +18,8 @@ package org.onosproject.maven;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.DocletTag;
 import com.thoughtworks.qdox.model.JavaAnnotation;
@@ -30,6 +32,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -39,16 +42,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
+
 /**
  * Produces ONOS Swagger api-doc.
  */
-@Mojo(name = "swagger", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
+@Mojo(name = "swagger", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public class OnosSwaggerMojo extends AbstractMojo {
     private final ObjectMapper mapper = new ObjectMapper();
 
+    private static final String JSON_FILE = "swagger.json";
+    private static final String GEN_SRC = "generated-sources";
+    private static final String REG_SRC = "registrator.javat";
+
     private static final String PATH = "javax.ws.rs.Path";
-    private static final String PATHPARAM = "javax.ws.rs.PathParam";
-    private static final String QUERYPARAM = "javax.ws.rs.QueryParam";
+    private static final String PATH_PARAM = "javax.ws.rs.PathParam";
+    private static final String QUERY_PARAM = "javax.ws.rs.QueryParam";
     private static final String POST = "javax.ws.rs.POST";
     private static final String GET = "javax.ws.rs.GET";
     private static final String PUT = "javax.ws.rs.PUT";
@@ -66,30 +75,74 @@ public class OnosSwaggerMojo extends AbstractMojo {
     /**
      * The directory where the generated catalogue file will be put.
      */
-    @Parameter(defaultValue = "${project.build.outputDirectory}")
+    @Parameter(defaultValue = "${project.build.directory}")
     protected File dstDirectory;
+
+    /**
+     * REST API web-context
+     */
+    @Parameter(defaultValue = "${web.context}")
+    protected String webContext;
+
+    /**
+     * REST API version
+     */
+    @Parameter(defaultValue = "${api.version}")
+    protected String apiVersion;
+
+    /**
+     * REST API description
+     */
+    @Parameter(defaultValue = "${api.description}")
+    protected String apiDescription;
+
+    /**
+     * REST API title
+     */
+    @Parameter(defaultValue = "${api.title}")
+    protected String apiTitle;
+
+    /**
+     * REST API title
+     */
+    @Parameter(defaultValue = "${api.package}")
+    protected String apiPackage;
+
+    /**
+     * Maven project
+     */
+    @Parameter(defaultValue = "${project}")
+    protected MavenProject project;
+
 
     @Override
     public void execute() throws MojoExecutionException {
-        getLog().info("Generating ONOS REST api documentation...");
         try {
             JavaProjectBuilder builder = new JavaProjectBuilder();
             builder.addSourceTree(new File(srcDirectory, "src/main/java"));
 
             ObjectNode root = initializeRoot();
-
             ArrayNode tags = mapper.createArrayNode();
-            root.set("tags", tags);
-
             ObjectNode paths = mapper.createObjectNode();
+
+            root.set("tags", tags);
             root.set("paths", paths);
-            builder.getClasses().forEach(javaClass -> {
-                processClass(javaClass, paths, tags);
-                //writeCatalog(root); // write out this api json file
-            });
-            writeCatalog(root); // write out this api json file
+
+            builder.getClasses().forEach(jc -> processClass(jc, paths, tags));
+
+            if (paths.size() > 0) {
+                getLog().info("Generating ONOS REST API documentation...");
+                genCatalog(root);
+
+                if (!isNullOrEmpty(apiPackage)) {
+                    genRegistrator();
+                }
+            }
+
+            project.addCompileSourceRoot(new File(dstDirectory, GEN_SRC).getPath());
+
         } catch (Exception e) {
-            e.printStackTrace();
+            getLog().warn("Unable to generate ONOS REST API documentation", e);
             throw e;
         }
     }
@@ -100,12 +153,11 @@ public class OnosSwaggerMojo extends AbstractMojo {
         root.put("swagger", "2.0");
         ObjectNode info = mapper.createObjectNode();
         root.set("info", info);
-        info.put("title", "ONOS API");
-        info.put("description", "Move your networking forward with ONOS");
-        info.put("version", "1.0.0");
 
-        root.put("host", "http://localhost:8181/onos");
-        root.put("basePath", "/v1");
+        root.put("basePath", webContext);
+        info.put("version", apiVersion);
+        info.put("title", apiTitle);
+        info.put("description", apiDescription);
 
         ArrayNode produces = mapper.createArrayNode();
         produces.add("application/json");
@@ -121,32 +173,39 @@ public class OnosSwaggerMojo extends AbstractMojo {
     // Checks whether javaClass has a path tag associated with it and if it does
     // processes its methods and creates a tag for the class on the root
     void processClass(JavaClass javaClass, ObjectNode paths, ArrayNode tags) {
-        Optional<JavaAnnotation> optional =
-                javaClass.getAnnotations().stream().filter(a -> a.getType().getName().equals(PATH)).findAny();
-        JavaAnnotation annotation = optional.isPresent() ? optional.get() : null;
-        // if the class does not have a Path tag then ignore it
+        // If the class does not have a Path tag then ignore it
+        JavaAnnotation annotation = getPathAnnotation(javaClass);
         if (annotation == null) {
             return;
         }
 
-        String resourcePath = getPath(annotation), pathName = ""; //returns empty string if something goes wrong
-
-        // creating tag for this class on the root
-        ObjectNode tagObject = mapper.createObjectNode();
-        if (resourcePath != null && resourcePath.length() > 1) {
-            pathName = resourcePath.substring(1);
-            tagObject.put("name", pathName); //tagObject.put("name", resourcePath.substring(1));
+        String path = getPath(annotation);
+        if (path == null) {
+            return;
         }
+
+        String resourcePath = "/" + path;
+        String tagPath = path.isEmpty() ? "/" : path;
+
+        // Create tag node for this class.
+        ObjectNode tagObject = mapper.createObjectNode();
+        tagObject.put("name", tagPath);
         if (javaClass.getComment() != null) {
-            tagObject.put("description", javaClass.getComment());
+            tagObject.put("description", shortText(javaClass.getComment()));
         }
         tags.add(tagObject);
 
-        //creating tag to add to all methods from this class
+        // Create an array node add to all methods from this class.
         ArrayNode tagArray = mapper.createArrayNode();
-        tagArray.add(pathName);
+        tagArray.add(tagPath);
 
         processAllMethods(javaClass, resourcePath, paths, tagArray);
+    }
+
+    private JavaAnnotation getPathAnnotation(JavaClass javaClass) {
+        Optional<JavaAnnotation> optional = javaClass.getAnnotations()
+                .stream().filter(a -> a.getType().getName().equals(PATH)).findAny();
+        return optional.isPresent() ? optional.get() : null;
     }
 
     // Checks whether a class's methods are REST methods and then places all the
@@ -176,14 +235,15 @@ public class OnosSwaggerMojo extends AbstractMojo {
     }
 
     private void processRestMethod(JavaMethod javaMethod, String method,
-                                   Map<String, ObjectNode> pathMap, String resourcePath,
-                                   ArrayNode tagArray) {
+                                   Map<String, ObjectNode> pathMap,
+                                   String resourcePath, ArrayNode tagArray) {
         String fullPath = resourcePath, consumes = "", produces = "",
                 comment = javaMethod.getComment();
         for (JavaAnnotation annotation : javaMethod.getAnnotations()) {
             String name = annotation.getType().getName();
             if (name.equals(PATH)) {
-                fullPath += getPath(annotation);
+                fullPath = resourcePath + "/" + getPath(annotation);
+                fullPath = fullPath.replaceFirst("^//", "/");
             }
             if (name.equals(CONSUMES)) {
                 consumes = getIOType(annotation);
@@ -237,7 +297,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
         }
     }
 
-    // temporary solution to add responses to a method
+    // Temporary solution to add responses to a method
     // TODO Provide annotations in the web resources for responses and parse them
     private void addResponses(ObjectNode methodNode) {
         ObjectNode responses = mapper.createObjectNode();
@@ -252,8 +312,8 @@ public class OnosSwaggerMojo extends AbstractMojo {
         responses.set("default", defaultObj);
     }
 
-    // for now only checks if the annotations has a value of JSON and
-    // returns the string that Swagger requires
+    // Checks if the annotations has a value of JSON and returns the string
+    // that Swagger requires
     private String getIOType(JavaAnnotation annotation) {
         if (annotation.getNamedParameter("value").toString().equals(JSON)) {
             return "application/json";
@@ -261,32 +321,24 @@ public class OnosSwaggerMojo extends AbstractMojo {
         return "";
     }
 
-    // if the annotation has a Path tag, returns the value with a
-    // preceding backslash, else returns empty string
+    // If the annotation has a Path tag, returns the value with leading and
+    // trailing double quotes and slash removed.
     private String getPath(JavaAnnotation annotation) {
         String path = annotation.getNamedParameter("value").toString();
-        if (path == null) {
-            return "";
-        }
-        path = path.substring(1, path.length() - 1); // removing end quotes
-        path = "/" + path;
-        if (path.charAt(path.length()-1) == '/') {
-            return path.substring(0, path.length() - 1);
-        }
-        return path;
+        return path == null ? null : path.replaceAll("(^[\\\"/]*|[/\\\"]*$)", "");
     }
 
-    // processes parameters of javaMethod and enters the proper key-values into the methodNode
+    // Processes parameters of javaMethod and enters the proper key-values into the methodNode
     private void processParameters(JavaMethod javaMethod, ObjectNode methodNode) {
         ArrayNode parameters = mapper.createArrayNode();
         methodNode.set("parameters", parameters);
         boolean required = true;
 
-        for (JavaParameter javaParameter: javaMethod.getParameters()) {
+        for (JavaParameter javaParameter : javaMethod.getParameters()) {
             ObjectNode individualParameterNode = mapper.createObjectNode();
             Optional<JavaAnnotation> optional = javaParameter.getAnnotations().stream().filter(
-                    annotation -> annotation.getType().getName().equals(PATHPARAM) ||
-                            annotation.getType().getName().equals(QUERYPARAM)).findAny();
+                    annotation -> annotation.getType().getName().equals(PATH_PARAM) ||
+                            annotation.getType().getName().equals(QUERY_PARAM)).findAny();
             JavaAnnotation pathType = optional.isPresent() ? optional.get() : null;
 
             String annotationName = javaParameter.getName();
@@ -295,9 +347,9 @@ public class OnosSwaggerMojo extends AbstractMojo {
             if (pathType != null) { //the parameter is a path or query parameter
                 individualParameterNode.put("name",
                                             pathType.getNamedParameter("value").toString().replace("\"", ""));
-                if (pathType.getType().getName().equals(PATHPARAM)) {
+                if (pathType.getType().getName().equals(PATH_PARAM)) {
                     individualParameterNode.put("in", "path");
-                } else if (pathType.getType().getName().equals(QUERYPARAM)) {
+                } else if (pathType.getType().getName().equals(QUERY_PARAM)) {
                     individualParameterNode.put("in", "query");
                 }
                 individualParameterNode.put("type", getType(javaParameter.getType()));
@@ -328,7 +380,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
         }
     }
 
-    // returns the Swagger specified strings for the type of a parameter
+    // Returns the Swagger specified strings for the type of a parameter
     private String getType(JavaType javaType) {
         String type = javaType.getFullyQualifiedName();
         String value;
@@ -346,30 +398,54 @@ public class OnosSwaggerMojo extends AbstractMojo {
         return value;
     }
 
-    // Takes the top root node and prints it SwaggerConfigFile JSON file
-    // at onos/web/api/target/classes/SwaggerConfig.
-    private void writeCatalog(ObjectNode root) {
-        File dir = new File(dstDirectory, "SwaggerConfig");
-        //File dir = new File(dstDirectory, javaClass.getPackageName().replace('.', '/'));
-        dir.mkdirs();
-
-        File swaggerCfg = new File(dir, "SwaggerConfigFile" + ".json");
-        try (FileWriter fw = new FileWriter(swaggerCfg);
-             PrintWriter pw = new PrintWriter(fw)) {
-            pw.println(root.toString());
-        } catch (IOException e) {
-            System.err.println("Unable to write catalog for ");
-            e.printStackTrace();
+    // Writes the swagger.json file using the supplied JSON root.
+    private void genCatalog(ObjectNode root) {
+        File swaggerCfg = new File(dstDirectory, JSON_FILE);
+        if (dstDirectory.exists() || dstDirectory.mkdirs()) {
+            try (FileWriter fw = new FileWriter(swaggerCfg);
+                 PrintWriter pw = new PrintWriter(fw)) {
+                pw.println(root.toString());
+            } catch (IOException e) {
+                getLog().warn("Unable to write " + JSON_FILE);
+            }
+        } else {
+            getLog().warn("Unable to create " + dstDirectory);
         }
     }
 
-    // Prints "nickname" based on method and path for a REST method
-    // Useful while log debugging
+    // Generates the registrator Java component.
+    private void genRegistrator() {
+        File dir = new File(dstDirectory, GEN_SRC);
+        File reg = new File(dir, apiPackage.replaceAll("\\.", "/") + "/ApiDocRegistrator.java");
+        File pkg = reg.getParentFile();
+        if (pkg.exists() || pkg.mkdirs()) {
+            try {
+                String src = new String(ByteStreams.toByteArray(getClass().getResourceAsStream(REG_SRC)));
+                src = src.replace("${api.package}", apiPackage)
+                        .replace("${web.context}", webContext)
+                        .replace("${api.title}", apiTitle)
+                        .replace("${api.description}", apiTitle);
+                Files.write(src.getBytes(), reg);
+            } catch (IOException e) {
+                getLog().warn("Unable to write " + reg);
+            }
+        } else {
+            getLog().warn("Unable to create " + reg);
+        }
+    }
+
+    // Returns "nickname" based on method and path for a REST method
     private String setNickname(String method, String path) {
         if (!path.equals("")) {
-            return (method + path.replace('/', '_').replace("{","").replace("}","")).toLowerCase();
+            return (method + path.replace('/', '_').replace("{", "").replace("}", "")).toLowerCase();
         } else {
             return method.toLowerCase();
         }
     }
+
+    private String shortText(String comment) {
+        int i = comment.indexOf('.');
+        return i > 0 ? comment.substring(0, i) : comment;
+    }
+
 }

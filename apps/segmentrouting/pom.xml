@@ -33,6 +33,12 @@
     <properties>
         <onos.app.name>org.onosproject.segmentrouting</onos.app.name>
         <web.context>/onos/segmentrouting</web.context>
+        <api.version>1.0.0</api.version>
+        <api.title>ONOS Segment Routing REST API</api.title>
+        <api.description>
+            APIs for interacting with the Segment Routing application.
+        </api.description>
+        <api.package>org.onosproject.segmentrouting.web</api.package>
     </properties>
 
     <dependencies>
@@ -94,6 +100,10 @@
                 <configuration>
                     <instructions>
                         <_wab>src/main/webapp/</_wab>
+                        <Include-Resource>
+                            WEB-INF/classes/apidoc/swagger.json=target/swagger.json,
+                            {maven-resources}
+                        </Include-Resource>
                         <Bundle-SymbolicName>
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>

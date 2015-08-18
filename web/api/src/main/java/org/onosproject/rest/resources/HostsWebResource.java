@@ -56,7 +56,7 @@ import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.HostId.hostId;
 
 /**
- * REST resource for interacting with the inventory of hosts.
+ * Manage inventory of end-station hosts.
  */
 @Path("hosts")
 public class HostsWebResource extends AbstractWebResource {
@@ -65,6 +65,12 @@ public class HostsWebResource extends AbstractWebResource {
     UriInfo uriInfo;
     public static final String HOST_NOT_FOUND = "Host is not found";
 
+    /**
+     * Get all end-station hosts.
+     * Returns array of all known end-station hosts.
+     *
+     * @return 200 OK
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getHosts() {
@@ -73,6 +79,13 @@ public class HostsWebResource extends AbstractWebResource {
         return ok(root).build();
     }
 
+    /**
+     * Get details of end-station host.
+     * Returns detailed properties of the specified end-station host.
+     *
+     * @param id host identifier
+     * @return 200 OK
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
@@ -83,6 +96,14 @@ public class HostsWebResource extends AbstractWebResource {
         return ok(root).build();
     }
 
+    /**
+     * Get details of end-station host with MAC/VLAN.
+     * Returns detailed properties of the specified end-station host.
+     *
+     * @param mac  host MAC address
+     * @param vlan host VLAN identifier
+     * @return 200 OK
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{mac}/{vlan}")
@@ -157,6 +178,7 @@ public class HostsWebResource extends AbstractWebResource {
 
         /**
          * Creates and adds new host based on given data and returns its host ID.
+         *
          * @param node JsonNode containing host information
          * @return host ID of new host created
          */

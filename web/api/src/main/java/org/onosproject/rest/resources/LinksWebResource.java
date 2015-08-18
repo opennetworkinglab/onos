@@ -30,7 +30,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 
 /**
- * REST resource for interacting with the inventory of infrastructure links.
+ * Manage inventory of infrastructure links.
  */
 @Path("links")
 public class LinksWebResource extends AbstractWebResource {
@@ -41,6 +41,15 @@ public class LinksWebResource extends AbstractWebResource {
         EGRESS
     }
 
+    /**
+     * Get infrastructure links.
+     * Returns array of all links, or links for the specified device or port.
+     *
+     * @param deviceId  (optional) device identifier
+     * @param port      (optional) port number
+     * @param direction (optional) direction qualifier
+     * @return 200 OK
+     */
     @GET
     public Response getLinks(@QueryParam("device") String deviceId,
                              @QueryParam("port") String port,

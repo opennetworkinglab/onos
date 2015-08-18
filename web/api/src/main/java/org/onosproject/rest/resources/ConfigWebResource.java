@@ -37,14 +37,20 @@ import java.io.InputStream;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
- * Resource that acts as an ancillary provider for uploading pre-configured
- * devices, ports and links.
+ * Inject devices, ports, links and end-station hosts.
  */
 @Path("config")
 public class ConfigWebResource extends BaseResource {
 
     private static Logger log = LoggerFactory.getLogger(ConfigWebResource.class);
 
+    /**
+     * Upload device, port, link and host data.
+     *
+     * @param input JSON blob
+     * @return 200 OK
+     * @throws IOException
+     */
     @POST
     @Path("topology")
     @Consumes(MediaType.APPLICATION_JSON)

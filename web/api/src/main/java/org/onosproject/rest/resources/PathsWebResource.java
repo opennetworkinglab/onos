@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.rest.AbstractWebResource;
 
 /**
- * REST resource for interacting with path calculations.
+ * Compute paths in the network graph.
  */
 @Path("paths")
 public class PathsWebResource extends AbstractWebResource {
@@ -46,19 +46,15 @@ public class PathsWebResource extends AbstractWebResource {
      * @return HostId if the id is valid, null otherwise
      */
     private HostId isHostId(String id) {
-
-        if (!id.matches("..:..:..:..:..:../.*")) {
-            return null;
-        }
-
-        return HostId.hostId(id);
+        return id.matches("..:..:..:..:..:../.*") ? HostId.hostId(id) : null;
     }
 
     /**
-     * Gets the paths between two elements.
+     * Get all shortest paths between any two hosts or devices.
+     * Returns array of all shortest paths between any two elements.
      *
-     * @param src source
-     * @param dst destination
+     * @param src source identifier
+     * @param dst destination identifier
      * @return path data
      */
     @GET
@@ -81,10 +77,8 @@ public class PathsWebResource extends AbstractWebResource {
             dstElement = DeviceId.deviceId(dst);
         }
 
-        Set<org.onosproject.net.Path> paths =
-                pathService.getPaths(srcElement, dstElement);
-        ObjectNode root =
-                    encodeArray(org.onosproject.net.Path.class, "paths", paths);
+        Set<org.onosproject.net.Path> paths = pathService.getPaths(srcElement, dstElement);
+        ObjectNode root = encodeArray(org.onosproject.net.Path.class, "paths", paths);
         return ok(root).build();
     }
 

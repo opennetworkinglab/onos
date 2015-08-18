@@ -75,8 +75,6 @@
             <scope>test</scope>
         </dependency>
 
-
-
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-servlet</artifactId>
@@ -117,39 +115,6 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <_wab>src/main/webapp/</_wab>
-                        <Bundle-SymbolicName>
-                            ${project.groupId}.${project.artifactId}
-                        </Bundle-SymbolicName>
-                        <Import-Package>
-                            org.slf4j,
-                            org.osgi.framework,
-                            javax.ws.rs,javax.ws.rs.core,javax.ws.rs.ext,
-                            com.sun.jersey.api,
-                            com.sun.jersey.spi.container.servlet,
-                            com.sun.jersey.server.impl.container.servlet,
-                            com.fasterxml.jackson.databind,
-                            com.fasterxml.jackson.databind.node,
-                            com.google.common.base.*,
-                            com.google.common.collect.*,
-                            com.google.common.io.*,
-                            org.eclipse.jetty.websocket.*,
-                            org.onlab.util.*,
-                            org.onlab.osgi.*,
-                            org.onlab.packet.*,
-                            org.onlab.rest.*,
-                            org.onosproject.*
-                        </Import-Package>
-                        <Web-ContextPath>${web.context}</Web-ContextPath>
-                    </instructions>
-                </configuration>
             </plugin>
         </plugins>
     </build>
