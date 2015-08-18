@@ -19,7 +19,6 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * Represents a generalized meter to be deployed on a device.
@@ -79,14 +78,6 @@ public interface Meter {
      * @return a collection of bands.
      */
     Collection<Band> bands();
-
-    /**
-     * Obtains an optional context.
-     *
-     * @return optional; which will be empty if there is no context.
-     * Otherwise it will return the context.
-     */
-    Optional<MeterContext> context();
 
     /**
      * Fetches the state of this meter.
@@ -176,8 +167,6 @@ public interface Meter {
          * @return this
          */
         Builder withBands(Collection<Band> bands);
-
-        Builder withContext(MeterContext context);
 
         /**
          * Builds the meter based on the specified parameters.

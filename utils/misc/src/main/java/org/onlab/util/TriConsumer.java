@@ -13,26 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.meter;
+package org.onlab.util;
 
 /**
- * A context permitting the application to be notified when the
- * meter installation has been successful.
+ * A consumer that accepts three arguments.
  */
-public interface MeterContext {
+public interface TriConsumer<U, V, W> {
 
     /**
-     * Invoked on successful installation of the meter.
-     *
-     * @param op a meter
+     * Applies the given arguments to the function.
      */
-    default void onSuccess(Meter op) {}
+    void accept(U arg1, V arg2, W arg3);
 
-    /**
-     * Invoked when error is encountered while installing a meter.
-     *
-     * @param op a meter
-     * @param reason the reason why it failed
-     */
-    default void onError(Meter op, MeterFailReason reason) {}
 }

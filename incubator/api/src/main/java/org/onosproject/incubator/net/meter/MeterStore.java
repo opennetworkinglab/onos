@@ -18,6 +18,7 @@ package org.onosproject.incubator.net.meter;
 import org.onosproject.store.Store;
 
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Entity that stores and distributed meter objects.
@@ -28,25 +29,29 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      * Adds a meter to the store.
      *
      * @param meter a meter
+     * @return a future indicating the result of the store operation
      */
-    void storeMeter(Meter meter);
+    CompletableFuture<MeterStoreResult> storeMeter(Meter meter);
 
     /**
      * Deletes a meter from the store.
      *
      * @param meter a meter
+     * @return a future indicating the result of the store operation
      */
-    void deleteMeter(Meter meter);
+    CompletableFuture<MeterStoreResult> deleteMeter(Meter meter);
 
     /**
      * Updates a meter whose meter id is the same as the passed meter.
      *
      * @param meter a new meter
+     * @return a future indicating the result of the store operation
      */
-    void updateMeter(Meter meter);
+    CompletableFuture<MeterStoreResult> updateMeter(Meter meter);
 
     /**
      * Updates a given meter's state with the provided state.
+     *
      * @param meter a meter
      */
     void updateMeterState(Meter meter);

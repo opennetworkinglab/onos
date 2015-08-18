@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.TriConsumer;
 import org.onosproject.incubator.net.meter.DefaultMeter;
 import org.onosproject.incubator.net.meter.Meter;
 import org.onosproject.incubator.net.meter.MeterEvent;
@@ -35,6 +36,7 @@ import org.onosproject.incubator.net.meter.MeterService;
 import org.onosproject.incubator.net.meter.MeterState;
 import org.onosproject.incubator.net.meter.MeterStore;
 import org.onosproject.incubator.net.meter.MeterStoreDelegate;
+import org.onosproject.incubator.net.meter.MeterStoreResult;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
@@ -44,7 +46,6 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -69,11 +70,29 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
 
     private AtomicCounter meterIdCounter;
 
+    private TriConsumer<MeterOperation, MeterStoreResult, Throwable> onComplete;
+
     @Activate
     public void activate() {
         meterIdCounter = storageService.atomicCounterBuilder()
                 .withName(meterIdentifier)
                 .build();
+
+        onComplete = (op, result, error) ->
+            {
+                op.context().ifPresent(c -> {
+                    if (error != null) {
+                        c.onError(op.meter(), MeterFailReason.UNKNOWN);
+                    } else {
+                        if (result.reason().isPresent()) {
+                            c.onError(op.meter(), result.reason().get());
+                        } else {
+                            c.onSuccess(op.meter());
+                        }
+                    }
+                });
+
+            };
         log.info("Started");
     }
 
@@ -88,31 +107,27 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
     }
 
     @Override
-    public void addMeter(Meter meter) {
-        DefaultMeter m = (DefaultMeter) meter;
+    public void addMeter(MeterOperation op) {
+        DefaultMeter m = (DefaultMeter) op.meter();
         m.setState(MeterState.PENDING_ADD);
-        store.storeMeter(m);
+        store.storeMeter(m).whenComplete((result, error) ->
+                                                 onComplete.accept(op, result, error));
     }
 
     @Override
-    public void updateMeter(Meter meter) {
-        DefaultMeter m = (DefaultMeter) meter;
+    public void updateMeter(MeterOperation op) {
+        DefaultMeter m = (DefaultMeter) op.meter();
         m.setState(MeterState.PENDING_ADD);
-        store.updateMeter(m);
+        store.updateMeter(m).whenComplete((result, error) ->
+                                                  onComplete.accept(op, result, error));
     }
 
     @Override
-    public void removeMeter(Meter meter) {
-        DefaultMeter m = (DefaultMeter) meter;
+    public void removeMeter(MeterOperation op) {
+        DefaultMeter m = (DefaultMeter) op.meter();
         m.setState(MeterState.PENDING_REMOVE);
-        store.deleteMeter(m);
-    }
-
-    @Override
-    public void removeMeter(MeterId id) {
-        DefaultMeter meter = (DefaultMeter) store.getMeter(id);
-        checkNotNull(meter, "No such meter {}", id);
-        removeMeter(meter);
+        store.deleteMeter(m).whenComplete((result, error) ->
+                                                  onComplete.accept(op, result, error));
     }
 
     @Override
@@ -155,17 +170,18 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
 
         @Override
         public void notify(MeterEvent event) {
-            DeviceId deviceId = event.subject().meter().deviceId();
-            MeterProvider p = getProvider(event.subject().meter().deviceId());
+            DeviceId deviceId = event.subject().deviceId();
+            MeterProvider p = getProvider(event.subject().deviceId());
             switch (event.type()) {
-                case METER_UPDATED:
+                case METER_ADD_REQ:
+                    p.performMeterOperation(deviceId, new MeterOperation(event.subject(),
+                                                                         MeterOperation.Type.ADD,
+                                                                         null));
                     break;
-                case METER_OP_FAILED:
-                    event.subject().meter().context().ifPresent(c ->
-                        c.onError(event.subject(), event.reason()));
-                    break;
-                case METER_OP_REQ:
-                    p.performMeterOperation(deviceId, event.subject());
+                case METER_REM_REQ:
+                    p.performMeterOperation(deviceId, new MeterOperation(event.subject(),
+                                                                         MeterOperation.Type.REMOVE,
+                                                                         null));
                     break;
                 default:
                     log.warn("Unknown meter event {}", event.type());

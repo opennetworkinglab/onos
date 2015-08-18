@@ -17,10 +17,14 @@ package org.onosproject.incubator.net.meter;
 
 import com.google.common.base.MoreObjects;
 
+import java.util.Optional;
+
 /**
  * Representation of an operation on the meter table.
  */
 public class MeterOperation {
+
+    private final Optional<MeterContext> context;
 
     /**
      * Tyoe of meter operation.
@@ -35,9 +39,10 @@ public class MeterOperation {
     private final Type type;
 
 
-    public MeterOperation(Meter meter, Type type) {
+    public MeterOperation(Meter meter, Type type, MeterContext context) {
         this.meter = meter;
         this.type = type;
+        this.context = Optional.ofNullable(context);
     }
 
     /**
@@ -56,6 +61,16 @@ public class MeterOperation {
      */
     public Meter meter() {
         return meter;
+    }
+
+    /**
+     * Returns a context which allows application to
+     * be notified on the success value of this operation.
+     *
+     * @return a meter context
+     */
+    public Optional<MeterContext> context() {
+        return this.context;
     }
 
     @Override

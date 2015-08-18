@@ -30,28 +30,21 @@ public interface MeterService
      *
      * @param meter a meter.
      */
-    void addMeter(Meter meter);
+    void addMeter(MeterOperation meter);
 
     /**
      * Updates a meter by adding statistic information to the meter.
      *
      * @param meter an updated meter
      */
-    void updateMeter(Meter meter);
+    void updateMeter(MeterOperation meter);
 
     /**
      * Remove a meter from the system and the dataplane.
      *
      * @param meter a meter to remove
      */
-    void removeMeter(Meter meter);
-
-    /**
-     * Remove a meter from the system and the dataplane by meter id.
-     *
-     * @param id a meter id
-     */
-    void removeMeter(MeterId id);
+    void removeMeter(MeterOperation meter);
 
     /**
      * Fetch the meter by the meter id.

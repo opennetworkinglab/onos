@@ -20,7 +20,6 @@ import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -37,7 +36,6 @@ public final class DefaultMeter implements Meter, MeterEntry  {
     private final boolean burst;
     private final Collection<Band> bands;
     private final DeviceId deviceId;
-    private final Optional<MeterContext> context;
 
     private MeterState state;
     private long life;
@@ -47,14 +45,13 @@ public final class DefaultMeter implements Meter, MeterEntry  {
 
     private DefaultMeter(DeviceId deviceId, MeterId id, ApplicationId appId,
                         Unit unit, boolean burst,
-                        Collection<Band> bands, Optional<MeterContext> context) {
+                        Collection<Band> bands) {
         this.deviceId = deviceId;
         this.id = id;
         this.appId = appId;
         this.unit = unit;
         this.burst = burst;
         this.bands = bands;
-        this.context = context;
     }
 
     @Override
@@ -85,11 +82,6 @@ public final class DefaultMeter implements Meter, MeterEntry  {
     @Override
     public Collection<Band> bands() {
         return bands;
-    }
-
-    @Override
-    public Optional<MeterContext> context() {
-        return null;
     }
 
     @Override
@@ -154,7 +146,6 @@ public final class DefaultMeter implements Meter, MeterEntry  {
         private boolean burst = false;
         private Collection<Band> bands;
         private DeviceId deviceId;
-        private Optional<MeterContext> context;
 
 
         @Override
@@ -194,19 +185,13 @@ public final class DefaultMeter implements Meter, MeterEntry  {
         }
 
         @Override
-        public Meter.Builder withContext(MeterContext context) {
-            this.context = Optional.<MeterContext>ofNullable(context);
-            return this;
-        }
-
-        @Override
         public DefaultMeter build() {
             checkNotNull(deviceId, "Must specify a device");
             checkNotNull(bands, "Must have bands.");
             checkArgument(bands.size() > 0, "Must have at least one band.");
             checkNotNull(appId, "Must have an application id");
             checkNotNull(id, "Must specify a meter id");
-            return new DefaultMeter(deviceId, id, appId, unit, burst, bands, context);
+            return new DefaultMeter(deviceId, id, appId, unit, burst, bands);
         }
 
 

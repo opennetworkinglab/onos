@@ -20,28 +20,19 @@ import org.onosproject.event.AbstractEvent;
 /**
  * Entity that represents Meter events.
  */
-public class MeterEvent extends AbstractEvent<MeterEvent.Type, MeterOperation> {
+public class MeterEvent extends AbstractEvent<MeterEvent.Type, Meter> {
 
-
-    private final MeterFailReason reason;
 
     public enum Type {
+        /**
+         * A meter addition was requested.
+         */
+        METER_ADD_REQ,
 
         /**
-         * Signals that a meter has been added.
+         * A meter removal was requested.
          */
-        METER_UPDATED,
-
-        /**
-         * Signals that a meter update failed.
-         */
-        METER_OP_FAILED,
-
-        /**
-         * A meter operation was requested.
-         */
-        METER_OP_REQ,
-
+        METER_REM_REQ
     }
 
 
@@ -50,32 +41,22 @@ public class MeterEvent extends AbstractEvent<MeterEvent.Type, MeterOperation> {
      * current time.
      *
      * @param type  meter event type
-     * @param op event subject
+     * @param meter event subject
      */
-    public MeterEvent(Type type, MeterOperation op) {
-        super(type, op);
-        this.reason = null;
+    public MeterEvent(Type type, Meter meter) {
+        super(type, meter);
     }
 
     /**
      * Creates an event of a given type and for the specified meter and time.
      *
      * @param type  meter event type
-     * @param op event subject
+     * @param meter event subject
      * @param time  occurrence time
      */
-    public MeterEvent(Type type, MeterOperation op, long time) {
-        super(type, op, time);
-        this.reason = null;
+    public MeterEvent(Type type, Meter meter, long time) {
+        super(type, meter, time);
     }
 
-    public MeterEvent(Type type, MeterOperation op, MeterFailReason reason) {
-        super(type, op);
-        this.reason = reason;
-    }
-
-    public MeterFailReason reason() {
-        return reason;
-    }
 
 }
