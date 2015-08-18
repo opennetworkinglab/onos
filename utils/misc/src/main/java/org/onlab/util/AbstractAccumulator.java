@@ -40,8 +40,8 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
     private final int maxBatchMillis;
     private final int maxIdleMillis;
 
-    private TimerTask idleTask = new ProcessorTask();
-    private TimerTask maxTask = new ProcessorTask();
+    private volatile TimerTask idleTask = new ProcessorTask();
+    private volatile TimerTask maxTask = new ProcessorTask();
 
     private List<T> items = Lists.newArrayList();
 
@@ -108,10 +108,14 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
     private class ProcessorTask extends TimerTask {
         @Override
         public void run() {
-            idleTask = cancelIfActive(idleTask);
+            synchronized (AbstractAccumulator.this) {
+                idleTask = cancelIfActive(idleTask);
+            }
             if (isReady()) {
                 try {
-                    maxTask = cancelIfActive(maxTask);
+                    synchronized (AbstractAccumulator.this) {
+                        maxTask = cancelIfActive(maxTask);
+                    }
                     List<T> items = finalizeCurrentBatch();
                     if (!items.isEmpty()) {
                         processItems(items);
@@ -120,7 +124,9 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
                     log.warn("Unable to process batch due to {}", e);
                 }
             } else {
-                idleTask = schedule(maxIdleMillis);
+                synchronized (AbstractAccumulator.this) {
+                    idleTask = schedule(maxIdleMillis);
+                }
             }
         }
     }
