@@ -294,6 +294,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchMplsBos(boolean mplsBos) {
+            return add(Criteria.matchMplsLabel(mplsBos));
+        }
+
+        @Override
         public TrafficSelector.Builder matchTunnelId(long tunnelId) {
             return add(Criteria.matchTunnelId(tunnelId));
         }

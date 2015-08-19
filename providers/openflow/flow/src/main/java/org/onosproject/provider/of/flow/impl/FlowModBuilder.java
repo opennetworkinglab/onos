@@ -15,6 +15,10 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Optional;
+
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
@@ -23,6 +27,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
@@ -38,6 +43,7 @@ import org.onosproject.net.flow.criteria.IcmpTypeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
 import org.onosproject.net.flow.criteria.MetadataCriterion;
+import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
@@ -48,7 +54,6 @@ import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
-import org.onosproject.net.flow.criteria.Criterion;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
@@ -67,6 +72,7 @@ import org.projectfloodlight.openflow.types.IpEcn;
 import org.projectfloodlight.openflow.types.IpProtocol;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.Masked;
+import org.projectfloodlight.openflow.types.OFBooleanValue;
 import org.projectfloodlight.openflow.types.OFMetadata;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
@@ -78,10 +84,6 @@ import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
 import org.slf4j.Logger;
-
-import java.util.Optional;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Builder for OpenFlow flow mods based on FlowRules.
@@ -401,12 +403,17 @@ public abstract class FlowModBuilder {
                 mBuilder.setExact(MatchField.TUNNEL_ID,
                                   U64.of(tunnelId.tunnelId()));
                 break;
+            case MPLS_BOS:
+                MplsBosCriterion mplsBos = (MplsBosCriterion) c;
+                mBuilder.setExact(MatchField.MPLS_BOS,
+                                  mplsBos.mplsBos() ? OFBooleanValue.TRUE
+                                                    : OFBooleanValue.FALSE);
+                break;
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:
             case ARP_THA:
             case ARP_TPA:
-            case MPLS_BOS:
             case MPLS_TC:
             case PBB_ISID:
             default:

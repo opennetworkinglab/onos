@@ -356,6 +356,16 @@ public final class Criteria {
     }
 
     /**
+     * Creates a match on MPLS Bottom-of-Stack indicator bit.
+     *
+     * @param mplsBos boolean value indicating true (BOS=1) or false (BOS=0)
+     * @return match criterion
+     */
+    public static Criterion matchMplsLabel(boolean mplsBos) {
+        return new MplsBosCriterion(mplsBos);
+    }
+
+    /**
      * Creates a match on Tunnel ID.
      *
      * @param tunnelId Tunnel ID (64 bits)

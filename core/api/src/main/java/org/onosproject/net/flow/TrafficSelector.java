@@ -18,6 +18,7 @@ package org.onosproject.net.flow;
 import java.util.Set;
 
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultTrafficSelector.Builder;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip6Address;
@@ -299,6 +300,14 @@ public interface TrafficSelector {
          * @return a selection builder
          */
         Builder matchMplsLabel(MplsLabel mplsLabel);
+
+        /**
+         * Matches on a MPLS Bottom-of-Stack indicator bit.
+         *
+         * @param mplsBos boolean value indicating BOS=1 (true) or BOS=0 (false).
+         * @return a selection builder
+         */
+        Builder matchMplsBos(boolean mplsBos);
 
         /**
          * Matches a tunnel id.

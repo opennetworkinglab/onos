@@ -15,7 +15,14 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
-import com.google.common.collect.Lists;
+import static org.onosproject.net.flow.criteria.Criteria.matchLambda;
+import static org.onosproject.net.flow.criteria.Criteria.matchOchSignalType;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupChannelSpacing;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupGridType;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOchSignalType;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.List;
 
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
@@ -78,14 +85,7 @@ import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 
-import java.util.List;
-
-import static org.onosproject.net.flow.criteria.Criteria.matchLambda;
-import static org.onosproject.net.flow.criteria.Criteria.matchOchSignalType;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupChannelSpacing;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupGridType;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOchSignalType;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.Lists;
 
 public class FlowEntryBuilder {
     private final Logger log = getLogger(getClass());
@@ -597,6 +597,9 @@ public class FlowEntryBuilder {
             case MPLS_LABEL:
                 builder.matchMplsLabel(MplsLabel.mplsLabel((int) match.get(MatchField.MPLS_LABEL)
                                             .getValue()));
+                break;
+            case MPLS_BOS:
+                builder.matchMplsBos(match.get(MatchField.MPLS_BOS).getValue());
                 break;
             case SCTP_SRC:
                 builder.matchSctpSrc((short) match.get(MatchField.SCTP_SRC).getPort());
