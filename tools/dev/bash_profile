@@ -30,9 +30,9 @@ export PATH="$PATH:$MAVEN/bin:$KARAF_ROOT/bin"
 # Setup cell enviroment
 export ONOS_CELL=${ONOS_CELL:-local}
 
-# Setup default web user; for local dev execution use Karaf defaults
-export ONOS_WEB_USER=${ONOS_WEB_USER:-karaf}
-export ONOS_WEB_PASS=${ONOS_WEB_PASS:-karaf}
+# Setup default web user/password
+export ONOS_WEB_USER=onos
+export ONOS_WEB_PASS=rocks
 
 # Setup default location of test scenarios
 export ONOS_SCENARIOS=$ONOS_ROOT/tools/test/scenarios
