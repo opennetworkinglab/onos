@@ -30,6 +30,11 @@ export PATH="$PATH:$MAVEN/bin:$KARAF_ROOT/bin"
 # Setup cell enviroment
 export ONOS_CELL=${ONOS_CELL:-local}
 
+# Setup default web user; for local dev execution use Karaf defaults
+export ONOS_WEB_USER=${ONOS_WEB_USER:-karaf}
+export ONOS_WEB_PASS=${ONOS_WEB_PASS:-karaf}
+
+# Setup default location of test scenarios
 export ONOS_SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 
 # Convenience utility to warp to various ONOS source projects
@@ -78,8 +83,9 @@ alias ole='olo "ERROR|WARN|Exception|Error"'
 # Pretty-print JSON output
 alias pp='python -m json.tool'
 
-# Short-hand to launch API docs and sample topology viewer GUI
+# Short-hand to launch Java API docs, REST API docs and ONOS GUI
 alias docs='open $ONOS_ROOT/docs/target/site/apidocs/index.html'
+alias rsdocs='onos-rsdocs'
 alias gui='onos-gui'
 
 
