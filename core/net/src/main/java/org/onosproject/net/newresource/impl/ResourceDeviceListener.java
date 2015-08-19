@@ -17,6 +17,7 @@ package org.onosproject.net.newresource.impl;
 
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.newresource.ResourceAdminService;
@@ -52,6 +53,8 @@ final class ResourceDeviceListener implements DeviceListener {
             case DEVICE_ADDED:
                 registerDeviceResource(device);
                 break;
+            case PORT_ADDED:
+                registerPortResource(device, event.port());
             default:
                 break;
         }
@@ -60,5 +63,10 @@ final class ResourceDeviceListener implements DeviceListener {
     private void registerDeviceResource(Device device) {
         DeviceId deviceId = device.id();
         executor.submit(() -> adminService.registerResources(new ResourcePath(ResourcePath.ROOT, deviceId)));
+    }
+
+    private void registerPortResource(Device device, Port port) {
+        ResourcePath parent = new ResourcePath(device.id());
+        executor.submit(() -> adminService.registerResources(parent, port.number()));
     }
 }
