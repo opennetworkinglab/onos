@@ -109,7 +109,7 @@ public class ConsistentResourceStore implements ResourceStore {
                 return abortTransaction(tx);
             }
 
-            if (!appendValue(childTxMap, resource, children)) {
+            if (!appendValues(childTxMap, resource, children)) {
                 return abortTransaction(tx);
             }
 
@@ -276,7 +276,7 @@ public class ConsistentResourceStore implements ResourceStore {
      * @param <V> type of the element of the list
      * @return true if the operation succeeds, false otherwise.
      */
-    private <K, V> boolean appendValue(TransactionalMap<K, List<V>> map, K key, List<V> values) {
+    private <K, V> boolean appendValues(TransactionalMap<K, List<V>> map, K key, List<V> values) {
         List<V> oldValues = map.get(key);
         List<V> newValues;
         if (oldValues == null) {
