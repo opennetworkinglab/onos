@@ -130,4 +130,10 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
         List<ResourcePath> resources = Lists.transform(children, x -> ResourcePath.child(parent, x));
         return store.register(parent, resources);
     }
+
+    @Override
+    public <T> boolean unregisterResources(ResourcePath parent, List<T> children) {
+        List<ResourcePath> resources = Lists.transform(children, x -> ResourcePath.child(parent, x));
+        return store.unregister(parent, resources);
+    }
 }

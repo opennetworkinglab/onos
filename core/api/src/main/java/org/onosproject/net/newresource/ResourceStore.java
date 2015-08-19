@@ -25,6 +25,18 @@ public interface ResourceStore {
     boolean register(ResourcePath parent, List<ResourcePath> children);
 
     /**
+     * Unregisters the resources as children of the parent resource in transactional way.
+     * The state after completion of this method is all the resources are unregistered,
+     * or no resource is unregistered. The whole unregistration fails when any one of the
+     * resource can't be unregistered.
+     *
+     * @param parent resource which is the parent of the resource to be unregistered
+     * @param children resources to be unregistered
+     * @return true if the registration succeeds, false otherwise
+     */
+    boolean unregister(ResourcePath parent, List<ResourcePath> children);
+
+    /**
      * Allocates the specified resources to the specified consumer in transactional way.
      * The state after completion of this method is all the resources are allocated to the consumer,
      * or no resource is allocated to the consumer. The whole allocation fails when any one of

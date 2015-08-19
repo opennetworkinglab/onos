@@ -48,4 +48,28 @@ public interface ResourceAdminService {
      * succeeds when each resource is not registered or unallocated.
      */
     <T> boolean registerResources(ResourcePath parent, List<T> children);
+
+    /**
+     * Unregister resources as the children of the parent resource path.
+     *
+     * @param parent parent resource path under which the resource are unregistered
+     * @param children resources to be unregistered as the children of the parent
+     * @param <T> type of resources
+     * @return true if unregistration is successfully done, false otherwise. Unregistration
+     * succeeds when each resource is not registered or unallocated.
+     */
+    default <T> boolean unregisterResources(ResourcePath parent, T... children) {
+        return unregisterResources(parent, Arrays.asList(children));
+    }
+
+    /**
+     * Unregister resources as the children of the parent resource path.
+     *
+     * @param parent parent resource path under which the resource are unregistered
+     * @param children resources to be unregistered as the children of the parent
+     * @param <T> type of resources
+     * @return true if unregistration is successfully done, false otherwise. Unregistration
+     * succeeds when each resource is not registered or unallocated.
+     */
+    <T> boolean unregisterResources(ResourcePath parent, List<T> children);
 }

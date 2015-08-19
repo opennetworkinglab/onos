@@ -121,6 +121,37 @@ public class ConsistentResourceStore implements ResourceStore {
     }
 
     @Override
+    public boolean unregister(ResourcePath resource, List<ResourcePath> children) {
+        checkNotNull(resource);
+        checkNotNull(children);
+
+        TransactionContext tx = service.transactionContextBuilder().build();
+        tx.begin();
+
+        try {
+            TransactionalMap<ResourcePath, List<ResourcePath>> childTxMap =
+                    tx.getTransactionalMap(CHILD_MAP, SERIALIZER);
+            TransactionalMap<ResourcePath, ResourceConsumer> consumerTxMap =
+                    tx.getTransactionalMap(CONSUMER_MAP, SERIALIZER);
+
+            // even if one of the resources is allocated to a consumer,
+            // all unregistrations are regarded as failure
+            if (children.stream().anyMatch(x -> consumerTxMap.get(x) != null)) {
+                return abortTransaction(tx);
+            }
+
+            if (!removeValues(childTxMap, resource, children)) {
+                return abortTransaction(tx);
+            }
+
+            return commitTransaction(tx);
+        } catch (TransactionException e) {
+            log.error("Exception thrown, abort the transaction", e);
+            return abortTransaction(tx);
+        }
+    }
+
+    @Override
     public boolean allocate(List<ResourcePath> resources, ResourceConsumer consumer) {
         checkNotNull(resources);
         checkNotNull(consumer);
@@ -253,6 +284,30 @@ public class ConsistentResourceStore implements ResourceStore {
         } else {
             LinkedHashSet<V> newSet = new LinkedHashSet<>(oldValues);
             newSet.addAll(values);
+            newValues = new ArrayList<>(newSet);
+        }
+
+        return map.replace(key, oldValues, newValues);
+    }
+
+    /**
+     * Removes teh values from the existing values associated with the specified key.
+     *
+     * @param map map holding multiple values for a key
+     * @param key key specifying values
+     * @param values values to be removed
+     * @param <K> type of the key
+     * @param <V> type of the element of the list
+     * @return true if the operation succeeds, false otherwise
+     */
+    private <K, V> boolean removeValues(TransactionalMap<K, List<V>> map, K key, List<V> values) {
+        List<V> oldValues = map.get(key);
+        List<V> newValues;
+        if (oldValues == null) {
+            newValues = new ArrayList<>();
+        } else {
+            LinkedHashSet<V> newSet = new LinkedHashSet<>(oldValues);
+            newSet.removeAll(values);
             newValues = new ArrayList<>(newSet);
         }
 
