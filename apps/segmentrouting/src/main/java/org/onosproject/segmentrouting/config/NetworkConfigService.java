@@ -16,7 +16,10 @@ import org.onosproject.segmentrouting.config.NetworkConfig.SwitchConfig;
  *
  * TODO: return immutable objects or defensive copies of network config so that
  * users of this API do not inadvertently or maliciously change network config.
+ *
+ * @deprecated in Drake; see org.onosproject.net.config
  */
+@Deprecated
 public interface NetworkConfigService {
 
     /**

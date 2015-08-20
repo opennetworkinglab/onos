@@ -236,6 +236,8 @@ public abstract class Tools {
      * @param maxDelayBetweenRetries max delay between successive retries. The actual delay is randomly picked from
      * the interval (0, maxDelayBetweenRetries]
      * @return function
+     * @param <U> type of function input
+     * @param <V> type of function output
      */
     public static <U, V> Function<U, V> retryable(Function<U, V> base,
             Class<? extends Throwable> exceptionClass,
@@ -252,6 +254,7 @@ public abstract class Tools {
      * @param maxDelayBetweenRetries max delay between successive retries. The actual delay is randomly picked from
      * the interval (0, maxDelayBetweenRetries]
      * @return supplier
+     * @param <V> type of supplied result
      */
     public static <V> Supplier<V> retryable(Supplier<V> base,
             Class<? extends Throwable> exceptionClass,

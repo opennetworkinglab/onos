@@ -77,6 +77,7 @@ public class ClusterWebResource extends AbstractWebResource {
      *
      * @param config cluster definition
      * @return 200 OK
+     * @throws IOException to signify bad request
      */
     @POST
     @Path("configuration")

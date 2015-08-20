@@ -82,7 +82,9 @@ public class ComponentConfigWebResource extends AbstractWebResource {
      * Sets only the properties present in the JSON request.
      *
      * @param component component name
+     * @param request   JSON configuration
      * @return 200 OK
+     * @throws IOException to signify bad request
      */
     @POST
     @Path("{component}")
@@ -100,7 +102,9 @@ public class ComponentConfigWebResource extends AbstractWebResource {
      * Clears only the properties present in the JSON request.
      *
      * @param component component name
+     * @param request   JSON configuration
      * @return 200 OK
+     * @throws IOException to signify bad request
      */
     @DELETE
     @Path("{component}")

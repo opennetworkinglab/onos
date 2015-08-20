@@ -17,6 +17,10 @@ package org.onlab.util;
 
 /**
  * A consumer that accepts three arguments.
+ *
+ * @param <U> type of first argument
+ * @param <V> type of second argument
+ * @param <W> type of third argument
  */
 public interface TriConsumer<U, V, W> {
 

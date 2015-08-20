@@ -107,6 +107,8 @@ public class ApiDocResource extends AbstractInjectionResource {
      * Get Swagger UI main index page.
      *
      * @return 200 OK
+     * @throws IOException if unable to get index resource
+     * @throws URISyntaxException if unable to create redirect URI
      */
     @GET
     @Path("/")
@@ -119,6 +121,7 @@ public class ApiDocResource extends AbstractInjectionResource {
      * Get Swagger UI main index page.
      *
      * @return 200 OK
+     * @throws IOException if unable to get index resource
      */
     @GET
     @Path("index.html")
@@ -155,7 +158,9 @@ public class ApiDocResource extends AbstractInjectionResource {
     /**
      * Get Swagger UI resource.
      *
+     * @param resource path of the resource
      * @return 200 OK
+     * @throws IOException if unable to get named resource
      */
     @GET
     @Path("{resource: .*}")
