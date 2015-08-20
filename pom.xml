@@ -401,7 +401,16 @@
                 <artifactId>onos-of-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-ovsdb-rfc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-ovsdb-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.onosproject</groupId>
                 <artifactId>onos-pcepio</artifactId>
