@@ -135,6 +135,14 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
     List<PortStatistics> getPortStatistics(DeviceId deviceId);
 
     /**
+     * Returns the list of delta port statistics of the specified device.
+     *
+     * @param deviceId
+     * @return list of delta port statistics of all ports of the device
+     */
+    List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId);
+
+    /**
      * Returns the specified device port.
      *
      * @param deviceId   device identifier
@@ -158,6 +166,5 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
      * @return null if no such device, or was forwarded to remove master
      */
     DeviceEvent removeDevice(DeviceId deviceId);
-
 
 }

@@ -20,6 +20,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -108,7 +109,6 @@ import static org.onlab.util.Tools.minPriority;
 import static org.onosproject.cluster.ControllerNodeToNodeId.toNodeId;
 import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.device.DeviceEvent.Type.*;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.*;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -139,6 +139,7 @@ public class GossipDeviceStore
     private final ConcurrentMap<DeviceId, ConcurrentMap<PortNumber, Port>> devicePorts = Maps.newConcurrentMap();
 
     private EventuallyConsistentMap<DeviceId, Map<PortNumber, PortStatistics>> devicePortStats;
+    private EventuallyConsistentMap<DeviceId, Map<PortNumber, PortStatistics>> devicePortDeltaStats;
     private final EventuallyConsistentMapListener<DeviceId, Map<PortNumber, PortStatistics>>
             portStatsListener = new InternalPortStatsListener();
 
@@ -246,6 +247,14 @@ public class GossipDeviceStore
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .withTombstonesDisabled()
                 .build();
+        devicePortDeltaStats = storageService.<DeviceId, Map<PortNumber, PortStatistics>>
+                eventuallyConsistentMapBuilder()
+                .withName("port-stats-delta")
+                .withSerializer(deviceDataSerializer)
+                .withAntiEntropyPeriod(5, TimeUnit.SECONDS)
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .withTombstonesDisabled()
+                .build();
         devicePortStats.addListener(portStatsListener);
         log.info("Started");
     }
@@ -253,6 +262,7 @@ public class GossipDeviceStore
     @Deactivate
     public void deactivate() {
         devicePortStats.destroy();
+        devicePortDeltaStats.destroy();
         executor.shutdownNow();
 
         backgroundExecutor.shutdownNow();
@@ -824,23 +834,82 @@ public class GossipDeviceStore
 
     @Override
     public DeviceEvent updatePortStatistics(ProviderId providerId, DeviceId deviceId,
-                                            Collection<PortStatistics> portStats) {
-        Map<PortNumber, PortStatistics> statsMap = devicePortStats.get(deviceId);
-        if (statsMap == null) {
-            statsMap = Maps.newHashMap();
-        }
+                                            Collection<PortStatistics> newStatsCollection) {
 
-        for (PortStatistics stat : portStats) {
-            PortNumber portNumber = PortNumber.portNumber(stat.port());
-            statsMap.put(portNumber, stat);
+        Map<PortNumber, PortStatistics> prvStatsMap = devicePortStats.get(deviceId);
+        Map<PortNumber, PortStatistics> newStatsMap = Maps.newHashMap();
+        Map<PortNumber, PortStatistics> deltaStatsMap = Maps.newHashMap();
+
+        if (prvStatsMap != null) {
+            for (PortStatistics newStats : newStatsCollection) {
+                PortNumber port = PortNumber.portNumber(newStats.port());
+                PortStatistics prvStats = prvStatsMap.get(port);
+                DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
+                PortStatistics deltaStats = builder.build();
+                if (prvStats != null) {
+                    deltaStats = calcDeltaStats(deviceId, prvStats, newStats);
+                }
+                deltaStatsMap.put(port, deltaStats);
+                newStatsMap.put(port, newStats);
+            }
+        } else {
+            for (PortStatistics newStats : newStatsCollection) {
+                PortNumber port = PortNumber.portNumber(newStats.port());
+                newStatsMap.put(port, newStats);
+            }
         }
-        devicePortStats.put(deviceId, statsMap);
-        return null; // new DeviceEvent(PORT_STATS_UPDATED,  devices.get(deviceId), null);
+        devicePortDeltaStats.put(deviceId, deltaStatsMap);
+        devicePortStats.put(deviceId, newStatsMap);
+        return new DeviceEvent(PORT_STATS_UPDATED,  devices.get(deviceId), null);
+    }
+
+    /**
+     * Calculate delta statistics by subtracting previous from new statistics.
+     *
+     * @param deviceId
+     * @param prvStats
+     * @param newStats
+     * @return PortStatistics
+     */
+    public PortStatistics calcDeltaStats(DeviceId deviceId, PortStatistics prvStats, PortStatistics newStats) {
+        // calculate time difference
+        long deltaStatsSec, deltaStatsNano;
+        if (newStats.durationNano() < prvStats.durationNano()) {
+            deltaStatsNano = newStats.durationNano() - prvStats.durationNano() + TimeUnit.SECONDS.toNanos(1);
+            deltaStatsSec = newStats.durationSec() - prvStats.durationSec() - 1L;
+        } else {
+            deltaStatsNano = newStats.durationNano() - prvStats.durationNano();
+            deltaStatsSec = newStats.durationSec() - prvStats.durationSec();
+        }
+        DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
+        DefaultPortStatistics deltaStats = builder.setDeviceId(deviceId)
+                .setPort(newStats.port())
+                .setPacketsReceived(newStats.packetsReceived() - prvStats.packetsReceived())
+                .setPacketsSent(newStats.packetsSent() - prvStats.packetsSent())
+                .setBytesReceived(newStats.bytesReceived() - prvStats.bytesReceived())
+                .setBytesSent(newStats.bytesSent() - prvStats.bytesSent())
+                .setPacketsRxDropped(newStats.packetsRxDropped() - prvStats.packetsRxDropped())
+                .setPacketsTxDropped(newStats.packetsTxDropped() - prvStats.packetsTxDropped())
+                .setPacketsRxErrors(newStats.packetsRxErrors() - prvStats.packetsRxErrors())
+                .setPacketsTxErrors(newStats.packetsTxErrors() - prvStats.packetsTxErrors())
+                .setDurationSec(deltaStatsSec)
+                .setDurationNano(deltaStatsNano)
+                .build();
+        return deltaStats;
     }
 
     @Override
     public List<PortStatistics> getPortStatistics(DeviceId deviceId) {
         Map<PortNumber, PortStatistics> portStats = devicePortStats.get(deviceId);
+        if (portStats == null) {
+            return Collections.emptyList();
+        }
+        return ImmutableList.copyOf(portStats.values());
+    }
+
+    @Override
+    public List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId) {
+        Map<PortNumber, PortStatistics> portStats = devicePortDeltaStats.get(deviceId);
         if (portStats == null) {
             return Collections.emptyList();
         }
@@ -934,7 +1003,7 @@ public class GossipDeviceStore
             markOfflineInternal(deviceId, timestamp);
             descs.clear();
             return device == null ? null :
-                    new DeviceEvent(DEVICE_REMOVED, device, null);
+                    new DeviceEvent(DeviceEvent.Type.DEVICE_REMOVED, device, null);
         }
     }
 

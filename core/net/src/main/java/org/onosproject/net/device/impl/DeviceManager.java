@@ -196,6 +196,13 @@ public class DeviceManager
     }
 
     @Override
+    public List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId) {
+        checkPermission(Permission.DEVICE_READ);
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        return store.getPortDeltaStatistics(deviceId);
+    }
+
+    @Override
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         checkPermission(Permission.DEVICE_READ);
         checkNotNull(deviceId, DEVICE_ID_NULL);
