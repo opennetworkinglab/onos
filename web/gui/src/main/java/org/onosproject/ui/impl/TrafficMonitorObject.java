@@ -432,8 +432,8 @@ public class TrafficMonitorObject {
         Link one = link.one();
         Load egressSrc = servicesBundle.portStatsService().load(one.src());
         Load egressDst = servicesBundle.portStatsService().load(one.dst());
-//        link.addLoad(maxLoad(egressSrc, egressDst), BPS_THRESHOLD);
-        link.addLoad(maxLoad(egressSrc, egressDst), 10);    // FIXME - debug only
+        link.addLoad(maxLoad(egressSrc, egressDst), BPS_THRESHOLD);
+//        link.addLoad(maxLoad(egressSrc, egressDst), 10);    // FIXME - debug only
     }
 
     private Load maxLoad(Load a, Load b) {
