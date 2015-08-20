@@ -54,6 +54,7 @@ final class ResourceDeviceListener implements DeviceListener {
                 break;
             case PORT_ADDED:
                 registerPortResource(device, event.port());
+                break;
             default:
                 break;
         }
