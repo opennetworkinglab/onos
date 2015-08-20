@@ -58,6 +58,9 @@ final class ResourceDeviceListener implements DeviceListener {
             case PORT_ADDED:
                 registerPortResource(device, event.port());
                 break;
+            case PORT_REMOVED:
+                unregisterPortResource(device, event.port());
+                break;
             default:
                 break;
         }
@@ -74,5 +77,10 @@ final class ResourceDeviceListener implements DeviceListener {
     private void registerPortResource(Device device, Port port) {
         ResourcePath parent = new ResourcePath(device.id());
         executor.submit(() -> adminService.registerResources(parent, port.number()));
+    }
+
+    private void unregisterPortResource(Device device, Port port) {
+        ResourcePath parent = new ResourcePath(device.id());
+        executor.submit(() -> adminService.unregisterResources(parent, port.number()));
     }
 }
