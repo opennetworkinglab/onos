@@ -34,7 +34,7 @@ final class UpdateEntry<K, V> {
      */
     public UpdateEntry(K key, MapValue<V> value) {
         this.key = checkNotNull(key);
-        this.value = checkNotNull(value);
+        this.value = value;
     }
 
     /**
