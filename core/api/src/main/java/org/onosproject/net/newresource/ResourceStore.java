@@ -13,28 +13,26 @@ import java.util.Optional;
 public interface ResourceStore {
 
     /**
-     * Registers the resources as children of the parent resource in transactional way.
+     * Registers the resources in transactional way.
      * Resource registration is must be done before resource allocation. The state after completion
      * of this method is all the resources are registered, or no resource is registered.
      * The whole registration fails when any one of the resource can't be registered.
      *
-     * @param parent resource which is the parent of the resource to be registered
-     * @param children resources to be registered
+     * @param resources resources to be registered
      * @return true if the registration succeeds, false otherwise
      */
-    boolean register(ResourcePath parent, List<ResourcePath> children);
+    boolean register(List<ResourcePath> resources);
 
     /**
-     * Unregisters the resources as children of the parent resource in transactional way.
+     * Unregisters the resources in transactional way.
      * The state after completion of this method is all the resources are unregistered,
      * or no resource is unregistered. The whole unregistration fails when any one of the
      * resource can't be unregistered.
      *
-     * @param parent resource which is the parent of the resource to be unregistered
-     * @param children resources to be unregistered
+     * @param resources resources to be unregistered
      * @return true if the registration succeeds, false otherwise
      */
-    boolean unregister(ResourcePath parent, List<ResourcePath> children);
+    boolean unregister(List<ResourcePath> resources);
 
     /**
      * Allocates the specified resources to the specified consumer in transactional way.

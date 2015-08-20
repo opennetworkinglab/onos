@@ -133,7 +133,7 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
         checkArgument(!children.isEmpty());
 
         List<ResourcePath> resources = Lists.transform(children, x -> ResourcePath.child(parent, x));
-        return store.register(parent, resources);
+        return store.register(resources);
     }
 
     @Override
@@ -143,6 +143,6 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
         checkArgument(!children.isEmpty());
 
         List<ResourcePath> resources = Lists.transform(children, x -> ResourcePath.child(parent, x));
-        return store.unregister(parent, resources);
+        return store.unregister(resources);
     }
 }

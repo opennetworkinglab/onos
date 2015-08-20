@@ -94,9 +94,8 @@ public class ConsistentResourceStore implements ResourceStore {
     }
 
     @Override
-    public boolean register(ResourcePath resource, List<ResourcePath> children) {
-        checkNotNull(resource);
-        checkNotNull(children);
+    public boolean register(List<ResourcePath> resources) {
+        checkNotNull(resources);
 
         TransactionContext tx = service.transactionContextBuilder().build();
         tx.begin();
@@ -105,12 +104,18 @@ public class ConsistentResourceStore implements ResourceStore {
             TransactionalMap<ResourcePath, List<ResourcePath>> childTxMap =
                     tx.getTransactionalMap(CHILD_MAP, SERIALIZER);
 
-            if (!isRegistered(childTxMap, resource)) {
-                return abortTransaction(tx);
-            }
+            Map<ResourcePath, List<ResourcePath>> resourceMap = resources.stream()
+                    .filter(x -> x.parent().isPresent())
+                    .collect(Collectors.groupingBy(x -> x.parent().get()));
 
-            if (!appendValues(childTxMap, resource, children)) {
-                return abortTransaction(tx);
+            for (Map.Entry<ResourcePath, List<ResourcePath>> entry: resourceMap.entrySet()) {
+                if (!isRegistered(childTxMap, entry.getKey())) {
+                    return abortTransaction(tx);
+                }
+
+                if (!appendValues(childTxMap, entry.getKey(), entry.getValue())) {
+                    return abortTransaction(tx);
+                }
             }
 
             return commitTransaction(tx);
@@ -121,9 +126,8 @@ public class ConsistentResourceStore implements ResourceStore {
     }
 
     @Override
-    public boolean unregister(ResourcePath resource, List<ResourcePath> children) {
-        checkNotNull(resource);
-        checkNotNull(children);
+    public boolean unregister(List<ResourcePath> resources) {
+        checkNotNull(resources);
 
         TransactionContext tx = service.transactionContextBuilder().build();
         tx.begin();
@@ -134,14 +138,20 @@ public class ConsistentResourceStore implements ResourceStore {
             TransactionalMap<ResourcePath, ResourceConsumer> consumerTxMap =
                     tx.getTransactionalMap(CONSUMER_MAP, SERIALIZER);
 
+            Map<ResourcePath, List<ResourcePath>> resourceMap = resources.stream()
+                    .filter(x -> x.parent().isPresent())
+                    .collect(Collectors.groupingBy(x -> x.parent().get()));
+
             // even if one of the resources is allocated to a consumer,
             // all unregistrations are regarded as failure
-            if (children.stream().anyMatch(x -> consumerTxMap.get(x) != null)) {
-                return abortTransaction(tx);
-            }
+            for (Map.Entry<ResourcePath, List<ResourcePath>> entry: resourceMap.entrySet()) {
+                if (entry.getValue().stream().anyMatch(x -> consumerTxMap.get(x) != null)) {
+                    return abortTransaction(tx);
+                }
 
-            if (!removeValues(childTxMap, resource, children)) {
-                return abortTransaction(tx);
+                if (!removeValues(childTxMap, entry.getKey(), entry.getValue())) {
+                    return abortTransaction(tx);
+                }
             }
 
             return commitTransaction(tx);
