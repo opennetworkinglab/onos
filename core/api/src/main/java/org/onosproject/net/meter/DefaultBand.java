@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.meter;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -24,13 +25,14 @@ public final class DefaultBand implements Band, BandEntry {
 
     private final Type type;
     private final long rate;
-    private final long burstSize;
-    private final short prec;
+    //TODO: should be made optional
+    private final Long burstSize;
+    private final Short prec;
     private long packets;
     private long bytes;
 
     public DefaultBand(Type type, long rate,
-                       long burstSize, short prec) {
+                       Long burstSize, Short prec) {
         this.type = type;
         this.rate = rate;
         this.burstSize = burstSize;
@@ -77,6 +79,15 @@ public final class DefaultBand implements Band, BandEntry {
         this.bytes = bytes;
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("rate", rate)
+                .add("burst-size", burstSize)
+                .add("type", type)
+                .add("drop-precedence", prec).toString();
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -84,7 +95,7 @@ public final class DefaultBand implements Band, BandEntry {
     public static final class Builder implements Band.Builder {
 
         private long rate;
-        private long burstSize;
+        private Long burstSize;
         private Short prec;
         private Type type;
 
@@ -114,7 +125,7 @@ public final class DefaultBand implements Band, BandEntry {
 
         @Override
         public DefaultBand build() {
-            checkArgument(prec != null && type == Type.REMARK,
+            checkArgument(type != Type.REMARK && prec == null,
                           "Only REMARK bands can have a precendence.");
 
             return new DefaultBand(type, rate, burstSize, prec);

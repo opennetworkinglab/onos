@@ -15,12 +15,13 @@
  */
 package org.onosproject.net.meter;
 
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
-import java.util.Collections;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -138,6 +139,18 @@ public final class DefaultMeter implements Meter, MeterEntry  {
         this.bytes = bytes;
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("device", deviceId)
+                .add("id", id)
+                .add("appId", appId.name())
+                .add("unit", unit)
+                .add("isBurst", burst)
+                .add("state", state)
+                .add("bands", bands).toString();
+    }
+
     public static final class Builder implements Meter.Builder {
 
         private MeterId id;
@@ -155,8 +168,8 @@ public final class DefaultMeter implements Meter, MeterEntry  {
         }
 
         @Override
-        public Meter.Builder withId(long id) {
-            this.id = MeterId.meterId(id);
+        public Meter.Builder withId(MeterId id) {
+            this.id = id;
             return this;
         }
 
@@ -180,7 +193,7 @@ public final class DefaultMeter implements Meter, MeterEntry  {
 
         @Override
         public Meter.Builder withBands(Collection<Band> bands) {
-            this.bands = Collections.unmodifiableCollection(bands);
+            this.bands = ImmutableSet.copyOf(bands);
             return this;
         }
 

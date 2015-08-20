@@ -33,6 +33,7 @@ import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterFailReason;
+import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterOperations;
 import org.onosproject.net.meter.MeterProvider;
@@ -74,7 +75,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provider which uses an OpenFlow controller to handle meters.
  */
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
 public class OpenFlowMeterProvider extends AbstractProvider implements MeterProvider {
 
 
@@ -245,7 +246,7 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
             DefaultMeter.Builder builder = DefaultMeter.builder();
             Collection<Band> bands = buildBands(stat.getBandStats());
             builder.forDevice(deviceId)
-                    .withId(stat.getMeterId())
+                    .withId(MeterId.meterId(stat.getMeterId()))
                     //FIXME: need to encode appId in meter id, but that makes
                     // things a little annoying for debugging
                     .fromApp(coreService.getAppId("org.onosproject.core"))

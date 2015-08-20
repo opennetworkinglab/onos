@@ -52,7 +52,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides implementation of the meter service APIs.
  */
-@Component(immediate = true)
+@Component(immediate = true, enabled = true)
 @Service
 public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, MeterListener,
         MeterProvider, MeterProviderService>
@@ -66,7 +66,7 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
     protected StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    MeterStore store;
+    protected MeterStore store;
 
     private AtomicCounter meterIdCounter;
 
@@ -77,6 +77,8 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
         meterIdCounter = storageService.atomicCounterBuilder()
                 .withName(meterIdentifier)
                 .build();
+
+        store.setDelegate(delegate);
 
         onComplete = (op, result, error) ->
             {
@@ -98,6 +100,7 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
 
     @Deactivate
     public void deactivate() {
+        store.unsetDelegate(delegate);
         log.info("Stopped");
     }
 
@@ -133,6 +136,11 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
     @Override
     public Meter getMeter(MeterId id) {
         return store.getMeter(id);
+    }
+
+    @Override
+    public Collection<Meter> getAllMeters() {
+        return store.getAllMeters();
     }
 
     @Override

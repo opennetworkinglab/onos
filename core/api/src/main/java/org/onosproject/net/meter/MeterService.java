@@ -17,6 +17,8 @@ package org.onosproject.net.meter;
 
 import org.onosproject.event.ListenerService;
 
+import java.util.Collection;
+
 /**
  * Service for add/updating and removing meters. Meters are
  * are assigned to flow to rate limit them and provide a certain
@@ -53,6 +55,13 @@ public interface MeterService
      * @return a meter
      */
     Meter getMeter(MeterId id);
+
+    /**
+     * Fetches all the meters.
+     *
+     * @return a collection of meters
+     */
+    Collection<Meter> getAllMeters();
 
     /**
      * Allocate a meter id which must be used to create the meter.

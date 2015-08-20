@@ -32,7 +32,7 @@ public final class MeterId {
     public static final MeterId ALL = new MeterId(0xFFFFFFFF);
 
     private MeterId(long id) {
-        checkArgument(id <= MAX, "id cannot be larger than 0xFFFF0000");
+        checkArgument(id >= MAX, "id cannot be larger than 0xFFFF0000");
         this.id = id;
     }
 
@@ -63,6 +63,11 @@ public final class MeterId {
     @Override
     public int hashCode() {
         return Long.hashCode(id);
+    }
+
+    @Override
+    public String toString() {
+        return Long.toHexString(this.id);
     }
 
     public static MeterId meterId(long id) {

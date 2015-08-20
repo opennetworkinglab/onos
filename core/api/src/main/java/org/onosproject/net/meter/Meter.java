@@ -130,10 +130,10 @@ public interface Meter {
         /**
          * Assigns the id to this meter.
          *
-         * @param id a long
+         * @param id a meter id
          * @return this
          */
-        Builder withId(long id);
+        Builder withId(MeterId id);
 
         /**
          * Assigns the application that built this meter.

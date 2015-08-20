@@ -113,6 +113,18 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.AddMeter"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.Meters"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.DeviceRoleCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>

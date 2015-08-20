@@ -18,11 +18,16 @@ package org.onosproject.incubator.store.meter.impl;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.meter.Band;
+import org.onosproject.net.meter.DefaultBand;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
@@ -33,7 +38,6 @@ import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.meter.MeterStore;
 import org.onosproject.net.meter.MeterStoreDelegate;
 import org.onosproject.net.meter.MeterStoreResult;
-import org.onosproject.mastership.MastershipService;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -56,6 +60,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  * A distributed meter store implementation. Meters are stored consistently
  * across the cluster.
  */
+@Component(immediate = true)
+@Service
 public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreDelegate>
                     implements MeterStore {
 
@@ -89,8 +95,14 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         meters = storageService.<MeterId, MeterData>consistentMapBuilder()
                     .withName(METERSTORE)
                     .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API),
-                                                     MeterData.class))
-                    .build();
+                                                     MeterData.class,
+                                                     DefaultMeter.class,
+                                                     DefaultBand.class,
+                                                     Band.Type.class,
+                                                     MeterState.class,
+                                                     Meter.Unit.class,
+                                                     MeterFailReason.class,
+                                                     MeterId.class)).build();
 
         meters.addListener(mapListener);
 
@@ -205,13 +217,13 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                                 } else if (data.reason().isPresent() && local.equals(data.origin())) {
                                     MeterStoreResult msr = MeterStoreResult.fail(data.reason().get());
                                     //TODO: No future -> no friend
-                                    futures.get(data.meter().id()).complete(msr);
+                                    futures.remove(data.meter().id()).complete(msr);
                                 }
                                 break;
                             case ADDED:
                             case REMOVED:
                                 if (local.equals(data.origin())) {
-                                    futures.get(data.meter().id()).complete(MeterStoreResult.success());
+                                    futures.remove(data.meter().id()).complete(MeterStoreResult.success());
                                 }
                                 break;
                             default:

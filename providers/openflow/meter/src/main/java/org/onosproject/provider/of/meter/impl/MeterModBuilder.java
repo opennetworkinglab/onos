@@ -116,7 +116,8 @@ public final class MeterModBuilder {
             default:
                 log.warn("Unknown unit type {}", unit);
         }
-        builder.setBands(buildBands());
+        //FIXME: THIS WILL CHANGE IN OF1.4 to setBands.
+        builder.setMeters(buildBands());
         builder.setFlags(flags)
                 .setMeterId(id)
                 .setXid(xid);
