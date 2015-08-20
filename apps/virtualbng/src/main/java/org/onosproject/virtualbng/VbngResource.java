@@ -37,13 +37,21 @@ import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 
 /**
- * This class provides REST services to virtual BNG.
+ * REST services to interact with the virtual BNG.
  */
 @Path("privateip")
 public class VbngResource extends AbstractWebResource {
 
     private final Logger log = getLogger(getClass());
 
+    /**
+     * Create a new virtual BNG connection.
+     *
+     * @param privateIp IP Address for the BNG private network
+     * @param mac MAC address for the host
+     * @param hostName name of the host
+     * @return public IP address for the new connection
+     */
     @POST
     @Path("{privateip}/{mac}/{hostname}")
     public String privateIpAddNotification(@PathParam("privateip")
@@ -77,6 +85,12 @@ public class VbngResource extends AbstractWebResource {
         }
     }
 
+    /**
+     * Delete a virtual BNG connection.
+     *
+     * @param privateIp IP Address for the BNG private network
+     * @return public IP address for the new connection
+     */
     @DELETE
     @Path("{privateip}")
     public String privateIpDeleteNotification(@PathParam("privateip")
@@ -101,6 +115,11 @@ public class VbngResource extends AbstractWebResource {
         }
     }
 
+    /**
+     * Query virtual BNG map.
+     *
+     * @return IP Address map
+     */
     @GET
     @Path("map")
     @Produces(MediaType.APPLICATION_JSON)

@@ -37,7 +37,13 @@ import java.util.Optional;
 public class DemoResource extends BaseResource {
 
 
-
+    /**
+     * Start the flow test.
+     *
+     * @param input JSON describing how to run the flow test
+     * @return response code OK
+     * @throws IOException if the JSON processing fails
+     */
     @POST
     @Path("flowTest")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -49,6 +55,13 @@ public class DemoResource extends BaseResource {
         return Response.ok(demo.flowTest(Optional.ofNullable(cfg)).toString()).build();
     }
 
+    /**
+     * Set up the flow test.
+     *
+     * @param input JSON describing how to configure the flow test
+     * @return response code OK
+     * @throws IOException if the JSON processing fails
+     */
     @POST
     @Path("setup")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -70,10 +83,15 @@ public class DemoResource extends BaseResource {
         return Response.ok(mapper.createObjectNode().toString()).build();
     }
 
+    /**
+     * Tear down the flow test.
+     *
+     * @return response code OK
+     */
     @GET
     @Path("teardown")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response tearDown() throws IOException {
+    public Response tearDown() {
         ObjectMapper mapper = new ObjectMapper();
         DemoAPI demo = get(DemoAPI.class);
         demo.tearDown();

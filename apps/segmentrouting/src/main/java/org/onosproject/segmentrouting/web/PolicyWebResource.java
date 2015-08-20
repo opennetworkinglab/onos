@@ -34,11 +34,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+/**
+ * Query, create and remove segment routing plicies.
+ */
 @Path("policy")
 public class PolicyWebResource extends AbstractWebResource {
 
     private static final PolicyCodec POLICY_CODEC = new PolicyCodec();
 
+    /**
+     * Get all segment routing policies.
+     * Returns an array of segment routing policies.
+     *
+     * @return status of OK
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPolicy() {
@@ -50,6 +59,14 @@ public class PolicyWebResource extends AbstractWebResource {
         return ok(result.toString()).build();
     }
 
+    /**
+     * Create a new segment routing policy.
+     *
+     * @param input JSON stream for policy to create
+     * @return status of the request - OK if the policy is created,
+     * INTERNAL_SERVER_ERROR if the JSON is invalid or the policy cannot be created
+     * @throws IOException
+     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createPolicy(InputStream input) throws IOException {
@@ -66,6 +83,14 @@ public class PolicyWebResource extends AbstractWebResource {
         }
     }
 
+    /**
+     * Delete a segment routing policy.
+     *
+     * @param input JSON stream for policy to delete
+     * @return status of the request - OK if the policy is removed,
+     * INTERNAL_SERVER_ERROR otherwise
+     * @throws IOException if JSON is invalid
+     */
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     public Response removePolicy(InputStream input) throws IOException {

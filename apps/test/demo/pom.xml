@@ -34,6 +34,11 @@
     <properties>
         <onos.app.name>org.onosproject.demo</onos.app.name>
         <web.context>/onos/demo</web.context>
+        <api.title>ONOS Flow Throughput Test App API</api.title>
+        <api.description>
+            APIs for interacting with the flow throughput test application.
+        </api.description>
+        <api.package>org.onosproject.demo</api.package>
     </properties>
 
     <dependencies>
@@ -82,6 +87,10 @@
                 <configuration>
                     <instructions>
                         <_wab>src/main/webapp/</_wab>
+                        <Include-Resource>
+                            WEB-INF/classes/apidoc/swagger.json=target/swagger.json,
+                            {maven-resources}
+                        </Include-Resource>
                         <Bundle-SymbolicName>
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
