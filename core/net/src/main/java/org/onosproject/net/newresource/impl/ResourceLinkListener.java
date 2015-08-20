@@ -52,6 +52,9 @@ final class ResourceLinkListener implements LinkListener {
             case LINK_ADDED:
                 registerLinkResource(link);
                 break;
+            case LINK_REMOVED:
+                unregisterLinkResource(link);
+                break;
             default:
                 break;
         }
@@ -60,5 +63,10 @@ final class ResourceLinkListener implements LinkListener {
     private void registerLinkResource(Link link) {
         LinkKey linkKey = LinkKey.linkKey(link);
         executor.submit(() -> adminService.registerResources(ResourcePath.ROOT, linkKey));
+    }
+
+    private void unregisterLinkResource(Link link) {
+        LinkKey linkKey = LinkKey.linkKey(link);
+        executor.submit(() -> adminService.unregisterResources(ResourcePath.ROOT, linkKey));
     }
 }
