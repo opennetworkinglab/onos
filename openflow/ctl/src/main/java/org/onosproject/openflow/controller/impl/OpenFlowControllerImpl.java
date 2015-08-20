@@ -306,6 +306,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 case PORT:
                     executorMsgs.submit(new OFMessageHandler(dpid, reply));
                     break;
+                case METER:
+                    executorMsgs.submit(new OFMessageHandler(dpid, reply));
+                    break;
                 case EXPERIMENTER:
                     if (reply instanceof OFCalientFlowStatsReply) {
                         // Convert Calient flow statistics to regular flow stats
@@ -353,6 +356,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                     }
                     break;
                 default:
+                    log.warn("Discarding unknown stats reply type {}", reply.getStatsType());
                     break;
             }
             break;

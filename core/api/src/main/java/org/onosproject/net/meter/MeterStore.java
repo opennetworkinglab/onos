@@ -80,4 +80,11 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      * @param reason a failure reason
      */
     void failedMeter(MeterOperation op, MeterFailReason reason);
+
+    /**
+     * Delete this meter immediately.
+     * @param m a meter
+     */
+    void deleteMeterNow(Meter m);
+
 }

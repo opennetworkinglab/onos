@@ -198,6 +198,12 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                 new MeterData(v.meter(), reason, v.origin()));
     }
 
+    @Override
+    public void deleteMeterNow(Meter m) {
+        futures.remove(m.id());
+        meters.remove(m.id());
+    }
+
     private class InternalMapEventListener implements MapEventListener<MeterId, MeterData> {
         @Override
         public void event(MapEvent<MeterId, MeterData> event) {
@@ -217,12 +223,12 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                                 } else if (data.reason().isPresent() && local.equals(data.origin())) {
                                     MeterStoreResult msr = MeterStoreResult.fail(data.reason().get());
                                     //TODO: No future -> no friend
-                                    futures.remove(data.meter().id()).complete(msr);
+                                    futures.get(data.meter().id()).complete(msr);
                                 }
                                 break;
                             case ADDED:
                             case REMOVED:
-                                if (local.equals(data.origin())) {
+                                if (local.equals(data.origin()) && data.meter().state() == MeterState.PENDING_REMOVE) {
                                     futures.remove(data.meter().id()).complete(MeterStoreResult.success());
                                 }
                                 break;
