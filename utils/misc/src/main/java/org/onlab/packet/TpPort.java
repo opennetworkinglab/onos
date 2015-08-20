@@ -19,7 +19,7 @@ package org.onlab.packet;
 /**
  * Representation of a transport layer port.
  */
-public class TransportPort {
+public class TpPort {
 
     private final int port;
 
@@ -28,27 +28,27 @@ public class TransportPort {
     public static final int MIN_PORT = 0;
 
     /**
-     * Constructs a new TransportPort.
+     * Constructs a new TpPort.
      *
      * @param value the transport layer port
      */
-    protected TransportPort(int value) {
+    protected TpPort(int value) {
         this.port = value;
     }
 
     /**
-     * Converts an integer into a TransportPort.
+     * Converts an integer into a TpPort.
      *
      * @param value an integer representing the transport layer port
-     * @return a TransportPort
+     * @return a TpPort
      * @throws IllegalArgumentException if the value is invalid
      */
-    public static TransportPort transportPort(int value) {
+    public static TpPort tpPort(int value) {
         if (value < MIN_PORT || value > MAX_PORT) {
             throw new IllegalArgumentException(
                     "Transport layer port value " + value + "is not in the interval [0, 0xFFFF]");
         }
-        return new TransportPort(value);
+        return new TpPort(value);
     }
 
     /**
@@ -71,9 +71,9 @@ public class TransportPort {
             return true;
         }
 
-        if (obj instanceof TransportPort) {
+        if (obj instanceof TpPort) {
 
-            TransportPort other = (TransportPort) obj;
+            TpPort other = (TpPort) obj;
 
             if (this.port == other.port) {
                 return true;
