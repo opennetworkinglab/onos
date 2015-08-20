@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -127,12 +128,20 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
 
     @Override
     public <T> boolean registerResources(ResourcePath parent, List<T> children) {
+        checkNotNull(parent);
+        checkNotNull(children);
+        checkArgument(!children.isEmpty());
+
         List<ResourcePath> resources = Lists.transform(children, x -> ResourcePath.child(parent, x));
         return store.register(parent, resources);
     }
 
     @Override
     public <T> boolean unregisterResources(ResourcePath parent, List<T> children) {
+        checkNotNull(parent);
+        checkNotNull(children);
+        checkArgument(!children.isEmpty());
+
         List<ResourcePath> resources = Lists.transform(children, x -> ResourcePath.child(parent, x));
         return store.unregister(parent, resources);
     }
