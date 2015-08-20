@@ -43,20 +43,20 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.HostId;
 import org.onosproject.rest.AbstractWebResource;
-import org.onosproject.app.vtnrsc.AllowedAddressPair;
-import org.onosproject.app.vtnrsc.DefaultVirtualPort;
-import org.onosproject.app.vtnrsc.FixedIp;
-import org.onosproject.app.vtnrsc.SecurityGroup;
-import org.onosproject.app.vtnrsc.SubnetId;
-import org.onosproject.app.vtnrsc.TenantId;
-import org.onosproject.app.vtnrsc.TenantNetworkId;
-import org.onosproject.app.vtnrsc.VirtualPort;
-import org.onosproject.app.vtnrsc.VirtualPortId;
-import org.onosproject.app.vtnrsc.VirtualPort.State;
-import org.onosproject.app.vtnrsc.virtualport.VirtualPortService;
-import org.onosproject.app.vtnrsc.web.VirtualPortCodec;
+import org.onosproject.vtnrsc.AllowedAddressPair;
+import org.onosproject.vtnrsc.BindingHostId;
+import org.onosproject.vtnrsc.DefaultVirtualPort;
+import org.onosproject.vtnrsc.FixedIp;
+import org.onosproject.vtnrsc.SecurityGroup;
+import org.onosproject.vtnrsc.SubnetId;
+import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.TenantNetworkId;
+import org.onosproject.vtnrsc.VirtualPort;
+import org.onosproject.vtnrsc.VirtualPortId;
+import org.onosproject.vtnrsc.VirtualPort.State;
+import org.onosproject.vtnrsc.virtualport.VirtualPortService;
+import org.onosproject.vtnrsc.web.VirtualPortCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -216,10 +216,15 @@ public class VirtualPortWebResource extends AbstractWebResource {
             DeviceId deviceId = DeviceId.deviceId(vPortnode.get("device_id")
                     .asText());
             String deviceOwner = vPortnode.get("device_owner").asText();
-            JsonNode fixedIpNode = vPortnode.get("fixed_ips");
-            FixedIp fixedIp = jsonNodeToFixedIps(fixedIpNode);
-            HostId bindingHostId = HostId.hostId(MacAddress.valueOf(vPortnode
-                    .get("binding:host_id").asText()));
+            JsonNode fixedIpNodes = vPortNodes.get("fixed_ips");
+            Set<FixedIp> fixedIps = new HashSet<FixedIp>();
+            for (JsonNode fixedIpNode : fixedIpNodes) {
+                FixedIp fixedIp = jsonNodeToFixedIps(fixedIpNode);
+                fixedIps.add(fixedIp);
+            }
+
+            BindingHostId bindingHostId = BindingHostId
+                    .bindingHostId(vPortnode.get("binding:host_id").asText());
             String bindingVnicType = vPortnode.get("binding:vnic_type")
                     .asText();
             String bindingVifType = vPortnode.get("binding:vif_type").asText();
@@ -230,18 +235,17 @@ public class VirtualPortWebResource extends AbstractWebResource {
             Collection<AllowedAddressPair> allowedAddressPairs =
                     jsonNodeToAllowedAddressPair(allowedAddressPairJsonNode);
             JsonNode securityGroupNode = vPortnode.get("security_groups");
-            Collection<SecurityGroup> securityGroups =
-                    jsonNodeToSecurityGroup(securityGroupNode);
-            strMap.putIfAbsent("name", name);
-            strMap.putIfAbsent("deviceOwner", deviceOwner);
-            strMap.putIfAbsent("bindingVnicType", bindingVnicType);
-            strMap.putIfAbsent("bindingVifType", bindingVifType);
-            strMap.putIfAbsent("bindingVifDetails", bindingVifDetails);
+            Collection<SecurityGroup> securityGroups = jsonNodeToSecurityGroup(securityGroupNode);
+            strMap.put("name", name);
+            strMap.put("deviceOwner", deviceOwner);
+            strMap.put("bindingVnicType", bindingVnicType);
+            strMap.put("bindingVifType", bindingVifType);
+            strMap.put("bindingVifDetails", bindingVifDetails);
             VirtualPort vPort = new DefaultVirtualPort(id, networkId,
                                                        adminStateUp, strMap,
                                                        isState(state),
                                                        macAddress, tenantId,
-                                                       deviceId, fixedIp,
+                                                       deviceId, fixedIps,
                                                        bindingHostId,
                                                        allowedAddressPairs,
                                                        securityGroups);
@@ -273,10 +277,15 @@ public class VirtualPortWebResource extends AbstractWebResource {
         DeviceId deviceId = DeviceId.deviceId(vPortNodes.get("device_id")
                 .asText());
         String deviceOwner = vPortNodes.get("device_owner").asText();
-        JsonNode fixedIpNode = vPortNodes.get("fixed_ips");
-        FixedIp fixedIp = jsonNodeToFixedIps(fixedIpNode);
-        HostId bindingHostId = HostId.hostId(MacAddress.valueOf(vPortNodes
-                .get("binding:host_id").asText()));
+        JsonNode fixedIpNodes = vPortNodes.get("fixed_ips");
+        Set<FixedIp> fixedIps = new HashSet<FixedIp>();
+        for (JsonNode fixedIpNode : fixedIpNodes) {
+            FixedIp fixedIp = jsonNodeToFixedIps(fixedIpNode);
+            fixedIps.add(fixedIp);
+        }
+
+        BindingHostId bindingHostId = BindingHostId
+                .bindingHostId(vPortNodes.get("binding:host_id").asText());
         String bindingVnicType = vPortNodes.get("binding:vnic_type").asText();
         String bindingVifType = vPortNodes.get("binding:vif_type").asText();
         String bindingVifDetails = vPortNodes.get("binding:vif_details")
@@ -286,17 +295,16 @@ public class VirtualPortWebResource extends AbstractWebResource {
         Collection<AllowedAddressPair> allowedAddressPairs =
                 jsonNodeToAllowedAddressPair(allowedAddressPairJsonNode);
         JsonNode securityGroupNode = vPortNodes.get("security_groups");
-        Collection<SecurityGroup> securityGroups =
-                jsonNodeToSecurityGroup(securityGroupNode);
-        strMap.putIfAbsent("name", name);
-        strMap.putIfAbsent("deviceOwner", deviceOwner);
-        strMap.putIfAbsent("bindingVnicType", bindingVnicType);
-        strMap.putIfAbsent("bindingVifType", bindingVifType);
-        strMap.putIfAbsent("bindingVifDetails", bindingVifDetails);
+        Collection<SecurityGroup> securityGroups = jsonNodeToSecurityGroup(securityGroupNode);
+        strMap.put("name", name);
+        strMap.put("deviceOwner", deviceOwner);
+        strMap.put("bindingVnicType", bindingVnicType);
+        strMap.put("bindingVifType", bindingVifType);
+        strMap.put("bindingVifDetails", bindingVifDetails);
         VirtualPort vPort = new DefaultVirtualPort(id, networkId, adminStateUp,
                                                    strMap, isState(state),
                                                    macAddress, tenantId,
-                                                   deviceId, fixedIp,
+                                                   deviceId, fixedIps,
                                                    bindingHostId,
                                                    allowedAddressPairs,
                                                    securityGroups);
@@ -342,8 +350,8 @@ public class VirtualPortWebResource extends AbstractWebResource {
                 .newConcurrentMap();
         int i = 0;
         for (JsonNode node : securityGroups) {
-            SecurityGroup securityGroup = SecurityGroup.securityGroup(node
-                    .get("security_group").asText());
+            SecurityGroup securityGroup = SecurityGroup
+                    .securityGroup(node.asText());
             securMaps.put(i, securityGroup);
             i++;
         }

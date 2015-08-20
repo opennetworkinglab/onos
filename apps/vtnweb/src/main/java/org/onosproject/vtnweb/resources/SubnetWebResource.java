@@ -42,19 +42,19 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpAddress.Version;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.ItemNotFoundException;
-import org.onosproject.app.vtnrsc.AllocationPool;
-import org.onosproject.app.vtnrsc.DefaultAllocationPool;
-import org.onosproject.app.vtnrsc.DefaultHostRoute;
-import org.onosproject.app.vtnrsc.DefaultSubnet;
-import org.onosproject.app.vtnrsc.HostRoute;
-import org.onosproject.app.vtnrsc.Subnet;
-import org.onosproject.app.vtnrsc.Subnet.Mode;
-import org.onosproject.app.vtnrsc.SubnetId;
-import org.onosproject.app.vtnrsc.TenantId;
-import org.onosproject.app.vtnrsc.TenantNetworkId;
-import org.onosproject.app.vtnrsc.subnet.SubnetService;
-import org.onosproject.app.vtnrsc.web.SubnetCodec;
 import org.onosproject.rest.AbstractWebResource;
+import org.onosproject.vtnrsc.AllocationPool;
+import org.onosproject.vtnrsc.DefaultAllocationPool;
+import org.onosproject.vtnrsc.DefaultHostRoute;
+import org.onosproject.vtnrsc.DefaultSubnet;
+import org.onosproject.vtnrsc.HostRoute;
+import org.onosproject.vtnrsc.Subnet;
+import org.onosproject.vtnrsc.SubnetId;
+import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.TenantNetworkId;
+import org.onosproject.vtnrsc.Subnet.Mode;
+import org.onosproject.vtnrsc.subnet.SubnetService;
+import org.onosproject.vtnrsc.web.SubnetCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +85,7 @@ public class SubnetWebResource extends AbstractWebResource {
     public Response getSubnet(@PathParam("subnetUUID") String id) {
 
         if (!get(SubnetService.class).exists(SubnetId.subnetId(id))) {
-            return ok("the subnet does not exists").build();
+            return ok("The subnet does not exists").build();
         }
         Subnet sub = nullIsNotFound(get(SubnetService.class)
                                             .getSubnet(SubnetId.subnetId(id)),
@@ -183,30 +183,30 @@ public class SubnetWebResource extends AbstractWebResource {
         checkNotNull(subnetNodes, JSON_NOT_NULL);
         Map<SubnetId, Subnet> subMap = new HashMap<SubnetId, Subnet>();
         for (JsonNode subnetNode : subnetNodes) {
-            if (subnetNode.hasNonNull("id")) {
+            if (!subnetNode.hasNonNull("id")) {
                 return null;
             }
             SubnetId id = SubnetId.subnetId(subnetNode.get("id").asText());
             String subnetName = subnetNode.get("name").asText();
-            TenantId tenantId = TenantId.tenantId(subnetNode.get("tenant_id")
-                    .asText());
-            TenantNetworkId networkId = TenantNetworkId.networkId(subnetNode
-                    .get("network_id").asText());
-            Version ipVersion = Version.valueOf(subnetNode.get("ip_version")
-                    .asText());
+            TenantId tenantId = TenantId
+                    .tenantId(subnetNode.get("tenant_id").asText());
+            TenantNetworkId networkId = TenantNetworkId
+                    .networkId(subnetNode.get("network_id").asText());
+            Version ipVersion = Version
+                    .valueOf(subnetNode.get("ip_version").asText());
             IpPrefix cidr = IpPrefix.valueOf(subnetNode.get("cidr").asText());
-            IpAddress gatewayIp = IpAddress.valueOf(subnetNode
-                    .get("gateway_ip").asText());
+            IpAddress gatewayIp = IpAddress
+                    .valueOf(subnetNode.get("gateway_ip").asText());
             Boolean dhcpEnabled = subnetNode.get("enable_dhcp").asBoolean();
             Boolean shared = subnetNode.get("shared").asBoolean();
             JsonNode hostRoutes = subnetNode.get("host_routes");
             Iterable<HostRoute> hostRoutesIt = jsonNodeToHostRoutes(hostRoutes);
             JsonNode allocationPools = subnetNode.get("allocation_pools");
             Iterable<AllocationPool> allocationPoolsIt = jsonNodeToAllocationPools(allocationPools);
-            Mode ipV6AddressMode = Mode.valueOf(subnetNode
-                    .get("ipv6_address_mode").asText());
-            Mode ipV6RaMode = Mode.valueOf(subnetNode.get("ipv6_ra_mode")
-                    .asText());
+            Mode ipV6AddressMode = Mode
+                    .valueOf(subnetNode.get("ipv6_address_mode").asText());
+            Mode ipV6RaMode = Mode
+                    .valueOf(subnetNode.get("ipv6_ra_mode").asText());
             Subnet subnet = new DefaultSubnet(id, subnetName, networkId,
                                               tenantId, ipVersion, cidr,
                                               gatewayIp, dhcpEnabled, shared,
@@ -226,27 +226,42 @@ public class SubnetWebResource extends AbstractWebResource {
     public Iterable<Subnet> changeJsonToSub(JsonNode subnetNodes) {
         checkNotNull(subnetNodes, JSON_NOT_NULL);
         Map<SubnetId, Subnet> subMap = new HashMap<SubnetId, Subnet>();
+        if (!subnetNodes.hasNonNull("id")) {
+            return null;
+        }
         SubnetId id = SubnetId.subnetId(subnetNodes.get("id").asText());
         String subnetName = subnetNodes.get("name").asText();
-        TenantId tenantId = TenantId.tenantId(subnetNodes.get("tenant_id")
-                .asText());
-        TenantNetworkId networkId = TenantNetworkId.networkId(subnetNodes
-                .get("network_id").asText());
-        Version ipVersion = Version.valueOf(subnetNodes.get("ip_version")
-                .asText());
+        TenantId tenantId = TenantId
+                .tenantId(subnetNodes.get("tenant_id").asText());
+        TenantNetworkId networkId = TenantNetworkId
+                .networkId(subnetNodes.get("network_id").asText());
+        String version = subnetNodes.get("ip_version").asText();
+        Version ipVersion;
+        switch (version) {
+        case "4":
+            ipVersion = Version.INET;
+            break;
+        case "6":
+            ipVersion = Version.INET;
+            break;
+        default:
+            ipVersion = null;
+        }
+
         IpPrefix cidr = IpPrefix.valueOf(subnetNodes.get("cidr").asText());
-        IpAddress gatewayIp = IpAddress.valueOf(subnetNodes.get("gateway_ip")
-                .asText());
+        IpAddress gatewayIp = IpAddress
+                .valueOf(subnetNodes.get("gateway_ip").asText());
         Boolean dhcpEnabled = subnetNodes.get("enable_dhcp").asBoolean();
         Boolean shared = subnetNodes.get("shared").asBoolean();
         JsonNode hostRoutes = subnetNodes.get("host_routes");
         Iterable<HostRoute> hostRoutesIt = jsonNodeToHostRoutes(hostRoutes);
         JsonNode allocationPools = subnetNodes.get("allocation_pools");
         Iterable<AllocationPool> allocationPoolsIt = jsonNodeToAllocationPools(allocationPools);
-        Mode ipV6AddressMode = Mode.valueOf(subnetNodes
-                .get("ipv6_address_mode").asText());
-        Mode ipV6RaMode = Mode
-                .valueOf(subnetNodes.get("ipv6_ra_mode").asText());
+
+        Mode ipV6AddressMode = getMode(subnetNodes.get("ipv6_address_mode")
+                .asText());
+        Mode ipV6RaMode = getMode(subnetNodes.get("ipv6_ra_mode").asText());
+
         Subnet subnet = new DefaultSubnet(id, subnetName, networkId, tenantId,
                                           ipVersion, cidr, gatewayIp,
                                           dhcpEnabled, shared, hostRoutesIt,
@@ -254,6 +269,33 @@ public class SubnetWebResource extends AbstractWebResource {
                                           allocationPoolsIt);
         subMap.put(id, subnet);
         return Collections.unmodifiableCollection(subMap.values());
+    }
+
+    /**
+     * Gets ipv6_address_mode or ipv6_ra_mode type.
+     *
+     * @param mode the String value in JsonNode
+     * @return ipV6Mode Mode of the ipV6Mode
+     */
+    private Mode getMode(String mode) {
+        Mode ipV6Mode;
+        if (mode == null) {
+            return null;
+        }
+        switch (mode) {
+        case "dhcpv6-stateful":
+            ipV6Mode = Mode.DHCPV6_STATEFUL;
+            break;
+        case "dhcpv6-stateless":
+            ipV6Mode = Mode.DHCPV6_STATELESS;
+            break;
+        case "slaac":
+            ipV6Mode = Mode.SLAAC;
+            break;
+        default:
+            ipV6Mode = null;
+        }
+        return ipV6Mode;
     }
 
     /**

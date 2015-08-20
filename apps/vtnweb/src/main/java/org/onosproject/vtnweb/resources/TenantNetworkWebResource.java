@@ -39,17 +39,17 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.onlab.util.ItemNotFoundException;
-import org.onosproject.app.vtnrsc.DefaultTenantNetwork;
-import org.onosproject.app.vtnrsc.PhysicalNetwork;
-import org.onosproject.app.vtnrsc.SegmentationId;
-import org.onosproject.app.vtnrsc.TenantId;
-import org.onosproject.app.vtnrsc.TenantNetwork;
-import org.onosproject.app.vtnrsc.TenantNetwork.State;
-import org.onosproject.app.vtnrsc.TenantNetwork.Type;
-import org.onosproject.app.vtnrsc.TenantNetworkId;
-import org.onosproject.app.vtnrsc.tenantnetwork.TenantNetworkService;
-import org.onosproject.app.vtnrsc.web.TenantNetworkCodec;
 import org.onosproject.rest.AbstractWebResource;
+import org.onosproject.vtnrsc.DefaultTenantNetwork;
+import org.onosproject.vtnrsc.PhysicalNetwork;
+import org.onosproject.vtnrsc.SegmentationId;
+import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.TenantNetwork;
+import org.onosproject.vtnrsc.TenantNetworkId;
+import org.onosproject.vtnrsc.TenantNetwork.State;
+import org.onosproject.vtnrsc.TenantNetwork.Type;
+import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
+import org.onosproject.vtnrsc.web.TenantNetworkCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
