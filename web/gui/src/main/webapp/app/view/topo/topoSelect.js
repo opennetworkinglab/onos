@@ -114,7 +114,7 @@
         }
 
         if (!ev.shiftKey) {
-            deselectAll();
+            deselectAll(true);
         }
 
         selections[obj.id] = { obj: obj, el: el };
@@ -135,7 +135,7 @@
         }
     }
 
-    function deselectAll() {
+    function deselectAll(skipUpdate) {
         var something = (selectOrder.length > 0);
 
         // deselect all nodes in the network...
@@ -143,7 +143,9 @@
         selections = {};
         selectOrder = [];
         api.updateDeviceColors();
-        updateDetail();
+        if (!skipUpdate) {
+            updateDetail();
+        }
 
         // return true if something was selected
         return something;

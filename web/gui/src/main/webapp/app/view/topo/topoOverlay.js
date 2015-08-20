@@ -293,7 +293,7 @@
              findLinkById( id )
          */
 
-        var paths = data.paths;
+        var paths = data.links;
 
         api.clearLinkTrafficStyle();
         api.removeLinkLabels();

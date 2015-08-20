@@ -18,7 +18,6 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableList;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEvent;
@@ -43,8 +42,6 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
-import org.onosproject.net.LinkKey;
-import org.onosproject.net.NetworkResource;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceService;
@@ -55,29 +52,26 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.intent.FlowRuleIntent;
-import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.LinkCollectionIntent;
-import org.onosproject.net.intent.OpticalConnectivityIntent;
-import org.onosproject.net.intent.OpticalPathIntent;
-import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.statistic.Load;
 import org.onosproject.net.statistic.StatisticService;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.impl.topo.ServicesBundle;
 import org.onosproject.ui.topo.ButtonId;
+import org.onosproject.ui.topo.DeviceHighlight;
+import org.onosproject.ui.topo.Highlights;
+import org.onosproject.ui.topo.HostHighlight;
+import org.onosproject.ui.topo.LinkHighlight;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -95,10 +89,6 @@ import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_REMOVED;
 import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.HostId.hostId;
-import static org.onosproject.net.LinkKey.linkKey;
-import static org.onosproject.net.PortNumber.P0;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
@@ -106,8 +96,7 @@ import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
-import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.FLOW;
-import static org.onosproject.ui.impl.TopologyViewMessageHandlerBase.StatsType.PORT;
+import static org.onosproject.ui.impl.topo.TopoUtils.compactLinkString;
 import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
 import static org.onosproject.ui.topo.TopoConstants.Properties;
 
@@ -121,24 +110,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
     private static final ProviderId PID =
             new ProviderId("core", "org.onosproject.core", true);
-    private static final String COMPACT = "%s/%s-%s/%s";
 
-    private static final String SHOW_HIGHLIGHTS = "showHighlights";
-
-    private static final double KILO = 1024;
-    private static final double MEGA = 1024 * KILO;
-    private static final double GIGA = 1024 * MEGA;
-
-    private static final String GBITS_UNIT = "Gb";
-    private static final String MBITS_UNIT = "Mb";
-    private static final String KBITS_UNIT = "Kb";
-    private static final String BITS_UNIT = "b";
-    private static final String GBYTES_UNIT = "GB";
-    private static final String MBYTES_UNIT = "MB";
-    private static final String KBYTES_UNIT = "KB";
-    private static final String BYTES_UNIT = "B";
-    //4 Kilo Bytes as threshold
-    private static final double BPS_THRESHOLD = 4 * KILO;
+    protected static final String SHOW_HIGHLIGHTS = "showHighlights";
 
     protected ServiceDirectory directory;
     protected ClusterService clusterService;
@@ -153,9 +126,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     protected TopologyService topologyService;
     protected TunnelService tunnelService;
 
-    protected enum StatsType {
-        FLOW, PORT
-    }
+    protected ServicesBundle servicesBundle;
 
     private String version;
 
@@ -186,6 +157,11 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         portStatsService = directory.get(PortStatisticsService.class);
         topologyService = directory.get(TopologyService.class);
         tunnelService = directory.get(TunnelService.class);
+
+        servicesBundle = new ServicesBundle(intentService, deviceService,
+                                            hostService, linkService,
+                                            flowService,
+                                            flowStatsService, portStatsService);
 
         String ver = directory.get(CoreService.class).version().toString();
         version = ver.replace(".SNAPSHOT", "*").replaceFirst("~.*$", "");
@@ -230,64 +206,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 .put("message", message);
 
         return JsonUtils.envelope("message", id, payload);
-    }
-
-    // Produces a set of all hosts listed in the specified JSON array.
-    protected Set<Host> getHosts(ArrayNode array) {
-        Set<Host> hosts = new HashSet<>();
-        if (array != null) {
-            for (JsonNode node : array) {
-                try {
-                    addHost(hosts, hostId(node.asText()));
-                } catch (IllegalArgumentException e) {
-                    log.debug("Skipping ID {}", node.asText());
-                }
-            }
-        }
-        return hosts;
-    }
-
-    // Adds the specified host to the set of hosts.
-    private void addHost(Set<Host> hosts, HostId hostId) {
-        Host host = hostService.getHost(hostId);
-        if (host != null) {
-            hosts.add(host);
-        }
-    }
-
-
-    // Produces a set of all devices listed in the specified JSON array.
-    protected Set<Device> getDevices(ArrayNode array) {
-        Set<Device> devices = new HashSet<>();
-        if (array != null) {
-            for (JsonNode node : array) {
-                try {
-                    addDevice(devices, deviceId(node.asText()));
-                } catch (IllegalArgumentException e) {
-                    log.debug("Skipping ID {}", node.asText());
-                }
-            }
-        }
-        return devices;
-    }
-
-    private void addDevice(Set<Device> devices, DeviceId deviceId) {
-        Device device = deviceService.getDevice(deviceId);
-        if (device != null) {
-            devices.add(device);
-        }
-    }
-
-    protected void addHover(Set<Host> hosts, Set<Device> devices, String hover) {
-        try {
-            addHost(hosts, hostId(hover));
-        } catch (IllegalArgumentException e) {
-            try {
-                addDevice(devices, deviceId(hover));
-            } catch (IllegalArgumentException ne) {
-                log.debug("Skipping ID {}", hover);
-            }
-        }
     }
 
     // Produces a cluster instance message to the client.
@@ -445,6 +363,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                    JsonUtils.node(payload, "memento"));
     }
 
+
     // -----------------------------------------------------------------------
     // Create models of the data to return, that overlays can adjust / augment
 
@@ -527,24 +446,24 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return count;
     }
 
-    // Counts all entries that egress on the given device links.
-    protected Map<Link, Integer> getFlowCounts(DeviceId deviceId) {
+    // Counts all flow entries that egress on the links of the given device.
+    private Map<Link, Integer> getLinkFlowCounts(DeviceId deviceId) {
+        // get the flows for the device
         List<FlowEntry> entries = new ArrayList<>();
-        Set<Link> links = new HashSet<>(linkService.getDeviceEgressLinks(deviceId));
-        Set<Host> hosts = hostService.getConnectedHosts(deviceId);
         for (FlowEntry flowEntry : flowService.getFlowEntries(deviceId)) {
             entries.add(flowEntry);
         }
 
-        // Add all edge links to the set
+        // get egress links from device, and include edge links
+        Set<Link> links = new HashSet<>(linkService.getDeviceEgressLinks(deviceId));
+        Set<Host> hosts = hostService.getConnectedHosts(deviceId);
         if (hosts != null) {
             for (Host host : hosts) {
-                links.add(new DefaultEdgeLink(host.providerId(),
-                                              new ConnectPoint(host.id(), P0),
-                                              host.location(), false));
+                links.add(createEdgeLink(host, false));
             }
         }
 
+        // compile flow counts per link
         Map<Link, Integer> counts = new HashMap<>();
         for (Link link : links) {
             counts.put(link, getEgressFlows(link, entries));
@@ -553,7 +472,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Counts all entries that egress on the link source port.
-    private Integer getEgressFlows(Link link, List<FlowEntry> entries) {
+    private int getEgressFlows(Link link, List<FlowEntry> entries) {
         int count = 0;
         PortNumber out = link.src().port();
         for (FlowEntry entry : entries) {
@@ -567,7 +486,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         }
         return count;
     }
-
 
     // Returns host details response.
     protected PropertyPanel hostDetails(HostId hostId, long sid) {
@@ -589,270 +507,98 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             .addProp(Properties.LATITUDE, annot.value(AnnotationKeys.LATITUDE))
             .addProp(Properties.LONGITUDE, annot.value(AnnotationKeys.LONGITUDE));
 
-        // TODO: add button descriptors
+        // Potentially add button descriptors here
         return pp;
     }
 
 
-    // TODO: migrate to Traffic overlay
-    // Produces JSON message to trigger flow traffic overview visualization
-    protected ObjectNode trafficSummaryMessage(StatsType type) {
+    // ----------------------------------------------------------------------
+
+    /**
+     * Transforms the given highlights model into a JSON message payload.
+     *
+     * @param highlights the model to transform
+     * @return JSON payload
+     */
+    protected ObjectNode json(Highlights highlights) {
         ObjectNode payload = objectNode();
-        ArrayNode paths = arrayNode();
-        payload.set("paths", paths);
 
-        ObjectNode pathNodeN = objectNode();
-        ArrayNode linksNodeN = arrayNode();
-        ArrayNode labelsN = arrayNode();
+        ArrayNode devices = arrayNode();
+        ArrayNode hosts = arrayNode();
+        ArrayNode links = arrayNode();
 
-        pathNodeN.put("class", "plain").put("traffic", false);
-        pathNodeN.set("links", linksNodeN);
-        pathNodeN.set("labels", labelsN);
-        paths.add(pathNodeN);
+        payload.set("devices", devices);
+        payload.set("hosts", hosts);
+        payload.set("links", links);
 
-        ObjectNode pathNodeT = objectNode();
-        ArrayNode linksNodeT = arrayNode();
-        ArrayNode labelsT = arrayNode();
+        highlights.devices().forEach(dh -> devices.add(json(dh)));
+        highlights.hosts().forEach(hh -> hosts.add(json(hh)));
+        jsonifyLinks(links, highlights.links());
 
-        pathNodeT.put("class", "secondary").put("traffic", true);
-        pathNodeT.set("links", linksNodeT);
-        pathNodeT.set("labels", labelsT);
-        paths.add(pathNodeT);
-
-        Map<LinkKey, BiLink> biLinks = consolidateLinks(linkService.getLinks());
-        addEdgeLinks(biLinks);
-        for (BiLink link : biLinks.values()) {
-            boolean bi = link.two != null;
-            if (type == FLOW) {
-                link.addLoad(getLinkLoad(link.one));
-                link.addLoad(bi ? getLinkLoad(link.two) : null);
-            } else if (type == PORT) {
-                //For a bi-directional traffic links, use
-                //the max link rate of either direction
-                link.addLoad(portStatsService.load(link.one.src()),
-                             BPS_THRESHOLD,
-                             portStatsService.load(link.one.dst()),
-                             BPS_THRESHOLD);
-            }
-            if (link.hasTraffic) {
-                linksNodeT.add(compactLinkString(link.one));
-                labelsT.add(type == PORT ?
-                                    formatBitRate(link.rate) + "ps" :
-                                    formatBytes(link.bytes));
-            } else {
-                linksNodeN.add(compactLinkString(link.one));
-                labelsN.add("");
-            }
-        }
-        return JsonUtils.envelope(SHOW_HIGHLIGHTS, 0, payload);
+        return payload;
     }
 
-    private Load getLinkLoad(Link link) {
-        if (link.src().elementId() instanceof DeviceId) {
-            return flowStatsService.load(link);
-        }
-        return null;
-    }
+    private void jsonifyLinks(ArrayNode links, Set<LinkHighlight> hilites) {
+        // a little more complicated than devices or hosts, since we are
+        //  grouping the link highlights by CSS classes
 
-    private void addEdgeLinks(Map<LinkKey, BiLink> biLinks) {
-        hostService.getHosts().forEach(host -> {
-            addLink(biLinks, createEdgeLink(host, true));
-            addLink(biLinks, createEdgeLink(host, false));
-        });
-    }
-
-    private Map<LinkKey, BiLink> consolidateLinks(Iterable<Link> links) {
-        Map<LinkKey, BiLink> biLinks = new HashMap<>();
-        for (Link link : links) {
-            addLink(biLinks, link);
-        }
-        return biLinks;
-    }
-
-    // Produces JSON message to trigger flow overview visualization
-    protected ObjectNode flowSummaryMessage(Set<Device> devices) {
-        ObjectNode payload = objectNode();
-        ArrayNode paths = arrayNode();
-        payload.set("paths", paths);
-
-        for (Device device : devices) {
-            Map<Link, Integer> counts = getFlowCounts(device.id());
-            for (Link link : counts.keySet()) {
-                addLinkFlows(link, paths, counts.get(link));
-            }
-        }
-        return JsonUtils.envelope(SHOW_HIGHLIGHTS, 0, payload);
-    }
-
-    private void addLinkFlows(Link link, ArrayNode paths, Integer count) {
-        ObjectNode pathNode = objectNode();
-        ArrayNode linksNode = arrayNode();
-        ArrayNode labels = arrayNode();
-        boolean noFlows = count == null || count == 0;
-        pathNode.put("class", noFlows ? "secondary" : "primary");
-        pathNode.put("traffic", false);
-        pathNode.set("links", linksNode.add(compactLinkString(link)));
-        pathNode.set("labels", labels.add(noFlows ? "" : (count.toString() +
-                (count == 1 ? " flow" : " flows"))));
-        paths.add(pathNode);
-    }
+        // TODO: refactor this method (including client side) to use new format
+        //       as a more compact representation of the data...
+        // * links:
+        //   * "primary animated":
+        //     * "link01" -> "label"
+        //     * "link02" -> "label"
+        //   * "secondary":
+        //     * "link04" -> "label"
+        //     * "link05" -> ""
 
 
-    // Produces JSON message to trigger traffic visualization
-    protected ObjectNode trafficMessage(TrafficClass... trafficClasses) {
-        ObjectNode payload = objectNode();
-        ArrayNode paths = arrayNode();
-        payload.set("paths", paths);
+        Map<String, List<String>> linkIdMap = new HashMap<>();
+        Map<String, List<String>> linkLabelMap = new HashMap<>();
+        List<String> ids;
+        List<String> labels;
 
-        // Classify links based on their traffic traffic first...
-        Map<LinkKey, BiLink> biLinks = classifyLinkTraffic(trafficClasses);
+        for (LinkHighlight lh : hilites) {
+            String cls = lh.cssClasses();
+            ids = linkIdMap.get(cls);
+            labels = linkLabelMap.get(cls);
 
-        // Then separate the links into their respective classes and send them out.
-        Map<String, ObjectNode> pathNodes = new HashMap<>();
-        for (BiLink biLink : biLinks.values()) {
-            boolean hasTraffic = biLink.hasTraffic;
-            String tc = (biLink.classes() + (hasTraffic ? " animated" : "")).trim();
-            ObjectNode pathNode = pathNodes.get(tc);
-            if (pathNode == null) {
-                pathNode = objectNode()
-                        .put("class", tc).put("traffic", hasTraffic);
-                pathNode.set("links", arrayNode());
-                pathNode.set("labels", arrayNode());
-                pathNodes.put(tc, pathNode);
-                paths.add(pathNode);
-            }
-            ((ArrayNode) pathNode.path("links")).add(compactLinkString(biLink.one));
-            ((ArrayNode) pathNode.path("labels")).add(hasTraffic ? formatBytes(biLink.bytes) : "");
-        }
-
-        return JsonUtils.envelope(SHOW_HIGHLIGHTS, 0, payload);
-    }
-
-    // Classifies the link traffic according to the specified classes.
-    private Map<LinkKey, BiLink> classifyLinkTraffic(TrafficClass... trafficClasses) {
-        Map<LinkKey, BiLink> biLinks = new HashMap<>();
-        for (TrafficClass trafficClass : trafficClasses) {
-            for (Intent intent : trafficClass.intents) {
-                boolean isOptical = intent instanceof OpticalConnectivityIntent;
-                List<Intent> installables = intentService.getInstallableIntents(intent.key());
-                if (installables != null) {
-                    for (Intent installable : installables) {
-                        String type = isOptical ? trafficClass.type + " optical" : trafficClass.type;
-                        if (installable instanceof PathIntent) {
-                            classifyLinks(type, biLinks, trafficClass.showTraffic,
-                                          ((PathIntent) installable).path().links());
-                        } else if (installable instanceof FlowRuleIntent) {
-                            classifyLinks(type, biLinks, trafficClass.showTraffic,
-                                          linkResources(installable));
-                        } else if (installable instanceof LinkCollectionIntent) {
-                            classifyLinks(type, biLinks, trafficClass.showTraffic,
-                                          ((LinkCollectionIntent) installable).links());
-                        } else if (installable instanceof OpticalPathIntent) {
-                            classifyLinks(type, biLinks, trafficClass.showTraffic,
-                                          ((OpticalPathIntent) installable).path().links());
-                        }
-                    }
-                }
-            }
-        }
-        return biLinks;
-    }
-
-    // Extracts links from the specified flow rule intent resources
-    private Collection<Link> linkResources(Intent installable) {
-        ImmutableList.Builder<Link> builder = ImmutableList.builder();
-        for (NetworkResource r : installable.resources()) {
-            if (r instanceof Link) {
-                builder.add((Link) r);
-            }
-        }
-        return builder.build();
-    }
-
-
-    // Adds the link segments (path or tree) associated with the specified
-    // connectivity intent
-    private void classifyLinks(String type, Map<LinkKey, BiLink> biLinks,
-                               boolean showTraffic, Iterable<Link> links) {
-        if (links != null) {
-            for (Link link : links) {
-                BiLink biLink = addLink(biLinks, link);
-                if (showTraffic) {
-                    biLink.addLoad(getLinkLoad(link));
-                }
-                biLink.addClass(type);
-            }
-        }
-    }
-
-
-    static BiLink addLink(Map<LinkKey, BiLink> biLinks, Link link) {
-        LinkKey key = canonicalLinkKey(link);
-        BiLink biLink = biLinks.get(key);
-        if (biLink != null) {
-            biLink.setOther(link);
-        } else {
-            biLink = new BiLink(key, link);
-            biLinks.put(key, biLink);
-        }
-        return biLink;
-    }
-
-    // Poor-mans formatting to get the labels with byte counts looking nice.
-    private String formatBytes(long bytes) {
-        String unit;
-        double value;
-        if (bytes > GIGA) {
-            value = bytes / GIGA;
-            unit = GBYTES_UNIT;
-        } else if (bytes > MEGA) {
-            value = bytes / MEGA;
-            unit = MBYTES_UNIT;
-        } else if (bytes > KILO) {
-            value = bytes / KILO;
-            unit = KBYTES_UNIT;
-        } else {
-            value = bytes;
-            unit = BYTES_UNIT;
-        }
-        DecimalFormat format = new DecimalFormat("#,###.##");
-        return format.format(value) + " " + unit;
-    }
-
-    // Poor-mans formatting to get the labels with bit rate looking nice.
-    private String formatBitRate(long bytes) {
-        String unit;
-        double value;
-        //Convert to bits
-        long bits = bytes * 8;
-        if (bits > GIGA) {
-            value = bits / GIGA;
-            unit = GBITS_UNIT;
-
-            // NOTE: temporary hack to clip rate at 10.0 Gbps
-            //  Added for the CORD Fabric demo at ONS 2015
-            if (value > 10.0) {
-                value = 10.0;
+            if (ids == null) {  // labels will be null also
+                ids = new ArrayList<>();
+                linkIdMap.put(cls, ids);
+                labels = new ArrayList<>();
+                linkLabelMap.put(cls, labels);
             }
 
-        } else if (bits > MEGA) {
-            value = bits / MEGA;
-            unit = MBITS_UNIT;
-        } else if (bits > KILO) {
-            value = bits / KILO;
-            unit = KBITS_UNIT;
-        } else {
-            value = bits;
-            unit = BITS_UNIT;
+            ids.add(lh.elementId());
+            labels.add(lh.label());
         }
-        DecimalFormat format = new DecimalFormat("#,###.##");
-        return format.format(value) + " " + unit;
+
+        for (String cls : linkIdMap.keySet()) {
+            ObjectNode group = objectNode();
+            links.add(group);
+
+            group.put("class", cls);
+
+            ArrayNode lnks = arrayNode();
+            ArrayNode labs = arrayNode();
+            group.set("links", lnks);
+            group.set("labels", labs);
+
+            linkIdMap.get(cls).forEach(lnks::add);
+            linkLabelMap.get(cls).forEach(labs::add);
+        }
     }
 
-    // Produces compact string representation of a link.
-    private static String compactLinkString(Link link) {
-        return String.format(COMPACT, link.src().elementId(), link.src().port(),
-                             link.dst().elementId(), link.dst().port());
+
+    protected ObjectNode json(DeviceHighlight dh) {
+        // TODO: implement this once we know what a device highlight looks like
+        return objectNode();
+    }
+
+    protected ObjectNode json(HostHighlight hh) {
+        // TODO: implement this once we know what a host highlight looks like
+        return objectNode();
     }
 
     // translates the property panel into JSON, for returning to the client
@@ -877,97 +623,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         }
         result.set("buttons", buttons);
         return result;
-    }
-
-
-    // Produces canonical link key, i.e. one that will match link and its inverse.
-    static LinkKey canonicalLinkKey(Link link) {
-        String sn = link.src().elementId().toString();
-        String dn = link.dst().elementId().toString();
-        return sn.compareTo(dn) < 0 ?
-                linkKey(link.src(), link.dst()) : linkKey(link.dst(), link.src());
-    }
-
-    // Representation of link and its inverse and any traffic data.
-    static class BiLink {
-        public final LinkKey key;
-        public final Link one;
-        public Link two;
-        public boolean hasTraffic = false;
-        public long bytes = 0;
-
-        private Set<String> classes = new HashSet<>();
-        private long rate;
-
-        BiLink(LinkKey key, Link link) {
-            this.key = key;
-            this.one = link;
-        }
-
-        void setOther(Link link) {
-            this.two = link;
-        }
-
-        void addLoad(Load load) {
-            addLoad(load, 0);
-        }
-
-        void addLoad(Load load, double threshold) {
-            if (load != null) {
-                this.hasTraffic = hasTraffic || load.rate() > threshold;
-                this.bytes += load.latest();
-                this.rate += load.rate();
-            }
-        }
-
-        void addLoad(Load srcLinkLoad,
-                     double srcLinkThreshold,
-                     Load dstLinkLoad,
-                     double dstLinkThreshold) {
-            //use the max of link load at source or destination
-            if (srcLinkLoad != null) {
-                this.hasTraffic = hasTraffic || srcLinkLoad.rate() > srcLinkThreshold;
-                this.bytes = srcLinkLoad.latest();
-                this.rate = srcLinkLoad.rate();
-            }
-
-            if (dstLinkLoad != null) {
-                if (dstLinkLoad.rate() > this.rate) {
-                    this.bytes = dstLinkLoad.latest();
-                    this.rate = dstLinkLoad.rate();
-                    this.hasTraffic = hasTraffic || dstLinkLoad.rate() > dstLinkThreshold;
-                }
-            }
-        }
-
-        void addClass(String trafficClass) {
-            classes.add(trafficClass);
-        }
-
-        String classes() {
-            StringBuilder sb = new StringBuilder();
-            classes.forEach(c -> sb.append(c).append(" "));
-            return sb.toString().trim();
-        }
-    }
-
-
-    // TODO: move this to traffic overlay component
-    // Auxiliary carrier of data for requesting traffic message.
-    static class TrafficClass {
-        public final boolean showTraffic;
-        public final String type;
-        public final Iterable<Intent> intents;
-
-        TrafficClass(String type, Iterable<Intent> intents) {
-            this(type, intents, false);
-        }
-
-        TrafficClass(String type, Iterable<Intent> intents, boolean showTraffic) {
-            this.type = type;
-            this.intents = intents;
-            this.showTraffic = showTraffic;
-        }
     }
 
 }

@@ -58,6 +58,7 @@
         showHosts = false,      // whether hosts are displayed
         showOffline = true,     // whether offline devices are displayed
         nodeLock = false,       // whether nodes can be dragged or not (locked)
+        fTimer,                 // timer for delayed force layout
         fNodesTimer,            // timer for delayed nodes update
         fLinksTimer,            // timer for delayed links update
         dim,                    // the dimensions of the force layout [w,h]
@@ -117,6 +118,7 @@
         network.nodes.push(d);
         lu[id] = d;
         updateNodes();
+        fStart();
     }
 
     function updateDevice(data) {
@@ -170,6 +172,7 @@
             lu[d.egress] = lnk;
             updateLinks();
         }
+        fStart();
     }
 
     function updateHost(data) {
@@ -215,6 +218,7 @@
             aggregateLink(d, data);
             lu[d.key] = d;
             updateLinks();
+            fStart();
         }
     }
 
@@ -322,6 +326,7 @@
             // remove from lookup cache
             delete lu[removed[0].key];
             updateLinks();
+            fResume();
         }
     }
 
@@ -343,6 +348,7 @@
         // NOTE: upd is false if we were called from removeDeviceElement()
         if (upd) {
             updateNodes();
+            fResume();
         }
     }
 
@@ -367,6 +373,7 @@
 
         // remove from SVG
         updateNodes();
+        fResume();
     }
 
     function updateHostVisibility() {
@@ -520,8 +527,9 @@
         fNodesTimer = $timeout(_updateNodes, 150);
     }
 
+    // IMPLEMENTATION NOTE: _updateNodes() should NOT stop, start, or resume
+    //  the force layout; that needs to be determined and implemented elsewhere
     function _updateNodes() {
-        force.stop();
         // select all the nodes in the layout:
         node = nodeG.selectAll('.node')
             .data(network.nodes, function (d) { return d.id; });
@@ -536,7 +544,10 @@
             .attr({
                 id: function (d) { return sus.safeId(d.id); },
                 class: mkSvgClass,
-                transform: function (d) { return sus.translate(d.x, d.y); },
+                transform: function (d) {
+                    // Need to guard against NaN here ??
+                    return sus.translate(d.x, d.y);
+                },
                 opacity: 0
             })
             .call(drag)
@@ -564,7 +575,6 @@
         // exiting node specifics:
         exiting.filter('.host').each(td3.hostExit);
         exiting.filter('.device').each(td3.deviceExit);
-        fStart();
     }
 
     // ==========================
@@ -659,9 +669,10 @@
         fLinksTimer = $timeout(_updateLinks, 150);
     }
 
+    // IMPLEMENTATION NOTE: _updateLinks() should NOT stop, start, or resume
+    //  the force layout; that needs to be determined and implemented elsewhere
     function _updateLinks() {
         var th = ts.theme();
-        force.stop();
 
         link = linkG.selectAll('.link')
             .data(network.links, function (d) { return d.key; });
@@ -714,7 +725,6 @@
             })
             .style('opacity', 0.0)
             .remove();
-        fStart();
     }
 
 
@@ -729,14 +739,23 @@
 
     function fStart() {
         if (!tos.isOblique()) {
-            $log.debug("Starting force-layout");
-            force.start();
+            if (fTimer) {
+                $timeout.cancel(fTimer);
+            }
+            fTimer = $timeout(function () {
+                $log.debug("Starting force-layout");
+                force.start();
+            }, 200);
         }
     }
 
     var tickStuff = {
         nodeAttr: {
-            transform: function (d) { return sus.translate(d.x, d.y); }
+            transform: function (d) {
+                var dx = isNaN(d.x) ? 0 : d.x,
+                    dy = isNaN(d.y) ? 0 : d.y;
+                return sus.translate(dx, dy);
+            }
         },
         linkAttr: {
             x1: function (d) { return d.position.x1; },
@@ -1046,6 +1065,9 @@
                 force = drag = null;
 
                 // clean up $timeout promises
+                if (fTimer) {
+                    $timeout.cancel(fTimer);
+                }
                 if (fNodesTimer) {
                     $timeout.cancel(fNodesTimer);
                 }

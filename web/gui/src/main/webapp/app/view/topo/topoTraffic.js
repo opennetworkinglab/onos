@@ -42,9 +42,9 @@
 
     // invoked in response to change in selection and/or mouseover/out:
     function requestTrafficForMode() {
-        if (hoverMode === 'flows') {
+        if (trafficMode === 'flows') {
             requestDeviceLinkFlows();
-        } else if (hoverMode === 'intents') {
+        } else if (trafficMode === 'intents') {
             requestRelatedIntents();
         } else {
             cancelTraffic();
@@ -173,7 +173,6 @@
         });
         flash.flash('Multi-Source flow added');
     }
-
 
 
     // === -----------------------------------------------------

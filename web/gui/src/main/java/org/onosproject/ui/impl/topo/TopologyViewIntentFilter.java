@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.ui.impl;
+package org.onosproject.ui.impl.topo;
 
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -56,32 +56,35 @@ public class TopologyViewIntentFilter {
     private final LinkService linkService;
 
     /**
-     * Crreates an intent filter.
+     * Creates an intent filter.
      *
-     * @param intentService intent service reference
-     * @param deviceService device service reference
-     * @param hostService   host service reference
-     * @param linkService   link service reference
+     * @param services service references bundle
      */
-    TopologyViewIntentFilter(IntentService intentService, DeviceService deviceService,
-                             HostService hostService, LinkService linkService) {
-        this.intentService = intentService;
-        this.deviceService = deviceService;
-        this.hostService = hostService;
-        this.linkService = linkService;
+    public TopologyViewIntentFilter(ServicesBundle services) {
+        this.intentService = services.intentService();
+        this.deviceService = services.deviceService();
+        this.hostService = services.hostService();
+        this.linkService = services.linkService();
     }
 
+
+    // TODO: Review - do we need this signature, with sourceIntents??
+//    public List<Intent> findPathIntents(Set<Host> hosts, Set<Device> devices,
+//                                        Iterable<Intent> sourceIntents) {
+//    }
+
     /**
-     * Finds all path (host-to-host or point-to-point) intents that pertains
-     * to the given hosts.
+     * Finds all path (host-to-host or point-to-point) intents that pertain
+     * to the given hosts and devices.
      *
      * @param hosts         set of hosts to query by
      * @param devices       set of devices to query by
-     * @param sourceIntents collection of intents to search
      * @return set of intents that 'match' all hosts and devices given
      */
-    List<Intent> findPathIntents(Set<Host> hosts, Set<Device> devices,
-                                 Iterable<Intent> sourceIntents) {
+    public List<Intent> findPathIntents(Set<Host> hosts, Set<Device> devices) {
+        // start with all intents
+        Iterable<Intent> sourceIntents = intentService.getIntents();
+
         // Derive from this the set of edge connect points.
         Set<ConnectPoint> edgePoints = getEdgePoints(hosts);
 
