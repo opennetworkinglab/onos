@@ -343,6 +343,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public Builder setMplsBos(boolean mplsBos) {
+            return add(Instructions.modMplsBos(mplsBos));
+        }
+
+        @Override
         public Builder decMplsTtl() {
             return add(Instructions.decMplsTtl());
         }

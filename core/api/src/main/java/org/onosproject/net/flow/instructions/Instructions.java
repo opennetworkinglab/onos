@@ -176,6 +176,16 @@ public final class Instructions {
     }
 
     /**
+     * Creates a MPLS BOS bit modification.
+     *
+     * @param mplsBos MPLS BOS bit to set (true) or unset (false)
+     * @return a L2 Modification
+     */
+    public static L2ModificationInstruction modMplsBos(boolean mplsBos) {
+        return new L2ModificationInstruction.ModMplsBosInstruction(mplsBos);
+    }
+
+    /**
      * Creates a MPLS decrement TTL modification.
      *
      * @return a L2 Modification
@@ -673,6 +683,7 @@ public final class Instructions {
             return false;
         }
     }
+
 }
 
 

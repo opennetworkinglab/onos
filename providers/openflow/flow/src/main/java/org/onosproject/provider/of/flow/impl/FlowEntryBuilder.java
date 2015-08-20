@@ -404,6 +404,11 @@ public class FlowEntryBuilder {
             OFOxm<U32> labelId = (OFOxm<U32>) oxm;
             builder.setMpls(MplsLabel.mplsLabel((int) labelId.getValue().getValue()));
             break;
+        case MPLS_BOS:
+            @SuppressWarnings("unchecked")
+            OFOxm<U8> mplsBos = (OFOxm<U8>) oxm;
+            builder.setMplsBos(mplsBos.getValue() == U8.ZERO ? false : true);
+            break;
         case TUNNEL_ID:
             @SuppressWarnings("unchecked")
             OFOxm<U64> tunnelId = (OFOxm<U64>) oxm;

@@ -56,6 +56,7 @@ import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.U32;
+import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 
@@ -276,6 +277,11 @@ public class GroupBucketEntryBuilder {
                 @SuppressWarnings("unchecked")
                 OFOxm<U32> labelId = (OFOxm<U32>) oxm;
                 builder.setMpls(MplsLabel.mplsLabel((int) labelId.getValue().getValue()));
+                break;
+            case MPLS_BOS:
+                @SuppressWarnings("unchecked")
+                OFOxm<U8> mplsBos = (OFOxm<U8>) oxm;
+                builder.setMplsBos(mplsBos.getValue() == U8.ZERO ? false : true);
                 break;
             case ARP_OP:
             case ARP_SHA:

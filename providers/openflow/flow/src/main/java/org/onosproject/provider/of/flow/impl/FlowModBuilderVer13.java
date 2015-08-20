@@ -31,6 +31,7 @@ import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambda
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsBosInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
@@ -58,6 +59,7 @@ import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.IPv6FlowLabel;
 import org.projectfloodlight.openflow.types.MacAddress;
+import org.projectfloodlight.openflow.types.OFBooleanValue;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
@@ -342,6 +344,12 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                         (ModMplsLabelInstruction) l2m;
                 oxm = factory().oxms().mplsLabel(U32.of(mplsLabel.label()
                                                                 .longValue()));
+                break;
+            case MPLS_BOS:
+                ModMplsBosInstruction mplsBos = (ModMplsBosInstruction) l2m;
+                oxm = factory().oxms()
+                        .mplsBos(mplsBos.mplsBos() ? OFBooleanValue.TRUE
+                                                   : OFBooleanValue.FALSE);
                 break;
             case DEC_MPLS_TTL:
                 return factory().actions().decMplsTtl();

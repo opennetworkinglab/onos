@@ -227,6 +227,14 @@ public interface TrafficTreatment {
         Builder setMpls(MplsLabel mplsLabel);
 
         /**
+         * Sets the mpls bottom-of-stack indicator bit.
+         *
+         * @param mplsBos boolean to set BOS=1 (true) or BOS=0 (false).
+         * @return a treatment builder.
+         */
+        Builder setMplsBos(boolean mplsBos);
+
+        /**
          * Decrement MPLS TTL.
          *
          * @return a treatment builder
