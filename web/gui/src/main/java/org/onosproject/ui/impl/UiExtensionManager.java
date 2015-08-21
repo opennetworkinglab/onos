@@ -84,7 +84,9 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
                 new UiViewHidden("group"),
                 new UiView(NETWORK, "link", "Links", "nav_links"),
                 new UiView(NETWORK, "host", "Hosts", "nav_hosts"),
-                new UiView(NETWORK, "intent", "Intents", "nav_intents")
+                new UiView(NETWORK, "intent", "Intents", "nav_intents"),
+                //TODO add a new type of icon for tunnel
+                new UiView(NETWORK, "tunnel", "Tunnels", "nav_links")
         );
 
         UiMessageHandlerFactory messageHandlerFactory =
@@ -99,7 +101,8 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
                         new IntentViewMessageHandler(),
                         new ApplicationViewMessageHandler(),
                         new SettingsViewMessageHandler(),
-                        new ClusterViewMessageHandler()
+                        new ClusterViewMessageHandler(),
+                        new TunnelViewMessageHandler()
                 );
 
         UiTopoOverlayFactory topoOverlayFactory =
