@@ -85,8 +85,7 @@ public class Controller {
         b.option(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
         b.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         b.childOption(ChannelOption.SO_KEEPALIVE, true);
-        ChannelFuture cf = b.bind(ovsdbPort).sync();
-        cf.channel().closeFuture().sync();
+        b.bind(ovsdbPort).sync();
     }
 
     /**
