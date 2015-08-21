@@ -278,6 +278,7 @@ public class ConsistentResourceStore implements ResourceStore {
 
     /**
      * Appends the values to the existing values associated with the specified key.
+     * If the map already has all the given values, appending will not happen.
      *
      * @param map map holding multiple values for a key
      * @param key key specifying values
@@ -288,16 +289,18 @@ public class ConsistentResourceStore implements ResourceStore {
      */
     private <K, V> boolean appendValues(TransactionalMap<K, List<V>> map, K key, List<V> values) {
         List<V> oldValues = map.get(key);
-        List<V> newValues;
         if (oldValues == null) {
-            newValues = new ArrayList<>(values);
-        } else {
-            LinkedHashSet<V> newSet = new LinkedHashSet<>(oldValues);
-            newSet.addAll(values);
-            newValues = new ArrayList<>(newSet);
+            return map.replace(key, oldValues, new ArrayList<>(values));
         }
 
-        return map.replace(key, oldValues, newValues);
+        LinkedHashSet<V> oldSet = new LinkedHashSet<>(oldValues);
+        if (oldSet.containsAll(values)) {
+            // don't write to map because all values are already stored
+            return true;
+        }
+
+        oldSet.addAll(values);
+        return map.replace(key, oldValues, new ArrayList<>(oldSet));
     }
 
     /**
