@@ -15,30 +15,17 @@
  *
  */
 
-package org.onosproject.ui.impl.topo;
+package org.onosproject.ui.topo;
 
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
-import org.onosproject.ui.topo.LinkHighlight;
 
 /**
- * A simple concrete implementation of a {@link BiLink}.
- * Note that this implementation does not generate any link highlights.
+ * Collection of {@link BaseLink}s.
  */
-public class BaseLink extends BiLink {
-
-    /**
-     * Constructs a base link for the given key and initial link.
-     *
-     * @param key  canonical key for this base link
-     * @param link first link
-     */
-    public BaseLink(LinkKey key, Link link) {
-        super(key, link);
-    }
-
+public class BaseLinkMap extends BiLinkMap<BaseLink> {
     @Override
-    public LinkHighlight highlight(Enum<?> type) {
-        return null;
+    public BaseLink create(LinkKey key, Link link) {
+        return new BaseLink(key, link);
     }
 }

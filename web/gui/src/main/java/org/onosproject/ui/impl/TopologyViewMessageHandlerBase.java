@@ -96,7 +96,7 @@ import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
-import static org.onosproject.ui.impl.topo.TopoUtils.compactLinkString;
+import static org.onosproject.ui.topo.TopoUtils.compactLinkString;
 import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
 import static org.onosproject.ui.topo.TopoConstants.Properties;
 

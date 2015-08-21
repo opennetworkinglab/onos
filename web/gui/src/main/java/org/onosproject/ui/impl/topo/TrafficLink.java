@@ -20,8 +20,10 @@ package org.onosproject.ui.impl.topo;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.statistic.Load;
+import org.onosproject.ui.topo.BiLink;
 import org.onosproject.ui.topo.LinkHighlight;
 import org.onosproject.ui.topo.LinkHighlight.Flavor;
+import org.onosproject.ui.topo.TopoUtils;
 
 import static org.onosproject.ui.topo.LinkHighlight.Flavor.NO_HIGHLIGHT;
 import static org.onosproject.ui.topo.LinkHighlight.Flavor.PRIMARY_HIGHLIGHT;

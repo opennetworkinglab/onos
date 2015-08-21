@@ -15,7 +15,7 @@
  *
  */
 
-package org.onosproject.ui.impl.topo;
+package org.onosproject.ui.topo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;

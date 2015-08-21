@@ -57,7 +57,7 @@ import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.impl.TrafficMonitor.Mode;
-import org.onosproject.ui.impl.topo.NodeSelection;
+import org.onosproject.ui.topo.NodeSelection;
 import org.onosproject.ui.topo.Highlights;
 import org.onosproject.ui.topo.PropertyPanel;
 

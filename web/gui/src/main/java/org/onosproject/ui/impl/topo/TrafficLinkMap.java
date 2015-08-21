@@ -19,6 +19,7 @@ package org.onosproject.ui.impl.topo;
 
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
+import org.onosproject.ui.topo.BiLinkMap;
 
 /**
  * Collection of {@link TrafficLink}s.

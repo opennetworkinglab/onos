@@ -18,6 +18,7 @@
 package org.onosproject.ui.impl.topo;
 
 import org.onosproject.net.intent.Intent;
+import org.onosproject.ui.topo.NodeSelection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

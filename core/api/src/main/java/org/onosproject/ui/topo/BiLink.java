@@ -15,11 +15,10 @@
  *
  */
 
-package org.onosproject.ui.impl.topo;
+package org.onosproject.ui.topo;
 
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
-import org.onosproject.ui.topo.LinkHighlight;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

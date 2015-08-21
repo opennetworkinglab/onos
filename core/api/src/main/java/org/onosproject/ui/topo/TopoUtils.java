@@ -15,7 +15,7 @@
  *
  */
 
-package org.onosproject.ui.impl.topo;
+package org.onosproject.ui.topo;
 
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
