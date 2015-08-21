@@ -18,7 +18,7 @@
     <driver name="default"
             manufacturer="ON.Lab" hwVersion="0.0.1" swVersion="0.0.1">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.OpenVSwitchPipeline"/>
+                   impl="org.onosproject.driver.pipeline.DefaultSingleTablePipeline"/>
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.DefaultSwitchHandshaker"/>
                    <behaviour api="org.onosproject.net.behaviour.TunnelConfig"
