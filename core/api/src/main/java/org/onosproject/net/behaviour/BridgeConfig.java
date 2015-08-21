@@ -16,7 +16,9 @@
 package org.onosproject.net.behaviour;
 
 import java.util.Collection;
+import java.util.Set;
 
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.HandlerBehaviour;
 
@@ -66,4 +68,11 @@ public interface BridgeConfig extends HandlerBehaviour {
      * @return collection of port
      */
     Collection<PortDescription> getPorts();
+
+    /**
+     * Get a collection of port.
+     *
+     * @return portNumbers set of PortNumber
+     */
+    Set<PortNumber> getPortNumbers();
 }

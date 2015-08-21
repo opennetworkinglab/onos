@@ -16,6 +16,8 @@
 package org.onosproject.driver.ovsdb;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.onlab.packet.IpAddress;
@@ -46,45 +48,44 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
     @Override
     public void addBridge(BridgeName bridgeName) {
         DriverHandler handler = handler();
-        OvsdbClientService ovsdbNode = getOvsdbNode(handler);
-        ovsdbNode.createBridge(bridgeName.name());
+        OvsdbClientService clientService = getOvsdbClientService(handler);
+        clientService.createBridge(bridgeName.name());
     }
 
     @Override
     public void deleteBridge(BridgeName bridgeName) {
         DriverHandler handler = handler();
-        OvsdbClientService ovsdbNode = getOvsdbNode(handler);
-        ovsdbNode.dropBridge(bridgeName.name());
+        OvsdbClientService clientService = getOvsdbClientService(handler);
+        clientService.dropBridge(bridgeName.name());
     }
 
     @Override
     public Collection<BridgeDescription> getBridges() {
         DriverHandler handler = handler();
         DeviceId deviceId = handler.data().deviceId();
-        OvsdbClientService ovsdbNode = getOvsdbNode(handler);
-        Set<OvsdbBridge> ovsdbSet = ovsdbNode.getBridges();
+        OvsdbClientService clientService = getOvsdbClientService(handler);
+        Set<OvsdbBridge> ovsdbSet = clientService.getBridges();
         Collection<BridgeDescription> bridges = Sets.newHashSet();
         ovsdbSet.forEach(o -> {
-            BridgeName bridgeName = BridgeName.bridgeName(o.bridgeName()
-                    .toString());
-            DeviceId ownDeviceId = DeviceId.deviceId(o.datapathId().toString());
-            BridgeDescription description = new DefaultBridgeDescription(
-                                                                         bridgeName,
+            BridgeName bridgeName = BridgeName
+                    .bridgeName(o.bridgeName().value());
+            DeviceId ownDeviceId = DeviceId.deviceId("of:" + o.datapathId().value());
+            BridgeDescription description = new DefaultBridgeDescription(bridgeName,
                                                                          deviceId,
                                                                          ownDeviceId);
             bridges.add(description);
         });
-        return bridges;
+        return bridges == null ? Collections.emptySet() : bridges;
     }
 
     @Override
     public void addPort(PortDescription port) {
         DriverHandler handler = handler();
-        OvsdbClientService ovsdbNode = getOvsdbNode(handler);
-        Set<OvsdbBridge> ovsdbSet = ovsdbNode.getBridges();
+        OvsdbClientService clientService = getOvsdbClientService(handler);
+        Set<OvsdbBridge> ovsdbSet = clientService.getBridges();
         if (ovsdbSet != null && ovsdbSet.size() > 0) {
             OvsdbBridge bridge = ovsdbSet.iterator().next();
-            ovsdbNode.createPort(bridge.bridgeName().toString(), port
+            clientService.createPort(bridge.bridgeName().toString(), port
                     .portNumber().toString());
         }
     }
@@ -92,11 +93,11 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
     @Override
     public void deletePort(PortDescription port) {
         DriverHandler handler = handler();
-        OvsdbClientService ovsdbNode = getOvsdbNode(handler);
-        Set<OvsdbBridge> ovsdbSet = ovsdbNode.getBridges();
+        OvsdbClientService clientService = getOvsdbClientService(handler);
+        Set<OvsdbBridge> ovsdbSet = clientService.getBridges();
         if (ovsdbSet != null && ovsdbSet.size() > 0) {
             OvsdbBridge bridge = ovsdbSet.iterator().next();
-            ovsdbNode.dropPort(bridge.bridgeName().toString(), port
+            clientService.dropPort(bridge.bridgeName().toString(), port
                     .portNumber().toString());
         }
     }
@@ -104,8 +105,8 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
     @Override
     public Collection<PortDescription> getPorts() {
         DriverHandler handler = handler();
-        OvsdbClientService ovsdbNode = getOvsdbNode(handler);
-        Set<OvsdbPort> ovsdbSet = ovsdbNode.getPorts();
+        OvsdbClientService clientService = getOvsdbClientService(handler);
+        Set<OvsdbPort> ovsdbSet = clientService.getPorts();
         Collection<PortDescription> ports = Sets.newHashSet();
         ovsdbSet.forEach(o -> {
             PortNumber port = PortNumber.portNumber(o.portNumber().value());
@@ -127,10 +128,25 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
         return new OvsdbNodeId(ipAddress, portL);
     }
 
-    private OvsdbClientService getOvsdbNode(DriverHandler handler) {
+    // Used for getting OvsdbClientService.
+    private OvsdbClientService getOvsdbClientService(DriverHandler handler) {
         OvsdbController ovsController = handler.get(OvsdbController.class);
         DeviceId deviceId = handler.data().deviceId();
         OvsdbNodeId nodeId = changeDeviceIdToNodeId(deviceId);
         return ovsController.getOvsdbClient(nodeId);
+    }
+
+    @Override
+    public Set<PortNumber> getPortNumbers() {
+        Set<PortNumber> ports = new HashSet<>();
+        DriverHandler handler = handler();
+        OvsdbClientService clientService = getOvsdbClientService(handler);
+        Set<OvsdbPort> ovsdbSet = clientService.getPorts();
+        ovsdbSet.forEach(o -> {
+            PortNumber port = PortNumber.portNumber(o.portNumber().value(),
+                                                    o.portName().value());
+            ports.add(port);
+        });
+        return ports;
     }
 }

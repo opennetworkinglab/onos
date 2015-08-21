@@ -20,6 +20,7 @@ import io.netty.channel.Channel;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,10 +29,14 @@ import java.util.concurrent.ExecutionException;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.ovsdb.controller.OvsdbBridge;
+import org.onosproject.ovsdb.controller.OvsdbBridgeName;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbConstant;
+import org.onosproject.ovsdb.controller.OvsdbDatapathId;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.OvsdbPort;
+import org.onosproject.ovsdb.controller.OvsdbPortName;
+import org.onosproject.ovsdb.controller.OvsdbPortNumber;
 import org.onosproject.ovsdb.controller.OvsdbRowStore;
 import org.onosproject.ovsdb.controller.OvsdbStore;
 import org.onosproject.ovsdb.controller.OvsdbTableStore;
@@ -96,9 +101,7 @@ public class DefaultOvsdbClient
             .newHashMap();
 
     private final Map<String, DatabaseSchema> schema = Maps.newHashMap();
-    private final Set<OvsdbPort> ovsdbPorts = new HashSet<OvsdbPort>();
     private final Set<OvsdbTunnel> ovsdbTunnels = new HashSet<OvsdbTunnel>();
-    private final Set<OvsdbBridge> ovsdbBridges = new HashSet<OvsdbBridge>();
 
     /**
      * Creates an OvsdbClient.
@@ -247,9 +250,6 @@ public class DefaultOvsdbClient
             for (UUID uuid : ports) {
                 Row portRow = getRow(OvsdbConstant.DATABASENAME,
                                      OvsdbConstant.PORT, uuid.value());
-                if (portRow == null) {
-                    continue;
-                }
                 Port port = (Port) TableGenerator.getTable(dbSchema, portRow,
                                                            OvsdbTable.PORT);
                 if (port != null && portName.equalsIgnoreCase(port.getName())) {
@@ -283,9 +283,6 @@ public class DefaultOvsdbClient
             for (UUID uuid : interfaces) {
                 Row intfRow = getRow(OvsdbConstant.DATABASENAME,
                                      OvsdbConstant.INTERFACE, uuid.value());
-                if (intfRow == null) {
-                    continue;
-                }
                 Interface intf = (Interface) TableGenerator
                         .getTable(dbSchema, intfRow, OvsdbTable.INTERFACE);
                 if (intf != null && portName.equalsIgnoreCase(intf.getName())) {
@@ -583,22 +580,10 @@ public class DefaultOvsdbClient
         }
 
         if (interfaceUuid != null) {
-            OvsdbRowStore rowStore = getRowStore(OvsdbConstant.DATABASENAME,
-                                                 OvsdbConstant.INTERFACE);
-            if (rowStore == null) {
-                log.debug("The bridge uuid is null");
-                return;
-            }
-
-            ConcurrentMap<String, Row> intfTableRows = rowStore.getRowStore();
-            if (intfTableRows == null) {
-                log.debug("The bridge uuid is null");
-                return;
-            }
 
             Interface tunInterface = (Interface) TableGenerator
-                    .getTable(dbSchema, intfTableRows.get(interfaceUuid),
-                              OvsdbTable.INTERFACE);
+                    .createTable(dbSchema, OvsdbTable.INTERFACE);
+
             if (tunInterface != null) {
 
                 tunInterface.setType(OvsdbConstant.TYPEVXLAN);
@@ -849,16 +834,9 @@ public class DefaultOvsdbClient
 
             ListenableFuture<JsonNode> input = getSchema(dbNames);
             if (input != null) {
-                try {
-                    log.info("input message: {}", input.get().toString());
-                } catch (InterruptedException e) {
-                    log.warn("Interrupted while waiting to get message");
-                    Thread.currentThread().interrupt();
-                } catch (ExecutionException e) {
-                    log.error("Exception thrown while to get message");
-                }
+                return Futures.transform(input, rowFunction);
             }
-            return Futures.transform(input, rowFunction);
+            return null;
         } else {
             return Futures.immediateFuture(databaseSchema);
         }
@@ -1040,11 +1018,47 @@ public class DefaultOvsdbClient
 
     @Override
     public Set<OvsdbBridge> getBridges() {
+        Set<OvsdbBridge> ovsdbBridges = new HashSet<OvsdbBridge>();
+        OvsdbTableStore tableStore = getTableStore(OvsdbConstant.DATABASENAME);
+        if (tableStore == null) {
+            return null;
+        }
+        OvsdbRowStore rowStore = tableStore.getRows(OvsdbConstant.BRIDGE);
+        if (rowStore == null) {
+            return null;
+        }
+        ConcurrentMap<String, Row> rows = rowStore.getRowStore();
+        for (String uuid : rows.keySet()) {
+            Row row = getRow(OvsdbConstant.DATABASENAME, OvsdbConstant.BRIDGE,
+                             uuid);
+            OvsdbBridge ovsdbBridge = getOvsdbBridge(row);
+            if (ovsdbBridge != null) {
+                ovsdbBridges.add(ovsdbBridge);
+            }
+        }
         return ovsdbBridges;
     }
 
     @Override
     public Set<OvsdbPort> getPorts() {
+        Set<OvsdbPort> ovsdbPorts = new HashSet<OvsdbPort>();
+        OvsdbTableStore tableStore = getTableStore(OvsdbConstant.DATABASENAME);
+        if (tableStore == null) {
+            return null;
+        }
+        OvsdbRowStore rowStore = tableStore.getRows(OvsdbConstant.INTERFACE);
+        if (rowStore == null) {
+            return null;
+        }
+        ConcurrentMap<String, Row> rows = rowStore.getRowStore();
+        for (String uuid : rows.keySet()) {
+            Row row = getRow(OvsdbConstant.DATABASENAME,
+                             OvsdbConstant.INTERFACE, uuid);
+            OvsdbPort ovsdbPort = getOvsdbPort(row);
+            if (ovsdbPort != null) {
+                ovsdbPorts.add(ovsdbPort);
+            }
+        }
         return ovsdbPorts;
     }
 
@@ -1053,4 +1067,62 @@ public class DefaultOvsdbClient
         return schema.get(dbName);
     }
 
+    //Gets ovsdb port.
+    private OvsdbPort getOvsdbPort(Row row) {
+        DatabaseSchema dbSchema = getDatabaseSchema(OvsdbConstant.DATABASENAME);
+        Interface intf = (Interface) TableGenerator
+                .getTable(dbSchema, row, OvsdbTable.INTERFACE);
+        if (intf == null) {
+            return null;
+        }
+        long ofPort = getOfPort(intf);
+        String portName = intf.getName();
+        if ((ofPort < 0) || (portName == null)) {
+            return null;
+        }
+
+        OvsdbPort ovsdbPort = new OvsdbPort(new OvsdbPortNumber(ofPort),
+                                            new OvsdbPortName(portName));
+        return ovsdbPort;
+    }
+
+    ////Gets ovsdb bridge.
+    private OvsdbBridge getOvsdbBridge(Row row) {
+        DatabaseSchema dbSchema = getDatabaseSchema(OvsdbConstant.DATABASENAME);
+        Bridge bridge = (Bridge) TableGenerator.getTable(dbSchema, row,
+                                                         OvsdbTable.BRIDGE);
+        if (bridge == null) {
+            return null;
+        }
+
+        OvsdbSet datapathIdSet = (OvsdbSet) bridge.getDatapathIdColumn().data();
+        @SuppressWarnings("unchecked")
+        Set<String> datapathIds = datapathIdSet.set();
+        if (datapathIds == null || datapathIds.size() == 0) {
+            return null;
+        }
+        String datapathId = (String) datapathIds.toArray()[0];
+        String bridgeName = bridge.getName();
+        if ((datapathId == null) || (bridgeName == null)) {
+            return null;
+        }
+
+        OvsdbBridge ovsdbBridge = new OvsdbBridge(new OvsdbBridgeName(bridgeName),
+                                                  new OvsdbDatapathId(datapathId));
+        return ovsdbBridge;
+    }
+
+    //Gets ofPort in the interface.
+    private long getOfPort(Interface intf) {
+        OvsdbSet ofPortSet = (OvsdbSet) intf.getOpenFlowPortColumn().data();
+        @SuppressWarnings("unchecked")
+        Set<Integer> ofPorts = ofPortSet.set();
+        while (ofPorts == null || ofPorts.size() <= 0) {
+            log.debug("The ofport is null in {}", intf.getName());
+            return -1;
+        }
+        // return (long) ofPorts.toArray()[0];
+        Iterator<Integer> it = ofPorts.iterator();
+        return Long.parseLong(it.next().toString());
+    }
 }
