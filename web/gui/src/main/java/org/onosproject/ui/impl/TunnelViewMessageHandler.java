@@ -3,6 +3,7 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.TunnelEndPointFormatter;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
@@ -52,6 +53,8 @@ public class TunnelViewMessageHandler extends UiMessageHandler {
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
             //TODO add more formater class so that we can get a more readable table
+            tm.setFormatter(ONE, TunnelEndPointFormatter.INSTANCE);
+            tm.setFormatter(TWO, TunnelEndPointFormatter.INSTANCE);
             tm.setFormatter(TYPE, EnumFormatter.INSTANCE);
             return tm;
         }
@@ -59,9 +62,7 @@ public class TunnelViewMessageHandler extends UiMessageHandler {
         @Override
         protected void populateTable(TableModel tm, ObjectNode payload) {
             TunnelService ts = get(TunnelService.class);
-            ts.queryAllTunnels().forEach(tunnel -> {
-                populateRow(tm.addRow(), tunnel);
-            });
+            ts.queryAllTunnels().forEach(tunnel -> populateRow(tm.addRow(), tunnel));
         }
 
     }
