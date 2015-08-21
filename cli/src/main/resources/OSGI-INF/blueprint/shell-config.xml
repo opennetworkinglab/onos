@@ -351,6 +351,13 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.PacketRequestsListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.PacketProcessorsListCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.net.AddTestFlowsCommand"/>
         </command>
         <command>

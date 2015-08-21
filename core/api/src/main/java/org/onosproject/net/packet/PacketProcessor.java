@@ -24,7 +24,7 @@ public interface PacketProcessor {
 
     int ADVISOR_MAX = Integer.MAX_VALUE / 3;
     int DIRECTOR_MAX = (Integer.MAX_VALUE / 3) * 2;
-    static final int OBSERVER_MAX = Integer.MAX_VALUE;
+    int OBSERVER_MAX = Integer.MAX_VALUE;
 
     /**
      * Returns a priority in the ADVISOR range, where processors can take early action and
@@ -38,7 +38,7 @@ public interface PacketProcessor {
     static int advisor(int priority) {
         int overallPriority = priority + 1;
         checkArgument(overallPriority > 0 && overallPriority <= ADVISOR_MAX,
-                "Priority not within ADVISOR range");
+                      "Priority not within ADVISOR range");
         return overallPriority;
     }
 
@@ -53,7 +53,7 @@ public interface PacketProcessor {
     static int director(int priority) {
         int overallPriority = ADVISOR_MAX + priority + 1;
         checkArgument(overallPriority > ADVISOR_MAX && overallPriority <= DIRECTOR_MAX,
-                "Priority not within DIRECTOR range");
+                      "Priority not within DIRECTOR range");
         return overallPriority;
     }
 
@@ -68,8 +68,8 @@ public interface PacketProcessor {
      */
     static int observer(int priority) {
         int overallPriority = DIRECTOR_MAX + priority + 1;
-        checkArgument(overallPriority > DIRECTOR_MAX && overallPriority <= OBSERVER_MAX,
-                "Priority not within OBSERVER range");
+        checkArgument(overallPriority > DIRECTOR_MAX,
+                      "Priority not within OBSERVER range");
         return overallPriority;
     }
 

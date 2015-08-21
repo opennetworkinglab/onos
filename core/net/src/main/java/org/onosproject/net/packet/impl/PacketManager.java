@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.packet.impl;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -53,6 +54,7 @@ import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -61,8 +63,8 @@ import java.util.concurrent.Executors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppPermission.Type.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides a basic implementation of the packet SB &amp; NB APIs.
@@ -138,6 +140,11 @@ public class PacketManager
     }
 
     @Override
+    public Map<Integer, PacketProcessor> getProcessors() {
+        return ImmutableMap.copyOf(processors);
+    }
+
+    @Override
     public void requestPackets(TrafficSelector selector, PacketPriority priority,
                                ApplicationId appId) {
         checkPermission(PACKET_READ);
@@ -161,6 +168,11 @@ public class PacketManager
         if (store.cancelPackets(request)) {
             removeFromAllDevices(request);
         }
+    }
+
+    @Override
+    public List<PacketRequest> getRequests() {
+        return store.existingRequests();
     }
 
     /**

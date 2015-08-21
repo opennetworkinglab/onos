@@ -15,7 +15,7 @@
  */
 package org.onosproject.store.packet.impl;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -45,6 +45,7 @@ import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -152,7 +153,7 @@ public class DistributedPacketStore
     }
 
     @Override
-    public Set<PacketRequest> existingRequests() {
+    public List<PacketRequest> existingRequests() {
         return tracker.requests();
     }
 
@@ -197,10 +198,11 @@ public class DistributedPacketStore
             return requests.replace(request.selector(), old.version(), newSet);
         }
 
-        public Set<PacketRequest> requests() {
-            ImmutableSet.Builder<PacketRequest> builder = ImmutableSet.builder();
-            requests.values().forEach(v -> builder.addAll(v.value()));
-            return builder.build();
+        public List<PacketRequest> requests() {
+            List<PacketRequest> list = Lists.newArrayList();
+            requests.values().forEach(v -> list.addAll(v.value()));
+            list.sort((o1, o2) -> o1.priority().priorityValue() - o2.priority().priorityValue());
+            return list;
         }
 
     }
