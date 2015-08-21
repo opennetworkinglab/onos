@@ -333,7 +333,7 @@ public class ConsistentResourceStore implements ResourceStore {
      */
     private boolean isRegistered(TransactionalMap<ResourcePath, List<ResourcePath>> map, ResourcePath resource) {
         // root is always regarded to be registered
-        if (!resource.parent().isPresent()) {
+        if (resource.isRoot()) {
             return true;
         }
 

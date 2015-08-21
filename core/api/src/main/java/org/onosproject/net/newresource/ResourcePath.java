@@ -93,11 +93,20 @@ public final class ResourcePath {
      * If there is no parent, empty instance will be returned.
      */
     public Optional<ResourcePath> parent() {
-        if (resources.size() > 0) {
+        if (!isRoot()) {
             return Optional.of(new ResourcePath(resources.subList(0, resources.size() - 1)));
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * Returns true if the path represents root.
+     *
+     * @return true if the path represents root, false otherwise.
+     */
+    public boolean isRoot() {
+        return resources.size() == 0;
     }
 
     /**
