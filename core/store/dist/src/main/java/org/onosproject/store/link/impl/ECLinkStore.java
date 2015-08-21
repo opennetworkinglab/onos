@@ -85,7 +85,7 @@ import com.google.common.util.concurrent.Futures;
 /**
  * Manages the inventory of links using a {@code EventuallyConsistentMap}.
  */
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = true)
 @Service
 public class ECLinkStore
     extends AbstractStore<LinkEvent, LinkStoreDelegate>
