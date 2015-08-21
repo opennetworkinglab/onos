@@ -22,6 +22,10 @@ import org.onosproject.pcepio.protocol.PcepBandwidthObject;
 import org.onosproject.pcepio.protocol.PcepCloseMsg;
 import org.onosproject.pcepio.protocol.PcepEndPointsObject;
 import org.onosproject.pcepio.protocol.PcepEroObject;
+import org.onosproject.pcepio.protocol.PcepErrorInfo;
+import org.onosproject.pcepio.protocol.PcepError;
+import org.onosproject.pcepio.protocol.PcepErrorMsg;
+import org.onosproject.pcepio.protocol.PcepErrorObject;
 import org.onosproject.pcepio.protocol.PcepFactory;
 import org.onosproject.pcepio.protocol.PcepInitiateMsg;
 import org.onosproject.pcepio.protocol.PcepKeepaliveMsg;
@@ -31,6 +35,8 @@ import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepMessageReader;
 import org.onosproject.pcepio.protocol.PcepMetricObject;
 import org.onosproject.pcepio.protocol.PcepMsgPath;
+import org.onosproject.pcepio.protocol.PcepOpenMsg;
+import org.onosproject.pcepio.protocol.PcepOpenObject;
 import org.onosproject.pcepio.protocol.PcepSrpObject;
 import org.onosproject.pcepio.protocol.PcepUpdateMsg;
 import org.onosproject.pcepio.protocol.PcepUpdateRequest;
@@ -41,15 +47,13 @@ public class PcepFactoryVer1 implements PcepFactory {
     public static final PcepFactoryVer1 INSTANCE = new PcepFactoryVer1();
 
     @Override
-    public org.onosproject.pcepio.protocol.PcepOpenMsg.Builder buildOpenMsg() {
-        // TODO Auto-generated method stub
-        return null;
+    public PcepOpenMsg.Builder buildOpenMsg() {
+        return new PcepOpenMsgVer1.Builder();
     }
 
     @Override
-    public org.onosproject.pcepio.protocol.PcepOpenObject.Builder buildOpenObject() {
-        // TODO Auto-generated method stub
-        return null;
+    public PcepOpenObject.Builder buildOpenObject() {
+        return new PcepOpenObjectVer1.Builder();
     }
 
     @Override
@@ -180,15 +184,13 @@ public class PcepFactoryVer1 implements PcepFactory {
     }
 
     @Override
-    public org.onosproject.pcepio.protocol.PcepErrorMsg.Builder buildPcepErrorMsg() {
-        // TODO Auto-generated method stub
-        return null;
+    public PcepErrorMsg.Builder buildPcepErrorMsg() {
+        return new PcepErrorMsgVer1.Builder();
     }
 
     @Override
-    public org.onosproject.pcepio.protocol.PcepErrorObject.Builder buildPcepErrorObject() {
-        // TODO Auto-generated method stub
-        return null;
+    public PcepErrorObject.Builder buildPcepErrorObject() {
+        return new PcepErrorObjectVer1.Builder();
     }
 
     @Override
@@ -198,15 +200,13 @@ public class PcepFactoryVer1 implements PcepFactory {
     }
 
     @Override
-    public org.onosproject.pcepio.protocol.PcepErrorInfo.Builder buildPcepErrorInfo() {
-        // TODO Auto-generated method stub
-        return null;
+    public PcepErrorInfo.Builder buildPcepErrorInfo() {
+        return new PcepErrorInfoVer1.Builder();
     }
 
     @Override
-    public org.onosproject.pcepio.protocol.PcepError.Builder buildPcepError() {
-        // TODO Auto-generated method stub
-        return null;
+    public PcepError.Builder buildPcepError() {
+        return new PcepErrorVer1.Builder();
     }
 
     @Override

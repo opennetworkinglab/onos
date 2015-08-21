@@ -73,8 +73,7 @@ public abstract class PcepMessageVer1 {
                 case OPEN_MSG_TYPE:
                     log.debug("OPEN MESSAGE is received");
                     // message type value 1 means it is open message
-                    // return
-                    // TODO: Read open message from channel buffer.
+                    return PcepOpenMsgVer1.READER.readFrom(cb.readBytes(length));
                 case KEEPALIVE_MSG_TYPE:
                     log.debug("KEEPALIVE MESSAGE is received");
                     // message type value 2 means it is Keepalive message
@@ -82,8 +81,7 @@ public abstract class PcepMessageVer1 {
                 case ERROR_MSG_TYPE:
                     log.debug("ERROR MESSAGE is received");
                     // message type value 6 means it is error message
-                    // return
-                    // TODO: Read Error message from channel buffer.
+                    return PcepErrorMsgVer1.READER.readFrom(cb.readBytes(length));
                 case REPORT_MSG_TYPE:
                     log.debug("REPORT MESSAGE is received");
                     // message type value 10 means it is Report message
