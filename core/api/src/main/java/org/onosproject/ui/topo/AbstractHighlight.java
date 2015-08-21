@@ -17,6 +17,8 @@
 
 package org.onosproject.ui.topo;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Partial implementation of the highlighting to apply to topology
  * view elements.
@@ -32,8 +34,8 @@ public abstract class AbstractHighlight {
      * @param elementId element identifier
      */
     public AbstractHighlight(TopoElementType type, String elementId) {
-        this.type = type;
-        this.elementId = elementId;
+        this.type = checkNotNull(type);
+        this.elementId = checkNotNull(elementId);
     }
 
     /**

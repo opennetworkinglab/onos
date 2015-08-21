@@ -45,7 +45,7 @@ public abstract class BiLinkMap<B extends BiLink> {
      * @param link the initial link
      * @return a new instance
      */
-    public abstract B create(LinkKey key, Link link);
+    protected abstract B create(LinkKey key, Link link);
 
     /**
      * Adds the given link to our collection, returning the corresponding

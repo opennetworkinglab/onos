@@ -17,7 +17,6 @@
 
 package org.onosproject.ui.topo;
 
-import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,8 +27,6 @@ import java.util.Set;
  * nodes with badges, etc.
  */
 public class Highlights {
-
-    private static final DecimalFormat DF0 = new DecimalFormat("#,###");
 
     private final Set<DeviceHighlight> devices = new HashSet<>();
     private final Set<HostHighlight> hosts = new HashSet<>();
