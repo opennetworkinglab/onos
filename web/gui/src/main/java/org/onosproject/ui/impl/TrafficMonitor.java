@@ -22,7 +22,6 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.Link;
-import org.onosproject.net.LinkKey;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -35,14 +34,14 @@ import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.statistic.Load;
-import org.onosproject.ui.impl.topo.BiLink;
 import org.onosproject.ui.impl.topo.IntentSelection;
-import org.onosproject.ui.impl.topo.LinkStatsType;
 import org.onosproject.ui.impl.topo.NodeSelection;
 import org.onosproject.ui.impl.topo.ServicesBundle;
 import org.onosproject.ui.impl.topo.TopoUtils;
-import org.onosproject.ui.impl.topo.TopologyViewIntentFilter;
+import org.onosproject.ui.impl.topo.TopoIntentFilter;
 import org.onosproject.ui.impl.topo.TrafficClass;
+import org.onosproject.ui.impl.topo.TrafficLink;
+import org.onosproject.ui.impl.topo.TrafficLinkMap;
 import org.onosproject.ui.topo.Highlights;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,21 +58,21 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
-import static org.onosproject.ui.impl.TrafficMonitorObject.Mode.IDLE;
-import static org.onosproject.ui.impl.TrafficMonitorObject.Mode.SEL_INTENT;
+import static org.onosproject.ui.impl.TrafficMonitor.Mode.IDLE;
+import static org.onosproject.ui.impl.TrafficMonitor.Mode.SELECTED_INTENT;
 import static org.onosproject.ui.topo.LinkHighlight.Flavor.PRIMARY_HIGHLIGHT;
 import static org.onosproject.ui.topo.LinkHighlight.Flavor.SECONDARY_HIGHLIGHT;
 
 /**
  * Encapsulates the behavior of monitoring specific traffic patterns.
  */
-public class TrafficMonitorObject {
+public class TrafficMonitor {
 
     // 4 Kilo Bytes as threshold
     private static final double BPS_THRESHOLD = 4 * TopoUtils.KILO;
 
     private static final Logger log =
-            LoggerFactory.getLogger(TrafficMonitorObject.class);
+            LoggerFactory.getLogger(TrafficMonitor.class);
 
     /**
      * Designates the different modes of operation.
@@ -84,13 +83,13 @@ public class TrafficMonitorObject {
         ALL_PORT_TRAFFIC,
         DEV_LINK_FLOWS,
         RELATED_INTENTS,
-        SEL_INTENT
+        SELECTED_INTENT
     }
 
     private final long trafficPeriod;
     private final ServicesBundle servicesBundle;
-    private final TopologyViewMessageHandler messageHandler;
-    private final TopologyViewIntentFilter intentFilter;
+    private final TopologyViewMessageHandler msgHandler;
+    private final TopoIntentFilter intentFilter;
 
     private final Timer timer = new Timer("topo-traffic");
 
@@ -105,21 +104,35 @@ public class TrafficMonitorObject {
      *
      * @param trafficPeriod   traffic task period in ms
      * @param servicesBundle  bundle of services
-     * @param messageHandler  our message handler
+     * @param msgHandler  our message handler
      */
-    public TrafficMonitorObject(long trafficPeriod,
-                                ServicesBundle servicesBundle,
-                                TopologyViewMessageHandler messageHandler) {
+    public TrafficMonitor(long trafficPeriod, ServicesBundle servicesBundle,
+                          TopologyViewMessageHandler msgHandler) {
         this.trafficPeriod = trafficPeriod;
         this.servicesBundle = servicesBundle;
-        this.messageHandler = messageHandler;
+        this.msgHandler = msgHandler;
 
-        intentFilter = new TopologyViewIntentFilter(servicesBundle);
+        intentFilter = new TopoIntentFilter(servicesBundle);
     }
 
     // =======================================================================
-    // === API === // TODO: add javadocs
+    // === API ===
 
+    /**
+     * Monitor for traffic data to be sent back to the web client, under
+     * the given mode. This causes a background traffic task to be
+     * scheduled to repeatedly compute and transmit the appropriate traffic
+     * data to the client.
+     * <p>
+     * The monitoring mode is expected to be one of:
+     * <ul>
+     *     <li>ALL_FLOW_TRAFFIC</li>
+     *     <li>ALL_PORT_TRAFFIC</li>
+     *     <li>SELECTED_INTENT</li>
+     * </ul>
+     *
+     * @param mode monitoring mode
+     */
     public synchronized void monitor(Mode mode) {
         log.debug("monitor: {}", mode);
         this.mode = mode;
@@ -137,7 +150,7 @@ public class TrafficMonitorObject {
                 sendAllPortTraffic();
                 break;
 
-            case SEL_INTENT:
+            case SELECTED_INTENT:
                 scheduleTask();
                 sendSelectedIntentTraffic();
                 break;
@@ -149,6 +162,22 @@ public class TrafficMonitorObject {
         }
     }
 
+    /**
+     * Monitor for traffic data to be sent back to the web client, under
+     * the given mode, using the given selection of devices and hosts.
+     * In the case of "device link flows", this causes a background traffic
+     * task to be scheduled to repeatedly compute and transmit the appropriate
+     * traffic data to the client. In the case of "related intents", no
+     * repeating task is scheduled.
+     * <p>
+     * The monitoring mode is expected to be one of:
+     * <ul>
+     *     <li>DEV_LINK_FLOWS</li>
+     *     <li>RELATED_INTENTS</li>
+     * </ul>
+     *
+     * @param mode monitoring mode
+     */
     public synchronized void monitor(Mode mode, NodeSelection nodeSelection) {
         log.debug("monitor: {} -- {}", mode, nodeSelection);
         this.mode = mode;
@@ -185,15 +214,27 @@ public class TrafficMonitorObject {
         }
     }
 
+    // TODO: move this out to the "h2h/multi-intent app"
+    /**
+     * Monitor for traffic data to be sent back to the web client, for the
+     * given intent.
+     *
+     * @param intent the intent to monitor
+     */
     public synchronized void monitor(Intent intent) {
         log.debug("monitor intent: {}", intent.id());
         selectedNodes = null;
         selectedIntents = new IntentSelection(intent);
-        mode = SEL_INTENT;
+        mode = SELECTED_INTENT;
         scheduleTask();
         sendSelectedIntentTraffic();
     }
 
+    /**
+     * Selects the next intent in the select group (if there is one),
+     * and sends highlighting data back to the web client to display
+     * which path is selected.
+     */
     public synchronized void selectNextIntent() {
         if (selectedIntents != null) {
             selectedIntents.next();
@@ -201,6 +242,11 @@ public class TrafficMonitorObject {
         }
     }
 
+    /**
+     * Selects the previous intent in the select group (if there is one),
+     * and sends highlighting data back to the web client to display
+     * which path is selected.
+     */
     public synchronized void selectPreviousIntent() {
         if (selectedIntents != null) {
             selectedIntents.prev();
@@ -208,14 +254,21 @@ public class TrafficMonitorObject {
         }
     }
 
+    /**
+     * Resends selected intent traffic data. This is called, for example,
+     * when the system detects an intent update happened.
+     */
     public synchronized void pokeIntent() {
-        if (mode == SEL_INTENT) {
+        if (mode == SELECTED_INTENT) {
             sendSelectedIntentTraffic();
         }
     }
 
-    public synchronized void stop() {
-        log.debug("STOP");
+    /**
+     * Stop all traffic monitoring.
+     */
+    public synchronized void stopMonitoring() {
+        log.debug("STOP monitoring");
         if (mode != IDLE) {
             sendClearAll();
         }
@@ -244,7 +297,7 @@ public class TrafficMonitorObject {
     private synchronized void  scheduleTask() {
         if (trafficTask == null) {
             log.debug("Starting up background traffic task...");
-            trafficTask = new TrafficMonitor();
+            trafficTask = new TrafficUpdateTask();
             timer.schedule(trafficTask, trafficPeriod, trafficPeriod);
         } else {
             // TEMPORARY until we are sure this is working correctly
@@ -259,64 +312,56 @@ public class TrafficMonitorObject {
         }
     }
 
-    // ---
-
     private void sendAllFlowTraffic() {
         log.debug("sendAllFlowTraffic");
-        sendHighlights(trafficSummary(LinkStatsType.FLOW_STATS));
+        msgHandler.sendHighlights(trafficSummary(TrafficLink.StatsType.FLOW_STATS));
     }
 
     private void sendAllPortTraffic() {
         log.debug("sendAllPortTraffic");
-        sendHighlights(trafficSummary(LinkStatsType.PORT_STATS));
+        msgHandler.sendHighlights(trafficSummary(TrafficLink.StatsType.PORT_STATS));
     }
 
     private void sendDeviceLinkFlows() {
         log.debug("sendDeviceLinkFlows: {}", selectedNodes);
-        sendHighlights(deviceLinkFlows());
+        msgHandler.sendHighlights(deviceLinkFlows());
     }
 
     private void sendSelectedIntents() {
         log.debug("sendSelectedIntents: {}", selectedIntents);
-        sendHighlights(intentGroup());
+        msgHandler.sendHighlights(intentGroup());
     }
 
     private void sendSelectedIntentTraffic() {
         log.debug("sendSelectedIntentTraffic: {}", selectedIntents);
-        sendHighlights(intentTraffic());
+        msgHandler.sendHighlights(intentTraffic());
     }
 
     private void sendClearHighlights() {
         log.debug("sendClearHighlights");
-        sendHighlights(new Highlights());
+        msgHandler.sendHighlights(new Highlights());
     }
-
-    private void sendHighlights(Highlights highlights) {
-        messageHandler.sendHighlights(highlights);
-    }
-
 
     // =======================================================================
     // === Generate messages in JSON object node format
 
-    private Highlights trafficSummary(LinkStatsType type) {
+    private Highlights trafficSummary(TrafficLink.StatsType type) {
         Highlights highlights = new Highlights();
 
-        // compile a set of bilinks (combining pairs of unidirectional links)
-        Map<LinkKey, BiLink> linkMap = new HashMap<>();
+        TrafficLinkMap linkMap = new TrafficLinkMap();
         compileLinks(linkMap);
         addEdgeLinks(linkMap);
 
-        for (BiLink blink : linkMap.values()) {
-            if (type == LinkStatsType.FLOW_STATS) {
-                attachFlowLoad(blink);
-            } else if (type == LinkStatsType.PORT_STATS) {
-                attachPortLoad(blink);
+        for (TrafficLink tlink : linkMap.biLinks()) {
+            if (type == TrafficLink.StatsType.FLOW_STATS) {
+                attachFlowLoad(tlink);
+            } else if (type == TrafficLink.StatsType.PORT_STATS) {
+                attachPortLoad(tlink);
             }
 
             // we only want to report on links deemed to have traffic
-            if (blink.hasTraffic()) {
-                highlights.add(blink.generateHighlight(type));
+            if (tlink.hasTraffic()) {
+                highlights.add(tlink.highlight(type));
             }
         }
         return highlights;
@@ -328,19 +373,19 @@ public class TrafficMonitorObject {
 
         if (selectedNodes != null && !selectedNodes.devices().isEmpty()) {
             // capture flow counts on bilinks
-            Map<LinkKey, BiLink> linkMap = new HashMap<>();
+            TrafficLinkMap linkMap = new TrafficLinkMap();
 
             for (Device device : selectedNodes.devices()) {
                 Map<Link, Integer> counts = getLinkFlowCounts(device.id());
                 for (Link link : counts.keySet()) {
-                    BiLink blink = TopoUtils.addLink(linkMap, link);
-                    blink.addFlows(counts.get(link));
+                    TrafficLink tlink = linkMap.add(link);
+                    tlink.addFlows(counts.get(link));
                 }
             }
 
             // now report on our collated links
-            for (BiLink blink : linkMap.values()) {
-                highlights.add(blink.generateHighlight(LinkStatsType.FLOW_COUNT));
+            for (TrafficLink tlink : linkMap.biLinks()) {
+                highlights.add(tlink.highlight(TrafficLink.StatsType.FLOW_COUNT));
             }
 
         }
@@ -398,18 +443,16 @@ public class TrafficMonitorObject {
         return highlights;
     }
 
-
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    private void compileLinks(Map<LinkKey, BiLink> linkMap) {
-        servicesBundle.linkService().getLinks()
-                .forEach(link -> TopoUtils.addLink(linkMap, link));
+    private void compileLinks(TrafficLinkMap linkMap) {
+        servicesBundle.linkService().getLinks().forEach(linkMap::add);
     }
 
-    private void addEdgeLinks(Map<LinkKey, BiLink> biLinks) {
+    private void addEdgeLinks(TrafficLinkMap linkMap) {
         servicesBundle.hostService().getHosts().forEach(host -> {
-            TopoUtils.addLink(biLinks, createEdgeLink(host, true));
-            TopoUtils.addLink(biLinks, createEdgeLink(host, false));
+            linkMap.add(createEdgeLink(host, true));
+            linkMap.add(createEdgeLink(host, false));
         });
     }
 
@@ -420,12 +463,12 @@ public class TrafficMonitorObject {
         return null;
     }
 
-    private void attachFlowLoad(BiLink link) {
+    private void attachFlowLoad(TrafficLink link) {
         link.addLoad(getLinkFlowLoad(link.one()));
         link.addLoad(getLinkFlowLoad(link.two()));
     }
 
-    private void attachPortLoad(BiLink link) {
+    private void attachPortLoad(TrafficLink link) {
         // For bi-directional traffic links, use
         // the max link rate of either direction
         // (we choose 'one' since we know that is never null)
@@ -433,7 +476,7 @@ public class TrafficMonitorObject {
         Load egressSrc = servicesBundle.portStatsService().load(one.src());
         Load egressDst = servicesBundle.portStatsService().load(one.dst());
         link.addLoad(maxLoad(egressSrc, egressDst), BPS_THRESHOLD);
-//        link.addLoad(maxLoad(egressSrc, egressDst), 10);    // FIXME - debug only
+//        link.addLoad(maxLoad(egressSrc, egressDst), 10);    // DEBUG ONLY!!
     }
 
     private Load maxLoad(Load a, Load b) {
@@ -446,18 +489,18 @@ public class TrafficMonitorObject {
         return a.rate() > b.rate() ? a : b;
     }
 
-    // ---
-
     // Counts all flow entries that egress on the links of the given device.
     private Map<Link, Integer> getLinkFlowCounts(DeviceId deviceId) {
         // get the flows for the device
         List<FlowEntry> entries = new ArrayList<>();
-        for (FlowEntry flowEntry : servicesBundle.flowService().getFlowEntries(deviceId)) {
+        for (FlowEntry flowEntry : servicesBundle.flowService()
+                                            .getFlowEntries(deviceId)) {
             entries.add(flowEntry);
         }
 
         // get egress links from device, and include edge links
-        Set<Link> links = new HashSet<>(servicesBundle.linkService().getDeviceEgressLinks(deviceId));
+        Set<Link> links = new HashSet<>(servicesBundle.linkService()
+                                            .getDeviceEgressLinks(deviceId));
         Set<Host> hosts = servicesBundle.hostService().getConnectedHosts(deviceId);
         if (hosts != null) {
             for (Host host : hosts) {
@@ -489,22 +532,20 @@ public class TrafficMonitorObject {
         return count;
     }
 
-    // ---
     private void highlightIntents(Highlights highlights,
                                   TrafficClass... trafficClasses) {
-        Map<LinkKey, BiLink> linkMap = new HashMap<>();
-
+        TrafficLinkMap linkMap = new TrafficLinkMap();
 
         for (TrafficClass trafficClass : trafficClasses) {
             classifyLinkTraffic(linkMap, trafficClass);
         }
 
-        for (BiLink blink : linkMap.values()) {
-            highlights.add(blink.generateHighlight(LinkStatsType.TAGGED));
+        for (TrafficLink tlink : linkMap.biLinks()) {
+            highlights.add(tlink.highlight(TrafficLink.StatsType.TAGGED));
         }
     }
 
-    private void classifyLinkTraffic(Map<LinkKey, BiLink> linkMap,
+    private void classifyLinkTraffic(TrafficLinkMap linkMap,
                                      TrafficClass trafficClass) {
         for (Intent intent : trafficClass.intents()) {
             boolean isOptical = intent instanceof OpticalConnectivityIntent;
@@ -532,17 +573,17 @@ public class TrafficMonitorObject {
     }
 
     private void classifyLinks(TrafficClass trafficClass, boolean isOptical,
-                               Map<LinkKey, BiLink> linkMap,
+                               TrafficLinkMap linkMap,
                                Iterable<Link> links) {
         if (links != null) {
             for (Link link : links) {
-                BiLink blink = TopoUtils.addLink(linkMap, link);
+                TrafficLink tlink = linkMap.add(link);
                 if (trafficClass.showTraffic()) {
-                    blink.addLoad(getLinkFlowLoad(link));
-                    blink.setAntMarch(true);
+                    tlink.addLoad(getLinkFlowLoad(link));
+                    tlink.antMarch(true);
                 }
-                blink.setOptical(isOptical);
-                blink.tagFlavor(trafficClass.flavor());
+                tlink.optical(isOptical);
+                tlink.tagFlavor(trafficClass.flavor());
             }
         }
     }
@@ -559,7 +600,7 @@ public class TrafficMonitorObject {
     // === Background Task
 
     // Provides periodic update of traffic information to the client
-    private class TrafficMonitor extends TimerTask {
+    private class TrafficUpdateTask extends TimerTask {
         @Override
         public void run() {
             try {
@@ -573,7 +614,7 @@ public class TrafficMonitorObject {
                     case DEV_LINK_FLOWS:
                         sendDeviceLinkFlows();
                         break;
-                    case SEL_INTENT:
+                    case SELECTED_INTENT:
                         sendSelectedIntentTraffic();
                         break;
 
@@ -590,5 +631,4 @@ public class TrafficMonitorObject {
             }
         }
     }
-
 }

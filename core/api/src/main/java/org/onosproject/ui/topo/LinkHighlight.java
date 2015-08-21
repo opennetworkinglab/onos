@@ -27,8 +27,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Denotes the highlighting to be applied to a link.
  * {@link Flavor} is a closed set of NO-, PRIMARY-, or SECONDARY- highlighting.
  * {@link Mod} is an open ended set of additional modifications (CSS classes)
- * to apply. Note that {@link #MOD_OPTICAL} and {@link #MOD_ANIMATED} are
- * pre-defined mods.
+ * that may also be applied.
+ * Note that {@link #MOD_OPTICAL} and {@link #MOD_ANIMATED} are pre-defined mods.
  * Label text may be set, which will also be displayed on the link.
  */
 public class LinkHighlight extends AbstractHighlight {
@@ -132,48 +132,6 @@ public class LinkHighlight extends AbstractHighlight {
         @Override
         public String toString() {
             return cssName;
-        }
-    }
-
-    /**
-     * Link highlighting modification.
-     * <p>
-     * Note that this translates to a CSS class name that is applied to
-     * the link in the Topology UI.
-     */
-    public static final class Mod implements Comparable<Mod> {
-        private final String modId;
-
-        public Mod(String modId) {
-            this.modId = checkNotNull(modId);
-        }
-
-        @Override
-        public String toString() {
-            return modId;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            Mod mod = (Mod) o;
-            return modId.equals(mod.modId);
-        }
-
-        @Override
-        public int hashCode() {
-            return modId.hashCode();
-        }
-
-
-        @Override
-        public int compareTo(Mod o) {
-            return this.modId.compareTo(o.modId);
         }
     }
 

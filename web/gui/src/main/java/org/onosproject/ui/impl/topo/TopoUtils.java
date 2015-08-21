@@ -21,15 +21,16 @@ import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 
 import java.text.DecimalFormat;
-import java.util.Map;
 
 import static org.onosproject.net.LinkKey.linkKey;
 
 /**
- * Utility methods for helping out with the topology view.
+ * Utility methods for helping out with formatting data for the Topology View
+ * in the web client.
  */
 public final class TopoUtils {
 
+    // explicit decision made to not 'javadoc' these self explanatory constants
     public static final double KILO = 1024;
     public static final double MEGA = 1024 * KILO;
     public static final double GIGA = 1024 * MEGA;
@@ -155,30 +156,4 @@ public final class TopoUtils {
         }
         return String.valueOf(flows) + SPACE + (flows > 1 ? FLOWS : FLOW);
     }
-
-
-    /**
-     * Creates a new biLink with the supplied link (and adds it to the map),
-     * or attaches the link to an existing biLink (which already has the
-     * peer link).
-     *
-     * @param linkMap map of biLinks
-     * @param link the link to add
-     * @return the biLink to which the link was added
-     */
-    // creates a new biLink with supplied link, or attaches link to the
-    //  existing biLink (which already has its peer link)
-    public static BiLink addLink(Map<LinkKey, BiLink> linkMap, Link link) {
-        LinkKey key = TopoUtils.canonicalLinkKey(link);
-        BiLink biLink = linkMap.get(key);
-        if (biLink != null) {
-            biLink.setOther(link);
-        } else {
-            biLink = new BiLink(key, link);
-            linkMap.put(key, biLink);
-        }
-        return biLink;
-    }
-
-
 }

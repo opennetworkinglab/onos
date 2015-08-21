@@ -15,19 +15,18 @@
  *
  */
 
-package org.onosproject.ui.topo;
+package org.onosproject.ui.impl.topo;
+
+import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
 
 /**
- * Denotes the highlighting to apply to a host.
+ * Collection of {@link TrafficLink}s.
  */
-public class HostHighlight extends AbstractHighlight {
+public class TrafficLinkMap extends BiLinkMap<TrafficLink> {
 
-    public HostHighlight(String hostId) {
-        super(TopoElementType.HOST, hostId);
+    @Override
+    public TrafficLink create(LinkKey key, Link link) {
+        return new TrafficLink(key, link);
     }
-
-    // TODO: implement host highlighting:
-    //   - visual highlight
-    //   - badging
-
 }

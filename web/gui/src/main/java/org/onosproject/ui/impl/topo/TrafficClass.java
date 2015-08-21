@@ -24,6 +24,7 @@ import org.onosproject.ui.topo.LinkHighlight;
  * Auxiliary data carrier for assigning a highlight class to a set of
  * intents, for visualization in the topology view.
  */
+@Deprecated
 public class TrafficClass {
 
     private final LinkHighlight.Flavor flavor;

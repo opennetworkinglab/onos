@@ -18,7 +18,7 @@
 package org.onosproject.ui.topo;
 
 /**
- * Denotes the types of highlight to apply to a link.
+ * Denotes the highlighting to apply to a device.
  */
 public class DeviceHighlight extends AbstractHighlight {
 
@@ -26,5 +26,8 @@ public class DeviceHighlight extends AbstractHighlight {
         super(TopoElementType.DEVICE, deviceId);
     }
 
+    // TODO: implement device highlighting:
+    //   - visual highlight
+    //   - badging
 
 }

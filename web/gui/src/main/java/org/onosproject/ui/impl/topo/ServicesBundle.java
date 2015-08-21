@@ -42,6 +42,7 @@ public class ServicesBundle {
 
     /**
      * Creates the services bundle.
+     *
      * @param intentService     intent service reference
      * @param deviceService     device service reference
      * @param hostService       host service reference
@@ -66,30 +67,65 @@ public class ServicesBundle {
         this.portStatsService = checkNotNull(portStatsService);
     }
 
+    /**
+     * Returns a reference to the intent service.
+     *
+     * @return intent service reference
+     */
     public IntentService intentService() {
         return intentService;
     }
 
+    /**
+     * Returns a reference to the device service.
+     *
+     * @return device service reference
+     */
     public DeviceService deviceService() {
         return deviceService;
     }
 
+    /**
+     * Returns a reference to the host service.
+     *
+     * @return host service reference
+     */
     public HostService hostService() {
         return hostService;
     }
 
+    /**
+     * Returns a reference to the link service.
+     *
+     * @return link service reference
+     */
     public LinkService linkService() {
         return linkService;
     }
 
+    /**
+     * Returns a reference to the flow rule service.
+     *
+     * @return flow service reference
+     */
     public FlowRuleService flowService() {
         return flowService;
     }
 
+    /**
+     * Returns a reference to the flow statistics service.
+     *
+     * @return flow statistics service reference
+     */
     public StatisticService flowStatsService() {
         return flowStatsService;
     }
 
+    /**
+     * Returns a reference to the port statistics service.
+     *
+     * @return port statistics service reference
+     */
     public PortStatisticsService portStatsService() {
         return portStatsService;
     }

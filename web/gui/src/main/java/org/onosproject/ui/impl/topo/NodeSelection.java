@@ -41,7 +41,7 @@ import static org.onosproject.net.HostId.hostId;
  */
 public class NodeSelection {
 
-    protected static final Logger log =
+    private static final Logger log =
             LoggerFactory.getLogger(NodeSelection.class);
 
     private static final String IDS = "ids";
@@ -183,5 +183,4 @@ public class NodeSelection {
         }
         return unmatched;
     }
-
 }

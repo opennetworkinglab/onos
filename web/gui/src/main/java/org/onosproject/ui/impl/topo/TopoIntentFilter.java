@@ -48,7 +48,7 @@ import static org.onosproject.net.intent.IntentState.INSTALLED;
  * Auxiliary facility to query the intent service based on the specified
  * set of end-station hosts, edge points or infrastructure devices.
  */
-public class TopologyViewIntentFilter {
+public class TopoIntentFilter {
 
     private final IntentService intentService;
     private final DeviceService deviceService;
@@ -60,18 +60,12 @@ public class TopologyViewIntentFilter {
      *
      * @param services service references bundle
      */
-    public TopologyViewIntentFilter(ServicesBundle services) {
+    public TopoIntentFilter(ServicesBundle services) {
         this.intentService = services.intentService();
         this.deviceService = services.deviceService();
         this.hostService = services.hostService();
         this.linkService = services.linkService();
     }
-
-
-    // TODO: Review - do we need this signature, with sourceIntents??
-//    public List<Intent> findPathIntents(Set<Host> hosts, Set<Device> devices,
-//                                        Iterable<Intent> sourceIntents) {
-//    }
 
     /**
      * Finds all path (host-to-host or point-to-point) intents that pertain
@@ -277,5 +271,4 @@ public class TopologyViewIntentFilter {
         }
         return null;
     }
-
 }

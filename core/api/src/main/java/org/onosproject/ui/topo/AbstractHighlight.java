@@ -18,22 +18,38 @@
 package org.onosproject.ui.topo;
 
 /**
- * Partial implementation of the types of highlight to apply to topology
- * elements.
+ * Partial implementation of the highlighting to apply to topology
+ * view elements.
  */
 public abstract class AbstractHighlight {
     private final TopoElementType type;
     private final String elementId;
 
+    /**
+     * Constructs the highlight.
+     *
+     * @param type highlight element type
+     * @param elementId element identifier
+     */
     public AbstractHighlight(TopoElementType type, String elementId) {
         this.type = type;
         this.elementId = elementId;
     }
 
+    /**
+     * Returns the element type.
+     *
+     * @return element type
+     */
     public TopoElementType type() {
         return type;
     }
 
+    /**
+     * Returns the element identifier.
+     *
+     * @return element identifier
+     */
     public String elementId() {
         return elementId;
     }

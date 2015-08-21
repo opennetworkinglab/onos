@@ -56,7 +56,7 @@ import org.onosproject.net.link.LinkListener;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
-import org.onosproject.ui.impl.TrafficMonitorObject.Mode;
+import org.onosproject.ui.impl.TrafficMonitor.Mode;
 import org.onosproject.ui.impl.topo.NodeSelection;
 import org.onosproject.ui.topo.Highlights;
 import org.onosproject.ui.topo.PropertyPanel;
@@ -162,9 +162,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private final ExecutorService msgSender =
             newSingleThreadExecutor(groupedThreads("onos/gui", "msg-sender"));
 
-    private TrafficMonitorObject tmo;
-
     private TopoOverlayCache overlayCache;
+    private TrafficMonitor traffic;
 
     private TimerTask summaryTask = null;
     private boolean summaryRunning = false;
@@ -176,7 +175,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
         appId = directory.get(CoreService.class).registerApplication(APP_ID);
-        tmo = new TrafficMonitorObject(TRAFFIC_PERIOD, servicesBundle, this);
+        traffic = new TrafficMonitor(TRAFFIC_PERIOD, servicesBundle, this);
     }
 
     @Override
@@ -275,7 +274,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         @Override
         public void process(long sid, ObjectNode payload) {
             stopSummaryMonitoring();
-            tmo.stop();
+            traffic.stopMonitoring();
         }
     }
 
@@ -400,7 +399,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                     .build();
 
             intentService.submit(intent);
-            tmo.monitor(intent);
+            traffic.monitor(intent);
         }
     }
 
@@ -433,7 +432,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                             .build();
 
             intentService.submit(intent);
-            tmo.monitor(intent);
+            traffic.monitor(intent);
         }
     }
 
@@ -446,7 +445,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            tmo.monitor(Mode.ALL_FLOW_TRAFFIC);
+            traffic.monitor(Mode.ALL_FLOW_TRAFFIC);
         }
     }
 
@@ -457,7 +456,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            tmo.monitor(Mode.ALL_PORT_TRAFFIC);
+            traffic.monitor(Mode.ALL_PORT_TRAFFIC);
         }
     }
 
@@ -470,7 +469,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         public void process(long sid, ObjectNode payload) {
             NodeSelection nodeSelection =
                     new NodeSelection(payload, deviceService, hostService);
-            tmo.monitor(Mode.DEV_LINK_FLOWS, nodeSelection);
+            traffic.monitor(Mode.DEV_LINK_FLOWS, nodeSelection);
         }
     }
 
@@ -483,7 +482,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         public void process(long sid, ObjectNode payload) {
             NodeSelection nodeSelection =
                     new NodeSelection(payload, deviceService, hostService);
-            tmo.monitor(Mode.RELATED_INTENTS, nodeSelection);
+            traffic.monitor(Mode.RELATED_INTENTS, nodeSelection);
         }
     }
 
@@ -494,7 +493,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            tmo.selectNextIntent();
+            traffic.selectNextIntent();
         }
     }
 
@@ -505,7 +504,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            tmo.selectPreviousIntent();
+            traffic.selectPreviousIntent();
         }
     }
 
@@ -516,7 +515,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            tmo.monitor(Mode.SEL_INTENT);
+            traffic.monitor(Mode.SELECTED_INTENT);
         }
     }
 
@@ -527,7 +526,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            tmo.stop();
+            traffic.stopMonitoring();
         }
     }
 
@@ -557,7 +556,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     private void cancelAllRequests() {
         stopSummaryMonitoring();
-        tmo.stop();
+        traffic.stopMonitoring();
     }
 
     // Sends all controller nodes to the client as node-added messages.
@@ -726,7 +725,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private class InternalIntentListener implements IntentListener {
         @Override
         public void event(IntentEvent event) {
-            msgSender.execute(tmo::pokeIntent);
+            msgSender.execute(traffic::pokeIntent);
             eventAccummulator.add(event);
         }
     }

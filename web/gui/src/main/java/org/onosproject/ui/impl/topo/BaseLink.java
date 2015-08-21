@@ -17,27 +17,28 @@
 
 package org.onosproject.ui.impl.topo;
 
+import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
+import org.onosproject.ui.topo.LinkHighlight;
+
 /**
- * Designates type of stats to report on a highlighted link.
+ * A simple concrete implementation of a {@link BiLink}.
+ * Note that this implementation does not generate any link highlights.
  */
-public enum LinkStatsType {
-    /**
-     * Number of flows.
-     */
-    FLOW_COUNT,
+public class BaseLink extends BiLink {
 
     /**
-     * Number of bytes.
+     * Constructs a base link for the given key and initial link.
+     *
+     * @param key  canonical key for this base link
+     * @param link first link
      */
-    FLOW_STATS,
+    public BaseLink(LinkKey key, Link link) {
+        super(key, link);
+    }
 
-    /**
-     * Number of bits per second.
-     */
-    PORT_STATS,
-
-    /**
-     * Custom tagged information.
-     */
-    TAGGED
+    @Override
+    public LinkHighlight highlight(Enum<?> type) {
+        return null;
+    }
 }

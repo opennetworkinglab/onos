@@ -47,7 +47,7 @@ public class IntentSelection {
      * @param nodes node selection
      * @param filter intent filter
      */
-    public IntentSelection(NodeSelection nodes, TopologyViewIntentFilter filter) {
+    public IntentSelection(NodeSelection nodes, TopoIntentFilter filter) {
         this.nodes = nodes;
         intents = filter.findPathIntents(nodes.hosts(), nodes.devices());
     }
