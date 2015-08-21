@@ -16,30 +16,24 @@
 package org.onosproject.pcepio;
 
 import org.junit.Test;
-import org.onosproject.pcepio.types.SymbolicPathNameTlv;
+import org.onosproject.pcepio.types.PcepNaiIpv6Adjacency;
 
 import com.google.common.testing.EqualsTester;
 
-/**
- * Test case for Symbolic path tlv.
- */
-public class SymbolicPathNameTlvTest {
+public class PcepNaiIpv6AdjacencyTest {
+    private final byte[] localIpv6Addr1 = {(byte) 0x01010101 };
+    private final byte[] remoteIpv6Addr1 = {(byte) 0x02020202 };
+    private final byte[] localIpv6Addr2 = {(byte) 0x01010101 };
+    private final byte[] remoteIpv6Addr2 = {(byte) 0x02020202 };
+    private final byte[] localIpv6Addr3 = {(byte) 0x05050505 };
+    private final byte[] remoteIpv6Addr3 = {(byte) 0x06060606 };
 
-    private final byte[] value1 = {0x41 };
-    private final Short length1 = new Short((short) 2);
-    private final SymbolicPathNameTlv tlv1 = SymbolicPathNameTlv.of(value1, length1);
-
-    private final byte[] value2 = {0x41 };
-    private final Short length2 = new Short((short) 2);
-    private final SymbolicPathNameTlv tlv2 = SymbolicPathNameTlv.of(value1, length2);
-
-    private final byte[] value3 = {0x41, 0x43 };
-    private final Short length3 = new Short((short) 3);
-    private final SymbolicPathNameTlv tlv3 = SymbolicPathNameTlv.of(value3, length3);
+    private final PcepNaiIpv6Adjacency tlv1 = PcepNaiIpv6Adjacency.of(localIpv6Addr1, remoteIpv6Addr1);
+    private final PcepNaiIpv6Adjacency tlv2 = PcepNaiIpv6Adjacency.of(localIpv6Addr1, remoteIpv6Addr1);
+    private final PcepNaiIpv6Adjacency tlv3 = PcepNaiIpv6Adjacency.of(localIpv6Addr3, remoteIpv6Addr3);
 
     @Test
     public void basics() {
         new EqualsTester().addEqualityGroup(tlv1, tlv2).addEqualityGroup(tlv3).testEquals();
     }
-
 }

@@ -16,30 +16,17 @@
 package org.onosproject.pcepio;
 
 import org.junit.Test;
-import org.onosproject.pcepio.types.SymbolicPathNameTlv;
-
+import org.onosproject.pcepio.types.StatefulLspErrorCodeTlv;
 import com.google.common.testing.EqualsTester;
 
-/**
- * Test case for Symbolic path tlv.
- */
-public class SymbolicPathNameTlvTest {
+public class StatefulLspErrorCodeTlvTest {
 
-    private final byte[] value1 = {0x41 };
-    private final Short length1 = new Short((short) 2);
-    private final SymbolicPathNameTlv tlv1 = SymbolicPathNameTlv.of(value1, length1);
-
-    private final byte[] value2 = {0x41 };
-    private final Short length2 = new Short((short) 2);
-    private final SymbolicPathNameTlv tlv2 = SymbolicPathNameTlv.of(value1, length2);
-
-    private final byte[] value3 = {0x41, 0x43 };
-    private final Short length3 = new Short((short) 3);
-    private final SymbolicPathNameTlv tlv3 = SymbolicPathNameTlv.of(value3, length3);
+    private final StatefulLspErrorCodeTlv tlv1 = StatefulLspErrorCodeTlv.of(1);
+    private final StatefulLspErrorCodeTlv tlv2 = StatefulLspErrorCodeTlv.of(1);
+    private final StatefulLspErrorCodeTlv tlv3 = StatefulLspErrorCodeTlv.of(2);
 
     @Test
     public void basics() {
         new EqualsTester().addEqualityGroup(tlv1, tlv2).addEqualityGroup(tlv3).testEquals();
     }
-
 }

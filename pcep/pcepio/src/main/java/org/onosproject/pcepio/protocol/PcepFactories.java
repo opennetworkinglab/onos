@@ -78,7 +78,7 @@ public final class PcepFactories {
                 factory = org.onosproject.pcepio.protocol.ver1.PcepFactoryVer1.INSTANCE;
                 break;
             default:
-                throw new IllegalArgumentException("Unknown Packet version: " + packetVersion);
+                throw new PcepParseException("Unknown Packet version: " + packetVersion);
             }
             return factory.getReader().readFrom(bb);
         }

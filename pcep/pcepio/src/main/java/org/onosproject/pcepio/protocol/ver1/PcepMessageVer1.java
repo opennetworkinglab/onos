@@ -42,6 +42,7 @@ public abstract class PcepMessageVer1 {
     static final byte CLOSE_MSG_TYPE = 0x7;
     static final byte ERROR_MSG_TYPE = 0x6;
     static final byte LABEL_UPDATE_MSG_TYPE = 0xD;
+    static final byte LABEL_RANGE_RESV_MSG_TYPE = 0xF;
     public static final int SHIFT_FLAG = 5;
     static final int MINIMUM_COMMON_HEADER_LENGTH = 4;
 
@@ -86,7 +87,7 @@ public abstract class PcepMessageVer1 {
                     log.debug("REPORT MESSAGE is received");
                     // message type value 10 means it is Report message
                     // return
-                    // TODO: Read Report message from channel buffer.
+                    return PcepReportMsgVer1.READER.readFrom(cb.readBytes(length));
                 case UPDATE_MSG_TYPE:
                     log.debug("UPDATE MESSAGE is received");
                     //message type value 11 means it is Update message
@@ -103,12 +104,17 @@ public abstract class PcepMessageVer1 {
                     log.debug("TE REPORT MESSAGE is received");
                     // message type value 14 means it is TE REPORT message
                     // return
-                    // TODO: Read TE Report message from channel buffer.
+                    return PcepTEReportMsgVer1.READER.readFrom(cb.readBytes(length));
                 case LABEL_UPDATE_MSG_TYPE:
                     log.debug("LABEL UPDATE MESSAGE is received");
                     // message type value 13 means it is LABEL UPDATE message
                     // return
-                    // TODO: Read Label update message from channel buffer.
+                    return PcepLabelUpdateMsgVer1.READER.readFrom(cb.readBytes(length));
+                case LABEL_RANGE_RESV_MSG_TYPE:
+                    log.debug("LABEL RANGE RESERVE MESSAGE is received");
+                    // message type value 15 means it is LABEL RANGE RESERVE message
+                    // return
+                    return PcepLabelRangeResvMsgVer1.READER.readFrom(cb.readBytes(length));
                 default:
                     throw new PcepParseException("ERROR: UNKNOWN MESSAGE is received. Msg Type: " + type);
                 }
