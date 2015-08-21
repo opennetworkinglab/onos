@@ -16,15 +16,13 @@
 package org.onosproject.net.meter;
 
 import com.google.common.base.MoreObjects;
-
-import java.util.Optional;
+import com.google.common.base.Objects;
 
 /**
  * Representation of an operation on the meter table.
  */
 public class MeterOperation {
 
-    private final Optional<MeterContext> context;
 
     /**
      * Tyoe of meter operation.
@@ -39,10 +37,9 @@ public class MeterOperation {
     private final Type type;
 
 
-    public MeterOperation(Meter meter, Type type, MeterContext context) {
+    public MeterOperation(Meter meter, Type type) {
         this.meter = meter;
         this.type = type;
-        this.context = Optional.ofNullable(context);
     }
 
     /**
@@ -63,21 +60,29 @@ public class MeterOperation {
         return meter;
     }
 
-    /**
-     * Returns a context which allows application to
-     * be notified on the success value of this operation.
-     *
-     * @return a meter context
-     */
-    public Optional<MeterContext> context() {
-        return this.context;
-    }
-
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("meter", meter)
                 .add("type", type)
                 .toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MeterOperation that = (MeterOperation) o;
+        return Objects.equal(meter, that.meter) &&
+                Objects.equal(type, that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(meter, type);
     }
 }

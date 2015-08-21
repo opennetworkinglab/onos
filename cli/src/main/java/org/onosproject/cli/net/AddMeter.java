@@ -22,10 +22,9 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.DefaultBand;
-import org.onosproject.net.meter.DefaultMeter;
+import org.onosproject.net.meter.DefaultMeterRequest;
 import org.onosproject.net.meter.Meter;
-import org.onosproject.net.meter.MeterId;
-import org.onosproject.net.meter.MeterOperation;
+import org.onosproject.net.meter.MeterRequest;
 import org.onosproject.net.meter.MeterService;
 
 import java.util.Collections;
@@ -41,7 +40,7 @@ public class AddMeter extends AbstractShellCommand {
             required = true, multiValued = false)
     String uri = null;
 
-    private final String appId = "org.onosproject.cli.addMeter";
+    private final String appId = "org.onosproject.cli.meterCmd";
 
     @Override
     protected void execute() {
@@ -50,25 +49,20 @@ public class AddMeter extends AbstractShellCommand {
 
         DeviceId deviceId = DeviceId.deviceId(uri);
 
-        MeterId meterId = service.allocateMeterId();
-
         Band band = DefaultBand.builder()
                         .ofType(Band.Type.DROP)
                         .withRate(500)
                         .build();
 
 
-        Meter meter = DefaultMeter.builder()
+        MeterRequest request = DefaultMeterRequest.builder()
                 .forDevice(deviceId)
                 .fromApp(coreService.registerApplication(appId))
-                .withId(meterId)
                 .withUnit(Meter.Unit.KB_PER_SEC)
                 .withBands(Collections.singleton(band))
-                .build();
+                .add();
 
-        MeterOperation op = new MeterOperation(meter, MeterOperation.Type.ADD, null);
-
-        service.addMeter(op);
+        service.submit(request);
 
     }
 }

@@ -32,6 +32,7 @@ import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterProvider;
 import org.onosproject.net.meter.MeterProviderRegistry;
 import org.onosproject.net.meter.MeterProviderService;
+import org.onosproject.net.meter.MeterRequest;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.meter.MeterStore;
@@ -72,7 +73,7 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
 
     private AtomicCounter meterIdCounter;
 
-    private TriConsumer<MeterOperation, MeterStoreResult, Throwable> onComplete;
+    private TriConsumer<MeterRequest, MeterStoreResult, Throwable> onComplete;
 
     @Activate
     public void activate() {
@@ -82,16 +83,16 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
 
         store.setDelegate(delegate);
 
-        onComplete = (op, result, error) ->
+        onComplete = (request, result, error) ->
             {
-                op.context().ifPresent(c -> {
+                request.context().ifPresent(c -> {
                     if (error != null) {
-                        c.onError(op.meter(), MeterFailReason.UNKNOWN);
+                        c.onError(request, MeterFailReason.UNKNOWN);
                     } else {
                         if (result.reason().isPresent()) {
-                            c.onError(op.meter(), result.reason().get());
+                            c.onError(request, result.reason().get());
                         } else {
-                            c.onSuccess(op.meter());
+                            c.onSuccess(request);
                         }
                     }
                 });
@@ -112,27 +113,42 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
     }
 
     @Override
-    public void addMeter(MeterOperation op) {
-        DefaultMeter m = (DefaultMeter) op.meter();
+    public Meter submit(MeterRequest request) {
+
+        Meter.Builder mBuilder = DefaultMeter.builder()
+                .forDevice(request.deviceId())
+                .fromApp(request.appId())
+                .withBands(request.bands())
+                .withId(allocateMeterId())
+                .withUnit(request.unit());
+
+        if (request.isBurst()) {
+            mBuilder.burst();
+        }
+        DefaultMeter m = (DefaultMeter) mBuilder.build();
         m.setState(MeterState.PENDING_ADD);
         store.storeMeter(m).whenComplete((result, error) ->
-                                                 onComplete.accept(op, result, error));
+                                                 onComplete.accept(request, result, error));
+        return m;
     }
 
     @Override
-    public void updateMeter(MeterOperation op) {
-        DefaultMeter m = (DefaultMeter) op.meter();
-        m.setState(MeterState.PENDING_ADD);
-        store.updateMeter(m).whenComplete((result, error) ->
-                                                  onComplete.accept(op, result, error));
-    }
+    public void withdraw(MeterRequest request, MeterId meterId) {
+        Meter.Builder mBuilder = DefaultMeter.builder()
+                .forDevice(request.deviceId())
+                .fromApp(request.appId())
+                .withBands(request.bands())
+                .withId(meterId)
+                .withUnit(request.unit());
 
-    @Override
-    public void removeMeter(MeterOperation op) {
-        DefaultMeter m = (DefaultMeter) op.meter();
+        if (request.isBurst()) {
+            mBuilder.burst();
+        }
+
+        DefaultMeter m = (DefaultMeter) mBuilder.build();
         m.setState(MeterState.PENDING_REMOVE);
         store.deleteMeter(m).whenComplete((result, error) ->
-                                                  onComplete.accept(op, result, error));
+                                                  onComplete.accept(request, result, error));
     }
 
     @Override
@@ -145,10 +161,9 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
         return store.getAllMeters();
     }
 
-    @Override
-    public MeterId allocateMeterId() {
+    private MeterId allocateMeterId() {
         // FIXME: This will break one day.
-        return MeterId.meterId((int) meterIdCounter.getAndIncrement());
+        return MeterId.meterId((int) meterIdCounter.incrementAndGet());
     }
 
     private class InternalMeterProviderService
@@ -185,8 +200,7 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
                 if (m.state() == MeterState.PENDING_ADD) {
                     provider().performMeterOperation(m.deviceId(),
                                                      new MeterOperation(m,
-                                                                        MeterOperation.Type.ADD,
-                                                                        null));
+                                                                        MeterOperation.Type.ADD));
                 } else {
                     store.deleteMeterNow(m);
                 }
@@ -203,13 +217,11 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
             switch (event.type()) {
                 case METER_ADD_REQ:
                     p.performMeterOperation(deviceId, new MeterOperation(event.subject(),
-                                                                         MeterOperation.Type.ADD,
-                                                                         null));
+                                                                         MeterOperation.Type.ADD));
                     break;
                 case METER_REM_REQ:
                     p.performMeterOperation(deviceId, new MeterOperation(event.subject(),
-                                                                         MeterOperation.Type.REMOVE,
-                                                                         null));
+                                                                         MeterOperation.Type.REMOVE));
                     break;
                 default:
                     log.warn("Unknown meter event {}", event.type());

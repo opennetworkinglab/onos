@@ -26,7 +26,7 @@ public interface MeterContext {
      *
      * @param op a meter
      */
-    default void onSuccess(Meter op) {}
+    default void onSuccess(MeterRequest op) {}
 
     /**
      * Invoked when error is encountered while installing a meter.
@@ -34,5 +34,5 @@ public interface MeterContext {
      * @param op a meter
      * @param reason the reason why it failed
      */
-    default void onError(Meter op, MeterFailReason reason) {}
+    default void onError(MeterRequest op, MeterFailReason reason) {}
 }

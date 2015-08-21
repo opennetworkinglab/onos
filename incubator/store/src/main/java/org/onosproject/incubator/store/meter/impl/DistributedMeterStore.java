@@ -143,7 +143,9 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         // update the state of the meter. It will be pruned by observing
         // that it has been removed from the dataplane.
         try {
-            meters.put(meter.id(), data);
+            if (meters.computeIfPresent(meter.id(), (k, v) -> data) == null) {
+                future.complete(MeterStoreResult.success());
+            }
         } catch (StorageException e) {
             future.completeExceptionally(e);
         }
@@ -159,7 +161,9 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
         MeterData data = new MeterData(meter, null, local);
         try {
-            meters.put(meter.id(), data);
+            if (meters.computeIfPresent(meter.id(), (k, v) -> data) == null) {
+                future.complete(MeterStoreResult.fail(MeterFailReason.INVALID_METER));
+            }
         } catch (StorageException e) {
             future.completeExceptionally(e);
         }
@@ -227,6 +231,10 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                                 }
                                 break;
                             case ADDED:
+                                if (local.equals(data.origin()) && data.meter().state() == MeterState.PENDING_ADD) {
+                                    futures.remove(data.meter().id()).complete(MeterStoreResult.success());
+                                }
+                                break;
                             case REMOVED:
                                 if (local.equals(data.origin()) && data.meter().state() == MeterState.PENDING_REMOVE) {
                                     futures.remove(data.meter().id()).complete(MeterStoreResult.success());

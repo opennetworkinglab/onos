@@ -19,22 +19,17 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /**
- * Represents a generalized meter to be deployed on a device.
+ * Represents a generalized meter request to be deployed on a device.
  */
-public interface Meter {
+public interface MeterRequest {
 
-    enum Unit {
-        /**
-         * Packets per second.
-         */
-        PKTS_PER_SEC,
-
-        /**
-         * Kilo bits per second.
-         */
-        KB_PER_SEC
+    enum Type {
+        ADD,
+        MODIFY,
+        REMOVE
     }
 
     /**
@@ -43,13 +38,6 @@ public interface Meter {
      * @return a device id
      */
     DeviceId deviceId();
-
-    /**
-     * This meters id.
-     *
-     * @return a meter id
-     */
-    MeterId id();
 
     /**
      * The id of the application which created this meter.
@@ -63,7 +51,7 @@ public interface Meter {
      *
      * @return the unit
      */
-    Unit unit();
+    Meter.Unit unit();
 
     /**
      * Signals whether this meter applies to bursts only.
@@ -80,39 +68,11 @@ public interface Meter {
     Collection<Band> bands();
 
     /**
-     * Fetches the state of this meter.
+     * Returns the callback context for this meter.
      *
-     * @return a meter state
+     * @return an optional meter context
      */
-    MeterState state();
-
-    /**
-     * The lifetime in seconds of this meter.
-     *
-     * @return number of seconds
-     */
-    long life();
-
-    /**
-     * The number of flows pointing to this meter.
-     *
-     * @return a reference count
-     */
-    long referenceCount();
-
-    /**
-     * Number of packets processed by this meter.
-     *
-     * @return a packet count
-     */
-    long packetsSeen();
-
-    /**
-     * Number of bytes processed by this meter.
-     *
-     * @return a byte count
-     */
-    long bytesSeen();
+    Optional<MeterContext> context();
 
     /**
      * A meter builder.
@@ -126,14 +86,6 @@ public interface Meter {
          * @return this
          */
         Builder forDevice(DeviceId deviceId);
-
-        /**
-         * Assigns the id to this meter.
-         *
-         * @param id a e
-         * @return this
-         */
-        Builder withId(MeterId id);
 
         /**
          * Assigns the application that built this meter.
@@ -150,7 +102,7 @@ public interface Meter {
          * @param unit a unit
          * @return this
          */
-        Builder withUnit(Unit unit);
+        Builder withUnit(Meter.Unit unit);
 
         /**
          * Sets this meter as applicable to burst traffic only.
@@ -169,11 +121,27 @@ public interface Meter {
         Builder withBands(Collection<Band> bands);
 
         /**
-         * Builds the meter based on the specified parameters.
+         * Assigns an execution context for this meter request.
          *
-         * @return a meter
+         * @param context a meter context
+         * @return this
          */
-        Meter build();
+        Builder withContext(MeterContext context);
+
+        /**
+         * Requests the addition of a meter.
+         *
+         * @return a meter request
+         */
+        MeterRequest add();
+
+        /**
+         * Requests the removal of a meter.
+         *
+         * @return a meter request
+         */
+        MeterRequest remove();
+
     }
 
 }

@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -38,6 +39,7 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
     private final List<MapEventListener<K, V>> listeners;
     private final HashMap<K, V> map;
     private final String mapName;
+    private final AtomicLong counter = new AtomicLong(0);
 
     private TestConsistentMap(String mapName) {
         map = new HashMap<>();
@@ -46,7 +48,7 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
     }
 
     private Versioned<V> version(V v) {
-        return new Versioned<>(v, 1, System.currentTimeMillis());
+        return new Versioned<>(v, counter.incrementAndGet(), System.currentTimeMillis());
     }
 
     /**
@@ -115,8 +117,12 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
 
     @Override
     public Versioned<V> put(K key, V value) {
-        Versioned<V> result = version(map.put(key, value));
-        notifyListeners(mapName, INSERT, key, result);
+        Versioned<V> result = version(value);
+        if (map.put(key, value) == null) {
+            notifyListeners(mapName, INSERT, key, result);
+        } else {
+            notifyListeners(mapName, UPDATE, key, result);
+        }
         return result;
     }
 
@@ -211,6 +217,11 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
     @Override
     public void removeListener(MapEventListener<K, V> listener) {
         listeners.remove(listener);
+    }
+
+    @Override
+    public Map<K, V> asJavaMap() {
+        return map;
     }
 
     public static Builder builder() {

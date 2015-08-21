@@ -30,23 +30,18 @@ public interface MeterService
     /**
      * Adds a meter to the system and performs it installation.
      *
-     * @param meter a meter.
+     * @param meter a meter
+     * @return a meter (with a meter id)
      */
-    void addMeter(MeterOperation meter);
-
-    /**
-     * Updates a meter by adding statistic information to the meter.
-     *
-     * @param meter an updated meter
-     */
-    void updateMeter(MeterOperation meter);
+    Meter submit(MeterRequest meter);
 
     /**
      * Remove a meter from the system and the dataplane.
      *
      * @param meter a meter to remove
+     * @param meterId the meter id of the meter to remove.
      */
-    void removeMeter(MeterOperation meter);
+    void withdraw(MeterRequest meter, MeterId meterId);
 
     /**
      * Fetch the meter by the meter id.
@@ -63,10 +58,4 @@ public interface MeterService
      */
     Collection<Meter> getAllMeters();
 
-    /**
-     * Allocate a meter id which must be used to create the meter.
-     *
-     * @return a meter id
-     */
-    MeterId allocateMeterId();
 }
