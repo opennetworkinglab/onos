@@ -19,9 +19,12 @@ import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
 
+@Deprecated
 /**
  * Class used with the flow subsystem to process per device
  * batches.
+ *
+ * @deprecated in Drake release - no longer a public API
  */
 public class FlowRuleBatchOperation
     extends BatchOperation<FlowRuleBatchEntry> {
