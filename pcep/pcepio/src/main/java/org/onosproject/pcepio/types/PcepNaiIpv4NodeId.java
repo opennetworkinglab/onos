@@ -89,8 +89,6 @@ public class PcepNaiIpv4NodeId implements PcepNai {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("IPv4 Node Id", ipv4NodeId)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("IPv4NodeId", ipv4NodeId).toString();
     }
 }

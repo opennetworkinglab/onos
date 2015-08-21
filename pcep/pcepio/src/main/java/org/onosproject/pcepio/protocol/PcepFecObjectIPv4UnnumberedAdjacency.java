@@ -82,9 +82,6 @@ public interface PcepFecObjectIPv4UnnumberedAdjacency extends PcepFecObject {
     void setRemoteInterfaceID(int value);
 
     @Override
-    void print();
-
-    @Override
     int write(ChannelBuffer bb) throws PcepParseException;
 
     /**

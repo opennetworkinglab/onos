@@ -95,11 +95,6 @@ public interface PcepMetricObject {
     void setBType(byte value);
 
     /**
-     * Prints attributes of Metric object.
-     */
-    void print();
-
-    /**
      * Writes the Metric Object into channel buffer.
      *
      * @param bb channel buffer

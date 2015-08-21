@@ -42,11 +42,6 @@ public interface PcepRroObject {
     void setSubObjects(LinkedList<PcepValueType> llSubObjects);
 
     /**
-     * Prints attributes of RRO object.
-     */
-    void print();
-
-    /**
      * Writes the RRO Object into channel buffer.
      *
      * @param bb channel buffer

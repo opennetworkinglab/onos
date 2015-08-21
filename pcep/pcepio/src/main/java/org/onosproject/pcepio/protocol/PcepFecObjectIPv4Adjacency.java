@@ -54,9 +54,6 @@ public interface PcepFecObjectIPv4Adjacency extends PcepFecObject {
     void seRemoteIPv4Address(int value);
 
     @Override
-    void print();
-
-    @Override
     int write(ChannelBuffer bb) throws PcepParseException;
 
     /**

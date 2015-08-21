@@ -290,19 +290,7 @@ class PcepUpdateMsgVer1 implements PcepUpdateMsg {
     }
 
     @Override
-    public void print() {
-
-        log.debug("PCEP UPDATE MESSAGE");
-        ListIterator<PcepUpdateRequest> listIterator = llUpdateRequestList.listIterator();
-        while (listIterator.hasNext()) {
-            listIterator.next().print();
-        }
-    }
-
-    @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("Update Request list", llUpdateRequestList)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("UpdateRequestList", llUpdateRequestList).toString();
     }
 }

@@ -18,7 +18,6 @@ package org.onosproject.pcepio.protocol;
 
 import org.onosproject.pcepio.exceptions.PcepParseException;
 
-
 /**
  * Abstraction of an entity providing PCEP Update Request List.
  */
@@ -65,11 +64,6 @@ public interface PcepUpdateRequest {
      * @param msgPath object of type PCEP MSG PATH
      */
     void setMsgPath(PcepMsgPath msgPath);
-
-    /**
-     * Prints the attributes of PCEP Update Request.
-     */
-    void print();
 
     /**
      * Builder interface with get and set functions to build PcepUpdateRequest.

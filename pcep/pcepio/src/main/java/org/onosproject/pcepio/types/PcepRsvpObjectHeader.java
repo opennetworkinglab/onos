@@ -52,7 +52,7 @@ public class PcepRsvpObjectHeader {
     private short objLen;
 
     /**
-     * Constructor to initialize class num , length and type.
+     * Constructor to initialize class num, length and type.
      *
      * @param objClassNum object class number
      * @param objClassType object class type
@@ -65,7 +65,7 @@ public class PcepRsvpObjectHeader {
     }
 
     /**
-     * Sets the Class num.
+     * Sets the Class-Num.
      *
      * @param value object class number
      */
@@ -121,52 +121,38 @@ public class PcepRsvpObjectHeader {
     /**
      * Writes the byte stream of PcepRsvpObjectHeader to channel buffer.
      *
-     * @param bb of type channel buffer
+     * @param cb of type channel buffer
      * @return object length index in channel buffer
      */
-    public int write(ChannelBuffer bb) {
-        int iLenStartIndex = bb.writerIndex();
-        bb.writeShort((short) 0);
-        bb.writeByte(this.objClassNum);
-        bb.writeByte(this.objClassType);
-        return bb.writerIndex() - iLenStartIndex;
+    public int write(ChannelBuffer cb) {
+        int iLenStartIndex = cb.writerIndex();
+        cb.writeShort((short) 0);
+        cb.writeByte(this.objClassNum);
+        cb.writeByte(this.objClassType);
+        return cb.writerIndex() - iLenStartIndex;
     }
 
     /**
      * Reads the PcepRsvpObjectHeader.
      *
-     * @param bb of type channel buffer
+     * @param cb input channel buffer
      * @return PcepRsvpObjectHeader
      */
-    public static PcepRsvpObjectHeader read(ChannelBuffer bb) {
-        log.debug("PcepRsvpObjectHeader ::read ");
+    public static PcepRsvpObjectHeader read(ChannelBuffer cb) {
+        log.debug("read ");
         byte objClassNum;
         byte objClassType;
         short objLen;
-        objLen = bb.readShort();
-        objClassNum = bb.readByte();
-        objClassType = bb.readByte();
+        objLen = cb.readShort();
+        objClassNum = cb.readByte();
+        objClassType = cb.readByte();
 
         return new PcepRsvpObjectHeader(objClassNum, objClassType, objLen);
     }
 
-    /**
-     * Prints the attribute of PcepRsvpObjectHeader.
-     */
-    public void print() {
-
-        log.debug("PcepObjectHeader");
-        log.debug("Object Class-Num: " + objClassNum);
-        log.debug("Object C-Type: " + objClassType);
-        log.debug("Object Length: " + objLen);
-    }
-
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("Object Class-Num: " , objClassNum)
-                .add("Object C-Type: " , objClassType)
-                .add("Object Length: " , objLen)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("ObjectClassNum", objClassNum)
+                .add("ObjectCType", objClassType).add("ObjectLength", objLen).toString();
     }
 }

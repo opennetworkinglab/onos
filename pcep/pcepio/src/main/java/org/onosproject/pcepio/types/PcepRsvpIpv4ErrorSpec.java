@@ -146,17 +146,12 @@ public class PcepRsvpIpv4ErrorSpec implements PcepRsvpErrorSpec {
     }
 
     @Override
-    public void print() {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("IPv4 Address:", ipv4Addr)
+                .add("IPv4Address:", ipv4Addr)
                 .add("flags:", flags)
-                .add("error Code:", errCode)
-                .add("error Value:", errValue)
+                .add("errorCode:", errCode)
+                .add("errorValue:", errValue)
                 .toString();
     }
 }

@@ -151,15 +151,7 @@ public class SymbolicPathNameTlv implements PcepValueType {
     }
 
     @Override
-    public void print() {
-        log.debug("SymbolicPathNameTlv");
-        log.debug("Type: " + TYPE);
-        log.debug("Length: " + hLength);
-        log.debug("Symbolic Path Name : " + rawValue);
-    }
-
-    @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("Symbolic Path Name ", rawValue).toString();
+        return MoreObjects.toStringHelper(getClass()).add("SymbolicPathName ", rawValue).toString();
     }
 }

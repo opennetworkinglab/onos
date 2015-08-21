@@ -238,4 +238,18 @@ public interface PcepFactory {
      * @return Builder Object for PcepError
      */
     PcepError.Builder buildPcepError();
+
+    /**
+     * To get Builder Object for PcepLabelRangeObject.
+     *
+     * @return Builder Object for PcepLabelRangeObject
+     */
+    PcepLabelRangeObject.Builder buildPcepLabelRangeObject();
+
+    /**
+     * To get Builder Object for PcepLabelRangeResvMsg.
+     *
+     * @return Builder Object for PcepLabelRangeResvMsg
+     */
+    PcepLabelRangeResvMsg.Builder buildPcepLabelRangeResvMsg();
 }

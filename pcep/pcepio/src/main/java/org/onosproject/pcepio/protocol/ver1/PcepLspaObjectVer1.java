@@ -514,39 +514,9 @@ public class PcepLspaObjectVer1 implements PcepLspaObject {
     }
 
     @Override
-    public void print() {
-        log.debug("LSPA OBJECT");
-        long lTemp = flags & 0xFF;
-        lTemp = (bLFlag) ? 1 : 0;
-        log.debug("l Flag: " + lTemp);
-        lTemp = cSetupPriority & 0xFF;
-        log.debug("SetupPriority: " + lTemp);
-        lTemp = cHoldPriority & 0xFF;
-        log.debug("HoldPriority: " + lTemp);
-        lTemp = iIncludeAll & 0xFFFFFFFF;
-        log.debug("IncludeAll: " + lTemp);
-        lTemp = iIncludeAny & 0xFFFFFFFF;
-        log.debug("IncludeAny: " + lTemp);
-        lTemp = iExcludeAny & 0xFFFFFFFF;
-        log.debug("iExcludeAny: " + lTemp);
-
-        log.debug("OPTIONAL TLV:");
-        ListIterator<PcepValueType> listIterator = llOptionalTlv.listIterator();
-        while (listIterator.hasNext()) {
-            listIterator.next().print();
-        }
-    }
-
-    @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("L flag", bLFlag)
-                .add("Setup priority", cSetupPriority)
-                .add("hold priority", cHoldPriority)
-                .add("Include all", iIncludeAll)
-                .add("Include any", iIncludeAny)
-                .add("Exclude any", iExcludeAny)
-                .add("List of optional tlv", llOptionalTlv)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("LFlag", bLFlag).add("SetupPriority", cSetupPriority)
+                .add("HoldPriority", cHoldPriority).add("IncludeAll", iIncludeAll).add("IncludeAny", iIncludeAny)
+                .add("ExcludeAny", iExcludeAny).add("OptionalTlvList", llOptionalTlv).toString();
     }
 }

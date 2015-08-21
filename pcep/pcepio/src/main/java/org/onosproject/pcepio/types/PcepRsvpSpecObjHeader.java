@@ -144,22 +144,12 @@ public class PcepRsvpSpecObjHeader {
         return new PcepRsvpSpecObjHeader(objLen, objClassNum, objClassType);
     }
 
-    /**
-     * Prints the attribute of PcepRsvpObjectHeader.
-     */
-    public void print() {
-
-        log.debug("PcepObjectHeader");
-        log.debug("Object Class-Num: " + objClassNum);
-        log.debug("Object C-Type: " + objClassType);
-        log.debug("Object Length: " + objLen);
-    }
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("Object Class-Num: " , objClassNum)
-                .add("Object C-Type: " , objClassType)
-                .add("Object Length: " , objLen)
+                .add("ObjectClassNum: " , objClassNum)
+                .add("ObjectCType: " , objClassType)
+                .add("ObjectLength: " , objLen)
                 .toString();
     }
 }

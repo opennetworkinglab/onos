@@ -308,17 +308,6 @@ public class SrEroSubObject implements PcepValueType {
     }
 
     @Override
-    public void print() {
-        log.debug("SrEroSubObject");
-        log.debug("Type: " + TYPE);
-        log.debug("Length: " + LENGTH);
-
-        log.debug("st:" + st + " bFFlag:" + bFFlag + " bSFlag:" + bSFlag + " bCFlag:" + bCFlag + " bMFlag:" + bMFlag
-                + " sID:" + sID + " nAI:" + nai);
-
-    }
-
-    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("Type", TYPE)
@@ -332,5 +321,4 @@ public class SrEroSubObject implements PcepValueType {
                 .add("nAI", nai)
                 .toString();
     }
-
 }

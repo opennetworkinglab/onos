@@ -131,15 +131,6 @@ public class StatefulLspErrorCodeTlv implements PcepValueType {
     }
 
     @Override
-    public void print() {
-
-        log.debug("StatefulLspErrorCodeTlv");
-        log.debug("Type: " + TYPE);
-        log.debug("Length: " + LENGTH);
-        log.debug("Value: " + rawValue);
-    }
-
-    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass()).add("Type", TYPE).add("Length", LENGTH).add("Value", rawValue)
                 .toString();

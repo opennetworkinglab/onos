@@ -92,22 +92,12 @@ public class PcepLabelMap {
         this.labelObject = labelObject;
     }
 
-    /**
-     * Prints the attribute of PcepLabelMap.
-     */
-    public void print() {
-        log.debug("LABEL MAP:");
-        srpObject.print();
-        labelObject.print();
-        fecObject.print();
-    }
-
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("SRP object", srpObject)
-                .add("Label object", labelObject)
-                .add("Fec object", fecObject)
+                .add("SrpObject", srpObject)
+                .add("LabelObject", labelObject)
+                .add("FecObject", fecObject)
                 .toString();
     }
 }

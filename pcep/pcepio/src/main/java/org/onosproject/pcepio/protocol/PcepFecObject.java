@@ -46,9 +46,4 @@ public interface PcepFecObject {
      * @throws PcepParseException while writing FEC Object into Channel Buffer.
      */
     int write(ChannelBuffer bb) throws PcepParseException;
-
-    /**
-     * Prints attributes of FEC object.
-     */
-    void print();
 }

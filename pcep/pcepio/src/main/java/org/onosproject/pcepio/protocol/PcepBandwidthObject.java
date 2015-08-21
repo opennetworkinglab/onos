@@ -39,11 +39,6 @@ public interface PcepBandwidthObject {
     void setBandwidth(int iBandwidth);
 
     /**
-     * Prints attributes of bandwidth object.
-     */
-    void print();
-
-    /**
      * Writes the BandwidthObject into channel buffer.
      *
      * @param bb channel buffer

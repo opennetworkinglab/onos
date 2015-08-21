@@ -112,11 +112,6 @@ public interface PcepTEObject {
     void setOptionalTlv(LinkedList<PcepValueType> llOptionalTlv);
 
     /**
-     * Prints attributes of TE object.
-     */
-    void print();
-
-    /**
      * Writes the TE Object into channel buffer.
      *
      * @param bb channel buffer

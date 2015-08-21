@@ -62,11 +62,6 @@ public interface PcepLabelUpdate {
     PcepLabelMap getLabelMap();
 
     /**
-     * Prints the attributes of PCEP Label update.
-     */
-    void print();
-
-    /**
      * Builder interface with get and set functions to build Label Update message.
      */
     interface Builder {

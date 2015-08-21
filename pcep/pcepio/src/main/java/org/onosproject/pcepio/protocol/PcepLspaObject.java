@@ -126,11 +126,6 @@ public interface PcepLspaObject {
     void setOptionalTlv(LinkedList<PcepValueType> llOptionalTlv);
 
     /**
-     * Prints attributes of LSPA object.
-     */
-    void print();
-
-    /**
      * Writes the LSPA Object into channel buffer.
      *
      * @param bb channel buffer

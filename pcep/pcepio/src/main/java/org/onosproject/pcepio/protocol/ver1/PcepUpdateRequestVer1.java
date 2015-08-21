@@ -189,19 +189,8 @@ public class PcepUpdateRequestVer1 implements PcepUpdateRequest {
     }
 
     @Override
-    public void print() {
-
-        log.debug("UPDATE REQUEST");
-        srpObject.print();
-        lspObject.print();
-    }
-
-    @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("SRP Object", srpObject)
-                .add("LSP object", lspObject)
-                .add("message path object", msgPath)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("SrpObject", srpObject).add("LspObject", lspObject)
+                .add("MsgPath", msgPath).toString();
     }
 }

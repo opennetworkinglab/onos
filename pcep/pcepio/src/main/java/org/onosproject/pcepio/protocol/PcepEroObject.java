@@ -52,11 +52,6 @@ public interface PcepEroObject {
     int write(ChannelBuffer bb) throws PcepParseException;
 
     /**
-     * Prints attributes of ERO object.
-     */
-    void print();
-
-    /**
      * Builder interface with get and set functions to build ERO object.
      */
     interface Builder {

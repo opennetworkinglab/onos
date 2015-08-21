@@ -241,28 +241,12 @@ public class PcepEndPointsObjectVer1 implements PcepEndPointsObject {
             this.bIsIFlagSet = true;
             return this;
         }
-
-    }
-
-    @Override
-    public void print() {
-
-        log.debug("ENDPOINT OBJECT");
-        long lTemp;
-        lTemp = sourceIpAddress & 0xFFFFFFFF;
-        String str = "Source IP Address: " + lTemp;
-        log.debug(str);
-        lTemp = destIpAddress & 0xFFFFFFFF;
-        str = "destination IP Address: " + lTemp;
-        log.debug(str);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("sourceIpAddress", sourceIpAddress)
-                .add("destIpAddress", destIpAddress)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("sourceIpAddress", sourceIpAddress)
+                .add("destIpAddress", destIpAddress).toString();
     }
 
 }

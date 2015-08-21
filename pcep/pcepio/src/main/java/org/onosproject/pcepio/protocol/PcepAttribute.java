@@ -92,12 +92,6 @@ public interface PcepAttribute {
     void setMetricObjectList(LinkedList<PcepMetricObject> llMetricList);
 
     /**
-     * Prints the attributes of AttributeList.
-     */
-
-    void print();
-
-    /**
      * Builder interface with get and set functions to build PcepAttribute.
      */
     interface Builder {

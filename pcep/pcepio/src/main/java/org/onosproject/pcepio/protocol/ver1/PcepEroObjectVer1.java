@@ -393,26 +393,11 @@ public class PcepEroObjectVer1 implements PcepEroObject {
             this.bIsIFlagSet = true;
             return this;
         }
-
-    }
-
-    @Override
-    public void print() {
-
-        log.debug("ERO OBJECT");
-        eroObjHeader.print();
-        log.debug("SUBOBJECTS:");
-        ListIterator<PcepValueType> listIterator = llSubObjects.listIterator();
-        while (listIterator.hasNext()) {
-            listIterator.next().print();
-        }
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("ero obj Header", eroObjHeader)
-                .add("Sub-Objects", llSubObjects)
+        return MoreObjects.toStringHelper(getClass()).add("EroObjHeader", eroObjHeader).add("SubObjects", llSubObjects)
                 .toString();
     }
 }

@@ -40,9 +40,6 @@ public interface PcepFecObjectIPv6 extends PcepFecObject {
     void setNodeID(byte[] value);
 
     @Override
-    void print();
-
-    @Override
     int write(ChannelBuffer bb) throws PcepParseException;
 
     /**

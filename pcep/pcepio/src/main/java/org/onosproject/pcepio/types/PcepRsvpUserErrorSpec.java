@@ -204,19 +204,14 @@ public class PcepRsvpUserErrorSpec implements PcepRsvpErrorSpec {
     }
 
     @Override
-    public void print() {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("enterprise Number:", enterpriseNum)
-                .add("sub Organization:", subOrg)
-                .add("err Desc Length:", errDescLen)
-                .add("user Error Value:", userErrorValue)
-                .add("err Desc:", errDesc)
-                .add("Rsvp User Spec Sub Object:", llRsvpUserSpecSubObj)
+                .add("enterpriseNumber:", enterpriseNum)
+                .add("subOrganization:", subOrg)
+                .add("errDescLength:", errDescLen)
+                .add("userErrorValue:", userErrorValue)
+                .add("errDesc:", errDesc)
+                .add("RsvpUserSpecSubObject:", llRsvpUserSpecSubObj)
                 .toString();
     }
 }

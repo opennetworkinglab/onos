@@ -50,11 +50,6 @@ public interface PcepErrorInfo {
     void write(ChannelBuffer bb) throws PcepParseException;
 
     /**
-     * Prints the attributes of error info list.
-     */
-    void print();
-
-    /**
      * Returns Error Value in PCEP-ERROR Object.
      *
      * @return list of Error Value in PCEP-ERROR Object

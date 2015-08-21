@@ -86,8 +86,8 @@ public class PcepNaiIpv4Adjacency implements PcepNai {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("local IPv4 Address", localIpv4Addr)
-                .add("remote IPv4 Address", remoteIpv4Addr)
+                .add("localIPv4Address", localIpv4Addr)
+                .add("remoteIPv4Address", remoteIpv4Addr)
                 .toString();
     }
 }

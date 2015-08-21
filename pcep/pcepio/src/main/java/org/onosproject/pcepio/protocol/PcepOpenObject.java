@@ -106,11 +106,6 @@ public interface PcepOpenObject {
     void setOptionalTlv(LinkedList<PcepValueType> llOptionalTlv);
 
     /**
-     * Prints attributes of Open object.
-     */
-    void print();
-
-    /**
      * Writes the Open into channel buffer.
      *
      * @param bb channel buffer

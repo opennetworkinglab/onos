@@ -102,8 +102,8 @@ public class PcepNaiIpv6Adjacency implements PcepNai {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("local IPV6 address", localIpv6Addr)
-                .add("remote IPV6 address", remoteIpv6Addr)
+                .add("localIPV6Address", localIpv6Addr)
+                .add("remoteIPV6Address", remoteIpv6Addr)
                 .toString();
     }
 

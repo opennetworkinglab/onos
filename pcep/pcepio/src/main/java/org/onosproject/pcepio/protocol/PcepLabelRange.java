@@ -62,9 +62,4 @@ public interface PcepLabelRange {
      * @throws PcepParseException while writing LABEL RANGE into Channel Buffer.
      */
     int write(ChannelBuffer bb) throws PcepParseException;
-
-    /**
-     * Prints Attributes of PcepLabelRange.
-     */
-    void print();
 }

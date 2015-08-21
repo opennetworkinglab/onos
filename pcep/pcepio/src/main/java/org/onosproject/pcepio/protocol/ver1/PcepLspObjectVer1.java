@@ -555,39 +555,9 @@ public class PcepLspObjectVer1 implements PcepLspObject {
     }
 
     @Override
-    public void print() {
-
-        log.debug("LSP OBJECT");
-        long lTemp = iPlspId & 0xFFFFFFFF;
-        log.debug("PLSP Id: " + lTemp);
-        lTemp = yOFlag & 0xFFFF;
-        log.debug("O Flag: " + lTemp);
-        lTemp = (bAFlag) ? 1 : 0;
-        log.debug("A Flag: " + lTemp);
-        lTemp = (bRFlag) ? 1 : 0;
-        log.debug("R Flag: " + lTemp);
-        lTemp = (bSFlag) ? 1 : 0;
-        log.debug("S Flag: " + lTemp);
-        lTemp = (bDFlag) ? 1 : 0;
-        log.debug("D Flag: " + lTemp);
-
-        log.debug("OPTIONAL TLV:");
-        ListIterator<PcepValueType> listIterator = llOptionalTlv.listIterator();
-        while (listIterator.hasNext()) {
-            listIterator.next().print();
-        }
-    }
-
-    @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("Plsp ID value", iPlspId)
-                .add("o flag", yOFlag)
-                .add("A flag", bAFlag)
-                .add("R flag", bRFlag)
-                .add("S flag", bSFlag)
-                .add("D flag", bDFlag)
-                .add("List of optional tlv", llOptionalTlv)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("PlspIDValue", iPlspId).add("OFlag", yOFlag)
+                .add("AFlag", bAFlag).add("RFlag", bRFlag).add("SFlag", bSFlag).add("DFlag", bDFlag)
+                .add("OptionalTlvList", llOptionalTlv).toString();
     }
 }

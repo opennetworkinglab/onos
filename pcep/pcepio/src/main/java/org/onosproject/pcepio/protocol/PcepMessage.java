@@ -34,11 +34,6 @@ public interface PcepMessage extends PcepObject {
      */
     PcepType getType();
 
-    /**
-     * Prints attributes of PCEP Messages.
-     */
-    void print();
-
     @Override
     void writeTo(ChannelBuffer channelBuffer) throws PcepParseException;
 

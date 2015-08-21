@@ -68,6 +68,7 @@ public class PcepObjectHeader {
      * @param bIFlag I flag
      * @param objLen PCEP object length
      */
+
     public PcepObjectHeader(byte objClass, byte objType, boolean bPFlag, boolean bIFlag, short objLen) {
         this.objClass = objClass;
         this.objType = objType;
@@ -169,12 +170,12 @@ public class PcepObjectHeader {
     /**
      *  Writes Byte stream of PCEP object header to channel buffer.
      *
-     * @param bb of type channel buffer
+     * @param cb output channel buffer
      * @return objLenIndex object length index in channel buffer
      */
-    public int write(ChannelBuffer bb) {
+    public int write(ChannelBuffer cb) {
 
-        bb.writeByte(this.objClass);
+        cb.writeByte(this.objClass);
         byte temp = (byte) (this.objType << OBJECT_TYPE_SHIFT_VALUE);
         if (this.bPFlag) {
             temp = (byte) (temp | PFLAG_SET);
@@ -182,55 +183,38 @@ public class PcepObjectHeader {
         if (this.bIFlag) {
             temp = (byte) (temp | IFLAG_SET);
         }
-        bb.writeByte(temp);
-        int objLenIndex = bb.writerIndex();
-        bb.writeShort((short) 0);
+        cb.writeByte(temp);
+        int objLenIndex = cb.writerIndex();
+        cb.writeShort((short) 0);
         return objLenIndex;
     }
 
     /**
      * Read from channel buffer and Returns PCEP Objects header.
      *
-     * @param bb of type channel buffer
+     * @param cb of type channel buffer
      * @return PCEP Object header
      */
-    public static PcepObjectHeader read(ChannelBuffer bb) {
+    public static PcepObjectHeader read(ChannelBuffer cb) {
 
         byte objClass;
         byte objType;
         boolean bPFlag;
         boolean bIFlag;
         short objLen;
-        objClass = bb.readByte();
-        byte temp = bb.readByte();
+        objClass = cb.readByte();
+        byte temp = cb.readByte();
         bIFlag = ((temp & IFLAG_SET) == IFLAG_SET) ? true : false;
         bPFlag = ((temp & PFLAG_SET) == PFLAG_SET) ? true : false;
         objType = (byte) (temp >> OBJECT_TYPE_SHIFT_VALUE);
-        objLen = bb.readShort();
+        objLen = cb.readShort();
         return new PcepObjectHeader(objClass, objType, bPFlag, bIFlag, objLen);
-    }
-
-    /**
-     * Prints the Attributes of PCEP Object header.
-     */
-    public void print() {
-
-        log.debug("PcepObjectHeader");
-        log.debug("Object Class: " + objClass);
-        log.debug("Object Type: " + objType);
-        log.debug("Object Length: " + objLen);
-        log.debug("P flag: " + bPFlag);
-        log.debug("I flag: " + bIFlag);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("Object class:", objClass)
-                .add("Object type:", objType)
-                .add("Object length:", objLen)
-                .add("P flag:", bPFlag)
-                .add("I flag:", bIFlag)
+        return MoreObjects.toStringHelper(getClass()).add("ObjectClass", objClass).add("ObjectType", objType)
+                .add("ObjectLength", objLen).add("PFlag", (bPFlag) ? 1 : 0).add("IFlag", (bIFlag) ? 1 : 0)
                 .toString();
     }
 }

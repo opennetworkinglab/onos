@@ -169,21 +169,12 @@ public class IPv4SubObject implements PcepValueType {
     }
 
     @Override
-    public void print() {
-        log.debug("IPv4SubObject");
-        log.debug("Type: " + TYPE);
-        log.debug("Length: " + LENGTH);
-        log.debug("IPv4 address: " + String.format("%08X", ipAddress));
-        log.debug("Prefix Length: " + prefixLen);
-    }
-
-    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("Type", TYPE)
                 .add("Length", LENGTH)
-                .add("IPv4  Address", ipAddress)
-                .add("Prefix Length", prefixLen)
+                .add("IPv4Address", ipAddress)
+                .add("PrefixLength", prefixLen)
                 .toString();
     }
 }

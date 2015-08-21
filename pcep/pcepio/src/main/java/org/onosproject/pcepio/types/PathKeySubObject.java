@@ -148,20 +148,12 @@ public class PathKeySubObject implements PcepValueType {
     }
 
     @Override
-    public void print() {
-        log.debug("PathKeySubObject");
-        log.debug("Type: " + TYPE);
-        log.debug("Length: " + LENGTH);
-        log.debug("Path Key: " + pathKey);
-        log.debug("PCEID: " + pceID);
-    }
-
-    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("Type", TYPE).add("Length", LENGTH)
-                .add("Path Key", pathKey)
-                .add("PCE ID", pceID)
+                .add("Type", TYPE)
+                .add("Length", LENGTH)
+                .add("PathKey", pathKey)
+                .add("PceID", pceID)
                 .toString();
     }
 }

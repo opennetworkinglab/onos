@@ -33,7 +33,7 @@ public final class PcepFactories {
     private PcepFactories() {
     }
 
-    /*
+    /**
      * Returns the instance of PCEP Version.
      *
      * @param version PCEP version
@@ -84,7 +84,7 @@ public final class PcepFactories {
         }
     }
 
-    /*
+    /**
      * Returns GENERIC_READER.
      *
      * @return GENERIC_READER

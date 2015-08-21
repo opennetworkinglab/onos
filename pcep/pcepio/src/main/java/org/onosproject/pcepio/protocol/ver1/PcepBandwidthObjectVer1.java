@@ -225,18 +225,8 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
     }
 
     @Override
-    public void print() {
-
-        log.debug("BANDWIDTH OBJECT");
-        bandwidthObjHeader.print();
-        log.debug("Bandwidth: " + iBandwidth);
-    }
-
-    @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("bandwidth Object Header", bandwidthObjHeader)
-                .add("Bandwidth", iBandwidth)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("BandwidthObjectHeader", bandwidthObjHeader)
+                .add("Bandwidth", iBandwidth).toString();
     }
 }

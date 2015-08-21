@@ -206,29 +206,13 @@ public class StatefulRsvpErrorSpecTlv implements PcepValueType {
     }
 
     @Override
-    public void print() {
-
-        log.debug("StatefulRsvpErrorSpecTlv");
-        log.debug("Type: " + TYPE);
-        log.debug("Length: " + hLength);
-        if (isErrSpceObjSet) {
-            rsvpErrSpecObj.print();
-        }
-    }
-
-    @Override
     public String toString() {
         ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
 
         if (!isErrSpceObjSet) {
-            toStrHelper
-            .add("Type", TYPE)
-            .add("Length", hLength);
+            toStrHelper.add("Type", TYPE).add("Length", hLength);
         } else {
-            toStrHelper
-            .add("Type", TYPE)
-            .add("Length", hLength)
-            .add("RSVP Error Spec Object", rsvpErrSpecObj);
+            toStrHelper.add("Type", TYPE).add("Length", hLength).add("RSVPErrorSpecObject", rsvpErrSpecObj);
         }
         return toStrHelper.toString();
     }

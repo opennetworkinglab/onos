@@ -54,9 +54,6 @@ public interface PcepFecObjectIPv6Adjacency extends PcepFecObject {
     void seRemoteIPv6Address(byte[] value);
 
     @Override
-    void print();
-
-    @Override
     int write(ChannelBuffer bb) throws PcepParseException;
 
     /**

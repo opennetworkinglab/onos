@@ -421,48 +421,20 @@ public class PcepAttributeVer1 implements PcepAttribute {
     }
 
     @Override
-    public void print() {
-
-        log.debug("ATTRIBUTE LIST");
-        if (lspaObject instanceof PcepLspaObject) {
-            lspaObject.print();
-        }
-
-        if (bandwidthObject instanceof PcepBandwidthObject) {
-            bandwidthObject.print();
-        }
-
-        if (llMetricList != null) {
-            log.debug("METRIC LIST");
-            ListIterator<PcepMetricObject> listIterator = llMetricList.listIterator();
-            while (listIterator.hasNext()) {
-                listIterator.next().print();
-            }
-        }
-        if (iroObject instanceof PcepIroObject) {
-            iroObject.print();
-        }
-    }
-
-    @Override
     public String toString() {
         ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
 
         if (lspaObject instanceof PcepLspaObject) {
-            toStrHelper
-            .add("PCEP lspa Object", lspaObject);
+            toStrHelper.add("lspaObject", lspaObject);
         }
         if (bandwidthObject instanceof PcepBandwidthObject) {
-            toStrHelper
-            .add("bandwidth Object", bandwidthObject);
+            toStrHelper.add("bandwidthObject", bandwidthObject);
         }
         if (llMetricList instanceof PcepMetricObject) {
-            toStrHelper
-            .add("Pcep Metric object List", llMetricList);
+            toStrHelper.add("MetricObjectList", llMetricList);
         }
         if (iroObject instanceof PcepIroObject) {
-            toStrHelper
-            .add("iro Object", iroObject);
+            toStrHelper.add("IroObject", iroObject);
         }
         return toStrHelper.toString();
     }

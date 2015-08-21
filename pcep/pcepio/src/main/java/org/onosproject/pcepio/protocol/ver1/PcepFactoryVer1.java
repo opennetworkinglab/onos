@@ -31,7 +31,6 @@ import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepMessageReader;
 import org.onosproject.pcepio.protocol.PcepMetricObject;
 import org.onosproject.pcepio.protocol.PcepMsgPath;
-
 import org.onosproject.pcepio.protocol.PcepSrpObject;
 import org.onosproject.pcepio.protocol.PcepUpdateMsg;
 import org.onosproject.pcepio.protocol.PcepUpdateRequest;
@@ -206,6 +205,18 @@ public class PcepFactoryVer1 implements PcepFactory {
 
     @Override
     public org.onosproject.pcepio.protocol.PcepError.Builder buildPcepError() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public org.onosproject.pcepio.protocol.PcepLabelRangeObject.Builder buildPcepLabelRangeObject() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public org.onosproject.pcepio.protocol.PcepLabelRangeResvMsg.Builder buildPcepLabelRangeResvMsg() {
         // TODO Auto-generated method stub
         return null;
     }

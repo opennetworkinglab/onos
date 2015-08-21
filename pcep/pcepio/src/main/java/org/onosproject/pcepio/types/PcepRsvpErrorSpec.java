@@ -40,8 +40,4 @@ public interface PcepRsvpErrorSpec extends PcepValueType {
      * @return class type
      */
     byte getClassType();
-
-    @Override
-    String toString();
-
 }

@@ -45,7 +45,7 @@ public interface PcepOpenMsg extends PcepObject, PcepMessage {
     PcepOpenObject getPcepOpenObject();
 
     @Override
-    void writeTo(ChannelBuffer channelBuffer);
+    void writeTo(ChannelBuffer channelBuffer) throws PcepParseException;
 
     /**
      * Builder interface with get and set functions to build Open message.

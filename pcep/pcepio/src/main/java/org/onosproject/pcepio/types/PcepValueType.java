@@ -52,9 +52,4 @@ public interface PcepValueType {
      * @return length of bytes written to channel buffer
      */
     public int write(ChannelBuffer bb);
-
-    /**
-     * Prints the Attributes of PCEP Message.
-     */
-    public void print();
 }

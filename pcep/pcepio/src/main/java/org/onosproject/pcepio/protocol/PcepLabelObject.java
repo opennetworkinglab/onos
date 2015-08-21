@@ -71,11 +71,6 @@ public interface PcepLabelObject {
     void setOptionalTlv(LinkedList<PcepValueType> llOptionalTlv);
 
     /**
-     * Prints attributes of Label object.
-     */
-    void print();
-
-    /**
      * Writes the Label Object into channel buffer.
      *
      * @param bb channel buffer

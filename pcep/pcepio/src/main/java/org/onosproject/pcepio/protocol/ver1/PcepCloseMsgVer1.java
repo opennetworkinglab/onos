@@ -157,7 +157,7 @@ class PcepCloseMsgVer1 implements PcepCloseMsg {
         private PcepObjectHeader closeObjHeader;
         private boolean bIsReasonSet = false;
         private byte yReason;
-        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        private LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
 
         private boolean bIsPFlagSet = false;
         private boolean bPFlag;
@@ -333,24 +333,8 @@ class PcepCloseMsgVer1 implements PcepCloseMsg {
     }
 
     @Override
-    public void print() {
-        log.debug("CLOSE MESSAGE");
-        closeObjHeader.print();
-        int x = yReason & 0xFF;
-        log.debug("Reason: " + x);
-        log.debug("OPTINAL TLV:");
-        ListIterator<PcepValueType> listIterator = llOptionalTlv.listIterator();
-        while (listIterator.hasNext()) {
-            listIterator.next().print();
-        }
-    }
-
-    @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("close Object Header", closeObjHeader)
-                .add("Reason", yReason)
-                .add("Optional Tlv list", llOptionalTlv)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("closeObjectHeader", closeObjHeader).add("Reason", yReason)
+                .add("OptionalTlvlist", llOptionalTlv).toString();
     }
 }

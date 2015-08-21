@@ -316,19 +316,8 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
     }
 
     @Override
-    public void print() {
-
-        log.debug("PCEP INITIATE MESSAGE");
-        ListIterator<PcInitiatedLspRequest> listIterator = llPcInitiatedLspRequestList.listIterator();
-        while (listIterator.hasNext()) {
-            listIterator.next().print();
-        }
-    }
-
-    @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("PC initiaited lsp request list", llPcInitiatedLspRequestList)
+        return MoreObjects.toStringHelper(getClass()).add("PcInitiaitedLspRequestList", llPcInitiatedLspRequestList)
                 .toString();
     }
 }

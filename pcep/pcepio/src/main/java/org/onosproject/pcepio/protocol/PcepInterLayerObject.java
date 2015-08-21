@@ -53,11 +53,6 @@ public interface PcepInterLayerObject {
     void setbIFlag(boolean value);
 
     /**
-     * Prints attributes of INTER Layer object.
-     */
-    void print();
-
-    /**
      * Writes the INTER Layer Object into channel buffer.
      *
      * @param bb channel buffer

@@ -102,12 +102,6 @@ public interface PcepStateReport {
          * @throws PcepParseException when mandatory object is not set
          */
         int write(ChannelBuffer bb) throws PcepParseException;
-
-        /***
-         * Prints the attribute of PCEP Message Path.
-         */
-        void print();
-
     }
 
     /**
@@ -151,11 +145,6 @@ public interface PcepStateReport {
      * @param msgPath Pcep MsgPath object
      */
     void setMsgPath(PcepMsgPath msgPath);
-
-    /**
-     * Prints the attribute of PCEP state report.
-     */
-    public void print();
 
     /**
      * Builder interface with get and set functions to build PcepStateReport.

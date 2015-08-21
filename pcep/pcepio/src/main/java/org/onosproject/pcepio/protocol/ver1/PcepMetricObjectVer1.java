@@ -362,26 +362,8 @@ public class PcepMetricObjectVer1 implements PcepMetricObject {
     }
 
     @Override
-    public void print() {
-
-        log.debug("METRIC OBJECT");
-        long lTemp = iMetricVal & 0xFFFFFFFF;
-        log.debug("iMetricVal: " + lTemp);
-        lTemp = (bBFlag) ? 1 : 0;
-        log.debug("B Flag: " + lTemp);
-        lTemp = (bCFlag) ? 1 : 0;
-        log.debug("C Flag: " + lTemp);
-        lTemp = bType & 0xFF;
-        log.debug("Type: " + lTemp);
-    }
-
-    @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("Metric value", iMetricVal)
-                .add("B flag", bBFlag)
-                .add("C flag", bCFlag)
-                .add("B-type", bType)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("MetricValue", iMetricVal).add("BFlag", bBFlag)
+                .add("CFlag", bCFlag).add("BType", bType).toString();
     }
 }

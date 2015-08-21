@@ -112,11 +112,6 @@ public interface PcepRPObject {
     void setOptionalTlv(LinkedList<PcepValueType> llOptionalTlv);
 
     /**
-     * Prints attributes of RP object.
-     */
-    void print();
-
-    /**
      * Writes the RP Object into channel buffer.
      *
      * @param bb channel buffer

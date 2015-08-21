@@ -41,11 +41,6 @@ public interface PcepIroObject {
     void setSubObjects(LinkedList<PcepValueType> llSubObjects);
 
     /**
-     * Prints attributes of IRO object.
-     */
-    void print();
-
-    /**
      * Writes the IRO into channel buffer.
      *
      * @param bb channel buffer

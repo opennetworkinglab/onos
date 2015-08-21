@@ -1,7 +1,6 @@
 package org.onosproject.pcepio.types;
 
 import java.util.LinkedList;
-import java.util.ListIterator;
 
 import org.onosproject.pcepio.protocol.PcepLabelObject;
 import org.onosproject.pcepio.protocol.PcepLspObject;
@@ -36,7 +35,7 @@ public class PcepLabelDownload {
     }
 
     /**
-     * Sets the Pcep Srp Object.
+     * Sets the Pcep SRP Object.
      *
      * @param srpobj PCEP SRP Object
      */
@@ -80,27 +79,9 @@ public class PcepLabelDownload {
         this.llLabelList = llLabelList;
     }
 
-    /**
-     * Prints the attribute of PcepLableObject.
-     */
-    public void print() {
-        log.debug("LABEL DOWNLOAD:");
-        srpObject.print();
-        lspObject.print();
-
-        log.debug("label-list:");
-        ListIterator<PcepLabelObject> listIterator = llLabelList.listIterator();
-        while (listIterator.hasNext()) {
-            listIterator.next().print();
-        }
-    }
-
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("SRP object", srpObject)
-                .add("LSP object", lspObject)
-                .add("label object list", llLabelList)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("SrpObject", srpObject).add("LspObject", lspObject)
+                .add("LabelObjectList", llLabelList).toString();
     }
 }

@@ -54,11 +54,6 @@ public interface PcepEndPointsObject {
     void setDestIpAddress(int destIpAddress);
 
     /**
-     * Prints attributes of EndPoints object.
-     */
-    void print();
-
-    /**
      * Writes the EndPointsObject into channel buffer.
      *
      * @param bb channel buffer

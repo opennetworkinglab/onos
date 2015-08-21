@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.MoreObjects;
 
 /**
- * Provides Autonomous System Tlv which contains opaque value (32 Bit AS Number).
+ * Provides Autonomous-System-Tlv which contains opaque value (32 Bit AS Number).
  */
 public class AutonomousSystemTlv implements PcepValueType {
 
@@ -47,28 +47,28 @@ public class AutonomousSystemTlv implements PcepValueType {
     private final int rawValue;
 
     /**
-     * constructor to initialize Autonomous system tlv value.
+     * Constructor to initialize rawValue.
      *
-     * @param rawValue value of Autonomous system tlv
+     * @param rawValue Autonomous-System-Tlv
      */
     public AutonomousSystemTlv(int rawValue) {
         this.rawValue = rawValue;
     }
 
     /**
-     * To create instance of AutonomousSystemTlv.
+     * Returns newly created AutonomousSystemTlv object.
      *
-     * @param raw opaque value ofc 32 Bit AS Number
-     * @return object of AutonomousSystemTlv
+     * @param raw value of opaque.
+     * @return object of Autonomous-System-Tlv
      */
     public static AutonomousSystemTlv of(final int raw) {
         return new AutonomousSystemTlv(raw);
     }
 
     /**
-     * Returns opaque value of 32 Bit AS Number.
+     * Returns opaque value.
      *
-     * @return int value of rawValue
+     * @return rawValue opaque value.
      */
     public int getInt() {
         return rawValue;
@@ -118,19 +118,11 @@ public class AutonomousSystemTlv implements PcepValueType {
     /**
      * Reads the channel buffer and returns object of AutonomousSystemTlv.
      *
-     * @param c type of channel buffer
-     * @return object of AutonomousSystemTlv
+     * @param c input channel buffer
+     * @return object of Autonomous-System-Tlv
      */
     public static AutonomousSystemTlv read(ChannelBuffer c) {
         return AutonomousSystemTlv.of(c.readInt());
-    }
-
-    @Override
-    public void print() {
-        log.debug("AutonomousSystemTlv");
-        log.debug("Type: " + TYPE);
-        log.debug("Length: " + LENGTH);
-        log.debug("Value: " + rawValue);
     }
 
     @Override

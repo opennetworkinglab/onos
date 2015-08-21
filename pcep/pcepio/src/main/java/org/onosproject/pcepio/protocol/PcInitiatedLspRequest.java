@@ -95,11 +95,6 @@ public interface PcInitiatedLspRequest {
     void setPcepAttribute(PcepAttribute pcepAttribute);
 
     /**
-     * Prints the attribute of PC-INITIATED LSP INITIATION REQUEST.
-     */
-    void print();
-
-    /**
      * Builder interface with get and set functions to build PcInitiatedLspRequest.
      */
     interface Builder {

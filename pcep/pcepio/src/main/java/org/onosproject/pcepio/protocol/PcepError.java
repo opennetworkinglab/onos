@@ -77,11 +77,6 @@ public interface PcepError {
     int write(ChannelBuffer bb) throws PcepParseException;
 
     /**
-     * Prints the attributes of PCEP Error.
-     */
-    void print();
-
-    /**
      * Builder interface with get and set functions to build PcepError.
      */
     interface Builder {

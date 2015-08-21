@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 
 /**
  * Provides IPv6 Sub Object.
@@ -204,25 +205,18 @@ public class IPv6SubObject implements PcepValueType {
     }
 
     @Override
-    public void print() {
-        log.debug("IPv6SubObject");
-        log.debug("Type: ", TYPE);
-        log.debug("Length: ", LENGTH);
-        if (null != rawValue) {
-            StringBuffer result = new StringBuffer();
-            for (byte b : rawValue) {
-                result.append(String.format("%02X ", b));
-            }
-            log.debug(result.toString());
-        }
-    }
-
-    @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("Type", TYPE)
-                .add("Length", LENGTH)
-                .add("IPv6  Address", rawValue)
-                .toString();
+        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
+
+        toStrHelper.add("Type", TYPE);
+        toStrHelper.add("Length", LENGTH);
+
+        StringBuffer result = new StringBuffer();
+        for (byte b : rawValue) {
+            result.append(String.format("%02X ", b));
+        }
+        toStrHelper.add("Value", result);
+
+        return toStrHelper.toString();
     }
 }

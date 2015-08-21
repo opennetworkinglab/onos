@@ -379,25 +379,8 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
     }
 
     @Override
-    public void print() {
-
-        log.debug("SRP OBJECT");
-        long lTemp = (bRFlag) ? 1 : 0;
-        log.debug("r Flag: " + lTemp);
-        log.debug("SrpID: " + srpId);
-
-        log.debug("OPTIONAL TLV");
-        ListIterator<PcepValueType> listIterator = llOptionalTlv.listIterator();
-        while (listIterator.hasNext()) {
-            listIterator.next().print();
-        }
-    }
-    @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("R flag", bRFlag)
-                .add("SRP ID", srpId)
-                .add("Optional tlv list", llOptionalTlv)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("RFlag", bRFlag).add("SRPID", srpId)
+                .add("OptionalTlvList", llOptionalTlv).toString();
     }
 }

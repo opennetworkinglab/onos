@@ -163,18 +163,8 @@ public class PcepMsgPathVer1 implements PcepMsgPath {
     }
 
     @Override
-    public void print() {
-
-        log.debug("PcepMsgPath");
-        eroObj.print();
-        attrList.print();
-    }
-
-    @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("ERO object", eroObj)
-                .add("Attribute list", attrList)
+        return MoreObjects.toStringHelper(getClass()).add("EroObject", eroObj).add("AttributeList", attrList)
                 .toString();
     }
 }

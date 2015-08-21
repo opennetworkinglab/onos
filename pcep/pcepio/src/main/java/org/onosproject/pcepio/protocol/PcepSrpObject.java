@@ -71,11 +71,6 @@ public interface PcepSrpObject {
     LinkedList<PcepValueType> getOptionalTlv();
 
     /**
-     * Prints attributes of SRP object.
-     */
-    void print();
-
-    /**
      * Writes the SRP Object into channel buffer.
      *
      * @param bb channel buffer
@@ -172,6 +167,5 @@ public interface PcepSrpObject {
          * @return Builder by setting I flag
          */
         Builder setIFlag(boolean value);
-
     }
 }

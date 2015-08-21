@@ -104,10 +104,10 @@ public class PcepNaiUnnumberedAdjacencyIpv4 implements PcepNai {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("local Node Id", localNodeId)
-                .add("local Interface Id", localInterfaceId)
-                .add("remote Node Id", remoteNodeId)
-                .add("remote Interface Id:", remoteInterfaceId)
+                .add("localNodeId", localNodeId)
+                .add("localInterfaceId", localInterfaceId)
+                .add("remoteNodeId", remoteNodeId)
+                .add("remoteInterfaceId:", remoteInterfaceId)
                 .toString();
     }
 }

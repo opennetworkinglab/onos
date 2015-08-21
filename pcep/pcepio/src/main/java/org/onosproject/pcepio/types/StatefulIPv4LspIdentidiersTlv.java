@@ -198,28 +198,13 @@ public class StatefulIPv4LspIdentidiersTlv implements PcepValueType {
     }
 
     @Override
-    public void print() {
-
-        log.debug("StatefulIPv4LspIdentidiersTlv");
-        log.debug("Type: " + TYPE);
-        log.debug("Length: " + LENGTH);
-        log.debug("Ipv4IngressAddress: " + ipv4IngressAddress);
-        log.debug("LspId: " + lspId);
-        log.debug("TunnelId: " + tunnelId);
-        log.debug("ExtendedTunnelId: " + extendedTunnelId);
-        log.debug("Ipv4EgressAddress: " + ipv4EgressAddress);
-    }
-
-    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("Type:", TYPE)
                 .add("Length:", LENGTH)
                 .add("Ipv4IngressAddress:", ipv4IngressAddress)
-                .add("LspId:", lspId)
-                .add("TunnelId:", tunnelId)
+                .add("LspId:", lspId).add("TunnelId:", tunnelId)
                 .add("ExtendedTunnelId:", extendedTunnelId)
-                .add("Ipv4EgressAddress:", ipv4EgressAddress)
-                .toString();
+                .add("Ipv4EgressAddress:", ipv4EgressAddress).toString();
     }
 }

@@ -26,6 +26,8 @@ import org.onosproject.pcepio.protocol.PcepVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.MoreObjects;
+
 class PcepKeepaliveMsgVer1 implements PcepKeepaliveMsg {
 
     /*
@@ -134,7 +136,7 @@ class PcepKeepaliveMsgVer1 implements PcepKeepaliveMsg {
     }
 
     @Override
-    public void print() {
-        log.debug("KEEPALIVE MESSAGE");
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass()).toString();
     }
 }

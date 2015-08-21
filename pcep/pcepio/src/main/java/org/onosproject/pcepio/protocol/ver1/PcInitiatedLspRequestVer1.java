@@ -276,47 +276,21 @@ public class PcInitiatedLspRequestVer1 implements PcInitiatedLspRequest {
             this.bIsPcepAttributeSet = true;
             return this;
         }
-
-    }
-
-    @Override
-    public void print() {
-
-        log.debug("     PC-INITIATED LSP INITIATION REQUEST");
-        srpObject.print();
-        lspObject.print();
-        //if PC initiate then print end point and ero object [pcepattribute].
-        if (endPointsObject instanceof PcepEndPointsObject) {
-            endPointsObject.print();
-        }
-
-        if (eroObject instanceof PcepEroObject) {
-            eroObject.print();
-        }
-
-        if (pcepAttribute instanceof PcepAttribute) {
-            pcepAttribute.print();
-        }
     }
 
     @Override
     public String toString() {
         ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
-        toStrHelper
-        .add("SRP Object", srpObject)
-        .add("LSP object", lspObject);
+        toStrHelper.add("SrpObject", srpObject).add("LspObject", lspObject);
 
         if (endPointsObject instanceof PcepEndPointsObject) {
-            toStrHelper
-            .add("End Point Object", endPointsObject);
+            toStrHelper.add("EndPointObject", endPointsObject);
         }
         if (eroObject instanceof PcepEroObject) {
-            toStrHelper
-            .add("ERO Object", eroObject);
+            toStrHelper.add("EroObject", eroObject);
         }
         if (pcepAttribute instanceof PcepAttribute) {
-            toStrHelper
-            .add("Pcep Attribute", pcepAttribute);
+            toStrHelper.add("PcepAttribute", pcepAttribute);
         }
         return toStrHelper.toString();
     }

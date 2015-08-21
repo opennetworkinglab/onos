@@ -282,25 +282,11 @@ public class PcepIroObjectVer1 implements PcepIroObject {
             this.bIsIFlagSet = true;
             return this;
         }
-
-    }
-
-    @Override
-    public void print() {
-        log.debug("IRO OBJECT");
-        iroObjHeader.print();
-        log.debug("SUBOBJECTS:");
-        ListIterator<PcepValueType> listIterator = llSubObjects.listIterator();
-        while (listIterator.hasNext()) {
-            listIterator.next().print();
-        }
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass())
-                .add("IRO object header", iroObjHeader)
-                .add("List of sub object", llSubObjects)
-                .toString();
+        return MoreObjects.toStringHelper(getClass()).add("IroObjectHeader", iroObjHeader)
+                .add("SubObjects", llSubObjects).toString();
     }
 }

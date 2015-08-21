@@ -82,11 +82,6 @@ public interface PcepLabelRangeObject {
     int getLabelBase();
 
     /**
-     * Prints attributes of LabelRange object.
-     */
-    void print();
-
-    /**
      * Writes the LabelRange Object into channel buffer.
      *
      * @param bb channel buffer
