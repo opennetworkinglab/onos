@@ -305,6 +305,7 @@ public class ConsistentResourceStore implements ResourceStore {
 
     /**
      * Removes teh values from the existing values associated with the specified key.
+     * If the map doesn't contain the given values, removal will not happen.
      *
      * @param map map holding multiple values for a key
      * @param key key specifying values
@@ -315,16 +316,18 @@ public class ConsistentResourceStore implements ResourceStore {
      */
     private <K, V> boolean removeValues(TransactionalMap<K, List<V>> map, K key, List<V> values) {
         List<V> oldValues = map.get(key);
-        List<V> newValues;
         if (oldValues == null) {
-            newValues = new ArrayList<>();
-        } else {
-            LinkedHashSet<V> newSet = new LinkedHashSet<>(oldValues);
-            newSet.removeAll(values);
-            newValues = new ArrayList<>(newSet);
+            return map.replace(key, oldValues, new ArrayList<>());
         }
 
-        return map.replace(key, oldValues, newValues);
+        LinkedHashSet<V> oldSet = new LinkedHashSet<>(oldValues);
+        if (values.stream().allMatch(x -> !oldSet.contains(x))) {
+            // don't write map because none of the values are stored
+            return true;
+        }
+
+        oldSet.removeAll(values);
+        return map.replace(key, oldValues, new ArrayList<>(oldSet));
     }
 
     /**

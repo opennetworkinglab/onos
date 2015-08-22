@@ -26,7 +26,7 @@ public interface ResourceStore {
     /**
      * Unregisters the resources in transactional way.
      * The state after completion of this method is all the resources are unregistered,
-     * or no resource is unregistered. The whole unregistration fails when any one of the
+     * or none of the given resources is unregistered. The whole unregistration fails when any one of the
      * resource can't be unregistered.
      *
      * @param resources resources to be unregistered
