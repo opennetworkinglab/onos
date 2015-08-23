@@ -86,7 +86,7 @@ import static org.onlab.util.Tools.groupedThreads;
 @Component(immediate = true)
 @Service
 public class OpenFlowControllerImpl implements OpenFlowController {
-    private static final int DEFAULT_OFPORT = 6633;
+    private static final int DEFAULT_OFPORT = 6653;
     private static final int DEFAULT_WORKER_THREADS = 16;
 
     private static final Logger log =
@@ -103,7 +103,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     protected ComponentConfigService cfgService;
 
     @Property(name = "openflowPort", intValue = DEFAULT_OFPORT,
-            label = "Port number used by OpenFlow protocol; default is 6633")
+            label = "Port number used by OpenFlow protocol; default is 6653")
     private int openflowPort = DEFAULT_OFPORT;
 
     @Property(name = "workerThreads", intValue = DEFAULT_WORKER_THREADS,

@@ -65,7 +65,7 @@ public class Controller {
     private ChannelGroup cg;
 
     // Configuration options
-    protected int openFlowPort = 6633;
+    protected int openFlowPort = 6653;
     protected int workerThreads = 0;
 
     // Start time of the controller
@@ -160,8 +160,8 @@ public class Controller {
         if (ofPort != null) {
             this.openFlowPort = Integer.parseInt(ofPort);
         }
-
         log.debug("OpenFlow port set to {}", this.openFlowPort);
+
         String threads = configParams.get("workerthreads");
         this.workerThreads = threads != null ? Integer.parseInt(threads) : 16;
         log.debug("Number of worker threads set to {}", this.workerThreads);

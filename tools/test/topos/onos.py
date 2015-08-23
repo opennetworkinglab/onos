@@ -31,7 +31,7 @@ class ONOS( Controller ):
         Controller.__init__( self, name, **kwargs )
         # the following have been done for us:
         #self.ip = ip ('127.0.0.1')
-        #self.port = port (6633)
+        #self.port = port (6653)
         #self.protocol = protocol ('tcp')
         #self.checkListening()
 

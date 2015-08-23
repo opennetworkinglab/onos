@@ -69,7 +69,7 @@ topos = {'optical': ( lambda: OpticalTopo() )}
 
 
 def run():
-    c = RemoteController('c','127.0.0.1',6633)
+    c = RemoteController('c','127.0.0.1',6653)
     net = Mininet( topo=OpticalTopo(),controller=None,autoSetMacs=True)
     net.addController(c)
     net.start()

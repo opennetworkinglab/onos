@@ -45,11 +45,11 @@ RUN mkdir onos && \
 
 
 # Ports
-# 6633 - OpenFlow
+# 6653 - OpenFlow
 # 8181 - GUI
 # 8101 - ONOS CLI
 # 9876 - ONOS CLUSTER COMMUNICATION
-EXPOSE 6633 8181 8101 9876
+EXPOSE 6653 8181 8101 9876
 
 # Get ready to run command
 WORKDIR /root/onos

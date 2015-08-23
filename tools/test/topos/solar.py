@@ -23,7 +23,7 @@ class Solar(object):
         # We are creating the controller with local-loopback on purpose to avoid
         # having the switches connect immediately. Instead, we'll set controller
         # explicitly for each switch after configuring it as we want.
-        self.ctrls = [ RemoteController(cname, cip, 6633) for cip in cips ]
+        self.ctrls = [ RemoteController(cname, cip, 6653) for cip in cips ]
         self.net = Mininet(controller=RemoteController, switch = OVSKernelSwitch,
                            build=False)
 

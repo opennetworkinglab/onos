@@ -86,7 +86,7 @@ public class CordFabricManager implements FabricService {
 
     private short radiusPort = 1812;
 
-    private short ofPort = 6633;
+    private short ofPort = 6653;
 
     private DeviceId fabricDeviceId = DeviceId.deviceId("of:5e3e486e73000187");
 

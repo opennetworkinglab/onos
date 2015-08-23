@@ -6,7 +6,7 @@
 controllers=""
 
 for node in $ONOS_INSTANCES; do
-    controllers="$controllers tcp:$node:${OF_PORT:-6633}"
+    controllers="$controllers tcp:$node:${OF_PORT:-6653}"
 done
 
 ssh ${ONOS_USER:-sdn}@$OCN "
