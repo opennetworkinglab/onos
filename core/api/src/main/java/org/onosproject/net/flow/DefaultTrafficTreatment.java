@@ -22,6 +22,7 @@ import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.IndexedLambda;
@@ -416,23 +417,47 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             return add(Instructions.modTunnelId(tunnelId));
         }
 
+        @Deprecated
         @Override
         public TrafficTreatment.Builder setTcpSrc(short port) {
             return add(Instructions.modTcpSrc(port));
         }
 
         @Override
+        public TrafficTreatment.Builder setTcpSrc(TpPort port) {
+            return add(Instructions.modTcpSrc(port));
+        }
+
+        @Deprecated
+        @Override
         public TrafficTreatment.Builder setTcpDst(short port) {
             return add(Instructions.modTcpDst(port));
         }
 
+        @Override
+        public TrafficTreatment.Builder setTcpDst(TpPort port) {
+            return add(Instructions.modTcpDst(port));
+        }
+
+        @Deprecated
         @Override
         public TrafficTreatment.Builder setUdpSrc(short port) {
             return add(Instructions.modUdpSrc(port));
         }
 
         @Override
+        public TrafficTreatment.Builder setUdpSrc(TpPort port) {
+            return add(Instructions.modUdpSrc(port));
+        }
+
+        @Deprecated
+        @Override
         public TrafficTreatment.Builder setUdpDst(short port) {
+            return add(Instructions.modUdpDst(port));
+        }
+
+        @Override
+        public TrafficTreatment.Builder setUdpDst(TpPort port) {
             return add(Instructions.modUdpDst(port));
         }
 

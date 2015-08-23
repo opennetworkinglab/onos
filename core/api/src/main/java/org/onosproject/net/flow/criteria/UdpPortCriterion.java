@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.flow.criteria;
 
+import org.onlab.packet.TpPort;
+
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -23,19 +25,18 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * Implementation of UDP port criterion (16 bits unsigned integer).
  */
 public final class UdpPortCriterion implements Criterion {
-    private static final int MASK = 0xffff;
-    private final int udpPort;              // Port value: 16 bits
+    private final TpPort udpPort;
     private final Type type;
 
     /**
      * Constructor.
      *
-     * @param udpPort the UDP port to match (16 bits unsigned integer)
+     * @param udpPort the UDP port to match
      * @param type the match type. Should be either Type.UDP_SRC or
      * Type.UDP_DST
      */
-    UdpPortCriterion(int udpPort, Type type) {
-        this.udpPort = udpPort & MASK;
+    UdpPortCriterion(TpPort udpPort, Type type) {
+        this.udpPort = udpPort;
         this.type = type;
     }
 
@@ -47,9 +48,9 @@ public final class UdpPortCriterion implements Criterion {
     /**
      * Gets the UDP port to match.
      *
-     * @return the UDP port to match (16 bits unsigned integer)
+     * @return the UDP port to match
      */
-    public int udpPort() {
+    public TpPort udpPort() {
         return this.udpPort;
     }
 

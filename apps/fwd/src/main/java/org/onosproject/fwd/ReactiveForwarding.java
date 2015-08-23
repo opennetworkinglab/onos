@@ -32,6 +32,7 @@ import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TCP;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onosproject.cfg.ComponentConfigService;
@@ -587,14 +588,14 @@ public class ReactiveForwarding {
                 if (matchTcpUdpPorts && ipv4Protocol == IPv4.PROTOCOL_TCP) {
                     TCP tcpPacket = (TCP) ipv4Packet.getPayload();
                     selectorBuilder.matchIPProtocol(ipv4Protocol)
-                            .matchTcpSrc(tcpPacket.getSourcePort())
-                            .matchTcpDst(tcpPacket.getDestinationPort());
+                            .matchTcpSrc(TpPort.tpPort(tcpPacket.getSourcePort()))
+                            .matchTcpDst(TpPort.tpPort(tcpPacket.getDestinationPort()));
                 }
                 if (matchTcpUdpPorts && ipv4Protocol == IPv4.PROTOCOL_UDP) {
                     UDP udpPacket = (UDP) ipv4Packet.getPayload();
                     selectorBuilder.matchIPProtocol(ipv4Protocol)
-                            .matchUdpSrc(udpPacket.getSourcePort())
-                            .matchUdpDst(udpPacket.getDestinationPort());
+                            .matchUdpSrc(TpPort.tpPort(udpPacket.getSourcePort()))
+                            .matchUdpDst(TpPort.tpPort(udpPacket.getDestinationPort()));
                 }
                 if (matchIcmpFields && ipv4Protocol == IPv4.PROTOCOL_ICMP) {
                     ICMP icmpPacket = (ICMP) ipv4Packet.getPayload();
@@ -628,14 +629,14 @@ public class ReactiveForwarding {
                 if (matchTcpUdpPorts && ipv6NextHeader == IPv6.PROTOCOL_TCP) {
                     TCP tcpPacket = (TCP) ipv6Packet.getPayload();
                     selectorBuilder.matchIPProtocol(ipv6NextHeader)
-                            .matchTcpSrc(tcpPacket.getSourcePort())
-                            .matchTcpDst(tcpPacket.getDestinationPort());
+                            .matchTcpSrc(TpPort.tpPort(tcpPacket.getSourcePort()))
+                            .matchTcpDst(TpPort.tpPort(tcpPacket.getDestinationPort()));
                 }
                 if (matchTcpUdpPorts && ipv6NextHeader == IPv6.PROTOCOL_UDP) {
                     UDP udpPacket = (UDP) ipv6Packet.getPayload();
                     selectorBuilder.matchIPProtocol(ipv6NextHeader)
-                            .matchUdpSrc(udpPacket.getSourcePort())
-                            .matchUdpDst(udpPacket.getDestinationPort());
+                            .matchUdpSrc(TpPort.tpPort(udpPacket.getSourcePort()))
+                            .matchUdpDst(TpPort.tpPort(udpPacket.getDestinationPort()));
                 }
                 if (matchIcmpFields && ipv6NextHeader == IPv6.PROTOCOL_ICMP6) {
                     ICMP6 icmp6Packet = (ICMP6) ipv6Packet.getPayload();

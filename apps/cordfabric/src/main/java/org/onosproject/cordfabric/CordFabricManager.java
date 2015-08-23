@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -119,14 +120,14 @@ public class CordFabricManager implements FabricService {
         TrafficSelector ofInBandMatchUp = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                .matchTcpDst(ofPort)
+                .matchTcpDst(TpPort.tpPort(ofPort))
                 .matchInPort(PortNumber.portNumber(6))
                 .build();
 
         TrafficSelector ofInBandMatchDown = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                .matchTcpSrc(ofPort)
+                .matchTcpSrc(TpPort.tpPort(ofPort))
                 .matchInPort(PortNumber.portNumber(1))
                 .build();
 
@@ -152,14 +153,14 @@ public class CordFabricManager implements FabricService {
                 .matchInPort(PortNumber.portNumber(2))
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpDst(radiusPort)
+                .matchUdpDst(TpPort.tpPort(radiusPort))
                 .build();
 
         TrafficSelector fromRadius = DefaultTrafficSelector.builder()
                 .matchInPort(PortNumber.portNumber(5))
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpDst(radiusPort)
+                .matchUdpDst(TpPort.tpPort(radiusPort))
                 .build();
 
         TrafficTreatment toOlt = DefaultTrafficTreatment.builder()

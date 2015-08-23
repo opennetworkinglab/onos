@@ -20,6 +20,7 @@ import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -321,11 +322,11 @@ public class PeerConnectivityManager {
         }
 
         if (srcTcpPort != null) {
-            builder.matchTcpSrc(srcTcpPort);
+            builder.matchTcpSrc(TpPort.tpPort(srcTcpPort));
         }
 
         if (dstTcpPort != null) {
-            builder.matchTcpDst(dstTcpPort);
+            builder.matchTcpDst(TpPort.tpPort(dstTcpPort));
         }
 
         return builder.build();

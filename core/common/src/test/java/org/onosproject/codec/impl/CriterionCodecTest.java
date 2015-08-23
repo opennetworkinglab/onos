@@ -23,6 +23,7 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
@@ -54,6 +55,7 @@ public class CriterionCodecTest {
     final IpPrefix ipPrefix4 = IpPrefix.valueOf("10.1.1.0/24");
     final IpPrefix ipPrefix6 = IpPrefix.valueOf("fe80::/64");
     final MacAddress mac1 = MacAddress.valueOf("00:00:11:00:00:01");
+    final TpPort tpPort = TpPort.tpPort(40000);
 
     /**
      * Sets up for each test.  Creates a context and fetches the criterion
@@ -219,7 +221,7 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchTcpSrcTest() {
-        Criterion criterion = Criteria.matchTcpSrc((short) 40000);
+        Criterion criterion = Criteria.matchTcpSrc(tpPort);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
     }
@@ -229,7 +231,7 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchTcpDstTest() {
-        Criterion criterion = Criteria.matchTcpDst((short) 40000);
+        Criterion criterion = Criteria.matchTcpDst(tpPort);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
     }
@@ -239,7 +241,7 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchUdpSrcTest() {
-        Criterion criterion = Criteria.matchUdpSrc(40000);
+        Criterion criterion = Criteria.matchUdpSrc(tpPort);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
     }
@@ -249,7 +251,7 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchUdpDstTest() {
-        Criterion criterion = Criteria.matchUdpDst(40000);
+        Criterion criterion = Criteria.matchUdpDst(tpPort);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
     }
@@ -259,7 +261,7 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchSctpSrcTest() {
-        Criterion criterion = Criteria.matchSctpSrc(40000);
+        Criterion criterion = Criteria.matchSctpSrc(tpPort);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
     }
@@ -269,7 +271,7 @@ public class CriterionCodecTest {
      */
     @Test
     public void matchSctpDstTest() {
-        Criterion criterion = Criteria.matchSctpDst(40000);
+        Criterion criterion = Criteria.matchSctpDst(tpPort);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
     }

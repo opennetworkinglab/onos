@@ -19,6 +19,7 @@ import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
@@ -346,8 +347,28 @@ public interface TrafficTreatment {
          *
          * @param port a port number
          * @return a treatment builder
+         * @deprecated in Drake release
          */
+        @Deprecated
         Builder setTcpSrc(short port);
+
+        /**
+         * Sets the src TCP port.
+         *
+         * @param port a port number
+         * @return a treatment builder
+         */
+        Builder setTcpSrc(TpPort port);
+
+        /**
+         * Sets the dst TCP port.
+         *
+         * @param port a port number
+         * @return a treatment builder
+         * @deprecated in Drake release
+         */
+        @Deprecated
+        Builder setTcpDst(short port);
 
         /**
          * Sets the dst TCP port.
@@ -355,7 +376,17 @@ public interface TrafficTreatment {
          * @param port a port number
          * @return a treatment builder
          */
-        Builder setTcpDst(short port);
+        Builder setTcpDst(TpPort port);
+
+        /**
+         * Sets the src UDP port.
+         *
+         * @param port a port number
+         * @return a treatment builder
+         * @deprecated in Drake release
+         */
+        @Deprecated
+        Builder setUdpSrc(short port);
 
         /**
          * Sets the src UDP port.
@@ -363,7 +394,17 @@ public interface TrafficTreatment {
          * @param port a port number
          * @return a treatment builder
          */
-        Builder setUdpSrc(short port);
+        Builder setUdpSrc(TpPort port);
+
+        /**
+         * Sets the dst UDP port.
+         *
+         * @param port a port number
+         * @return a treatment builder
+         * @deprecated in Drake release
+         */
+        @Deprecated
+        Builder setUdpDst(short port);
 
         /**
          * Sets the dst UDP port.
@@ -371,7 +412,7 @@ public interface TrafficTreatment {
          * @param port a port number
          * @return a treatment builder
          */
-        Builder setUdpDst(short port);
+        Builder setUdpDst(TpPort port);
 
         /**
          * Builds an immutable traffic treatment descriptor.

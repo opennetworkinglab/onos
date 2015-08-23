@@ -16,15 +16,16 @@
 package org.onosproject.net.flow.instructions;
 
 import org.junit.Test;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.PortNumber;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.MplsLabel;
-import org.onlab.packet.VlanId;
 
 import com.google.common.testing.EqualsTester;
 
@@ -638,22 +639,22 @@ public class InstructionsTest {
 
     // ModTransportPortInstruction
 
-    private final short l4port1 = 1;
-    private final short l4port2 = 2;
-    private final Instruction modTransportPortInstruction1 = Instructions.modTcpSrc(l4port1);
-    private final Instruction sameAsModTransportPortInstruction1 = Instructions.modTcpSrc(l4port1);
-    private final Instruction modTransportPortInstruction2 = Instructions.modTcpSrc(l4port2);
+    private final TpPort tpPort1 = TpPort.tpPort(1);
+    private final TpPort tpPort2 = TpPort.tpPort(2);
+    private final Instruction modTransportPortInstruction1 = Instructions.modTcpSrc(tpPort1);
+    private final Instruction sameAsModTransportPortInstruction1 = Instructions.modTcpSrc(tpPort1);
+    private final Instruction modTransportPortInstruction2 = Instructions.modTcpSrc(tpPort2);
 
     /**
      * Test the modTcpSrc() method.
      */
     @Test
     public void testModTcpSrcMethod() {
-        final Instruction instruction = Instructions.modTcpSrc(l4port1);
+        final Instruction instruction = Instructions.modTcpSrc(tpPort1);
         final L4ModificationInstruction.ModTransportPortInstruction modTransportPortInstruction =
                 checkAndConvert(instruction, Instruction.Type.L4MODIFICATION,
                                 L4ModificationInstruction.ModTransportPortInstruction.class);
-        assertThat(modTransportPortInstruction.port(), is(equalTo(l4port1)));
+        assertThat(modTransportPortInstruction.port(), is(equalTo(tpPort1)));
         assertThat(modTransportPortInstruction.subtype(),
                    is(equalTo(L4ModificationInstruction.L4SubType.TCP_SRC)));
     }
@@ -663,11 +664,11 @@ public class InstructionsTest {
      */
     @Test
     public void testModTcpDstMethod() {
-        final Instruction instruction = Instructions.modTcpDst(l4port1);
+        final Instruction instruction = Instructions.modTcpDst(tpPort1);
         final L4ModificationInstruction.ModTransportPortInstruction modTransportPortInstruction =
                 checkAndConvert(instruction, Instruction.Type.L4MODIFICATION,
                                 L4ModificationInstruction.ModTransportPortInstruction.class);
-        assertThat(modTransportPortInstruction.port(), is(equalTo(l4port1)));
+        assertThat(modTransportPortInstruction.port(), is(equalTo(tpPort1)));
         assertThat(modTransportPortInstruction.subtype(),
                    is(equalTo(L4ModificationInstruction.L4SubType.TCP_DST)));
     }
@@ -677,11 +678,11 @@ public class InstructionsTest {
      */
     @Test
     public void testModUdpSrcMethod() {
-        final Instruction instruction = Instructions.modUdpSrc(l4port1);
+        final Instruction instruction = Instructions.modUdpSrc(tpPort1);
         final L4ModificationInstruction.ModTransportPortInstruction modTransportPortInstruction =
                 checkAndConvert(instruction, Instruction.Type.L4MODIFICATION,
                                 L4ModificationInstruction.ModTransportPortInstruction.class);
-        assertThat(modTransportPortInstruction.port(), is(equalTo(l4port1)));
+        assertThat(modTransportPortInstruction.port(), is(equalTo(tpPort1)));
         assertThat(modTransportPortInstruction.subtype(),
                    is(equalTo(L4ModificationInstruction.L4SubType.UDP_SRC)));
     }
@@ -691,11 +692,11 @@ public class InstructionsTest {
      */
     @Test
     public void testModUdpDstMethod() {
-        final Instruction instruction = Instructions.modUdpDst(l4port1);
+        final Instruction instruction = Instructions.modUdpDst(tpPort1);
         final L4ModificationInstruction.ModTransportPortInstruction modTransportPortInstruction =
                 checkAndConvert(instruction, Instruction.Type.L4MODIFICATION,
                                 L4ModificationInstruction.ModTransportPortInstruction.class);
-        assertThat(modTransportPortInstruction.port(), is(equalTo(l4port1)));
+        assertThat(modTransportPortInstruction.port(), is(equalTo(tpPort1)));
         assertThat(modTransportPortInstruction.subtype(),
                    is(equalTo(L4ModificationInstruction.L4SubType.UDP_DST)));
     }

@@ -82,8 +82,8 @@ public class UDPTest {
     @Test
     public void testSerialize() {
         UDP udp = new UDP();
-        udp.setSourcePort((short) 0x50);
-        udp.setDestinationPort((short) 0x60);
+        udp.setSourcePort(0x50);
+        udp.setDestinationPort(0x60);
 
         udp.setParent(ipv4);
         assertArrayEquals(bytePacketUDP4, udp.serialize());
@@ -109,8 +109,8 @@ public class UDPTest {
     public void testDeserialize() throws Exception {
         UDP udp = deserializer.deserialize(bytePacketUDP4, 0, bytePacketUDP4.length);
 
-        assertThat(udp.getSourcePort(), is((short) 0x50));
-        assertThat(udp.getDestinationPort(), is((short) 0x60));
+        assertThat(udp.getSourcePort(), is(0x50));
+        assertThat(udp.getDestinationPort(), is(0x60));
         assertThat(udp.getLength(), is((short) 8));
         assertThat(udp.getChecksum(), is((short) 0x7bda));
     }
@@ -121,12 +121,12 @@ public class UDPTest {
     @Test
     public void testEqual() {
         UDP udp1 = new UDP();
-        udp1.setSourcePort((short) 0x50);
-        udp1.setDestinationPort((short) 0x60);
+        udp1.setSourcePort(0x50);
+        udp1.setDestinationPort(0x60);
 
         UDP udp2 = new UDP();
-        udp2.setSourcePort((short) 0x70);
-        udp2.setDestinationPort((short) 0x60);
+        udp2.setSourcePort(0x70);
+        udp2.setDestinationPort(0x60);
 
         assertTrue(udp1.equals(udp1));
         assertFalse(udp1.equals(udp2));

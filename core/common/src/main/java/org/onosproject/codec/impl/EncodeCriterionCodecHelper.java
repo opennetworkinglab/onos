@@ -228,7 +228,7 @@ public final class EncodeCriterionCodecHelper {
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
             final TcpPortCriterion tcpPortCriterion =
                     (TcpPortCriterion) criterion;
-            return root.put(CriterionCodec.TCP_PORT, tcpPortCriterion.tcpPort());
+            return root.put(CriterionCodec.TCP_PORT, tcpPortCriterion.tcpPort().toInt());
         }
     }
 
@@ -237,7 +237,7 @@ public final class EncodeCriterionCodecHelper {
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
             final UdpPortCriterion udpPortCriterion =
                     (UdpPortCriterion) criterion;
-            return root.put(CriterionCodec.UDP_PORT, udpPortCriterion.udpPort());
+            return root.put(CriterionCodec.UDP_PORT, udpPortCriterion.udpPort().toInt());
         }
     }
 
@@ -246,7 +246,7 @@ public final class EncodeCriterionCodecHelper {
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
             final SctpPortCriterion sctpPortCriterion =
                     (SctpPortCriterion) criterion;
-            return root.put(CriterionCodec.SCTP_PORT, sctpPortCriterion.sctpPort());
+            return root.put(CriterionCodec.SCTP_PORT, sctpPortCriterion.sctpPort().toInt());
         }
     }
 

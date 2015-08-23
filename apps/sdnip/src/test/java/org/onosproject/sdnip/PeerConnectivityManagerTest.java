@@ -26,6 +26,7 @@ import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
@@ -290,10 +291,10 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 .matchIPDst(IpPrefix.valueOf(dstPrefix));
 
         if (srcTcpPort != null) {
-            builder.matchTcpSrc(srcTcpPort);
+            builder.matchTcpSrc(TpPort.tpPort(srcTcpPort));
         }
         if (dstTcpPort != null) {
-            builder.matchTcpDst(dstTcpPort);
+            builder.matchTcpDst(TpPort.tpPort(dstTcpPort));
         }
 
         PointToPointIntent intent = PointToPointIntent.builder()

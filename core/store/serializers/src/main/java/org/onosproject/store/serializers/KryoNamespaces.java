@@ -29,6 +29,7 @@ import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
 import org.onlab.util.Frequency;
@@ -320,6 +321,7 @@ public final class KryoNamespaces {
                     IPEcnCriterion.class,
                     IPProtocolCriterion.class,
                     IPCriterion.class,
+                    TpPort.class,
                     TcpPortCriterion.class,
                     UdpPortCriterion.class,
                     SctpPortCriterion.class,

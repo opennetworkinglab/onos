@@ -268,32 +268,32 @@ public abstract class FlowModBuilder {
             case TCP_SRC:
                 tcpPortCriterion = (TcpPortCriterion) c;
                 mBuilder.setExact(MatchField.TCP_SRC,
-                                  TransportPort.of(tcpPortCriterion.tcpPort()));
+                                  TransportPort.of(tcpPortCriterion.tcpPort().toInt()));
                 break;
             case TCP_DST:
                 tcpPortCriterion = (TcpPortCriterion) c;
                 mBuilder.setExact(MatchField.TCP_DST,
-                                  TransportPort.of(tcpPortCriterion.tcpPort()));
+                                  TransportPort.of(tcpPortCriterion.tcpPort().toInt()));
                 break;
             case UDP_SRC:
                 udpPortCriterion = (UdpPortCriterion) c;
                 mBuilder.setExact(MatchField.UDP_SRC,
-                                  TransportPort.of(udpPortCriterion.udpPort()));
+                                  TransportPort.of(udpPortCriterion.udpPort().toInt()));
                 break;
             case UDP_DST:
                 udpPortCriterion = (UdpPortCriterion) c;
                 mBuilder.setExact(MatchField.UDP_DST,
-                                  TransportPort.of(udpPortCriterion.udpPort()));
+                                  TransportPort.of(udpPortCriterion.udpPort().toInt()));
                 break;
             case SCTP_SRC:
                 sctpPortCriterion = (SctpPortCriterion) c;
                 mBuilder.setExact(MatchField.SCTP_SRC,
-                                  TransportPort.of(sctpPortCriterion.sctpPort()));
+                                  TransportPort.of(sctpPortCriterion.sctpPort().toInt()));
                 break;
             case SCTP_DST:
                 sctpPortCriterion = (SctpPortCriterion) c;
                 mBuilder.setExact(MatchField.SCTP_DST,
-                                  TransportPort.of(sctpPortCriterion.sctpPort()));
+                                  TransportPort.of(sctpPortCriterion.sctpPort().toInt()));
                 break;
             case ICMPV4_TYPE:
                 IcmpTypeCriterion icmpType = (IcmpTypeCriterion) c;

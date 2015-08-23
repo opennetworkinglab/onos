@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.flow.instructions;
 
+import org.onlab.packet.TpPort;
+
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -69,9 +71,9 @@ public abstract class L4ModificationInstruction implements Instruction {
     public static final class ModTransportPortInstruction extends L4ModificationInstruction {
 
         private final L4SubType subtype;
-        private final short port;
+        private final TpPort port;
 
-        public ModTransportPortInstruction(L4SubType subtype, short port) {
+        public ModTransportPortInstruction(L4SubType subtype, TpPort port) {
             this.subtype = subtype;
             this.port = port;
         }
@@ -81,7 +83,7 @@ public abstract class L4ModificationInstruction implements Instruction {
             return this.subtype;
         }
 
-        public short port() {
+        public TpPort port() {
             return this.port;
         }
 

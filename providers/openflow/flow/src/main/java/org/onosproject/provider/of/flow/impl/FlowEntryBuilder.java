@@ -30,6 +30,7 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.DeviceId;
@@ -417,22 +418,22 @@ public class FlowEntryBuilder {
         case TCP_DST:
             @SuppressWarnings("unchecked")
             OFOxm<TransportPort> tcpdst = (OFOxm<TransportPort>) oxm;
-            builder.setTcpDst((short) tcpdst.getValue().getPort());
+            builder.setTcpDst(TpPort.tpPort(tcpdst.getValue().getPort()));
             break;
         case TCP_SRC:
             @SuppressWarnings("unchecked")
             OFOxm<TransportPort> tcpsrc = (OFOxm<TransportPort>) oxm;
-            builder.setTcpSrc((short) tcpsrc.getValue().getPort());
+            builder.setTcpSrc(TpPort.tpPort(tcpsrc.getValue().getPort()));
             break;
         case UDP_DST:
             @SuppressWarnings("unchecked")
             OFOxm<TransportPort> udpdst = (OFOxm<TransportPort>) oxm;
-            builder.setUdpDst((short) udpdst.getValue().getPort());
+            builder.setUdpDst(TpPort.tpPort(udpdst.getValue().getPort()));
             break;
         case UDP_SRC:
             @SuppressWarnings("unchecked")
             OFOxm<TransportPort> udpsrc = (OFOxm<TransportPort>) oxm;
-            builder.setUdpSrc((short) udpsrc.getValue().getPort());
+            builder.setUdpSrc(TpPort.tpPort(udpsrc.getValue().getPort()));
             break;
         case ARP_OP:
         case ARP_SHA:
@@ -588,16 +589,16 @@ public class FlowEntryBuilder {
                 builder.matchIPDst(ip4Prefix);
                 break;
             case TCP_SRC:
-                builder.matchTcpSrc((short) match.get(MatchField.TCP_SRC).getPort());
+                builder.matchTcpSrc(TpPort.tpPort(match.get(MatchField.TCP_SRC).getPort()));
                 break;
             case TCP_DST:
-                builder.matchTcpDst((short) match.get(MatchField.TCP_DST).getPort());
+                builder.matchTcpDst(TpPort.tpPort(match.get(MatchField.TCP_DST).getPort()));
                 break;
             case UDP_SRC:
-                builder.matchUdpSrc((short) match.get(MatchField.UDP_SRC).getPort());
+                builder.matchUdpSrc(TpPort.tpPort(match.get(MatchField.UDP_SRC).getPort()));
                 break;
             case UDP_DST:
-                builder.matchUdpDst((short) match.get(MatchField.UDP_DST).getPort());
+                builder.matchUdpDst(TpPort.tpPort(match.get(MatchField.UDP_DST).getPort()));
                 break;
             case MPLS_LABEL:
                 builder.matchMplsLabel(MplsLabel.mplsLabel((int) match.get(MatchField.MPLS_LABEL)
@@ -607,10 +608,10 @@ public class FlowEntryBuilder {
                 builder.matchMplsBos(match.get(MatchField.MPLS_BOS).getValue());
                 break;
             case SCTP_SRC:
-                builder.matchSctpSrc((short) match.get(MatchField.SCTP_SRC).getPort());
+                builder.matchSctpSrc(TpPort.tpPort(match.get(MatchField.SCTP_SRC).getPort()));
                 break;
             case SCTP_DST:
-                builder.matchSctpDst((short) match.get(MatchField.SCTP_DST).getPort());
+                builder.matchSctpDst(TpPort.tpPort(match.get(MatchField.SCTP_DST).getPort()));
                 break;
             case ICMPV4_TYPE:
                 byte icmpType = (byte) match.get(MatchField.ICMPV4_TYPE).getType();

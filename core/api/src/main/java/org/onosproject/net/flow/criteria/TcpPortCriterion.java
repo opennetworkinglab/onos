@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.flow.criteria;
 
+import org.onlab.packet.TpPort;
+
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -23,19 +25,18 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * Implementation of TCP port criterion (16 bits unsigned integer).
  */
 public final class TcpPortCriterion implements Criterion {
-    private static final int MASK = 0xffff;
-    private final int tcpPort;              // Port value: 16 bits
+    private final TpPort tcpPort;
     private final Type type;
 
     /**
      * Constructor.
      *
-     * @param tcpPort the TCP port to match (16 bits unsigned integer)
+     * @param tcpPort the TCP port to match
      * @param type the match type. Should be either Type.TCP_SRC or
      * Type.TCP_DST
      */
-    TcpPortCriterion(int tcpPort, Type type) {
-        this.tcpPort = tcpPort & MASK;
+    TcpPortCriterion(TpPort tcpPort, Type type) {
+        this.tcpPort = tcpPort;
         this.type = type;
     }
 
@@ -47,9 +48,9 @@ public final class TcpPortCriterion implements Criterion {
     /**
      * Gets the TCP port to match.
      *
-     * @return the TCP port to match (16 bits unsigned integer)
+     * @return the TCP port to match
      */
-    public int tcpPort() {
+    public TpPort tcpPort() {
         return this.tcpPort;
     }
 

@@ -22,15 +22,16 @@ import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
-import org.onosproject.net.IndexedLambda;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.criteria.Criteria;
-import org.onosproject.net.flow.criteria.Criterion;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.IndexedLambda;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.criteria.Criterion;
 
 import com.google.common.testing.EqualsTester;
 
@@ -196,27 +197,27 @@ public class DefaultTrafficSelectorTest {
         assertThat(selector, hasCriterionWithType(Type.IPV4_DST));
 
         selector = DefaultTrafficSelector.builder()
-                .matchTcpSrc(shortValue).build();
+                .matchTcpSrc(TpPort.tpPort(intValue)).build();
         assertThat(selector, hasCriterionWithType(Type.TCP_SRC));
 
         selector = DefaultTrafficSelector.builder()
-                .matchTcpDst(shortValue).build();
+                .matchTcpDst(TpPort.tpPort(intValue)).build();
         assertThat(selector, hasCriterionWithType(Type.TCP_DST));
 
         selector = DefaultTrafficSelector.builder()
-                .matchUdpSrc(shortValue).build();
+                .matchUdpSrc(TpPort.tpPort(intValue)).build();
         assertThat(selector, hasCriterionWithType(Type.UDP_SRC));
 
         selector = DefaultTrafficSelector.builder()
-                .matchUdpDst(shortValue).build();
+                .matchUdpDst(TpPort.tpPort(intValue)).build();
         assertThat(selector, hasCriterionWithType(Type.UDP_DST));
 
         selector = DefaultTrafficSelector.builder()
-                .matchSctpSrc(shortValue).build();
+                .matchSctpSrc(TpPort.tpPort(intValue)).build();
         assertThat(selector, hasCriterionWithType(Type.SCTP_SRC));
 
         selector = DefaultTrafficSelector.builder()
-                .matchSctpDst(shortValue).build();
+                .matchSctpDst(TpPort.tpPort(intValue)).build();
         assertThat(selector, hasCriterionWithType(Type.SCTP_DST));
 
         selector = DefaultTrafficSelector.builder()

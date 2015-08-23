@@ -9,6 +9,7 @@ import com.google.common.cache.RemovalNotification;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -515,7 +516,7 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
         treatment = DefaultTrafficTreatment.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                .matchTcpSrc(BGP_PORT);
+                .matchTcpSrc(TpPort.tpPort(BGP_PORT));
         treatment.punt();
         rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
@@ -531,7 +532,7 @@ public class CentecV350Pipeline extends AbstractHandlerBehaviour implements Pipe
         treatment = DefaultTrafficTreatment.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                .matchTcpDst(BGP_PORT);
+                .matchTcpDst(TpPort.tpPort(BGP_PORT));
         treatment.punt();
         rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)

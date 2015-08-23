@@ -431,19 +431,19 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         switch (l4m.subtype()) {
             case TCP_SRC:
                 tp = (ModTransportPortInstruction) l4m;
-                oxm = factory().oxms().tcpSrc(TransportPort.of(tp.port()));
+                oxm = factory().oxms().tcpSrc(TransportPort.of(tp.port().toInt()));
                 break;
             case TCP_DST:
                 tp = (ModTransportPortInstruction) l4m;
-                oxm = factory().oxms().tcpDst(TransportPort.of(tp.port()));
+                oxm = factory().oxms().tcpDst(TransportPort.of(tp.port().toInt()));
                 break;
             case UDP_SRC:
                 tp = (ModTransportPortInstruction) l4m;
-                oxm = factory().oxms().udpSrc(TransportPort.of(tp.port()));
+                oxm = factory().oxms().udpSrc(TransportPort.of(tp.port().toInt()));
                 break;
             case UDP_DST:
                 tp = (ModTransportPortInstruction) l4m;
-                oxm = factory().oxms().udpDst(TransportPort.of(tp.port()));
+                oxm = factory().oxms().udpDst(TransportPort.of(tp.port().toInt()));
                 break;
             default:
                 log.warn("Unimplemented action type {}.", l4m.subtype());

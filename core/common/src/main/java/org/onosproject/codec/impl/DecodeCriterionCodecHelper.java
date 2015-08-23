@@ -22,6 +22,7 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
@@ -241,8 +242,8 @@ public final class DecodeCriterionCodecHelper {
     private class TcpSrcDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
-            int tcpPort = nullIsIllegal(json.get(CriterionCodec.TCP_PORT),
-                    CriterionCodec.TCP_PORT + MISSING_MEMBER_MESSAGE).asInt();
+            TpPort tcpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.TCP_PORT),
+                    CriterionCodec.TCP_PORT + MISSING_MEMBER_MESSAGE).asInt());
             return Criteria.matchTcpSrc(tcpPort);
         }
     }
@@ -250,8 +251,8 @@ public final class DecodeCriterionCodecHelper {
     private class TcpDstDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
-            int tcpPort = nullIsIllegal(json.get(CriterionCodec.TCP_PORT),
-                    CriterionCodec.TCP_PORT + MISSING_MEMBER_MESSAGE).asInt();
+            TpPort tcpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.TCP_PORT),
+                    CriterionCodec.TCP_PORT + MISSING_MEMBER_MESSAGE).asInt());
             return Criteria.matchTcpDst(tcpPort);
         }
     }
@@ -259,8 +260,8 @@ public final class DecodeCriterionCodecHelper {
     private class UdpSrcDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
-            int udpPort = nullIsIllegal(json.get(CriterionCodec.UDP_PORT),
-                    CriterionCodec.UDP_PORT + MISSING_MEMBER_MESSAGE).asInt();
+            TpPort udpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.UDP_PORT),
+                    CriterionCodec.UDP_PORT + MISSING_MEMBER_MESSAGE).asInt());
             return Criteria.matchUdpSrc(udpPort);
         }
     }
@@ -268,8 +269,8 @@ public final class DecodeCriterionCodecHelper {
     private class UdpDstDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
-            int udpPort = nullIsIllegal(json.get(CriterionCodec.UDP_PORT),
-                    CriterionCodec.UDP_PORT + MISSING_MEMBER_MESSAGE).asInt();
+            TpPort udpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.UDP_PORT),
+                    CriterionCodec.UDP_PORT + MISSING_MEMBER_MESSAGE).asInt());
             return Criteria.matchUdpDst(udpPort);
         }
     }
@@ -277,8 +278,8 @@ public final class DecodeCriterionCodecHelper {
     private class SctpSrcDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
-            int sctpPort = nullIsIllegal(json.get(CriterionCodec.SCTP_PORT),
-                    CriterionCodec.SCTP_PORT + MISSING_MEMBER_MESSAGE).asInt();
+            TpPort sctpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.SCTP_PORT),
+                    CriterionCodec.SCTP_PORT + MISSING_MEMBER_MESSAGE).asInt());
             return Criteria.matchSctpSrc(sctpPort);
         }
     }
@@ -286,8 +287,8 @@ public final class DecodeCriterionCodecHelper {
     private class SctpDstDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
-            int sctpPort = nullIsIllegal(json.get(CriterionCodec.SCTP_PORT),
-                    CriterionCodec.SCTP_PORT + MISSING_MEMBER_MESSAGE).asInt();
+            TpPort sctpPort = TpPort.tpPort(nullIsIllegal(json.get(CriterionCodec.SCTP_PORT),
+                    CriterionCodec.SCTP_PORT + MISSING_MEMBER_MESSAGE).asInt());
             return Criteria.matchSctpDst(sctpPort);
         }
     }

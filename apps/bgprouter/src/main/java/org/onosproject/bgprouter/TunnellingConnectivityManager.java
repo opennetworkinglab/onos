@@ -21,6 +21,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TCP;
+import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -101,13 +102,13 @@ public class TunnellingConnectivityManager {
         TrafficSelector selectorDst = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                .matchTcpDst(BGP_PORT)
+                .matchTcpDst(TpPort.tpPort(BGP_PORT))
                 .build();
 
         TrafficSelector selectorSrc = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                .matchTcpSrc(BGP_PORT)
+                .matchTcpSrc(TpPort.tpPort(BGP_PORT))
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()

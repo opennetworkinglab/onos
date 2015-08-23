@@ -19,6 +19,12 @@
  */
 package org.onos.acl.impl;
 
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.TpPort;
 import org.onos.acl.AclRule;
 import org.onos.acl.AclService;
 import org.onos.acl.AclStore;
@@ -28,11 +34,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
-import org.onlab.packet.IpAddress;
 import org.onos.acl.RuleId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -278,10 +279,10 @@ public class AclManager implements AclService {
         if (rule.dstTpPort() != 0) {
             switch (rule.ipProto()) {
                 case IPv4.PROTOCOL_TCP:
-                    selectorBuilder.matchTcpDst(rule.dstTpPort());
+                    selectorBuilder.matchTcpDst(TpPort.tpPort(rule.dstTpPort()));
                     break;
                 case IPv4.PROTOCOL_UDP:
-                    selectorBuilder.matchUdpDst(rule.dstTpPort());
+                    selectorBuilder.matchUdpDst(TpPort.tpPort(rule.dstTpPort()));
                     break;
                 default:
                     break;

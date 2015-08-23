@@ -419,27 +419,27 @@ public class FlowRuleCodecTest {
                 is((IpPrefix.valueOf("4.2.0.0/32"))));
 
         criterion = getCriterion(Criterion.Type.TCP_SRC);
-        assertThat(((TcpPortCriterion) criterion).tcpPort(),
+        assertThat(((TcpPortCriterion) criterion).tcpPort().toInt(),
                 is(80));
 
         criterion = getCriterion(Criterion.Type.TCP_DST);
-        assertThat(((TcpPortCriterion) criterion).tcpPort(),
+        assertThat(((TcpPortCriterion) criterion).tcpPort().toInt(),
                 is(443));
 
         criterion = getCriterion(Criterion.Type.UDP_SRC);
-        assertThat(((UdpPortCriterion) criterion).udpPort(),
+        assertThat(((UdpPortCriterion) criterion).udpPort().toInt(),
                 is(180));
 
         criterion = getCriterion(Criterion.Type.UDP_DST);
-        assertThat(((UdpPortCriterion) criterion).udpPort(),
+        assertThat(((UdpPortCriterion) criterion).udpPort().toInt(),
                 is(1443));
 
         criterion = getCriterion(Criterion.Type.SCTP_SRC);
-        assertThat(((SctpPortCriterion) criterion).sctpPort(),
+        assertThat(((SctpPortCriterion) criterion).sctpPort().toInt(),
                 is(280));
 
         criterion = getCriterion(Criterion.Type.SCTP_DST);
-        assertThat(((SctpPortCriterion) criterion).sctpPort(),
+        assertThat(((SctpPortCriterion) criterion).sctpPort().toInt(),
                 is(2443));
 
         criterion = getCriterion(Criterion.Type.ICMPV4_TYPE);

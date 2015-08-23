@@ -19,6 +19,7 @@ import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.IndexedLambda;
@@ -383,8 +384,21 @@ public final class Instructions {
      *
      * @param port the TCP port number to modify to
      * @return a L4 modification
+     * @deprecated in Drake release
      */
+    @Deprecated
     public static L4ModificationInstruction modTcpSrc(short port) {
+       checkNotNull(port, "Src TCP port cannot be null");
+       return new ModTransportPortInstruction(L4SubType.TCP_SRC, TpPort.tpPort(port));
+    }
+
+    /**
+     * Creates a TCP src modification.
+     *
+     * @param port the TCP port number to modify to
+     * @return a L4 modification
+     */
+    public static L4ModificationInstruction modTcpSrc(TpPort port) {
        checkNotNull(port, "Src TCP port cannot be null");
        return new ModTransportPortInstruction(L4SubType.TCP_SRC, port);
     }
@@ -394,8 +408,21 @@ public final class Instructions {
      *
      * @param port the TCP port number to modify to
      * @return a L4 modification
+     * @deprecated in Drake release
      */
+    @Deprecated
     public static L4ModificationInstruction modTcpDst(short port) {
+        checkNotNull(port, "Dst TCP port cannot be null");
+        return new ModTransportPortInstruction(L4SubType.TCP_DST, TpPort.tpPort(port));
+    }
+
+    /**
+     * Creates a TCP dst modification.
+     *
+     * @param port the TCP port number to modify to
+     * @return a L4 modification
+     */
+    public static L4ModificationInstruction modTcpDst(TpPort port) {
         checkNotNull(port, "Dst TCP port cannot be null");
         return new ModTransportPortInstruction(L4SubType.TCP_DST, port);
     }
@@ -405,8 +432,21 @@ public final class Instructions {
      *
      * @param port the UDP port number to modify to
      * @return a L4 modification
+     * @deprecated in Drake release
      */
+    @Deprecated
     public static L4ModificationInstruction modUdpSrc(short port) {
+        checkNotNull(port, "Src UDP port cannot be null");
+        return new ModTransportPortInstruction(L4SubType.UDP_SRC, TpPort.tpPort(port));
+    }
+
+    /**
+     * Creates a UDP src modification.
+     *
+     * @param port the UDP port number to modify to
+     * @return a L4 modification
+     */
+    public static L4ModificationInstruction modUdpSrc(TpPort port) {
         checkNotNull(port, "Src UDP port cannot be null");
         return new ModTransportPortInstruction(L4SubType.UDP_SRC, port);
     }
@@ -416,8 +456,21 @@ public final class Instructions {
      *
      * @param port the UDP port number to modify to
      * @return a L4 modification
+     * @deprecated in Drake release
      */
+    @Deprecated
     public static L4ModificationInstruction modUdpDst(short port) {
+        checkNotNull(port, "Dst UDP port cannot be null");
+        return new ModTransportPortInstruction(L4SubType.UDP_DST, TpPort.tpPort(port));
+    }
+
+    /**
+     * Creates a UDP dst modification.
+     *
+     * @param port the UDP port number to modify to
+     * @return a L4 modification
+     */
+    public static L4ModificationInstruction modUdpDst(TpPort port) {
         checkNotNull(port, "Dst UDP port cannot be null");
         return new ModTransportPortInstruction(L4SubType.UDP_DST, port);
     }
