@@ -16,41 +16,43 @@
  *
  */
 
-package org.onosproject.incubator.net.tunnel;
+package org.onosproject.pcep.api;
 
 import java.time.Duration;
 import java.util.List;
 
 /**
- * Statistics of a tunnel.
+ * Statistics of a PCEP tunnel.
  */
-public interface TunnelStatistics {
+public interface PcepTunnelStatistics {
+
 
     /**
-     * Returns the tunnel id.
+     * Returns the id of PCEP tunnel.
      *
-     * @return tunnelId id of tunnel
+     * @return PCEP tunnel id
      */
-    TunnelId id();
+    long id();
+
 
     /**
-     * Returns the bandwidth utilization of a tunnel.
+     * Returns the bandwidth utilization of a PCEP tunnel.
      *
-     * @return bandwidth utilization
+     * @return PCEP bandwidth utilization
      */
     double bandwidthUtilization();
 
     /**
-     * Returns the packet loss ratio of a tunnel.
+     * Returns the flow loss rate of a tunnel.
      *
-     * @return tunnel packet loss ratio
+     * @return tunnel flow loss rate
      */
     double packetLossRate();
 
     /**
      * Returns the end-to-end traffic flow delay of a tunnel.
      *
-     * @return tunnel flow delay
+     * @return tunnel traffic flow delay
      */
     Duration flowDelay();
 

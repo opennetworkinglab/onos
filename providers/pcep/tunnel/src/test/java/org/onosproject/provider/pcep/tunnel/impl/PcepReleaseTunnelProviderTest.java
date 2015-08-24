@@ -24,6 +24,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
@@ -49,13 +50,16 @@ public class PcepReleaseTunnelProviderTest {
     private final PcepClientControllerAdapter controller = new PcepClientControllerAdapter();
     private final PcepControllerAdapter ctl = new PcepControllerAdapter();
     private final PcepTunnelApiMapper pcepTunnelAPIMapper = new PcepTunnelApiMapper();
+    private final TunnelServiceAdapter  tunnelService = new TunnelServiceAdapter();
 
     @Test
     public void testCasePcepReleaseTunnel() {
         tunnelProvider.tunnelProviderRegistry = registry;
         tunnelProvider.pcepClientController = controller;
         tunnelProvider.controller = ctl;
+        tunnelProvider.tunnelService = tunnelService;
         tunnelProvider.pcepTunnelAPIMapper = pcepTunnelAPIMapper;
+        tunnelProvider.cfgService = new ComponentConfigAdapter();
         tunnelProvider.activate();
 
         Tunnel tunnel;

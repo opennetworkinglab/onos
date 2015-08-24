@@ -16,7 +16,9 @@
 package org.onosproject.provider.pcep.tunnel.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.net.DefaultAnnotations.EMPTY;
+import static org.onlab.util.Tools.get;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.pcep.api.PcepDpid.uri;
@@ -24,24 +26,29 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Optional;
 
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.incubator.net.tunnel.DefaultOpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.DefaultTunnelDescription;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
+import org.onosproject.incubator.net.tunnel.DefaultTunnelStatistics;
 import org.onosproject.incubator.net.tunnel.OpticalLogicId;
 import org.onosproject.incubator.net.tunnel.OpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
@@ -52,6 +59,8 @@ import org.onosproject.incubator.net.tunnel.TunnelName;
 import org.onosproject.incubator.net.tunnel.TunnelProvider;
 import org.onosproject.incubator.net.tunnel.TunnelProviderRegistry;
 import org.onosproject.incubator.net.tunnel.TunnelProviderService;
+import org.onosproject.incubator.net.tunnel.TunnelService;
+import org.onosproject.incubator.net.tunnel.TunnelStatistics;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultLink;
@@ -73,6 +82,8 @@ import org.onosproject.pcep.api.PcepTunnel;
 import org.onosproject.pcep.api.PcepTunnel.PATHTYPE;
 import org.onosproject.pcep.api.PcepTunnel.PathState;
 import org.onosproject.pcep.api.PcepTunnelListener;
+import org.onosproject.pcep.api.PcepTunnelStatistics;
+import org.osgi.service.component.annotations.Modified;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepClientController;
@@ -99,8 +110,7 @@ import org.onosproject.pcepio.types.PcepValueType;
 import org.onosproject.pcepio.types.StatefulIPv4LspIdentidiersTlv;
 import org.onosproject.pcepio.types.SymbolicPathNameTlv;
 import org.slf4j.Logger;
-
-import static org.onosproject.pcep.api.PcepDpid.*;
+import org.osgi.service.component.ComponentContext;
 
 /**
  * Provider which uses an PCEP controller to detect, update, create network
@@ -116,6 +126,11 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     private static final String BANDWIDTH_UINT = "kbps";
     static final String PROVIDER_ID = "org.onosproject.provider.tunnel.pcep";
 
+    static final int POLL_INTERVAL = 10;
+    @Property(name = "tunnelStatsPollFrequency", intValue = POLL_INTERVAL,
+            label = "Frequency (in seconds) for polling tunnel statistics")
+    private int tunnelStatsPollFrequency = POLL_INTERVAL;
+
     private static final String TUNNLE_NOT_NULL = "Create failed,The given port may be wrong or has been occupied.";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -126,9 +141,18 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PcepClientController pcepClientController;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TunnelService tunnelService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
     TunnelProviderService service;
 
     HashMap<String, TunnelId> tunnelMap = new HashMap<String, TunnelId>();
+    HashMap<TunnelId, TunnelStatistics> tunnelStatisticsMap = new HashMap<>();
+    private HashMap<Long, TunnelStatsCollector> collectors = Maps.newHashMap();
 
     private InnerTunnelProvider listener = new InnerTunnelProvider();
 
@@ -144,10 +168,19 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
     @Activate
     public void activate() {
+        cfgService.registerProperties(getClass());
         service = tunnelProviderRegistry.register(this);
         controller.addTunnelListener(listener);
         pcepClientController.addListener(listener);
         pcepClientController.addEventListener(listener);
+        tunnelService.queryAllTunnels().forEach(tunnel -> {
+            String pcepTunnelId = getPCEPTunnelKey(tunnel.tunnelId());
+            TunnelStatsCollector tsc = new TunnelStatsCollector(pcepTunnelId, tunnelStatsPollFrequency);
+            tsc.start();
+            collectors.put(tunnel.tunnelId().id(), tsc);
+
+        });
+
         log.info("Started");
     }
 
@@ -155,8 +188,29 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     public void deactivate() {
         tunnelProviderRegistry.unregister(this);
         controller.removeTunnelListener(listener);
+        collectors.values().forEach(TunnelStatsCollector::stop);
         pcepClientController.removeListener(listener);
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        int newTunnelStatsPollFrequency;
+        try {
+            String s = get(properties, "tunnelStatsPollFrequency");
+            newTunnelStatsPollFrequency = isNullOrEmpty(s) ? tunnelStatsPollFrequency : Integer.parseInt(s.trim());
+
+        } catch (NumberFormatException | ClassCastException e) {
+            newTunnelStatsPollFrequency = tunnelStatsPollFrequency;
+        }
+
+        if (newTunnelStatsPollFrequency != tunnelStatsPollFrequency) {
+            tunnelStatsPollFrequency = newTunnelStatsPollFrequency;
+            collectors.values().forEach(tsc -> tsc.adjustPollInterval(tunnelStatsPollFrequency));
+            log.info("New setting: tunnelStatsPollFrequency={}", tunnelStatsPollFrequency);
+        }
+
     }
 
     @Override
@@ -177,7 +231,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
         if (!(pc instanceof PcepClient)) {
             log.error("There is no PCC connected with ip addresss {}"
-                    + ((IpTunnelEndPoint) tunnel.src()).ip().toString());
+                              + ((IpTunnelEndPoint) tunnel.src()).ip().toString());
             return;
         }
         pcepSetupTunnel(tunnel, path, pc);
@@ -581,6 +635,21 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     }
 
     /**
+     * Build a DefaultTunnelStatistics from a PcepTunnelStatistics.
+     *
+     * @param statistics statistics data from a PCEP tunnel
+     * @return TunnelStatistics
+     */
+    private TunnelStatistics buildTunnelStatistics(PcepTunnelStatistics statistics) {
+        DefaultTunnelStatistics.Builder builder = new DefaultTunnelStatistics.Builder();
+        DefaultTunnelStatistics tunnelStatistics =  builder.setBwUtilization(statistics.bandwidthUtilization())
+                    .setPacketLossRatio(statistics.packetLossRate())
+                    .setFlowDelay(statistics.flowDelay())
+                    .setAlarms(statistics.alarms())
+                .build();
+        return tunnelStatistics;
+   }
+    /**
      * Creates list of hops for ERO object from Path.
      *
      * @param path network path
@@ -843,6 +912,8 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             log.error("PcepParseException occurred while processing release tunnel {}", e.getMessage());
         }
     }
+
+
 
     private class InnerTunnelProvider implements PcepTunnelListener, PcepEventListener, PcepClientListener {
 
@@ -1140,6 +1211,15 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         @Override
         public void clientDisconnected(PccId pccId) {
             // TODO
+        }
+
+
+
+        @Override
+        public void handlePcepTunnelStatistics(PcepTunnelStatistics pcepTunnelStatistics) {
+            TunnelId id = getTunnelId(String.valueOf(pcepTunnelStatistics.id()));
+            TunnelStatistics tunnelStatistics = buildTunnelStatistics(pcepTunnelStatistics);
+            tunnelStatisticsMap.put(id, tunnelStatistics);
         }
     }
 

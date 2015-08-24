@@ -28,4 +28,13 @@ public interface PcepTunnelListener {
      */
     void handlePCEPTunnel(PcepTunnel tunnel);
 
+    /**
+     * Notify that get a tunnel statistic data from the network.
+     *
+     * @param tunnelStatistics tunnel statistic information.
+     */
+    void handlePcepTunnelStatistics(PcepTunnelStatistics tunnelStatistics);
+
+
+
 }
