@@ -66,4 +66,7 @@ case $cmd in
     *) usage;;
 esac
 
+
+status=$?
 echo # new line for prompt
+exit $status
