@@ -99,7 +99,7 @@ public interface DeviceService
     /**
      * Returns the list of port statistics associated with the device.
      *
-     * @param deviceId device identitifer
+     * @param deviceId device identifier
      * @return list of port statistics
      */
     List<PortStatistics> getPortStatistics(DeviceId deviceId);
@@ -107,7 +107,7 @@ public interface DeviceService
     /**
      * Returns the list of port delta statistics associated with the device.
      *
-     * @param deviceId device identitifer
+     * @param deviceId device identifier
      * @return list of port statistics
      */
     List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId);
