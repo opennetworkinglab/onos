@@ -15,45 +15,33 @@
  */
 package org.onosproject.pcepio;
 
-import java.util.Arrays;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcepErrorMsg;
 import org.onosproject.pcepio.protocol.PcepFactories;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepMessageReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Test cases for PCEP ERROR Message.
  */
 public class PcepErrorMsgTest {
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepErrorMsgTest.class);
-
-    @Before
-    public void startUp() {
-
-    }
-
-    @After
-    public void tearDown() {
-
-    }
-
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, OPEN Object (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV,
+     * PCECC-CAPABILITY-TLV, TED Capability TLV)
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest1() throws PcepParseException {
 
-        /* PCEP-ERROR Object, OPEN Object (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV,
-         * PCECC-CAPABILITY-TLV, TED Capability TLV)
-         */
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x34, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
                 0x00, 0x00, 0x01, 0x01, 0x01, 0x10, 0x00, 0x28, // OPEN object header
@@ -69,39 +57,32 @@ public class PcepErrorMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, PCEP-ERROR Object, OPEN Object (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV,
+     * PCECC-CAPABILITY-TLV, TED Capability TLV)
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest2() throws PcepParseException {
 
-        /* PCEP-ERROR Object, PCEP-ERROR Object, OPEN Object (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV,
-         * PCECC-CAPABILITY-TLV, TED Capability TLV)
-         */
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x3C, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
                 0x00, 0x00, 0x01, 0x01, 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
@@ -118,39 +99,32 @@ public class PcepErrorMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     *  PCEP-ERROR Object, PCEP-ERROR Object, OPEN Object (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV,
+     * PCECC-CAPABILITY-TLV)
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest3() throws PcepParseException {
 
-        /* PCEP-ERROR Object, PCEP-ERROR Object, OPEN Object (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV,
-         * PCECC-CAPABILITY-TLV)
-         */
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x34, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
                 0x00, 0x00, 0x01, 0x01, 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
@@ -166,37 +140,31 @@ public class PcepErrorMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, PCEP-ERROR Object, OPEN Object (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV)
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest4() throws PcepParseException {
 
-        //PCEP-ERROR Object, PCEP-ERROR Object, OPEN Object (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV)
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x2c, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
                 0x00, 0x00, 0x01, 0x01, 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
@@ -211,37 +179,31 @@ public class PcepErrorMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, PCEP-ERROR Object, OPEN Object (STATEFUL-PCE-CAPABILITY)
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest5() throws PcepParseException {
 
-        //PCEP-ERROR Object, PCEP-ERROR Object, OPEN Object (STATEFUL-PCE-CAPABILITY)
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x24, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
                 0x00, 0x00, 0x01, 0x01, 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
@@ -255,37 +217,31 @@ public class PcepErrorMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, PCEP-ERROR Object, OPEN Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest6() throws PcepParseException {
 
-        //PCEP-ERROR Object, PCEP-ERROR Object, OPEN Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x1C, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
                 0x00, 0x00, 0x01, 0x01, 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
@@ -298,37 +254,31 @@ public class PcepErrorMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, OPEN Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest7() throws PcepParseException {
 
-        //PCEP-ERROR Object, OPEN Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x14, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
                 0x00, 0x00, 0x01, 0x01, 0x01, 0x10, 0x00, 0x08, // OPEN object header
@@ -340,82 +290,67 @@ public class PcepErrorMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, RP Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest8() throws PcepParseException {
 
-        //PCEP-ERROR Object, RP Object, PCEP-ERROR Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x20, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
-                0x00, 0x00, 0x01, 0x01,
-                0x02, 0x10, 0x00, 0x0C, // RP Object Header
-                0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x03,
-                0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
-                0x00, 0x00, 0x01, 0x03};
+                0x00, 0x00, 0x01, 0x01, 0x02, 0x10, 0x00, 0x0C, // RP Object Header
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
+                0x00, 0x00, 0x01, 0x03 };
 
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errorMsg);
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest9() throws PcepParseException {
 
-        //PCEP-ERROR Object, PCEP-ERROR Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x14, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
                 0x00, 0x00, 0x01, 0x01, 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
@@ -426,37 +361,31 @@ public class PcepErrorMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest10() throws PcepParseException {
 
-        //PCEP-ERROR Object, PCEP-ERROR Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x14, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
                 0x00, 0x00, 0x01, 0x01, 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
@@ -467,37 +396,31 @@ public class PcepErrorMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * TE Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest11() throws PcepParseException {
 
-        //TE Object, PCEP-ERROR Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x18, // common header
                 0x65, 0x13, 0x00, 0x0C, // TE Object Header
                 0x01, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x10, // TE-ID
@@ -509,467 +432,364 @@ public class PcepErrorMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * RP Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest12() throws PcepParseException {
 
         //RP Object, PCEP-ERROR Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x18, // common header
                 0x02, 0x10, 0x00, 0x0C, // RP Object Header
-                0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x03,
-                0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
-                0x00, 0x00, 0x01, 0x01};
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
+                0x00, 0x00, 0x01, 0x01 };
 
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errorMsg);
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * RP Object, RP Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest13() throws PcepParseException {
 
-        //RP Object, RP Object, PCEP-ERROR Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x24, // common header
                 0x02, 0x10, 0x00, 0x0C, // RP Object Header
-                0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x03,
-                0x02, 0x10, 0x00, 0x0C, // RP Object Header
-                0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x04,
-                0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
-                0x00, 0x00, 0x01, 0x01};
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x02, 0x10, 0x00, 0x0C, // RP Object Header
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
+                0x00, 0x00, 0x01, 0x01 };
 
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errorMsg);
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * TE Object, TE Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest14() throws PcepParseException {
 
-        //TE Object, TE Object, PCEP-ERROR Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x24, // common header
                 0x65, 0x10, 0x00, 0x0C, // TE Object Header
-                0x01, 0x00, 0x00, 0x03,
-                0x00, 0x00, 0x00, 0x10, // TE-ID
+                0x01, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x10, // TE-ID
                 0x65, 0x10, 0x00, 0x0C, // TE Object Header
-                0x01, 0x00, 0x00, 0x03,
-                0x00, 0x00, 0x00, 0x11, // TE-ID
+                0x01, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x11, // TE-ID
                 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
-                0x00, 0x00, 0x01, 0x01};
+                0x00, 0x00, 0x01, 0x01 };
 
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errorMsg);
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, TE Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest15() throws PcepParseException {
 
-        //PCEP-ERROR Object, TE Object, PCEP-ERROR Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x20, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
-                0x00, 0x00, 0x01, 0x01,
-                0x65, 0x10, 0x00, 0x0C, // TE Object Header
-                0x01, 0x00, 0x00, 0x03,
-                0x00, 0x00, 0x00, 0x10, // TE-ID
+                0x00, 0x00, 0x01, 0x01, 0x65, 0x10, 0x00, 0x0C, // TE Object Header
+                0x01, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x10, // TE-ID
                 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
-                0x00, 0x00, 0x01, 0x03};
+                0x00, 0x00, 0x01, 0x03 };
 
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errorMsg);
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, RP Object, RP Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest16() throws PcepParseException {
 
-        //PCEP-ERROR Object, RP Object, RP Object, PCEP-ERROR Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x2C, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
-                0x00, 0x00, 0x01, 0x01,
-                0x02, 0x10, 0x00, 0x0C, // RP Object Header
-                0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x03,
-                0x02, 0x10, 0x00, 0x0C, // RP Object Header
-                0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x04,
-                0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
-                0x00, 0x00, 0x01, 0x03};
+                0x00, 0x00, 0x01, 0x01, 0x02, 0x10, 0x00, 0x0C, // RP Object Header
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x02, 0x10, 0x00, 0x0C, // RP Object Header
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
+                0x00, 0x00, 0x01, 0x03 };
 
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errorMsg);
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, TE Object, TE Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest17() throws PcepParseException {
 
-        //PCEP-ERROR Object, TE Object, TE Object, PCEP-ERROR Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x2C, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
-                0x00, 0x00, 0x01, 0x01,
+                0x00, 0x00, 0x01, 0x01, 0x65, 0x10, 0x00, 0x0C, // TE Object Header
+                0x01, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x10, // TE-ID
                 0x65, 0x10, 0x00, 0x0C, // TE Object Header
-                0x01, 0x00, 0x00, 0x03,
-                0x00, 0x00, 0x00, 0x10, // TE-ID
-                0x65, 0x10, 0x00, 0x0C, // TE Object Header
-                0x01, 0x00, 0x00, 0x03,
-                0x00, 0x00, 0x00, 0x11, // TE-ID
+                0x01, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x11, // TE-ID
                 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
-                0x00, 0x00, 0x01, 0x03};
+                0x00, 0x00, 0x01, 0x03 };
 
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errorMsg);
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, PCEP-ERROR Object, RP Object, RP Object, PCEP-ERROR Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest18() throws PcepParseException {
 
-        //PCEP-ERROR Object, PCEP-ERROR Object, RP Object, RP Object, PCEP-ERROR Object, PCEP-ERROR Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x3C, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
-                0x00, 0x00, 0x01, 0x01,
-                0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
-                0x00, 0x00, 0x01, 0x03,
-                0x02, 0x10, 0x00, 0x0C, // RP Object Header
-                0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x03,
-                0x02, 0x10, 0x00, 0x0C, // RP Object Header
-                0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x04,
-                0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
-                0x00, 0x00, 0x01, 0x04,
-                0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
-                0x00, 0x00, 0x01, 0x06};
+                0x00, 0x00, 0x01, 0x01, 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
+                0x00, 0x00, 0x01, 0x03, 0x02, 0x10, 0x00, 0x0C, // RP Object Header
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x02, 0x10, 0x00, 0x0C, // RP Object Header
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
+                0x00, 0x00, 0x01, 0x04, 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
+                0x00, 0x00, 0x01, 0x06 };
 
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errorMsg);
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, PCEP-ERROR Object, TE Object, TE Object, PCEP-ERROR Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest19() throws PcepParseException {
 
-        //PCEP-ERROR Object, PCEP-ERROR Object, TE Object, TE Object, PCEP-ERROR Object, PCEP-ERROR Object
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x3C, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
-                0x00, 0x00, 0x01, 0x01,
-                0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
-                0x00, 0x00, 0x01, 0x03,
+                0x00, 0x00, 0x01, 0x01, 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
+                0x00, 0x00, 0x01, 0x03, 0x65, 0x10, 0x00, 0x0C, // TE Object Header
+                0x01, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x10, // TE-ID
                 0x65, 0x10, 0x00, 0x0C, // TE Object Header
-                0x01, 0x00, 0x00, 0x03,
-                0x00, 0x00, 0x00, 0x10, // TE-ID
-                0x65, 0x10, 0x00, 0x0C, // TE Object Header
-                0x01, 0x00, 0x00, 0x03,
-                0x00, 0x00, 0x00, 0x11, // TE-ID
+                0x01, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x11, // TE-ID
                 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
-                0x00, 0x00, 0x01, 0x04,
-                0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
-                0x00, 0x00, 0x01, 0x06};
+                0x00, 0x00, 0x01, 0x04, 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
+                0x00, 0x00, 0x01, 0x06 };
 
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errorMsg);
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 
+    /**
+     * This test case checks for
+     * PCEP-ERROR Object, RP Object, RP Object, PCEP-ERROR Object, PCEP-ERROR Object,
+     * TE Object, PCEP-ERROR Object
+     * in PcepErrorMsg message.
+     *
+     * @throws PcepParseException while parsing PCEP message
+     */
     @Test
     public void errorMessageTest20() throws PcepParseException {
 
-        /* PCEP-ERROR Object, RP Object, RP Object, PCEP-ERROR Object, PCEP-ERROR Object,
-         * TE Object, PCEP-ERROR Object
-         */
         byte[] errorMsg = new byte[] {0x20, 0x06, 0x00, 0x48, // common header
                 0x0D, 0x10, 0x00, 0x08, // PCEP-ERROR Object Header
-                0x00, 0x00, 0x01, 0x01,
-                0x02, 0x10, 0x00, 0x0C, // RP Object Header
-                0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x03,
-                0x02, 0x10, 0x00, 0x0C, // RP Object Header
-                0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x04,
+                0x00, 0x00, 0x01, 0x01, 0x02, 0x10, 0x00, 0x0C, // RP Object Header
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x02, 0x10, 0x00, 0x0C, // RP Object Header
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
+                0x00, 0x00, 0x01, 0x04, 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
+                0x00, 0x00, 0x01, 0x06, 0x65, 0x10, 0x00, 0x0C, // TE Object Header
+                0x01, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x10, // TE-ID
                 0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
-                0x00, 0x00, 0x01, 0x04,
-                0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
-                0x00, 0x00, 0x01, 0x06,
-                0x65, 0x10, 0x00, 0x0C, // TE Object Header
-                0x01, 0x00, 0x00, 0x03,
-                0x00, 0x00, 0x00, 0x10, // TE-ID
-                0x0D, 0x10, 0x00, 0x08, // PCERR Object Header
-                0x00, 0x00, 0x01, 0x06};
+                0x00, 0x00, 0x01, 0x06 };
 
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errorMsg);
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        byte[] testErrorMsg = {0};
+        message = reader.readFrom(buffer);
+
+        byte[] testErrorMsg = {0 };
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        if (message instanceof PcepErrorMsg) {
-            message.writeTo(buf);
-            int iReadLen = buf.writerIndex() - 0;
-            testErrorMsg = new byte[iReadLen];
-            buf.readBytes(testErrorMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcepErrorMsg", message instanceof PcepErrorMsg);
 
-            if (Arrays.equals(errorMsg, testErrorMsg)) {
-                Assert.assertArrayEquals(errorMsg, testErrorMsg);
-                log.debug("Pcep Error Msg are Equal ");
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        message.writeTo(buf);
+        int iReadLen = buf.writerIndex() - 0;
+        testErrorMsg = new byte[iReadLen];
+        buf.readBytes(testErrorMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcepErrorMsg messages are not equal", errorMsg, testErrorMsg);
+
     }
 }
