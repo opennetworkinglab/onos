@@ -275,6 +275,16 @@
         cb && cb(selectOrder);
     }
 
+    function mouseOverHook(what) {
+        var cb = _hook('mouseover');
+        cb && cb(what);
+    }
+
+    function mouseOutHook() {
+        var cb = _hook('mouseout');
+        cb && cb();
+    }
+
     // === -----------------------------------------------------
     //  Event (from server) Handlers
 
@@ -362,7 +372,9 @@
                     escape: escapeHook,
                     emptySelect: emptySelectHook,
                     singleSelect: singleSelectHook,
-                    multiSelect: multiSelectHook
+                    multiSelect: multiSelectHook,
+                    mouseOver: mouseOverHook,
+                    mouseOut: mouseOutHook
                 },
 
                 showHighlights: showHighlights

@@ -132,6 +132,15 @@
             multi: function (selectOrder) {
                 tts.requestTrafficForMode();
                 tov.addDetailButton('showRelatedTraffic');
+            },
+
+            // mouse hooks
+            mouseover: function (m) {
+                // m has id, class, and type properties
+                tts.requestTrafficForMode();
+            },
+            mouseout: function () {
+                tts.requestTrafficForMode();
             }
         }
     };

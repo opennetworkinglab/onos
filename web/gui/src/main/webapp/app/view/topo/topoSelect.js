@@ -61,10 +61,13 @@
 
     function nodeMouseOver(m) {
         if (!m.dragStarted) {
-            //$log.debug("MouseOver()...", m);
             if (hovered != m) {
                 hovered = m;
-                tts.requestTrafficForMode();
+                tov.hooks.mouseOver({
+                    id: m.id,
+                    class: m.class,
+                    type: m.type
+                });
             }
         }
     }
@@ -73,9 +76,8 @@
         if (!m.dragStarted) {
             if (hovered) {
                 hovered = null;
-                tts.requestTrafficForMode();
+                tov.hooks.mouseOut();
             }
-            //$log.debug("MouseOut()...", m);
         }
     }
 
