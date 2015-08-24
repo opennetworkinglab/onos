@@ -15,12 +15,9 @@
  */
 package org.onosproject.pcepio;
 
-import java.util.Arrays;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcepFactories;
@@ -34,16 +31,13 @@ public class PcepInitiateMsgTest2 {
 
     protected static final Logger log = LoggerFactory.getLogger(PcepInitiateMsgTest.class);
 
-    @Before
-    public void startUp() {
-
-    }
-
-    @After
-    public void tearDown() {
-
-    }
-
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
+     * SymbolicPathNameTlv, StatefulLspDbVerTlv, StatefulLspErrorCodeTlv, StatefulRsvpErrorSpecTlv),
+     * END-POINTS, ERO, LSPA, BANDWIDTH, METRIC-LIST objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest1() throws PcepParseException {
 
@@ -76,34 +70,30 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
+
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
+     * SymbolicPathNameTlv, StatefulLspDbVerTlv, StatefulLspErrorCodeTlv,
+     * StatefulRsvpErrorSpecTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT
+     * objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest2() throws PcepParseException {
 
@@ -137,34 +127,29 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
+     * StatefulLspDbVerTlv, StatefulLspErrorCodeTlv, StatefulRsvpErrorSpecTlv), END-POINTS,
+     * ERO, LSPA, BANDWIDTH objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest3() throws PcepParseException {
 
@@ -197,34 +182,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
+     * SymbolicPathNameTlv, StatefulLspDbVerTlv, StatefulLspErrorCodeTlv, StatefulRsvpErrorSpecTlv),
+     * END-POINTS, ERO, LSPA objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest4() throws PcepParseException {
 
@@ -256,34 +235,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
+     * SymbolicPathNameTlv, StatefulLspDbVerTlv, StatefulLspErrorCodeTlv), END-POINTS, ERO, LSPA
+     * objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest5() throws PcepParseException {
 
@@ -313,34 +286,31 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate",
+                          (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
+
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
+     * SymbolicPathNameTlv, StatefulLspDbVerTlv, StatefulLspErrorCodeTlv), END-POINTS, ERO, LSPA,
+     * BANDWIDTH OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest6() throws PcepParseException {
 
@@ -371,34 +341,29 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
+
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
+     * SymbolicPathNameTlv, StatefulLspDbVerTlv, StatefulLspErrorCodeTlv), END-POINTS, ERO,
+     * LSPA, BANDWIDTH, METRIC OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest7() throws PcepParseException {
 
@@ -430,34 +395,29 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
+
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
+     * SymbolicPathNameTlv, StatefulLspDbVerTlv), END-POINTS, ERO, LSPA, BANDWIDTH, METRIC OBJECT
+     * objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest8() throws PcepParseException {
 
@@ -488,34 +448,30 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
+
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
+     * SymbolicPathNameTlv, StatefulLspDbVerTlv), END-POINTS, ERO, LSPA, BANDWIDTH OBJECT
+     * objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest9() throws PcepParseException {
 
@@ -545,34 +501,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
+
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
+     * SymbolicPathNameTlv), END-POINTS, ERO, LSPA OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest10() throws PcepParseException {
 
@@ -599,34 +549,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
+     * SymbolicPathNameTlv, StatefulLspDbVerTlv), END-POINTS, ERO, LSPA OBJECT
+     * objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest11() throws PcepParseException {
 
@@ -655,33 +599,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
+     * SymbolicPathNameTlv), END-POINTS, ERO, LSPA, BANDWIDTH OBJECT
+     * objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest12() throws PcepParseException {
 
@@ -709,34 +648,29 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
+     * SymbolicPathNameTlv, StatefulLspDbVerTlv), END-POINTS, ERO, LSPA, BANDWIDTH , METRIC OBJECT
+     * objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest13() throws PcepParseException {
 
@@ -765,34 +699,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
+     * END-POINTS, ERO, LSPA, BANDWIDTH , METRIC OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest14() throws PcepParseException {
 
@@ -820,34 +748,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
+     * END-POINTS, ERO, LSPA, BANDWIDTH OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest15() throws PcepParseException {
 
@@ -874,34 +796,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
+     * END-POINTS, ERO, LSPA OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest16() throws PcepParseException {
 
@@ -927,34 +843,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA OBJECT
+     * objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest17() throws PcepParseException {
 
@@ -978,34 +888,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA,
+     * BANDWIDTH OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest18() throws PcepParseException {
 
@@ -1030,34 +934,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA,
+     * BANDWIDTH, METRIC OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest19() throws PcepParseException {
 
@@ -1083,34 +981,27 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA,
+     * BANDWIDTH, METRIC OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest20() throws PcepParseException {
 
@@ -1135,34 +1026,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO, LSPA,
+     * BANDWIDTH OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest21() throws PcepParseException {
 
@@ -1186,34 +1071,27 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv), END-POINTS, ERO,
+     * LSPA OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest22() throws PcepParseException {
 
@@ -1236,34 +1114,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
+     * END-POINTS, ERO, LSPA OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest23() throws PcepParseException {
 
@@ -1287,34 +1159,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
+     * END-POINTS, ERO, LSPA BANDWIDTH OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest25() throws PcepParseException {
 
@@ -1339,34 +1205,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv), END-POINTS,
+     * ERO, LSPA, BANDWIDTH, METRIC OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest26() throws PcepParseException {
 
@@ -1393,34 +1253,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv), END-POINTS, ERO, LSPA,
+     * BANDWIDTH, METRIC OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest27() throws PcepParseException {
 
@@ -1444,34 +1298,27 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv), END-POINTS, ERO,
+     * LSPA, BANDWIDTH OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest28() throws PcepParseException {
 
@@ -1494,34 +1341,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv),
+     * END-POINTS, ERO, LSPA OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest29() throws PcepParseException {
 
@@ -1543,34 +1384,27 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv),
+     * END-POINTS, ERO, LSPA OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest30() throws PcepParseException {
 
@@ -1593,34 +1427,27 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP (SymbolicPathNameTlv), END-POINTS, ERO, LSPA OBJECT
+     * objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest31() throws PcepParseException {
 
@@ -1642,34 +1469,27 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
+     * ERO, LSPA, BANDWIDTH, METRIC OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest32() throws PcepParseException {
 
@@ -1695,34 +1515,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
+
     }
 
+    /**
+     * This test case checks for SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
+     * ERO, LSPA, BANDWIDTH OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest33() throws PcepParseException {
 
@@ -1747,34 +1561,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
+     * ERO, LSPA OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest34() throws PcepParseException {
 
@@ -1798,34 +1606,27 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal", initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
+     * ERO, LSPA OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest35() throws PcepParseException {
 
@@ -1850,34 +1651,28 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
     }
 
+    /**
+     * This test case checks for SRP, LSP ( StatefulLspDbVerTlv), END-POINTS,
+     * ERO, LSPA OBJECT objects in PcInitiate message.
+     *
+     * @throws PcepParseException when message paring fails
+     */
     @Test
     public void initiateMessageTest36() throws PcepParseException {
 
@@ -1901,32 +1696,21 @@ public class PcepInitiateMsgTest2 {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepInitiateMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testInitiateCreationMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testInitiateCreationMsg = new byte[iReadLen];
-            buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+        Assert.assertTrue("PcepMessage is not instance of PcInitiate", (message instanceof PcepInitiateMsg));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testInitiateCreationMsg = buf.array();
 
-            if (Arrays.equals(initiateCreationMsg, testInitiateCreationMsg)) {
-                Assert.assertArrayEquals(initiateCreationMsg, testInitiateCreationMsg);
-                log.debug("PCInitiate Msg are equal :" + initiateCreationMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int iReadLen = buf.writerIndex() - 0;
+        testInitiateCreationMsg = new byte[iReadLen];
+        buf.readBytes(testInitiateCreationMsg, 0, iReadLen);
+
+        Assert.assertArrayEquals("PcInitiate messages are not equal",
+                                 initiateCreationMsg, testInitiateCreationMsg);
+
     }
 }
 
