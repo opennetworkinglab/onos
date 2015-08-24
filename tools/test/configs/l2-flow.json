@@ -1,0 +1,28 @@
+{
+  "isPermanent": true,
+  "priority": 100,
+  "selector": {
+    "criteria": [
+      {
+        "port": 2,
+        "type": "IN_PORT"
+      },
+      {
+        "mac": "00:00:00:00:11:22",
+        "type": "ETH_SRC"
+      },
+      {
+        "mac": "00:00:00:00:33:44",
+        "type": "ETH_DST"
+      }
+    ]
+  },
+  "treatment": {
+    "instructions": [
+      {
+        "port": 1,
+        "type": "OUTPUT"
+      }
+    ]
+  }
+}
