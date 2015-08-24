@@ -15,42 +15,30 @@
  */
 package org.onosproject.pcepio;
 
-import java.util.Arrays;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsSame.sameInstance;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcepFactories;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepMessageReader;
 import org.onosproject.pcepio.protocol.PcepOpenMsg;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Test cases for PCEP OPEN Message.
  */
 public class PcepOpenMsgTest {
 
-    protected static final Logger log = LoggerFactory.getLogger(PcepOpenMsgTest.class);
-
-    @Before
-    public void startUp() {
-    }
-
-    @After
-    public void tearDown() {
-
-    }
-
+    /**
+     * This test case checks open object with STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV,
+     * PCECC-CAPABILITY-TLV in Pcep Open message.
+     */
     @Test
     public void openMessageTest1() throws PcepParseException {
 
-        // OPEN OBJECT (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV, PCECC-CAPABILITY-TLV, )
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x24, 0x01, 0x10, 0x00, 0x20, 0x20, 0x1e, 0x78, (byte) 0xbd,
                 0x00, 0x10, 0x00, 0x04, 0x00, 0x00, 0x00, 0x0f, //STATEFUL-PCE-CAPABILITY
                 0x00, 0x0e, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, //GMPLS-CAPABILITY-TLV
@@ -63,38 +51,28 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with STATEFUL-PCE-CAPABILITY-TLV in Pcep Open message.
+     */
     @Test
     public void openMessageTest2() throws PcepParseException {
 
-        // OPEN OBJECT (STATEFUL-PCE-CAPABILITY).
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x14, // common header
                 0x01, 0x10, 0x00, 0x10, // common object header
                 0x20, 0x1E, 0x78, 0x01, // OPEN object
@@ -105,38 +83,28 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with GmplsCapability tlv in Pcep Open message.
+     */
     @Test
     public void openMessageTest3() throws PcepParseException {
 
-        // OPEN OBJECT (GmplsCapability).
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x14, // common header
                 0x01, 0x10, 0x00, 0x10, // common object header
                 0x20, 0x1E, 0x78, 0x01, // OPEN object
@@ -148,38 +116,29 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with StatefulLspDbVer Tlv in Pcep Open message.
+     */
     @Test
     public void openMessageTest4() throws PcepParseException {
 
-        // OPEN OBJECT (StatefulLspDbVerTlv).
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x18,
                 0x01, 0x10, 0x00, 0x14, 0x20, 0x1e, 0x78, 0x20,
                 0x00, 0x17, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 }; //StatefulLspDbVerTlv
@@ -190,38 +149,28 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with no tlv's in Pcep Open message.
+     */
     @Test
     public void openMessageTest5() throws PcepParseException {
 
-        // OPEN OBJECT (no Tlvs).
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x0C,
                 0x01, 0x10, 0x00, 0x08, 0x20, 0x1e, 0x78, (byte) 0xbd }; // no Tlvs in open messsage
 
@@ -231,40 +180,29 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV, PCECC-CAPABILITY-TLV
+     * with I bit set in Pcep Open message.
+     */
     @Test
     public void openMessageTest6() throws PcepParseException {
 
-        /* OPEN OBJECT (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV, PCECC-CAPABILITY-TLV) with
-        p bit not set & i bit set.
-         */
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x24, 0x01, 0x11, 0x00, 0x20, //p bit not set & i bit set
                 0x20, 0x1e, 0x78, (byte) 0xbd,
                 0x00, 0x10, 0x00, 0x04, 0x00, 0x00, 0x00, 0x0f, // STATEFUL-PCE-CAPABILITY
@@ -278,40 +216,29 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV, PCECC-CAPABILITY-TLV
+     * with P bit set in Pcep Open message.
+     */
     @Test
     public void openMessageTest7() throws PcepParseException {
 
-        /* OPEN OBJECT (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV, PCECC-CAPABILITY-TLV)
-        with p bit set & i bit not set.
-         */
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x24, 0x01, 0x12, 0x00, 0x20, //p bit set & i bit not set
                 0x20, 0x1e, 0x78, (byte) 0xbd,
                 0x00, 0x10, 0x00, 0x04, 0x00, 0x00, 0x00, 0x0f, //STATEFUL-PCE-CAPABILITY
@@ -325,34 +252,26 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV, PCECC-CAPABILITY-TLV
+     * with P & I bits set in Pcep Open message.
+     */
     @Test
     public void openMessageTest8() throws PcepParseException {
 
@@ -372,40 +291,29 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV, PCECC-CAPABILITY-TLV
+     * with P & I bits set and invalid session id in Pcep Open message.
+     */
     @Test
     public void openMessageTest9() throws PcepParseException {
 
-        /* OPEN OBJECT (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV, PCECC-CAPABILITY-TLV)
-        with p bit set & i bit set.
-         */
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x24, 0x01, 0x13, 0x00, 0x20, //p bit set & i bit set
                 0x20, 0x1e, 0x78, 0x00, //invalid sessionID
                 0x00, 0x10, 0x00, 0x04, 0x00, 0x00, 0x00, 0x0f, //STATEFUL-PCE-CAPABILITY
@@ -419,38 +327,30 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV
+     * in Pcep Open message.
+     */
     @Test
     public void openMessageTest10() throws PcepParseException {
 
-        //OPEN OBJECT (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV).
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x1C, // common header
                 0x01, 0x10, 0x00, 0x18, // common object header
                 0x20, 0x05, 0x1E, 0x01, // OPEN object
@@ -465,38 +365,29 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV,
+     * PCECC-CAPABILITY-TLV, TED Capability TLV in Pcep Open message.
+     */
     @Test
     public void openMessageTest11() throws PcepParseException {
 
-        //OPEN OBJECT (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV, PCECC-CAPABILITY-TLV, TED Capability TLV).
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x2C, // common header
                 0x01, 0x10, 0x00, 0x28, // common object header
                 0x20, 0x05, 0x1E, 0x01, // OPEN object
@@ -512,38 +403,29 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV,
+     * PCECC-CAPABILITY-TLV in Pcep Open message.
+     */
     @Test
     public void openMessageTest12() throws PcepParseException {
 
-        //OPEN OBJECT (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV, PCECC-CAPABILITY-TLV).
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x24, // common header
                 0x01, 0x10, 0x00, 0x20, // common object header
                 0x20, 0x05, 0x1E, 0x01, // OPEN object
@@ -558,38 +440,29 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV
+     * in Pcep Open message.
+     */
     @Test
     public void openMessageTest13() throws PcepParseException {
 
-        //OPEN OBJECT (STATEFUL-PCE-CAPABILITY, GMPLS-CAPABILITY-TLV).
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x1c, // common header
                 0x01, 0x10, 0x00, 0x18, // common object header
                 0x20, 0x05, 0x1E, 0x01, // OPEN object
@@ -603,38 +476,29 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed ");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with STATEFUL-PCE-CAPABILITY in Pcep Open message.
+     */
     @Test
     public void openMessageTest14() throws PcepParseException {
 
-        //OPEN OBJECT (STATEFUL-PCE-CAPABILITY).
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x14, // common header
                 0x01, 0x10, 0x00, 0x10, // common object header
                 0x20, 0x05, 0x1E, 0x01, // OPEN object
@@ -647,38 +511,28 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 
+    /**
+     * This test case checks open object with no tlv Pcep Open message.
+     */
     @Test
     public void openMessageTest15() throws PcepParseException {
 
-        // OPEN OBJECT.
         byte[] openMsg = new byte[] {0x20, 0x01, 0x00, 0x0c, // common header
                 0x01, 0x10, 0x00, 0x08, // common object header
                 0x20, 0x05, 0x1E, 0x01 // OPEN object
@@ -690,31 +544,19 @@ public class PcepOpenMsgTest {
 
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
         PcepMessage message = null;
-        try {
-            message = reader.readFrom(buffer);
-        } catch (PcepParseException e) {
-            e.printStackTrace();
-        }
 
-        if (message instanceof PcepOpenMsg) {
-            ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-            message.writeTo(buf);
-            testOpenMsg = buf.array();
+        message = reader.readFrom(buffer);
 
-            int iReadLen = buf.writerIndex() - 0;
-            testOpenMsg = new byte[iReadLen];
-            buf.readBytes(testOpenMsg, 0, iReadLen);
+        assertThat(message, sameInstance((PcepOpenMsg) message));
 
-            if (Arrays.equals(openMsg, testOpenMsg)) {
-                Assert.assertArrayEquals(openMsg, testOpenMsg);
-                log.debug("openMsg are equal :" + openMsg);
-            } else {
-                Assert.fail("test case failed");
-                log.debug("not equal");
-            }
-        } else {
-            Assert.fail("test case failed");
-            log.debug("not equal");
-        }
+        ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+        message.writeTo(buf);
+        testOpenMsg = buf.array();
+
+        int readLen = buf.writerIndex() - 0;
+        testOpenMsg = new byte[readLen];
+        buf.readBytes(testOpenMsg, 0, readLen);
+        assertThat(testOpenMsg, is(openMsg));
+
     }
 }
