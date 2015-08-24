@@ -14,7 +14,7 @@ public interface ResourceStore {
 
     /**
      * Registers the resources in transactional way.
-     * Resource registration is must be done before resource allocation. The state after completion
+     * Resource registration must be done before resource allocation. The state after completion
      * of this method is all the resources are registered, or none of the given resources is registered.
      * The whole registration fails when any one of the resource can't be registered.
      *
