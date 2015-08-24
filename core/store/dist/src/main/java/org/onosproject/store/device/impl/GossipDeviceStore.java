@@ -860,7 +860,8 @@ public class GossipDeviceStore
         }
         devicePortDeltaStats.put(deviceId, deltaStatsMap);
         devicePortStats.put(deviceId, newStatsMap);
-        return new DeviceEvent(PORT_STATS_UPDATED,  devices.get(deviceId), null);
+        // DeviceEvent returns null because of InternalPortStatsListener usage
+        return null;
     }
 
     /**
