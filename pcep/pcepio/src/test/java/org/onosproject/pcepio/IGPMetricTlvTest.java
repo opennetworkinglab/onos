@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import org.onosproject.pcepio.types.IGPMetricTlv;
  * Test of the IGPMetricTlv.
  */
 public class IGPMetricTlvTest {
-    private byte[] b1 = new byte[] {0x01, 0x02};
-    private byte[] b2 = new byte[] {0x01, 0x02};
+    private final byte[] b1 = new byte[] {0x01, 0x02};
+    private final byte[] b2 = new byte[] {0x01, 0x02};
     private final IGPMetricTlv tlv1 = IGPMetricTlv.of(b1, (short) 2);
     private final IGPMetricTlv sameAsTlv1 = IGPMetricTlv.of(b1, (short) 2);
     private final IGPMetricTlv tlv2 = IGPMetricTlv.of(b2, (short) 2);

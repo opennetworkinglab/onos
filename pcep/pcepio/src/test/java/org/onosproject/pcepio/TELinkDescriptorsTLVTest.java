@@ -29,23 +29,29 @@ import com.google.common.testing.EqualsTester;
  * Test case for TE link descriptors Tlv.
  */
 public class TELinkDescriptorsTLVTest {
-    LinkLocalRemoteIdentifiersTlv linkLocalRemoteIdentifiersTlv1 = new LinkLocalRemoteIdentifiersTlv(10, 10);
-    IPv4InterfaceAddressTlv iPv4InterfaceAddressTlv1 = new IPv4InterfaceAddressTlv((int) 0x01010101);
-    LinkedList<PcepValueType> llLinkDescriptorsSubTLVs1 = new LinkedList<PcepValueType>();
-    LinkedList<PcepValueType> llLinkDescriptorsSubTLVs2 = new LinkedList<PcepValueType>();
-    LinkedList<PcepValueType> llLinkDescriptorsSubTLVs3 = new LinkedList<PcepValueType>();
+    private final LinkLocalRemoteIdentifiersTlv linkLocalRemoteIdentifiersTlv1 = new
+            LinkLocalRemoteIdentifiersTlv(10, 10);
+    private final IPv4InterfaceAddressTlv iPv4InterfaceAddressTlv1 = new IPv4InterfaceAddressTlv(0x01010101);
 
-    boolean b = llLinkDescriptorsSubTLVs1.add(linkLocalRemoteIdentifiersTlv1);
-    boolean c = llLinkDescriptorsSubTLVs2.add(linkLocalRemoteIdentifiersTlv1);
-    boolean d = llLinkDescriptorsSubTLVs3.add(iPv4InterfaceAddressTlv1);
+    private final LinkLocalRemoteIdentifiersTlv linkLocalRemoteIdentifiersTlv2 = new
+            LinkLocalRemoteIdentifiersTlv(20, 20);
+    private final IPv4InterfaceAddressTlv iPv4InterfaceAddressTlv2 = new IPv4InterfaceAddressTlv(0x02020202);
 
-    final TELinkDescriptorsTLV tlv1 = TELinkDescriptorsTLV.of(llLinkDescriptorsSubTLVs1);
-    final TELinkDescriptorsTLV tlv2 = TELinkDescriptorsTLV.of(llLinkDescriptorsSubTLVs2);
-    final TELinkDescriptorsTLV tlv3 = TELinkDescriptorsTLV.of(llLinkDescriptorsSubTLVs3);
+    private final LinkedList<PcepValueType> llLinkDescriptorsSubTLVs1 = new LinkedList<PcepValueType>();
+    private final boolean a = llLinkDescriptorsSubTLVs1.add(linkLocalRemoteIdentifiersTlv1);
+    private final boolean b = llLinkDescriptorsSubTLVs1.add(iPv4InterfaceAddressTlv1);
+
+    private final LinkedList<PcepValueType> llLinkDescriptorsSubTLVs2 = new LinkedList<PcepValueType>();
+    private final boolean c = llLinkDescriptorsSubTLVs2.add(linkLocalRemoteIdentifiersTlv2);
+    private final boolean d = llLinkDescriptorsSubTLVs2.add(iPv4InterfaceAddressTlv2);
+
+    private final TELinkDescriptorsTLV tlv1 = TELinkDescriptorsTLV.of(llLinkDescriptorsSubTLVs1);
+    private final TELinkDescriptorsTLV sameAstlv1 = TELinkDescriptorsTLV.of(llLinkDescriptorsSubTLVs1);
+    private final TELinkDescriptorsTLV tlv2 = TELinkDescriptorsTLV.of(llLinkDescriptorsSubTLVs2);
 
     @Test
     public void basics() {
-        new EqualsTester().addEqualityGroup(tlv1, tlv2).addEqualityGroup(tlv3).testEquals();
+        new EqualsTester().addEqualityGroup(tlv1, sameAstlv1).addEqualityGroup(tlv2).testEquals();
     }
 
 }

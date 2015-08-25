@@ -30,24 +30,30 @@ import com.google.common.testing.EqualsTester;
  */
 public class TENodeAttributesTlvTest {
 
-    NodeFlagBitsTlv nodeFlagBitsTlv1 = new NodeFlagBitsTlv((byte) 10);
-    IPv4TERouterIdOfLocalNodeTlv iPv4TERouterIdOfLocalNodeTlv1 = new IPv4TERouterIdOfLocalNodeTlv((int) 0x01010101);;
-    LinkedList<PcepValueType> llNodeAttributesSubTLVs1 = new LinkedList<PcepValueType>();
-    LinkedList<PcepValueType> llNodeAttributesSubTLVs2 = new LinkedList<PcepValueType>();
-    LinkedList<PcepValueType> llNodeAttributesSubTLVs3 = new LinkedList<PcepValueType>();
+    private final NodeFlagBitsTlv nodeFlagBitsTlv1 = new NodeFlagBitsTlv((byte) 10);
+    private final IPv4TERouterIdOfLocalNodeTlv iPv4TERouterIdOfLocalNodeTlv1 = new
+            IPv4TERouterIdOfLocalNodeTlv(0x01010101);
 
-    boolean b = llNodeAttributesSubTLVs1.add(nodeFlagBitsTlv1);
+    private final NodeFlagBitsTlv nodeFlagBitsTlv2 = new NodeFlagBitsTlv((byte) 20);
+    private final IPv4TERouterIdOfLocalNodeTlv iPv4TERouterIdOfLocalNodeTlv2 = new
+            IPv4TERouterIdOfLocalNodeTlv(0x02020202);
 
-    boolean c = llNodeAttributesSubTLVs2.add(nodeFlagBitsTlv1);
-    boolean d = llNodeAttributesSubTLVs3.add(iPv4TERouterIdOfLocalNodeTlv1);
+    private final LinkedList<PcepValueType> llNodeAttributesSubTLV1 = new LinkedList<PcepValueType>();
+    private final boolean a = llNodeAttributesSubTLV1.add(nodeFlagBitsTlv1);
+    private final boolean b = llNodeAttributesSubTLV1.add(iPv4TERouterIdOfLocalNodeTlv1);
 
-    final TENodeAttributesTlv tlv1 = TENodeAttributesTlv.of(llNodeAttributesSubTLVs1);
-    final TENodeAttributesTlv tlv2 = TENodeAttributesTlv.of(llNodeAttributesSubTLVs2);
-    final TENodeAttributesTlv tlv3 = TENodeAttributesTlv.of(llNodeAttributesSubTLVs3);
+    private final LinkedList<PcepValueType> llNodeAttributesSubTLV2 = new LinkedList<PcepValueType>();
+
+    private final boolean c = llNodeAttributesSubTLV2.add(nodeFlagBitsTlv2);
+    private final boolean d = llNodeAttributesSubTLV2.add(iPv4TERouterIdOfLocalNodeTlv2);
+
+    private final TENodeAttributesTlv tlv1 = TENodeAttributesTlv.of(llNodeAttributesSubTLV1);
+    private final TENodeAttributesTlv sameAsTlv1 = TENodeAttributesTlv.of(llNodeAttributesSubTLV1);
+    private final TENodeAttributesTlv tlv2 = TENodeAttributesTlv.of(llNodeAttributesSubTLV2);
 
     @Test
     public void basics() {
-        new EqualsTester().addEqualityGroup(tlv1, tlv2).addEqualityGroup(tlv3).testEquals();
+        new EqualsTester().addEqualityGroup(tlv1, sameAsTlv1).addEqualityGroup(tlv2).testEquals();
     }
 
 }

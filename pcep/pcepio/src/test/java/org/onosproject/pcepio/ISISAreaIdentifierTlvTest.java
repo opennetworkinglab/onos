@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import org.onosproject.pcepio.types.ISISAreaIdentifierTlv;
  */
 public class ISISAreaIdentifierTlvTest {
 
-    private byte[] b1 = new byte[] {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    private byte[] b2 = new byte[] {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
+    private final byte[] b1 = new byte[] {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    private final byte[] b2 = new byte[] {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
 
     private final ISISAreaIdentifierTlv tlv1 = ISISAreaIdentifierTlv.of(b1, (short) 20);
     private final ISISAreaIdentifierTlv sameAsTlv1 = ISISAreaIdentifierTlv.of(b1, (short) 20);

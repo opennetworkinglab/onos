@@ -30,24 +30,28 @@ import com.google.common.testing.EqualsTester;
  */
 public class RemoteTENodeDescriptorsTLVTest {
 
-    AutonomousSystemTlv autonomousSystemTlv1 = new AutonomousSystemTlv(10);
-    BGPLSidentifierTlv bGPLSidentifierTlv1 = new BGPLSidentifierTlv(20);;
-    LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs1 = new LinkedList<PcepValueType>();
-    LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs2 = new LinkedList<PcepValueType>();
-    LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs3 = new LinkedList<PcepValueType>();
+    private final AutonomousSystemTlv autonomousSystemTlv1 = new AutonomousSystemTlv(10);
+    private final BGPLSidentifierTlv bGPLSidentifierTlv1 = new BGPLSidentifierTlv(20);
 
-    boolean b = llRemoteTENodeDescriptorSubTLVs1.add(autonomousSystemTlv1);
+    private final AutonomousSystemTlv autonomousSystemTlv2 = new AutonomousSystemTlv(20);
+    private final BGPLSidentifierTlv bGPLSidentifierTlv2 = new BGPLSidentifierTlv(30);
 
-    boolean c = llRemoteTENodeDescriptorSubTLVs2.add(autonomousSystemTlv1);
-    boolean d = llRemoteTENodeDescriptorSubTLVs3.add(bGPLSidentifierTlv1);
+    private final LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLV1 = new LinkedList<PcepValueType>();
+    private final boolean a = llRemoteTENodeDescriptorSubTLV1.add(autonomousSystemTlv1);
+    private final boolean b = llRemoteTENodeDescriptorSubTLV1.add(bGPLSidentifierTlv1);
 
-    final RemoteTENodeDescriptorsTLV tlv1 = RemoteTENodeDescriptorsTLV.of(llRemoteTENodeDescriptorSubTLVs1);
-    final RemoteTENodeDescriptorsTLV tlv2 = RemoteTENodeDescriptorsTLV.of(llRemoteTENodeDescriptorSubTLVs2);
-    final RemoteTENodeDescriptorsTLV tlv3 = RemoteTENodeDescriptorsTLV.of(llRemoteTENodeDescriptorSubTLVs3);
+    private final LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLV2 = new LinkedList<PcepValueType>();
+    private final boolean c = llRemoteTENodeDescriptorSubTLV2.add(autonomousSystemTlv2);
+    private final boolean d = llRemoteTENodeDescriptorSubTLV2.add(bGPLSidentifierTlv2);
+
+    private final RemoteTENodeDescriptorsTLV tlv1 = RemoteTENodeDescriptorsTLV.of(llRemoteTENodeDescriptorSubTLV1);
+    private final RemoteTENodeDescriptorsTLV sameAsTlv1 =
+            RemoteTENodeDescriptorsTLV.of(llRemoteTENodeDescriptorSubTLV1);
+    private final RemoteTENodeDescriptorsTLV tlv2 = RemoteTENodeDescriptorsTLV.of(llRemoteTENodeDescriptorSubTLV2);
 
     @Test
     public void basics() {
-        new EqualsTester().addEqualityGroup(tlv1, tlv2).addEqualityGroup(tlv3).testEquals();
+        new EqualsTester().addEqualityGroup(tlv1, sameAsTlv1).addEqualityGroup(tlv2).testEquals();
     }
 
 }

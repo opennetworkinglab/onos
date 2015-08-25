@@ -25,20 +25,19 @@ import com.google.common.testing.EqualsTester;
  */
 public class SharedRiskLinkGroupTlvTest {
 
-    private int[] raw = {1 };
-    private Short hLength = new Short((short) 2);
+    private final int[] raw = {1 };
+    private final Short hLength = new Short((short) 2);
     private final SharedRiskLinkGroupTlv tlv1 = SharedRiskLinkGroupTlv.of(raw, hLength);
 
-    private Short hLength1 = new Short((short) 2);
-    private final SharedRiskLinkGroupTlv tlv2 = SharedRiskLinkGroupTlv.of(raw, hLength1);
+    private final SharedRiskLinkGroupTlv sameAsTlv1 = SharedRiskLinkGroupTlv.of(raw, hLength);
 
-    private int[] raw2 = {2 };
-    private Short hLength2 = new Short((short) 3);
-    private SharedRiskLinkGroupTlv tlv3 = SharedRiskLinkGroupTlv.of(raw2, hLength2);
+    private final int[] raw2 = {2 };
+    private final Short hLength2 = new Short((short) 3);
+    private final SharedRiskLinkGroupTlv tlv2 = SharedRiskLinkGroupTlv.of(raw2, hLength2);
 
     @Test
     public void basics() {
-        new EqualsTester().addEqualityGroup(tlv1, tlv2).addEqualityGroup(tlv3).testEquals();
+        new EqualsTester().addEqualityGroup(tlv1, sameAsTlv1).addEqualityGroup(tlv2).testEquals();
     }
 
 }

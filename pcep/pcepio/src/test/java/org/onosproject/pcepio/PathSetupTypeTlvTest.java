@@ -15,23 +15,22 @@
  */
 package org.onosproject.pcepio;
 
-import com.google.common.testing.EqualsTester;
-
 import org.junit.Test;
 import org.onosproject.pcepio.types.PathSetupTypeTlv;
+
+import com.google.common.testing.EqualsTester;
 
 /**
  * Test of the PathSetupTypeTlv.
  */
 public class PathSetupTypeTlvTest {
-    final int rawValue1 = 0x0A;
-    final int rawValue2 = 0x0A;
 
-    final PathSetupTypeTlv tlv1 = new PathSetupTypeTlv(rawValue1);
-    final PathSetupTypeTlv tlv2 = PathSetupTypeTlv.of(tlv1.getInt());
+    private final PathSetupTypeTlv tlv1 = PathSetupTypeTlv.of(0x0A);
+    private final PathSetupTypeTlv sameAsTlv1 = PathSetupTypeTlv.of(0x0A);
+    private final PathSetupTypeTlv tlv2 = PathSetupTypeTlv.of(0x0B);
 
     @Test
     public void basics() {
-        new EqualsTester().addEqualityGroup(tlv1, tlv2).testEquals();
+        new EqualsTester().addEqualityGroup(tlv1, sameAsTlv1).addEqualityGroup(tlv2).testEquals();
     }
 }

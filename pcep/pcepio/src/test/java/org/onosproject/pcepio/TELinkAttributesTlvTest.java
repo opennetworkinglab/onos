@@ -30,24 +30,30 @@ import com.google.common.testing.EqualsTester;
  */
 public class TELinkAttributesTlvTest {
 
-    AdministrativeGroupTlv administrativeGroupTlv1 = new AdministrativeGroupTlv(10);
-    MaximumReservableLinkBandwidthTlv maximumReservableLinkBandwidthTlv1 = new MaximumReservableLinkBandwidthTlv(20);;
-    LinkedList<PcepValueType> llLinkAttributesSubTLVs = new LinkedList<PcepValueType>();
-    LinkedList<PcepValueType> llLinkAttributesSubTLVs2 = new LinkedList<PcepValueType>();
-    LinkedList<PcepValueType> llLinkAttributesSubTLVs3 = new LinkedList<PcepValueType>();
+    private final AdministrativeGroupTlv administrativeGroupTlv1 = new AdministrativeGroupTlv(10);
+    private final MaximumReservableLinkBandwidthTlv maximumReservableLinkBandwidthTlv1 =
+            new MaximumReservableLinkBandwidthTlv(20);
 
-    boolean b = llLinkAttributesSubTLVs.add(administrativeGroupTlv1);
+    private final AdministrativeGroupTlv administrativeGroupTlv2 = new AdministrativeGroupTlv(20);
+    private final MaximumReservableLinkBandwidthTlv maximumReservableLinkBandwidthTlv2 =
+            new MaximumReservableLinkBandwidthTlv(30);
 
-    boolean c = llLinkAttributesSubTLVs2.add(administrativeGroupTlv1);
-    boolean d = llLinkAttributesSubTLVs3.add(maximumReservableLinkBandwidthTlv1);
+    private final LinkedList<PcepValueType> llLinkAttributesSubTLV1 = new LinkedList<PcepValueType>();
+    private final boolean a = llLinkAttributesSubTLV1.add(administrativeGroupTlv1);
+    private final boolean b = llLinkAttributesSubTLV1.add(maximumReservableLinkBandwidthTlv1);
 
-    final TELinkAttributesTlv tlv1 = TELinkAttributesTlv.of(llLinkAttributesSubTLVs);
-    final TELinkAttributesTlv tlv2 = TELinkAttributesTlv.of(llLinkAttributesSubTLVs2);
-    final TELinkAttributesTlv tlv3 = TELinkAttributesTlv.of(llLinkAttributesSubTLVs3);
+    private final LinkedList<PcepValueType> llLinkAttributesSubTLV2 = new LinkedList<PcepValueType>();
+
+    private final boolean c = llLinkAttributesSubTLV2.add(administrativeGroupTlv2);
+    private final boolean d = llLinkAttributesSubTLV2.add(maximumReservableLinkBandwidthTlv2);
+
+    private final TELinkAttributesTlv tlv1 = TELinkAttributesTlv.of(llLinkAttributesSubTLV1);
+    private final TELinkAttributesTlv sameAsTlv1 = TELinkAttributesTlv.of(llLinkAttributesSubTLV1);
+    private final TELinkAttributesTlv tlv2 = TELinkAttributesTlv.of(llLinkAttributesSubTLV2);
 
     @Test
     public void basics() {
-        new EqualsTester().addEqualityGroup(tlv1, tlv2).addEqualityGroup(tlv3).testEquals();
+        new EqualsTester().addEqualityGroup(tlv1, sameAsTlv1).addEqualityGroup(tlv2).testEquals();
     }
 
 }

@@ -25,15 +25,15 @@ import com.google.common.testing.EqualsTester;
  */
 public class RouterIDSubTlvTest {
 
-    private byte[] value1 = {1, 2 };
-    private Short length1 = new Short((short) 2);
+    private final byte[] value1 = {1, 2 };
+    private final Short length1 = new Short((short) 2);
     private final RouterIDSubTlv tlv1 = RouterIDSubTlv.of(value1, length1);
 
-    private Short length2 = new Short((short) 2);
+    private final Short length2 = new Short((short) 2);
     private final RouterIDSubTlv tlv2 = RouterIDSubTlv.of(value1, length2);
 
-    private byte[] value3 = {1, 2, 3 };
-    private Short length3 = new Short((short) 3);
+    private final byte[] value3 = {1, 2, 3 };
+    private final Short length3 = new Short((short) 3);
     private final RouterIDSubTlv tlv3 = RouterIDSubTlv.of(value3, length3);
 
     @Test
