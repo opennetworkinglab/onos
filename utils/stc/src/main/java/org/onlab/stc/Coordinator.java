@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,7 +53,6 @@ public class Coordinator {
 
     private static final Pattern PROP_ERE = Pattern.compile("^@stc ([a-zA-Z0-9_.]+)=(.*$)");
     private final Map<String, String> properties = Maps.newConcurrentMap();
-    private final Function<String, String> substitutor = this::substitute;
 
     private final Set<StepProcessListener> listeners = Sets.newConcurrentHashSet();
     private File logDir;
@@ -224,7 +222,7 @@ public class Coordinator {
                 executeRoots(group);
             } else {
                 executor.execute(new StepProcessor(step, logDir, delegate,
-                                                   substitutor));
+                                                   substitute(step.command())));
             }
         } else if (directive == SKIP) {
             if (step instanceof Group) {

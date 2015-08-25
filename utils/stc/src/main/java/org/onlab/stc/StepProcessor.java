@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.onlab.stc.Coordinator.Status.FAILED;
@@ -46,27 +45,25 @@ class StepProcessor implements Runnable {
 
     private Process process;
     private StepProcessListener delegate;
-    private Function<String, String> substitutor;
 
     /**
      * Creates a process monitor.
      *
-     * @param step        step or group to be executed
-     * @param logDir      directory where step process log should be stored
-     * @param delegate    process lifecycle listener
-     * @param substitutor function to substitute var reference in command
+     * @param step     step or group to be executed
+     * @param logDir   directory where step process log should be stored
+     * @param delegate process lifecycle listener
+     * @param command  actual command to execute
      */
     StepProcessor(Step step, File logDir, StepProcessListener delegate,
-                  Function<String, String> substitutor) {
+                  String command) {
         this.step = step;
         this.logDir = logDir;
         this.delegate = delegate;
-        this.substitutor = substitutor;
+        this.command = command;
     }
 
     @Override
     public void run() {
-        command = substitutor != null ? substitutor.apply(command()) : command();
         delegate.onStart(step, command);
         int code = execute();
         boolean ignoreCode = step.env() != null && step.env.equals(IGNORE_CODE);
@@ -81,7 +78,7 @@ class StepProcessor implements Runnable {
      */
     private int execute() {
         try (PrintWriter pw = new PrintWriter(logFile())) {
-            process = Runtime.getRuntime().exec(command);
+            process = Runtime.getRuntime().exec(command());
             processOutput(pw);
 
             // Wait for the process to complete and get its exit code.
@@ -107,7 +104,7 @@ class StepProcessor implements Runnable {
         return format("%s %s %s %s", launcher,
                       step.env() != null ? step.env() : "-",
                       step.cwd() != null ? step.cwd() : "-",
-                      step.command());
+                      command);
     }
 
     /**
