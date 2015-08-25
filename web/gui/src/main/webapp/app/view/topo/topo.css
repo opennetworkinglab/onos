@@ -323,6 +323,10 @@ html[data-platform='iPad'] #topo-p-detail {
 /* --- Topo Nodes --- */
 
 #ov-topo svg .suppressed {
+    opacity: 0.5 !important;
+}
+
+#ov-topo svg .suppressedmax {
     opacity: 0.2 !important;
 }
 

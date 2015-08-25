@@ -31,19 +31,21 @@ import org.onosproject.ui.topo.PropertyPanel;
  * JSON utilities for the Topology View.
  */
 public final class TopoJson {
-    private static final String DEVICES = "devices";
-    private static final String HOSTS = "hosts";
-    private static final String LINKS = "links";
+    // package-private for unit test access
+    static final String DEVICES = "devices";
+    static final String HOSTS = "hosts";
+    static final String LINKS = "links";
+    static final String SUBDUE = "subdue";
 
-    private static final String ID = "id";
-    private static final String LABEL = "label";
-    private static final String CSS = "css";
+    static final String ID = "id";
+    static final String LABEL = "label";
+    static final String CSS = "css";
 
-    private static final String TITLE = "title";
-    private static final String TYPE = "type";
-    private static final String PROP_ORDER = "propOrder";
-    private static final String PROPS = "props";
-    private static final String BUTTONS = "buttons";
+    static final String TITLE = "title";
+    static final String TYPE = "type";
+    static final String PROP_ORDER = "propOrder";
+    static final String PROPS = "props";
+    static final String BUTTONS = "buttons";
 
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -80,6 +82,10 @@ public final class TopoJson {
         highlights.hosts().forEach(hh -> hosts.add(json(hh)));
         highlights.links().forEach(lh -> links.add(json(lh)));
 
+        Highlights.Amount toSubdue = highlights.subdueLevel();
+        if (!toSubdue.equals(Highlights.Amount.ZERO)) {
+            payload.put(SUBDUE, toSubdue.toString());
+        }
         return payload;
     }
 

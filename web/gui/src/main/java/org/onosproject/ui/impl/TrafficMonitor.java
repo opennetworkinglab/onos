@@ -35,14 +35,14 @@ import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.statistic.Load;
 import org.onosproject.ui.impl.topo.IntentSelection;
-import org.onosproject.ui.topo.NodeSelection;
 import org.onosproject.ui.impl.topo.ServicesBundle;
-import org.onosproject.ui.topo.TopoUtils;
 import org.onosproject.ui.impl.topo.TopoIntentFilter;
 import org.onosproject.ui.impl.topo.TrafficClass;
 import org.onosproject.ui.impl.topo.TrafficLink;
 import org.onosproject.ui.impl.topo.TrafficLinkMap;
 import org.onosproject.ui.topo.Highlights;
+import org.onosproject.ui.topo.NodeSelection;
+import org.onosproject.ui.topo.TopoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -294,17 +294,33 @@
     }
 
     function showHighlights(data) {
+        var less;
+
         /*
            API to topoForce
              clearLinkTrafficStyle()
              removeLinkLabels()
-             updateLinks()
              findLinkById( id )
+             updateLinks()
+             updateNodes()
+             supLayers( bool, [less] )
+             unsupNode( id, [less] )
+             unsupLink( id, [less] )
          */
 
         // TODO: clear node highlighting
         api.clearLinkTrafficStyle();
         api.removeLinkLabels();
+
+        // handle element suppression
+        if (data.subdue) {
+            less = data.subdue === 'min';
+            api.supLayers(true, less);
+
+        } else {
+            api.supLayers(false);
+            api.supLayers(false, true);
+        }
 
         // TODO: device and host highlights
 
@@ -314,6 +330,7 @@
                 units, portcls, magnitude;
 
             if (ldata && !ldata.el.empty()) {
+                api.unsupLink(ldata.id, less);
                 ldata.el.classed(lnk.css, true);
                 ldata.label = lab;
 
@@ -334,7 +351,7 @@
             }
         });
 
-        // TODO: api.updateNodes()
+        api.updateNodes();
         api.updateLinks();
     }
 

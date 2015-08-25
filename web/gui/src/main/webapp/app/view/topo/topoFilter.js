@@ -33,6 +33,8 @@
      link()     // get ref to D3 selection of links
      */
 
+    var smax = 'suppressedmax';
+
     // which "layer" a particular item "belongs to"
     var layerLookup = {
             host: {
@@ -93,23 +95,21 @@
         api.node().each(function (d) {
             var node = d.el;
             if (inLayer(d, which)) {
-                node.classed('suppressed', false);
+                node.classed(smax, false);
             }
         });
 
         api.link().each(function (d) {
             var link = d.el;
             if (inLayer(d, which)) {
-                link.classed('suppressed', false);
+                link.classed(smax, false);
             }
         });
     }
 
     function suppressLayers(b) {
-        api.node().classed('suppressed', b);
-        api.link().classed('suppressed', b);
-//        d3.selectAll('svg .port').classed('inactive', false);
-//        d3.selectAll('svg .portText').classed('inactive', false);
+        api.node().classed(smax, b);
+        api.link().classed(smax, b);
     }
 
     function showLayer(which) {

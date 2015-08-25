@@ -491,16 +491,37 @@
         suppressLayers(true);
         node.each(function (n) {
             if (n.master === id) {
-                n.el.classed('suppressed', false);
+                n.el.classed('suppressedmax', false);
             }
         });
     }
 
-    function suppressLayers(b) {
-        node.classed('suppressed', b);
-        link.classed('suppressed', b);
-//        d3.selectAll('svg .port').classed('inactive', b);
-//        d3.selectAll('svg .portText').classed('inactive', b);
+    function supAmt(less) {
+        return less ? "suppressed" : "suppressedmax";
+    }
+
+    function suppressLayers(b, less) {
+        var cls = supAmt(less);
+        node.classed(cls, b);
+        link.classed(cls, b);
+    }
+
+    function unsuppressNode(id, less) {
+        var cls = supAmt(less);
+        node.each(function (n) {
+            if (n.id === id) {
+                n.el.classed(cls, false);
+            }
+        });
+    }
+
+    function unsuppressLink(id, less) {
+        var cls = supAmt(less);
+        link.each(function (n) {
+            if (n.id === id) {
+                n.el.classed(cls, false);
+            }
+        });
     }
 
     function showBadLinks() {
@@ -900,8 +921,12 @@
         return {
             clearLinkTrafficStyle: clearLinkTrafficStyle,
             removeLinkLabels: removeLinkLabels,
+            findLinkById: tms.findLinkById,
             updateLinks: updateLinks,
-            findLinkById: tms.findLinkById
+            updateNodes: updateNodes,
+            supLayers: suppressLayers,
+            unsupNode: unsuppressNode,
+            unsupLink: unsuppressLink
         };
     }
 
