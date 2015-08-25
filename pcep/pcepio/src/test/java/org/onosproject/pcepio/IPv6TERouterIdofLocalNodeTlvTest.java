@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,10 @@ import org.onosproject.pcepio.types.IPv6TERouterIdofLocalNodeTlv;
  */
 public class IPv6TERouterIdofLocalNodeTlvTest {
 
-    private byte[] b1 = new byte[] {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    private byte[] b2 = new byte[] {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
+    private final byte[] b1 = new byte[] {(byte) 0xFE, (byte) 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x02,
+            (byte) 0xB3, (byte) 0xFF, (byte) 0xFE, 0x1E, (byte) 0x83, 0x29, 0x00, 0x02, 0x00, 0x00};
+    private final byte[] b2 = new byte[] {(byte) 0xFE, (byte) 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x02,
+            (byte) 0xB3, (byte) 0xFF, (byte) 0xFE, 0x1E, (byte) 0x83, 0x30, 0x00, 0x02, 0x00, 0x00 };
 
     private final IPv6TERouterIdofLocalNodeTlv tlv1 = IPv6TERouterIdofLocalNodeTlv.of(b1);
     private final IPv6TERouterIdofLocalNodeTlv sameAsTlv1 = IPv6TERouterIdofLocalNodeTlv.of(b1);
