@@ -1,0 +1,52 @@
+<!--
+  ~ Copyright 2015 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="net-point-intent" description="Network point to point intent connectivity test">
+    <!-- TODO: parametrize this via recipes -->
+    <group name="Point-To-Point-Intent-Connectivity">
+        <step name="P2P-Uninstall-Reactive-Forwarding"
+              exec="onos ${OC1} app deactivate org.onosproject.fwd org.onosproject.ifwd"/>
+
+        <step name="P2P-Find-Host-1" requires="^"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect ."/>
+        <step name="P2PFind-Host-2" requires="^"
+              exec="onos-mininet sendAndExpect h4 ping -c1 h1 --expect ."/>
+
+        <step name="P2P-Create-Intent-1-To-4" requires="^"
+              exec="onos ${OC1} add-point-intent of:0000000000000001/1 of:0000000000000004/1"/>
+        <step name="P2P-Create-Intent-4-To-1" requires="^"
+              exec="onos ${OC1} add-point-intent of:0000000000000004/1 of:0000000000000001/1"/>
+        <step name="P2P-Validate-Point-Intents-Installed" exec="onos-check-intent ${OC1} INSTALLED"
+              requires="P2P-Create-Intent-4-To-1" />
+
+        <import file="${ONOS_SCENARIOS}/net-link-down-up.xml" namespace="Point-To-Point-Intent"/>
+        <dependency name="Point-To-Point-Intent.Net-Link-Down-Up" requires="P2P-Validate-Point-Intents-Installed"/>
+        <step name="P2P-Validate-Intent-Installed-Still" exec="onos-check-intent ${OC1} INSTALLED"
+              requires="Point-To-Point-Intent.Link-1-Down" />
+
+        <step name="P2P-Validate-Intent-Failed" exec="onos-check-intent ${OC1} FAILED"
+              requires="Point-To-Point-Intent.Link-2-Down" />
+
+        <step name="P2P-Validate-Intent-Installed-Again" exec="onos-check-intent ${OC1} INSTALLED"
+              requires="Point-To-Point-Intent.Link-1-Up" />
+        <dependency name="Point-To-Point-Intent.Ping-4" requires="P2P-Validate-Intent-Installed-Again" />
+
+        <step name="P2P-Remove-Intent" requires="~Point-To-Point-Intent.Net-Link-Down-Up"
+              exec="onos ${OC1} remove-intent -p"/>
+
+
+
+    </group>
+</scenario>
