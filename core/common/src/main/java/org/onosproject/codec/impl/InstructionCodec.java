@@ -48,6 +48,8 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
     protected static final String SLOT_GRANULARITY = "slotGranularity";
     protected static final String ETHERNET_TYPE = "ethernetType";
     protected static final String TUNNEL_ID = "tunnelId";
+    protected static final String TCP_PORT = "tcpPort";
+    protected static final String UDP_PORT = "udpPort";
 
     protected static final String MISSING_MEMBER_MESSAGE =
             " member is required in Instruction";

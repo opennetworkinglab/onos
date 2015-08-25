@@ -18,19 +18,21 @@ package org.onosproject.codec.impl;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 
 import static org.onlab.util.Tools.nullIsIllegal;
 
@@ -172,6 +174,36 @@ public final class DecodeInstructionCodecHelper {
     }
 
     /**
+     * Decodes a Layer 4 instruction.
+     *
+     * @return instruction object decoded from the JSON
+     * @throws IllegalArgumentException if the JSON is invalid
+     */
+    private Instruction decodeL4() {
+        String subType = json.get(InstructionCodec.SUBTYPE).asText();
+
+        if (subType.equals(L4ModificationInstruction.L4SubType.TCP_DST.name())) {
+            TpPort tcpPort = TpPort.tpPort(nullIsIllegal(json.get(InstructionCodec.TCP_PORT),
+                    InstructionCodec.TCP_PORT + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
+            return Instructions.modTcpDst(tcpPort);
+        } else if (subType.equals(L4ModificationInstruction.L4SubType.TCP_SRC.name())) {
+            TpPort tcpPort = TpPort.tpPort(nullIsIllegal(json.get(InstructionCodec.TCP_PORT),
+                    InstructionCodec.TCP_PORT + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
+            return Instructions.modTcpSrc(tcpPort);
+        } else if (subType.equals(L4ModificationInstruction.L4SubType.UDP_DST.name())) {
+            TpPort udpPort = TpPort.tpPort(nullIsIllegal(json.get(InstructionCodec.UDP_PORT),
+                    InstructionCodec.UDP_PORT + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
+            return Instructions.modUdpDst(udpPort);
+        } else if (subType.equals(L4ModificationInstruction.L4SubType.UDP_SRC.name())) {
+            TpPort udpPort = TpPort.tpPort(nullIsIllegal(json.get(InstructionCodec.UDP_PORT),
+                    InstructionCodec.UDP_PORT + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
+            return Instructions.modUdpSrc(udpPort);
+        }
+        throw new IllegalArgumentException("L4 Instruction subtype "
+                + subType + " is not supported");
+    }
+
+    /**
      * Decodes the JSON into an instruction object.
      *
      * @return Criterion object
@@ -193,6 +225,8 @@ public final class DecodeInstructionCodecHelper {
             return decodeL2();
         } else if (type.equals(Instruction.Type.L3MODIFICATION.name())) {
             return decodeL3();
+        } else if (type.equals(Instruction.Type.L4MODIFICATION.name())) {
+            return decodeL4();
         }
         throw new IllegalArgumentException("Instruction type "
                 + type + " is not supported");

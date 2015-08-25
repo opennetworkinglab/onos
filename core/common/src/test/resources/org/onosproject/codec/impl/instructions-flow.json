@@ -27,7 +27,11 @@
         {"type":"L3MODIFICATION","subtype":"IPV6_FLABEL", "flowLabel":8},
         {"type":"L0MODIFICATION","subtype":"LAMBDA","lambda":7},
         {"type":"L0MODIFICATION","subtype":"OCH","gridType":"DWDM",
-          "channelSpacing":"CHL_100GHZ","spacingMultiplier":4,"slotGranularity":8}
+          "channelSpacing":"CHL_100GHZ","spacingMultiplier":4,"slotGranularity":8},
+        {"type":"L4MODIFICATION","subtype":"TCP_DST","tcpPort":40001},
+        {"type":"L4MODIFICATION","subtype":"TCP_SRC","tcpPort":40002},
+        {"type":"L4MODIFICATION","subtype":"UDP_DST","udpPort":40003},
+        {"type":"L4MODIFICATION","subtype":"UDP_SRC","udpPort":40004}
       ],
       "deferred":[]
   },

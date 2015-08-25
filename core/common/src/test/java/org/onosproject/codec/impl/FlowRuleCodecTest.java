@@ -62,14 +62,15 @@ import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -199,6 +200,9 @@ public class FlowRuleCodecTest {
                     } else if (instruction.type() == Instruction.Type.L3MODIFICATION) {
                         subType = ((L3ModificationInstruction) instruction)
                                 .subtype().name();
+                    } else if (instruction.type() == Instruction.Type.L4MODIFICATION) {
+                        subType = ((L4ModificationInstruction) instruction)
+                                .subtype().name();
                     } else {
                         subType = "";
                     }
@@ -206,7 +210,7 @@ public class FlowRuleCodecTest {
                             instruction.type().name() + "/" + subType, instruction);
                 });
 
-        assertThat(rule.treatment().allInstructions().size(), is(20));
+        assertThat(rule.treatment().allInstructions().size(), is(24));
 
         Instruction instruction;
 
@@ -327,6 +331,30 @@ public class FlowRuleCodecTest {
         assertThat(och.lambda().slotGranularity(), is(8));
         assertThat(och.lambda().gridType(), is(GridType.DWDM));
         assertThat(och.lambda().channelSpacing(), is(ChannelSpacing.CHL_100GHZ));
+
+        instruction = getInstruction(Instruction.Type.L4MODIFICATION,
+                L4ModificationInstruction.L4SubType.TCP_DST.name());
+        assertThat(instruction.type(), is(Instruction.Type.L4MODIFICATION));
+        assertThat(((L4ModificationInstruction.ModTransportPortInstruction) instruction)
+                .port().toInt(), is(40001));
+
+        instruction = getInstruction(Instruction.Type.L4MODIFICATION,
+                L4ModificationInstruction.L4SubType.TCP_SRC.name());
+        assertThat(instruction.type(), is(Instruction.Type.L4MODIFICATION));
+        assertThat(((L4ModificationInstruction.ModTransportPortInstruction) instruction)
+                .port().toInt(), is(40002));
+
+        instruction = getInstruction(Instruction.Type.L4MODIFICATION,
+                L4ModificationInstruction.L4SubType.UDP_DST.name());
+        assertThat(instruction.type(), is(Instruction.Type.L4MODIFICATION));
+        assertThat(((L4ModificationInstruction.ModTransportPortInstruction) instruction)
+                .port().toInt(), is(40003));
+
+        instruction = getInstruction(Instruction.Type.L4MODIFICATION,
+                L4ModificationInstruction.L4SubType.UDP_SRC.name());
+        assertThat(instruction.type(), is(Instruction.Type.L4MODIFICATION));
+        assertThat(((L4ModificationInstruction.ModTransportPortInstruction) instruction)
+                .port().toInt(), is(40004));
     }
 
     SortedMap<String, Criterion> criteria = new TreeMap<>();
