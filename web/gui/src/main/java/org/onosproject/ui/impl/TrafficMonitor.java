@@ -186,7 +186,7 @@ public class TrafficMonitor {
         switch (mode) {
             case DEV_LINK_FLOWS:
                 // only care about devices (not hosts)
-                if (selectedNodes.devices().isEmpty()) {
+                if (selectedNodes.devicesWithHover().isEmpty()) {
                     sendClearAll();
                 } else {
                     scheduleTask();
@@ -371,11 +371,11 @@ public class TrafficMonitor {
     private Highlights deviceLinkFlows() {
         Highlights highlights = new Highlights();
 
-        if (selectedNodes != null && !selectedNodes.devices().isEmpty()) {
+        if (selectedNodes != null && !selectedNodes.devicesWithHover().isEmpty()) {
             // capture flow counts on bilinks
             TrafficLinkMap linkMap = new TrafficLinkMap();
 
-            for (Device device : selectedNodes.devices()) {
+            for (Device device : selectedNodes.devicesWithHover()) {
                 Map<Link, Integer> counts = getLinkFlowCounts(device.id());
                 for (Link link : counts.keySet()) {
                     TrafficLink tlink = linkMap.add(link);

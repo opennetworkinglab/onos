@@ -50,7 +50,7 @@ public class IntentSelection {
      */
     public IntentSelection(NodeSelection nodes, TopoIntentFilter filter) {
         this.nodes = nodes;
-        intents = filter.findPathIntents(nodes.hosts(), nodes.devices());
+        intents = filter.findPathIntents(nodes.hostsWithHover(), nodes.devicesWithHover());
         if (intents.size() == 1) {
             index = 0;  // pre-select a single intent
         }
