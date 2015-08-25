@@ -15,11 +15,13 @@
  */
 package org.onosproject.net.newresource.impl;
 
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
+import org.onosproject.net.behaviour.MplsQuery;
 import org.onosproject.net.behaviour.VlanQuery;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
@@ -30,6 +32,7 @@ import org.onosproject.net.newresource.ResourcePath;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -42,6 +45,9 @@ final class ResourceLinkListener implements LinkListener {
 
     private static final int TOTAL_VLANS = 1024;
     private static final List<VlanId> ENTIRE_VLAN_IDS = getEntireVlans();
+
+    private static final int TOTAL_MPLS_LABELS = 1048576;
+    private static final List<MplsLabel> ENTIRE_MPLS_LABELS = getEntireMplsLabels();
 
     private final ResourceAdminService adminService;
     private final DriverService driverService;
@@ -80,9 +86,15 @@ final class ResourceLinkListener implements LinkListener {
             LinkKey linkKey = LinkKey.linkKey(link);
             adminService.registerResources(ResourcePath.ROOT, linkKey);
 
+            ResourcePath linkPath = new ResourcePath(linkKey);
             // register VLAN IDs against the link
-            if (isVlanEnabled(link)) {
-                adminService.registerResources(new ResourcePath(linkKey), ENTIRE_VLAN_IDS);
+            if (isEnabled(link, this::isVlanEnabled)) {
+                adminService.registerResources(linkPath, ENTIRE_VLAN_IDS);
+            }
+
+            // register MPLS labels against the link
+            if (isEnabled(link, this::isMplsEnabled)) {
+                adminService.registerResources(linkPath, ENTIRE_MPLS_LABELS);
             }
         });
     }
@@ -92,11 +104,8 @@ final class ResourceLinkListener implements LinkListener {
         executor.submit(() -> adminService.unregisterResources(ResourcePath.ROOT, linkKey));
     }
 
-    private boolean isVlanEnabled(Link link) {
-        ConnectPoint src = link.src();
-        ConnectPoint dst = link.dst();
-
-        return isVlanEnabled(src) && isVlanEnabled(dst);
+    private boolean isEnabled(Link link, Predicate<ConnectPoint> predicate) {
+        return predicate.test(link.src()) && predicate.test(link.dst());
     }
 
     private boolean isVlanEnabled(ConnectPoint cp) {
@@ -113,9 +122,30 @@ final class ResourceLinkListener implements LinkListener {
         }
     }
 
+    private boolean isMplsEnabled(ConnectPoint cp) {
+        try {
+            DriverHandler handler = driverService.createHandler(cp.deviceId());
+            if (handler == null) {
+                return false;
+            }
+
+            MplsQuery query = handler.behaviour(MplsQuery.class);
+            return query != null && query.isEnabled(cp.port());
+        } catch (ItemNotFoundException e) {
+            return false;
+        }
+    }
+
     private static List<VlanId> getEntireVlans() {
         return IntStream.range(0, TOTAL_VLANS)
                 .mapToObj(x -> VlanId.vlanId((short) x))
+                .collect(Collectors.toList());
+    }
+
+    private static List<MplsLabel> getEntireMplsLabels() {
+        // potentially many objects are created
+        return IntStream.range(0, TOTAL_MPLS_LABELS)
+                .mapToObj(MplsLabel::mplsLabel)
                 .collect(Collectors.toList());
     }
 }
