@@ -212,7 +212,7 @@ public class Controller {
 
         Driver driver;
         try {
-             driver = driverService.getDriver(DeviceId.deviceId(Dpid.uri(dpidObj)));
+            driver = driverService.getDriver(DeviceId.deviceId(Dpid.uri(dpidObj)));
         } catch (ItemNotFoundException e) {
             driver = driverService.getDriver(desc.getMfrDesc(), desc.getHwDesc(), desc.getSwDesc());
         }
