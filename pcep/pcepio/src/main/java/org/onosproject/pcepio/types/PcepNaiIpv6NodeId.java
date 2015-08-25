@@ -39,6 +39,16 @@ public class PcepNaiIpv6NodeId implements PcepNai {
         this.ipv6NodeId = value;
     }
 
+    /**
+     * Return object of Pcep Nai Ipv6 Node ID.
+     *
+     * @param ipv6NodeId Ipv6 node ID.
+     * @return object of Pcep Nai Ipv6 Node ID.
+     */
+    public static PcepNaiIpv6NodeId of(byte[] ipv6NodeId) {
+        return new PcepNaiIpv6NodeId(ipv6NodeId);
+    }
+
     @Override
     public byte getType() {
         return ST_TYPE;

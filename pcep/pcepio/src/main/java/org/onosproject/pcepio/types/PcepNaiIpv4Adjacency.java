@@ -40,6 +40,17 @@ public class PcepNaiIpv4Adjacency implements PcepNai {
         this.remoteIpv4Addr = remoteIpv4;
     }
 
+    /**
+     * Returns Object of Pcep nai Ipv4 Adjacency.
+     *
+     * @param localIpv4Addr local ipv4 address
+     * @param remoteIpv4Addr remote ipv4 address
+     * @return Object of Pcep nai Ipv4 Adjacency
+     */
+    public static PcepNaiIpv4Adjacency of(int localIpv4Addr, int remoteIpv4Addr) {
+        return new PcepNaiIpv4Adjacency(localIpv4Addr, remoteIpv4Addr);
+    }
+
     @Override
     public byte getType() {
         return ST_TYPE;
