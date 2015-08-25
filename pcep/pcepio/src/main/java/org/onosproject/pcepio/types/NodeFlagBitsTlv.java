@@ -174,10 +174,10 @@ public class NodeFlagBitsTlv implements PcepValueType {
         if (obj instanceof NodeFlagBitsTlv) {
             NodeFlagBitsTlv other = (NodeFlagBitsTlv) obj;
             if (isRawValueSet) {
+                return Objects.equals(this.rawValue, other.rawValue);
+            } else {
                 return Objects.equals(this.bOFlag, other.bOFlag) && Objects.equals(this.bTFlag, other.bTFlag)
                         && Objects.equals(this.bEFlag, other.bEFlag) && Objects.equals(this.bBFlag, other.bBFlag);
-            } else {
-                return Objects.equals(this.rawValue, other.rawValue);
             }
         }
         return false;

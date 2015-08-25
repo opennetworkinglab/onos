@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,27 @@
  */
 package org.onosproject.pcepio;
 
-import com.google.common.testing.EqualsTester;
-
 import org.junit.Test;
 import org.onosproject.pcepio.types.MPLSProtocolMaskTlv;
+
+import com.google.common.testing.EqualsTester;
 
 /**
  * Test of the MPLSProtocolMaskTlv.
  */
 public class MPLSProtocolMaskTlvTest {
     private final byte rawValue1 = 0x0A;
-    private final byte rawValue2 = 0x0A;
+    private final byte rawValue2 = 0x0B;
 
     private final MPLSProtocolMaskTlv tlv1 = new MPLSProtocolMaskTlv(rawValue1);
+    private final MPLSProtocolMaskTlv sameAsTlv1 = new MPLSProtocolMaskTlv(rawValue1);
     private final MPLSProtocolMaskTlv tlv2 = MPLSProtocolMaskTlv.of(rawValue2);
 
     @Test
     public void basics() {
         new EqualsTester()
-        .addEqualityGroup(tlv1, tlv2)
+        .addEqualityGroup(tlv1, sameAsTlv1)
+        .addEqualityGroup(tlv2)
         .testEquals();
     }
 }

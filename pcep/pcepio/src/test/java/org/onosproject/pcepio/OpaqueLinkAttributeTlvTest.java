@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package org.onosproject.pcepio;
 
-import com.google.common.testing.EqualsTester;
-
 import org.junit.Test;
 import org.onosproject.pcepio.types.OpaqueLinkAttributeTlv;
+
+import com.google.common.testing.EqualsTester;
 
 /**
  * Test of the OpaqueLinkAttributeTlv.
@@ -30,13 +30,12 @@ public class OpaqueLinkAttributeTlvTest {
     private final OpaqueLinkAttributeTlv tlv1 = new OpaqueLinkAttributeTlv(rawValue1, (short) rawValue1.length);
     private final OpaqueLinkAttributeTlv sameAsTlv1 = OpaqueLinkAttributeTlv.of(tlv1.getValue(), tlv1.getLength());
     private final OpaqueLinkAttributeTlv tlv2 = new OpaqueLinkAttributeTlv(rawValue2, (short) 0);
-    private final OpaqueLinkAttributeTlv sameAsTlv2 = new OpaqueLinkAttributeTlv(rawValue2, (short) rawValue2.length);
 
     @Test
     public void basics() {
         new EqualsTester()
         .addEqualityGroup(tlv1, sameAsTlv1)
-        .addEqualityGroup(tlv2, sameAsTlv2)
+        .addEqualityGroup(tlv2)
         .testEquals();
     }
 }

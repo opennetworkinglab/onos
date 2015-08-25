@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  */
 package org.onosproject.pcepio;
 
-import com.google.common.testing.EqualsTester;
-
 import org.junit.Test;
 import org.onosproject.pcepio.types.LinkNameTlv;
 
+import com.google.common.testing.EqualsTester;
+
 /**
- * Test of the LinkNameTlv.
+ * Equality test for LinkNameTlv.
  */
 public class LinkNameTlvTest {
     private final byte[] rawValue1 = new byte[] {0x01, 0x00};
@@ -30,13 +30,12 @@ public class LinkNameTlvTest {
     private final LinkNameTlv tlv1 = new LinkNameTlv(rawValue1, (short) rawValue1.length);
     private final LinkNameTlv sameAsTlv1 = LinkNameTlv.of(tlv1.getValue(), tlv1.getLength());
     private final LinkNameTlv tlv2 = new LinkNameTlv(rawValue2, (short) 0);
-    private final LinkNameTlv sameAsTlv2 = new LinkNameTlv(rawValue2, (short) rawValue2.length);
 
     @Test
     public void basics() {
         new EqualsTester()
         .addEqualityGroup(tlv1, sameAsTlv1)
-        .addEqualityGroup(tlv2, sameAsTlv2)
+        .addEqualityGroup(tlv2)
         .testEquals();
     }
 }

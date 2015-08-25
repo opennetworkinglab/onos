@@ -155,9 +155,9 @@ public class MPLSProtocolMaskTlv implements PcepValueType {
         if (obj instanceof MPLSProtocolMaskTlv) {
             MPLSProtocolMaskTlv other = (MPLSProtocolMaskTlv) obj;
             if (isRawValueSet) {
-                return Objects.equals(this.bLFlag, other.bLFlag) && Objects.equals(this.bRFlag, other.bRFlag);
-            } else {
                 return Objects.equals(this.rawValue, other.rawValue);
+            } else {
+                return Objects.equals(this.bLFlag, other.bLFlag) && Objects.equals(this.bRFlag, other.bRFlag);
             }
         }
         return false;

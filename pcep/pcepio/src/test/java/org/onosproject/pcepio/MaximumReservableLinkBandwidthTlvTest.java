@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,17 @@ import com.google.common.testing.EqualsTester;
  */
 public class MaximumReservableLinkBandwidthTlvTest {
     private final int rawValue1 = 0x0A;
-    private final int rawValue2 = 0x0A;
+    private final int rawValue2 = 0x0B;
 
     private final MaximumReservableLinkBandwidthTlv tlv1 = new MaximumReservableLinkBandwidthTlv(rawValue1);
+    private final MaximumReservableLinkBandwidthTlv sameAsTlv1 = new MaximumReservableLinkBandwidthTlv(rawValue1);
     private final MaximumReservableLinkBandwidthTlv tlv2 = MaximumReservableLinkBandwidthTlv.of(rawValue2);
 
     @Test
     public void basics() {
         new EqualsTester()
-        .addEqualityGroup(tlv1, tlv2)
+        .addEqualityGroup(tlv1, sameAsTlv1)
+        .addEqualityGroup(tlv2)
         .testEquals();
     }
 }
