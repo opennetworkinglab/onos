@@ -63,11 +63,6 @@ import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.impl.topo.ServicesBundle;
-import org.onosproject.ui.topo.ButtonId;
-import org.onosproject.ui.topo.DeviceHighlight;
-import org.onosproject.ui.topo.Highlights;
-import org.onosproject.ui.topo.HostHighlight;
-import org.onosproject.ui.topo.LinkHighlight;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,9 +91,9 @@ import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
-import static org.onosproject.ui.topo.TopoUtils.compactLinkString;
 import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
 import static org.onosproject.ui.topo.TopoConstants.Properties;
+import static org.onosproject.ui.topo.TopoUtils.compactLinkString;
 
 /**
  * Facility for creating messages bound for the topology viewer.
@@ -509,120 +504,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         // Potentially add button descriptors here
         return pp;
-    }
-
-
-    // ----------------------------------------------------------------------
-
-    /**
-     * Transforms the given highlights model into a JSON message payload.
-     *
-     * @param highlights the model to transform
-     * @return JSON payload
-     */
-    protected ObjectNode json(Highlights highlights) {
-        ObjectNode payload = objectNode();
-
-        ArrayNode devices = arrayNode();
-        ArrayNode hosts = arrayNode();
-        ArrayNode links = arrayNode();
-
-        payload.set("devices", devices);
-        payload.set("hosts", hosts);
-        payload.set("links", links);
-
-        highlights.devices().forEach(dh -> devices.add(json(dh)));
-        highlights.hosts().forEach(hh -> hosts.add(json(hh)));
-        jsonifyLinks(links, highlights.links());
-
-        return payload;
-    }
-
-    private void jsonifyLinks(ArrayNode links, Set<LinkHighlight> hilites) {
-        // a little more complicated than devices or hosts, since we are
-        //  grouping the link highlights by CSS classes
-
-        // TODO: refactor this method (including client side) to use new format
-        //       as a more compact representation of the data...
-        // * links:
-        //   * "primary animated":
-        //     * "link01" -> "label"
-        //     * "link02" -> "label"
-        //   * "secondary":
-        //     * "link04" -> "label"
-        //     * "link05" -> ""
-
-
-        Map<String, List<String>> linkIdMap = new HashMap<>();
-        Map<String, List<String>> linkLabelMap = new HashMap<>();
-        List<String> ids;
-        List<String> labels;
-
-        for (LinkHighlight lh : hilites) {
-            String cls = lh.cssClasses();
-            ids = linkIdMap.get(cls);
-            labels = linkLabelMap.get(cls);
-
-            if (ids == null) {  // labels will be null also
-                ids = new ArrayList<>();
-                linkIdMap.put(cls, ids);
-                labels = new ArrayList<>();
-                linkLabelMap.put(cls, labels);
-            }
-
-            ids.add(lh.elementId());
-            labels.add(lh.label());
-        }
-
-        for (String cls : linkIdMap.keySet()) {
-            ObjectNode group = objectNode();
-            links.add(group);
-
-            group.put("class", cls);
-
-            ArrayNode lnks = arrayNode();
-            ArrayNode labs = arrayNode();
-            group.set("links", lnks);
-            group.set("labels", labs);
-
-            linkIdMap.get(cls).forEach(lnks::add);
-            linkLabelMap.get(cls).forEach(labs::add);
-        }
-    }
-
-
-    protected ObjectNode json(DeviceHighlight dh) {
-        // TODO: implement this once we know what a device highlight looks like
-        return objectNode();
-    }
-
-    protected ObjectNode json(HostHighlight hh) {
-        // TODO: implement this once we know what a host highlight looks like
-        return objectNode();
-    }
-
-    // translates the property panel into JSON, for returning to the client
-    protected ObjectNode json(PropertyPanel pp) {
-        ObjectNode result = objectNode()
-                .put("title", pp.title())
-                .put("type", pp.typeId())
-                .put("id", pp.id());
-
-        ObjectNode pnode = objectNode();
-        ArrayNode porder = arrayNode();
-        for (PropertyPanel.Prop p : pp.properties()) {
-            porder.add(p.key());
-            pnode.put(p.key(), p.value());
-        }
-        result.set("propOrder", porder);
-        result.set("props", pnode);
-
-        ArrayNode buttons = arrayNode();
-        for (ButtonId b : pp.buttons()) {
-            buttons.add(b.id());
-        }
-        result.set("buttons", buttons);
-        return result;
     }
 
 }

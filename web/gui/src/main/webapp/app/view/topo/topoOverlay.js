@@ -293,7 +293,6 @@
         tss = _tss_;
     }
 
-    // TODO: refactor this (currently using showTraffic data structure)
     function showHighlights(data) {
         /*
            API to topoForce
@@ -303,43 +302,39 @@
              findLinkById( id )
          */
 
-        var paths = data.links;
-
+        // TODO: clear node highlighting
         api.clearLinkTrafficStyle();
         api.removeLinkLabels();
 
-        // Now highlight all links in the paths payload, and attach
-        //  labels to them, if they are defined.
-        paths.forEach(function (p) {
-            var n = p.links.length,
-                i, ldata, lab, units, magnitude, portcls;
+        // TODO: device and host highlights
 
-            for (i=0; i<n; i++) {
-                ldata = api.findLinkById(p.links[i]);
-                lab = p.labels[i];
+        data.links.forEach(function (lnk) {
+            var ldata = api.findLinkById(lnk.id),
+                lab = lnk.label,
+                units, portcls, magnitude;
 
-                if (ldata && !ldata.el.empty()) {
-                    ldata.el.classed(p.class, true);
-                    ldata.label = lab;
+            if (ldata && !ldata.el.empty()) {
+                ldata.el.classed(lnk.css, true);
+                ldata.label = lab;
 
-                    if (fs.endsWith(lab, 'bps')) {
-                        // inject additional styling for port-based traffic
-                        units = lab.substring(lab.length-4);
-                        portcls = 'port-traffic-' + units;
+                // inject additional styling for port-based traffic
+                if (fs.endsWith(lab, 'bps')) {
+                    units = lab.substring(lab.length-4);
+                    portcls = 'port-traffic-' + units;
 
-                        // for GBps
-                        if (units.substring(0,1) === 'G') {
-                            magnitude = fs.parseBitRate(lab);
-                            if (magnitude >= 9) {
-                                portcls += '-choked'
-                            }
+                    // for GBps
+                    if (units.substring(0,1) === 'G') {
+                        magnitude = fs.parseBitRate(lab);
+                        if (magnitude >= 9) {
+                            portcls += '-choked'
                         }
-                        ldata.el.classed(portcls, true);
                     }
+                    ldata.el.classed(portcls, true);
                 }
             }
         });
 
+        // TODO: api.updateNodes()
         api.updateLinks();
     }
 

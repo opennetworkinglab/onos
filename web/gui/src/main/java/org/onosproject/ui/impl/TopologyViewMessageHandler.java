@@ -53,12 +53,11 @@ import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
-import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.impl.TrafficMonitor.Mode;
-import org.onosproject.ui.topo.NodeSelection;
 import org.onosproject.ui.topo.Highlights;
+import org.onosproject.ui.topo.NodeSelection;
 import org.onosproject.ui.topo.PropertyPanel;
 
 import java.util.ArrayList;
@@ -80,6 +79,8 @@ import static org.onosproject.net.HostId.hostId;
 import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
+import static org.onosproject.ui.JsonUtils.envelope;
+import static org.onosproject.ui.impl.topo.TopoJson.json;
 
 /**
  * Web socket capable of interacting with the GUI topology view.
@@ -349,8 +350,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 overlayCache.currentOverlay().modifyHostDetails(pp);
             }
 
-            ObjectNode json = JsonUtils.envelope(SHOW_DETAILS, sid, json(pp));
-            sendMessage(json);
+            sendMessage(envelope(SHOW_DETAILS, sid, json(pp)));
         }
     }
 
@@ -538,7 +538,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // Converts highlights to JSON format and sends the message to the client
     protected void sendHighlights(Highlights highlights) {
-        sendMessage(JsonUtils.envelope(SHOW_HIGHLIGHTS, json(highlights)));
+        sendMessage(envelope(SHOW_HIGHLIGHTS, json(highlights)));
     }
 
     // Sends the specified data to the client.
@@ -553,8 +553,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private synchronized void requestSummary(long sid) {
         PropertyPanel pp = summmaryMessage(sid);
         overlayCache.currentOverlay().modifySummary(pp);
-        ObjectNode json = JsonUtils.envelope(SHOW_SUMMARY, sid, json(pp));
-        sendMessage(json);
+        sendMessage(envelope(SHOW_SUMMARY, sid, json(pp)));
     }
 
 

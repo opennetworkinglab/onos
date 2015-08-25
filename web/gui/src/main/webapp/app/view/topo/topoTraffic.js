@@ -211,6 +211,7 @@
                 // invoked from mouseover/mouseout and selection change
                 requestTrafficForMode: requestTrafficForMode,
 
+                // TODO: these should move to new UI demo app
                 // invoked from buttons on detail (multi-select) panel
                 addHostIntent: addHostIntent,
                 addMultiSourceIntent: addMultiSourceIntent
