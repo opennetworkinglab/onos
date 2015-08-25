@@ -12,7 +12,8 @@ target=${1:-$OCI}
 
 set -x
 for i in 1 2 3; do
-    onos $target "onos:intents" | grep "state=$2" >> $aux && cat $aux && exit 0
+    onos $target "onos:intents" >> $aux
+    grep "state=$2" $aux && cat $aux && exit 0
     sleep 1
 done
 
