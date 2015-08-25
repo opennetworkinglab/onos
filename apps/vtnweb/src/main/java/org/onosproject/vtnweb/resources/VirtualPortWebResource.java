@@ -99,7 +99,7 @@ public class VirtualPortWebResource extends AbstractWebResource {
         VirtualPort virtualPort = nullIsNotFound(get(VirtualPortService.class)
                 .getPort(VirtualPortId.portId(id)), VPORT_NOT_FOUND);
         ObjectNode result = new ObjectMapper().createObjectNode();
-        result.set("ports", new VirtualPortCodec().encode(virtualPort, this));
+        result.set("port", new VirtualPortCodec().encode(virtualPort, this));
         return ok(result.toString()).build();
     }
 
