@@ -25,12 +25,26 @@
               exec="onos-mininet sendAndExpect h4 ping -c1 h1 --expect ."/>
 
         <step name="Create-Intent" requires="^"
-              exec="onos ${OCI} add-host-intent 00:00:00:00:00:01/-1 00:00:00:00:00:04/-1"/>
+              exec="onos ${OC1} add-host-intent 00:00:00:00:00:01/-1 00:00:00:00:00:04/-1"/>
+        <step name="Validate-Intent-Installed" exec="onos-check-intent ${OC1} INSTALLED"
+              requires="Create-Intent" />
 
         <import file="${ONOS_SCENARIOS}/net-link-down-up.xml" namespace="Host-Intent"/>
-        <dependency name="Host-Intent.Net-Link-Down-Up" requires="Create-Intent"/>
+        <dependency name="Host-Intent.Net-Link-Down-Up" requires="Validate-Intent-Installed"/>
+        <step name="Validate-Intent-Installed-Still" exec="onos-check-intent ${OC1} INSTALLED"
+              requires="Host-Intent.Link-1-Down" />
 
-        <step name="Remove-Intent" requires="Host-Intent.Net-Link-Down-Up"
-              exec="onos ${OCI} remove-intent --purge"/>
+        <step name="Validate-Intent-Failed" exec="onos-check-intent ${OC1} FAILED"
+              requires="Host-Intent.Link-2-Down" />
+
+        <step name="Validate-Intent-Installed-Again" exec="onos-check-intent ${OC1} INSTALLED"
+              requires="Host-Intent.Link-1-Up" />
+        <dependency name="Host-Intent.Ping-4" requires="Validate-Intent-Installed-Again" />
+
+        <step name="Remove-Intent" requires="~Host-Intent.Net-Link-Down-Up"
+              exec="onos ${OC1} remove-intent -p"/>
+        
+
+
     </group>
 </scenario>

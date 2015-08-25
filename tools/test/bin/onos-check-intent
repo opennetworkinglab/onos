@@ -1,0 +1,21 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Checks that all intents in the system have a given state.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+aux=/tmp/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+target=${1:-$OCI}
+
+set -x
+for i in 1 2 3; do
+    onos $target "onos:intents" | grep "state=$2" >> $aux && cat $aux && exit 0
+    sleep 1
+done
+
+cat $aux
+exit 1
+
