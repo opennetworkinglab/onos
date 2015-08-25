@@ -25,7 +25,10 @@ import org.onosproject.ui.topo.PropertyPanel;
  * Topology Overlay for network traffic.
  */
 public class TrafficOverlay extends UiTopoOverlay {
-    private static final String TRAFFIC_ID = "traffic";
+    /**
+     * Traffic Overlay identifier.
+     */
+    public static final String TRAFFIC_ID = "traffic";
 
     private static final String SDF_ID = "showDeviceFlows";
     private static final String SRT_ID = "showRelatedTraffic";
@@ -38,10 +41,22 @@ public class TrafficOverlay extends UiTopoOverlay {
         super(TRAFFIC_ID);
     }
 
+    // override activate and deactivate, to write log messages
+    @Override
+    public void activate() {
+        super.activate();
+        log.debug("TrafficOverlay Activated");
+    }
+
+    @Override
+    public void deactivate() {
+        super.deactivate();
+        log.debug("TrafficOverlay Deactivated");
+    }
+
     @Override
     public void modifyDeviceDetails(PropertyPanel pp) {
         pp.addButton(SHOW_DEVICE_FLOWS)
             .addButton(SHOW_RELATED_TRAFFIC);
     }
-
 }

@@ -41,13 +41,15 @@
     //  Helper functions
 
     // invoked in response to change in selection and/or mouseover/out:
-    function requestTrafficForMode() {
+    function requestTrafficForMode(mouse) {
         if (trafficMode === 'flows') {
             requestDeviceLinkFlows();
         } else if (trafficMode === 'intents') {
-            requestRelatedIntents();
+            if (!mouse || hoverMode === 'intents') {
+                requestRelatedIntents();
+            }
         } else {
-            cancelTraffic();
+            // do nothing
         }
     }
 
@@ -89,8 +91,8 @@
     // === -------------------------------------------------------------
     //  Traffic requests invoked from keystrokes or toolbar buttons...
 
-    function cancelTraffic() {
-        if (!trafficMode) {
+    function cancelTraffic(forced) {
+        if (!trafficMode || (!forced && trafficMode === 'allFlowPort')) {
             return false;
         }
 
@@ -101,15 +103,15 @@
     }
 
     function showAllFlowTraffic() {
-        trafficMode = 'allFlow';
-        hoverMode = 'all';
+        trafficMode = 'allFlowPort';
+        hoverMode = null;
         wss.sendEvent('requestAllFlowTraffic');
         flash.flash('All Flow Traffic');
     }
 
     function showAllPortTraffic() {
-        trafficMode = 'allPort';
-        hoverMode = 'all';
+        trafficMode = 'allFlowPort';
+        hoverMode = null;
         wss.sendEvent('requestAllPortTraffic');
         flash.flash('All Port Traffic');
     }
@@ -161,6 +163,8 @@
             two: so[1],
             ids: so
         });
+        trafficMode = 'intents';
+        hoverMode = null;
         flash.flash('Host-to-Host flow added');
     }
 
@@ -171,6 +175,8 @@
             dst: so[so.length - 1],
             ids: so
         });
+        trafficMode = 'intents';
+        hoverMode = null;
         flash.flash('Multi-Source flow added');
     }
 

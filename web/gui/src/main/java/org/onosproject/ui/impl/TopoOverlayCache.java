@@ -30,6 +30,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 public class TopoOverlayCache {
 
+    private static final String EMPTY = "";
     private static final UiTopoOverlay NONE = new NullOverlay();
 
     private final Map<String, UiTopoOverlay> overlays = new HashMap<>();
@@ -95,20 +96,21 @@ public class TopoOverlayCache {
         return overlays.size();
     }
 
+    /**
+     * Returns true if the identifier of the currently active overlay
+     * matches the given parameter.
+     *
+     * @param overlayId overlay identifier
+     * @return true if this matches the ID of currently active overlay
+     */
+    public boolean isActive(String overlayId) {
+        return currentOverlay().id().equals(overlayId);
+    }
 
     // overlay instance representing "no overlay selected"
     private static class NullOverlay extends UiTopoOverlay {
         public NullOverlay() {
-            super(null);
-        }
-
-        // override activate and deactivate, so no log messages are written
-        @Override
-        public void activate() {
-        }
-
-        @Override
-        public void deactivate() {
+            super(EMPTY);
         }
     }
 }

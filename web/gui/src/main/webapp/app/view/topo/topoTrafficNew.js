@@ -45,7 +45,7 @@
         },
 
         deactivate: function () {
-            tts.cancelTraffic();
+            tts.cancelTraffic(true);
             $log.debug("Traffic overlay DEACTIVATED");
         },
 
@@ -69,7 +69,7 @@
         // NOTE: fully qual. button ID is derived from overlay-id and key-name
         keyBindings: {
             0: {
-                cb: function () { tts.cancelTraffic(); },
+                cb: function () { tts.cancelTraffic(true); },
                 tt: 'Cancel traffic monitoring',
                 gid: 'xMark'
             },
@@ -137,10 +137,10 @@
             // mouse hooks
             mouseover: function (m) {
                 // m has id, class, and type properties
-                tts.requestTrafficForMode();
+                tts.requestTrafficForMode(true);
             },
             mouseout: function () {
-                tts.requestTrafficForMode();
+                tts.requestTrafficForMode(true);
             }
         }
     };

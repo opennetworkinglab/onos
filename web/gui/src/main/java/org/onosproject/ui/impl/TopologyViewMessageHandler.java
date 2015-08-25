@@ -399,7 +399,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                     .build();
 
             intentService.submit(intent);
-            traffic.monitor(intent);
+            if (overlayCache.isActive(TrafficOverlay.TRAFFIC_ID)) {
+                traffic.monitor(intent);
+            }
         }
     }
 
@@ -432,7 +434,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                             .build();
 
             intentService.submit(intent);
-            traffic.monitor(intent);
+            if (overlayCache.isActive(TrafficOverlay.TRAFFIC_ID)) {
+                traffic.monitor(intent);
+            }
         }
     }
 

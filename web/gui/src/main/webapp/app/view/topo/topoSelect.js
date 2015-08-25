@@ -229,9 +229,9 @@
         tps.displaySomething();
     }
 
-    // returns true if we are hovering over a node, or any nodes are selected
+    // returns true if one or more nodes are selected.
     function somethingSelected() {
-        return hovered || nSel();
+        return nSel();
     }
 
     function clickConsumed(x) {

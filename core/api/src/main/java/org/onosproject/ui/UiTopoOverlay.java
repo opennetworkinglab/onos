@@ -33,6 +33,8 @@ public class UiTopoOverlay {
 
     private final String id;
 
+    private boolean isActive = false;
+
     /**
      * Creates a new user interface topology view overlay descriptor.
      *
@@ -62,14 +64,23 @@ public class UiTopoOverlay {
      * Callback invoked when this overlay is activated.
      */
     public void activate() {
-        log.debug("Overlay '{}' Activated", id);
+        isActive = true;
     }
 
     /**
      * Callback invoked when this overlay is deactivated.
      */
     public void deactivate() {
-        log.debug("Overlay '{}' Deactivated", id);
+        isActive = false;
+    }
+
+    /**
+     * Returns true if this overlay is currently active.
+     *
+     * @return true if overlay active
+     */
+    public boolean isActive() {
+        return isActive;
     }
 
     /**
