@@ -124,7 +124,7 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
         String ip = deviceId.toString().substring(fistColon + 1, lastColon);
         String port = deviceId.toString().substring(lastColon + 1);
         IpAddress ipAddress = IpAddress.valueOf(ip);
-        long portL = Long.valueOf(port).longValue();
+        long portL = Long.parseLong(port);
         return new OvsdbNodeId(ipAddress, portL);
     }
 
