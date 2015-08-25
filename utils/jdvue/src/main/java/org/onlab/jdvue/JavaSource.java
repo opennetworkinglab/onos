@@ -2,7 +2,7 @@ package org.onlab.jdvue;
 
 import java.util.*;
 
-import static com.google.common.base.Objects.toStringHelper;
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Simple abstraction of a Java source file for the purpose of tracking
