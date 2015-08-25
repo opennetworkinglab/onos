@@ -15,6 +15,7 @@
  */
 package org.onosproject.vtnweb.resources;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
@@ -225,6 +226,8 @@ public class SubnetWebResource extends AbstractWebResource {
      */
     public Iterable<Subnet> changeJsonToSub(JsonNode subnetNodes) {
         checkNotNull(subnetNodes, JSON_NOT_NULL);
+        checkArgument(!subnetNodes.get("enable_dhcp").isBoolean(), "enable_dhcp should be boolean");
+        checkArgument(!subnetNodes.get("shared").isBoolean(), "shared should be boolean");
         Map<SubnetId, Subnet> subMap = new HashMap<SubnetId, Subnet>();
         if (!subnetNodes.hasNonNull("id")) {
             return null;
@@ -245,7 +248,7 @@ public class SubnetWebResource extends AbstractWebResource {
             ipVersion = Version.INET;
             break;
         default:
-            ipVersion = null;
+            throw new IllegalArgumentException("ipVersion should be 4 or 6.");
         }
 
         IpPrefix cidr = IpPrefix.valueOf(subnetNodes.get("cidr").asText());

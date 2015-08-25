@@ -94,7 +94,7 @@ public class VirtualPortWebResource extends AbstractWebResource {
     public Response getportsById(@PathParam("id") String id) {
 
         if (!get(VirtualPortService.class).exists(VirtualPortId.portId(id))) {
-            return ok("the virtualPort does not exists").build();
+            return ok("The virtualPort does not exists").build();
         }
         VirtualPort virtualPort = nullIsNotFound(get(VirtualPortService.class)
                 .getPort(VirtualPortId.portId(id)), VPORT_NOT_FOUND);

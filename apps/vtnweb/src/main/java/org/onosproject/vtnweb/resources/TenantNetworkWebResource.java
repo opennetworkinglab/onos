@@ -16,6 +16,7 @@
 package org.onosproject.vtnweb.resources;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkArgument;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 
@@ -268,6 +269,9 @@ public class TenantNetworkWebResource extends AbstractWebResource {
         ConcurrentMap<TenantNetworkId, TenantNetwork> networksMap = Maps
                 .newConcurrentMap();
         if (node != null) {
+            checkArgument(!node.get("admin_state_up").isBoolean(), "admin_state_up should be boolean");
+            checkArgument(!node.get("shared").isBoolean(), "shared should be boolean");
+            checkArgument(!node.get("router:external").isBoolean(), "router:external should be boolean");
             String name = node.get("name").asText();
             boolean adminStateUp = node.get("admin_state_up").asBoolean();
             String state = node.get("status").asText();
