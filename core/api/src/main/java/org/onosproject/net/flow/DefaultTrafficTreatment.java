@@ -420,7 +420,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         @Deprecated
         @Override
         public TrafficTreatment.Builder setTcpSrc(short port) {
-            return add(Instructions.modTcpSrc(port));
+            return setTcpSrc(TpPort.tpPort(port));
         }
 
         @Override
@@ -431,7 +431,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         @Deprecated
         @Override
         public TrafficTreatment.Builder setTcpDst(short port) {
-            return add(Instructions.modTcpDst(port));
+            return setTcpDst(TpPort.tpPort(port));
         }
 
         @Override
@@ -442,7 +442,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         @Deprecated
         @Override
         public TrafficTreatment.Builder setUdpSrc(short port) {
-            return add(Instructions.modUdpSrc(port));
+            return setUdpSrc(TpPort.tpPort(port));
         }
 
         @Override
@@ -453,7 +453,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         @Deprecated
         @Override
         public TrafficTreatment.Builder setUdpDst(short port) {
-            return add(Instructions.modUdpDst(port));
+            return setUdpDst(TpPort.tpPort(port));
         }
 
         @Override

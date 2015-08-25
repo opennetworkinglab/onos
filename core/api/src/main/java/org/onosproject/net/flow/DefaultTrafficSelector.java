@@ -212,7 +212,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Deprecated
         @Override
         public Builder matchTcpSrc(short tcpPort) {
-            return add(Criteria.matchTcpSrc(tcpPort));
+            return matchTcpSrc(TpPort.tpPort(tcpPort));
         }
 
         @Override
@@ -223,7 +223,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Deprecated
         @Override
         public Builder matchTcpDst(short tcpPort) {
-            return add(Criteria.matchTcpDst(tcpPort));
+            return matchTcpDst(TpPort.tpPort(tcpPort));
         }
 
         @Override
@@ -234,7 +234,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Deprecated
         @Override
         public Builder matchUdpSrc(short udpPort) {
-            return add(Criteria.matchUdpSrc(udpPort));
+            return matchUdpSrc(TpPort.tpPort(udpPort));
         }
 
         @Override
@@ -245,7 +245,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Deprecated
         @Override
         public Builder matchUdpDst(short udpPort) {
-            return add(Criteria.matchUdpDst(udpPort));
+            return matchUdpDst(TpPort.tpPort(udpPort));
         }
 
         @Override
@@ -256,7 +256,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Deprecated
         @Override
         public Builder matchSctpSrc(short sctpPort) {
-            return add(Criteria.matchSctpSrc(sctpPort));
+            return matchSctpSrc(TpPort.tpPort(sctpPort));
         }
 
         @Override
@@ -267,7 +267,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Deprecated
         @Override
         public Builder matchSctpDst(short sctpPort) {
-            return add(Criteria.matchSctpDst(sctpPort));
+            return matchSctpDst(TpPort.tpPort(sctpPort));
         }
 
         @Override
