@@ -24,7 +24,7 @@ import org.onosproject.ui.table.CellFormatter;
 
 import java.util.Locale;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for {@link TimeFormatter}.
@@ -35,7 +35,8 @@ public class TimeFormatterTest {
     private static final DateTimeZone ZONE = DateTimeZone.UTC;
 
     private static final DateTime TIME = new DateTime(2015, 5, 4, 15, 30, ZONE);
-    private static final String EXP_OUTPUT = "3:30:00 PM UTC";
+    private static final String EXP_ZONE_NAME = "3:30:00 PM UTC";
+    private static final String EXP_ZONE_OFFSET = "3:30:00 PM +00:00";
 
     // Have to use explicit Locale and TimeZone for the unit test, so that
     //  irrespective of which locale and time zone the test is run in, it
@@ -45,6 +46,7 @@ public class TimeFormatterTest {
 
     @Test
     public void basic() {
-        assertEquals("wrong format", EXP_OUTPUT, fmt.format(TIME));
+        assertTrue("wrong format", (EXP_ZONE_NAME.equals(fmt.format(TIME)) ||
+                   EXP_ZONE_OFFSET.equals(fmt.format(TIME))));
     }
 }
