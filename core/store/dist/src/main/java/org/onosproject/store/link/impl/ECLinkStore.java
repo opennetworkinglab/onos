@@ -148,6 +148,7 @@ public class ECLinkStore
         clusterCommunicator.addSubscriber(LINK_INJECT_MESSAGE,
                 SERIALIZER::decode,
                 this::injectLink,
+                SERIALIZER::encode,
                 SharedExecutors.getPoolThreadExecutor());
 
         linkDescriptions.addListener(linkTracker);
