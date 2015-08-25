@@ -25,6 +25,8 @@ import org.onosproject.net.ElementId;
 import org.onosproject.net.Port;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.group.Group;
+
+import org.onosproject.net.statistic.TypedFlowEntryWithLoad;
 import org.onosproject.net.topology.TopologyCluster;
 
 import java.util.Comparator;
@@ -115,4 +117,12 @@ public final class Comparators {
     public static final Comparator<Interface> INTERFACES_COMPARATOR = (intf1, intf2) ->
             CONNECT_POINT_COMPARATOR.compare(intf1.connectPoint(), intf2.connectPoint());
 
+    public static final Comparator<TypedFlowEntryWithLoad> TYPEFLOWENTRY_WITHLOAD_COMPARATOR =
+            new Comparator<TypedFlowEntryWithLoad>() {
+                @Override
+                public int compare(TypedFlowEntryWithLoad fe1, TypedFlowEntryWithLoad fe2) {
+                    long delta = fe1.load().rate() -  fe2.load().rate();
+                    return delta == 0 ? 0 : (delta > 0 ? -1 : +1);
+                }
+            };
 }

@@ -717,25 +717,9 @@ public class NewAdaptiveFlowStatsCollector {
             long curTime = (cTime > 0 ? cTime : System.currentTimeMillis());
             // For latency adjustment(default=500 millisecond) between FlowStatsRequest and Reply
             long fromLastSeen = ((curTime - fe.lastSeen() + latencyFlowStatsRequestAndReplyMillis) / 1000);
-
             // fe.life() unit is SECOND!
             long liveTime = fe.life() + fromLastSeen;
 
-            // check flow timeout
-            if (fe.timeout() > calAndPollInterval && fromLastSeen > fe.timeout()) {
-                if (!fe.isPermanent()) {
-                    log.debug("checkAndMoveLiveFlowInternal, FlowId=" + Long.toHexString(fe.id().value())
-                                    + ", liveType=" + fe.flowLiveType()
-                                    + ", liveTime=" + liveTime
-                                    + ", life=" + fe.life()
-                                    + ", fromLastSeen=" + fromLastSeen
-                                    + ", timeout=" + fe.timeout()
-                                    + ", isPermanent=" + fe.isPermanent()
-                                    + " AdaptiveStats collection thread for {}",
-                            sw.getStringId());
-                    return false;
-                }
-            }
 
             switch (fe.flowLiveType()) {
                 case IMMEDIATE_FLOW:
