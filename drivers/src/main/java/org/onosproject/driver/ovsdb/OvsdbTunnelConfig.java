@@ -18,6 +18,7 @@ package org.onosproject.driver.ovsdb;
 import java.util.Collection;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
@@ -25,7 +26,6 @@ import org.onosproject.net.behaviour.DefaultTunnelDescription;
 import org.onosproject.net.behaviour.IpTunnelEndPoint;
 import org.onosproject.net.behaviour.TunnelConfig;
 import org.onosproject.net.behaviour.TunnelDescription;
-import org.onosproject.net.behaviour.TunnelEndPoint;
 import org.onosproject.net.behaviour.TunnelName;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
@@ -33,8 +33,6 @@ import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.OvsdbTunnel;
-
-import com.google.common.collect.Sets;
 
 /**
  * OVSDB-based implementation of tunnel config behaviour.
@@ -90,20 +88,18 @@ public class OvsdbTunnelConfig extends AbstractHandlerBehaviour
     public Collection<TunnelDescription> getTunnels() {
         DriverHandler handler = handler();
         OvsdbClientService ovsdbNode = getOvsdbNode(handler);
-        Set<OvsdbTunnel> ovsdbSet = ovsdbNode.getTunnels();
-        Collection<TunnelDescription> tunnels = Sets.newHashSet();
-        ovsdbSet.forEach(o -> {
-            TunnelEndPoint ipSrc = IpTunnelEndPoint.ipTunnelPoint(o.localIp());
-            TunnelEndPoint ipDst = IpTunnelEndPoint.ipTunnelPoint(o.remoteIp());
-            TunnelName name = TunnelName.tunnelName(o.tunnelName().toString());
-            TunnelDescription des = new DefaultTunnelDescription(
-                                                                 ipSrc,
-                                                                 ipDst,
-                                                                 TunnelDescription.Type.VXLAN,
-                                                                 name);
-            tunnels.add(des);
-        });
-        return tunnels;
+        Set<OvsdbTunnel> tunnels = ovsdbNode.getTunnels();
+
+        return tunnels.stream()
+                .map(x ->
+                        new DefaultTunnelDescription(
+                                IpTunnelEndPoint.ipTunnelPoint(x.localIp()),
+                                IpTunnelEndPoint.ipTunnelPoint(x.remoteIp()),
+                                TunnelDescription.Type.VXLAN,
+                                TunnelName.tunnelName(x.tunnelName().toString())
+                        )
+                )
+                .collect(Collectors.toSet());
     }
 
     // OvsdbNodeId(IP:port) is used in the adaptor while DeviceId(ovsdb:IP:port)

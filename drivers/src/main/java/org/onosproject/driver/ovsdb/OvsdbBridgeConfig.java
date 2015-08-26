@@ -16,8 +16,8 @@
 package org.onosproject.driver.ovsdb;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
@@ -35,8 +35,6 @@ import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.OvsdbPort;
-
-import com.google.common.collect.Sets;
 
 /**
  * The implementation of BridageConfig.
@@ -63,18 +61,16 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
         DriverHandler handler = handler();
         DeviceId deviceId = handler.data().deviceId();
         OvsdbClientService clientService = getOvsdbClientService(handler);
-        Set<OvsdbBridge> ovsdbSet = clientService.getBridges();
-        Collection<BridgeDescription> bridges = Sets.newHashSet();
-        ovsdbSet.forEach(o -> {
-            BridgeName bridgeName = BridgeName
-                    .bridgeName(o.bridgeName().value());
-            DeviceId ownDeviceId = DeviceId.deviceId("of:" + o.datapathId().value());
-            BridgeDescription description = new DefaultBridgeDescription(bridgeName,
-                                                                         deviceId,
-                                                                         ownDeviceId);
-            bridges.add(description);
-        });
-        return bridges;
+        Set<OvsdbBridge> bridges = clientService.getBridges();
+
+        return bridges.stream()
+                .map(x -> new DefaultBridgeDescription(
+                                BridgeName.bridgeName(x.bridgeName().value()),
+                                deviceId,
+                                DeviceId.deviceId("of:" + x.datapathId().value())
+                        )
+                )
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -105,14 +101,15 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
     public Collection<PortDescription> getPorts() {
         DriverHandler handler = handler();
         OvsdbClientService clientService = getOvsdbClientService(handler);
-        Set<OvsdbPort> ovsdbSet = clientService.getPorts();
-        Collection<PortDescription> ports = Sets.newHashSet();
-        ovsdbSet.forEach(o -> {
-            PortNumber port = PortNumber.portNumber(o.portNumber().value());
-            PortDescription description = new DefaultPortDescription(port, true);
-            ports.add(description);
-        });
-        return ports;
+        Set<OvsdbPort> ports = clientService.getPorts();
+
+        return ports.stream()
+                .map(x -> new DefaultPortDescription(
+                                PortNumber.portNumber(x.portNumber().value()),
+                                true
+                        )
+                )
+                .collect(Collectors.toSet());
     }
 
     // OvsdbNodeId(IP:port) is used in the adaptor while DeviceId(ovsdb:IP:port)
@@ -137,15 +134,16 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
 
     @Override
     public Set<PortNumber> getPortNumbers() {
-        Set<PortNumber> ports = new HashSet<>();
         DriverHandler handler = handler();
         OvsdbClientService clientService = getOvsdbClientService(handler);
-        Set<OvsdbPort> ovsdbSet = clientService.getPorts();
-        ovsdbSet.forEach(o -> {
-            PortNumber port = PortNumber.portNumber(o.portNumber().value(),
-                                                    o.portName().value());
-            ports.add(port);
-        });
-        return ports;
+        Set<OvsdbPort> ports = clientService.getPorts();
+
+        return ports.stream()
+                .map(x -> PortNumber.portNumber(
+                                x.portNumber().value(),
+                                x.portName().value()
+                        )
+                )
+                .collect(Collectors.toSet());
     }
 }
