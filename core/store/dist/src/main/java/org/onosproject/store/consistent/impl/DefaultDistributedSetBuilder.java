@@ -69,6 +69,12 @@ public class DefaultDistributedSetBuilder<E> implements DistributedSetBuilder<E>
     }
 
     @Override
+    public DistributedSetBuilder<E> withRelaxedReadConsistency() {
+        mapBuilder.withRelaxedReadConsistency();
+        return this;
+    }
+
+    @Override
     public DistributedSetBuilder<E> withPartitionsDisabled() {
         mapBuilder.withPartitionsDisabled();
         return this;
