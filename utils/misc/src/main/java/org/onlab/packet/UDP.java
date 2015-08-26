@@ -25,14 +25,13 @@ import java.util.Map;
 import static org.onlab.packet.PacketUtils.*;
 
 /**
- *
+ * Representation of a UDP packet.
  */
-
 public class UDP extends BasePacket {
-    public static final Map<Short, Deserializer<? extends IPacket>> PORT_DESERIALIZER_MAP =
+    public static final Map<Integer, Deserializer<? extends IPacket>> PORT_DESERIALIZER_MAP =
             new HashMap<>();
-    public static final short DHCP_SERVER_PORT = (short) 67;
-    public static final short DHCP_CLIENT_PORT = (short) 68;
+    public static final int DHCP_SERVER_PORT = 67;
+    public static final int DHCP_CLIENT_PORT = 68;
 
     private static final short UDP_HEADER_LENGTH = 8;
 
