@@ -119,7 +119,7 @@
             // hook for handling escape key
             escape: function () {
                 // Must return true to consume ESC, false otherwise.
-                return tts.cancelTraffic();
+                return tts.cancelTraffic(true);
             },
 
             // hooks for when the selection changes...
