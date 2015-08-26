@@ -10,10 +10,12 @@ aux=/tmp/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 target=${1:-$OCI}
 
+echo onos-check-intent: $*
+
 set -x
 for i in 1 2 3; do
-    onos $target "onos:intents" >> $aux
-    grep "state=$2" $aux && cat $aux && exit 0
+    onos $target "onos:intents" > $aux
+    ( cat $aux | grep "id=$2" | grep "state=$3" ) && cat $aux && exit 0
     sleep 1
 done
 

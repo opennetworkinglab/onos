@@ -25,19 +25,20 @@
               exec="onos-mininet sendAndExpect h4 ping -c1 h1 --expect ."/>
 
         <step name="Create-Intent" requires="^"
-              exec="onos ${OC1} add-host-intent 00:00:00:00:00:01/-1 00:00:00:00:00:04/-1"/>
-        <step name="Validate-Intent-Installed" exec="onos-check-intent ${OC1} INSTALLED"
+              exec="onos-create-intent ${OC1} hostToHost host 00:00:00:00:00:01/-1 00:00:00:00:00:04/-1"/>
+        <step name="Validate-Intent-Installed" exec="onos-check-intent ${OC1} ${hostToHostId} INSTALLED"
               requires="Create-Intent" />
 
         <import file="${ONOS_SCENARIOS}/net-link-down-up.xml" namespace="Host-Intent"/>
         <dependency name="Host-Intent.Net-Link-Down-Up" requires="Validate-Intent-Installed"/>
-        <step name="Validate-Intent-Installed-Still" exec="onos-check-intent ${OC1} INSTALLED"
+
+        <step name="Validate-Intent-Installed-Still" exec="onos-check-intent ${OC1} ${hostToHostId} INSTALLED"
               requires="Host-Intent.Link-1-Down" />
 
-        <step name="Validate-Intent-Failed" exec="onos-check-intent ${OC1} FAILED"
+        <step name="Validate-Intent-Failed" exec="onos-check-intent ${OC1} ${hostToHostId} FAILED"
               requires="Host-Intent.Link-2-Down" />
 
-        <step name="Validate-Intent-Installed-Again" exec="onos-check-intent ${OC1} INSTALLED"
+        <step name="Validate-Intent-Installed-Again" exec="onos-check-intent ${OC1} ${hostToHostId} INSTALLED"
               requires="Host-Intent.Link-1-Up" />
         <dependency name="Host-Intent.Ping-4" requires="Validate-Intent-Installed-Again" />
 
