@@ -32,7 +32,6 @@
 
     <dependencies>
         <dependency>
-            <!-- FIXME once experimenter gets merged to upstream -->
             <groupId>org.onosproject</groupId>
             <artifactId>onos-pcep-controller-api</artifactId>
         </dependency>
