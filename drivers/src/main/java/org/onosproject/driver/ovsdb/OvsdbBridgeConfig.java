@@ -16,7 +16,6 @@
 package org.onosproject.driver.ovsdb;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -75,7 +74,7 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
                                                                          ownDeviceId);
             bridges.add(description);
         });
-        return bridges == null ? Collections.emptySet() : bridges;
+        return bridges;
     }
 
     @Override
