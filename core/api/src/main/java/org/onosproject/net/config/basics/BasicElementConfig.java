@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.config.basics;
+package org.onosproject.net.config.basics;
 
 /**
  * Basic configuration for network elements, e.g. devices, hosts. Such elements

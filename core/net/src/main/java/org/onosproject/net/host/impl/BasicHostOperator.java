@@ -19,7 +19,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import org.slf4j.Logger;
 import org.onosproject.net.config.ConfigOperator;
-import org.onosproject.incubator.net.config.basics.BasicHostConfig;
+import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.SparseAnnotations;

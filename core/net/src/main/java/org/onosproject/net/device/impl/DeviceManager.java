@@ -31,7 +31,7 @@ import org.onosproject.core.Permission;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.incubator.net.config.basics.BasicDeviceConfig;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;

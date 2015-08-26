@@ -29,7 +29,7 @@ import org.onosproject.core.Permission;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
+import org.onosproject.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;

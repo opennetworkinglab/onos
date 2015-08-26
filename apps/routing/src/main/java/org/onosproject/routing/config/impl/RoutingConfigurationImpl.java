@@ -32,7 +32,7 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
-import org.onosproject.incubator.net.config.basics.SubjectFactories;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.HostService;
 import org.onosproject.routing.config.BgpPeer;

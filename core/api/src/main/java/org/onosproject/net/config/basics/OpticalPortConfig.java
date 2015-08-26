@@ -1,4 +1,4 @@
-package org.onosproject.incubator.net.config.basics;
+package org.onosproject.net.config.basics;
 
 import java.util.Optional;
 

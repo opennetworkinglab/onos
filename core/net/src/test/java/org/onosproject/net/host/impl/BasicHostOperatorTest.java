@@ -24,7 +24,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
-import org.onosproject.incubator.net.config.basics.BasicHostConfig;
+import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;

@@ -24,7 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
-import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
+import org.onosproject.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;

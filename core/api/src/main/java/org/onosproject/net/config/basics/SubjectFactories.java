@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.config.basics;
+package org.onosproject.net.config.basics;
 
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.config.SubjectFactory;
-import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.LinkKey;
+import org.onosproject.net.config.SubjectFactory;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -78,14 +77,6 @@ public final class SubjectFactories {
                     checkArgument(cps.length == 2, "Incorrect link key format: %s", key);
                     return LinkKey.linkKey(ConnectPoint.deviceConnectPoint(cps[0]),
                                            ConnectPoint.deviceConnectPoint(cps[1]));
-                }
-            };
-
-    public static final SubjectFactory<IntentDomainId> INTENT_DOMAIN_SUBJECT_FACTORY =
-            new SubjectFactory<IntentDomainId>(IntentDomainId.class, "domains") {
-                @Override
-                public IntentDomainId createSubject(String key) {
-                    return IntentDomainId.valueOf(key);
                 }
             };
 

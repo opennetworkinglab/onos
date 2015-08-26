@@ -60,6 +60,13 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-dist</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-incubator-api</artifactId>
             <scope>test</scope>
             <classifier>tests</classifier>

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.config.impl;
+package org.onosproject.net.config.impl;
 
 import java.util.Set;
 
@@ -27,8 +27,8 @@ import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.SubjectFactory;
-import org.onosproject.incubator.store.config.impl.DistributedNetworkConfigStore;
 import org.onosproject.net.NetTestTools;
+import org.onosproject.store.config.impl.DistributedNetworkConfigStore;
 import org.onosproject.store.service.TestStorageService;
 
 import static org.hamcrest.Matchers.hasSize;

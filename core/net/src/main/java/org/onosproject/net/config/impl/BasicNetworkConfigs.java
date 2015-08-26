@@ -13,36 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.config.impl;
+package org.onosproject.net.config.impl;
 
 import com.google.common.collect.ImmutableSet;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.config.ConfigFactory;
-import org.onosproject.net.config.NetworkConfigRegistry;
-import org.onosproject.incubator.net.config.basics.BasicDeviceConfig;
-import org.onosproject.incubator.net.config.basics.BasicHostConfig;
-import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
 import org.onosproject.incubator.net.config.basics.InterfaceConfig;
-import org.onosproject.incubator.net.config.basics.OpticalPortConfig;
-import org.onosproject.incubator.net.config.basics.SubjectFactories;
-import org.onosproject.incubator.net.domain.IntentDomainConfig;
-import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.LinkKey;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
+import org.onosproject.net.config.basics.BasicHostConfig;
+import org.onosproject.net.config.basics.BasicLinkConfig;
+import org.onosproject.net.config.basics.OpticalPortConfig;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
-import static org.onosproject.incubator.net.config.basics.SubjectFactories.*;
+import static org.onosproject.net.config.basics.SubjectFactories.*;
 
 /**
  * Component for registration of builtin basic network configurations.
@@ -85,17 +82,9 @@ public class BasicNetworkConfigs {
                     return new BasicLinkConfig();
                 }
             },
-            new ConfigFactory<IntentDomainId, IntentDomainConfig>(INTENT_DOMAIN_SUBJECT_FACTORY,
-                                                                  IntentDomainConfig.class,
-                                                                  "basic") {
-                @Override
-                public IntentDomainConfig createConfig() {
-                    return new IntentDomainConfig();
-                }
-            },
             new ConfigFactory<ConnectPoint, OpticalPortConfig>(CONNECT_POINT_SUBJECT_FACTORY,
-                                                        OpticalPortConfig.class,
-                                                        "basic") {
+                                                               OpticalPortConfig.class,
+                                                               "basic") {
                 @Override
                 public OpticalPortConfig createConfig() {
                     return new OpticalPortConfig();

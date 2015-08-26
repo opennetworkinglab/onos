@@ -21,7 +21,7 @@ import java.time.Duration;
 
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.config.ConfigOperator;
-import org.onosproject.incubator.net.config.basics.BasicLinkConfig;
+import org.onosproject.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Link;
 import org.onosproject.net.SparseAnnotations;

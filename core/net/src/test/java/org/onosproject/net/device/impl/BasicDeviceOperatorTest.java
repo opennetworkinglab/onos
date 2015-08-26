@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
-import org.onosproject.incubator.net.config.basics.BasicDeviceConfig;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;

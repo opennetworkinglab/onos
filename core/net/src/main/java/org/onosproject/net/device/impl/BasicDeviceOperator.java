@@ -18,7 +18,7 @@ package org.onosproject.net.device.impl;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import org.onosproject.net.config.ConfigOperator;
-import org.onosproject.incubator.net.config.basics.BasicDeviceConfig;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;

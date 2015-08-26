@@ -17,4 +17,4 @@
 /**
  * Implementation of the network configuration distributed store.
  */
-package org.onosproject.incubator.store.config.impl;
+package org.onosproject.store.config.impl;
