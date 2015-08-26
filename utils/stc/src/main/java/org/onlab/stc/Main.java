@@ -157,27 +157,26 @@ public final class Main {
 
     // Processes the scenario 'run' command.
     private void processRun() {
-        try {
-            coordinator.reset();
-            coordinator.start();
-            int exitCode = coordinator.waitFor();
-            pause(100); // allow stdout to flush
-            System.exit(exitCode);
-        } catch (InterruptedException e) {
-            print("Unable to execute scenario %s", scenarioFile);
-        }
+        coordinator.reset();
+        runCoordinator();
+    }
+
+    // Processes the scenario 'run' command for range of steps.
+    private void processRunRange() {
+        coordinator.reset(list(runFromPatterns), list(runToPatterns));
+        runCoordinator();
     }
 
     // Processes the scenario 'list' command.
     private void processList() {
         coordinator.getRecords()
                 .forEach(event -> logStatus(event.time(), event.name(), event.status(), event.command()));
+        System.exit(0);
     }
 
-    // Processes the scenario 'run' command for range of steps.
-    private void processRunRange() {
+    // Runs the coordinator and waits for it to finish.
+    private void runCoordinator() {
         try {
-            coordinator.reset(list(runFromPatterns), list(runToPatterns));
             coordinator.start();
             int exitCode = coordinator.waitFor();
             pause(100); // allow stdout to flush

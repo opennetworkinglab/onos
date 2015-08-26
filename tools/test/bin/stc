@@ -19,4 +19,5 @@ scenario=${1:-smoke}
 
 [ -t 1 ] && stcColor=true || unset stcColor
 
-java -jar $JAR $scenario "$@"
+[ -z "$stcDebug" ] && DEBUG_OPTS=""
+java $DEBUG_OPTS -jar $JAR $scenario "$@"

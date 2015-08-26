@@ -83,7 +83,7 @@ public class Coordinator {
         this.logDir = logDir;
         this.store = new ScenarioStore(processFlow, logDir, scenario.name());
         this.delegate = new Delegate();
-        this.latch = new CountDownLatch(store.getSteps().size());
+        this.latch = new CountDownLatch(1);
     }
 
     /**
@@ -349,7 +349,9 @@ public class Coordinator {
             store.markComplete(step, status);
             listeners.forEach(listener -> listener.onCompletion(step, status));
             executeSucessors(step);
-            latch.countDown();
+            if (store.isComplete()) {
+                latch.countDown();
+            }
         }
 
         @Override
