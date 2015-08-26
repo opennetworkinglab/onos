@@ -32,15 +32,19 @@ public final class SubnetCodec extends JsonCodec<Subnet> {
         checkNotNull(subnet, "Subnet cannot be null");
         ObjectNode result = context.mapper().createObjectNode()
                 .put("id", subnet.id().toString())
-                .put("gate_ip", subnet.gatewayIp().toString())
+                .put("gateway_ip", subnet.gatewayIp().toString())
                 .put("network_id", subnet.networkId().toString())
                 .put("name", subnet.subnetName().toString())
                 .put("ip_version", subnet.ipVersion().toString())
                 .put("cidr", subnet.cidr().toString())
                 .put("shared", subnet.shared())
                 .put("enabled_dchp", subnet.dhcpEnabled())
-                .put("tenant_id", subnet.tenantId().toString());
-        result.set("alloction_pools", new AllocationPoolsCodec().encode(subnet
+                .put("tenant_id", subnet.tenantId().toString())
+                .put("ipv6_address_mode", subnet.ipV6AddressMode() == null ? null
+                          : subnet.ipV6AddressMode().toString())
+                .put("ipv6_ra_mode", subnet.ipV6RaMode() == null ? null
+                          : subnet.ipV6RaMode().toString());
+        result.set("allocation_pools", new AllocationPoolsCodec().encode(subnet
                 .allocationPools(), context));
         result.set("host_routes",
                    new HostRoutesCodec().encode(subnet.hostRoutes(), context));

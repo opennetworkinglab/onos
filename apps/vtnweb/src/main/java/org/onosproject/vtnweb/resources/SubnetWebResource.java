@@ -226,8 +226,8 @@ public class SubnetWebResource extends AbstractWebResource {
      */
     public Iterable<Subnet> changeJsonToSub(JsonNode subnetNodes) {
         checkNotNull(subnetNodes, JSON_NOT_NULL);
-        checkArgument(!subnetNodes.get("enable_dhcp").isBoolean(), "enable_dhcp should be boolean");
-        checkArgument(!subnetNodes.get("shared").isBoolean(), "shared should be boolean");
+        checkArgument(subnetNodes.get("enable_dhcp").isBoolean(), "enable_dhcp should be boolean");
+        checkArgument(subnetNodes.get("shared").isBoolean(), "shared should be boolean");
         Map<SubnetId, Subnet> subMap = new HashMap<SubnetId, Subnet>();
         if (!subnetNodes.hasNonNull("id")) {
             return null;

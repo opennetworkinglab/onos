@@ -15,6 +15,7 @@
  */
 package org.onosproject.vtnweb.resources;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -209,6 +210,7 @@ public class VirtualPortWebResource extends AbstractWebResource {
                     .asText());
             TenantNetworkId networkId = TenantNetworkId.networkId(vPortnode
                     .get("network_id").asText());
+            checkArgument(vPortnode.get("admin_state_up").isBoolean(), "admin_state_up should be boolean");
             Boolean adminStateUp = vPortnode.get("admin_state_up").asBoolean();
             String state = vPortnode.get("status").asText();
             MacAddress macAddress = MacAddress.valueOf(vPortnode
