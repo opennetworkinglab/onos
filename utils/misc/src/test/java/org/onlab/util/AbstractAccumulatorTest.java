@@ -20,8 +20,10 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.Timer;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.*;
+import static org.onlab.junit.TestTools.assertAfter;
 import static org.onlab.junit.TestTools.delay;
 
 /**
@@ -136,6 +138,14 @@ public class AbstractAccumulatorTest {
         assertEquals("incorrect batch", "abcdefg", accumulator.batch);
     }
 
+    @Ignore("FIXME: timing sensitive test failing randomly.")
+    @Test
+    public void stormTest() {
+        TestAccumulator accumulator = new TestAccumulator();
+        IntStream.range(0, 1000).forEach(i -> accumulator.add(new TestItem("#" + i)));
+        assertAfter(100, () -> assertEquals("wrong item count", 1000, accumulator.itemCount));
+        assertEquals("wrong batch count", 200, accumulator.batchCount);
+    }
 
     private class TestItem {
         private final String s;
@@ -149,6 +159,8 @@ public class AbstractAccumulatorTest {
 
         String batch = "";
         boolean ready = true;
+        int batchCount = 0;
+        int itemCount = 0;
 
         protected TestAccumulator() {
             super(timer, 5, 100, 70);
@@ -156,6 +168,8 @@ public class AbstractAccumulatorTest {
 
         @Override
         public void processItems(List<TestItem> items) {
+            batchCount++;
+            itemCount += items.size();
             for (TestItem item : items) {
                 batch += item.s;
             }
