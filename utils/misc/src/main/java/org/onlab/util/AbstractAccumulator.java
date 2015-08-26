@@ -150,7 +150,7 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
                         processItems(batch);
                     }
                 } catch (Exception e) {
-                    log.warn("Unable to process batch due to {}", e);
+                    log.warn("Unable to process batch due to", e);
                 }
             } else {
                 synchronized (AbstractAccumulator.this) {
