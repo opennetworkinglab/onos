@@ -15,9 +15,11 @@
  */
 package org.onosproject.pcepio;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.core.Is.is;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
-import org.junit.Assert;
 import org.junit.Test;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcepFactories;
@@ -31,8 +33,6 @@ public class PcepReportMsgTest2 {
      * This test case checks forSRP Object,LSP Object(symbolic path tlv),ERO Object
      * SRP Object,LSP Object(symbolic path tlv,ERO Object,LSPA Object,BandWidth Object,Metric-list,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest39() throws PcepParseException {
@@ -65,23 +65,21 @@ public class PcepReportMsgTest2 {
         PcepMessage message = null;
 
         message = reader.readFrom(buffer);
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object(symbolic path tlv),ERO Object
      * SRP Object,LSP Object(symbolic path tlv),ERO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest40() throws PcepParseException {
@@ -108,23 +106,21 @@ public class PcepReportMsgTest2 {
         PcepMessage message = null;
 
         message = reader.readFrom(buffer);
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object(symbolic path tlv),ERO Object,LSPA Object
      * SRP Object,LSP Object(symbolic path tlv),ERO Object,LSPA Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest41() throws PcepParseException {
@@ -155,15 +151,15 @@ public class PcepReportMsgTest2 {
         PcepMessage message = null;
 
         message = reader.readFrom(buffer);
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
@@ -171,8 +167,6 @@ public class PcepReportMsgTest2 {
      * Metric-list SRP Object,LSP Object(symbolic path tlv),ERO Object,LSPA Object,BandWidth Object,Metric-list,
      * RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest42() throws PcepParseException {
@@ -214,14 +208,14 @@ public class PcepReportMsgTest2 {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 }

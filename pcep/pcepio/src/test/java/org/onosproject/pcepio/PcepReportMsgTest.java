@@ -17,7 +17,6 @@ package org.onosproject.pcepio;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
-import org.junit.Assert;
 import org.junit.Test;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcepFactories;
@@ -25,22 +24,24 @@ import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepMessageReader;
 import org.onosproject.pcepio.protocol.PcepReportMsg;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.core.Is.is;
+
 public class PcepReportMsgTest {
 
     /**
      * This test case checks for SRP object, LSP object(Symbolic path name tlv), ERO object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest1() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, 0x24,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, 0x24,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
-                0x07, 0x10, 0x00, 0x04 }; //ERO Object
+                0x07, 0x10, 0x00, 0x04}; //ERO Object
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -51,29 +52,27 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
 
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object, LSP Object(StatefulIPv4LspIdentidiersTlv,SymbolicPathNameTlv
      * StatefulLspErrorCodeTlv) ERO Object, LSPA Object, Metric-list, IRO object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest2() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x7c,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x7c,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object // LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
@@ -84,7 +83,7 @@ public class PcepReportMsgTest {
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00, // IPv4SubObjects
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LSPA Object
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00, //Metric Object
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20, //Metric Object
@@ -99,28 +98,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for LSP Object(StatefulIPv4LspIdentidiersTlv,SymbolicPathNameTlv,StatefulLspErrorCodeTlv)
      * ERO Object, LSPA Object, Metric-list, IRO object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest3() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x70,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x70,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
                 (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x00, 0x01, (byte) 0x80, 0x01,
@@ -130,7 +127,7 @@ public class PcepReportMsgTest {
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00, //Ipv4SubObjects
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LSPA Object
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00, //Metric Objects
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20, //Metric Object
@@ -145,28 +142,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for LSP Object(StatefulIPv4LspIdentidiersTlv,SymbolicPathNameTlv,StatefulLspErrorCodeTlv)
      * ERO Object, LSPA Object, Metric-list
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest4() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x64,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x64,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
@@ -177,8 +172,8 @@ public class PcepReportMsgTest {
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LSPA Object
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -189,28 +184,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object, LSP Object(StatefulIPv4LspIdentidiersTlv,SymbolicPathNameTlv
      * StatefulLspErrorCodeTlv) ERO Object, IRO object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest5() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x50,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x50,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
@@ -220,7 +213,7 @@ public class PcepReportMsgTest {
                 0x00, 0x14, 0x00, 0x04, 0x00, 0x00, 0x00, 0x08, //StatefulLspErrorCodeTlv
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
-                0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00 };
+                0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -231,28 +224,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object, LSP Object(StatefulIPv4LspIdentidiersTlv,SymbolicPathNameTlv
      * StatefulLspErrorCodeTlv) ERO Object, LSPA Object, Metric-list.
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest6() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x6c,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x6c,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
@@ -276,36 +267,34 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for LSP Object, ERO Object, LSPA Object, Metric-list, IRO object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest7() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x58,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x58,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x08, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, //LSPA Object
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00, // Metric objects
-                0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20 };
+                0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -316,28 +305,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP object, LSP object( StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
      * StatefulLspErrorCodeTlv) ERO object, LSPA object, Metric object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest8() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x70,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x70,
                 0x21, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
@@ -348,7 +335,7 @@ public class PcepReportMsgTest {
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //LSPA Object
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20}; //Metric Object
 
@@ -361,28 +348,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for LSP Object(Symbolic path tlv, StatefulIPv4LspIdentidiersTlv,
      * StatefulLspErrorCodeTlv ),ERO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest9() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x44,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x44,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
                 (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x00, 0x01, (byte) 0x80, 0x01,
@@ -391,7 +376,7 @@ public class PcepReportMsgTest {
                 0x00, 0x14, 0x00, 0x04, 0x00, 0x00, 0x00, 0x08, //StatefulLspErrorCodeTlv
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
-                0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00 };
+                0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -402,27 +387,25 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object(StatefulIPv4LspIdentidiersTlv)ERO Object,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest10() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x74,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x74,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x1c, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
@@ -436,7 +419,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -447,27 +430,25 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object(SymbolicPathNameTlv)ERO Object,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest11() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x68,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -479,7 +460,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -490,27 +471,25 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object, ERO Object,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest12() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x60,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x60,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x08, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x07, 0x10, 0x00, 0x14, //ERO Object
@@ -521,7 +500,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -532,27 +511,25 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object(StatefulLspErrorCodeTlv)ERO Object,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest13() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x68,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x14, 0x00, 0x04, 0x00, 0x00, 0x00, 0x08, //StatefulLspErrorCodeTlv
@@ -564,7 +541,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -575,27 +552,25 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object(StatefulRsvpErrorSpecTlv),ERO Object,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest14() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x60,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x60,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x08, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x07, 0x10, 0x00, 0x14, //ERO Object
@@ -606,7 +581,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -617,41 +592,39 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object(symbolic path tlv),LSPA Object,ERO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest15() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x7C,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x7C,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, //LSPA Object
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x08, 0x10, 0x00, 0x34, 0x01, 0x08, 0x11, 0x01, //RRO Object
                 0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x11, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -662,27 +635,25 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object(symbolic path tlv),BandWidth Object,ERO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest16() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x70,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x70,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -695,7 +666,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -706,40 +677,38 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object,ERO Object,LSPA Object,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest17() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x74,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x74,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x08, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, //LSPA Object
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x08, 0x10, 0x00, 0x34, 0x01, 0x08, 0x11, 0x01, //RRO Object
                 0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x11, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -750,27 +719,25 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object,ERO Object,BandWidth Object,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest18() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x68,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x68,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x08, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x07, 0x10, 0x00, 0x14, //ERO Object
@@ -782,7 +749,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -793,27 +760,25 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object,ERO Object,Metric-list,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest19() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x6C,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x6C,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x08, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x07, 0x10, 0x00, 0x14, //ERO Object
@@ -825,7 +790,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -836,33 +801,31 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object,ERO Object,LSPA Object,BandWidth Object,Metric-list,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest20() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x88,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x88,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x08, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00,
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, //Bandwidth Object
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20, //Metric Object
@@ -871,7 +834,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -882,27 +845,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object(Symbolic path tlv, StatefulIPv4LspIdentidiersTlv,
      * StatefulLspErrorCodeTlv ) ERO Object,LSPA Object,BandWidth Object,Metric-list,RRO Object
      * in PcRpt message.
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest21() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0xac,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0xac,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
@@ -913,7 +875,7 @@ public class PcepReportMsgTest {
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, 0x00,
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, //Bandwidth Object
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20, //Metric Object
@@ -922,7 +884,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -933,28 +895,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for LSP Object(Symbolic path tlv, StatefulIPv4LspIdentidiersTlv,StatefulLspErrorCodeTlv )
      * ERO Object,LSPA Object,BandWidth Object,Metric-list,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest22() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0xA0,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0xA0,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
                 (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x00, 0x01, (byte) 0x80, 0x01,
@@ -964,7 +924,7 @@ public class PcepReportMsgTest {
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00,
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, //Bandwidth Object
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20, //Metric Object
@@ -973,7 +933,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -984,28 +944,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for LSP Object(Symbolic path tlv, StatefulIPv4LspIdentidiersTlv,StatefulLspErrorCodeTlv )
      * ERO Object,BandWidth Object,Metric-list,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest23() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x8c,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x8c,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
                 (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x00, 0x01, (byte) 0x80, 0x01,
@@ -1022,7 +980,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1033,28 +991,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for LSP Object(Symbolic path tlv, StatefulIPv4LspIdentidiersTlv,StatefulLspErrorCodeTlv )
      * ERO Object,Metric-list,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest24() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x84,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x84,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
                 (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x00, 0x01, (byte) 0x80, 0x01,
@@ -1070,7 +1026,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1081,28 +1037,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for LSP Object(Symbolic path tlv, StatefulIPv4LspIdentidiersTlv,StatefulLspErrorCodeTlv )
      * ERO Object,LSPA Object,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest25() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x8c,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x8c,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
                 (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x00, 0x01, (byte) 0x80, 0x01,
@@ -1119,7 +1073,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1130,28 +1084,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for LSP Object(Symbolic path tlv, StatefulIPv4LspIdentidiersTlv,StatefulLspErrorCodeTlv )
      * ERO Object,LSPA Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest26() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x58,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x58,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
                 (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x00, 0x01, (byte) 0x80, 0x01,
@@ -1162,7 +1114,7 @@ public class PcepReportMsgTest {
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
                 0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, //LSPA Object
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1173,28 +1125,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for LSP Object(Symbolic path tlv, StatefulIPv4LspIdentidiersTlv,StatefulLspErrorCodeTlv)
      * ERO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest27() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x44,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x44,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
                 (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x00, 0x01, (byte) 0x80, 0x01,
@@ -1203,7 +1153,7 @@ public class PcepReportMsgTest {
                 0x00, 0x14, 0x00, 0x04, 0x00, 0x00, 0x00, 0x08, //StatefulLspErrorCodeTlv
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
-                0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00 };
+                0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1214,28 +1164,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for LSP Object(Symbolic path tlv, StatefulIPv4LspIdentidiersTlv,StatefulLspErrorCodeTlv )
      * LSPA Object,BandWidth Object,Metric-list,ERO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest28() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x6c,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x6c,
                 0x20, 0x10, 0x00, 0x2c, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x12, 0x00, 0x10, //StatefulIPv4LspIdentidiersTlv
                 (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x00, 0x01, (byte) 0x80, 0x01,
@@ -1245,10 +1193,10 @@ public class PcepReportMsgTest {
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00,
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, //Bandwidth Object
-                0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20 };
+                0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1259,27 +1207,25 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object(symbolic path tlv),ERO Object,Metric-list,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest29() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x74,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x74,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1292,7 +1238,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1303,28 +1249,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object(symbolic path tlv),ERO Object,Metric-list,RRO Object
      * SRP Object,LSP Object(symbolic path tlv),ERO Object,Metric-list,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest30() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0xE4,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0xE4,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1350,7 +1294,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1361,15 +1305,15 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
@@ -1377,20 +1321,18 @@ public class PcepReportMsgTest {
      * BandWidth Object,Metric-list,RRO Object,SRP Object,LSP Object(symbolic path tlv)
      * ERO Object,Metric-list,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest31() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x01, 0x00,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x01, 0x00,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, //LSPA Object
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, //Bandwidth Object
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20, //Metric Object
@@ -1412,7 +1354,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1423,15 +1365,15 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
@@ -1439,20 +1381,18 @@ public class PcepReportMsgTest {
      * BandWidth Object,Metric-list,RRO Object,SRP Object,LSP Object(symbolic path tlv)
      * ERO Object,LSPA Object,Metric-list,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest32() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x01, (byte) 0x14,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x01, (byte) 0x14,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, //LSPA Object
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, //Bandwidth Object
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20, //Metric Object
@@ -1468,7 +1408,7 @@ public class PcepReportMsgTest {
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, //LSPA Object
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20, //Metric Object
                 0x08, 0x10, 0x00, 0x34, 0x01, 0x08, 0x11, 0x01, //RRO Object
@@ -1476,7 +1416,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1487,15 +1427,15 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
@@ -1503,20 +1443,18 @@ public class PcepReportMsgTest {
      * BandWidth Object,Metric-list,RRO Object,SRP Object,LSP Object(symbolic path tlv)
      * ERO Object,LSPA Object,BandWidth Object,Metric-list,RRO Object
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest33() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x01, (byte) 0x1c,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x01, (byte) 0x1c,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, //LSPA Object
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, //Bandwidth Object
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20, //Metric Object
@@ -1532,7 +1470,7 @@ public class PcepReportMsgTest {
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00,
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, //Bandwidth Object
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20, //Metric Object
@@ -1541,7 +1479,7 @@ public class PcepReportMsgTest {
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x06, 0x06,
                 0x06, 0x06, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
                 0x01, 0x02, 0x04, 0x00, 0x01, 0x08, 0x12, 0x01,
-                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00 };
+                0x01, 0x01, 0x04, 0x00, 0x01, 0x08, 0x05, 0x05, 0x05, 0x05, 0x04, 0x00};
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1552,15 +1490,15 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
@@ -1568,20 +1506,18 @@ public class PcepReportMsgTest {
      * BandWidth Object,Metric-list,SRP Object,LSP Object(symbolic path tlv)
      * ERO Object,LSPA Object,BandWidth Object,Metric-list
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest34() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0xB4,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0xB4,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, //LSPA Object
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, //Bandwidth Object
                 0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20, //Metric Object
@@ -1591,10 +1527,10 @@ public class PcepReportMsgTest {
                 0x07, 0x10, 0x00, 0x14, //ERO Object
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x1f, 0x04, 0x00,
                 0x01, 0x08, (byte) 0xb6, 0x02, 0x4e, 0x20, 0x04, 0x00,
-                0x09, 0x10, 0x00, 0x14,  0x00, 0x00, 0x00, 0x00, //LSPA Object
+                0x09, 0x10, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, //LSPA Object
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, //Bandwidth Object
-                0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20 }; //Metric Object
+                0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20}; //Metric Object
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1605,28 +1541,26 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 
     /**
      * This test case checks for SRP Object,LSP Object)Symbolic path tlv),ERO Object,SRP Object
      * LSP Object(symbolic path tlv) ERO Object,LSPA Object, BandWidth Object,Metric-list
      * in PcRpt message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void reportMessageTest35() throws PcepParseException {
 
-        byte[] reportMsg = new byte[] {0x20, 0x0a, 0x00, (byte) 0x8C,
+        byte[] reportMsg = new byte[]{0x20, 0x0a, 0x00, (byte) 0x8C,
                 0x21, 0x10, 0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, //SRP Object
                 0x20, 0x10, 0x00, 0x10, 0x00, 0x00, 0x10, 0x03, //LSP Object
                 0x00, 0x11, 0x00, 0x02, 0x54, 0x31, 0x00, 0x00, //SymbolicPathNameTlv
@@ -1643,7 +1577,7 @@ public class PcepReportMsgTest {
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x05, 0x20, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, //Bandwidth Object
-                0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20 }; //Metric Object
+                0x06, 0x10, 0x00, 0x0c, 0x00, 0x00, 0x01, 0x03, 0x00, 0x00, 0x00, 0x20}; //Metric Object
 
         byte[] testReportMsg = {0};
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
@@ -1654,14 +1588,14 @@ public class PcepReportMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcRpt", message instanceof PcepReportMsg);
+        assertThat(message, instanceOf(PcepReportMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testReportMsg = new byte[readLen];
         buf.readBytes(testReportMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcRpt messages are not equal", reportMsg, testReportMsg);
+        assertThat(testReportMsg, is(reportMsg));
     }
 }
