@@ -25,55 +25,26 @@ public interface PcepPacketStats {
      *
      * @return int value of no of packets sent
      */
-    public int outPacketCount();
+    int outPacketCount();
 
     /**
      * Returns the count for no of packets received.
      *
      * @return int value of no of packets sent
      */
-    public int inPacketCount();
+    int inPacketCount();
 
     /**
      * Returns the count for no of wrong packets received.
      *
      * @return int value of no of wrong packets received
      */
-    public int wrongPacketCount();
-
-    /**
-     * Increments the received packet counter.
-     */
-    public void addInPacket();
-
-    /**
-     * Increments the sent packet counter.
-     */
-    public void addOutPacket();
-
-    /**
-     * Increments the sent packet counter by specified value.
-     * @param value of no of packets sent
-     */
-    public void addOutPacket(int value);
-
-    /**
-     * Increments the wrong packet counter.
-     */
-    public void addWrongPacket();
+    int wrongPacketCount();
 
     /**
      * Returns the time value.
      *
      * @return long value of time
      */
-    public long getTime();
-
-    /**
-     * Sets the time value.
-     *
-     * @param time long value of time
-     */
-    public void setTime(long time);
-
+    long getTime();
 }
