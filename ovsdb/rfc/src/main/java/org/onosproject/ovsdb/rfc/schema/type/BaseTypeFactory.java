@@ -17,7 +17,7 @@ package org.onosproject.ovsdb.rfc.schema.type;
 
 import java.util.Set;
 
-import org.onosproject.ovsdb.rfc.error.AbnormalJsonNodeException;
+import org.onosproject.ovsdb.rfc.exception.AbnormalJsonNodeException;
 import org.onosproject.ovsdb.rfc.schema.type.UuidBaseType.RefType;
 import org.onosproject.ovsdb.rfc.utils.ObjectMapperUtil;
 

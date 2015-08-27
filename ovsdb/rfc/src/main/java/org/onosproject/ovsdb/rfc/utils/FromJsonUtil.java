@@ -21,8 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.onosproject.ovsdb.rfc.error.AbnormalJsonNodeException;
-import org.onosproject.ovsdb.rfc.error.UnsupportedException;
+import org.onosproject.ovsdb.rfc.exception.AbnormalJsonNodeException;
+import org.onosproject.ovsdb.rfc.exception.UnsupportedException;
 import org.onosproject.ovsdb.rfc.jsonrpc.Callback;
 import org.onosproject.ovsdb.rfc.jsonrpc.JsonRpcResponse;
 import org.onosproject.ovsdb.rfc.message.OperationResult;

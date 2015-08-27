@@ -20,9 +20,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
 
-import org.onosproject.ovsdb.rfc.error.ColumnSchemaNotFoundException;
-import org.onosproject.ovsdb.rfc.error.TableSchemaNotFoundException;
-import org.onosproject.ovsdb.rfc.error.VersionMismatchException;
+import org.onosproject.ovsdb.rfc.exception.ColumnSchemaNotFoundException;
+import org.onosproject.ovsdb.rfc.exception.TableSchemaNotFoundException;
+import org.onosproject.ovsdb.rfc.exception.VersionMismatchException;
 import org.onosproject.ovsdb.rfc.notation.Column;
 import org.onosproject.ovsdb.rfc.notation.Row;
 import org.onosproject.ovsdb.rfc.notation.UUID;

@@ -15,7 +15,7 @@
  */
 package org.onosproject.ovsdb.rfc.schema.type;
 
-import org.onosproject.ovsdb.rfc.error.AbnormalJsonNodeException;
+import org.onosproject.ovsdb.rfc.exception.AbnormalJsonNodeException;
 import org.onosproject.ovsdb.rfc.utils.ObjectMapperUtil;
 
 import com.fasterxml.jackson.databind.JsonNode;

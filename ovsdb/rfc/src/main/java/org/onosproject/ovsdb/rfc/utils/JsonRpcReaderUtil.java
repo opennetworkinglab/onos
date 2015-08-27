@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Stack;
 
-import org.onosproject.ovsdb.rfc.error.UnsupportedException;
+import org.onosproject.ovsdb.rfc.exception.UnsupportedException;
 import org.onosproject.ovsdb.rfc.jsonrpc.JsonReadContext;
 
 import com.fasterxml.jackson.core.JsonEncoding;
