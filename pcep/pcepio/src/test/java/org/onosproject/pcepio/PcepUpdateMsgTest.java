@@ -15,9 +15,12 @@
  */
 package org.onosproject.pcepio;
 
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsSame.sameInstance;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
-import org.junit.Assert;
+import static org.hamcrest.MatcherAssert.assertThat;
 import org.junit.Test;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcepFactories;
@@ -28,8 +31,6 @@ import org.onosproject.pcepio.protocol.PcepUpdateMsg;
 public class PcepUpdateMsgTest {
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv), ERO in PcUpd message.
-     *
-     * @throws PcepParseException when message paring fails
      */
     @Test
     public void pcepUpdateMsgTest1() throws PcepParseException {
@@ -50,7 +51,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -59,14 +60,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP(SymbolicPathNameTlv), LSP (StatefulIPv4LspIdentidiersTlv,
      * SymbolicPathNameTlv, StatefulLspErrorCodeTlv), ERO, LSPA, Metric-list in PcUpd message.
-     *
-     * @throws PcepParseException when message paring fails
      */
     @Test
     public void pcepUpdateMsgTest2() throws PcepParseException {
@@ -96,7 +95,7 @@ public class PcepUpdateMsgTest {
         PcepMessage message = null;
 
         message = reader.readFrom(buffer);
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -105,14 +104,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv),
      * ERO objects in PcUpd message.
-     *
-     * @throws PcepParseException when message paring fails
      */
     @Test
     public void pcepUpdateMsgTest3() throws PcepParseException {
@@ -135,7 +132,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -144,14 +141,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
      * SymbolicPathNameTlv), ERO objects in PcUpd message.
-     *
-     * @throws PcepParseException when message paring fails
      */
     @Test
     public void pcepUpdateMsgTest4() throws PcepParseException {
@@ -175,7 +170,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -184,14 +179,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
      * SymbolicPathNameTlv), ERO objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest5() throws PcepParseException {
@@ -215,7 +208,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -224,14 +217,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
      * StatefulLspErrorCodeTlv), ERO objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest6() throws PcepParseException {
@@ -256,7 +247,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -265,15 +256,13 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
 
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
      * StatefulLspErrorCodeTlv), ERO objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest7() throws PcepParseException {
@@ -298,7 +287,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -306,14 +295,12 @@ public class PcepUpdateMsgTest {
         int readLen = buf.writerIndex() - 0;
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
      * StatefulLspErrorCodeTlv), ERO (IPv4SubObject) objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest8() throws PcepParseException {
@@ -339,7 +326,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -348,14 +335,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
      * StatefulLspErrorCodeTlv), ERO (IPv4SubObject, IPv4SubObject) objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest9() throws PcepParseException {
@@ -382,7 +367,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -391,14 +376,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
      * StatefulLspErrorCodeTlv), ERO (IPv4SubObject, IPv4SubObject), LSPA objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest10() throws PcepParseException {
@@ -427,7 +410,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -436,14 +419,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
      * StatefulLspErrorCodeTlv), ERO (IPv4SubObject, IPv4SubObject),LSPA, Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest11() throws PcepParseException {
@@ -473,7 +454,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -482,14 +463,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
      * StatefulLspErrorCodeTlv), ERO (IPv4SubObject, IPv4SubObject),LSPA, metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest12() throws PcepParseException {
@@ -518,7 +497,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -527,14 +506,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
      * StatefulLspErrorCodeTlv), ERO (IPv4SubObject, IPv4SubObject),LSPA, metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest13() throws PcepParseException {
@@ -563,7 +540,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -572,14 +549,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv),
      * ERO (IPv4SubObject, IPv4SubObject),LSPA, metric Object objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest14() throws PcepParseException {
@@ -607,7 +582,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -616,14 +591,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv),
      * ERO (IPv4SubObject, IPv4SubObject),LSPA, metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest15() throws PcepParseException {
@@ -651,7 +624,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -660,14 +633,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv),
      * ERO (IPv4SubObject, IPv4SubObject),LSPA, metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest16() throws PcepParseException {
@@ -694,7 +665,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -703,14 +674,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv),
      * ERO (IPv4SubObject, IPv4SubObject),LSPA objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest17() throws PcepParseException {
@@ -736,7 +705,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -745,14 +714,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv),
      * ERO (IPv4SubObject, IPv4SubObject),Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest18() throws PcepParseException {
@@ -777,7 +744,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -786,14 +753,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv),
      * ERO (IPv4SubObject, IPv4SubObject),Metric-list objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest19() throws PcepParseException {
@@ -819,7 +784,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -828,14 +793,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
      * StatefulLspErrorCodeTlv),ERO (IPv4SubObject, IPv4SubObject),LSPA, Bandwidth, Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest20() throws PcepParseException {
@@ -866,7 +829,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -875,14 +838,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv),
      * ERO (IPv4SubObject, IPv4SubObject), Bandwidth objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest21() throws PcepParseException {
@@ -907,7 +868,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -916,14 +877,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv),
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest22() throws PcepParseException {
@@ -950,7 +909,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -959,14 +918,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv),
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest23() throws PcepParseException {
@@ -994,7 +951,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1003,14 +960,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv)
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest24() throws PcepParseException {
@@ -1039,7 +994,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1048,14 +1003,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv)
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest25() throws PcepParseException {
@@ -1084,7 +1037,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1093,15 +1046,13 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
      * StatefulLspErrorCodeTlv) ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth,
      * Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest26() throws PcepParseException {
@@ -1130,7 +1081,7 @@ public class PcepUpdateMsgTest {
         PcepMessage message = null;
 
         message = reader.readFrom(buffer);
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1139,15 +1090,13 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv, SymbolicPathNameTlv,
      * StatefulLspErrorCodeTlv) ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth,
      * Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest27() throws PcepParseException {
@@ -1177,7 +1126,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1186,15 +1135,13 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (SymbolicPathNameTlv, StatefulIPv4LspIdentidiersTlv,
      * SymbolicPathNameTlv, StatefulLspErrorCodeTlv), ERO (IPv4SubObject, IPv4SubObject),
      * LSPA, Bandwidth, Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest28() throws PcepParseException {
@@ -1225,7 +1172,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1234,14 +1181,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulIPv4LspIdentidiersTlv),
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest29() throws PcepParseException {
@@ -1269,7 +1214,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1278,14 +1223,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP,
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest30() throws PcepParseException {
@@ -1310,7 +1253,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1319,14 +1262,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (StatefulLspErrorCodeTlv),
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest31() throws PcepParseException {
@@ -1352,7 +1293,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1361,14 +1302,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP,
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest32() throws PcepParseException {
@@ -1393,7 +1332,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1402,14 +1341,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (SymbolicPathNameTlv),
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest33() throws PcepParseException {
@@ -1435,7 +1372,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1444,14 +1381,12 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 
     /**
      * This test case checks for SRP, LSP (SymbolicPathNameTlv, SymbolicPathNameTlv),
      * ERO (IPv4SubObject, IPv4SubObject), LSPA, Bandwidth, Metric objects in PcUpd message.
-     *
-     * @throws PcepParseException when message parsing fails
      */
     @Test
     public void pcepUpdateMsgTest34() throws PcepParseException {
@@ -1478,7 +1413,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        Assert.assertTrue("PcepMessage is not instance of PcUpd", (message instanceof PcepUpdateMsg));
+        assertThat(message, sameInstance((PcepUpdateMsg) message));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1487,6 +1422,6 @@ public class PcepUpdateMsgTest {
         testupdateMsg = new byte[readLen];
         buf.readBytes(testupdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcUpd messages are not equal", updateMsg, testupdateMsg);
+        assertThat(testupdateMsg, is(updateMsg));
     }
 }
