@@ -17,13 +17,16 @@ package org.onosproject.pcepio;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
-import org.junit.Assert;
 import org.junit.Test;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcepFactories;
+import org.onosproject.pcepio.protocol.PcepLabelUpdateMsg;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepMessageReader;
-import org.onosproject.pcepio.protocol.PcepLabelUpdateMsg;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 
 public class PcepLabelUpdateMsgTest {
 
@@ -31,13 +34,11 @@ public class PcepLabelUpdateMsgTest {
      * This test case checks for
      * <pce-label-download> SRP, LSP, LABEL Object.
      * in PcepLabelUpdate message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void labelUpdateMessageTest1() throws PcepParseException {
 
-        byte[] labelUpdate = new byte[] {0x20, 0x0D, 0x00, 0x24, // common header
+        byte[] labelUpdate = new byte[]{0x20, 0x0D, 0x00, 0x24, // common header
                 0x21, 0x10, 0x00, 0x0C, // SRP Object Header
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x10,
@@ -56,29 +57,28 @@ public class PcepLabelUpdateMsgTest {
         message = reader.readFrom(buffer);
 
         byte[] testLabelUpdateMsg = {0};
+        assertThat(message, instanceOf(PcepLabelUpdateMsg.class));
 
-        Assert.assertTrue("PcepMessage is not instance of PcepLabelUpdate", message instanceof PcepLabelUpdateMsg);
+
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testLabelUpdateMsg = new byte[readLen];
         buf.readBytes(testLabelUpdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcepLabelUpdate messages are not equal", labelUpdate, testLabelUpdateMsg);
+        assertThat(testLabelUpdateMsg, is(labelUpdate));
     }
 
     /**
      * This test case checks for
      * <pce-label-download> SRP, LSP, LABEL Object, LABEL Object.
      * in PcepLabelUpdate message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void labelUpdateMessageTest2() throws PcepParseException {
 
-        byte[] labelUpdate = new byte[] {0x20, 0x0D, 0x00, 0x30, // common header
+        byte[] labelUpdate = new byte[]{0x20, 0x0D, 0x00, 0x30, // common header
                 0x21, 0x10, 0x00, 0x0C, // SRP Object Header
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x10,
@@ -100,28 +100,26 @@ public class PcepLabelUpdateMsgTest {
         message = reader.readFrom(buffer);
 
         byte[] testLabelUpdateMsg = {0};
-        Assert.assertTrue("PcepMessage is not instance of PcepLabelUpdate", message instanceof PcepLabelUpdateMsg);
+        assertThat(message, instanceOf(PcepLabelUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testLabelUpdateMsg = new byte[readLen];
         buf.readBytes(testLabelUpdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcepLabelUpdate messages are not equal", labelUpdate, testLabelUpdateMsg);
+        assertThat(testLabelUpdateMsg, is(labelUpdate));
     }
 
     /**
      * This test case checks for
      * <pce-label-map> SRP, LABEL, FEC Object.
      * in PcepLabelUpdate message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void labelUpdateMessageTest3() throws PcepParseException {
 
-        byte[] labelUpdate = new byte[] {0x20, 0x0D, 0x00, 0x24, // common header
+        byte[] labelUpdate = new byte[]{0x20, 0x0D, 0x00, 0x24, // common header
                 0x21, 0x10, 0x00, 0x0C, // SRP Object Header
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x10,
@@ -140,28 +138,26 @@ public class PcepLabelUpdateMsgTest {
         message = reader.readFrom(buffer);
 
         byte[] testLabelUpdateMsg = {0};
-        Assert.assertTrue("PcepMessage is not instance of PcepLabelUpdate", message instanceof PcepLabelUpdateMsg);
+        assertThat(message, instanceOf(PcepLabelUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testLabelUpdateMsg = new byte[readLen];
         buf.readBytes(testLabelUpdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcepLabelUpdate messages are not equal", labelUpdate, testLabelUpdateMsg);
+        assertThat(testLabelUpdateMsg, is(labelUpdate));
     }
 
     /**
      * This test case checks for
      * <pce-label-download> SRP, LSP, LABEL, LABEL, <pce-label-download> SRP, LSP, LABEL
      * in PcepLabelUpdate message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void labelUpdateMessageTest4() throws PcepParseException {
 
-        byte[] labelUpdate = new byte[] {0x20, 0x0D, 0x00, 0x50, // common header
+        byte[] labelUpdate = new byte[]{0x20, 0x0D, 0x00, 0x50, // common header
                 0x21, 0x10, 0x00, 0x0C, // SRP Object Header
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x10,
@@ -191,28 +187,26 @@ public class PcepLabelUpdateMsgTest {
         message = reader.readFrom(buffer);
 
         byte[] testLabelUpdateMsg = {0};
-        Assert.assertTrue("PcepMessage is not instance of PcepLabelUpdate", message instanceof PcepLabelUpdateMsg);
+        assertThat(message, instanceOf(PcepLabelUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testLabelUpdateMsg = new byte[readLen];
         buf.readBytes(testLabelUpdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcepLabelUpdate messages are not equal", labelUpdate, testLabelUpdateMsg);
+        assertThat(testLabelUpdateMsg, is(labelUpdate));
     }
 
     /**
      * This test case checks for
      * <pce-label-map> SRP, LABEL, FEC, <pce-label-map> SRP, LABEL, FEC.
      * in PcepLabelUpdate message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void labelUpdateMessageTest5() throws PcepParseException {
 
-        byte[] labelUpdate = new byte[] {0x20, 0x0D, 0x00, 0x44, // common header
+        byte[] labelUpdate = new byte[]{0x20, 0x0D, 0x00, 0x44, // common header
                 0x21, 0x10, 0x00, 0x0C, // SRP Object Header
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x10,
@@ -239,28 +233,26 @@ public class PcepLabelUpdateMsgTest {
         message = reader.readFrom(buffer);
 
         byte[] testLabelUpdateMsg = {0};
-        Assert.assertTrue("PcepMessage is not instance of PcepLabelUpdate", message instanceof PcepLabelUpdateMsg);
+        assertThat(message, instanceOf(PcepLabelUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testLabelUpdateMsg = new byte[readLen];
         buf.readBytes(testLabelUpdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcepLabelUpdate messages are not equal", labelUpdate, testLabelUpdateMsg);
+        assertThat(testLabelUpdateMsg, is(labelUpdate));
     }
 
     /**
      * This test case checks for
      * <pce-label-download> SRP, LSP, LABEL, LABEL, <pce-label-download> SRP, LABEL, FEC.
      * in PcepLabelUpdate message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void labelUpdateMessageTest6() throws PcepParseException {
 
-        byte[] labelUpdate = new byte[] {0x20, 0x0D, 0x00, 0x50, // common header
+        byte[] labelUpdate = new byte[]{0x20, 0x0D, 0x00, 0x50, // common header
                 0x21, 0x10, 0x00, 0x0C, // SRP Object Header
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x10,
@@ -290,28 +282,26 @@ public class PcepLabelUpdateMsgTest {
         message = reader.readFrom(buffer);
 
         byte[] testLabelUpdateMsg = {0};
-        Assert.assertTrue("PcepMessage is not instance of PcepLabelUpdate", message instanceof PcepLabelUpdateMsg);
+        assertThat(message, instanceOf(PcepLabelUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testLabelUpdateMsg = new byte[readLen];
         buf.readBytes(testLabelUpdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcepLabelUpdate messages are not equal", labelUpdate, testLabelUpdateMsg);
+        assertThat(testLabelUpdateMsg, is(labelUpdate));
     }
 
     /**
      * This test case checks for
-     *  <pce-label-download> SRP, LABEL, FEC, <pce-label-download> SRP, LSP, LABEL, LABEL.
+     * <pce-label-download> SRP, LABEL, FEC, <pce-label-download> SRP, LSP, LABEL, LABEL.
      * in PcepLabelUpdate message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void labelUpdateMessageTest7() throws PcepParseException {
 
-        byte[] labelUpdate = new byte[] {0x20, 0x0D, 0x00, 0x50, // common header
+        byte[] labelUpdate = new byte[]{0x20, 0x0D, 0x00, 0x50, // common header
                 0x21, 0x10, 0x00, 0x0C, // SRP Object Header
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x12,
@@ -341,15 +331,15 @@ public class PcepLabelUpdateMsgTest {
         message = reader.readFrom(buffer);
 
         byte[] testLabelUpdateMsg = {0};
-        Assert.assertTrue("PcepMessage is not instance of PcepLabelUpdate", message instanceof PcepLabelUpdateMsg);
+        assertThat(message, instanceOf(PcepLabelUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testLabelUpdateMsg = new byte[readLen];
         buf.readBytes(testLabelUpdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcepLabelUpdate messages are not equal", labelUpdate, testLabelUpdateMsg);
+        assertThat(testLabelUpdateMsg, is(labelUpdate));
     }
 
     /**
@@ -357,13 +347,11 @@ public class PcepLabelUpdateMsgTest {
      * <pce-label-download> SRP, LABEL, FEC, <pce-label-download> SRP, LSP, LABEL, LABEL.
      * <pce-label-download> SRP, LSP, LABEL, LABEL.
      * in PcepLabelUpdate message.
-     *
-     * @throws PcepParseException while parsing PCEP message
      */
     @Test
     public void labelUpdateMessageTest8() throws PcepParseException {
 
-        byte[] labelUpdate = new byte[] {0x20, 0x0D, 0x00, 0x7C, // common header
+        byte[] labelUpdate = new byte[]{0x20, 0x0D, 0x00, 0x7C, // common header
                 0x21, 0x10, 0x00, 0x0C, // SRP Object Header
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x12,
@@ -405,14 +393,14 @@ public class PcepLabelUpdateMsgTest {
 
         byte[] testLabelUpdateMsg = {0};
 
-        Assert.assertTrue("PcepMessage is not instance of PcepLabelUpdate", message instanceof PcepLabelUpdateMsg);
+        assertThat(message, instanceOf(PcepLabelUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
 
-        int readLen = buf.writerIndex() - 0;
+        int readLen = buf.writerIndex();
         testLabelUpdateMsg = new byte[readLen];
         buf.readBytes(testLabelUpdateMsg, 0, readLen);
 
-        Assert.assertArrayEquals("PcepLabelUpdate messages are not equal", labelUpdate, testLabelUpdateMsg);
+        assertThat(testLabelUpdateMsg, is(labelUpdate));
     }
 }
