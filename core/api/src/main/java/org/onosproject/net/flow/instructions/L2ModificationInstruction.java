@@ -342,8 +342,13 @@ public abstract class L2ModificationInstruction implements Instruction {
             this.mplsLabel = mplsLabel;
         }
 
+        // might want to deprecate this in the long run
         public Integer label() {
             return mplsLabel.toInt();
+        }
+
+        public MplsLabel mplsLabel() {
+            return mplsLabel;
         }
 
         @Override
