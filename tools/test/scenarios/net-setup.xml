@@ -29,7 +29,7 @@
               exec="onos-mininet start topos/topo att-onos.py ${ONOS_INSTANCES}"/>
 
         <step name="Wait-For-Mininet" requires="Start-Mininet"
-              exec="onos-mininet wait 20"/>
+              exec="onos-mininet wait 10"/>
 
         <step name="Check-Summary" requires="Wait-For-Mininet"
               exec="onos-check-summary ${OC1} [0-9]* 25 140 0"/>

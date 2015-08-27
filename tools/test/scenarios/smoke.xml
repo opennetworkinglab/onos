@@ -23,7 +23,7 @@
     <dependency name="Net-Smoke" requires="Setup"/>
 
     <import file="${ONOS_SCENARIOS}/archetypes.xml"/>
-    <dependency name="Archetypes" requires="~Net-Smoke,Setup"/>
+    <dependency name="Archetypes" requires="Setup"/>
 
     <import file="${ONOS_SCENARIOS}/wrapup.xml"/>
     <dependency name="Wrapup" requires="~Archetypes,~Setup,~Net-Smoke"/>

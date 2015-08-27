@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.onlab.graph.DepthFirstSearch;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,10 +30,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.graph.DepthFirstSearch.EdgeType.BACK_EDGE;
+import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
 import static org.onlab.stc.Scenario.loadScenario;
 
 /**
@@ -108,6 +109,8 @@ public class Compiler {
         // Produce the process flow
         processFlow = new ProcessFlow(ImmutableSet.copyOf(steps.values()),
                                       ImmutableSet.copyOf(dependencies));
+
+        scanForCycles();
 
         // Extract the log directory if there was one specified
         String defaultPath = DEFAULT_LOG_DIR + scenario.name();
@@ -447,6 +450,22 @@ public class Compiler {
         }
         return builder.build();
     }
+
+    /**
+     * Scans the process flow graph for cyclic dependencies.
+     */
+    private void scanForCycles() {
+        DepthFirstSearch<Step, Dependency> dfs = new DepthFirstSearch<>();
+        // Use a brute-force method of searching paths from all vertices.
+        processFlow().getVertexes().forEach(s -> {
+            DepthFirstSearch<Step, Dependency>.SpanningTreeResult r =
+                    dfs.search(processFlow, s, null, null, ALL_PATHS);
+            r.edges().forEach((e, et) -> checkArgument(et != BACK_EDGE,
+                                                       "Process flow has a cycle involving dependency from %s to %s",
+                                                       e.src().name, e.dst().name));
+        });
+    }
+
 
     /**
      * Prints formatted output.
