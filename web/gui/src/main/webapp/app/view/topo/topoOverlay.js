@@ -326,7 +326,9 @@
         data.hosts.forEach(function (host) {
             var hdata = api.findNodeById(host.id);
             if (hdata && !hdata.el.empty()) {
-                api.unsupNode(hdata.id, less);
+                if (!host.subdue) {
+                    api.unsupNode(hdata.id, less);
+                }
                 // TODO: further highlighting?
             }
         });
@@ -334,7 +336,9 @@
         data.devices.forEach(function (device) {
             var ddata = api.findNodeById(device.id);
             if (ddata && !ddata.el.empty()) {
-                api.unsupNode(ddata.id, less);
+                if (!device.subdue) {
+                    api.unsupNode(ddata.id, less);
+                }
                 // TODO: further highlighting?
             }
         });
@@ -345,10 +349,13 @@
                 units, portcls, magnitude;
 
             if (ldata && !ldata.el.empty()) {
-                api.unsupLink(ldata.key, less);
+                if (!link.subdue) {
+                    api.unsupLink(ldata.key, less);
+                }
                 ldata.el.classed(link.css, true);
                 ldata.label = lab;
 
+                // TODO: this needs to be pulled out into traffic overlay
                 // inject additional styling for port-based traffic
                 if (fs.endsWith(lab, 'bps')) {
                     units = lab.substring(lab.length-4);

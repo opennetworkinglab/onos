@@ -90,20 +90,32 @@ public final class TopoJson {
     }
 
     private static ObjectNode json(DeviceHighlight dh) {
-        return objectNode()
+        ObjectNode n = objectNode()
                 .put(ID, dh.elementId());
+        if (dh.subdued()) {
+            n.put(SUBDUE, true);
+        }
+        return n;
     }
 
     private static ObjectNode json(HostHighlight hh) {
-        return objectNode()
+        ObjectNode n = objectNode()
                 .put(ID, hh.elementId());
+        if (hh.subdued()) {
+            n.put(SUBDUE, true);
+        }
+        return n;
     }
 
     private static ObjectNode json(LinkHighlight lh) {
-        return objectNode()
+        ObjectNode n = objectNode()
                 .put(ID, lh.elementId())
                 .put(LABEL, lh.label())
                 .put(CSS, lh.cssClasses());
+        if (lh.subdued()) {
+            n.put(SUBDUE, true);
+        }
+        return n;
     }
 
     /**
