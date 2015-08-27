@@ -25,12 +25,14 @@ import org.onosproject.pcepio.protocol.PcepKeepaliveMsg;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepMessageReader;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.core.Is.is;
+
 public class PcepKeepaliveMsgTest {
 
     /**
      * Common header for keep alive message.
-     *
-     * @throws PcepParseException while parsing the PCEP message.
      */
     @Test
     public void keepaliveMessageTest1() throws PcepParseException {
@@ -45,16 +47,17 @@ public class PcepKeepaliveMsgTest {
         PcepMessage message = null;
 
         message = reader.readFrom(buffer);
-        Assert.assertTrue("PcepMessage is not instance of PcepKeepaliveMsg", message instanceof PcepKeepaliveMsg);
-
+        assertThat(message, instanceOf(PcepKeepaliveMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
+
         message.writeTo(buf);
+
         testKeepaliveMsg = buf.array();
 
-        int iReadLen = buf.writerIndex() - 0;
+        int iReadLen = buf.writerIndex();
         testKeepaliveMsg = new byte[iReadLen];
         buf.readBytes(testKeepaliveMsg, 0, iReadLen);
 
-        Assert.assertArrayEquals("PcTERpt messages are not equal", keepaliveMsg, testKeepaliveMsg);
+        Assert.assertThat(testKeepaliveMsg, is(keepaliveMsg));
     }
 }
