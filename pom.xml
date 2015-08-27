@@ -56,9 +56,6 @@
 
         <module>tools/package/archetypes</module>
         <module>tools/package/branding</module>
-
-        <!-- FIXME remove before release -->
-        <module>tools/package/maven-plugin</module>
     </modules>
 
     <url>http://onosproject.org/</url>
@@ -622,8 +619,8 @@
                 <plugin>
                     <groupId>org.onosproject</groupId>
                     <artifactId>onos-maven-plugin</artifactId>
-                    <version>1.5-SNAPSHOT</version>
-                    <executions>
+                    <version>1.5</version>
+                      <executions>
                         <execution>
                             <id>cfg</id>
                             <phase>generate-resources</phase>
