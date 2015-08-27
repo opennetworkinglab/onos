@@ -18,16 +18,10 @@
 package org.onosproject.ui.topo;
 
 /**
- * Denotes the highlighting to apply to a device.
+ * Parent class of {@link DeviceHighlight} and {@link HostHighlight}.
  */
-public class DeviceHighlight extends NodeHighlight {
-
-    public DeviceHighlight(String deviceId) {
-        super(TopoElementType.DEVICE, deviceId);
+public abstract class NodeHighlight extends AbstractHighlight {
+    public NodeHighlight(TopoElementType type, String elementId) {
+        super(type, elementId);
     }
-
-    // TODO: implement device highlighting:
-    //   - visual highlight
-    //   - badging
-
 }

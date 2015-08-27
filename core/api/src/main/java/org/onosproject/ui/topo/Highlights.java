@@ -17,9 +17,10 @@
 
 package org.onosproject.ui.topo;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -53,9 +54,9 @@ public class Highlights {
         }
     }
 
-    private final Set<DeviceHighlight> devices = new HashSet<>();
-    private final Set<HostHighlight> hosts = new HashSet<>();
-    private final Set<LinkHighlight> links = new HashSet<>();
+    private final Map<String, DeviceHighlight> devices = new HashMap<>();
+    private final Map<String, HostHighlight> hosts = new HashMap<>();
+    private final Map<String, LinkHighlight> links = new HashMap<>();
 
     private Amount subdueLevel = Amount.ZERO;
 
@@ -67,7 +68,7 @@ public class Highlights {
      * @return self, for chaining
      */
     public Highlights add(DeviceHighlight dh) {
-        devices.add(dh);
+        devices.put(dh.elementId(), dh);
         return this;
     }
 
@@ -78,7 +79,7 @@ public class Highlights {
      * @return self, for chaining
      */
     public Highlights add(HostHighlight hh) {
-        hosts.add(hh);
+        hosts.put(hh.elementId(), hh);
         return this;
     }
 
@@ -89,7 +90,7 @@ public class Highlights {
      * @return self, for chaining
      */
     public Highlights add(LinkHighlight lh) {
-        links.add(lh);
+        links.put(lh.elementId(), lh);
         return this;
     }
 
@@ -106,30 +107,30 @@ public class Highlights {
     }
 
     /**
-     * Returns the set of device highlights.
+     * Returns the collection of device highlights.
      *
      * @return device highlights
      */
-    public Set<DeviceHighlight> devices() {
-        return Collections.unmodifiableSet(devices);
+    public Collection<DeviceHighlight> devices() {
+        return Collections.unmodifiableCollection(devices.values());
     }
 
     /**
-     * Returns the set of host highlights.
+     * Returns the collection of host highlights.
      *
      * @return host highlights
      */
-    public Set<HostHighlight> hosts() {
-        return Collections.unmodifiableSet(hosts);
+    public Collection<HostHighlight> hosts() {
+        return Collections.unmodifiableCollection(hosts.values());
     }
 
     /**
-     * Returns the set of link highlights.
+     * Returns the collection of link highlights.
      *
      * @return link highlights
      */
-    public Set<LinkHighlight> links() {
-        return Collections.unmodifiableSet(links);
+    public Collection<LinkHighlight> links() {
+        return Collections.unmodifiableCollection(links.values());
     }
 
     /**
@@ -140,5 +141,50 @@ public class Highlights {
      */
     public Amount subdueLevel() {
         return subdueLevel;
+    }
+
+    /**
+     * Returns the node highlight (device or host) for the given element
+     * identifier, or null if no match.
+     *
+     * @param id element identifier
+     * @return corresponding node highlight
+     */
+    public NodeHighlight getNode(String id) {
+        NodeHighlight nh = devices.get(id);
+        return nh != null ? nh : hosts.get(id);
+    }
+
+    /**
+     * Returns the device highlight for the given device identifier,
+     * or null if no match.
+     *
+     * @param id device identifier
+     * @return corresponding device highlight
+     */
+    public DeviceHighlight getDevice(String id) {
+        return devices.get(id);
+    }
+
+    /**
+     * Returns the host highlight for the given host identifier,
+     * or null if no match.
+     *
+     * @param id host identifier
+     * @return corresponding host highlight
+     */
+    public HostHighlight getHost(String id) {
+        return hosts.get(id);
+    }
+
+    /**
+     * Returns the link highlight for the given link identifier,
+     * or null if no match.
+     *
+     * @param id link identifier
+     * @return corresponding link highlight
+     */
+    public LinkHighlight getLink(String id) {
+        return links.get(id);
     }
 }

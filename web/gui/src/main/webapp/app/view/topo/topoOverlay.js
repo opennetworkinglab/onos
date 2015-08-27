@@ -301,11 +301,12 @@
              clearLinkTrafficStyle()
              removeLinkLabels()
              findLinkById( id )
+             findNodeById( id )
              updateLinks()
              updateNodes()
              supLayers( bool, [less] )
              unsupNode( id, [less] )
-             unsupLink( id, [less] )
+             unsupLink( key, [less] )
          */
 
         // TODO: clear node highlighting
@@ -322,16 +323,30 @@
             api.supLayers(false, true);
         }
 
-        // TODO: device and host highlights
+        data.hosts.forEach(function (host) {
+            var hdata = api.findNodeById(host.id);
+            if (hdata && !hdata.el.empty()) {
+                api.unsupNode(hdata.id, less);
+                // TODO: further highlighting?
+            }
+        });
 
-        data.links.forEach(function (lnk) {
-            var ldata = api.findLinkById(lnk.id),
-                lab = lnk.label,
+        data.devices.forEach(function (device) {
+            var ddata = api.findNodeById(device.id);
+            if (ddata && !ddata.el.empty()) {
+                api.unsupNode(ddata.id, less);
+                // TODO: further highlighting?
+            }
+        });
+
+        data.links.forEach(function (link) {
+            var ldata = api.findLinkById(link.id),
+                lab = link.label,
                 units, portcls, magnitude;
 
             if (ldata && !ldata.el.empty()) {
-                api.unsupLink(ldata.id, less);
-                ldata.el.classed(lnk.css, true);
+                api.unsupLink(ldata.key, less);
+                ldata.el.classed(link.css, true);
                 ldata.label = lab;
 
                 // inject additional styling for port-based traffic

@@ -242,6 +242,10 @@
 
     // ========================
 
+    function nodeById(id) {
+        return lu[id];
+    }
+
     function makeNodeKey(node1, node2) {
         return node1 + '-' + node2;
     }
@@ -515,10 +519,10 @@
         });
     }
 
-    function unsuppressLink(id, less) {
+    function unsuppressLink(key, less) {
         var cls = supAmt(less);
         link.each(function (n) {
-            if (n.id === id) {
+            if (n.key === key) {
                 n.el.classed(cls, false);
             }
         });
@@ -922,6 +926,7 @@
             clearLinkTrafficStyle: clearLinkTrafficStyle,
             removeLinkLabels: removeLinkLabels,
             findLinkById: tms.findLinkById,
+            findNodeById: nodeById,
             updateLinks: updateLinks,
             updateNodes: updateNodes,
             supLayers: suppressLayers,

@@ -20,7 +20,9 @@ package org.onosproject.ui.impl;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.ElementId;
 import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.FlowEntry;
@@ -40,8 +42,12 @@ import org.onosproject.ui.impl.topo.TopoIntentFilter;
 import org.onosproject.ui.impl.topo.TrafficLink;
 import org.onosproject.ui.impl.topo.TrafficLink.StatsType;
 import org.onosproject.ui.impl.topo.TrafficLinkMap;
+import org.onosproject.ui.topo.DeviceHighlight;
 import org.onosproject.ui.topo.Highlights;
+import org.onosproject.ui.topo.Highlights.Amount;
+import org.onosproject.ui.topo.HostHighlight;
 import org.onosproject.ui.topo.LinkHighlight.Flavor;
+import org.onosproject.ui.topo.NodeHighlight;
 import org.onosproject.ui.topo.NodeSelection;
 import org.onosproject.ui.topo.TopoUtils;
 import org.slf4j.Logger;
@@ -59,9 +65,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
-import static org.onosproject.ui.impl.TrafficMonitor.Mode.IDLE;
-import static org.onosproject.ui.impl.TrafficMonitor.Mode.RELATED_INTENTS;
-import static org.onosproject.ui.impl.TrafficMonitor.Mode.SELECTED_INTENT;
+import static org.onosproject.ui.impl.TrafficMonitor.Mode.*;
 
 /**
  * Encapsulates the behavior of monitoring specific traffic patterns.
@@ -442,6 +446,7 @@ public class TrafficMonitor {
                       current.id(), selectedIntents.index(), selectedIntents.size());
 
             highlightIntentLinksWithTraffic(highlights, primary);
+            highlights.subdueAllElse(Amount.MINIMALLY);
         }
         return highlights;
     }
@@ -540,19 +545,20 @@ public class TrafficMonitor {
         TrafficLinkMap linkMap = new TrafficLinkMap();
         // NOTE: highlight secondary first, then primary, so that links shared
         //       by intents are colored correctly ("last man wins")
-        createTrafficLinks(linkMap, secondary, Flavor.SECONDARY_HIGHLIGHT, false);
-        createTrafficLinks(linkMap, primary, Flavor.PRIMARY_HIGHLIGHT, false);
+        createTrafficLinks(highlights, linkMap, secondary, Flavor.SECONDARY_HIGHLIGHT, false);
+        createTrafficLinks(highlights, linkMap, primary, Flavor.PRIMARY_HIGHLIGHT, false);
         colorLinks(highlights, linkMap);
     }
 
     private void highlightIntentLinksWithTraffic(Highlights highlights,
                                                  Set<Intent> primary) {
         TrafficLinkMap linkMap = new TrafficLinkMap();
-        createTrafficLinks(linkMap, primary, Flavor.PRIMARY_HIGHLIGHT, true);
+        createTrafficLinks(highlights, linkMap, primary, Flavor.PRIMARY_HIGHLIGHT, true);
         colorLinks(highlights, linkMap);
     }
 
-    private void createTrafficLinks(TrafficLinkMap linkMap, Set<Intent> intents,
+    private void createTrafficLinks(Highlights highlights,
+                                    TrafficLinkMap linkMap, Set<Intent> intents,
                                     Flavor flavor, boolean showTraffic) {
         for (Intent intent : intents) {
             List<Intent> installables = servicesBundle.intentService()
@@ -573,7 +579,29 @@ public class TrafficMonitor {
 
                     boolean isOptical = intent instanceof OpticalConnectivityIntent;
                     processLinks(linkMap, links, flavor, isOptical, showTraffic);
+                    updateHighlights(highlights, links);
                 }
+            }
+        }
+    }
+
+    private void updateHighlights(Highlights highlights, Iterable<Link> links) {
+        for (Link link : links) {
+            ensureNodePresent(highlights, link.src().elementId());
+            ensureNodePresent(highlights, link.dst().elementId());
+        }
+    }
+
+    private void ensureNodePresent(Highlights highlights, ElementId eid) {
+        String id = eid.toString();
+        NodeHighlight nh = highlights.getNode(id);
+        if (nh == null) {
+            if (eid instanceof DeviceId) {
+                nh = new DeviceHighlight(id);
+                highlights.add((DeviceHighlight) nh);
+            } else if (eid instanceof HostId) {
+                nh = new HostHighlight(id);
+                highlights.add((HostHighlight) nh);
             }
         }
     }

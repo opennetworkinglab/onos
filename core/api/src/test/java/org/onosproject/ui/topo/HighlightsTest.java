@@ -17,28 +17,75 @@
 
 package org.onosproject.ui.topo;
 
+import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.ui.topo.Highlights.Amount;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for {@link Highlights}.
  */
 public class HighlightsTest {
 
-    private Highlights hl;
+    private static final String DEV_1 = "dev-1";
+    private static final String DEV_2 = "dev-2";
+    private static final String HOST_A = "Host...A";
+
+    private Highlights highlights;
+    private DeviceHighlight dh1;
+    private DeviceHighlight dh2;
+    private HostHighlight hha;
+
+    @Before
+    public void setUp() {
+        highlights = new Highlights();
+    }
 
     @Test
     public void basic() {
-        hl = new Highlights();
+        assertEquals("devices", 0, highlights.devices().size());
+        assertEquals("hosts", 0, highlights.hosts().size());
+        assertEquals("links", 0, highlights.links().size());
+        assertEquals("sudue", Amount.ZERO, highlights.subdueLevel());
+    }
 
-        assertEquals("devices", 0, hl.devices().size());
-        assertEquals("hosts", 0, hl.hosts().size());
-        assertEquals("links", 0, hl.links().size());
-        assertEquals("sudue", Highlights.Amount.ZERO, hl.subdueLevel());
+    @Test
+    public void coupleOfDevices() {
+        dh1 = new DeviceHighlight(DEV_1);
+        dh2 = new DeviceHighlight(DEV_2);
+
+        highlights.add(dh1);
+        highlights.add(dh2);
+        assertTrue("missing dh1", highlights.devices().contains(dh1));
+        assertTrue("missing dh2", highlights.devices().contains(dh2));
+    }
+
+    @Test
+    public void alternateSubdue() {
+        highlights.subdueAllElse(Amount.MINIMALLY);
+        assertEquals("wrong level", Amount.MINIMALLY, highlights.subdueLevel());
+    }
+
+    @Test
+    public void highlightRetrieval() {
+        dh1 = new DeviceHighlight(DEV_1);
+        hha = new HostHighlight(HOST_A);
+        highlights.add(dh1)
+                .add(hha);
+
+        assertNull("dev as host", highlights.getHost(DEV_1));
+        assertNull("host as dev", highlights.getDevice(HOST_A));
+
+        assertEquals("missed dev as dev", dh1, highlights.getDevice(DEV_1));
+        assertEquals("missed dev as node", dh1, highlights.getNode(DEV_1));
+
+        assertEquals("missed host as host", hha, highlights.getHost(HOST_A));
+        assertEquals("missed host as node", hha, highlights.getNode(HOST_A));
     }
 
     // NOTE: further unit tests involving the Highlights class are done
     //       in TopoJsonTest.
-
 }

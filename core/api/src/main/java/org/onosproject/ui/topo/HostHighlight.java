@@ -20,7 +20,7 @@ package org.onosproject.ui.topo;
 /**
  * Denotes the highlighting to apply to a host.
  */
-public class HostHighlight extends AbstractHighlight {
+public class HostHighlight extends NodeHighlight {
 
     public HostHighlight(String hostId) {
         super(TopoElementType.HOST, hostId);

@@ -90,13 +90,13 @@ public final class TopoJson {
     }
 
     private static ObjectNode json(DeviceHighlight dh) {
-        // TODO: implement this once we know what a device highlight looks like
-        return objectNode();
+        return objectNode()
+                .put(ID, dh.elementId());
     }
 
     private static ObjectNode json(HostHighlight hh) {
-        // TODO: implement this once we know what a host highlight looks like
-        return objectNode();
+        return objectNode()
+                .put(ID, hh.elementId());
     }
 
     private static ObjectNode json(LinkHighlight lh) {
