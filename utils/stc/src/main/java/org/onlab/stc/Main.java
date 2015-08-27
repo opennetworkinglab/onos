@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static java.lang.System.currentTimeMillis;
 import static org.onlab.stc.Coordinator.Status.*;
@@ -42,6 +43,9 @@ public final class Main {
     private static final String RED = "\u001B[31;1m";
     private static final String GREEN = "\u001B[32;1m";
     private static final String BLUE = "\u001B[36m";
+
+    private static final String SUCCESS_SUMMARY = "%sPassed! %d steps succeeded%s";
+    private static final String FAILURE_SUMMARY = "%sFailed! %d steps succeeded; %d steps failed; %d steps skipped%s";
 
     private enum Command {
         LIST, RUN, RUN_RANGE, HELP
@@ -180,9 +184,23 @@ public final class Main {
             coordinator.start();
             int exitCode = coordinator.waitFor();
             pause(100); // allow stdout to flush
+            printSummary(exitCode);
             System.exit(exitCode);
         } catch (InterruptedException e) {
             print("Unable to execute scenario %s", scenarioFile);
+        }
+    }
+
+    private void printSummary(int exitCode) {
+        Set<Step> steps = coordinator.getSteps();
+        int count = steps.size();
+        if (exitCode == 0) {
+            print(SUCCESS_SUMMARY, color(SUCCEEDED), count, color(null));
+        } else {
+            long success = steps.stream().filter(s -> coordinator.getStatus(s) == SUCCEEDED).count();
+            long failed = steps.stream().filter(s -> coordinator.getStatus(s) == FAILED).count();
+            long skipped = steps.stream().filter(s -> coordinator.getStatus(s) == SKIPPED).count();
+            print(FAILURE_SUMMARY, color(FAILED), success, failed, skipped, color(null));
         }
     }
 
