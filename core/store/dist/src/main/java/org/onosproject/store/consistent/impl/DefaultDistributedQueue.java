@@ -91,7 +91,7 @@ public class DefaultDistributedQueue<E>  implements DistributedQueue<E> {
                        .whenComplete((r, e) -> timer.stop(e))
                        .thenCompose(v -> {
                            if (v != null) {
-                               return CompletableFuture.completedFuture(serializer.decode(v));
+                               return CompletableFuture.<E>completedFuture(serializer.decode(v));
                            }
                            CompletableFuture<E> newPendingFuture = new CompletableFuture<>();
                            pendingFutures.add(newPendingFuture);
