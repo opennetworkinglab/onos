@@ -15,13 +15,12 @@
  *
  */
 
-package org.onosproject.ui.impl.topo;
+package org.onosproject.ui.topo;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 import org.onosproject.ui.JsonUtils;
-import org.onosproject.ui.topo.Highlights;
 import org.onosproject.ui.topo.Highlights.Amount;
 
 import static org.junit.Assert.assertEquals;

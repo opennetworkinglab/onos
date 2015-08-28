@@ -80,7 +80,8 @@ import static org.onosproject.net.device.DeviceEvent.Type.*;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onosproject.ui.JsonUtils.envelope;
-import static org.onosproject.ui.impl.topo.TopoJson.json;
+import static org.onosproject.ui.topo.TopoJson.highlightsMessage;
+import static org.onosproject.ui.topo.TopoJson.json;
 
 /**
  * Web socket capable of interacting with the GUI topology view.
@@ -538,15 +539,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     // Converts highlights to JSON format and sends the message to the client
     protected void sendHighlights(Highlights highlights) {
-        sendMessage(envelope(SHOW_HIGHLIGHTS, json(highlights)));
-    }
-
-    // Sends the specified data to the client.
-    protected synchronized void sendMessage(ObjectNode data) {
-        UiConnection connection = connection();
-        if (connection != null) {
-            connection.sendMessage(data);
-        }
+        sendMessage(highlightsMessage(highlights));
     }
 
     // Subscribes for summary messages.

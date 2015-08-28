@@ -190,4 +190,18 @@ public abstract class UiMessageHandler {
     protected ArrayNode arrayNode() {
         return mapper.createArrayNode();
     }
+
+    /**
+     * Sends the specified data to the client.
+     * It is expected that the data is in the prescribed JSON format for
+     * events to the client.
+     *
+     * @param data data to be sent
+     */
+    protected synchronized void sendMessage(ObjectNode data) {
+        UiConnection connection = connection();
+        if (connection != null) {
+            connection.sendMessage(data);
+        }
+    }
 }

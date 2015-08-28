@@ -15,23 +15,21 @@
  *
  */
 
-package org.onosproject.ui.impl.topo;
+package org.onosproject.ui.topo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.ui.topo.ButtonId;
-import org.onosproject.ui.topo.DeviceHighlight;
-import org.onosproject.ui.topo.Highlights;
-import org.onosproject.ui.topo.HostHighlight;
-import org.onosproject.ui.topo.LinkHighlight;
-import org.onosproject.ui.topo.PropertyPanel;
+
+import static org.onosproject.ui.JsonUtils.envelope;
 
 /**
  * JSON utilities for the Topology View.
  */
 public final class TopoJson {
     // package-private for unit test access
+    static final String SHOW_HIGHLIGHTS = "showHighlights";
+
     static final String DEVICES = "devices";
     static final String HOSTS = "hosts";
     static final String LINKS = "links";
@@ -60,6 +58,17 @@ public final class TopoJson {
 
     // non-instantiable
     private TopoJson() { }
+
+    /**
+     * Returns a formatted message ready to send to the topology view
+     * to render highlights.
+     *
+     * @param highlights highlights model to transform
+     * @return fully formatted "show highlights" message
+     */
+    public static ObjectNode highlightsMessage(Highlights highlights) {
+        return envelope(SHOW_HIGHLIGHTS, json(highlights));
+    }
 
     /**
      * Transforms the given highlights model into a JSON message payload.
