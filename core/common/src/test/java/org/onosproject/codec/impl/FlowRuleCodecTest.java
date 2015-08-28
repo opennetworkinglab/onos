@@ -246,8 +246,8 @@ public class FlowRuleCodecTest {
                 L2ModificationInstruction.L2SubType.MPLS_LABEL.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
         assertThat(((L2ModificationInstruction.ModMplsLabelInstruction) instruction)
-                        .label().shortValue(),
-                is((short) 777));
+                        .mplsLabel().toInt(),
+                is(MplsLabel.MAX_MPLS));
 
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.MPLS_PUSH.name());

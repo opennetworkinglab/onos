@@ -13,7 +13,7 @@
         {"type":"L2MODIFICATION","subtype":"ETH_DST","mac":"98:76:54:32:01:00"},
         {"type":"L2MODIFICATION","subtype":"VLAN_ID","vlanId":22},
         {"type":"L2MODIFICATION","subtype":"VLAN_PCP","vlanPcp":1},
-        {"type":"L2MODIFICATION","subtype":"MPLS_LABEL","label":777},
+        {"type":"L2MODIFICATION","subtype":"MPLS_LABEL","label":1048575},
         {"type":"L2MODIFICATION","subtype":"MPLS_PUSH"},
         {"type":"L2MODIFICATION","subtype":"MPLS_POP"},
         {"type":"L2MODIFICATION","subtype":"DEC_MPLS_TTL"},

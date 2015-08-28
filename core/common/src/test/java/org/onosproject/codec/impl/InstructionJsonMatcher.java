@@ -372,7 +372,7 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
         }
 
         final int jsonLabel = instructionJson.get("label").intValue();
-        final int label = instructionToMatch.label();
+        final int label = instructionToMatch.mplsLabel().toInt();
         if (label != jsonLabel) {
             description.appendText("MPLS label was " + jsonLabel);
             return false;

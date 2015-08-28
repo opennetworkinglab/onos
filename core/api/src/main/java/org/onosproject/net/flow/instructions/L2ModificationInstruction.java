@@ -342,7 +342,13 @@ public abstract class L2ModificationInstruction implements Instruction {
             this.mplsLabel = mplsLabel;
         }
 
-        // might want to deprecate this in the long run
+        /**
+         * @deprecated in Drake Release.
+         */
+        // Consider changing return value to MplsLabel
+        // after deprecation process so that it'll be symmetric to
+        // MplsCriterion#label()
+        @Deprecated
         public Integer label() {
             return mplsLabel.toInt();
         }

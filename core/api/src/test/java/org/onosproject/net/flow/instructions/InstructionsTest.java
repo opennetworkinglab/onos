@@ -577,12 +577,13 @@ public class InstructionsTest {
      */
     @Test
     public void testModMplsMethod() {
-        final Instruction instruction = Instructions.modMplsLabel(MplsLabel.mplsLabel(33));
+        final MplsLabel mplsLabel = MplsLabel.mplsLabel(33);
+        final Instruction instruction = Instructions.modMplsLabel(mplsLabel);
         final L2ModificationInstruction.ModMplsLabelInstruction modMplsLabelInstruction =
                 checkAndConvert(instruction,
                         Instruction.Type.L2MODIFICATION,
                         L2ModificationInstruction.ModMplsLabelInstruction.class);
-        assertThat(modMplsLabelInstruction.label(), is(equalTo(33)));
+        assertThat(modMplsLabelInstruction.mplsLabel(), is(equalTo(mplsLabel)));
         assertThat(modMplsLabelInstruction.subtype(),
                 is(equalTo(L2ModificationInstruction.L2SubType.MPLS_LABEL)));
     }
