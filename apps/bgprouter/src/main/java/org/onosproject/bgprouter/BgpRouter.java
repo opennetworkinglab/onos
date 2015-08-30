@@ -20,7 +20,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,9 +28,11 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onosproject.config.NetworkConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -56,15 +57,14 @@ import org.onosproject.routing.FibEntry;
 import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.RoutingService;
-import org.onosproject.routing.config.BgpSpeaker;
-import org.onosproject.routing.config.Interface;
-import org.onosproject.routing.config.RoutingConfigurationService;
+import org.onosproject.routing.config.BgpConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /* For test only - will be removed before Cardinal release
@@ -95,7 +95,10 @@ public class BgpRouter {
     protected RoutingService routingService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected RoutingConfigurationService configService;
+    protected InterfaceService interfaceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService networkConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
@@ -105,14 +108,6 @@ public class BgpRouter {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
-
-    //
-    // NOTE: Unused reference - needed to guarantee that the
-    // NetworkConfigReader component is activated and the network configuration
-    // is read.
-    //
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetworkConfigService networkConfigService;
 
     private ApplicationId appId;
 
@@ -145,14 +140,25 @@ public class BgpRouter {
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(BGP_ROUTER_APP);
-        getDeviceConfiguration(configService.getBgpSpeakers());
+
+        ApplicationId routerAppId = coreService.getAppId(RoutingService.ROUTER_APP_ID);
+        BgpConfig bgpConfig =
+                networkConfigService.getConfig(routerAppId, RoutingService.CONFIG_CLASS);
+
+        if (bgpConfig == null) {
+            log.error("No BgpConfig found");
+            return;
+        }
+
+        getDeviceConfiguration(bgpConfig);
 
         connectivityManager = new TunnellingConnectivityManager(appId,
-                                                                configService,
+                                                                bgpConfig,
+                                                                interfaceService,
                                                                 packetService,
                                                                 flowObjectiveService);
 
-        icmpHandler = new IcmpHandler(configService, packetService);
+        icmpHandler = new IcmpHandler(interfaceService, packetService);
         deviceListener = new InnerDeviceListener();
         routingService.addFibListener(new InternalFibListener());
         routingService.start();
@@ -162,7 +168,7 @@ public class BgpRouter {
 
         // Initialize devices now if they are already connected
         if (deviceService.isAvailable(deviceId)) {
-            processIntfFilters(true, configService.getInterfaces());
+            processIntfFilters(true, interfaceService.getInterfaces());
         }
 
         if (deviceService.isAvailable(ctrlDeviceId)) {
@@ -182,20 +188,35 @@ public class BgpRouter {
         log.info("BgpRouter stopped");
     }
 
-    private void getDeviceConfiguration(Map<String, BgpSpeaker> bgps) {
-        if (bgps == null || bgps.values().isEmpty()) {
-            log.error("BGP speakers configuration is missing");
+    private void getDeviceConfiguration(BgpConfig bgpConfig) {
+        Optional<BgpConfig.BgpSpeakerConfig> bgpSpeaker =
+                bgpConfig.bgpSpeakers().stream().findAny();
+
+        if (!bgpSpeaker.isPresent()) {
+            log.error("BGP speaker configuration not found");
             return;
         }
-        for (BgpSpeaker s : bgps.values()) {
-            ctrlDeviceId = s.connectPoint().deviceId();
-            if (s.interfaceAddresses() == null || s.interfaceAddresses().isEmpty()) {
-                log.error("BGP Router must have interfaces configured");
-                return;
-            }
-            deviceId = s.interfaceAddresses().get(0).connectPoint().deviceId();
-            break;
+
+        ctrlDeviceId = bgpSpeaker.get().connectPoint().deviceId();
+
+        Optional<IpAddress> peerAddress =
+                bgpSpeaker.get().peers().stream().findAny();
+
+        if (!peerAddress.isPresent()) {
+            log.error("BGP speaker must have peers configured");
+            return;
         }
+
+        Interface intf = interfaceService.getMatchingInterface(peerAddress.get());
+
+        if (intf == null) {
+            log.error("No interface found for peer");
+            return;
+        }
+
+        // Assume all peers are configured on the same device - this is required
+        // by the BGP router
+        deviceId = intf.connectPoint().deviceId();
 
         log.info("Router dpid: {}", deviceId);
         log.info("Control Plane OVS dpid: {}", ctrlDeviceId);
@@ -283,7 +304,7 @@ public class BgpRouter {
         if (nextHopsCount.count(entry.nextHopIp()) == 0) {
             // There was no next hop in the multiset
 
-            Interface egressIntf = configService.getMatchingInterface(entry.nextHopIp());
+            Interface egressIntf = interfaceService.getMatchingInterface(entry.nextHopIp());
             if (egressIntf == null) {
                 log.warn("no egress interface found for {}", entry);
                 return;
@@ -405,7 +426,7 @@ public class BgpRouter {
                     if (deviceService.isAvailable(event.subject().id())) {
                         log.info("Device connected {}", event.subject().id());
                         if (event.subject().id().equals(deviceId)) {
-                            processIntfFilters(true, configService.getInterfaces());
+                            processIntfFilters(true, interfaceService.getInterfaces());
 
                             /* For test only - will be removed before Cardinal release
                             delay(1000);

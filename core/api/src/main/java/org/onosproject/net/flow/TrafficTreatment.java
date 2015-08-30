@@ -19,11 +19,13 @@ import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.meter.MeterId;
 
 import java.util.List;
 
@@ -73,6 +75,13 @@ public interface TrafficTreatment {
      * @return a metadata instruction that may be null
      */
     Instructions.MetadataInstruction writeMetadata();
+
+    /**
+     * Returns the meter instruction if there is one.
+     *
+     * @return a meter instruction that may be null
+     */
+    Instructions.MeterInstruction metered();
 
     /**
      * Builder of traffic treatment entities.
@@ -219,6 +228,14 @@ public interface TrafficTreatment {
         Builder setMpls(MplsLabel mplsLabel);
 
         /**
+         * Sets the mpls bottom-of-stack indicator bit.
+         *
+         * @param mplsBos boolean to set BOS=1 (true) or BOS=0 (false).
+         * @return a treatment builder.
+         */
+        Builder setMplsBos(boolean mplsBos);
+
+        /**
          * Decrement MPLS TTL.
          *
          * @return a treatment builder
@@ -243,6 +260,13 @@ public interface TrafficTreatment {
          */
         Builder group(GroupId groupId);
 
+        /**
+         * Sets a meter to be used by this flow.
+         *
+         * @param meterId a meter id
+         * @return a treatment builder
+         */
+        Builder meter(MeterId meterId);
 
         /**
          * Sets the next table type to transition to.
@@ -323,8 +347,28 @@ public interface TrafficTreatment {
          *
          * @param port a port number
          * @return a treatment builder
+         * @deprecated in Drake release
          */
+        @Deprecated
         Builder setTcpSrc(short port);
+
+        /**
+         * Sets the src TCP port.
+         *
+         * @param port a port number
+         * @return a treatment builder
+         */
+        Builder setTcpSrc(TpPort port);
+
+        /**
+         * Sets the dst TCP port.
+         *
+         * @param port a port number
+         * @return a treatment builder
+         * @deprecated in Drake release
+         */
+        @Deprecated
+        Builder setTcpDst(short port);
 
         /**
          * Sets the dst TCP port.
@@ -332,7 +376,17 @@ public interface TrafficTreatment {
          * @param port a port number
          * @return a treatment builder
          */
-        Builder setTcpDst(short port);
+        Builder setTcpDst(TpPort port);
+
+        /**
+         * Sets the src UDP port.
+         *
+         * @param port a port number
+         * @return a treatment builder
+         * @deprecated in Drake release
+         */
+        @Deprecated
+        Builder setUdpSrc(short port);
 
         /**
          * Sets the src UDP port.
@@ -340,7 +394,17 @@ public interface TrafficTreatment {
          * @param port a port number
          * @return a treatment builder
          */
-        Builder setUdpSrc(short port);
+        Builder setUdpSrc(TpPort port);
+
+        /**
+         * Sets the dst UDP port.
+         *
+         * @param port a port number
+         * @return a treatment builder
+         * @deprecated in Drake release
+         */
+        @Deprecated
+        Builder setUdpDst(short port);
 
         /**
          * Sets the dst UDP port.
@@ -348,7 +412,7 @@ public interface TrafficTreatment {
          * @param port a port number
          * @return a treatment builder
          */
-        Builder setUdpDst(short port);
+        Builder setUdpDst(TpPort port);
 
         /**
          * Builds an immutable traffic treatment descriptor.

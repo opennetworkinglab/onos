@@ -55,9 +55,8 @@ import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * REST resource for interacting with the inventory of intents.
+ * Query, submit and withdraw network intents.
  */
-
 @Path("intents")
 public class IntentsWebResource extends AbstractWebResource {
     @Context
@@ -69,7 +68,8 @@ public class IntentsWebResource extends AbstractWebResource {
     public static final String INTENT_NOT_FOUND = "Intent is not found";
 
     /**
-     * Gets an array containing all the intents in the system.
+     * Get all intents.
+     * Returns array containing all the intents in the system.
      *
      * @return array of all the intents in the system
      */
@@ -82,10 +82,11 @@ public class IntentsWebResource extends AbstractWebResource {
     }
 
     /**
-     * Gets a single intent by Id.
+     * Get intent by application and key.
+     * Returns details of the specified intent.
      *
-     * @param appId the Application ID
-     * @param key the Intent key value to look up
+     * @param appId application identifier
+     * @param key   intent key
      * @return intent data
      */
     @GET
@@ -125,70 +126,16 @@ public class IntentsWebResource extends AbstractWebResource {
         @Override
         public void event(IntentEvent event) {
             if (Objects.equals(event.subject().key(), key) &&
-                (event.type() == IntentEvent.Type.WITHDRAWN ||
-                        event.type() == IntentEvent.Type.FAILED)) {
+                    (event.type() == IntentEvent.Type.WITHDRAWN ||
+                            event.type() == IntentEvent.Type.FAILED)) {
                 latch.countDown();
             }
         }
     }
 
     /**
-     * Uninstalls a single intent by Id.
-     *
-     * @param appId the Application ID
-     * @param keyString the Intent key value to look up
-     */
-    @DELETE
-    @Path("{appId}/{key}")
-    public void deleteIntentById(@PathParam("appId") String appId,
-                                  @PathParam("key") String keyString) {
-        final ApplicationId app = get(CoreService.class).getAppId(appId);
-
-        Intent intent = get(IntentService.class).getIntent(Key.of(keyString, app));
-        IntentService service = get(IntentService.class);
-
-        if (intent == null) {
-            intent = service
-                    .getIntent(Key.of(Long.decode(keyString), app));
-        }
-        if (intent == null) {
-            // No such intent.  REST standards recommend a positive status code
-            // in this case.
-            return;
-        }
-
-
-        Key key = intent.key();
-
-        // set up latch and listener to track uninstall progress
-        CountDownLatch latch = new CountDownLatch(1);
-
-        IntentListener listener = new DeleteListener(key, latch);
-        service.addListener(listener);
-
-        try {
-            // request the withdraw
-            service.withdraw(intent);
-
-            try {
-                latch.await(WITHDRAW_EVENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.info("REST Delete operation timed out waiting for intent {}", key);
-            }
-            // double check the state
-            IntentState state = service.getIntentState(key);
-            if (state == WITHDRAWN || state == FAILED) {
-                service.purge(intent);
-            }
-
-        } finally {
-            // clean up the listener
-            service.removeListener(listener);
-        }
-    }
-
-    /**
-     * Creates an intent from a POST of a JSON string and attempts to apply it.
+     * Submit a new intent.
+     * Creates and submits intent from the JSON request.
      *
      * @param stream input JSON
      * @return status of the request - CREATED if the JSON is correct,
@@ -212,6 +159,62 @@ public class IntentsWebResource extends AbstractWebResource {
                     .build();
         } catch (IOException ioe) {
             throw new IllegalArgumentException(ioe);
+        }
+    }
+
+    /**
+     * Withdraw intent.
+     * Withdraws the specified intent from the system.
+     *
+     * @param appId application identifier
+     * @param key   intent key
+     */
+    @DELETE
+    @Path("{appId}/{key}")
+    public void deleteIntentById(@PathParam("appId") String appId,
+                                 @PathParam("key") String key) {
+        final ApplicationId app = get(CoreService.class).getAppId(appId);
+
+        Intent intent = get(IntentService.class).getIntent(Key.of(key, app));
+        IntentService service = get(IntentService.class);
+
+        if (intent == null) {
+            intent = service
+                    .getIntent(Key.of(Long.decode(key), app));
+        }
+        if (intent == null) {
+            // No such intent.  REST standards recommend a positive status code
+            // in this case.
+            return;
+        }
+
+
+        Key k = intent.key();
+
+        // set up latch and listener to track uninstall progress
+        CountDownLatch latch = new CountDownLatch(1);
+
+        IntentListener listener = new DeleteListener(k, latch);
+        service.addListener(listener);
+
+        try {
+            // request the withdraw
+            service.withdraw(intent);
+
+            try {
+                latch.await(WITHDRAW_EVENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.info("REST Delete operation timed out waiting for intent {}", k);
+            }
+            // double check the state
+            IntentState state = service.getIntentState(k);
+            if (state == WITHDRAWN || state == FAILED) {
+                service.purge(intent);
+            }
+
+        } finally {
+            // clean up the listener
+            service.removeListener(listener);
         }
     }
 

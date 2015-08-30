@@ -66,8 +66,8 @@ public class CoordinatorTest {
 
     private class Listener implements StepProcessListener {
         @Override
-        public void onStart(Step step) {
-            print("> %s: started", step.name());
+        public void onStart(Step step, String command) {
+            print("> %s: started; %s", step.name(), command);
         }
 
         @Override

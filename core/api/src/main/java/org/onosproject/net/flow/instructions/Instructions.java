@@ -19,6 +19,7 @@ import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.IndexedLambda;
@@ -34,6 +35,7 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6Fl
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModTtlInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.L4SubType;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
+import org.onosproject.net.meter.MeterId;
 
 import java.util.Objects;
 
@@ -79,6 +81,11 @@ public final class Instructions {
     public static GroupInstruction createGroup(final GroupId groupId) {
         checkNotNull(groupId, "GroupId cannot be null");
         return new GroupInstruction(groupId);
+    }
+
+    public static MeterInstruction meterTraffic(final MeterId meterId) {
+        checkNotNull(meterId, "meter id cannot be null");
+        return new MeterInstruction(meterId);
     }
 
     /**
@@ -167,6 +174,16 @@ public final class Instructions {
     public static L2ModificationInstruction modMplsLabel(MplsLabel mplsLabel) {
         checkNotNull(mplsLabel, "MPLS label cannot be null");
         return new L2ModificationInstruction.ModMplsLabelInstruction(mplsLabel);
+    }
+
+    /**
+     * Creates a MPLS BOS bit modification.
+     *
+     * @param mplsBos MPLS BOS bit to set (true) or unset (false)
+     * @return a L2 Modification
+     */
+    public static L2ModificationInstruction modMplsBos(boolean mplsBos) {
+        return new L2ModificationInstruction.ModMplsBosInstruction(mplsBos);
     }
 
     /**
@@ -367,8 +384,21 @@ public final class Instructions {
      *
      * @param port the TCP port number to modify to
      * @return a L4 modification
+     * @deprecated in Drake release
      */
+    @Deprecated
     public static L4ModificationInstruction modTcpSrc(short port) {
+       checkNotNull(port, "Src TCP port cannot be null");
+       return new ModTransportPortInstruction(L4SubType.TCP_SRC, TpPort.tpPort(port));
+    }
+
+    /**
+     * Creates a TCP src modification.
+     *
+     * @param port the TCP port number to modify to
+     * @return a L4 modification
+     */
+    public static L4ModificationInstruction modTcpSrc(TpPort port) {
        checkNotNull(port, "Src TCP port cannot be null");
        return new ModTransportPortInstruction(L4SubType.TCP_SRC, port);
     }
@@ -378,8 +408,21 @@ public final class Instructions {
      *
      * @param port the TCP port number to modify to
      * @return a L4 modification
+     * @deprecated in Drake release
      */
+    @Deprecated
     public static L4ModificationInstruction modTcpDst(short port) {
+        checkNotNull(port, "Dst TCP port cannot be null");
+        return new ModTransportPortInstruction(L4SubType.TCP_DST, TpPort.tpPort(port));
+    }
+
+    /**
+     * Creates a TCP dst modification.
+     *
+     * @param port the TCP port number to modify to
+     * @return a L4 modification
+     */
+    public static L4ModificationInstruction modTcpDst(TpPort port) {
         checkNotNull(port, "Dst TCP port cannot be null");
         return new ModTransportPortInstruction(L4SubType.TCP_DST, port);
     }
@@ -389,8 +432,21 @@ public final class Instructions {
      *
      * @param port the UDP port number to modify to
      * @return a L4 modification
+     * @deprecated in Drake release
      */
+    @Deprecated
     public static L4ModificationInstruction modUdpSrc(short port) {
+        checkNotNull(port, "Src UDP port cannot be null");
+        return new ModTransportPortInstruction(L4SubType.UDP_SRC, TpPort.tpPort(port));
+    }
+
+    /**
+     * Creates a UDP src modification.
+     *
+     * @param port the UDP port number to modify to
+     * @return a L4 modification
+     */
+    public static L4ModificationInstruction modUdpSrc(TpPort port) {
         checkNotNull(port, "Src UDP port cannot be null");
         return new ModTransportPortInstruction(L4SubType.UDP_SRC, port);
     }
@@ -400,8 +456,21 @@ public final class Instructions {
      *
      * @param port the UDP port number to modify to
      * @return a L4 modification
+     * @deprecated in Drake release
      */
+    @Deprecated
     public static L4ModificationInstruction modUdpDst(short port) {
+        checkNotNull(port, "Dst UDP port cannot be null");
+        return new ModTransportPortInstruction(L4SubType.UDP_DST, TpPort.tpPort(port));
+    }
+
+    /**
+     * Creates a UDP dst modification.
+     *
+     * @param port the UDP port number to modify to
+     * @return a L4 modification
+     */
+    public static L4ModificationInstruction modUdpDst(TpPort port) {
         checkNotNull(port, "Dst UDP port cannot be null");
         return new ModTransportPortInstruction(L4SubType.UDP_DST, port);
     }
@@ -528,6 +597,50 @@ public final class Instructions {
     }
 
     /**
+     * A meter instruction.
+     */
+    public static final class MeterInstruction implements Instruction {
+        private final MeterId meterId;
+
+        private MeterInstruction(MeterId meterId) {
+            this.meterId = meterId;
+        }
+
+        public MeterId meterId() {
+            return meterId;
+        }
+
+        @Override
+        public Type type() {
+            return Type.METER;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("meter ID", meterId.id()).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type().ordinal(), meterId);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof MeterInstruction) {
+                MeterInstruction that = (MeterInstruction) obj;
+                return Objects.equals(meterId, that.meterId);
+
+            }
+            return false;
+        }
+    }
+
+    /**
      *  Transition instruction.
      */
     public static class TableTypeTransition implements Instruction {
@@ -623,6 +736,7 @@ public final class Instructions {
             return false;
         }
     }
+
 }
 
 

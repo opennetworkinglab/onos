@@ -35,32 +35,54 @@ import java.io.InputStream;
 import java.util.Set;
 
 /**
- * REST resource for interacting with the inventory of applications.
+ * Manage inventory of applications.
  */
 @Path("applications")
 public class ApplicationsWebResource extends AbstractWebResource {
 
+    /**
+     * Get all installed applications.
+     * Returns array of all installed applications.
+     *
+     * @return 200 OK
+     */
     @GET
-    public Response getApplications() {
+    public Response getApps() {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         Set<Application> apps = service.getApplications();
         return ok(encodeArray(Application.class, "applications", apps)).build();
     }
 
+    /**
+     * Get application details.
+     * Returns details of the specified application.
+     *
+     * @param name application name
+     * @return 200 OK; 404; 401
+     */
     @GET
     @Path("{name}")
-    public Response getApplication(@PathParam("name") String name) {
+    public Response getApp(@PathParam("name") String name) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         ApplicationId appId = service.getId(name);
         return response(service, appId);
     }
 
+    /**
+     * Install a new application.
+     * Uploads application archive stream and optionally activates the
+     * application.
+     *
+     * @param activate true to activate app also
+     * @param stream   application archive stream
+     * @return 200 OK; 404; 401
+     */
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response installApplication(@QueryParam("activate")
-                                           @DefaultValue("false") boolean activate,
-                                       InputStream stream) {
+    public Response installApp(@QueryParam("activate")
+                               @DefaultValue("false") boolean activate,
+                               InputStream stream) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         Application app = service.install(stream);
         if (activate) {
@@ -69,30 +91,51 @@ public class ApplicationsWebResource extends AbstractWebResource {
         return ok(codec(Application.class).encode(app, this)).build();
     }
 
+    /**
+     * Uninstall application.
+     * Uninstalls the specified application deactivating it first if necessary.
+     *
+     * @param name application name
+     * @return 200 OK; 404; 401
+     */
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{name}")
-    public Response uninstallApplication(@PathParam("name") String name) {
+    public Response uninstallApp(@PathParam("name") String name) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         ApplicationId appId = service.getId(name);
         service.uninstall(appId);
         return Response.ok().build();
     }
 
+    /**
+     * Activate application.
+     * Activates the specified application.
+     *
+     * @param name application name
+     * @return 200 OK; 404; 401
+     */
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{name}/active")
-    public Response activateApplication(@PathParam("name") String name) {
+    public Response activateApp(@PathParam("name") String name) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         ApplicationId appId = service.getId(name);
         service.activate(appId);
         return response(service, appId);
     }
 
+    /**
+     * De-activate application.
+     * De-activates the specified application.
+     *
+     * @param name application name
+     * @return 200 OK; 404; 401
+     */
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{name}/active")
-    public Response deactivateApplication(@PathParam("name") String name) {
+    public Response deactivateApp(@PathParam("name") String name) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         ApplicationId appId = service.getId(name);
         service.deactivate(appId);

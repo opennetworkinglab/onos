@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ONOS Login</title>
+
+    <style type="text/css">
+        img {
+            margin: 24px;
+        }
+        td {
+            font: normal 16px Helvetica, Arial, sans-serif !important;
+            text-align: left;
+            padding: 4px;
+        }
+        input {
+            font: normal 16px Helvetica, Arial, sans-serif !important;
+            padding: 3px;
+        }
+
+        input[type="submit"] {
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+            padding: 4px 16px;
+            background-color: #CE5650;
+            color: #fff;
+            /*width: 100%; /!* width of image *!/*/
+            height: 32px;
+            border-radius: 3px;
+            border: 0;
+            -moz-outline-radius: 6px;
+        }
+
+        input[type="submit"]:hover {
+            border-radius: 3px;
+            border: 1px;
+            border-color: #fff;
+            border-style: solid;
+            box-shadow: 0px 0px 10px #3399ff;
+            outline-style: solid;
+            outline-width: 3px;
+            outline-color: #3399ff;
+        }
+
+        #error {
+            margin: 16px auto;
+            color: #CE5650;
+            text-align: center;
+
+        }
+    </style>
+</head>
+<body>
+<div align="center">
+    <img src="data/img/onos-logo.lg.png"/>
+
+    <form method="post" action="j_security_check">
+        <table>
+            <tr>
+                <td>User:</td>
+                <td><input id="username" name="j_username" type="text" autofocus/></td>
+            </tr>
+            <tr>
+                <td>Password:</td>
+                <td><input id="password" name="j_password" type="password"/></td>
+            </tr>
+            <tr>
+                <td colspan="2"><input id="submit" type="submit" value="Login"/></td>
+            </tr>
+            <tr>
+                <td colspan="2"><div id="error">Incorrect login credentials!</div></td>
+            </tr>
+        </table>
+    </form>
+</div>
+</body>
+</html>

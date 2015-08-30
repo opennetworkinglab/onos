@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.device;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
@@ -26,7 +27,8 @@ import java.util.List;
 /**
  * Service for interacting with the inventory of infrastructure devices.
  */
-public interface DeviceService {
+public interface DeviceService
+    extends ListenerService<DeviceEvent, DeviceListener> {
 
     /**
      * Returns the number of infrastructure devices known to the system.
@@ -97,10 +99,18 @@ public interface DeviceService {
     /**
      * Returns the list of port statistics associated with the device.
      *
-     * @param deviceId device identitifer
+     * @param deviceId device identifier
      * @return list of port statistics
      */
     List<PortStatistics> getPortStatistics(DeviceId deviceId);
+
+    /**
+     * Returns the list of port delta statistics associated with the device.
+     *
+     * @param deviceId device identifier
+     * @return list of port statistics
+     */
+    List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId);
 
     /**
      * Returns the port with the specified number and hosted by the given device.
@@ -118,19 +128,5 @@ public interface DeviceService {
      * @return true if the device is available
      */
     boolean isAvailable(DeviceId deviceId);
-
-    /**
-     * Adds the specified device listener.
-     *
-     * @param listener device listener
-     */
-    void addListener(DeviceListener listener);
-
-    /**
-     * Removes the specified device listener.
-     *
-     * @param listener device listener
-     */
-    void removeListener(DeviceListener listener);
 
 }

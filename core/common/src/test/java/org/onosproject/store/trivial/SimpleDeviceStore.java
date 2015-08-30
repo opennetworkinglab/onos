@@ -37,6 +37,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
+import org.onosproject.net.device.DefaultPortStatistics;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceStore;
@@ -62,6 +63,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -98,6 +100,8 @@ public class SimpleDeviceStore
             devicePorts = Maps.newConcurrentMap();
     private final ConcurrentMap<DeviceId, ConcurrentMap<PortNumber, PortStatistics>>
             devicePortStats = Maps.newConcurrentMap();
+    private final ConcurrentMap<DeviceId, ConcurrentMap<PortNumber, PortStatistics>>
+            devicePortDeltaStats = Maps.newConcurrentMap();
 
     // Available (=UP) devices
     private final Set<DeviceId> availableDevices = Sets.newConcurrentHashSet();
@@ -421,20 +425,60 @@ public class SimpleDeviceStore
 
     @Override
     public DeviceEvent updatePortStatistics(ProviderId providerId, DeviceId deviceId,
-                                            Collection<PortStatistics> portStats) {
+                                            Collection<PortStatistics> newStatsCollection) {
 
-        ConcurrentMap<PortNumber, PortStatistics> statsMap = devicePortStats.get(deviceId);
-        if (statsMap == null) {
-            statsMap = Maps.newConcurrentMap();
-            devicePortStats.put(deviceId, statsMap);
+        ConcurrentMap<PortNumber, PortStatistics> prvStatsMap = devicePortStats.get(deviceId);
+        ConcurrentMap<PortNumber, PortStatistics> newStatsMap = Maps.newConcurrentMap();
+        ConcurrentMap<PortNumber, PortStatistics> deltaStatsMap = Maps.newConcurrentMap();
+
+        if (prvStatsMap != null) {
+            for (PortStatistics newStats : newStatsCollection) {
+                PortNumber port = PortNumber.portNumber(newStats.port());
+                PortStatistics prvStats = prvStatsMap.get(port);
+                DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
+                PortStatistics deltaStats = builder.build();
+                if (prvStats != null) {
+                    deltaStats = calcDeltaStats(deviceId, prvStats, newStats);
+                }
+                deltaStatsMap.put(port, deltaStats);
+                newStatsMap.put(port, newStats);
+            }
+        } else {
+            for (PortStatistics newStats : newStatsCollection) {
+                PortNumber port = PortNumber.portNumber(newStats.port());
+                newStatsMap.put(port, newStats);
+            }
         }
-
-        for (PortStatistics stat: portStats) {
-            PortNumber portNumber = PortNumber.portNumber(stat.port());
-            statsMap.put(portNumber, stat);
-        }
-
+        devicePortDeltaStats.put(deviceId, deltaStatsMap);
+        devicePortStats.put(deviceId, newStatsMap);
         return new DeviceEvent(PORT_STATS_UPDATED,  devices.get(deviceId), null);
+    }
+
+    public PortStatistics calcDeltaStats(DeviceId deviceId, PortStatistics prvStats, PortStatistics newStats) {
+        // calculate time difference
+        long deltaStatsSec, deltaStatsNano;
+        if (newStats.durationNano() < prvStats.durationNano()) {
+            deltaStatsNano = newStats.durationNano() - prvStats.durationNano() + TimeUnit.SECONDS.toNanos(1);
+            deltaStatsSec = newStats.durationSec() - prvStats.durationSec() - 1L;
+        } else {
+            deltaStatsNano = newStats.durationNano() - prvStats.durationNano();
+            deltaStatsSec = newStats.durationSec() - prvStats.durationSec();
+        }
+        DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
+        DefaultPortStatistics deltaStats = builder.setDeviceId(deviceId)
+                .setPort(newStats.port())
+                .setPacketsReceived(newStats.packetsReceived() - prvStats.packetsReceived())
+                .setPacketsSent(newStats.packetsSent() - prvStats.packetsSent())
+                .setBytesReceived(newStats.bytesReceived() - prvStats.bytesReceived())
+                .setBytesSent(newStats.bytesSent() - prvStats.bytesSent())
+                .setPacketsRxDropped(newStats.packetsRxDropped() - prvStats.packetsRxDropped())
+                .setPacketsTxDropped(newStats.packetsTxDropped() - prvStats.packetsTxDropped())
+                .setPacketsRxErrors(newStats.packetsRxErrors() - prvStats.packetsRxErrors())
+                .setPacketsTxErrors(newStats.packetsTxErrors() - prvStats.packetsTxErrors())
+                .setDurationSec(deltaStatsSec)
+                .setDurationNano(deltaStatsNano)
+                .build();
+        return deltaStats;
     }
 
     @Override
@@ -446,6 +490,15 @@ public class SimpleDeviceStore
     @Override
     public List<PortStatistics> getPortStatistics(DeviceId deviceId) {
         Map<PortNumber, PortStatistics> portStats = devicePortStats.get(deviceId);
+        if (portStats == null) {
+            return Collections.emptyList();
+        }
+        return ImmutableList.copyOf(portStats.values());
+    }
+
+    @Override
+    public List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId) {
+        Map<PortNumber, PortStatistics> portStats = devicePortDeltaStats.get(deviceId);
         if (portStats == null) {
             return Collections.emptyList();
         }

@@ -22,6 +22,7 @@ import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,7 +113,7 @@ public final class EncodeInstructionCodecHelper {
             case MPLS_LABEL:
                 final L2ModificationInstruction.ModMplsLabelInstruction modMplsLabelInstruction =
                         (L2ModificationInstruction.ModMplsLabelInstruction) instruction;
-                result.put(InstructionCodec.MPLS_LABEL, modMplsLabelInstruction.label());
+                result.put(InstructionCodec.MPLS_LABEL, modMplsLabelInstruction.mplsLabel().toInt());
                 break;
 
             case MPLS_PUSH:
@@ -121,6 +122,12 @@ public final class EncodeInstructionCodecHelper {
 
                 result.put(InstructionCodec.ETHERNET_TYPE,
                            pushHeaderInstructions.ethernetType().toShort());
+                break;
+
+            case TUNNEL_ID:
+                final L2ModificationInstruction.ModTunnelIdInstruction modTunnelIdInstruction =
+                        (L2ModificationInstruction.ModTunnelIdInstruction) instruction;
+                result.put(InstructionCodec.TUNNEL_ID, modTunnelIdInstruction.tunnelId());
                 break;
 
             default:
@@ -162,6 +169,36 @@ public final class EncodeInstructionCodecHelper {
     }
 
     /**
+     * Encode a L4 modification instruction.
+     *
+     * @param result json node that the instruction attributes are added to
+     */
+    private void encodeL4(ObjectNode result) {
+        L4ModificationInstruction instruction =
+                (L4ModificationInstruction) this.instruction;
+        result.put(InstructionCodec.SUBTYPE, instruction.subtype().name());
+        switch (instruction.subtype()) {
+            case TCP_DST:
+            case TCP_SRC:
+                final L4ModificationInstruction.ModTransportPortInstruction modTcpPortInstruction =
+                        (L4ModificationInstruction.ModTransportPortInstruction) instruction;
+                result.put(InstructionCodec.TCP_PORT, modTcpPortInstruction.port().toInt());
+                break;
+
+            case UDP_DST:
+            case UDP_SRC:
+                final L4ModificationInstruction.ModTransportPortInstruction modUdpPortInstruction =
+                        (L4ModificationInstruction.ModTransportPortInstruction) instruction;
+                result.put(InstructionCodec.UDP_PORT, modUdpPortInstruction.port().toInt());
+                break;
+
+            default:
+                log.info("Cannot convert L4 subtype of {}", instruction.subtype());
+                break;
+        }
+    }
+
+    /**
      * Encodes the given instruction into JSON.
      *
      * @return JSON object node representing the instruction
@@ -190,6 +227,10 @@ public final class EncodeInstructionCodecHelper {
 
             case L3MODIFICATION:
                 encodeL3(result);
+                break;
+
+            case L4MODIFICATION:
+                encodeL4(result);
                 break;
 
             default:

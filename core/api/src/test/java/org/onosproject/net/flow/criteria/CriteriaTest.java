@@ -17,15 +17,16 @@ package org.onosproject.net.flow.criteria;
 
 import org.junit.Test;
 import org.onlab.packet.EthType;
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.PortNumber;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.Ip6Address;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.MplsLabel;
-import org.onlab.packet.VlanId;
 
 import com.google.common.testing.EqualsTester;
 import org.onosproject.net.OchSignalType;
@@ -122,17 +123,19 @@ public class CriteriaTest {
     Criterion sameAsMatchIpv61 = Criteria.matchIPSrc(ipv61);
     Criterion matchIpv62 = Criteria.matchIPSrc(ipv62);
 
-    Criterion matchTcpPort1 = Criteria.matchTcpSrc(1);
-    Criterion sameAsMatchTcpPort1 = Criteria.matchTcpSrc(1);
-    Criterion matchTcpPort2 = Criteria.matchTcpDst(2);
+    private TpPort tpPort1 = TpPort.tpPort(1);
+    private TpPort tpPort2 = TpPort.tpPort(2);
+    Criterion matchTcpPort1 = Criteria.matchTcpSrc(tpPort1);
+    Criterion sameAsMatchTcpPort1 = Criteria.matchTcpSrc(tpPort1);
+    Criterion matchTcpPort2 = Criteria.matchTcpDst(tpPort2);
 
-    Criterion matchUdpPort1 = Criteria.matchUdpSrc(1);
-    Criterion sameAsMatchUdpPort1 = Criteria.matchUdpSrc(1);
-    Criterion matchUdpPort2 = Criteria.matchUdpDst(2);
+    Criterion matchUdpPort1 = Criteria.matchUdpSrc(tpPort1);
+    Criterion sameAsMatchUdpPort1 = Criteria.matchUdpSrc(tpPort1);
+    Criterion matchUdpPort2 = Criteria.matchUdpDst(tpPort2);
 
-    Criterion matchSctpPort1 = Criteria.matchSctpSrc(1);
-    Criterion sameAsMatchSctpPort1 = Criteria.matchSctpSrc(1);
-    Criterion matchSctpPort2 = Criteria.matchSctpDst(2);
+    Criterion matchSctpPort1 = Criteria.matchSctpSrc(tpPort1);
+    Criterion sameAsMatchSctpPort1 = Criteria.matchSctpSrc(tpPort1);
+    Criterion matchSctpPort2 = Criteria.matchSctpDst(tpPort2);
 
     short icmpType1 = 1;
     short icmpType2 = 2;
@@ -652,12 +655,12 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchTcpSrcMethod() {
-        Criterion matchTcpSrc = Criteria.matchTcpSrc(1);
+        Criterion matchTcpSrc = Criteria.matchTcpSrc(tpPort1);
         TcpPortCriterion tcpPortCriterion =
                 checkAndConvert(matchTcpSrc,
                                 Criterion.Type.TCP_SRC,
                                 TcpPortCriterion.class);
-        assertThat(tcpPortCriterion.tcpPort(), is(equalTo(1)));
+        assertThat(tcpPortCriterion.tcpPort(), is(equalTo(tpPort1)));
     }
 
     /**
@@ -665,12 +668,12 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchTcpDstMethod() {
-        Criterion matchTcpDst = Criteria.matchTcpDst(1);
+        Criterion matchTcpDst = Criteria.matchTcpDst(tpPort1);
         TcpPortCriterion tcpPortCriterion =
                 checkAndConvert(matchTcpDst,
                         Criterion.Type.TCP_DST,
                         TcpPortCriterion.class);
-        assertThat(tcpPortCriterion.tcpPort(), is(equalTo(1)));
+        assertThat(tcpPortCriterion.tcpPort(), is(equalTo(tpPort1)));
     }
 
     /**
@@ -691,12 +694,12 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchUdpSrcMethod() {
-        Criterion matchUdpSrc = Criteria.matchUdpSrc(1);
+        Criterion matchUdpSrc = Criteria.matchUdpSrc(tpPort1);
         UdpPortCriterion udpPortCriterion =
                 checkAndConvert(matchUdpSrc,
                                 Criterion.Type.UDP_SRC,
                                 UdpPortCriterion.class);
-        assertThat(udpPortCriterion.udpPort(), is(equalTo(1)));
+        assertThat(udpPortCriterion.udpPort(), is(equalTo(tpPort1)));
     }
 
     /**
@@ -704,12 +707,12 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchUdpDstMethod() {
-        Criterion matchUdpDst = Criteria.matchUdpDst(1);
+        Criterion matchUdpDst = Criteria.matchUdpDst(tpPort1);
         UdpPortCriterion udpPortCriterion =
                 checkAndConvert(matchUdpDst,
                         Criterion.Type.UDP_DST,
                         UdpPortCriterion.class);
-        assertThat(udpPortCriterion.udpPort(), is(equalTo(1)));
+        assertThat(udpPortCriterion.udpPort(), is(equalTo(tpPort1)));
     }
 
     /**
@@ -730,12 +733,12 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchSctpSrcMethod() {
-        Criterion matchSctpSrc = Criteria.matchSctpSrc(1);
+        Criterion matchSctpSrc = Criteria.matchSctpSrc(tpPort1);
         SctpPortCriterion sctpPortCriterion =
                 checkAndConvert(matchSctpSrc,
                                 Criterion.Type.SCTP_SRC,
                                 SctpPortCriterion.class);
-        assertThat(sctpPortCriterion.sctpPort(), is(equalTo(1)));
+        assertThat(sctpPortCriterion.sctpPort(), is(equalTo(tpPort1)));
     }
 
     /**
@@ -743,12 +746,12 @@ public class CriteriaTest {
      */
     @Test
     public void testMatchSctpDstMethod() {
-        Criterion matchSctpDst = Criteria.matchSctpDst(1);
+        Criterion matchSctpDst = Criteria.matchSctpDst(tpPort1);
         SctpPortCriterion sctpPortCriterion =
                 checkAndConvert(matchSctpDst,
                         Criterion.Type.SCTP_DST,
                         SctpPortCriterion.class);
-        assertThat(sctpPortCriterion.sctpPort(), is(equalTo(1)));
+        assertThat(sctpPortCriterion.sctpPort(), is(equalTo(tpPort1)));
     }
 
     /**

@@ -16,8 +16,8 @@
 package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.incubator.net.config.NetworkConfigService;
-import org.onosproject.incubator.net.config.SubjectFactory;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.SubjectFactory;
 import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
@@ -33,13 +33,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * REST resource for injecting and retrieving common network configuration.
+ * Manage network configurations.
  */
 @Path("network/configuration")
 public class NetworkConfigWebResource extends AbstractWebResource {
 
     /**
-     * Returns entire network configuration base.
+     * Get entire network configuration base.
      *
      * @return network configuration JSON
      */
@@ -55,7 +55,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Returns the network configuration for the specified subject class.
+     * Get all network configuration for a subject class.
      *
      * @param subjectKey subject class key
      * @return network configuration JSON
@@ -72,7 +72,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Returns the network configuration for the specified subject.
+     * Get all network configuration for a subject.
      *
      * @param subjectKey subject class key
      * @param subject    subject key
@@ -92,8 +92,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Returns the network configuration for the specified subject and given
-     * configuration class.
+     * Get specific network configuration for a subject.
      *
      * @param subjectKey subject class key
      * @param subject    subject key
@@ -126,10 +125,10 @@ public class NetworkConfigWebResource extends AbstractWebResource {
 
 
     /**
-     * Uploads network configuration in bulk.
+     * Upload bulk network configuration.
      *
      * @param request network configuration JSON rooted at the top node
-     * @throws IOException
+     * @throws IOException if unable to parse the request
      * @return empty response
      */
     @POST
@@ -145,12 +144,12 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Uploads network configuration for the specified subject class.
+     * Upload multiple network configurations for a subject class.
      *
      * @param subjectKey subject class key
      * @param request    network configuration JSON rooted at the top node
      * @return empty response
-     * @throws IOException
+     * @throws IOException if unable to parse the request
      */
     @POST
     @Path("{subjectKey}")
@@ -165,13 +164,13 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Uploads network configuration for the specified subject.
+     * Upload mutliple network configurations for a subject.
      *
      * @param subjectKey subject class key
      * @param subject    subject key
      * @param request    network configuration JSON rooted at the top node
      * @return empty response
-     * @throws IOException
+     * @throws IOException if unable to parse the request
      */
     @POST
     @Path("{subjectKey}/{subject}")
@@ -189,15 +188,14 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Uploads network configuration for the specified subject and given
-     * configuration class.
+     * Upload specific network configuration for a subject.
      *
      * @param subjectKey subject class key
      * @param subject    subject key
      * @param configKey  configuration class key
      * @param request    network configuration JSON rooted at the top node
      * @return empty response
-     * @throws IOException
+     * @throws IOException if unable to parse the request
      */
     @POST
     @Path("{subjectKey}/{subject}/{configKey}")
@@ -217,9 +215,9 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     private void consumeJson(NetworkConfigService service, ObjectNode classNode,
                              SubjectFactory subjectFactory) {
         classNode.fieldNames().forEachRemaining(s ->
-            consumeSubjectJson(service, (ObjectNode) classNode.path(s),
-                               subjectFactory.createSubject(s),
-                               subjectFactory.subjectKey()));
+                                                        consumeSubjectJson(service, (ObjectNode) classNode.path(s),
+                                                                           subjectFactory.createSubject(s),
+                                                                           subjectFactory.subjectKey()));
     }
 
     private void consumeSubjectJson(NetworkConfigService service,
@@ -232,7 +230,42 @@ public class NetworkConfigWebResource extends AbstractWebResource {
 
 
     /**
-     * Clears network configuration for the specified subject.
+     * Clear entire network configuration base.
+     *
+     * @return empty response
+     */
+    @DELETE
+    @SuppressWarnings("unchecked")
+    public Response delete() {
+        NetworkConfigService service = get(NetworkConfigService.class);
+        service.getSubjectClasses()
+                .forEach(subjectClass -> service.getSubjects(subjectClass)
+                        .forEach(subject -> service.getConfigs(subject)
+                                .forEach(config -> service
+                                        .removeConfig(subject, config.getClass()))));
+        return Response.ok().build();
+    }
+
+    /**
+     * Clear all network configurations for a subject class.
+     *
+     * @param subjectKey subject class key
+     * @return empty response
+     */
+    @DELETE
+    @Path("{subjectKey}")
+    @SuppressWarnings("unchecked")
+    public Response delete(@PathParam("subjectKey") String subjectKey) {
+        NetworkConfigService service = get(NetworkConfigService.class);
+        service.getSubjects(service.getSubjectFactory(subjectKey).getClass())
+                .forEach(subject -> service.getConfigs(subject)
+                        .forEach(config -> service
+                                .removeConfig(subject, config.getClass())));
+        return Response.ok().build();
+    }
+
+    /**
+     * Clear all network configurations for a subject.
      *
      * @param subjectKey subject class key
      * @param subject    subject key
@@ -240,9 +273,8 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      */
     @DELETE
     @Path("{subjectKey}/{subject}")
-    @Consumes(MediaType.APPLICATION_JSON)
     @SuppressWarnings("unchecked")
-    public Response upload(@PathParam("subjectKey") String subjectKey,
+    public Response delete(@PathParam("subjectKey") String subjectKey,
                            @PathParam("subject") String subject) {
         NetworkConfigService service = get(NetworkConfigService.class);
         Object s = service.getSubjectFactory(subjectKey).createSubject(subject);
@@ -251,8 +283,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     }
 
     /**
-     * Clears network configuration for the specified subject and given
-     * configuration class.
+     * Clear specific network configuration for a subject.
      *
      * @param subjectKey subject class key
      * @param subject    subject key
@@ -261,14 +292,13 @@ public class NetworkConfigWebResource extends AbstractWebResource {
      */
     @DELETE
     @Path("{subjectKey}/{subject}/{configKey}")
-    @Consumes(MediaType.APPLICATION_JSON)
     @SuppressWarnings("unchecked")
-    public Response upload(@PathParam("subjectKey") String subjectKey,
+    public Response delete(@PathParam("subjectKey") String subjectKey,
                            @PathParam("subject") String subject,
                            @PathParam("configKey") String configKey) {
         NetworkConfigService service = get(NetworkConfigService.class);
         service.removeConfig(service.getSubjectFactory(subjectKey).createSubject(subject),
-                service.getConfigClass(subjectKey, configKey));
+                             service.getConfigClass(subjectKey, configKey));
         return Response.ok().build();
     }
 

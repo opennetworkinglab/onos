@@ -17,6 +17,10 @@ package org.onosproject.ovsdb.controller.driver;
 
 import io.netty.channel.Channel;
 
+import org.onosproject.ovsdb.rfc.jsonrpc.Callback;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  * Represents the driver side of an ovsdb node. This interface should never be
  * exposed to consumers.
@@ -52,4 +56,26 @@ public interface OvsdbProviderService {
      * @param connected whether the node is connected
      */
     void setConnection(boolean connected);
+
+    /**
+     * Processes result from ovsdb.
+     *
+     * @param response JsonNode response from ovsdb
+     */
+    void processResult(JsonNode response);
+
+    /**
+     * processes request from ovsdb.
+     *
+     * @param request JsonNode request from ovsdb
+     */
+    void processRequest(JsonNode request);
+
+    /**
+     * Sets call back.
+     *
+     * @param monitorCallback the callback to set
+     */
+    void setCallback(Callback monitorCallback);
+
 }

@@ -15,9 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -42,23 +40,24 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
-import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.resource.device.DeviceResourceService;
+import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
 import org.onosproject.net.resource.link.LambdaResource;
 import org.onosproject.net.resource.link.LambdaResourceAllocation;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.resource.link.LinkResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceService;
-import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyService;
-
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -142,7 +141,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                 }
                 LambdaResourceAllocation lambdaAlloc = getWavelength(path, linkAllocs);
                 OmsPort omsPort = (OmsPort) deviceService.getPort(path.src().deviceId(), path.src().port());
-                ochSignal = new OchSignal(lambdaAlloc, omsPort.maxFrequency(), omsPort.grid());
+                ochSignal = new OchSignal(lambdaAlloc.lambda().toInt(), omsPort.maxFrequency(), omsPort.grid());
             }
 
             // Create installable optical path intent

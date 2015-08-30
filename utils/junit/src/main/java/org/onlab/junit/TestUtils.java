@@ -40,13 +40,23 @@ public final class TestUtils {
     public static <T, U> void setField(T subject, String fieldName, U value)
             throws TestUtilsException {
         @SuppressWarnings("unchecked")
-        Class<T> clazz = (Class<T>) subject.getClass();
+        Class clazz = subject.getClass();
         try {
-            Field field = clazz.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            field.set(subject, value);
-        } catch (NoSuchFieldException | SecurityException |
-                 IllegalArgumentException | IllegalAccessException e) {
+            while (clazz != null) {
+                try {
+                    Field field = clazz.getDeclaredField(fieldName);
+                    field.setAccessible(true);
+                    field.set(subject, value);
+                    break;
+                } catch (NoSuchFieldException ex) {
+                    if (clazz == clazz.getSuperclass()) {
+                        break;
+                    }
+                    clazz = clazz.getSuperclass();
+                }
+            }
+        } catch (SecurityException | IllegalArgumentException |
+                 IllegalAccessException e) {
             throw new TestUtilsException("setField failed", e);
         }
     }

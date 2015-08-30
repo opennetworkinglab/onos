@@ -17,13 +17,15 @@ package org.onosproject.net.flow;
 
 import java.util.Set;
 
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.criteria.Criterion;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip6Address;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultTrafficSelector.Builder;
+import org.onosproject.net.flow.criteria.Criterion;
 
 /**
  * Abstraction of a slice of network traffic.
@@ -169,8 +171,28 @@ public interface TrafficSelector {
          *
          * @param tcpPort a TCP source port number
          * @return a selection builder
+         * @deprecated in Drake release
          */
+        @Deprecated
         Builder matchTcpSrc(short tcpPort);
+
+        /**
+         * Matches a TCP source port number.
+         *
+         * @param tcpPort a TCP source port number
+         * @return a selection builder
+         */
+        Builder matchTcpSrc(TpPort tcpPort);
+
+        /**
+         * Matches a TCP destination port number.
+         *
+         * @param tcpPort a TCP destination port number
+         * @return a selection builder
+         * @deprecated in Drake release
+         */
+        @Deprecated
+        Builder matchTcpDst(short tcpPort);
 
         /**
          * Matches a TCP destination port number.
@@ -178,7 +200,17 @@ public interface TrafficSelector {
          * @param tcpPort a TCP destination port number
          * @return a selection builder
          */
-        Builder matchTcpDst(short tcpPort);
+        Builder matchTcpDst(TpPort tcpPort);
+
+        /**
+         * Matches an UDP source port number.
+         *
+         * @param udpPort an UDP source port number
+         * @return a selection builder
+         * @deprecated in Drake release
+         */
+        @Deprecated
+        Builder matchUdpSrc(short udpPort);
 
         /**
          * Matches an UDP source port number.
@@ -186,7 +218,17 @@ public interface TrafficSelector {
          * @param udpPort an UDP source port number
          * @return a selection builder
          */
-        Builder matchUdpSrc(short udpPort);
+        Builder matchUdpSrc(TpPort udpPort);
+
+        /**
+         * Matches an UDP destination port number.
+         *
+         * @param udpPort an UDP destination port number
+         * @return a selection builder
+         * @deprecated in Drake release
+         */
+        @Deprecated
+        Builder matchUdpDst(short udpPort);
 
         /**
          * Matches an UDP destination port number.
@@ -194,7 +236,17 @@ public interface TrafficSelector {
          * @param udpPort an UDP destination port number
          * @return a selection builder
          */
-        Builder matchUdpDst(short udpPort);
+        Builder matchUdpDst(TpPort udpPort);
+
+        /**
+         * Matches a SCTP source port number.
+         *
+         * @param sctpPort a SCTP source port number
+         * @return a selection builder
+         * @deprecated in Drake release
+         */
+        @Deprecated
+        Builder matchSctpSrc(short sctpPort);
 
         /**
          * Matches a SCTP source port number.
@@ -202,7 +254,17 @@ public interface TrafficSelector {
          * @param sctpPort a SCTP source port number
          * @return a selection builder
          */
-        Builder matchSctpSrc(short sctpPort);
+        Builder matchSctpSrc(TpPort sctpPort);
+
+        /**
+         * Matches a SCTP destination port number.
+         *
+         * @param sctpPort a SCTP destination port number
+         * @return a selection builder
+         * @deprecated in Drake release
+         */
+        @Deprecated
+        Builder matchSctpDst(short sctpPort);
 
         /**
          * Matches a SCTP destination port number.
@@ -210,7 +272,7 @@ public interface TrafficSelector {
          * @param sctpPort a SCTP destination port number
          * @return a selection builder
          */
-        Builder matchSctpDst(short sctpPort);
+        Builder matchSctpDst(TpPort sctpPort);
 
         /**
          * Matches an ICMP type.
@@ -299,6 +361,14 @@ public interface TrafficSelector {
          * @return a selection builder
          */
         Builder matchMplsLabel(MplsLabel mplsLabel);
+
+        /**
+         * Matches on a MPLS Bottom-of-Stack indicator bit.
+         *
+         * @param mplsBos boolean value indicating BOS=1 (true) or BOS=0 (false).
+         * @return a selection builder
+         */
+        Builder matchMplsBos(boolean mplsBos);
 
         /**
          * Matches a tunnel id.

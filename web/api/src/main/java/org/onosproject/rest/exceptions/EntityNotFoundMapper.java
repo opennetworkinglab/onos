@@ -18,10 +18,12 @@ package org.onosproject.rest.exceptions;
 import org.onlab.util.ItemNotFoundException;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
 
 /**
  * Mapper for service not found exceptions to the NOT_FOUND response code.
  */
+@Provider
 public class EntityNotFoundMapper extends AbstractMapper<ItemNotFoundException> {
     @Override
     protected Response.Status responseStatus() {

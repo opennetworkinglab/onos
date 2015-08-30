@@ -21,6 +21,10 @@
                    impl="org.onosproject.driver.pipeline.DefaultSingleTablePipeline"/>
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.DefaultSwitchHandshaker"/>
+        <behaviour api="org.onosproject.net.behaviour.TunnelConfig"
+                   impl="org.onosproject.driver.ovsdb.OvsdbTunnelConfig"/>
+        <behaviour api="org.onosproject.net.behaviour.BridgeConfig"
+                   impl="org.onosproject.driver.ovsdb.OvsdbBridgeConfig"/>
     </driver>
     <driver name="ovs" extends="default"
             manufacturer="Nicira, Inc\." hwVersion="Open vSwitch" swVersion="2\..*">
@@ -33,19 +37,19 @@
                    impl="org.onosproject.driver.pipeline.OVSCorsaPipeline"/>
     </driver>
     <driver name="spring-open-cpqd" extends="default"
-            manufacturer="Stanford University, Ericsson Research and CPqD Research" 
+            manufacturer="Stanford University, Ericsson Research and CPqD Research"
             hwVersion="OpenFlow 1.3 Reference Userspace Switch" swVersion=".*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.SpringOpenTTP"/>
     </driver>
     <driver name="spring-open" extends="default"
-            manufacturer="Dell " hwVersion="OpenFlow switch HW ver. 1.0" 
+            manufacturer="Dell " hwVersion="OpenFlow switch HW ver. 1.0"
             swVersion="OpenFlow switch SW ver. 1.0 and 1.3">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.SpringOpenTTPDell"/>
     </driver>
     <driver name="linc-oe" extends="default"
-            manufacturer="FlowForwarding.org" hwVersion="Unknown" 
+            manufacturer="FlowForwarding.org" hwVersion="Unknown"
             swVersion="LINC-OE OpenFlow Software Switch 1.1">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.OFOpticalSwitchImplLINC13"/>
@@ -58,7 +62,7 @@
                    impl="org.onosproject.driver.handshaker.CorsaSwitchHandshaker"/>
     </driver>
     <driver name="ofdpa" extends="default"
-            manufacturer="Broadcom Corp." hwVersion="OF-DPA 2.0-EA1" swVersion="OF-DPA 2.0-EA1">
+            manufacturer="Broadcom Corp." hwVersion="OF-DPA.*" swVersion="OF-DPA.*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OFDPA1Pipeline"/>
     </driver>
@@ -94,7 +98,7 @@
                    impl="org.onosproject.driver.pipeline.PicaPipeline"/>
     </driver>
     <driver name="noviflow" extends="softrouter"
-            manufacturer="NoviFlow Inc" hwVersion="NS1132" swVersion="NW250.4.4">
+            manufacturer="NoviFlow Inc" hwVersion="NS.*" swVersion="NW.*">
     </driver>
     <!--  Emulation of the ofdpa pipeline using a CPqD OF 1.3 software switch.
        ~  To use this driver, configure ONOS with the dpid of the device.
@@ -104,6 +108,12 @@
             hwVersion="OF1.3 Software Switch from CPqD" swVersion="for Group Chaining">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.CpqdOFDPA1Pipeline"/>
+    </driver>
+    <driver name="calient" extends="default"
+            manufacturer="calient inc" hwVersion="calient hardware"
+            swVersion="ocs switch">
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.CalientFiberSwitchHandshaker"/>
     </driver>
 </drivers>
 

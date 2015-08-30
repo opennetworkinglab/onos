@@ -29,7 +29,6 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipServiceAdapter;
-import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
@@ -39,17 +38,19 @@ import org.onosproject.net.LinkKey;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DeviceClockService;
+import org.onosproject.net.device.DeviceClockServiceAdapter;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkDescription;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkStore;
 import org.onosproject.net.link.LinkStoreDelegate;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.Timestamp;
 import org.onosproject.store.cluster.StaticClusterService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
-import org.onosproject.store.device.impl.DeviceClockManager;
+import org.onosproject.store.impl.MastershipBasedTimestamp;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,6 +58,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 import static org.easymock.EasyMock.*;
@@ -115,7 +117,7 @@ public class GossipLinkStoreTest {
     private GossipLinkStore linkStoreImpl;
     private LinkStore linkStore;
 
-    private DeviceClockManager deviceClockManager;
+    private final AtomicLong ticker = new AtomicLong();
     private DeviceClockService deviceClockService;
     private ClusterCommunicationService clusterCommunicator;
 
@@ -129,14 +131,6 @@ public class GossipLinkStoreTest {
 
     @Before
     public void setUp() throws Exception {
-        deviceClockManager = new DeviceClockManager();
-        deviceClockManager.activate();
-        deviceClockService = deviceClockManager;
-
-        // set initial terms
-        deviceClockManager.setMastershipTerm(DID1, MastershipTerm.of(NID1, 1));
-        deviceClockManager.setMastershipTerm(DID2, MastershipTerm.of(NID1, 2));
-
         // TODO mock clusterCommunicator
         clusterCommunicator = createNiceMock(ClusterCommunicationService.class);
         clusterCommunicator.addSubscriber(anyObject(MessageSubject.class),
@@ -149,6 +143,7 @@ public class GossipLinkStoreTest {
         linkStoreImpl.deviceClockService = deviceClockService;
         linkStoreImpl.clusterCommunicator = clusterCommunicator;
         linkStoreImpl.clusterService = new TestClusterService();
+        linkStoreImpl.deviceClockService = new TestDeviceClockService();
         linkStoreImpl.mastershipService = new TestMastershipService();
         linkStoreImpl.activate();
         linkStore = linkStoreImpl;
@@ -604,6 +599,27 @@ public class GossipLinkStoreTest {
 
             nodes.put(NID2, ONOS2);
             nodeStates.put(NID2, ACTIVE);
+        }
+    }
+
+    private final class TestDeviceClockService extends DeviceClockServiceAdapter {
+
+        private final AtomicLong ticker = new AtomicLong();
+
+        @Override
+        public Timestamp getTimestamp(DeviceId deviceId) {
+            if (DID1.equals(deviceId)) {
+                return new MastershipBasedTimestamp(1, ticker.getAndIncrement());
+            } else if (DID2.equals(deviceId)) {
+                return new MastershipBasedTimestamp(2, ticker.getAndIncrement());
+            } else {
+                throw new IllegalStateException();
+            }
+        }
+
+        @Override
+        public boolean isTimestampAvailable(DeviceId deviceId) {
+            return DID1.equals(deviceId) || DID2.equals(deviceId);
         }
     }
 

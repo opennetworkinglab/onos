@@ -34,11 +34,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+/**
+ * Query, create and remove segment routing tunnels.
+ */
 @Path("tunnel")
 public class TunnelWebResource extends AbstractWebResource {
 
     private static final TunnelCodec TUNNEL_CODEC = new TunnelCodec();
 
+    /**
+     * Get all segment routing tunnels.
+     * Returns an array of segment routing tunnels.
+     *
+     * @return status of OK
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getTunnel() {
@@ -50,6 +59,14 @@ public class TunnelWebResource extends AbstractWebResource {
         return ok(result.toString()).build();
     }
 
+    /**
+     * Create a new segment routing tunnel.
+     *
+     * @param input JSON stream for tunnel to create
+     * @return status of the request - OK if the tunnel is created,
+     * INTERNAL_SERVER_ERROR if the JSON is invalid or the tunnel cannot be created
+     * @throws IOException if the JSON is invalid
+     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createTunnel(InputStream input) throws IOException {
@@ -62,6 +79,14 @@ public class TunnelWebResource extends AbstractWebResource {
         return Response.ok().build();
     }
 
+    /**
+     * Delete a segment routing tunnel.
+     *
+     * @param input JSON stream for tunnel to delete
+     * @return status of the request - OK if the tunnel is removed,
+     * INTERNAL_SERVER_ERROR otherwise
+     * @throws IOException if JSON is invalid
+     */
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     public Response removeTunnel(InputStream input) throws IOException {

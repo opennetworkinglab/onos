@@ -17,6 +17,7 @@
 package org.onosproject.store.consistent.impl;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -44,6 +45,7 @@ public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
     private static final int OPERATION_TIMEOUT_MILLIS = 5000;
 
     private final DefaultAsyncConsistentMap<K, V> asyncMap;
+    private Map<K, V> javaMap;
 
     public String name() {
         return asyncMap.name();
@@ -188,5 +190,15 @@ public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
     @Override
     public void removeListener(MapEventListener<K, V> listener) {
         asyncMap.addListener(listener);
+    }
+
+    @Override
+    public Map<K, V> asJavaMap() {
+        synchronized (this) {
+            if (javaMap == null) {
+                javaMap = new ConsistentMapBackedJavaMap<>(this);
+            }
+        }
+        return javaMap;
     }
 }

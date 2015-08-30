@@ -18,8 +18,11 @@ package org.onosproject.net.flow;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.DeviceId;
 
+@Deprecated
 /**
  * Describes flow rule batch event.
+ *
+ * @deprecated in Drake release - no longer a public API
  */
 public final class FlowRuleBatchEvent extends AbstractEvent<FlowRuleBatchEvent.Type, FlowRuleBatchRequest> {
 

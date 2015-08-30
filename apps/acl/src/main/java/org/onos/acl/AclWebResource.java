@@ -40,8 +40,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+// FIXME: This does now follow REST-full principles and should be refactored.
 /**
- * REST resource for interacting with ACL application.
+ * Manage ACL rules.
  */
 @Path("")
 public class AclWebResource extends AbstractWebResource {

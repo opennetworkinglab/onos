@@ -15,21 +15,26 @@
  */
 package org.onosproject.routing;
 
-import java.util.Collection;
-
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.routing.config.BgpConfig;
+
+import java.util.Collection;
 
 /**
  * Provides a way of interacting with the RIB management component.
  */
 public interface RoutingService {
 
+    String ROUTER_APP_ID = "org.onosproject.router";
+
+    Class<BgpConfig> CONFIG_CLASS = BgpConfig.class;
+
     /**
      * Specifies the type of an IP address or an IP prefix location.
      */
-    static enum LocationType {
+    enum LocationType {
         /**
          * The location of an IP address or an IP prefix is in local SDN network.
          */

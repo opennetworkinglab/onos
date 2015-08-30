@@ -28,7 +28,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * listeners and dispatching events to them as part of event sink processing.
  */
 public class ListenerRegistry<E extends Event, L extends EventListener<E>>
-        implements EventSink<E> {
+        implements ListenerService<E, L>, EventSink<E> {
 
     private static final long LIMIT = 1_800; // ms
 
@@ -42,22 +42,13 @@ public class ListenerRegistry<E extends Event, L extends EventListener<E>>
      */
     protected final Set<L> listeners = new CopyOnWriteArraySet<>();
 
-
-    /**
-     * Adds the specified listener.
-     *
-     * @param listener listener to be added
-     */
+    @Override
     public void addListener(L listener) {
         checkNotNull(listener, "Listener cannot be null");
         listeners.add(listener);
     }
 
-    /**
-     * Removes the specified listener.
-     *
-     * @param listener listener to be removed
-     */
+    @Override
     public void removeListener(L listener) {
         checkNotNull(listener, "Listener cannot be null");
         if (!listeners.remove(listener)) {

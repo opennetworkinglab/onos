@@ -44,7 +44,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 
 /**
- * Statistics REST APIs.
+ * Query flow statistics.
  */
 @Path("statistics")
 public class StatisticsWebResource  extends AbstractWebResource {
@@ -52,7 +52,7 @@ public class StatisticsWebResource  extends AbstractWebResource {
     UriInfo uriInfo;
 
     /**
-     * Gets the Load statistics for all links, or for a specific link.
+     * Get load statistics for all links or for a specific link.
      *
      * @param deviceId (optional) device ID for a specific link
      * @param port (optional) port number for a specified link
@@ -76,7 +76,6 @@ public class StatisticsWebResource  extends AbstractWebResource {
         ArrayNode loads = mapper().createArrayNode();
         JsonCodec<Load> loadCodec = codec(Load.class);
         StatisticService statsService = getService(StatisticService.class);
-
 
         StreamSupport.stream(Spliterators.spliteratorUnknownSize(
                 links.iterator(), Spliterator.ORDERED), false)

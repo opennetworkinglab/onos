@@ -42,6 +42,11 @@ public class FabricWebResource extends AbstractWebResource {
 
     private static final FabricVlanCodec VLAN_CODEC = new FabricVlanCodec();
 
+    /**
+     * Get all CORD fabric VLANs.
+     *
+     * @return array of cord VLANs in the system.
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getVlans() {
@@ -53,6 +58,14 @@ public class FabricWebResource extends AbstractWebResource {
         return ok(result.toString()).build();
     }
 
+    /**
+     * Create a CORD fabric VLAN.
+     *
+     * @param input JSON stream describing new VLAN
+     * @return status of the request - CREATED if the JSON is correct,
+     * INTERNAL_SERVER_ERROR if the JSON is invalid
+     * @throws IOException if the JSON is invalid
+     */
     @POST
     @Path("add")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -66,9 +79,15 @@ public class FabricWebResource extends AbstractWebResource {
         return Response.ok().build();
     }
 
+    /**
+     * Delete a CORD fabric VLAN.
+     *
+     * @param vlan identifier of the VLAN to remove
+     * @return status of the request - OK
+     */
     @DELETE
     @Path("{vlan}")
-    public Response deleteVlan(@PathParam("vlan") String vlan) throws IOException {
+    public Response deleteVlan(@PathParam("vlan") String vlan) {
         VlanId vlanId = VlanId.vlanId(Short.parseShort(vlan));
 
         FabricService fabricService = get(FabricService.class);

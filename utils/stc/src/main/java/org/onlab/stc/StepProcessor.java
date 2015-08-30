@@ -41,6 +41,7 @@ class StepProcessor implements Runnable {
 
     private final Step step;
     private final File logDir;
+    private String command;
 
     private Process process;
     private StepProcessListener delegate;
@@ -51,16 +52,19 @@ class StepProcessor implements Runnable {
      * @param step     step or group to be executed
      * @param logDir   directory where step process log should be stored
      * @param delegate process lifecycle listener
+     * @param command  actual command to execute
      */
-    StepProcessor(Step step, File logDir, StepProcessListener delegate) {
+    StepProcessor(Step step, File logDir, StepProcessListener delegate,
+                  String command) {
         this.step = step;
         this.logDir = logDir;
         this.delegate = delegate;
+        this.command = command;
     }
 
     @Override
     public void run() {
-        delegate.onStart(step);
+        delegate.onStart(step, command);
         int code = execute();
         boolean ignoreCode = step.env() != null && step.env.equals(IGNORE_CODE);
         Status status = ignoreCode || code == 0 ? SUCCEEDED : FAILED;
@@ -100,7 +104,7 @@ class StepProcessor implements Runnable {
         return format("%s %s %s %s", launcher,
                       step.env() != null ? step.env() : "-",
                       step.cwd() != null ? step.cwd() : "-",
-                      step.command());
+                      command);
     }
 
     /**

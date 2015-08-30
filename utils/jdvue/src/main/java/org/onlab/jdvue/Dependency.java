@@ -2,7 +2,7 @@ package org.onlab.jdvue;
 
 import java.util.Objects;
 
-import static com.google.common.base.Objects.toStringHelper;
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Abstraction of a dependency segment.

@@ -16,17 +16,6 @@
 
 package org.onosproject.cli;
 
-import static java.lang.String.format;
-
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.joda.time.LocalDateTime;
-import org.onlab.metrics.MetricsService;
-
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
@@ -38,6 +27,16 @@ import com.codahale.metrics.Timer;
 import com.google.common.base.Strings;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.TreeMultimap;
+import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.commands.Command;
+import org.joda.time.LocalDateTime;
+import org.onlab.metrics.MetricsService;
+
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static java.lang.String.format;
 
 /**
  * Prints metrics in the system.
@@ -118,10 +117,10 @@ public class MetricsListCommand extends AbstractShellCommand {
             final Timer timer = (Timer) metric;
             final Snapshot snapshot = timer.getSnapshot();
             print("          count = %d", timer.getCount());
-            print("      mean rate = %f", timer.getMeanRate());
-            print("  1-minute rate = %f", timer.getOneMinuteRate());
-            print("  5-minute rate = %f", timer.getFiveMinuteRate());
-            print(" 15-minute rate = %f", timer.getFifteenMinuteRate());
+            print("      mean rate = %f per second", timer.getMeanRate());
+            print("  1-minute rate = %f per second", timer.getOneMinuteRate());
+            print("  5-minute rate = %f per second", timer.getFiveMinuteRate());
+            print(" 15-minute rate = %f per second", timer.getFifteenMinuteRate());
             print("            min = %f ms", nanoToMs(snapshot.getMin()));
             print("            max = %f ms", nanoToMs(snapshot.getMax()));
             print("           mean = %f ms", nanoToMs(snapshot.getMean()));

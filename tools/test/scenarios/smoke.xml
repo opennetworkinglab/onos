@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<scenario name="smoke-test" description="ONOS smoke test">
+<scenario name="smoke" description="ONOS smoke test">
     <import file="${ONOS_SCENARIOS}/prerequisites.xml"/>
 
     <import file="${ONOS_SCENARIOS}/setup.xml"/>
@@ -23,7 +23,7 @@
     <dependency name="Net-Smoke" requires="Setup"/>
 
     <import file="${ONOS_SCENARIOS}/archetypes.xml"/>
-    <dependency name="Archetypes" requires="~Net-Smoke,Setup"/>
+    <dependency name="Archetypes" requires="Setup"/>
 
     <import file="${ONOS_SCENARIOS}/wrapup.xml"/>
     <dependency name="Wrapup" requires="~Archetypes,~Setup,~Net-Smoke"/>

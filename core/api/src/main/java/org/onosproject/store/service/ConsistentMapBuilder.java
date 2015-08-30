@@ -105,6 +105,25 @@ public interface ConsistentMapBuilder<K, V> {
     ConsistentMapBuilder<K, V> withPurgeOnUninstall();
 
     /**
+     * Instantiates Metering service to gather usage and performance metrics.
+     * By default, usage data will be stored.
+     *
+     * @return this ConsistentMapBuilder
+     */
+    ConsistentMapBuilder<K, V> withMeteringDisabled();
+
+    /**
+     * Provides weak consistency for map gets.
+     * <p>
+     * While this can lead to improved read performance, it can also make the behavior
+     * heard to reason. Only turn this on if you know what you are doing. By default
+     * reads are strongly consistent.
+     *
+     * @return this ConsistentMapBuilder
+     */
+    ConsistentMapBuilder<K, V> withRelaxedReadConsistency();
+
+    /**
      * Builds an consistent map based on the configuration options
      * supplied to this builder.
      *

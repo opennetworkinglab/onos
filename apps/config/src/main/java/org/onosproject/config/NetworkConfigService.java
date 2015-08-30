@@ -17,6 +17,9 @@ package org.onosproject.config;
 
 /**
  * Service interface exported by the Network Configuration.
+ *
+ * @deprecated in Drake; see org.onosproject.net.config
  */
+@Deprecated
 public interface NetworkConfigService {
 }

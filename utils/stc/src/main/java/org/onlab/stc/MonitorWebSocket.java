@@ -18,17 +18,15 @@ package org.onlab.stc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jetty.websocket.WebSocket;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+
+import static org.onlab.stc.Coordinator.print;
 
 /**
  * Web socket capable of interacting with the STC monitor GUI.
  */
 public class MonitorWebSocket implements WebSocket.OnTextMessage, WebSocket.OnControl {
-
-    private static final Logger log = LoggerFactory.getLogger(MonitorWebSocket.class);
 
     private static final long MAX_AGE_MS = 30_000;
 
@@ -36,12 +34,23 @@ public class MonitorWebSocket implements WebSocket.OnTextMessage, WebSocket.OnCo
     private static final byte PONG = 0xA;
     private static final byte[] PING_DATA = new byte[]{(byte) 0xde, (byte) 0xad};
 
+    private final Monitor monitor;
+
     private Connection connection;
     private FrameConnection control;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
     private long lastActive = System.currentTimeMillis();
+
+    /**
+     * Creates a new monitor client GUI web-socket.
+     *
+     * @param monitor shared process flow monitor
+     */
+    MonitorWebSocket(Monitor monitor) {
+        this.monitor = monitor;
+    }
 
     /**
      * Issues a close on the connection.
@@ -62,13 +71,12 @@ public class MonitorWebSocket implements WebSocket.OnTextMessage, WebSocket.OnCo
         long quietFor = System.currentTimeMillis() - lastActive;
         boolean idle = quietFor > MAX_AGE_MS;
         if (idle || (connection != null && !connection.isOpen())) {
-            log.debug("IDLE (or closed) websocket [{} ms]", quietFor);
             return true;
         } else if (connection != null) {
             try {
                 control.sendControl(PING, PING_DATA, 0, PING_DATA.length);
             } catch (IOException e) {
-                log.warn("Unable to send ping message due to: ", e);
+                print("Unable to send ping message due to: %s", e);
             }
         }
         return false;
@@ -80,10 +88,10 @@ public class MonitorWebSocket implements WebSocket.OnTextMessage, WebSocket.OnCo
         this.control = (FrameConnection) connection;
         try {
             createHandlers();
-            log.info("GUI client connected");
+            sendMessage(message("flow", monitor.scenarioData()));
 
         } catch (Exception e) {
-            log.warn("Unable to open monitor connection: {}", e);
+            print("Unable to open monitor connection: %s", e);
             this.connection.close();
             this.connection = null;
             this.control = null;
@@ -93,8 +101,6 @@ public class MonitorWebSocket implements WebSocket.OnTextMessage, WebSocket.OnCo
     @Override
     public synchronized void onClose(int closeCode, String message) {
         destroyHandlers();
-        log.info("GUI client disconnected [close-code={}, message={}]",
-                 closeCode, message);
     }
 
     @Override
@@ -109,10 +115,9 @@ public class MonitorWebSocket implements WebSocket.OnTextMessage, WebSocket.OnCo
         try {
             ObjectNode message = (ObjectNode) mapper.reader().readTree(data);
             // TODO:
-            log.info("Got message: {}", message);
+            print("Got message: %s", message);
         } catch (Exception e) {
-            log.warn("Unable to parse GUI message {} due to {}", data, e);
-            log.debug("Boom!!!", e);
+            print("Unable to parse GUI message %s due to %s", data, e);
         }
     }
 
@@ -122,20 +127,14 @@ public class MonitorWebSocket implements WebSocket.OnTextMessage, WebSocket.OnCo
                 connection.sendMessage(message.toString());
             }
         } catch (IOException e) {
-            log.warn("Unable to send message {} to GUI due to {}", message, e);
-            log.debug("Boom!!!", e);
+            print("Unable to send message %s to GUI due to %s", message, e);
         }
     }
 
-    public synchronized void sendMessage(String type, long sid, ObjectNode payload) {
-        ObjectNode message = mapper.createObjectNode();
-        message.put("event", type);
-        if (sid > 0) {
-            message.put("sid", sid);
-        }
+    public ObjectNode message(String type, ObjectNode payload) {
+        ObjectNode message = mapper.createObjectNode().put("event", type);
         message.set("payload", payload);
-        sendMessage(message);
-
+        return message;
     }
 
     // Creates new message handlers.

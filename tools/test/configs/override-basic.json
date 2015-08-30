@@ -1,0 +1,38 @@
+{
+  "devices": {
+    "of:0000000000000009": {
+      "basic": {
+        "allowed": true,
+        "owner": "Luigi"
+      }
+    },
+    "of:0000000000000008": {
+      "basic": {
+        "name": "NameChangeAgain",
+        "allowed": true,
+        "owner": "Mario"
+      }
+    },
+    "of:0000000000000007": {
+      "basic": {
+        "allowed": true,
+        "owner": "Peach",
+        "latitude": "25"
+      }
+    }
+  },
+  "links": {
+    "of:0000000000000006/2-of:0000000000000007/2": {
+      "basic": {
+        "allowed": true
+      }
+    }
+  },
+  "hosts": {
+    "00:00:00:00:00:03/-1": {
+      "basic": {
+        "allowed": true
+      }
+    }
+  }
+}

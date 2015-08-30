@@ -35,7 +35,7 @@
 
     function ($log, $scope, $http, fs, tbs, wss, ufs, ks) {
         $scope.ctrlBtnState = {};
-        $scope.uploadTip = 'Upload an application';
+        $scope.uploadTip = 'Upload an application (.oar file)';
         $scope.activateTip = 'Activate selected application';
         $scope.deactivateTip = 'Deactivate selected application';
         $scope.uninstallTip = 'Uninstall selected application';
@@ -82,7 +82,9 @@
                 $log.debug('Initiating ' + action + ' of ' + $scope.selId);
                 wss.sendEvent(APP_MGMENT_REQ, {
                     action: action,
-                    name: $scope.selId
+                    name: $scope.selId,
+                    sortCol: $scope.sortParams.sortCol,
+                    sortDir: $scope.sortParams.sortDir
                 });
             }
         };
@@ -118,7 +120,7 @@
             link: function (scope, elem) {
                 elem.bind('click', function () {
                     document.getElementById('uploadFile')
-                        .dispatchEvent(new Event('click'));
+                        .dispatchEvent(new MouseEvent('click'));
                 });
             }
         };

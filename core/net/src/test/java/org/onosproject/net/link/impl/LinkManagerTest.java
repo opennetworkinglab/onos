@@ -20,6 +20,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.event.Event;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
@@ -52,6 +53,7 @@ import static org.junit.Assert.*;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.Link.Type.INDIRECT;
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 import static org.onosproject.net.link.LinkEvent.Type.*;
 
 /**
@@ -86,6 +88,7 @@ public class LinkManagerTest {
     protected DeviceManager devmgr = new TestDeviceManager();
 
 
+
     @Before
     public void setUp() {
         mgr = new LinkManager();
@@ -93,8 +96,9 @@ public class LinkManagerTest {
         admin = mgr;
         registry = mgr;
         mgr.store = new SimpleLinkStore();
-        mgr.eventDispatcher = new TestEventDispatcher();
+        injectEventDispatcher(mgr, new TestEventDispatcher());
         mgr.deviceService = devmgr;
+        mgr.networkConfigService = new TestNetworkConfigService();
         mgr.activate();
 
         DEVICEIDMAP.put(DID1, DEV1);
@@ -302,5 +306,6 @@ public class LinkManagerTest {
         }
 
     }
-
+    private class TestNetworkConfigService extends NetworkConfigServiceAdapter {
+    }
 }

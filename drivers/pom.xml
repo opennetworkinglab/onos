@@ -57,7 +57,11 @@
             <artifactId>onos-core-serializers</artifactId>
             <version>1.3.0-SNAPSHOT</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-ovsdb-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
@@ -68,9 +72,6 @@
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
         </dependency>
-
-       
-
     </dependencies>
 
     <build>

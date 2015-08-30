@@ -16,10 +16,14 @@
 package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableList;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Service for allocating/releasing resource(s) and retrieving allocation(s) and availability.
@@ -31,11 +35,26 @@ public interface ResourceService {
      *
      * @param consumer resource user which the resource is allocated to
      * @param resource resource to be allocated
-     * @param <S> type of the subject which this resource belongs to
-     * @param <T> type of the resource
      * @return allocation information enclosed by Optional. If the allocation fails, the return value is empty
      */
-    <S, T> Optional<ResourceAllocation<S, T>> allocate(ResourceConsumer consumer, Resource<S, T> resource);
+    default Optional<ResourceAllocation> allocate(ResourceConsumer consumer, ResourcePath resource) {
+        checkNotNull(consumer);
+        checkNotNull(resource);
+
+        List<ResourceAllocation> allocations = allocate(consumer, ImmutableList.of(resource));
+        if (allocations.isEmpty()) {
+            return Optional.empty();
+        }
+
+        assert allocations.size() == 1;
+
+        ResourceAllocation allocation = allocations.get(0);
+
+        assert allocation.resource().equals(resource);
+
+        // cast is ensured by the assertions above
+        return Optional.of(allocation);
+    }
 
     /**
      * Transactionally allocates the specified resources to the specified user.
@@ -45,7 +64,7 @@ public interface ResourceService {
      * @param resources resources to be allocated
      * @return non-empty list of allocation information if succeeded, otherwise empty list
      */
-    List<ResourceAllocation<?, ?>> allocate(ResourceConsumer consumer, List<? extends Resource<?, ?>> resources);
+    List<ResourceAllocation> allocate(ResourceConsumer consumer, List<ResourcePath> resources);
 
     /**
      * Transactionally allocates the specified resources to the specified user.
@@ -55,17 +74,24 @@ public interface ResourceService {
      * @param resources resources to be allocated
      * @return non-empty list of allocation information if succeeded, otherwise empty list
      */
-    List<ResourceAllocation<?, ?>> allocate(ResourceConsumer consumer, Resource<?, ?>... resources);
+    default List<ResourceAllocation> allocate(ResourceConsumer consumer, ResourcePath... resources) {
+        checkNotNull(consumer);
+        checkNotNull(resources);
+
+        return allocate(consumer, Arrays.asList(resources));
+    }
 
     /**
      * Releases the specified resource allocation.
      *
      * @param allocation resource allocation to be released
-     * @param <S> type of the subject which this resource belongs to
-     * @param <T> type of the device resource
      * @return true if succeeded, otherwise false
      */
-    <S, T> boolean release(ResourceAllocation<S, T> allocation);
+    default boolean release(ResourceAllocation allocation) {
+        checkNotNull(allocation);
+
+        return release(ImmutableList.of(allocation));
+    }
 
     /**
      * Transactionally releases the specified resource allocations.
@@ -74,7 +100,7 @@ public interface ResourceService {
      * @param allocations resource allocations to be released
      * @return true if succeeded, otherwise false
      */
-    boolean release(List<? extends ResourceAllocation<?, ?>> allocations);
+    boolean release(List<ResourceAllocation> allocations);
 
     /**
      * Transactionally releases the specified resource allocations.
@@ -83,7 +109,11 @@ public interface ResourceService {
      * @param allocations resource allocations to be released
      * @return true if succeeded, otherwise false
      */
-    boolean release(ResourceAllocation<?, ?>... allocations);
+    default boolean release(ResourceAllocation... allocations) {
+        checkNotNull(allocations);
+
+        return release(ImmutableList.copyOf(allocations));
+    }
 
     /**
      * Transactionally releases the resources allocated to the specified consumer.
@@ -95,16 +125,14 @@ public interface ResourceService {
     boolean release(ResourceConsumer consumer);
 
     /**
-     * Returns allocated resources in the specified subject regarding the specified resource type.
+     * Returns allocated resources being as children of the specified parent and being the specified resource type.
      *
-     * @param subject subject where resource allocations are obtained
      * @param cls class to specify a type of resource
-     * @param <S> type of the subject
      * @param <T> type of the resource
      * @return non-empty collection of resource allocations if resources are allocated with the subject and type,
      * empty collection if no resource is allocated with the subject and type
      */
-    <S, T> Collection<ResourceAllocation<S, T>> getResourceAllocations(S subject, Class<T> cls);
+    <T> Collection<ResourceAllocation> getResourceAllocations(ResourcePath parent, Class<T> cls);
 
     /**
      * Returns resources allocated to the specified consumer.
@@ -112,17 +140,15 @@ public interface ResourceService {
      * @param consumer consumer whose allocated resources are to be returned
      * @return resources allocated to the consumer
      */
-    Collection<ResourceAllocation<?, ?>> getResourceAllocations(ResourceConsumer consumer);
+    Collection<ResourceAllocation> getResourceAllocations(ResourceConsumer consumer);
 
     /**
-     * Returns the availability of the specified device resource.
+     * Returns the availability of the specified resource.
      *
      * @param resource resource to check the availability
-     * @param <S> type of the subject
-     * @param <T> type of the resource
      * @return true if available, otherwise false
      */
-    <S, T> boolean isAvailable(Resource<S, T> resource);
+    boolean isAvailable(ResourcePath resource);
 
     // TODO: listener and event mechanism need to be considered
 }

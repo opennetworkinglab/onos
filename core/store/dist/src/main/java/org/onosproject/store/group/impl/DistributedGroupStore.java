@@ -60,8 +60,6 @@ import org.onosproject.net.group.StoredGroupBucketEntry;
 import org.onosproject.net.group.StoredGroupEntry;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.cluster.messaging.ClusterMessage;
-import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.serializers.DeviceIdSerializer;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -198,10 +196,11 @@ public class DistributedGroupStore
                 newFixedThreadPool(MESSAGE_HANDLER_THREAD_POOL_SIZE,
                                    groupedThreads("onos/store/group",
                                                   "message-handlers"));
-        clusterCommunicator.
-            addSubscriber(GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
-                          new ClusterGroupMsgHandler(),
-                          messageHandlingExecutor);
+
+        clusterCommunicator.addSubscriber(GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
+                kryoBuilder.build()::deserialize,
+                this::process,
+                messageHandlingExecutor);
 
         log.debug("Creating EC map groupstorekeymap");
         EventuallyConsistentMapBuilder<GroupStoreKeyMapKey, StoredGroupEntry>
@@ -970,51 +969,33 @@ public class DistributedGroupStore
             }
         }
     }
-    /**
-     * Message handler to receive messages from group subsystems of
-     * other cluster members.
-     */
-    private final class ClusterGroupMsgHandler
-                    implements ClusterMessageHandler {
-        @Override
-        public void handle(ClusterMessage message) {
-            if (message.subject().equals(
-                    GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST)) {
-                GroupStoreMessage groupOp = kryoBuilder.
-                        build().deserialize(message.payload());
-                log.debug("received remote group operation {} request for device {}",
-                          groupOp.type(),
-                          groupOp.deviceId());
-                if (mastershipService.
-                        getLocalRole(groupOp.deviceId()) !=
-                        MastershipRole.MASTER) {
-                    log.warn("ClusterGroupMsgHandler: This node is not "
-                            + "MASTER for device {}", groupOp.deviceId());
-                    return;
-                }
-                if (groupOp.type() == GroupStoreMessage.Type.ADD) {
-                    storeGroupDescriptionInternal(groupOp.groupDesc());
-                } else if (groupOp.type() == GroupStoreMessage.Type.UPDATE) {
-                    updateGroupDescriptionInternal(groupOp.deviceId(),
-                                                   groupOp.appCookie(),
-                                                   groupOp.updateType(),
-                                                   groupOp.updateBuckets(),
-                                                   groupOp.newAppCookie());
-                } else if (groupOp.type() == GroupStoreMessage.Type.DELETE) {
-                    deleteGroupDescriptionInternal(groupOp.deviceId(),
-                                                   groupOp.appCookie());
-                }
-            } else {
-                log.warn("ClusterGroupMsgHandler: Unknown remote message type {}",
-                         message.subject());
-            }
-        }
+
+    private void process(GroupStoreMessage groupOp) {
+        log.debug("Received remote group operation {} request for device {}",
+                groupOp.type(),
+                groupOp.deviceId());
+      if (!mastershipService.isLocalMaster(groupOp.deviceId())) {
+          log.warn("This node is not MASTER for device {}", groupOp.deviceId());
+          return;
+      }
+      if (groupOp.type() == GroupStoreMessage.Type.ADD) {
+          storeGroupDescriptionInternal(groupOp.groupDesc());
+      } else if (groupOp.type() == GroupStoreMessage.Type.UPDATE) {
+          updateGroupDescriptionInternal(groupOp.deviceId(),
+                                         groupOp.appCookie(),
+                                         groupOp.updateType(),
+                                         groupOp.updateBuckets(),
+                                         groupOp.newAppCookie());
+      } else if (groupOp.type() == GroupStoreMessage.Type.DELETE) {
+          deleteGroupDescriptionInternal(groupOp.deviceId(),
+                                         groupOp.appCookie());
+      }
     }
 
     /**
      * Flattened map key to be used to store group entries.
      */
-    private class GroupStoreMapKey {
+    protected static class GroupStoreMapKey {
         private final DeviceId deviceId;
 
         public GroupStoreMapKey(DeviceId deviceId) {
@@ -1047,7 +1028,7 @@ public class DistributedGroupStore
         }
     }
 
-    private class GroupStoreKeyMapKey extends GroupStoreMapKey {
+    protected static class GroupStoreKeyMapKey extends GroupStoreMapKey {
         private final GroupKey appCookie;
         public GroupStoreKeyMapKey(DeviceId deviceId,
                                    GroupKey appCookie) {
@@ -1078,7 +1059,7 @@ public class DistributedGroupStore
         }
     }
 
-    private class GroupStoreIdMapKey extends GroupStoreMapKey {
+    protected static class GroupStoreIdMapKey extends GroupStoreMapKey {
         private final GroupId groupId;
         public GroupStoreIdMapKey(DeviceId deviceId,
                                   GroupId groupId) {

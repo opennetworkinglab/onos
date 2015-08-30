@@ -17,6 +17,7 @@
         <module>device</module>
         <module>host</module>
         <module>tunnel</module>
+        <module>app</module>
     </modules>
 
     <dependencies>

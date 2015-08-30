@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.onlab.graph.DepthFirstSearch;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,10 +30,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.graph.DepthFirstSearch.EdgeType.BACK_EDGE;
+import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
 import static org.onlab.stc.Scenario.loadScenario;
 
 /**
@@ -61,8 +62,8 @@ public class Compiler {
     private static final String FILE = "[@file]";
     private static final String NAMESPACE = "[@namespace]";
 
-    private static final String PROP_START = "${";
-    private static final String PROP_END = "}";
+    static final String PROP_START = "${";
+    static final String PROP_END = "}";
     private static final String HASH = "#";
 
     private final Scenario scenario;
@@ -108,6 +109,8 @@ public class Compiler {
         // Produce the process flow
         processFlow = new ProcessFlow(ImmutableSet.copyOf(steps.values()),
                                       ImmutableSet.copyOf(dependencies));
+
+        scanForCycles();
 
         // Extract the log directory if there was one specified
         String defaultPath = DEFAULT_LOG_DIR + scenario.name();
@@ -230,7 +233,7 @@ public class Compiler {
     private void processStep(HierarchicalConfiguration cfg,
                              String namespace, Group parentGroup) {
         String name = expand(prefix(cfg.getString(NAME), namespace));
-        String command = expand(cfg.getString(COMMAND, parentGroup != null ? parentGroup.command() : null));
+        String command = expand(cfg.getString(COMMAND, parentGroup != null ? parentGroup.command() : null), true);
         String env = expand(cfg.getString(ENV, parentGroup != null ? parentGroup.env() : null));
         String cwd = expand(cfg.getString(CWD, parentGroup != null ? parentGroup.cwd() : null));
 
@@ -249,7 +252,7 @@ public class Compiler {
     private void processGroup(HierarchicalConfiguration cfg,
                               String namespace, Group parentGroup) {
         String name = expand(prefix(cfg.getString(NAME), namespace));
-        String command = expand(cfg.getString(COMMAND, parentGroup != null ? parentGroup.command() : null));
+        String command = expand(cfg.getString(COMMAND, parentGroup != null ? parentGroup.command() : null), true);
         String env = expand(cfg.getString(ENV, parentGroup != null ? parentGroup.env() : null));
         String cwd = expand(cfg.getString(CWD, parentGroup != null ? parentGroup.cwd() : null));
 
@@ -388,13 +391,14 @@ public class Compiler {
     }
 
     /**
-     * Expands any environment variables in the specified
-     * string. These are specified as ${property} tokens.
+     * Expands any environment variables in the specified string. These are
+     * specified as ${property} tokens.
      *
-     * @param string string to be processed
+     * @param string     string to be processed
+     * @param keepTokens true if the original unresolved tokens should be kept
      * @return original string with expanded substitutions
      */
-    private String expand(String string) {
+    private String expand(String string, boolean... keepTokens) {
         if (string == null) {
             return null;
         }
@@ -421,7 +425,11 @@ public class Compiler {
                     value = System.getenv(prop);
                 }
             }
-            sb.append(value != null ? value : "");
+            if (value == null && keepTokens.length == 1 && keepTokens[0]) {
+                sb.append("${").append(prop).append("}");
+            } else {
+                sb.append(value != null ? value : "");
+            }
             last = end + 1;
         }
         sb.append(pString.substring(last));
@@ -442,6 +450,22 @@ public class Compiler {
         }
         return builder.build();
     }
+
+    /**
+     * Scans the process flow graph for cyclic dependencies.
+     */
+    private void scanForCycles() {
+        DepthFirstSearch<Step, Dependency> dfs = new DepthFirstSearch<>();
+        // Use a brute-force method of searching paths from all vertices.
+        processFlow().getVertexes().forEach(s -> {
+            DepthFirstSearch<Step, Dependency>.SpanningTreeResult r =
+                    dfs.search(processFlow, s, null, null, ALL_PATHS);
+            r.edges().forEach((e, et) -> checkArgument(et != BACK_EDGE,
+                                                       "Process flow has a cycle involving dependency from %s to %s",
+                                                       e.src().name, e.dst().name));
+        });
+    }
+
 
     /**
      * Prints formatted output.

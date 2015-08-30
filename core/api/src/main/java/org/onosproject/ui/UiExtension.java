@@ -72,7 +72,7 @@ public final class UiExtension {
      * @return JavaScript inclusion statements
      */
     public InputStream js() {
-       return getStream(resourcePath + JS_HTML);
+        return getStream(resourcePath + JS_HTML);
     }
 
     /**
@@ -141,7 +141,8 @@ public final class UiExtension {
          * Views defaults to an empty list.
          * Both Message and TopoOverlay factories default to null.
          *
-         * @param cl the classloader
+         * @param cl    the class loader
+         * @param views list of views contributed by this extension
          */
         public Builder(ClassLoader cl, List<UiView> views) {
             checkNotNull(cl, "Must provide a class loader");

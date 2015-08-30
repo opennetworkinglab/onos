@@ -80,7 +80,7 @@ public class ProxyArp {
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.proxyarp");
 
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 1);
+        packetService.addProcessor(processor, PacketProcessor.director(1));
         readComponentConfiguration(context);
         requestPackests();
 

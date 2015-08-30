@@ -51,6 +51,14 @@ public interface DistributedQueueBuilder<E> {
     DistributedQueueBuilder<E> withSerializer(Serializer serializer);
 
     /**
+     *
+     *
+     * @return this DistributedQueueBuilder for method chaining
+     */
+    DistributedQueueBuilder<E> withMeteringDisabled();
+
+
+    /**
      * Disables persistence of queues entries.
      * <p>
      * When persistence is disabled, a full cluster restart will wipe out all

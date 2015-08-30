@@ -118,6 +118,13 @@
                         </goals>
                     </execution>
                     <execution>
+                        <id>swagger</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>swagger</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>app</id>
                         <phase>package</phase>
                         <goals>

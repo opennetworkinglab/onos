@@ -30,8 +30,8 @@ public class TCP extends BasePacket {
 
     private static final short TCP_HEADER_LENGTH = 20;
 
-    protected short sourcePort;
-    protected short destinationPort;
+    protected int sourcePort;
+    protected int destinationPort;
     protected int sequence;
     protected int acknowledge;
     protected byte dataOffset;
@@ -46,17 +46,17 @@ public class TCP extends BasePacket {
      *
      * @return TCP source port
      */
-    public short getSourcePort() {
+    public int getSourcePort() {
         return this.sourcePort;
     }
 
     /**
      * Sets TCP source port.
      *
-     * @param sourcePort the sourcePort to set
+     * @param sourcePort the sourcePort to set (unsigned 16 bits integer)
      * @return this
      */
-    public TCP setSourcePort(final short sourcePort) {
+    public TCP setSourcePort(final int sourcePort) {
         this.sourcePort = sourcePort;
         return this;
     }
@@ -66,17 +66,17 @@ public class TCP extends BasePacket {
      *
      * @return the destinationPort
      */
-    public short getDestinationPort() {
+    public int getDestinationPort() {
         return this.destinationPort;
     }
 
     /**
      * Sets TCP destination port.
      *
-     * @param destinationPort the destinationPort to set
+     * @param destinationPort the destinationPort to set (unsigned 16 bits integer)
      * @return this
      */
-    public TCP setDestinationPort(final short destinationPort) {
+    public TCP setDestinationPort(final int destinationPort) {
         this.destinationPort = destinationPort;
         return this;
     }
@@ -270,8 +270,8 @@ public class TCP extends BasePacket {
         final byte[] data = new byte[length];
         final ByteBuffer bb = ByteBuffer.wrap(data);
 
-        bb.putShort(this.sourcePort);
-        bb.putShort(this.destinationPort);
+        bb.putShort((short) (this.sourcePort & 0xffff));
+        bb.putShort((short) (this.destinationPort & 0xffff));
         bb.putInt(this.sequence);
         bb.putInt(this.acknowledge);
         bb.putShort((short) (this.flags | this.dataOffset << 12));
@@ -348,8 +348,8 @@ public class TCP extends BasePacket {
     public IPacket deserialize(final byte[] data, final int offset,
                                final int length) {
         final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.sourcePort = bb.getShort();
-        this.destinationPort = bb.getShort();
+        this.sourcePort = (bb.getShort() & 0xffff);
+        this.destinationPort = (bb.getShort() & 0xffff);
         this.sequence = bb.getInt();
         this.acknowledge = bb.getInt();
         this.flags = bb.getShort();
@@ -435,8 +435,8 @@ public class TCP extends BasePacket {
             TCP tcp = new TCP();
 
             final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-            tcp.sourcePort = bb.getShort();
-            tcp.destinationPort = bb.getShort();
+            tcp.sourcePort = (bb.getShort() & 0xffff);
+            tcp.destinationPort = (bb.getShort() & 0xffff);
             tcp.sequence = bb.getInt();
             tcp.acknowledge = bb.getInt();
             tcp.flags = bb.getShort();

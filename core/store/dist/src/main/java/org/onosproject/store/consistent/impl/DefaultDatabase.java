@@ -30,7 +30,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
@@ -159,13 +158,13 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     }
 
     @Override
-    public CompletableFuture<Set<NodeId>> queuePush(String queueName, byte[] entry) {
+    public CompletableFuture<Void> queuePush(String queueName, byte[] entry) {
         return checkOpen(() -> proxy.queuePush(queueName, entry));
     }
 
     @Override
-    public CompletableFuture<byte[]> queuePop(String queueName, NodeId nodeId) {
-        return checkOpen(() -> proxy.queuePop(queueName, nodeId));
+    public CompletableFuture<byte[]> queuePop(String queueName) {
+        return checkOpen(() -> proxy.queuePop(queueName));
     }
 
     @Override
@@ -174,7 +173,7 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     }
 
     @Override
-    public CompletableFuture<Boolean> prepareAndCommit(Transaction transaction) {
+    public CompletableFuture<CommitResponse> prepareAndCommit(Transaction transaction) {
         return checkOpen(() -> proxy.prepareAndCommit(transaction));
     }
 
@@ -184,7 +183,7 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     }
 
     @Override
-    public CompletableFuture<Boolean> commit(Transaction transaction) {
+    public CompletableFuture<CommitResponse> commit(Transaction transaction) {
         return checkOpen(() -> proxy.commit(transaction));
     }
 
@@ -232,11 +231,6 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     @Override
     public void unregisterConsumer(Consumer<StateMachineUpdate> consumer) {
         consumers.remove(consumer);
-    }
-
-    @Override
-    public boolean hasChangeNotificationSupport() {
-        return false;
     }
 
     private class InternalStateMachineWatcher implements TriConsumer<String, Object, Object> {

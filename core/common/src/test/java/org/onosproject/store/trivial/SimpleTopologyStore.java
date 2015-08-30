@@ -19,6 +19,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.common.DefaultTopology;
 import org.onosproject.event.Event;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;

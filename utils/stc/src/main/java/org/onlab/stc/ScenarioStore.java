@@ -125,6 +125,16 @@ class ScenarioStore {
     }
 
     /**
+     * Returns true if all steps in the store have been marked as completed
+     * regardless of the completion status.
+     *
+     * @return true if all steps completed one way or another
+     */
+    synchronized boolean isComplete() {
+        return !statusMap.values().stream().anyMatch(s -> s == WAITING || s == IN_PROGRESS);
+    }
+
+    /**
      * Indicates whether there are any failures.
      *
      * @return true if there are failed steps
@@ -157,7 +167,7 @@ class ScenarioStore {
             cfg.getKeys().forEachRemaining(prop -> add(StepEvent.fromString(cfg.getString(prop))));
             cfg.save();
         } catch (ConfigurationException e) {
-            print("Unable to store file %s", storeFile);
+            print("Unable to load file %s", storeFile);
         }
     }
 

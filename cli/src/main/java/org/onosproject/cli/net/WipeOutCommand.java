@@ -47,31 +47,24 @@ public class WipeOutCommand extends ClustersListCommand {
             return;
         }
 
-        print("Wiping devices");
-        DeviceAdminService deviceAdminService = get(DeviceAdminService.class);
-        while (deviceAdminService.getDeviceCount() > 0) {
-            try {
-                for (Device device : deviceAdminService.getDevices()) {
-                    deviceAdminService.removeDevice(device.id());
-                }
-            } catch (Exception e) {
-                log.warn("Unable to wipe-out devices", e);
-            }
-        }
+        wipeOutIntents();
+        wipeOutHosts();
+        wipeOutDevices();
+        wipeOutLinks();
+    }
 
-        print("Wiping links");
-        LinkAdminService linkAdminService = get(LinkAdminService.class);
-        while (linkAdminService.getLinkCount() > 0) {
-            try {
-                for (Link link : linkAdminService.getLinks()) {
-                    linkAdminService.removeLinks(link.src());
-                    linkAdminService.removeLinks(link.dst());
-                }
-            } catch (Exception e) {
-                log.warn("Unable to wipe-out links", e);
+    private void wipeOutIntents() {
+        print("Wiping intents");
+        IntentService intentService = get(IntentService.class);
+        for (Intent intent : intentService.getIntents()) {
+            if (intentService.getIntentState(intent.key()) != IntentState.WITHDRAWN) {
+                intentService.withdraw(intent);
             }
+            intentService.purge(intent);
         }
+    }
 
+    private void wipeOutHosts() {
         print("Wiping hosts");
         HostAdminService hostAdminService = get(HostAdminService.class);
         while (hostAdminService.getHostCount() > 0) {
@@ -83,14 +76,34 @@ public class WipeOutCommand extends ClustersListCommand {
                 log.warn("Unable to wipe-out hosts", e);
             }
         }
+    }
 
-        print("Wiping intents");
-        IntentService intentService = get(IntentService.class);
-        for (Intent intent : intentService.getIntents()) {
-            if (intentService.getIntentState(intent.key()) != IntentState.WITHDRAWN) {
-                intentService.withdraw(intent);
+    private void wipeOutDevices() {
+        print("Wiping devices");
+        DeviceAdminService deviceAdminService = get(DeviceAdminService.class);
+        while (deviceAdminService.getDeviceCount() > 0) {
+            try {
+                for (Device device : deviceAdminService.getDevices()) {
+                    deviceAdminService.removeDevice(device.id());
+                }
+            } catch (Exception e) {
+                log.warn("Unable to wipe-out devices", e);
             }
-            intentService.purge(intent);
+        }
+    }
+
+    private void wipeOutLinks() {
+        print("Wiping links");
+        LinkAdminService linkAdminService = get(LinkAdminService.class);
+        while (linkAdminService.getLinkCount() > 0) {
+            try {
+                for (Link link : linkAdminService.getLinks()) {
+                    linkAdminService.removeLinks(link.src());
+                    linkAdminService.removeLinks(link.dst());
+                }
+            } catch (Exception e) {
+                log.warn("Unable to wipe-out links", e);
+            }
         }
     }
 }

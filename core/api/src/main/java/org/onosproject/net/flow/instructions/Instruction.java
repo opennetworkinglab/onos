@@ -40,6 +40,11 @@ public interface Instruction {
         GROUP,
 
         /**
+         * Signifies that traffic should be metered according to a meter.
+         */
+        METER,
+
+        /**
          * Signifies that the traffic should be modified in L0 way.
          */
         L0MODIFICATION,

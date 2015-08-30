@@ -88,8 +88,8 @@ public class TCPTest {
     @Test
     public void testSerialize() {
         TCP tcp = new TCP();
-        tcp.setSourcePort((short) 0x50);
-        tcp.setDestinationPort((short) 0x60);
+        tcp.setSourcePort(0x50);
+        tcp.setDestinationPort(0x60);
         tcp.setSequence(0x10);
         tcp.setAcknowledge(0x20);
         tcp.setDataOffset((byte) 0x5);
@@ -121,8 +121,8 @@ public class TCPTest {
     public void testDeserialize() throws Exception {
         TCP tcp = deserializer.deserialize(bytePacketTCP4, 0, bytePacketTCP4.length);
 
-        assertThat(tcp.getSourcePort(), is((short) 0x50));
-        assertThat(tcp.getDestinationPort(), is((short) 0x60));
+        assertThat(tcp.getSourcePort(), is(0x50));
+        assertThat(tcp.getDestinationPort(), is(0x60));
         assertThat(tcp.getSequence(), is(0x10));
         assertThat(tcp.getAcknowledge(), is(0x20));
         assertThat(tcp.getDataOffset(), is((byte) 0x5));
@@ -138,8 +138,8 @@ public class TCPTest {
     @Test
     public void testEqual() {
         TCP tcp1 = new TCP();
-        tcp1.setSourcePort((short) 0x50);
-        tcp1.setDestinationPort((short) 0x60);
+        tcp1.setSourcePort(0x50);
+        tcp1.setDestinationPort(0x60);
         tcp1.setSequence(0x10);
         tcp1.setAcknowledge(0x20);
         tcp1.setDataOffset((byte) 0x5);
@@ -148,8 +148,8 @@ public class TCPTest {
         tcp1.setUrgentPointer((short) 0x1);
 
         TCP tcp2 = new TCP();
-        tcp2.setSourcePort((short) 0x70);
-        tcp2.setDestinationPort((short) 0x60);
+        tcp2.setSourcePort(0x70);
+        tcp2.setDestinationPort(0x60);
         tcp2.setSequence(0x10);
         tcp2.setAcknowledge(0x20);
         tcp2.setDataOffset((byte) 0x5);

@@ -15,21 +15,14 @@
  */
 package org.onosproject.routing.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.googlecode.concurrenttrees.common.KeyValuePair;
+import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
+import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
+import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -41,6 +34,9 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onosproject.core.CoreService;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostEvent;
@@ -55,20 +51,25 @@ import org.onosproject.routing.RouteEntry;
 import org.onosproject.routing.RouteListener;
 import org.onosproject.routing.RouteUpdate;
 import org.onosproject.routing.RoutingService;
-import org.onosproject.routing.config.Interface;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.SetMultimap;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.googlecode.concurrenttrees.common.KeyValuePair;
-import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
-import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
-import com.googlecode.concurrenttrees.radixinverted.InvertedRadixTree;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.routing.RouteEntry.createBinaryString;
 
 /**
@@ -102,10 +103,16 @@ public class Router implements RoutingService {
     private IntentRequestListener intentRequestListener;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected BgpService bgpService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected InterfaceService interfaceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RoutingConfigurationService routingConfigurationService;
@@ -122,6 +129,8 @@ public class Router implements RoutingService {
 
         routesWaitingOnArp = Multimaps.synchronizedSetMultimap(
                 HashMultimap.<IpAddress, RouteEntry>create());
+
+        coreService.registerApplication(ROUTER_APP_ID);
 
         bgpUpdatesExecutor = Executors.newSingleThreadExecutor(
                 new ThreadFactoryBuilder()
@@ -599,8 +608,7 @@ public class Router implements RoutingService {
             RouteEntry routeEntry = getLongestMatchableRouteEntry(dstIpAddress);
             if (routeEntry != null) {
                 nextHopIpAddress = routeEntry.nextHop();
-                Interface it = routingConfigurationService
-                        .getMatchingInterface(nextHopIpAddress);
+                Interface it = interfaceService.getMatchingInterface(nextHopIpAddress);
                 if (it != null) {
                     return it.connectPoint();
                 } else {
@@ -696,18 +704,18 @@ public class Router implements RoutingService {
     private TrafficType trafficTypeClassifier(ConnectPoint srcConnectPoint,
                                               IpAddress dstIp) {
         LocationType dstIpLocationType = getLocationType(dstIp);
-        Interface srcInterface =
-                routingConfigurationService.getInterface(srcConnectPoint);
+        Optional<Interface> srcInterface =
+                interfaceService.getInterfacesByPort(srcConnectPoint).stream().findFirst();
 
         switch (dstIpLocationType) {
         case INTERNET:
-            if (srcInterface == null) {
+            if (!srcInterface.isPresent()) {
                 return TrafficType.HOST_TO_INTERNET;
             } else {
                 return TrafficType.INTERNET_TO_INTERNET;
             }
         case LOCAL:
-            if (srcInterface == null) {
+            if (!srcInterface.isPresent()) {
                 return TrafficType.HOST_TO_HOST;
             } else {
                 // TODO Currently we only consider local public prefixes.

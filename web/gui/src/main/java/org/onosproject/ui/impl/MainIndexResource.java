@@ -18,6 +18,7 @@ package org.onosproject.ui.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import org.onlab.osgi.ServiceNotFoundException;
+import org.onosproject.rest.AbstractInjectionResource;
 import org.onosproject.ui.UiExtensionService;
 
 import javax.ws.rs.GET;

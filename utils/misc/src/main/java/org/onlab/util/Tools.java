@@ -46,6 +46,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -190,6 +192,16 @@ public abstract class Tools {
     }
 
     /**
+     * Returns a copy of the input byte array.
+     *
+     * @param original input
+     * @return copy of original
+     */
+    public static byte[] copyOf(byte[] original) {
+        return Arrays.copyOf(original, original.length);
+    }
+
+    /**
      * Get property as a string value.
      *
      * @param properties   properties to be looked up
@@ -214,6 +226,44 @@ public abstract class Tools {
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted", e);
         }
+    }
+
+    /**
+     * Returns a function that retries execution on failure.
+     * @param base base function
+     * @param exceptionClass type of exception for which to retry
+     * @param maxRetries max number of retries before giving up
+     * @param maxDelayBetweenRetries max delay between successive retries. The actual delay is randomly picked from
+     * the interval (0, maxDelayBetweenRetries]
+     * @return function
+     * @param <U> type of function input
+     * @param <V> type of function output
+     */
+    public static <U, V> Function<U, V> retryable(Function<U, V> base,
+            Class<? extends Throwable> exceptionClass,
+            int maxRetries,
+            int maxDelayBetweenRetries) {
+        return new RetryingFunction<>(base, exceptionClass, maxRetries, maxDelayBetweenRetries);
+    }
+
+    /**
+     * Returns a Supplier that retries execution on failure.
+     * @param base base supplier
+     * @param exceptionClass type of exception for which to retry
+     * @param maxRetries max number of retries before giving up
+     * @param maxDelayBetweenRetries max delay between successive retries. The actual delay is randomly picked from
+     * the interval (0, maxDelayBetweenRetries]
+     * @return supplier
+     * @param <V> type of supplied result
+     */
+    public static <V> Supplier<V> retryable(Supplier<V> base,
+            Class<? extends Throwable> exceptionClass,
+            int maxRetries,
+            int maxDelayBetweenRetries) {
+        return () -> new RetryingFunction<>(v -> base.get(),
+                exceptionClass,
+                maxRetries,
+                maxDelayBetweenRetries).apply(null);
     }
 
     /**
@@ -389,6 +439,7 @@ public abstract class Tools {
     /**
      * Returns the future value when complete or if future
      * completes exceptionally returns the defaultValue.
+     *
      * @param future future
      * @param defaultValue default value
      * @param <T> future value type
@@ -409,6 +460,7 @@ public abstract class Tools {
     /**
      * Returns the future value when complete or if future
      * completes exceptionally returns the defaultValue.
+     *
      * @param future future
      * @param timeout time to wait for successful completion
      * @param timeUnit time unit
@@ -433,6 +485,7 @@ public abstract class Tools {
 
     /**
      * Returns a future that is completed exceptionally.
+     *
      * @param t exception
      * @param <T> future value type
      * @return future
@@ -448,6 +501,7 @@ public abstract class Tools {
      * <p>
      * WARNING: There is a performance cost due to array copy
      * when using this method.
+     *
      * @param buffer byte buffer
      * @return byte array containing the byte buffer contents
      */
@@ -463,10 +517,11 @@ public abstract class Tools {
     }
 
     /**
-     * Converts an Iterable to a Stream.
+     * Converts an iterable to a stream.
      *
-     * @param it Iterable to convert
-     * @return Iterable as a Stream
+     * @param it iterable to convert
+     * @param <T> type if item
+     * @return iterable as a stream
      */
     public static <T> Stream<T> stream(Iterable<T> it) {
         return StreamSupport.stream(it.spliterator(), false);

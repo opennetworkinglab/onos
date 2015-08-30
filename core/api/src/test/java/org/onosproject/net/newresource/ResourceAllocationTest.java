@@ -33,15 +33,14 @@ public class ResourceAllocationTest {
     private static final ConnectPoint CP2_1 = new ConnectPoint(D2, P1);
     private static final VlanId VLAN1 = VlanId.vlanId((short) 100);
     private static final IntentId IID1 = IntentId.valueOf(30);
+    private static final LinkKey LK1 = LinkKey.linkKey(CP1_1, CP2_1);
+    private static final LinkKey LK2 = LinkKey.linkKey(CP2_1, CP1_1);
 
     @Test
     public void testEquals() {
-        DefaultResourceAllocation<LinkKey, VlanId> alloc1 =
-                new DefaultResourceAllocation<>(LinkKey.linkKey(CP1_1, CP2_1), VLAN1, IID1);
-        DefaultResourceAllocation<LinkKey, VlanId> sameAsAlloc1 =
-                new DefaultResourceAllocation<>(LinkKey.linkKey(CP1_1, CP2_1), VLAN1, IID1);
-        DefaultResourceAllocation<LinkKey, VlanId> alloc2 =
-                new DefaultResourceAllocation<>(LinkKey.linkKey(CP2_1, CP1_1), VLAN1, IID1);
+        ResourceAllocation alloc1 = new ResourceAllocation(new ResourcePath(LK1, VLAN1), IID1);
+        ResourceAllocation sameAsAlloc1 = new ResourceAllocation(new ResourcePath(LK1, VLAN1), IID1);
+        ResourceAllocation alloc2 = new ResourceAllocation(new ResourcePath(LK2, VLAN1), IID1);
 
         new EqualsTester()
                 .addEqualityGroup(alloc1, sameAsAlloc1)

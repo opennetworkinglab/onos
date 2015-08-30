@@ -203,10 +203,14 @@
                 .append('svg'),
             title = summary.appendHeader('h2'),
             table = summary.appendBody('table'),
-            tbody = table.append('tbody');
+            tbody = table.append('tbody'),
+            glyphId = data.type || 'node';
 
-        gs.addGlyph(svg, 'node', 40);
-        gs.addGlyph(svg, 'bird', 24, true, [8,12]);
+        gs.addGlyph(svg, glyphId, 40);
+
+        if (glyphId === 'node') {
+            gs.addGlyph(svg, 'bird', 24, true, [8,12]);
+        }
 
         title.text(data.title);
         listProps(tbody, data);
@@ -214,6 +218,11 @@
 
     // === -----------------------------------------------------
     //  Functions for populating the detail panel
+
+    var isDevice = {
+        switch: 1,
+        roadm: 1
+    };
 
     function displaySingle(data) {
         detail.setup();
@@ -224,16 +233,21 @@
             title = detail.appendHeader('h2')
                 .classed('clickable', true),
             table = detail.appendBody('table'),
-            tbody = table.append('tbody');
+            tbody = table.append('tbody'),
+            navFn;
 
         gs.addGlyph(svg, (data.type || 'unknown'), 40);
-        title.text(data.id);
-        svg.on('click', function () {
-            ns.navTo(devPath, { devId: data.id });
-        });
-        title.on('click', function () {
-            ns.navTo(devPath, { devId: data.id });
-        });
+        title.text(data.title);
+
+        // only add navigation when displaying a device
+        if (isDevice[data.type]) {
+            navFn = function () {
+                ns.navTo(devPath, { devId: data.id });
+            };
+
+            svg.on('click', navFn);
+            title.on('click', navFn);
+        }
 
         listProps(tbody, data);
         addBtnFooter();
@@ -258,7 +272,7 @@
             .select('.actionBtns')
             .append('div')
             .classed('actionBtn', true);
-        bns.button(btnDiv, idDet + o.id, o.gid, o.cb, o.tt);
+        bns.button(btnDiv, idDet + '-' + o.id, o.gid, o.cb, o.tt);
     }
 
     var friendlyIndex = {

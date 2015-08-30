@@ -30,6 +30,11 @@ export PATH="$PATH:$MAVEN/bin:$KARAF_ROOT/bin"
 # Setup cell enviroment
 export ONOS_CELL=${ONOS_CELL:-local}
 
+# Setup default web user/password
+export ONOS_WEB_USER=onos
+export ONOS_WEB_PASS=rocks
+
+# Setup default location of test scenarios
 export ONOS_SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 
 # Convenience utility to warp to various ONOS source projects
@@ -78,8 +83,9 @@ alias ole='olo "ERROR|WARN|Exception|Error"'
 # Pretty-print JSON output
 alias pp='python -m json.tool'
 
-# Short-hand to launch API docs and sample topology viewer GUI
+# Short-hand to launch Java API docs, REST API docs and ONOS GUI
 alias docs='open $ONOS_ROOT/docs/target/site/apidocs/index.html'
+alias rsdocs='onos-rsdocs'
 alias gui='onos-gui'
 
 
@@ -105,6 +111,8 @@ function cell {
         unset ONOS_CELL ONOS_NIC ONOS_IP ONOS_APPS ONOS_BOOT_FEATURES
         unset OCI OCN OCT ONOS_INSTANCES ONOS_USER ONOS_GROUP ONOS_FEATURES
         unset $(env | sed -n 's:\(^OC[0-9]\{1,\}\)=.*:\1 :g p')
+        export ONOS_WEB_USER=onos
+        export ONOS_WEB_PASS=rocks
         export ONOS_CELL=$1
         . $ONOS_ROOT/tools/test/cells/$1
         export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
@@ -115,7 +123,7 @@ function cell {
         env | egrep "OCI"
         env | egrep "OC[0-9]+" | sort
         env | egrep "OC[NT]"
-        env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES'
+        env | egrep "ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES' | sort
     fi
 }
 

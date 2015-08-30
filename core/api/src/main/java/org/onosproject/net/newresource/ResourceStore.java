@@ -11,6 +11,29 @@ import java.util.Optional;
  */
 @Beta
 public interface ResourceStore {
+
+    /**
+     * Registers the resources in transactional way.
+     * Resource registration must be done before resource allocation. The state after completion
+     * of this method is all the resources are registered, or none of the given resources is registered.
+     * The whole registration fails when any one of the resource can't be registered.
+     *
+     * @param resources resources to be registered
+     * @return true if the registration succeeds, false otherwise
+     */
+    boolean register(List<ResourcePath> resources);
+
+    /**
+     * Unregisters the resources in transactional way.
+     * The state after completion of this method is all the resources are unregistered,
+     * or none of the given resources is unregistered. The whole unregistration fails when any one of the
+     * resource can't be unregistered.
+     *
+     * @param resources resources to be unregistered
+     * @return true if the registration succeeds, false otherwise
+     */
+    boolean unregister(List<ResourcePath> resources);
+
     /**
      * Allocates the specified resources to the specified consumer in transactional way.
      * The state after completion of this method is all the resources are allocated to the consumer,
@@ -21,7 +44,7 @@ public interface ResourceStore {
      * @param consumer resource consumer which the resources are allocated to
      * @return true if the allocation succeeds, false otherwise.
      */
-    boolean allocate(List<? extends Resource<?, ?>> resources, ResourceConsumer consumer);
+    boolean allocate(List<ResourcePath> resources, ResourceConsumer consumer);
 
     /**
      * Releases the specified resources allocated to the specified corresponding consumers
@@ -35,17 +58,15 @@ public interface ResourceStore {
      * @param consumers resource consumers to whom the resource allocated to
      * @return true if succeeds, otherwise false
      */
-    boolean release(List<? extends Resource<?, ?>> resources, List<ResourceConsumer> consumers);
+    boolean release(List<ResourcePath> resources, List<ResourceConsumer> consumers);
 
     /**
      * Returns the resource consumer to whom the specified resource is allocated.
      *
      * @param resource resource whose allocated consumer to be returned
-     * @param <S> type of subject of the resource
-     * @param <T> type of resource
      * @return resource consumer who are allocated the resource
      */
-    <S, T> Optional<ResourceConsumer> getConsumer(Resource<S, T> resource);
+    Optional<ResourceConsumer> getConsumer(ResourcePath resource);
 
     /**
      * Returns a collection of the resources allocated to the specified consumer.
@@ -53,18 +74,17 @@ public interface ResourceStore {
      * @param consumer resource consumer whose allocated resource are searched for
      * @return a collection of the resources allocated to the specified consumer
      */
-    Collection<Resource<?, ?>> getResources(ResourceConsumer consumer);
+    Collection<ResourcePath> getResources(ResourceConsumer consumer);
 
     /**
-     * Returns a collection of the resources which belongs to the specified subject and
+     * Returns a collection of the resources which are children of the specified parent and
      * whose type is the specified class.
      *
-     * @param subject subject of the resources to be returned
-     * @param cls class instance of the resources
-     * @param <S> type of the subject
+     * @param parent parent of the resources to be returned
+     * @param cls class instance of the children
      * @param <T> type of the resource
      * @return a collection of the resources which belongs to the specified subject and
      * whose type is the specified class.
      */
-    <S, T> Collection<Resource<S, T>> getAllocatedResources(S subject, Class<T> cls);
+    <T> Collection<ResourcePath> getAllocatedResources(ResourcePath parent, Class<T> cls);
 }

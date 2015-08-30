@@ -58,17 +58,19 @@ import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
+import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -198,6 +200,9 @@ public class FlowRuleCodecTest {
                     } else if (instruction.type() == Instruction.Type.L3MODIFICATION) {
                         subType = ((L3ModificationInstruction) instruction)
                                 .subtype().name();
+                    } else if (instruction.type() == Instruction.Type.L4MODIFICATION) {
+                        subType = ((L4ModificationInstruction) instruction)
+                                .subtype().name();
                     } else {
                         subType = "";
                     }
@@ -205,7 +210,7 @@ public class FlowRuleCodecTest {
                             instruction.type().name() + "/" + subType, instruction);
                 });
 
-        assertThat(rule.treatment().allInstructions().size(), is(19));
+        assertThat(rule.treatment().allInstructions().size(), is(24));
 
         Instruction instruction;
 
@@ -241,8 +246,8 @@ public class FlowRuleCodecTest {
                 L2ModificationInstruction.L2SubType.MPLS_LABEL.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
         assertThat(((L2ModificationInstruction.ModMplsLabelInstruction) instruction)
-                        .label().shortValue(),
-                is((short) 777));
+                        .mplsLabel().toInt(),
+                is(MplsLabel.MAX_MPLS));
 
         instruction = getInstruction(Instruction.Type.L2MODIFICATION,
                 L2ModificationInstruction.L2SubType.MPLS_PUSH.name());
@@ -272,6 +277,12 @@ public class FlowRuleCodecTest {
                 L2ModificationInstruction.L2SubType.VLAN_PUSH.name());
         assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
         assertThat(instruction, instanceOf(L2ModificationInstruction.PushHeaderInstructions.class));
+
+        instruction = getInstruction(Instruction.Type.L2MODIFICATION,
+                L2ModificationInstruction.L2SubType.TUNNEL_ID.name());
+        assertThat(instruction.type(), is(Instruction.Type.L2MODIFICATION));
+        assertThat(((L2ModificationInstruction.ModTunnelIdInstruction) instruction)
+                        .tunnelId(), is(100L));
 
         instruction = getInstruction(Instruction.Type.L3MODIFICATION,
                 L3ModificationInstruction.L3SubType.IPV4_SRC.name());
@@ -320,6 +331,30 @@ public class FlowRuleCodecTest {
         assertThat(och.lambda().slotGranularity(), is(8));
         assertThat(och.lambda().gridType(), is(GridType.DWDM));
         assertThat(och.lambda().channelSpacing(), is(ChannelSpacing.CHL_100GHZ));
+
+        instruction = getInstruction(Instruction.Type.L4MODIFICATION,
+                L4ModificationInstruction.L4SubType.TCP_DST.name());
+        assertThat(instruction.type(), is(Instruction.Type.L4MODIFICATION));
+        assertThat(((L4ModificationInstruction.ModTransportPortInstruction) instruction)
+                .port().toInt(), is(40001));
+
+        instruction = getInstruction(Instruction.Type.L4MODIFICATION,
+                L4ModificationInstruction.L4SubType.TCP_SRC.name());
+        assertThat(instruction.type(), is(Instruction.Type.L4MODIFICATION));
+        assertThat(((L4ModificationInstruction.ModTransportPortInstruction) instruction)
+                .port().toInt(), is(40002));
+
+        instruction = getInstruction(Instruction.Type.L4MODIFICATION,
+                L4ModificationInstruction.L4SubType.UDP_DST.name());
+        assertThat(instruction.type(), is(Instruction.Type.L4MODIFICATION));
+        assertThat(((L4ModificationInstruction.ModTransportPortInstruction) instruction)
+                .port().toInt(), is(40003));
+
+        instruction = getInstruction(Instruction.Type.L4MODIFICATION,
+                L4ModificationInstruction.L4SubType.UDP_SRC.name());
+        assertThat(instruction.type(), is(Instruction.Type.L4MODIFICATION));
+        assertThat(((L4ModificationInstruction.ModTransportPortInstruction) instruction)
+                .port().toInt(), is(40004));
     }
 
     SortedMap<String, Criterion> criteria = new TreeMap<>();
@@ -347,7 +382,7 @@ public class FlowRuleCodecTest {
 
         checkCommonData(rule);
 
-        assertThat(rule.selector().criteria().size(), is(32));
+        assertThat(rule.selector().criteria().size(), is(33));
 
         rule.selector().criteria()
                 .stream()
@@ -412,27 +447,27 @@ public class FlowRuleCodecTest {
                 is((IpPrefix.valueOf("4.2.0.0/32"))));
 
         criterion = getCriterion(Criterion.Type.TCP_SRC);
-        assertThat(((TcpPortCriterion) criterion).tcpPort(),
+        assertThat(((TcpPortCriterion) criterion).tcpPort().toInt(),
                 is(80));
 
         criterion = getCriterion(Criterion.Type.TCP_DST);
-        assertThat(((TcpPortCriterion) criterion).tcpPort(),
+        assertThat(((TcpPortCriterion) criterion).tcpPort().toInt(),
                 is(443));
 
         criterion = getCriterion(Criterion.Type.UDP_SRC);
-        assertThat(((UdpPortCriterion) criterion).udpPort(),
+        assertThat(((UdpPortCriterion) criterion).udpPort().toInt(),
                 is(180));
 
         criterion = getCriterion(Criterion.Type.UDP_DST);
-        assertThat(((UdpPortCriterion) criterion).udpPort(),
+        assertThat(((UdpPortCriterion) criterion).udpPort().toInt(),
                 is(1443));
 
         criterion = getCriterion(Criterion.Type.SCTP_SRC);
-        assertThat(((SctpPortCriterion) criterion).sctpPort(),
+        assertThat(((SctpPortCriterion) criterion).sctpPort().toInt(),
                 is(280));
 
         criterion = getCriterion(Criterion.Type.SCTP_DST);
-        assertThat(((SctpPortCriterion) criterion).sctpPort(),
+        assertThat(((SctpPortCriterion) criterion).sctpPort().toInt(),
                 is(2443));
 
         criterion = getCriterion(Criterion.Type.ICMPV4_TYPE);
@@ -479,6 +514,10 @@ public class FlowRuleCodecTest {
         criterion = getCriterion(Criterion.Type.OCH_SIGID);
         assertThat(((IndexedLambdaCriterion) criterion).lambda(),
                 is(Lambda.indexedLambda(122)));
+
+        criterion = getCriterion(Criterion.Type.TUNNEL_ID);
+        assertThat(((TunnelIdCriterion) criterion).tunnelId(),
+                is(100L));
     }
 
     /**

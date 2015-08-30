@@ -26,6 +26,8 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -94,7 +96,7 @@ public class HostMonitorTest {
         expectLastCall().once();
         replay(hostProvider);
 
-        hostMonitor = new HostMonitor(null, null, hostManager);
+        hostMonitor = new HostMonitor(null, hostManager, null);
 
         hostMonitor.registerHostProvider(hostProvider);
         hostMonitor.addMonitoringFor(TARGET_IP_ADDR);
@@ -129,16 +131,20 @@ public class HostMonitorTest {
                 new PortAddresses(cp, Collections.singleton(IA1), sourceMac, VlanId.NONE);
 
         expect(hostManager.getHostsByIp(TARGET_IP_ADDR))
-                .andReturn(Collections.<Host>emptySet()).anyTimes();
-        expect(hostManager.getAddressBindingsForPort(cp))
-                .andReturn(Collections.singleton(pa)).anyTimes();
+                .andReturn(Collections.emptySet()).anyTimes();
         replay(hostManager);
+
+        InterfaceService interfaceService = createMock(InterfaceService.class);
+        expect(interfaceService.getMatchingInterface(TARGET_IP_ADDR))
+                .andReturn(new Interface(cp, Collections.singleton(IA1), sourceMac, VlanId.NONE))
+                .anyTimes();
+        replay(interfaceService);
 
         TestPacketService packetService = new TestPacketService();
 
 
         // Run the test
-        hostMonitor = new HostMonitor(deviceService, packetService, hostManager);
+        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService);
 
         hostMonitor.addMonitoringFor(TARGET_IP_ADDR);
         hostMonitor.run(null);
@@ -197,16 +203,20 @@ public class HostMonitorTest {
                                   VlanId.vlanId(vlan));
 
         expect(hostManager.getHostsByIp(TARGET_IP_ADDR))
-                .andReturn(Collections.<Host>emptySet()).anyTimes();
-        expect(hostManager.getAddressBindingsForPort(cp))
-                .andReturn(Collections.singleton(pa)).anyTimes();
+                .andReturn(Collections.emptySet()).anyTimes();
         replay(hostManager);
+
+        InterfaceService interfaceService = createMock(InterfaceService.class);
+        expect(interfaceService.getMatchingInterface(TARGET_IP_ADDR))
+                .andReturn(new Interface(cp, Collections.singleton(IA1), sourceMac, VlanId.vlanId(vlan)))
+                .anyTimes();
+        replay(interfaceService);
 
         TestPacketService packetService = new TestPacketService();
 
 
         // Run the test
-        hostMonitor = new HostMonitor(deviceService, packetService, hostManager);
+        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService);
 
         hostMonitor.addMonitoringFor(TARGET_IP_ADDR);
         hostMonitor.run(null);

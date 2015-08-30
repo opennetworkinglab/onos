@@ -20,7 +20,7 @@ package org.onosproject.pcep.api;
  */
 public interface PcepSwitch extends PcepOperator {
 
-    public static enum DeviceType {
+    enum DeviceType {
         /* optical device */
         ROADM,
 
@@ -38,55 +38,55 @@ public interface PcepSwitch extends PcepOperator {
      * Gets a string version of the ID for this switch.
      * @return string version of the ID
      */
-    public String getStringId();
+    String getStringId();
 
     /**
      * Gets the datapathId of the switch.
      * @return the switch dpid in long format
      */
-    public long getId();
+    long getId();
 
-    public long getNeId();
+    long getNeId();
 
     /**
      * Gets the sub type of the device.
      * @return the sub type
      */
-    public DeviceType getDeviceType();
+    DeviceType getDeviceType();
 
     /**
      * fetch the manufacturer description.
      * @return the description
      */
-    public String manufacturerDescription();
+    String manufacturerDescription();
 
     /**
      * fetch the datapath description.
      * @return the description
      */
-    public String datapathDescription();
+    String datapathDescription();
 
     /**
      * fetch the hardware description.
      * @return the description
      */
-    public String hardwareDescription();
+    String hardwareDescription();
 
     /**
      * fetch the software description.
      * @return the description
      */
-    public String softwareDescription();
+    String softwareDescription();
 
     /**
      * fetch the serial number.
      * @return the serial
      */
-    public String serialNumber();
+    String serialNumber();
 
     /**
      * Indicates if this switch is optical.
      * @return true if optical
      */
-    public boolean isOptical();
+    boolean isOptical();
 }

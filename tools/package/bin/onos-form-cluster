@@ -5,6 +5,18 @@
 
 [ $# -lt 2 ] && echo "usage: $(basename $0) ip1 ip2..." && exit 1
 
+# Scan arguments for user/password or other options...
+while getopts u:p: o; do
+    case "$o" in
+        u) user=$OPTARG;;
+        p) password=$OPTARG;;
+    esac
+done
+user=${user:-onos}           # user defaults to 'onos'
+password=${password:-$user}  # password defaults to user name if not specified
+let OPC=$OPTIND-1
+shift $OPC
+
 ip=$1
 shift
 nodes=$*
@@ -22,5 +34,6 @@ echo "], \"ipPrefix\": \"$ipPrefix.*\" }" >> $aux
 
 for node in $ip $nodes; do
     echo "Forming cluster on $node..."
-    curl -X POST http://$node:8181/onos/v1/cluster/configuration -d @$aux
+    curl --user $user:$password -X POST \
+        http://$node:8181/onos/v1/cluster/configuration -d @$aux
 done

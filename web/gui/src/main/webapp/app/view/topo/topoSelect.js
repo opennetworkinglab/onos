@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, fs, wss, tps, tts, ns;
+    var $log, fs, wss, tov, tps, tts, ns;
 
     // api to topoForce
     var api;
@@ -39,12 +39,6 @@
         selections = {},        // currently selected nodes (by id)
         selectOrder = [],       // the order in which we made selections
         consumeClick = false;   // used to coordinate with SVG click handler
-
-    // constants
-    var devPath = 'device',
-        flowPath = 'flow',
-        portPath ='port',
-        groupPath = 'group';
 
     // ==========================
 
@@ -67,10 +61,13 @@
 
     function nodeMouseOver(m) {
         if (!m.dragStarted) {
-            //$log.debug("MouseOver()...", m);
             if (hovered != m) {
                 hovered = m;
-                tts.requestTrafficForMode();
+                tov.hooks.mouseOver({
+                    id: m.id,
+                    class: m.class,
+                    type: m.type
+                });
             }
         }
     }
@@ -79,9 +76,8 @@
         if (!m.dragStarted) {
             if (hovered) {
                 hovered = null;
-                tts.requestTrafficForMode();
+                tov.hooks.mouseOut();
             }
-            //$log.debug("MouseOut()...", m);
         }
     }
 
@@ -120,7 +116,7 @@
         }
 
         if (!ev.shiftKey) {
-            deselectAll();
+            deselectAll(true);
         }
 
         selections[obj.id] = { obj: obj, el: el };
@@ -141,7 +137,7 @@
         }
     }
 
-    function deselectAll() {
+    function deselectAll(skipUpdate) {
         var something = (selectOrder.length > 0);
 
         // deselect all nodes in the network...
@@ -149,7 +145,9 @@
         selections = {};
         selectOrder = [];
         api.updateDeviceColors();
-        updateDetail();
+        if (!skipUpdate) {
+            updateDetail();
+        }
 
         // return true if something was selected
         return something;
@@ -157,8 +155,7 @@
 
     // === -----------------------------------------------------
 
-    function requestDetails() {
-        var data = getSel(0).obj;
+    function requestDetails(data) {
         wss.sendEvent('requestDetails', {
             id: data.id,
             class: data.class
@@ -179,122 +176,62 @@
     }
 
     function emptySelect() {
-        tts.cancelTraffic();
+        tov.hooks.emptySelect();
         tps.displayNothing();
     }
 
     function singleSelect() {
-        // NOTE: detail is shown from 'showDetails' event callback
-        requestDetails();
-        tts.cancelTraffic();
-        tts.requestTrafficForMode();
+        var data = getSel(0).obj;
+        requestDetails(data);
+        // NOTE: detail panel is shown as a response to receiving
+        //       a 'showDetails' event from the server. See 'showDetails'
+        //       callback function below...
     }
 
     function multiSelect() {
         // display the selected nodes in the detail panel
         tps.displayMulti(selectOrder);
-
-        // always add the 'show traffic' action
-        tps.addAction({
-            id: '-mult-rel-traf-btn',
-            gid: 'allTraffic',
-            cb:  tts.showRelatedIntentsAction,
-            tt: 'Show Related Traffic'
-        });
-
-        // add other actions, based on what is selected...
-        if (nSel() === 2 && allSelectionsClass('host')) {
-            tps.addAction({
-                id: 'host-flow-btn',
-                gid: 'endstation',
-                cb: tts.addHostIntentAction,
-                tt: 'Create Host-to-Host Flow'
-            });
-        } else if (nSel() >= 2 && allSelectionsClass('host')) {
-            tps.addAction({
-                id: 'mult-src-flow-btn',
-                gid: 'flows',
-                cb: tts.addMultiSourceIntentAction,
-                tt: 'Create Multi-Source Flow'
-            });
-        }
-
-        tts.cancelTraffic();
-        tts.requestTrafficForMode();
+        addHostSelectionActions();
+        tov.hooks.multiSelect(selectOrder);
         tps.displaySomething();
+    }
+
+    function addHostSelectionActions() {
+        if (allSelectionsClass('host')) {
+            if (nSel() === 2) {
+                tps.addAction({
+                    id: 'host-flow-btn',
+                    gid: 'endstation',
+                    cb: tts.addHostIntent,
+                    tt: 'Create Host-to-Host Flow'
+                });
+            } else if (nSel() >= 2) {
+                tps.addAction({
+                    id: 'mult-src-flow-btn',
+                    gid: 'flows',
+                    cb: tts.addMultiSourceIntent,
+                    tt: 'Create Multi-Source Flow'
+                });
+            }
+        }
     }
 
 
     // === -----------------------------------------------------
     //  Event Handlers
 
+    // display the data for the single selected node
     function showDetails(data) {
-        // display the data for the single selected node
+        var buttons = fs.isA(data.buttons) || [];
         tps.displaySingle(data);
-
-        // always add the 'show traffic' action
-        tps.addAction({
-            id: '-sin-rel-traf-btn',
-            gid: 'intentTraffic',
-            cb: tts.showRelatedIntentsAction,
-            tt: 'Show Related Traffic'
-        });
-
-        // add other actions, based on what is selected...
-        if (data.type === 'switch') {
-            tps.addAction({
-                id: 'sin-dev-flows-btn',
-                gid: 'flows',
-                cb: tts.showDeviceLinkFlowsAction,
-                tt: 'Show Device Flows'
-            });
-        }
-        // TODO: have the server return explicit class and ID of each node
-        // for now, we assume the node is a device if it has a URI
-        if ((data.props).hasOwnProperty('URI')) {
-            tps.addAction({
-                id: 'device-table-btn',
-                gid: data.type,
-                cb: function () {
-                    ns.navTo(devPath, { devId: data.props['URI'] });
-                },
-                tt: 'Show device view'
-            });
-            tps.addAction({
-                id: 'flows-table-btn',
-                gid: 'flowTable',
-                cb: function () {
-                    ns.navTo(flowPath, { devId: data.props['URI'] });
-                },
-                tt: 'Show flow view for this device'
-            });
-            tps.addAction({
-                id: 'ports-table-btn',
-                gid: 'portTable',
-                cb: function () {
-                    ns.navTo(portPath, { devId: data.props['URI'] });
-                },
-                tt: 'Show port view for this device'
-            });
-            tps.addAction({
-                id: 'groups-table-btn',
-                gid: 'groupTable',
-                cb: function () {
-                    ns.navTo(groupPath, { devId: data.props['URI'] });
-                },
-                tt: 'Show group view for this device'
-            });
-        }
-
+        tov.installButtons(buttons, data, data.props['URI']);
+        tov.hooks.singleSelect(data);
         tps.displaySomething();
     }
 
-    function validateSelectionContext() {
-        if (!hovered && !nSel()) {
-            tts.cancelTraffic();
-            return false;
-        }
-        return true;
+    // returns true if one or more nodes are selected.
+    function somethingSelected() {
+        return nSel();
     }
 
     function clickConsumed(x) {
@@ -308,13 +245,14 @@
 
     angular.module('ovTopo')
     .factory('TopoSelectService',
-        ['$log', 'FnService', 'WebSocketService',
+        ['$log', 'FnService', 'WebSocketService', 'TopoOverlayService',
             'TopoPanelService', 'TopoTrafficService', 'NavService',
 
-        function (_$log_, _fs_, _wss_, _tps_, _tts_, _ns_) {
+        function (_$log_, _fs_, _wss_, _tov_, _tps_, _tts_, _ns_) {
             $log = _$log_;
             fs = _fs_;
             wss = _wss_;
+            tov = _tov_;
             tps = _tps_;
             tts = _tts_;
             ns = _ns_;
@@ -336,10 +274,11 @@
                 selectObject: selectObject,
                 deselectObject: deselectObject,
                 deselectAll: deselectAll,
+                updateDetail: updateDetail,
 
                 hovered: function () { return hovered; },
                 selectOrder: function () { return selectOrder; },
-                validateSelectionContext: validateSelectionContext,
+                somethingSelected: somethingSelected,
 
                 clickConsumed: clickConsumed
             };

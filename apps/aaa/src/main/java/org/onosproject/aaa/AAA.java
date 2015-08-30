@@ -35,6 +35,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.RADIUS;
 import org.onlab.packet.RADIUSAttribute;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
@@ -204,7 +205,7 @@ public class AAA {
         // "org.onosproject.aaa" is the FQDN of our app
         appId = coreService.registerApplication("org.onosproject.aaa");
         // register our event handler
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
+        packetService.addProcessor(processor, PacketProcessor.director(2));
         requestIntercepts();
         // Instantiate the map of the state machines
         stateMachineMap = Collections.synchronizedMap(Maps.newHashMap());
@@ -236,8 +237,8 @@ public class AAA {
         TrafficSelector radSelector = DefaultTrafficSelector.builder()
                 .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpDst((short) 1812)
-                .matchUdpSrc((short) 1812)
+                .matchUdpDst(TpPort.tpPort(1812))
+                .matchUdpSrc(TpPort.tpPort(1812))
                 .build();
         packetService.requestPackets(radSelector, CONTROL, appId);
     }
@@ -253,8 +254,8 @@ public class AAA {
         TrafficSelector radSelector = DefaultTrafficSelector.builder()
                 .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpDst((short) 1812)
-                .matchUdpSrc((short) 1812)
+                .matchUdpDst(TpPort.tpPort(1812))
+                .matchUdpSrc(TpPort.tpPort(1812))
                 .build();
         packetService.cancelPackets(radSelector, CONTROL, appId);
     }

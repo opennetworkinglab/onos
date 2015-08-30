@@ -15,7 +15,14 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
-import com.google.common.collect.Lists;
+import static org.onosproject.net.flow.criteria.Criteria.matchLambda;
+import static org.onosproject.net.flow.criteria.Criteria.matchOchSignalType;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupChannelSpacing;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupGridType;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOchSignalType;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.List;
 
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
@@ -23,6 +30,7 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.DeviceId;
@@ -78,14 +86,7 @@ import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 
-import java.util.List;
-
-import static org.onosproject.net.flow.criteria.Criteria.matchLambda;
-import static org.onosproject.net.flow.criteria.Criteria.matchOchSignalType;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupChannelSpacing;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupGridType;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOchSignalType;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.Lists;
 
 public class FlowEntryBuilder {
     private final Logger log = getLogger(getClass());
@@ -404,6 +405,11 @@ public class FlowEntryBuilder {
             OFOxm<U32> labelId = (OFOxm<U32>) oxm;
             builder.setMpls(MplsLabel.mplsLabel((int) labelId.getValue().getValue()));
             break;
+        case MPLS_BOS:
+            @SuppressWarnings("unchecked")
+            OFOxm<U8> mplsBos = (OFOxm<U8>) oxm;
+            builder.setMplsBos(mplsBos.getValue() == U8.ZERO ? false : true);
+            break;
         case TUNNEL_ID:
             @SuppressWarnings("unchecked")
             OFOxm<U64> tunnelId = (OFOxm<U64>) oxm;
@@ -412,22 +418,22 @@ public class FlowEntryBuilder {
         case TCP_DST:
             @SuppressWarnings("unchecked")
             OFOxm<TransportPort> tcpdst = (OFOxm<TransportPort>) oxm;
-            builder.setTcpDst((short) tcpdst.getValue().getPort());
+            builder.setTcpDst(TpPort.tpPort(tcpdst.getValue().getPort()));
             break;
         case TCP_SRC:
             @SuppressWarnings("unchecked")
             OFOxm<TransportPort> tcpsrc = (OFOxm<TransportPort>) oxm;
-            builder.setTcpSrc((short) tcpsrc.getValue().getPort());
+            builder.setTcpSrc(TpPort.tpPort(tcpsrc.getValue().getPort()));
             break;
         case UDP_DST:
             @SuppressWarnings("unchecked")
             OFOxm<TransportPort> udpdst = (OFOxm<TransportPort>) oxm;
-            builder.setUdpDst((short) udpdst.getValue().getPort());
+            builder.setUdpDst(TpPort.tpPort(udpdst.getValue().getPort()));
             break;
         case UDP_SRC:
             @SuppressWarnings("unchecked")
             OFOxm<TransportPort> udpsrc = (OFOxm<TransportPort>) oxm;
-            builder.setUdpSrc((short) udpsrc.getValue().getPort());
+            builder.setUdpSrc(TpPort.tpPort(udpsrc.getValue().getPort()));
             break;
         case ARP_OP:
         case ARP_SHA:
@@ -583,26 +589,29 @@ public class FlowEntryBuilder {
                 builder.matchIPDst(ip4Prefix);
                 break;
             case TCP_SRC:
-                builder.matchTcpSrc((short) match.get(MatchField.TCP_SRC).getPort());
+                builder.matchTcpSrc(TpPort.tpPort(match.get(MatchField.TCP_SRC).getPort()));
                 break;
             case TCP_DST:
-                builder.matchTcpDst((short) match.get(MatchField.TCP_DST).getPort());
+                builder.matchTcpDst(TpPort.tpPort(match.get(MatchField.TCP_DST).getPort()));
                 break;
             case UDP_SRC:
-                builder.matchUdpSrc((short) match.get(MatchField.UDP_SRC).getPort());
+                builder.matchUdpSrc(TpPort.tpPort(match.get(MatchField.UDP_SRC).getPort()));
                 break;
             case UDP_DST:
-                builder.matchUdpDst((short) match.get(MatchField.UDP_DST).getPort());
+                builder.matchUdpDst(TpPort.tpPort(match.get(MatchField.UDP_DST).getPort()));
                 break;
             case MPLS_LABEL:
                 builder.matchMplsLabel(MplsLabel.mplsLabel((int) match.get(MatchField.MPLS_LABEL)
                                             .getValue()));
                 break;
+            case MPLS_BOS:
+                builder.matchMplsBos(match.get(MatchField.MPLS_BOS).getValue());
+                break;
             case SCTP_SRC:
-                builder.matchSctpSrc((short) match.get(MatchField.SCTP_SRC).getPort());
+                builder.matchSctpSrc(TpPort.tpPort(match.get(MatchField.SCTP_SRC).getPort()));
                 break;
             case SCTP_DST:
-                builder.matchSctpDst((short) match.get(MatchField.SCTP_DST).getPort());
+                builder.matchSctpDst(TpPort.tpPort(match.get(MatchField.SCTP_DST).getPort()));
                 break;
             case ICMPV4_TYPE:
                 byte icmpType = (byte) match.get(MatchField.ICMPV4_TYPE).getType();
@@ -672,7 +681,7 @@ public class FlowEntryBuilder {
                 CircuitSignalID sigId = match.get(MatchField.OCH_SIGID);
                 builder.add(matchLambda(Lambda.ochSignal(
                                 lookupGridType(sigId.getGridType()), lookupChannelSpacing(sigId.getChannelSpacing()),
-                                sigId.getChannelNumber(), sigId.getChannelSpacing())
+                                sigId.getChannelNumber(), sigId.getSpectralWidth())
                 ));
                 break;
             case OCH_SIGTYPE:

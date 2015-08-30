@@ -15,15 +15,14 @@
  */
 package org.onosproject.store.consistent.impl;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
-
 import org.onosproject.core.ApplicationId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapBuilder;
-import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.Serializer;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Default Consistent Map builder.
@@ -39,6 +38,8 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
     private boolean purgeOnUninstall = false;
     private boolean partitionsEnabled = true;
     private boolean readOnly = false;
+    private boolean metering = true;
+    private boolean relaxedReadConsistency = false;
     private final DatabaseManager manager;
 
     public DefaultConsistentMapBuilder(DatabaseManager manager) {
@@ -66,6 +67,12 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
     }
 
     @Override
+    public ConsistentMapBuilder<K, V> withMeteringDisabled() {
+        metering = false;
+        return this;
+    }
+
+    @Override
     public ConsistentMapBuilder<K, V> withSerializer(Serializer serializer) {
         checkArgument(serializer != null);
         this.serializer = serializer;
@@ -81,6 +88,12 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
     @Override
     public ConsistentMapBuilder<K, V> withUpdatesDisabled() {
         readOnly = true;
+        return this;
+    }
+
+    @Override
+    public ConsistentMapBuilder<K, V> withRelaxedReadConsistency() {
+        relaxedReadConsistency = true;
         return this;
     }
 
@@ -104,16 +117,25 @@ public class DefaultConsistentMapBuilder<K, V> implements ConsistentMapBuilder<K
 
     private DefaultAsyncConsistentMap<K, V> buildAndRegisterMap() {
         validateInputs();
-        DefaultAsyncConsistentMap<K, V> asyncMap = new DefaultAsyncConsistentMap<>(
-                name,
-                applicationId,
-                partitionsEnabled ? manager.partitionedDatabase : manager.inMemoryDatabase,
-                serializer,
-                readOnly,
-                purgeOnUninstall,
-                event -> manager.clusterCommunicator.<MapEvent<K, V>>broadcast(event,
-                        DatabaseManager.mapUpdatesSubject(name),
-                        serializer::encode));
-        return manager.registerMap(asyncMap);
+        Database database = partitionsEnabled ? manager.partitionedDatabase : manager.inMemoryDatabase;
+        if (relaxedReadConsistency) {
+            return manager.registerMap(
+                    new AsyncCachingConsistentMap<>(name,
+                        applicationId,
+                        database,
+                        serializer,
+                        readOnly,
+                        purgeOnUninstall,
+                        metering));
+        } else {
+            return manager.registerMap(
+                    new DefaultAsyncConsistentMap<>(name,
+                        applicationId,
+                        database,
+                        serializer,
+                        readOnly,
+                        purgeOnUninstall,
+                        metering));
+        }
     }
 }

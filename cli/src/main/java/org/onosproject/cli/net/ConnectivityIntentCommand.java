@@ -24,6 +24,9 @@ import java.util.List;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
 import org.onosproject.cli.AbstractShellCommand;
@@ -40,9 +43,8 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
+import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.net.resource.link.BandwidthResource;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
 
 /**
  * Base class for command line operations for connectivity based intents.
@@ -129,6 +131,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "-k", aliases = "--key", description = "Intent Key",
             required = false, multiValued = false)
     private String intentKey = null;
+
+    @Option(name = "--partial", description = "Allow partial installation",
+            required = false, multiValued = false)
+    private boolean partial = false;
 
 
     // Treatments
@@ -261,11 +267,11 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         }
 
         if (!isNullOrEmpty(srcTcpString)) {
-            selectorBuilder.matchTcpSrc((short) Integer.parseInt(srcTcpString));
+            selectorBuilder.matchTcpSrc(TpPort.tpPort(Integer.parseInt(srcTcpString)));
         }
 
         if (!isNullOrEmpty(dstTcpString)) {
-            selectorBuilder.matchTcpDst((short) Integer.parseInt(dstTcpString));
+            selectorBuilder.matchTcpDst(TpPort.tpPort(Integer.parseInt(dstTcpString)));
         }
 
         if (extHdrStringList != null) {
@@ -349,6 +355,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             constraints.add(new LambdaConstraint(null));
         }
         constraints.add(new LinkTypeConstraint(lambda, Link.Type.OPTICAL));
+
+        if (partial) {
+            constraints.add(new PartialFailureConstraint());
+        }
 
         return constraints;
     }

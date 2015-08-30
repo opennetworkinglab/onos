@@ -29,6 +29,7 @@ import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
 import org.onlab.util.Frequency;
@@ -45,6 +46,7 @@ import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.Version;
+import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ChannelSpacing;
@@ -156,10 +158,12 @@ import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
+import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.link.DefaultLinkDescription;
-import org.onosproject.net.newresource.DefaultResource;
-import org.onosproject.net.newresource.DefaultResourceAllocation;
+import org.onosproject.net.meter.MeterId;
+import org.onosproject.net.newresource.ResourceAllocation;
+import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.PacketPriority;
@@ -269,6 +273,8 @@ public final class KryoNamespaces {
             .register(MISC)
             .nextId(KryoNamespace.INITIAL_ID + 30 + 10)
             .register(
+                    Instructions.MeterInstruction.class,
+                    MeterId.class,
                     Version.class,
                     ControllerNode.State.class,
                     ApplicationState.class,
@@ -315,6 +321,7 @@ public final class KryoNamespaces {
                     IPEcnCriterion.class,
                     IPProtocolCriterion.class,
                     IPCriterion.class,
+                    TpPort.class,
                     TcpPortCriterion.class,
                     UdpPortCriterion.class,
                     SctpPortCriterion.class,
@@ -400,8 +407,8 @@ public final class KryoNamespaces {
                     DefaultLinkResourceAllocations.class,
                     BandwidthResourceAllocation.class,
                     LambdaResourceAllocation.class,
-                    DefaultResource.class,
-                    DefaultResourceAllocation.class,
+                    ResourcePath.class,
+                    ResourceAllocation.class,
                     // Constraints
                     LambdaConstraint.class,
                     BandwidthConstraint.class,
@@ -411,12 +418,14 @@ public final class KryoNamespaces {
                     ObstacleConstraint.class,
                     AnnotationConstraint.class,
                     BooleanConstraint.class,
+                    PartialFailureConstraint.class,
                     IntentOperation.class,
                     FlowRuleExtPayLoad.class,
                     Frequency.class,
                     DefaultAnnotations.class,
                     PortStatistics.class,
-                    DefaultPortStatistics.class
+                    DefaultPortStatistics.class,
+                    IntentDomainId.class
             )
             .register(new DefaultApplicationIdSerializer(), DefaultApplicationId.class)
             .register(new URISerializer(), URI.class)

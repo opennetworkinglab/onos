@@ -1,0 +1,1087 @@
+{
+    "requirements": [
+        {
+            "dst": "Reactive-Forwarding.Ping-2",
+            "isSoft": false,
+            "src": "Reactive-Forwarding.Link-2-Down"
+        },
+        {
+            "dst": "Final-Check-Logs-2",
+            "isSoft": true,
+            "src": "Fetch-Logs-2"
+        },
+        {
+            "dst": "Host-Intent.Ping-4",
+            "isSoft": false,
+            "src": "Host-Intent.Link-2-Up"
+        },
+        {
+            "dst": "Install-1",
+            "isSoft": false,
+            "src": "Wait-for-Start-1"
+        },
+        {
+            "dst": "Host-Intent.Link-1-Down",
+            "isSoft": false,
+            "src": "Host-Intent.Ping-2"
+        },
+        {
+            "dst": "Host-Intent.Link-2-Up",
+            "isSoft": false,
+            "src": "Host-Intent.Ping-5"
+        },
+        {
+            "dst": "Host-Intent.Ping-2",
+            "isSoft": false,
+            "src": "Host-Intent.Link-2-Down"
+        },
+        {
+            "dst": "Reinstall-App-With-CLI",
+            "isSoft": false,
+            "src": "Verify-CLI"
+        },
+        {
+            "dst": "Create-App-UI-Overlay",
+            "isSoft": false,
+            "src": "Build-App-With-UI"
+        },
+        {
+            "dst": "Secure-SSH",
+            "isSoft": true,
+            "src": "Wait-for-Start-1"
+        },
+        {
+            "dst": "Pause-For-Masters",
+            "isSoft": true,
+            "src": "Check-Flows"
+        },
+        {
+            "dst": "Secure-SSH",
+            "isSoft": true,
+            "src": "Wait-for-Start-3"
+        },
+        {
+            "dst": "Uninstall-3",
+            "isSoft": false,
+            "src": "Kill-3"
+        },
+        {
+            "dst": "Balance-Masters",
+            "isSoft": false,
+            "src": "Pause-For-Masters"
+        },
+        {
+            "dst": "Reactive-Forwarding.Net-Pingall",
+            "isSoft": true,
+            "src": "Reactive-Forwarding.Net-Link-Down-Up"
+        },
+        {
+            "dst": "Wait-for-Start-3",
+            "isSoft": true,
+            "src": "Check-Logs-3"
+        },
+        {
+            "dst": "Wait-for-Start-2",
+            "isSoft": true,
+            "src": "Check-Components-2"
+        },
+        {
+            "dst": "Uninstall-Reactive-Forwarding",
+            "isSoft": false,
+            "src": "Find-Host-1"
+        },
+        {
+            "dst": "Wipe-Out-Data-Before",
+            "isSoft": true,
+            "src": "Initial-Summary-Check"
+        },
+        {
+            "dst": "Reactive-Forwarding.Ping-3",
+            "isSoft": false,
+            "src": "Reactive-Forwarding.Link-1-Up"
+        },
+        {
+            "dst": "Archetypes",
+            "isSoft": true,
+            "src": "Wrapup"
+        },
+        {
+            "dst": "Reactive-Forwarding.Ping-4",
+            "isSoft": false,
+            "src": "Reactive-Forwarding.Link-2-Up"
+        },
+        {
+            "dst": "Host-Intent-Connectivity",
+            "isSoft": true,
+            "src": "Net-Teardown"
+        },
+        {
+            "dst": "Host-Intent.Ping-3",
+            "isSoft": false,
+            "src": "Host-Intent.Link-1-Up"
+        },
+        {
+            "dst": "Host-Intent.Ping-1",
+            "isSoft": false,
+            "src": "Host-Intent.Link-1-Down"
+        },
+        {
+            "dst": "Install-App",
+            "isSoft": false,
+            "src": "Create-App-CLI-Overlay"
+        },
+        {
+            "dst": "Final-Check-Logs-3",
+            "isSoft": true,
+            "src": "Fetch-Logs-3"
+        },
+        {
+            "dst": "Install-App",
+            "isSoft": false,
+            "src": "Verify-App"
+        },
+        {
+            "dst": "Host-Intent.Link-2-Down",
+            "isSoft": false,
+            "src": "Host-Intent.Ping-3"
+        },
+        {
+            "dst": "Prerequisites",
+            "isSoft": false,
+            "src": "Setup"
+        },
+        {
+            "dst": "Verify-App",
+            "isSoft": true,
+            "src": "Reinstall-App-With-CLI"
+        },
+        {
+            "dst": "Net-Smoke",
+            "isSoft": true,
+            "src": "Archetypes"
+        },
+        {
+            "dst": "Setup",
+            "isSoft": true,
+            "src": "Wrapup"
+        },
+        {
+            "dst": "Start-Mininet",
+            "isSoft": false,
+            "src": "Wait-For-Mininet"
+        },
+        {
+            "dst": "Verify-UI",
+            "isSoft": false,
+            "src": "Uninstall-App"
+        },
+        {
+            "dst": "Kill-3",
+            "isSoft": false,
+            "src": "Install-3"
+        },
+        {
+            "dst": "Wait-for-Start-1",
+            "isSoft": true,
+            "src": "Check-Components-1"
+        },
+        {
+            "dst": "Wait-for-Start-1",
+            "isSoft": true,
+            "src": "Check-Nodes-1"
+        },
+        {
+            "dst": "Push-Topos",
+            "isSoft": false,
+            "src": "Start-Mininet"
+        },
+        {
+            "dst": "Reactive-Forwarding.Check-Summary-For-Hosts",
+            "isSoft": true,
+            "src": "Reactive-Forwarding.Config-Topo"
+        },
+        {
+            "dst": "Reactive-Forwarding.Install-Apps",
+            "isSoft": false,
+            "src": "Reactive-Forwarding.Check-Apps"
+        },
+        {
+            "dst": "Push-Bits",
+            "isSoft": false,
+            "src": "Install-2"
+        },
+        {
+            "dst": "Install-1",
+            "isSoft": false,
+            "src": "Secure-SSH"
+        },
+        {
+            "dst": "Create-Intent",
+            "isSoft": false,
+            "src": "Host-Intent.Net-Link-Down-Up"
+        },
+        {
+            "dst": "Verify-CLI",
+            "isSoft": true,
+            "src": "Reinstall-App-With-UI"
+        },
+        {
+            "dst": "Wait-for-Start-3",
+            "isSoft": true,
+            "src": "Check-Apps-3"
+        },
+        {
+            "dst": "Net-Smoke",
+            "isSoft": true,
+            "src": "Wrapup"
+        },
+        {
+            "dst": "Initial-Summary-Check",
+            "isSoft": false,
+            "src": "Start-Mininet"
+        },
+        {
+            "dst": "Install-3",
+            "isSoft": false,
+            "src": "Wait-for-Start-3"
+        },
+        {
+            "dst": "Reactive-Forwarding.Link-1-Up",
+            "isSoft": false,
+            "src": "Reactive-Forwarding.Ping-4"
+        },
+        {
+            "dst": "Check-Summary",
+            "isSoft": true,
+            "src": "Balance-Masters"
+        },
+        {
+            "dst": "Reactive-Forwarding.Net-Link-Down-Up",
+            "isSoft": true,
+            "src": "Host-Intent-Connectivity"
+        },
+        {
+            "dst": "Secure-SSH",
+            "isSoft": true,
+            "src": "Wait-for-Start-2"
+        },
+        {
+            "dst": "Build-App-With-CLI",
+            "isSoft": false,
+            "src": "Reinstall-App-With-CLI"
+        },
+        {
+            "dst": "Uninstall-1",
+            "isSoft": false,
+            "src": "Kill-1"
+        },
+        {
+            "dst": "Find-Host-1",
+            "isSoft": false,
+            "src": "Find-Host-2"
+        },
+        {
+            "dst": "Create-App-CLI-Overlay",
+            "isSoft": false,
+            "src": "Build-App-With-CLI"
+        },
+        {
+            "dst": "Net-Setup",
+            "isSoft": false,
+            "src": "Reactive-Forwarding.Net-Link-Down-Up"
+        },
+        {
+            "dst": "Kill-2",
+            "isSoft": false,
+            "src": "Install-2"
+        },
+        {
+            "dst": "Wait-for-Start-1",
+            "isSoft": true,
+            "src": "Check-Logs-1"
+        },
+        {
+            "dst": "Wait-for-Start-2",
+            "isSoft": true,
+            "src": "Check-Nodes-2"
+        },
+        {
+            "dst": "Reactive-Forwarding.Ping-All-And-Verify",
+            "isSoft": true,
+            "src": "Reactive-Forwarding.Check-Summary-For-Hosts"
+        },
+        {
+            "dst": "Clean-Up",
+            "isSoft": false,
+            "src": "Create-App"
+        },
+        {
+            "dst": "Host-Intent.Link-1-Up",
+            "isSoft": false,
+            "src": "Host-Intent.Ping-4"
+        },
+        {
+            "dst": "Build-App-With-UI",
+            "isSoft": false,
+            "src": "Reinstall-App-With-UI"
+        },
+        {
+            "dst": "Install-2",
+            "isSoft": false,
+            "src": "Secure-SSH"
+        },
+        {
+            "dst": "Wait-For-Mininet",
+            "isSoft": false,
+            "src": "Check-Summary"
+        },
+        {
+            "dst": "Host-Intent.Net-Link-Down-Up",
+            "isSoft": false,
+            "src": "Remove-Intent"
+        },
+        {
+            "dst": "Net-Setup",
+            "isSoft": false,
+            "src": "Host-Intent-Connectivity"
+        },
+        {
+            "dst": "Net-Setup",
+            "isSoft": false,
+            "src": "Reactive-Forwarding.Net-Pingall"
+        },
+        {
+            "dst": "Reactive-Forwarding.Link-2-Down",
+            "isSoft": false,
+            "src": "Reactive-Forwarding.Ping-3"
+        },
+        {
+            "dst": "Find-Host-2",
+            "isSoft": false,
+            "src": "Create-Intent"
+        },
+        {
+            "dst": "Wait-for-Start-2",
+            "isSoft": true,
+            "src": "Check-Apps-2"
+        },
+        {
+            "dst": "Final-Check-Logs-1",
+            "isSoft": true,
+            "src": "Fetch-Logs-1"
+        },
+        {
+            "dst": "Install-2",
+            "isSoft": false,
+            "src": "Wait-for-Start-2"
+        },
+        {
+            "dst": "Reactive-Forwarding.Ping-1",
+            "isSoft": false,
+            "src": "Reactive-Forwarding.Link-1-Down"
+        },
+        {
+            "dst": "Create-App",
+            "isSoft": false,
+            "src": "Build-App"
+        },
+        {
+            "dst": "Check-Summary",
+            "isSoft": true,
+            "src": "Check-Flows"
+        },
+        {
+            "dst": "Build-App",
+            "isSoft": false,
+            "src": "Install-App"
+        },
+        {
+            "dst": "Reinstall-App-With-UI",
+            "isSoft": false,
+            "src": "Verify-UI"
+        },
+        {
+            "dst": "Uninstall-2",
+            "isSoft": false,
+            "src": "Kill-2"
+        },
+        {
+            "dst": "Setup",
+            "isSoft": false,
+            "src": "Archetypes"
+        },
+        {
+            "dst": "Setup",
+            "isSoft": false,
+            "src": "Net-Smoke"
+        },
+        {
+            "dst": "Kill-1",
+            "isSoft": false,
+            "src": "Install-1"
+        },
+        {
+            "dst": "Reactive-Forwarding.Link-1-Down",
+            "isSoft": false,
+            "src": "Reactive-Forwarding.Ping-2"
+        },
+        {
+            "dst": "Wait-for-Start-2",
+            "isSoft": true,
+            "src": "Check-Logs-2"
+        },
+        {
+            "dst": "Wait-for-Start-3",
+            "isSoft": true,
+            "src": "Check-Components-3"
+        },
+        {
+            "dst": "Wait-for-Start-3",
+            "isSoft": true,
+            "src": "Check-Nodes-3"
+        },
+        {
+            "dst": "Stop-Mininet-If-Needed",
+            "isSoft": false,
+            "src": "Start-Mininet"
+        },
+        {
+            "dst": "Reactive-Forwarding.Link-2-Up",
+            "isSoft": false,
+            "src": "Reactive-Forwarding.Ping-5"
+        },
+        {
+            "dst": "Reactive-Forwarding.Check-Apps",
+            "isSoft": false,
+            "src": "Reactive-Forwarding.Ping-All-And-Verify"
+        },
+        {
+            "dst": "Install-3",
+            "isSoft": false,
+            "src": "Secure-SSH"
+        },
+        {
+            "dst": "Push-Bits",
+            "isSoft": false,
+            "src": "Install-3"
+        },
+        {
+            "dst": "Reinstall-App-With-CLI",
+            "isSoft": false,
+            "src": "Create-App-UI-Overlay"
+        },
+        {
+            "dst": "Push-Bits",
+            "isSoft": false,
+            "src": "Install-1"
+        },
+        {
+            "dst": "Wait-for-Start-1",
+            "isSoft": true,
+            "src": "Check-Apps-1"
+        }
+    ],
+    "steps": [
+        {
+            "group": "Net-Setup",
+            "isGroup": false,
+            "name": "Check-Summary",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Setup",
+            "isGroup": false,
+            "name": "Check-Flows",
+            "status": "waiting"
+        },
+        {
+            "group": "Wrapup",
+            "isGroup": false,
+            "name": "Final-Check-Logs-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Wrapup",
+            "isGroup": false,
+            "name": "Final-Check-Logs-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Clean-Up",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Build-App-With-UI",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Uninstall-App",
+            "status": "waiting"
+        },
+        {
+            "group": "Wrapup",
+            "isGroup": false,
+            "name": "Final-Check-Logs-3",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Host-Intent.Link-2-Down",
+            "status": "waiting"
+        },
+        {
+            "group": "Wrapup",
+            "isGroup": false,
+            "name": "Fetch-Logs-3",
+            "status": "waiting"
+        },
+        {
+            "group": "Wrapup",
+            "isGroup": false,
+            "name": "Fetch-Logs-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Check-Components-3",
+            "status": "waiting"
+        },
+        {
+            "group": "Wrapup",
+            "isGroup": false,
+            "name": "Fetch-Logs-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Setup",
+            "isGroup": false,
+            "name": "Push-Topos",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Pingall",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Check-Apps",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Wait-for-Start-3",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Wait-for-Start-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Wait-for-Start-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Smoke",
+            "isGroup": true,
+            "name": "Host-Intent-Connectivity",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent-Connectivity",
+            "isGroup": false,
+            "name": "Create-Intent",
+            "status": "waiting"
+        },
+        {
+            "isGroup": true,
+            "name": "Prerequisites",
+            "status": "in_progress"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Push-Bits",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Check-Logs-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Check-Logs-3",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Kill-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Kill-3",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Kill-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent-Connectivity",
+            "isGroup": true,
+            "name": "Host-Intent.Net-Link-Down-Up",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Host-Intent.Ping-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Verify-UI",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Host-Intent.Ping-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Host-Intent.Ping-3",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Uninstall-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Check-Logs-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Host-Intent.Ping-4",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Uninstall-3",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Host-Intent.Ping-5",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Uninstall-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Pingall",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Install-Apps",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Smoke",
+            "isGroup": true,
+            "name": "Reactive-Forwarding.Net-Link-Down-Up",
+            "status": "waiting"
+        },
+        {
+            "group": "Prerequisites",
+            "isGroup": false,
+            "name": "Check-ONOS-Bits",
+            "status": "in_progress"
+        },
+        {
+            "isGroup": true,
+            "name": "Wrapup",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Install-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent-Connectivity",
+            "isGroup": false,
+            "name": "Find-Host-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Install-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Setup",
+            "isGroup": false,
+            "name": "Wipe-Out-Data-Before",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Setup",
+            "isGroup": false,
+            "name": "Pause-For-Masters",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Link-2-Up",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Smoke",
+            "isGroup": true,
+            "name": "Reactive-Forwarding.Net-Pingall",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Check-Components-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Check-Components-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Reinstall-App-With-UI",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Reinstall-App-With-CLI",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Build-App-With-CLI",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent-Connectivity",
+            "isGroup": false,
+            "name": "Uninstall-Reactive-Forwarding",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Host-Intent.Link-2-Up",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Teardown",
+            "isGroup": false,
+            "name": "Stop-Mininet",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Pingall",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Config-Topo",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Create-App-CLI-Overlay",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Link-1-Down",
+            "status": "waiting"
+        },
+        {
+            "isGroup": true,
+            "name": "Net-Smoke",
+            "status": "waiting"
+        },
+        {
+            "group": "Prerequisites",
+            "isGroup": false,
+            "name": "Check-Passwordless-Login-2",
+            "status": "in_progress"
+        },
+        {
+            "group": "Prerequisites",
+            "isGroup": false,
+            "name": "Check-Passwordless-Login-1",
+            "status": "in_progress"
+        },
+        {
+            "group": "Prerequisites",
+            "isGroup": false,
+            "name": "Check-Passwordless-Login-3",
+            "status": "in_progress"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Secure-SSH",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Smoke",
+            "isGroup": true,
+            "name": "Net-Setup",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Check-Nodes-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Install-3",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent-Connectivity",
+            "isGroup": false,
+            "name": "Find-Host-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Setup",
+            "isGroup": false,
+            "name": "Initial-Summary-Check",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Create-App",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Check-Nodes-3",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Check-Nodes-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Link-2-Down",
+            "status": "waiting"
+        },
+        {
+            "isGroup": true,
+            "name": "Setup",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Verify-App",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Ping-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Ping-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Setup",
+            "isGroup": false,
+            "name": "Start-Mininet",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Ping-3",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Ping-4",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Ping-5",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Verify-CLI",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Pingall",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Check-Summary-For-Hosts",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Smoke",
+            "isGroup": true,
+            "name": "Net-Teardown",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Host-Intent.Link-1-Up",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent-Connectivity",
+            "isGroup": false,
+            "name": "Remove-Intent",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Install-App",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Create-App-UI-Overlay",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Link-1-Up",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Setup",
+            "isGroup": false,
+            "name": "Wait-For-Mininet",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Check-Apps-3",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Check-Apps-2",
+            "status": "waiting"
+        },
+        {
+            "group": "Setup",
+            "isGroup": false,
+            "name": "Check-Apps-1",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Setup",
+            "isGroup": false,
+            "name": "Stop-Mininet-If-Needed",
+            "status": "waiting"
+        },
+        {
+            "group": "Prerequisites",
+            "isGroup": false,
+            "name": "Check-Environment",
+            "status": "in_progress"
+        },
+        {
+            "isGroup": true,
+            "name": "Archetypes",
+            "status": "waiting"
+        },
+        {
+            "group": "Host-Intent.Net-Link-Down-Up",
+            "isGroup": false,
+            "name": "Host-Intent.Link-1-Down",
+            "status": "waiting"
+        },
+        {
+            "group": "Net-Setup",
+            "isGroup": false,
+            "name": "Balance-Masters",
+            "status": "waiting"
+        },
+        {
+            "group": "Reactive-Forwarding.Net-Pingall",
+            "isGroup": false,
+            "name": "Reactive-Forwarding.Ping-All-And-Verify",
+            "status": "waiting"
+        },
+        {
+            "group": "Archetypes",
+            "isGroup": false,
+            "name": "Build-App",
+            "status": "waiting"
+        }
+    ]
+}

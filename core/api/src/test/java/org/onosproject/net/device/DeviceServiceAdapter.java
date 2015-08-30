@@ -75,6 +75,11 @@ public class DeviceServiceAdapter implements DeviceService {
     }
 
     @Override
+    public List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId) {
+        return null;
+    }
+
+    @Override
     public Port getPort(DeviceId deviceId, PortNumber portNumber) {
         return null;
     }

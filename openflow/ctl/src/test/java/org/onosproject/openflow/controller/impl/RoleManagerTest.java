@@ -19,6 +19,7 @@ import org.jboss.netty.channel.Channel;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.net.Device;
 import org.onosproject.net.driver.DriverData;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.openflow.controller.Dpid;
@@ -181,8 +182,8 @@ public class RoleManagerTest {
         }
 
         @Override
-        public boolean isOptical() {
-            return false;
+        public Device.Type deviceType() {
+            return Device.Type.SWITCH;
         }
 
         @Override

@@ -124,6 +124,11 @@ public class IntentTestsMocks {
         public MetadataInstruction writeMetadata() {
             return null;
         }
+
+        @Override
+        public Instructions.MeterInstruction metered() {
+            return null;
+        }
     }
 
     /**
@@ -420,6 +425,11 @@ public class IntentTestsMocks {
             final MockFlowRule other = (MockFlowRule) obj;
             return Objects.equals(this.timestamp, other.timestamp) &&
                    this.id == other.id;
+        }
+
+        @Override
+        public boolean exactMatch(FlowRule rule) {
+            return this.equals(rule);
         }
 
         @Override

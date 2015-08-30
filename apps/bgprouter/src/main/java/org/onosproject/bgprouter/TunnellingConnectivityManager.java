@@ -15,13 +15,14 @@
  */
 package org.onosproject.bgprouter;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TCP;
+import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -35,11 +36,13 @@ import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.routing.config.BgpPeer;
-import org.onosproject.routing.config.BgpSpeaker;
-import org.onosproject.routing.config.InterfaceAddress;
-import org.onosproject.routing.config.RoutingConfigurationService;
+import org.onosproject.routing.config.BgpConfig;
 import org.slf4j.Logger;
+
+import java.util.Optional;
+import java.util.Set;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -52,39 +55,37 @@ public class TunnellingConnectivityManager {
     private final Logger log = getLogger(getClass());
     private final ApplicationId appId;
 
-    private final BgpSpeaker bgpSpeaker;
+    private final BgpConfig.BgpSpeakerConfig bgpSpeaker;
 
     private final PacketService packetService;
-    private final RoutingConfigurationService configService;
+    private final InterfaceService interfaceService;
     private final FlowObjectiveService flowObjectiveService;
 
     private final BgpProcessor processor = new BgpProcessor();
 
     public TunnellingConnectivityManager(ApplicationId appId,
-                                         RoutingConfigurationService configService,
+                                         BgpConfig bgpConfig,
+                                         InterfaceService interfaceService,
                                          PacketService packetService,
                                          FlowObjectiveService flowObjectiveService) {
         this.appId = appId;
-        this.configService = configService;
+        this.interfaceService = interfaceService;
         this.packetService = packetService;
         this.flowObjectiveService = flowObjectiveService;
 
-        BgpSpeaker bgpSpeaker = null;
-        for (BgpSpeaker speaker : configService.getBgpSpeakers().values()) {
-            bgpSpeaker = speaker;
-            break;
-        }
+        Optional<BgpConfig.BgpSpeakerConfig> bgpSpeaker =
+                bgpConfig.bgpSpeakers().stream().findAny();
 
-        if (bgpSpeaker == null) {
+        if (!bgpSpeaker.isPresent()) {
             throw new IllegalArgumentException("Must have at least one BGP speaker configured");
         }
 
-        this.bgpSpeaker = bgpSpeaker;
+        this.bgpSpeaker = bgpSpeaker.get();
 
     }
 
     public void start() {
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 3);
+        packetService.addProcessor(processor, PacketProcessor.director(3));
     }
 
     public void stop() {
@@ -101,13 +102,13 @@ public class TunnellingConnectivityManager {
         TrafficSelector selectorDst = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                .matchTcpDst(BGP_PORT)
+                .matchTcpDst(TpPort.tpPort(BGP_PORT))
                 .build();
 
         TrafficSelector selectorSrc = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                .matchTcpSrc(BGP_PORT)
+                .matchTcpSrc(TpPort.tpPort(BGP_PORT))
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -148,14 +149,19 @@ public class TunnellingConnectivityManager {
         IpAddress dstAddress = IpAddress.valueOf(ipv4.getDestinationAddress());
 
         if (context.inPacket().receivedFrom().equals(bgpSpeaker.connectPoint())) {
-            BgpPeer peer = configService.getBgpPeers().get(dstAddress);
-            if (peer != null) {
-                outputPort = peer.connectPoint();
+            if (bgpSpeaker.peers().contains(dstAddress)) {
+                Interface intf = interfaceService.getMatchingInterface(dstAddress);
+                if (intf != null) {
+                    outputPort = intf.connectPoint();
+                }
             }
-        }
-        for (InterfaceAddress addr : bgpSpeaker.interfaceAddresses()) {
-            if (addr.ipAddress().equals(dstAddress) && !context.inPacket()
-                    .receivedFrom().equals(bgpSpeaker.connectPoint())) {
+        } else {
+            Set<Interface> interfaces =
+                    interfaceService.getInterfacesByPort(context.inPacket().receivedFrom());
+
+            if (interfaces.stream()
+                    .flatMap(intf -> intf.ipAddresses().stream())
+                    .anyMatch(ia -> ia.ipAddress().equals(dstAddress))) {
                 outputPort = bgpSpeaker.connectPoint();
             }
         }

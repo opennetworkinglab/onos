@@ -30,11 +30,10 @@ import org.onosproject.app.ApplicationService;
 import org.onosproject.app.ApplicationState;
 import org.onosproject.app.ApplicationStore;
 import org.onosproject.app.ApplicationStoreDelegate;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.Permission;
-import org.onosproject.event.ListenerRegistry;
-import org.onosproject.event.EventDeliveryService;
 import org.slf4j.Logger;
 
 import java.io.InputStream;
@@ -50,14 +49,13 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class ApplicationManager implements ApplicationService, ApplicationAdminService {
+public class ApplicationManager
+        extends AbstractListenerManager<ApplicationEvent, ApplicationListener>
+        implements ApplicationService, ApplicationAdminService {
 
     private final Logger log = getLogger(getClass());
 
     private static final String APP_ID_NULL = "Application ID cannot be null";
-
-    protected final ListenerRegistry<ApplicationEvent, ApplicationListener>
-            listenerRegistry = new ListenerRegistry<>();
 
     private final ApplicationStoreDelegate delegate = new InternalStoreDelegate();
 
@@ -66,9 +64,6 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FeaturesService featuresService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
     private boolean initializing;
 
@@ -99,7 +94,6 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
     @Override
     public ApplicationId getId(String name) {
         checkPermission(Permission.APP_READ);
-
         checkNotNull(name, "Name cannot be null");
         return store.getId(name);
     }
@@ -160,18 +154,6 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
         store.setPermissions(appId, permissions);
     }
 
-    @Override
-    public void addListener(ApplicationListener listener) {
-        checkPermission(Permission.APP_EVENT);
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(ApplicationListener listener) {
-        checkPermission(Permission.APP_EVENT);
-        listenerRegistry.removeListener(listener);
-    }
-
     private class InternalStoreDelegate implements ApplicationStoreDelegate {
         @Override
         public void notify(ApplicationEvent event) {
@@ -199,7 +181,7 @@ public class ApplicationManager implements ApplicationService, ApplicationAdminS
                     }
 
                 }
-                eventDispatcher.post(event);
+                post(event);
 
             } catch (Exception e) {
                 log.warn("Unable to perform operation on application " + app.id().name(), e);

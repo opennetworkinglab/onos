@@ -17,7 +17,10 @@ package org.onosproject.net.flow;
 
 import org.onosproject.net.flow.FlowRuleBatchEntry.FlowRuleOperation;
 
-
+@Deprecated
+/**
+ * @deprecated in Drake release - no longer a public API
+ */
 public class FlowRuleBatchEntry
         extends BatchOperationEntry<FlowRuleOperation, FlowRule> {
 

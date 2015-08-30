@@ -18,13 +18,15 @@ package org.onosproject.app;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.Permission;
+import org.onosproject.event.ListenerService;
 
 import java.util.Set;
 
 /**
  * Service for inspecting inventory of network control applications.
  */
-public interface ApplicationService {
+public interface ApplicationService
+        extends ListenerService<ApplicationEvent, ApplicationListener> {
 
     /**
      * Returns the set of all installed applications.
@@ -64,19 +66,5 @@ public interface ApplicationService {
      * @return set of granted permissions
      */
     Set<Permission> getPermissions(ApplicationId appId);
-
-    /**
-     * Adds the given listener for application lifecycle events.
-     *
-     * @param listener listener to be added
-     */
-    void addListener(ApplicationListener listener);
-
-    /**
-     * Removes the specified listener for application lifecycle events.
-     *
-     * @param listener listener to be removed
-     */
-    void removeListener(ApplicationListener listener);
 
 }

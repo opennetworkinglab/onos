@@ -24,7 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import static org.onlab.packet.PacketUtils.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
  *
@@ -423,6 +424,8 @@ public class DHCP extends BasePacket {
         bb.putInt(this.yourIPAddress);
         bb.putInt(this.serverIPAddress);
         bb.putInt(this.gatewayIPAddress);
+        checkArgument(this.clientHardwareAddress.length <= 16,
+                "Hardware address is too long (%s bytes)", this.clientHardwareAddress.length);
         bb.put(this.clientHardwareAddress);
         if (this.clientHardwareAddress.length < 16) {
             for (int i = 0; i < 16 - this.clientHardwareAddress.length; ++i) {

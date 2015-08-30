@@ -15,5 +15,23 @@
  */
 
 .body {
-    font-family: Helvetica, Arial;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+.node {
+    stroke: #fff;
+    stroke-width: 1.5px;
+}
+
+.link {
+    stroke: #999;
+    stroke-opacity: .6;
+}
+
+text {
+    font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
+    stroke: #000;
+    stroke-width: 0.2;
+    font-weight: normal;
+    font-size: 0.6em;
 }

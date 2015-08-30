@@ -112,8 +112,23 @@ public interface NextObjective extends Objective {
          */
         Builder addTreatment(TrafficTreatment treatment);
 
+        /**
+         * Specifies the application which applied the filter.
+         *
+         * @param appId an application id
+         * @return an objective builder
+         */
         @Override
         Builder fromApp(ApplicationId appId);
+
+        /**
+         * Sets the priority for this objective.
+         *
+         * @param priority an integer
+         * @return an objective builder
+         */
+        @Override
+        Builder withPriority(int priority);
 
         /**
          * Builds the next objective that will be added.

@@ -40,8 +40,8 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
     private final int maxBatchMillis;
     private final int maxIdleMillis;
 
-    private TimerTask idleTask = new ProcessorTask();
-    private TimerTask maxTask = new ProcessorTask();
+    private volatile TimerTask idleTask = new ProcessorTask();
+    private volatile TimerTask maxTask = new ProcessorTask();
 
     private List<T> items = Lists.newArrayList();
 
@@ -49,13 +49,13 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
      * Creates an item accumulator capable of triggering on the specified
      * thresholds.
      *
-     * @param timer               timer to use for scheduling check-points
-     * @param maxItems            maximum number of items to accumulate before
-     *                            processing is triggered
-     * @param maxBatchMillis      maximum number of millis allowed since the first
-     *                            item before processing is triggered
-     * @param maxIdleMillis       maximum number millis between items before
-     *                            processing is triggered
+     * @param timer          timer to use for scheduling check-points
+     * @param maxItems       maximum number of items to accumulate before
+     *                       processing is triggered
+     * @param maxBatchMillis maximum number of millis allowed since the first
+     *                       item before processing is triggered
+     * @param maxIdleMillis  maximum number millis between items before
+     *                       processing is triggered
      */
     protected AbstractAccumulator(Timer timer, int maxItems,
                                   int maxBatchMillis, int maxIdleMillis) {
@@ -78,7 +78,7 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
         // Did we hit the max item threshold?
         if (items.size() >= maxItems) {
             maxTask = cancelIfActive(maxTask);
-            schedule(1);
+            scheduleNow();
         } else {
             // Otherwise, schedule idle task and if this is a first item
             // also schedule the max batch age task.
@@ -89,14 +89,30 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
         }
     }
 
-    // Schedules a new processor task given number of millis in the future.
+    /**
+     * Finalizes the current batch, if ready, and schedules a new processor
+     * in the immediate future.
+     */
+    private void scheduleNow() {
+        if (isReady()) {
+            TimerTask task = new ProcessorTask(finalizeCurrentBatch());
+            timer.schedule(task, 1);
+        }
+    }
+
+    /**
+     * Schedules a new processor task given number of millis in the future.
+     * Batch finalization is deferred to time of execution.
+     */
     private TimerTask schedule(int millis) {
         TimerTask task = new ProcessorTask();
         timer.schedule(task, millis);
         return task;
     }
 
-    // Cancels the specified task if it is active.
+    /**
+     * Cancels the specified task if it is active.
+     */
     private TimerTask cancelIfActive(TimerTask task) {
         if (task != null) {
             task.cancel();
@@ -106,18 +122,40 @@ public abstract class AbstractAccumulator<T> implements Accumulator<T> {
 
     // Task for triggering processing of accumulated items
     private class ProcessorTask extends TimerTask {
+
+        private final List<T> items;
+
+        // Creates a new processor task with deferred batch finalization.
+        ProcessorTask() {
+            this.items = null;
+        }
+
+        // Creates a new processor task with pre-emptive batch finalization.
+        ProcessorTask(List<T> items) {
+            this.items = items;
+        }
+
         @Override
         public void run() {
-            idleTask = cancelIfActive(idleTask);
+            synchronized (AbstractAccumulator.this) {
+                idleTask = cancelIfActive(idleTask);
+            }
             if (isReady()) {
                 try {
-                    maxTask = cancelIfActive(maxTask);
-                    processItems(finalizeCurrentBatch());
+                    synchronized (AbstractAccumulator.this) {
+                        maxTask = cancelIfActive(maxTask);
+                    }
+                    List<T> batch = items != null ? items : finalizeCurrentBatch();
+                    if (!batch.isEmpty()) {
+                        processItems(batch);
+                    }
                 } catch (Exception e) {
-                    log.warn("Unable to process batch due to {}", e);
+                    log.warn("Unable to process batch due to", e);
                 }
             } else {
-                idleTask = schedule(maxIdleMillis);
+                synchronized (AbstractAccumulator.this) {
+                    idleTask = schedule(maxIdleMillis);
+                }
             }
         }
     }

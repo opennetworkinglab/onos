@@ -32,7 +32,6 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipServiceAdapter;
-import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -44,18 +43,21 @@ import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceClockService;
+import org.onosproject.net.device.DeviceClockServiceAdapter;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceStore;
 import org.onosproject.net.device.DeviceStoreDelegate;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.Timestamp;
 import org.onosproject.store.cluster.StaticClusterService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.consistent.impl.DatabaseManager;
+import org.onosproject.store.impl.MastershipBasedTimestamp;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -68,6 +70,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 import static java.util.Arrays.asList;
@@ -134,8 +137,7 @@ public class GossipDeviceStoreTest {
     private GossipDeviceStore gossipDeviceStore;
     private DeviceStore deviceStore;
 
-    private DeviceClockManager deviceClockManager;
-    private DeviceClockService deviceClockService;
+    private DeviceClockService deviceClockService = new TestDeviceClockService();
     private ClusterCommunicationService clusterCommunicator;
 
     @BeforeClass
@@ -149,13 +151,6 @@ public class GossipDeviceStoreTest {
 
     @Before
     public void setUp() throws Exception {
-        deviceClockManager = new DeviceClockManager();
-        deviceClockManager.activate();
-        deviceClockService = deviceClockManager;
-
-        deviceClockManager.setMastershipTerm(DID1, MastershipTerm.of(NID1, 1));
-        deviceClockManager.setMastershipTerm(DID2, MastershipTerm.of(NID1, 2));
-
         clusterCommunicator = createNiceMock(ClusterCommunicationService.class);
         clusterCommunicator.addSubscriber(anyObject(MessageSubject.class),
                                           anyObject(ClusterMessageHandler.class), anyObject(ExecutorService.class));
@@ -169,6 +164,7 @@ public class GossipDeviceStoreTest {
         TestDatabaseManager testDatabaseManager = new TestDatabaseManager();
         testDatabaseManager.init(clusterService, clusterCommunicator);
         testGossipDeviceStore.storageService = testDatabaseManager;
+        testGossipDeviceStore.deviceClockService = deviceClockService;
 
         gossipDeviceStore = testGossipDeviceStore;
         gossipDeviceStore.activate();
@@ -180,7 +176,6 @@ public class GossipDeviceStoreTest {
     @After
     public void tearDown() throws Exception {
         gossipDeviceStore.deactivate();
-        deviceClockManager.deactivate();
     }
 
     private void putDevice(DeviceId deviceId, String swVersion,
@@ -888,6 +883,27 @@ public class GossipDeviceStoreTest {
 
             nodes.put(NID2, ONOS2);
             nodeStates.put(NID2, ACTIVE);
+        }
+    }
+
+    private final class TestDeviceClockService extends DeviceClockServiceAdapter {
+
+        private final AtomicLong ticker = new AtomicLong();
+
+        @Override
+        public Timestamp getTimestamp(DeviceId deviceId) {
+            if (DID1.equals(deviceId)) {
+                return new MastershipBasedTimestamp(1, ticker.getAndIncrement());
+            } else if (DID2.equals(deviceId)) {
+                return new MastershipBasedTimestamp(2, ticker.getAndIncrement());
+            } else {
+                throw new IllegalStateException();
+            }
+        }
+
+        @Override
+        public boolean isTimestampAvailable(DeviceId deviceId) {
+            return DID1.equals(deviceId) || DID2.equals(deviceId);
         }
     }
 

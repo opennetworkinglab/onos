@@ -15,6 +15,40 @@
  */
 package org.onosproject.sdnip;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Host;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.intent.Constraint;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.constraint.PartialFailureConstraint;
+import org.onosproject.routing.FibListener;
+import org.onosproject.routing.FibUpdate;
+import org.onosproject.routing.IntentRequestListener;
+import org.onosproject.routing.config.RoutingConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,38 +62,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Host;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.criteria.IPCriterion;
-import org.onosproject.net.flow.criteria.Criterion;
-import org.onosproject.net.host.HostService;
-import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.IntentState;
-import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.routing.FibListener;
-import org.onosproject.routing.FibUpdate;
-import org.onosproject.routing.IntentRequestListener;
-import org.onosproject.routing.config.BgpPeer;
-import org.onosproject.routing.config.Interface;
-import org.onosproject.routing.config.RoutingConfigurationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -70,6 +72,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class IntentSynchronizer implements FibListener, IntentRequestListener {
     private static final int PRIORITY_OFFSET = 100;
     private static final int PRIORITY_MULTIPLIER = 5;
+    protected static final ImmutableList<Constraint> CONSTRAINTS
+            = ImmutableList.of(new PartialFailureConstraint());
 
     private static final Logger log =
         LoggerFactory.getLogger(IntentSynchronizer.class);
@@ -77,6 +81,7 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
     private final ApplicationId appId;
     private final IntentService intentService;
     private final HostService hostService;
+    private final InterfaceService interfaceService;
     private final Map<IntentKey, PointToPointIntent> peerIntents;
     private final Map<IpPrefix, MultiPointToSinglePointIntent> routeIntents;
 
@@ -100,10 +105,12 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
      */
     IntentSynchronizer(ApplicationId appId, IntentService intentService,
                        HostService hostService,
-                       RoutingConfigurationService configService) {
+                       RoutingConfigurationService configService,
+                       InterfaceService interfaceService) {
         this.appId = appId;
         this.intentService = intentService;
         this.hostService = hostService;
+        this.interfaceService = interfaceService;
         peerIntents = new ConcurrentHashMap<>();
         routeIntents = new ConcurrentHashMap<>();
 
@@ -118,12 +125,7 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
      * Starts the synchronizer.
      */
     public void start() {
-        bgpIntentsSynchronizerExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                doIntentSynchronizationThread();
-            }
-        });
+        bgpIntentsSynchronizerExecutor.execute(this::doIntentSynchronizationThread);
     }
 
     /**
@@ -309,24 +311,11 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
             MacAddress nextHopMacAddress) {
 
         // Find the attachment point (egress interface) of the next hop
-        Interface egressInterface;
-        if (configService.getBgpPeers().containsKey(nextHopIpAddress)) {
-            // Route to a peer
-            log.debug("Route to peer {}", nextHopIpAddress);
-            BgpPeer peer =
-                    configService.getBgpPeers().get(nextHopIpAddress);
-            egressInterface =
-                    configService.getInterface(peer.connectPoint());
-        } else {
-            // Route to non-peer
-            log.debug("Route to non-peer {}", nextHopIpAddress);
-            egressInterface =
-                    configService.getMatchingInterface(nextHopIpAddress);
-            if (egressInterface == null) {
-                log.warn("No outgoing interface found for {}",
-                         nextHopIpAddress);
-                return null;
-            }
+        Interface egressInterface = interfaceService.getMatchingInterface(nextHopIpAddress);
+        if (egressInterface == null) {
+            log.warn("No outgoing interface found for {}",
+                     nextHopIpAddress);
+            return null;
         }
 
         //
@@ -337,7 +326,8 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
         log.debug("Generating intent for prefix {}, next hop mac {}",
                   prefix, nextHopMacAddress);
 
-        for (Interface intf : configService.getInterfaces()) {
+        for (Interface intf : interfaceService.getInterfaces()) {
+            // TODO this should be only peering interfaces
             if (!intf.connectPoint().equals(egressInterface.connectPoint())) {
                 ConnectPoint srcPort = intf.connectPoint();
                 ingressPorts.add(srcPort);
@@ -375,6 +365,7 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
                 .ingressPoints(ingressPorts)
                 .egressPoint(egressPort)
                 .priority(priority)
+                .constraints(CONSTRAINTS)
                 .build();
     }
 
@@ -425,6 +416,7 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
                 .ingressPoints(ingressPoints)
                 .egressPoint(egressPoint)
                 .priority(priority)
+                .constraints(CONSTRAINTS)
                 .build();
 
         log.trace("Generates ConnectivityInternetToHost intent {}", intent);
@@ -923,6 +915,7 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
                 .ingressPoints(ingressPoints)
                 .egressPoint(dstConnectPoint)
                 .priority(priority)
+                .constraints(CONSTRAINTS)
                 .build();
 
         log.trace("Generates ConnectivityHostToHost = {} ", intent);
@@ -950,6 +943,7 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
                         .ingressPoints(ingressPoints)
                         .egressPoint(existingIntent.egressPoint())
                         .priority(existingIntent.priority())
+                        .constraints(CONSTRAINTS)
                         .build();
 
                 log.trace("Update an existing MultiPointToSinglePointIntent "

@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.flow.criteria;
 
+import org.onlab.packet.TpPort;
+
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
@@ -23,19 +25,18 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * Implementation of SCTP port criterion (16 bits unsigned integer).
  */
 public final class SctpPortCriterion implements Criterion {
-    private static final int MASK = 0xffff;
-    private final int sctpPort;             // Port value: 16 bits
+    private final TpPort sctpPort;
     private final Type type;
 
     /**
      * Constructor.
      *
-     * @param sctpPort the SCTP port to match (16 bits unsigned integer)
+     * @param sctpPort the SCTP port to match
      * @param type the match type. Should be either Type.SCTP_SRC or
      * Type.SCTP_DST
      */
-    SctpPortCriterion(int sctpPort, Type type) {
-        this.sctpPort = sctpPort & MASK;
+    SctpPortCriterion(TpPort sctpPort, Type type) {
+        this.sctpPort = sctpPort;
         this.type = type;
     }
 
@@ -47,9 +48,9 @@ public final class SctpPortCriterion implements Criterion {
     /**
      * Gets the SCTP port to match.
      *
-     * @return the SCTP port to match (16 bits unsigned integer)
+     * @return the SCTP port to match
      */
-    public int sctpPort() {
+    public TpPort sctpPort() {
         return this.sctpPort;
     }
 

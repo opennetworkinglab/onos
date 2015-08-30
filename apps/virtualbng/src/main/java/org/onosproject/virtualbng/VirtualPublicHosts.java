@@ -79,8 +79,7 @@ public class VirtualPublicHosts {
     public void activate() {
         appId = coreService.registerApplication(APP_NAME);
 
-        packetService.addProcessor(processor,
-                                   PacketProcessor.ADVISOR_MAX + 6);
+        packetService.addProcessor(processor, PacketProcessor.director(6));
         requestIntercepts();
         log.info("vBNG virtual public hosts started");
     }

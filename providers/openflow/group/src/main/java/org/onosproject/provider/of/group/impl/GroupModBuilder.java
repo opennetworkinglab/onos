@@ -44,6 +44,7 @@ import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.IPv6FlowLabel;
 import org.projectfloodlight.openflow.types.MacAddress;
+import org.projectfloodlight.openflow.types.OFBooleanValue;
 import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
@@ -283,8 +284,14 @@ public final class GroupModBuilder {
             case MPLS_LABEL:
                 L2ModificationInstruction.ModMplsLabelInstruction mplsLabel =
                         (L2ModificationInstruction.ModMplsLabelInstruction) l2m;
-                oxm = factory.oxms().mplsLabel(U32.of(mplsLabel.label()
-                        .longValue()));
+                oxm = factory.oxms().mplsLabel(U32.of(mplsLabel.mplsLabel().toInt()));
+                break;
+            case MPLS_BOS:
+                L2ModificationInstruction.ModMplsBosInstruction mplsBos =
+                        (L2ModificationInstruction.ModMplsBosInstruction) l2m;
+                oxm = factory.oxms()
+                        .mplsBos(mplsBos.mplsBos() ? OFBooleanValue.TRUE
+                                                   : OFBooleanValue.FALSE);
                 break;
             case DEC_MPLS_TTL:
                 return factory.actions().decMplsTtl();

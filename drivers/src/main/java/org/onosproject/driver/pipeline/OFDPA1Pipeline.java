@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -618,6 +619,36 @@ public class OFDPA1Pipeline extends AbstractHandlerBehaviour implements Pipeline
         //processBridgingTable();
         //processAclTable();
         //processGroupTable();
+        //processMplsTable();
+    }
+
+    protected void processMplsTable() {
+        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(Ethernet.MPLS_UNICAST);
+        selector.matchMplsLabel(MplsLabel.mplsLabel(0xff));
+        selector.matchMplsBos(true);
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        treatment.popMpls(Ethernet.TYPE_IPV4);
+        treatment.transition(ACL_TABLE);
+        FlowRule test = DefaultFlowRule.builder().forDevice(deviceId)
+                .withSelector(selector.build()).withTreatment(treatment.build())
+                .withPriority(LOWEST_PRIORITY).fromApp(driverId).makePermanent()
+                .forTable(25).build();
+        ops = ops.add(test);
+
+        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                log.info("Initialized mpls table");
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                log.info("Failed to initialize mpls table");
+            }
+        }));
+
     }
 
     protected void processPortTable() {

@@ -56,9 +56,8 @@ public class AddMplsIntent extends ConnectivityIntentCommand {
         }
 
         ConnectPoint egress = ConnectPoint.deviceConnectPoint(egressDeviceString);
-
         Optional<MplsLabel> egressLabel = Optional.empty();
-        if (!ingressLabelString.isEmpty()) {
+        if (!egressLabelString.isEmpty()) {
             egressLabel = Optional
                     .ofNullable(MplsLabel.mplsLabel(parseInt(egressLabelString)));
         }

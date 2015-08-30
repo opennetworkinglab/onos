@@ -20,9 +20,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.incubator.net.config.Config;
-import org.onosproject.incubator.net.config.NetworkConfigService;
-import org.onosproject.incubator.net.config.SubjectFactory;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.SubjectFactory;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 

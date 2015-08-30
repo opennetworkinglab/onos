@@ -15,20 +15,22 @@
  */
 package org.onosproject.net.host;
 
-import java.util.Set;
-
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
+
+import java.util.Set;
 
 /**
  * Service for interacting with the inventory of end-station hosts.
  */
-public interface HostService {
+public interface HostService
+    extends ListenerService<HostEvent, HostListener> {
 
     /**
      * Returns the number of end-station hosts known to the system.
@@ -125,7 +127,9 @@ public interface HostService {
      * Returns the addresses information for all connection points.
      *
      * @return the set of address bindings for all connection points
+     * @deprecated in Drake release: use InterfaceService instead
      */
+    @Deprecated
     Set<PortAddresses> getAddressBindings();
 
     /**
@@ -134,21 +138,9 @@ public interface HostService {
      *
      * @param connectPoint the connection point to retrieve address bindings for
      * @return addresses bound to the port
+     * @deprecated in Drake release: use InterfaceService instead
      */
+    @Deprecated
     Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint);
-
-    /**
-     * Adds the specified host listener.
-     *
-     * @param listener host listener
-     */
-    void addListener(HostListener listener);
-
-    /**
-     * Removes the specified host listener.
-     *
-     * @param listener host listener
-     */
-    void removeListener(HostListener listener);
 
 }

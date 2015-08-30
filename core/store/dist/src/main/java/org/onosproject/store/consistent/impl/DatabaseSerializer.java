@@ -75,6 +75,7 @@ public class DatabaseSerializer extends SerializerConfig {
             .register(Result.Status.class)
             .register(DefaultTransaction.class)
             .register(Transaction.State.class)
+            .register(org.onosproject.store.consistent.impl.CommitResponse.class)
             .register(Match.class)
             .register(NodeId.class)
             .build();

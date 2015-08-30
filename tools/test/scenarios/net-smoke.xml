@@ -26,7 +26,10 @@
         <import file="${ONOS_SCENARIOS}/net-host-intent.xml"/>
         <dependency name="Host-Intent-Connectivity" requires="Net-Setup,~Reactive-Forwarding.Net-Link-Down-Up"/>
 
+        <import file="${ONOS_SCENARIOS}/net-point-intent.xml"/>
+        <dependency name="P2P-Intent-Connectivity" requires="Net-Setup,~Reactive-Forwarding.Net-Link-Down-Up,Host-Intent-Connectivity"/>
+
         <import file="${ONOS_SCENARIOS}/net-teardown.xml"/>
-        <dependency name="Net-Teardown" requires="~Host-Intent-Connectivity"/>
+        <dependency name="Net-Teardown" requires="~Host-Intent-Connectivity,~P2P-Intent-Connectivity"/>
     </group>
 </scenario>

@@ -1,26 +1,13 @@
 package org.onosproject.incubator.net.resource.label.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collection;
-import java.util.Set;
-
+import com.google.common.collect.Multimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.event.EventDeliveryService;
-import org.onosproject.event.ListenerRegistry;
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceEvent.Type;
-import org.onosproject.net.device.DeviceListener;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.provider.AbstractProviderRegistry;
-import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.incubator.net.resource.label.LabelResource;
 import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
 import org.onosproject.incubator.net.resource.label.LabelResourceDelegate;
@@ -33,11 +20,21 @@ import org.onosproject.incubator.net.resource.label.LabelResourceProviderRegistr
 import org.onosproject.incubator.net.resource.label.LabelResourceProviderService;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
 import org.onosproject.incubator.net.resource.label.LabelResourceStore;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceEvent.Type;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.Multimap;
+import java.util.Collection;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * provides implementation of the label resource NB &amp; SB APIs.
@@ -46,21 +43,14 @@ import com.google.common.collect.Multimap;
 @Component(immediate = true)
 @Service
 public class LabelResourceManager
-        extends
-        AbstractProviderRegistry<LabelResourceProvider, LabelResourceProviderService>
-        implements LabelResourceService, LabelResourceAdminService,
-        LabelResourceProviderRegistry {
+        extends AbstractListenerProviderRegistry<LabelResourceEvent, LabelResourceListener,
+                                                 LabelResourceProvider, LabelResourceProviderService>
+        implements LabelResourceService, LabelResourceAdminService, LabelResourceProviderRegistry {
     private final Logger log = getLogger(getClass());
     private final LabelResourceDelegate delegate = new InternalLabelResourceDelegate();
 
-    private final ListenerRegistry<LabelResourceEvent, LabelResourceListener> listenerRegistry
-                            = new ListenerRegistry<>();
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LabelResourceStore store;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -90,11 +80,11 @@ public class LabelResourceManager
                                     LabelResourceId endLabel) {
         checkNotNull(deviceId, "deviceId is not null");
         checkNotNull(beginLabel, "beginLabel is not null");
-        checkNotNull(endLabel, "beginLabel is not null");
+        checkNotNull(endLabel, "endLabel is not null");
         checkArgument(beginLabel.labelId() >= 0 || endLabel.labelId() >= 0,
                       "The value of beginLabel and the value of endLabel must be both positive number.");
-        checkArgument(beginLabel.labelId() <= endLabel.labelId(),
-                      "The value of endLabel must be greater than the value of endLabel.");
+        checkArgument(beginLabel.labelId() < endLabel.labelId(),
+                      "The value of endLabel must be greater than the value of beginLabel.");
         return store.createDevicePool(deviceId, beginLabel, endLabel);
     }
 
@@ -102,11 +92,11 @@ public class LabelResourceManager
     public boolean createGlobalPool(LabelResourceId beginLabel,
                                     LabelResourceId endLabel) {
         checkNotNull(beginLabel, "beginLabel is not null");
-        checkNotNull(endLabel, "beginLabel is not null");
+        checkNotNull(endLabel, "endLabel is not null");
         checkArgument(beginLabel.labelId() >= 0 && endLabel.labelId() >= 0,
-                "The value of beginLabel and the value of endLabel must be both positive number.");
-        checkArgument(beginLabel.labelId() <= endLabel.labelId(),
-                "The value of endLabel must be greater than the value of endLabel.");
+                      "The value of beginLabel and the value of endLabel must be both positive number.");
+        checkArgument(beginLabel.labelId() < endLabel.labelId(),
+                      "The value of endLabel must be greater than the value of beginLabel.");
         return store.createGlobalPool(beginLabel, endLabel);
     }
 
@@ -180,26 +170,7 @@ public class LabelResourceManager
         return store.getGlobalLabelResourcePool();
     }
 
-    @Override
-    public void addListener(LabelResourceListener listener) {
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(LabelResourceListener listener) {
-        listenerRegistry.removeListener(listener);
-
-    }
-
-    private void post(LabelResourceEvent event) {
-        if (event != null) {
-            eventDispatcher.post(event);
-        }
-    }
-
-    private class InternalLabelResourceDelegate
-            implements LabelResourceDelegate {
-
+    private class InternalLabelResourceDelegate implements LabelResourceDelegate {
         @Override
         public void notify(LabelResourceEvent event) {
             post(event);
@@ -208,7 +179,6 @@ public class LabelResourceManager
     }
 
     private class InternalDeviceListener implements DeviceListener {
-
         @Override
         public void event(DeviceEvent event) {
             Device device = event.subject();

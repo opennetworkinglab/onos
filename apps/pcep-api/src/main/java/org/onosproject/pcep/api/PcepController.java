@@ -28,7 +28,7 @@ public interface PcepController {
      *
      * @return Iterable of did elements
      */
-    public Iterable<PcepSwitch> getSwitches();
+    Iterable<PcepSwitch> getSwitches();
 
     /**
      * Return a switch with a specified did.
@@ -36,49 +36,49 @@ public interface PcepController {
      * @param did of a device
      * @return a pcep device
      */
-    public PcepSwitch getSwitch(PcepDpid did);
+    PcepSwitch getSwitch(PcepDpid did);
 
     /**
      * Register a listener for meta events that occur to PCEP devices.
      *
      * @param listener the listener to notify
      */
-    public void addListener(PcepSwitchListener listener);
+    void addListener(PcepSwitchListener listener);
 
     /**
      * Unregister a listener.
      *
      * @param listener the listener to unregister
      */
-    public void removeListener(PcepSwitchListener listener);
+    void removeListener(PcepSwitchListener listener);
 
     /**
      * Register a listener for meta events that occur to PCEP links.
      *
      * @param listener the listener to notify
      */
-    public void addLinkListener(PcepLinkListener listener);
+    void addLinkListener(PcepLinkListener listener);
 
     /**
      * Unregister a link listener.
      *
      * @param listener the listener to unregister
      */
-    public void removeLinkListener(PcepLinkListener listener);
+    void removeLinkListener(PcepLinkListener listener);
 
     /**
      * Register a listener for meta events that occur to PCEP tunnel.
      *
      * @param listener the listener to notify
      */
-    public void addTunnelListener(PcepTunnelListener listener);
+    void addTunnelListener(PcepTunnelListener listener);
 
     /**
      * Unregister a tunnel listener.
      *
      * @param listener the listener to unregister
      */
-    public void removeTunnelListener(PcepTunnelListener listener);
+    void removeTunnelListener(PcepTunnelListener listener);
 
     /**
      * Setup a tunnel through pcep controller.
@@ -91,7 +91,7 @@ public interface PcepController {
      * @param name tunnel name
      * @return pcep tunnel
      */
-    public PcepTunnel applyTunnel(DeviceId srcDid, DeviceId dstDid,
+    PcepTunnel applyTunnel(DeviceId srcDid, DeviceId dstDid,
                                   long srcPort, long dstPort, long bandwidth,
                                   String name);
 
@@ -101,7 +101,7 @@ public interface PcepController {
      * @param id pcep tunnel id.
      * @return true or false
      */
-    public Boolean deleteTunnel(String id);
+    Boolean deleteTunnel(String id);
 
     /**
      * Update tunnel bandwidth by tunnel id.
@@ -110,6 +110,6 @@ public interface PcepController {
      * @param bandwidth bandwidth of a tunnel
      * @return true or false
      */
-    public Boolean updateTunnelBandwidth(String id, long bandwidth);
+    Boolean updateTunnelBandwidth(String id, long bandwidth);
 
 }

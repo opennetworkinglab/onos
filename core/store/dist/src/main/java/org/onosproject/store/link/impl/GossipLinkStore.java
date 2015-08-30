@@ -99,7 +99,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Manages inventory of infrastructure links in distributed data store
  * that uses optimistic replication and gossip based techniques.
  */
-@Component(immediate = true)
+@Component(immediate = true, enabled = false)
 @Service
 public class GossipLinkStore
         extends AbstractStore<LinkEvent, LinkStoreDelegate>

@@ -22,6 +22,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+@Deprecated
+/**
+ * @deprecated in Drake release - no longer a public API
+ */
 public class FlowRuleBatchRequest {
 
     /**

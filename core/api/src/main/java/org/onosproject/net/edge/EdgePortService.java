@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.edge;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -27,7 +28,8 @@ import java.util.Optional;
  * is considered an edge port if it is an active port and does not have an
  * infrastructure link associated with it.
  */
-public interface EdgePortService {
+public interface EdgePortService
+        extends ListenerService<EdgePortEvent, EdgePortListener> {
 
     /**
      * Indicates whether or not the specified connection point is an edge point.
@@ -69,19 +71,5 @@ public interface EdgePortService {
      */
     void emitPacket(DeviceId deviceId, ByteBuffer data,
                     Optional<TrafficTreatment> treatment);
-
-    /**
-     * Adds a listener for edge port events.
-     *
-     * @param listener listener to be added
-     */
-    void addListener(EdgePortListener listener);
-
-    /**
-     * Removes the listener for edge port events.
-     *
-     * @param listener listener to be removed
-     */
-    void removeListener(EdgePortListener listener);
 
 }

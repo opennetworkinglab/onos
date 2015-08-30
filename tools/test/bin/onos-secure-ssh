@@ -19,7 +19,7 @@ for node in $nodes; do
     ssh $ONOS_USER@$node "
         [ ! -f ~/.ssh/id_rsa.pub ] && ssh-keygen -t rsa -f ~/.ssh/id_rsa -P '' -q
         $ONOS_INSTALL_DIR/bin/onos-user-key \$(id -un) \$(cut -d\\  -f2 ~/.ssh/id_rsa.pub)
-        $ONOS_INSTALL_DIR/bin/onos-secure-ssh
+        $ONOS_INSTALL_DIR/bin/onos-secure-ssh "$@"
 
         # Implicitly accept the new server key in dev/test environments
         while ! ssh -p 8101 -o StrictHostKeyChecking=no localhost list 2>/dev/null; do

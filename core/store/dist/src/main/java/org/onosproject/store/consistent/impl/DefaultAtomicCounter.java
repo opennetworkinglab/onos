@@ -15,15 +15,14 @@
  */
 package org.onosproject.store.consistent.impl;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.StorageException;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Default implementation for a distributed AtomicCounter backed by
@@ -38,10 +37,9 @@ public class DefaultAtomicCounter implements AtomicCounter {
     private final AsyncAtomicCounter asyncCounter;
 
     public DefaultAtomicCounter(String name,
-            Database database,
-            boolean retryOnException,
-            ScheduledExecutorService retryExecutor) {
-        asyncCounter = new DefaultAsyncAtomicCounter(name, database, retryOnException, retryExecutor);
+                                Database database,
+                                boolean meteringEnabled) {
+        asyncCounter = new DefaultAsyncAtomicCounter(name, database, meteringEnabled);
     }
 
     @Override

@@ -1,0 +1,77 @@
+<!--
+  ~ Copyright 2015 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="net-point-intent"
+          description="Network point to point intent connectivity test">
+    <!-- TODO: parametrize this via recipes -->
+    <group name="P2P-Intent-Connectivity">
+        <step name="P2P-Intent.Uninstall-Reactive-Forwarding"
+              exec="onos ${OC1} app deactivate org.onosproject.fwd org.onosproject.ifwd"/>
+        <step name="P2P-Intent.Check-Apps" requires="^"
+              exec="onos-check-apps ${OC1} fwd,ifwd excludes"/>
+
+        <step name="P2P-Intent.Find-Host-1" requires="^"
+              exec="onos-mininet sendAndExpect h1 ping -c1 -w1 h4 --expect ."/>
+        <step name="P2P-Intent.Find-Host-2" requires="^"
+              exec="onos-mininet sendAndExpect h4 ping -c1 -w1 h1 --expect ."/>
+
+        <step name="P2P-Intent.Create-Intent-XY" requires="^"
+              exec="onos-create-intent ${OC1} xy point of:0000000000000001/1 of:0000000000000004/1"/>
+        <step name="P2P-Intent.Create-Intent-YX" requires="^"
+              exec="onos-create-intent ${OC1} yx point of:0000000000000004/1 of:0000000000000001/1"/>
+
+        <step name="P2P-Intent.Validate-Intent-XY-Installed" requires="^"
+              exec="onos-check-intent ${OC1} yx INSTALLED"/>
+        <step name="P2P-Intent.Validate-Intent-YX-Installed" requires="^"
+              exec="onos-check-intent ${OC1} xy INSTALLED"/>
+
+        <import file="${ONOS_SCENARIOS}/net-link-down-up.xml" namespace="P2P-Intent"/>
+        <dependency name="P2P-Intent.Net-Link-Down-Up"
+                    requires="P2P-Intent.Validate-Intent-XY-Installed,
+                              P2P-Intent.Validate-Intent-YX-Installed"/>
+
+        <step name="P2P-Intent.Validate-Intent-XY-Installed-Still" requires="P2P-Intent.Link-1-Down"
+              exec="onos-check-intent ${OC1} xy INSTALLED"/>
+        <step name="P2P-Intent.Validate-Intent-YX-Installed-Still" requires="P2P-Intent.Link-1-Down"
+              exec="onos-check-intent ${OC1} yx INSTALLED"/>
+
+        <dependency name="P2P-Intent.Link-2-Down"
+                    requires="~P2P-Intent.Validate-Intent-XY-Installed-Still,
+                              ~P2P-Intent.Validate-Intent-YX-Installed-Still"/>
+
+        <step name="P2P-Intent.Validate-Intent-XY-Failed" requires="P2P-Intent.Link-2-Down"
+              exec="onos-check-intent ${OC1} xy FAILED"/>
+        <step name="P2P-Intent.Validate-Intent-YX-Failed" requires="P2P-Intent.Link-2-Down"
+              exec="onos-check-intent ${OC1} yx FAILED"/>
+
+        <dependency name="P2P-Intent.Link-1-Up"
+                    requires="~P2P-Intent.Validate-Intent-XY-Failed,
+                              ~P2P-Intent.Validate-Intent-YX-Failed" />
+
+        <step name="P2P-Intent.Validate-Intent-XY-Installed-Again" requires="P2P-Intent.Link-1-Up"
+              exec="onos-check-intent ${OC1} xy INSTALLED"/>
+        <step name="P2P-Intent.Validate-Intent-YX-Installed-Again" requires="P2P-Intent.Link-1-Up"
+              exec="onos-check-intent ${OC1} yx INSTALLED"/>
+
+        <dependency name="P2P-Intent.Ping-4"
+                    requires="~P2P-Intent.Validate-Intent-XY-Installed-Again,
+                              ~P2P-Intent.Validate-Intent-YX-Installed-Again"/>
+
+        <step name="P2P-Intent.Remove-Intent-XY" requires="~P2P-Intent.Net-Link-Down-Up"
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli xy"/>
+        <step name="P2P-Intent.Remove-Intent-YX" requires="~P2P-Intent.Net-Link-Down-Up"
+              exec="onos ${OC1} remove-intent -p org.onosproject.cli yx"/>
+    </group>
+</scenario>

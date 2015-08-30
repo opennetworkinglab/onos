@@ -22,7 +22,7 @@ import org.onosproject.net.Port;
  */
 public interface PcepLink extends PcepOperator {
 
-    public enum SubType {
+    enum SubType {
         /**
          * Optical Transmission Section Link.
          */
@@ -50,7 +50,7 @@ public interface PcepLink extends PcepOperator {
     }
 
 
-    public enum PortType {
+    enum PortType {
         ODU_PORT, OCH_PORT, OMS_PORT
     }
 
@@ -59,7 +59,7 @@ public interface PcepLink extends PcepOperator {
      *
      * @return endpoint port type
      */
-    public PortType portType();
+    PortType portType();
 
     /**
      * Returns the link sub type,OTS,OPS,PKT_OPTICAL or ODUK.
@@ -67,21 +67,21 @@ public interface PcepLink extends PcepOperator {
      * @return link subType
      */
 
-    public SubType linkSubType();
+    SubType linkSubType();
 
     /**
      * Returns the link state, up or down.
      *
      * @return link state
      */
-    public String linkState();
+    String linkState();
 
     /**
      * Returns the distance of a link.
      *
      * @return distance
      */
-    public int linkDistance();
+    int linkDistance();
 
     /**
      * Returns the capacity type of a link,1: WAVELENGTHNUM, 2:SLOTNUM, 3,
@@ -89,48 +89,48 @@ public interface PcepLink extends PcepOperator {
      *
      * @return capacity type
      */
-    public String linkCapacityType();
+    String linkCapacityType();
 
     /**
      * Returns the available capacity value ,such as available bandwidth.
      *
      * @return availValue
      */
-    public int linkAvailValue();
+    int linkAvailValue();
 
     /**
      * Returns the max capacity value ,such as max bandwidth.
      *
      * @return maxValue
      */
-    public int linkMaxValue();
+    int linkMaxValue();
 
     /**
      * Returns the source device did of a link.
      *
      * @return source did
      */
-    public PcepDpid linkSrcDeviceID();
+    PcepDpid linkSrcDeviceID();
 
     /**
      * Returns the destination device did of a link.
      *
      * @return destination did
      */
-    public PcepDpid linkDstDeviceId();
+    PcepDpid linkDstDeviceId();
 
     /**
      * Returns the source port of a link.
      *
      * @return port number
      */
-    public Port linkSrcPort();
+    Port linkSrcPort();
 
     /**
      * Returns the destination port of a link.
      *
      * @return port number
      */
-    public Port linkDstPort();
+    Port linkDstPort();
 
 }

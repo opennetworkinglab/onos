@@ -53,4 +53,4 @@ EXPOSE 6633 8181 8101 9876
 
 # Get ready to run command
 WORKDIR /root/onos
-CMD ["./bin/onos-service"]
+ENTRYPOINT ["./bin/onos-service"]

@@ -28,7 +28,7 @@ public final class IntentId implements ResourceConsumer {
     private final long value;
 
     /**
-     * Creates an intent identifier from the specified string representation.
+     * Creates an intent identifier from the specified long representation.
      *
      * @param value long value
      * @return intent identifier

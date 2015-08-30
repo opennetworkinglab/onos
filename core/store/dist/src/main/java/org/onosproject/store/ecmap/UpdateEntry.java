@@ -34,7 +34,7 @@ final class UpdateEntry<K, V> {
      */
     public UpdateEntry(K key, MapValue<V> value) {
         this.key = checkNotNull(key);
-        this.value = checkNotNull(value);
+        this.value = value;
     }
 
     /**
@@ -61,7 +61,7 @@ final class UpdateEntry<K, V> {
      * @return true if this entry is newer; false otherwise
      */
     public boolean isNewerThan(UpdateEntry<K, V> other) {
-        return other == null || value.isNewerThan(other.value);
+        return other == null || other.value == null || (value != null && value.isNewerThan(other.value));
     }
 
     @Override

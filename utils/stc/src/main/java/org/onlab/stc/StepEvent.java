@@ -50,8 +50,8 @@ public class StepEvent {
     /**
      * Creates a new step record for non-running status.
      *
-     * @param name   test step or group name
-     * @param status status
+     * @param name    test step or group name
+     * @param status  status
      * @param command step command
      */
     public StepEvent(String name, Status status, String command) {
@@ -108,7 +108,9 @@ public class StepEvent {
      */
     public static StepEvent fromString(String string) {
         String[] fields = string.split("~");
-        return new StepEvent(fields[0], parseLong(fields[1]), valueOf(fields[2]),
-                             fields[3].equals("null") ? null : fields[3]);
+        return fields.length == 4 ?
+                new StepEvent(fields[0], parseLong(fields[1]), valueOf(fields[2]),
+                              fields[3].equals("null") ? null : fields[3]) :
+                new StepEvent(fields[0], 0, Status.WAITING, null);
     }
 }

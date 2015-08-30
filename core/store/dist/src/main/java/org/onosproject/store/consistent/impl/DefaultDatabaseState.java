@@ -18,7 +18,6 @@ package org.onosproject.store.consistent.impl;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -27,15 +26,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.Set;
 
-import org.onosproject.cluster.NodeId;
 import org.onosproject.store.service.DatabaseUpdate;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
-import org.onosproject.store.service.DatabaseUpdate.Type;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import net.kuujo.copycat.state.Initializer;
@@ -49,7 +46,6 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     private Map<String, AtomicLong> counters;
     private Map<String, Map<String, Versioned<byte[]>>> maps;
     private Map<String, Queue<byte[]>> queues;
-    private Map<String, Set<NodeId>> queueUpdateNotificationTargets;
 
     /**
      * This locks map has a structure similar to the "tables" map above and
@@ -85,11 +81,6 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         if (queues == null) {
             queues = Maps.newConcurrentMap();
             context.put("queues", queues);
-        }
-        queueUpdateNotificationTargets = context.get("queueUpdateNotificationTargets");
-        if (queueUpdateNotificationTargets == null) {
-            queueUpdateNotificationTargets = Maps.newConcurrentMap();
-            context.put("queueUpdateNotificationTargets", queueUpdateNotificationTargets);
         }
         nextVersion = context.get("nextVersion");
         if (nextVersion == null) {
@@ -215,35 +206,25 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
 
     @Override
     public byte[] queuePeek(String queueName) {
-        Queue<byte[]> queue = getQueue(queueName);
-        return queue.peek();
+        return getQueue(queueName).peek();
     }
 
     @Override
-    public byte[] queuePop(String queueName, NodeId requestor) {
-        Queue<byte[]> queue = getQueue(queueName);
-        if (queue.size() == 0 && requestor != null) {
-            getQueueUpdateNotificationTargets(queueName).add(requestor);
-            return null;
-        } else {
-            return queue.remove();
-        }
+    public byte[] queuePop(String queueName) {
+        return getQueue(queueName).poll();
     }
 
     @Override
-    public Set<NodeId> queuePush(String queueName, byte[] entry) {
-        getQueue(queueName).add(entry);
-        Set<NodeId> notifyList = ImmutableSet.copyOf(getQueueUpdateNotificationTargets(queueName));
-        getQueueUpdateNotificationTargets(queueName).clear();
-        return notifyList;
+    public void queuePush(String queueName, byte[] entry) {
+        getQueue(queueName).offer(entry);
     }
 
     @Override
-    public boolean prepareAndCommit(Transaction transaction) {
+    public CommitResponse prepareAndCommit(Transaction transaction) {
         if (prepare(transaction)) {
             return commit(transaction);
         }
-        return false;
+        return CommitResponse.failure();
     }
 
     @Override
@@ -263,9 +244,9 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     }
 
     @Override
-    public boolean commit(Transaction transaction) {
-        transaction.updates().forEach(update -> commitProvisionalUpdate(update, transaction.id()));
-        return true;
+    public CommitResponse commit(Transaction transaction) {
+        return CommitResponse.success(Lists.transform(transaction.updates(),
+                                                      update -> commitProvisionalUpdate(update, transaction.id())));
     }
 
     @Override
@@ -288,10 +269,6 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
 
     private Queue<byte[]> getQueue(String queueName) {
         return queues.computeIfAbsent(queueName, name -> new LinkedList<>());
-    }
-
-    private Set<NodeId> getQueueUpdateNotificationTargets(String queueName) {
-        return queueUpdateNotificationTargets.computeIfAbsent(queueName, name -> new HashSet<>());
     }
 
     private boolean isUpdatePossible(DatabaseUpdate update) {
@@ -334,32 +311,16 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         }
     }
 
-    private void commitProvisionalUpdate(DatabaseUpdate update, long transactionId) {
+    private UpdateResult<String, byte[]> commitProvisionalUpdate(DatabaseUpdate update, long transactionId) {
         String mapName = update.mapName();
         String key = update.key();
-        Type type = update.type();
         Update provisionalUpdate = getLockMap(mapName).get(key);
         if (Objects.equal(transactionId, provisionalUpdate.transactionId()))  {
             getLockMap(mapName).remove(key);
         } else {
-            return;
+            throw new IllegalStateException("Invalid transaction Id");
         }
-
-        switch (type) {
-        case PUT:
-        case PUT_IF_ABSENT:
-        case PUT_IF_VERSION_MATCH:
-        case PUT_IF_VALUE_MATCH:
-            mapUpdate(mapName, key, Match.any(), Match.any(), provisionalUpdate.value());
-            break;
-        case REMOVE:
-        case REMOVE_IF_VERSION_MATCH:
-        case REMOVE_IF_VALUE_MATCH:
-            mapUpdate(mapName, key, Match.any(), Match.any(), null);
-            break;
-        default:
-            break;
-        }
+        return mapUpdate(mapName, key, Match.any(), Match.any(), provisionalUpdate.value()).value();
     }
 
     private void undoProvisionalUpdate(DatabaseUpdate update, long transactionId) {

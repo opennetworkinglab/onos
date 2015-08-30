@@ -17,25 +17,25 @@ package org.onosproject.net.newresource.impl;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.net.newresource.DefaultResource;
-import org.onosproject.net.newresource.DefaultResourceAllocation;
-import org.onosproject.net.newresource.Resource;
+import org.onosproject.net.newresource.ResourceAdminService;
 import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourceConsumer;
 import org.onosproject.net.newresource.ResourceService;
+import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.newresource.ResourceStore;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -44,42 +44,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Component(immediate = true, enabled = false)
 @Service
 @Beta
-public final class ResourceManager implements ResourceService {
+public final class ResourceManager implements ResourceService, ResourceAdminService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceStore store;
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <S, T> Optional<ResourceAllocation<S, T>> allocate(ResourceConsumer consumer, Resource<S, T> resource) {
-        checkNotNull(consumer);
-        checkNotNull(resource);
-
-        List<ResourceAllocation<?, ?>> allocations = allocate(consumer, ImmutableList.of(resource));
-        if (allocations.isEmpty()) {
-            return Optional.empty();
-        }
-
-        assert allocations.size() == 1;
-
-        ResourceAllocation<?, ?> allocation = allocations.get(0);
-
-        assert allocation.subject().getClass() == resource.subject().getClass();
-        assert allocation.resource().getClass() == resource.resource().getClass();
-
-        // cast is ensured by the assertions above
-        return Optional.of((ResourceAllocation<S, T>) allocation);
-    }
-
-    @Override
-    public List<ResourceAllocation<?, ?>> allocate(ResourceConsumer consumer,
-                                                   List<? extends Resource<?, ?>> resources) {
+    public List<ResourceAllocation> allocate(ResourceConsumer consumer,
+                                             List<ResourcePath> resources) {
         checkNotNull(consumer);
         checkNotNull(resources);
-
-        if (resources.stream().anyMatch(x -> !isValid(x))) {
-            return ImmutableList.of();
-        }
 
         // TODO: implement support of resource hierarchy
         // allocation for a particular resource implies allocations for all of the sub-resources need to be done
@@ -90,31 +64,16 @@ public final class ResourceManager implements ResourceService {
         }
 
         return resources.stream()
-                .map(x -> new DefaultResourceAllocation<>(x.subject(), x.resource(), consumer))
+                .map(x -> new ResourceAllocation(x, consumer))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<ResourceAllocation<?, ?>> allocate(ResourceConsumer consumer, Resource<?, ?>... resources) {
-        checkNotNull(consumer);
-        checkNotNull(resources);
-
-        return allocate(consumer, Arrays.asList(resources));
-    }
-
-    @Override
-    public <S, T> boolean release(ResourceAllocation<S, T> allocation) {
-        checkNotNull(allocation);
-
-        return release(ImmutableList.of(allocation));
-    }
-
-    @Override
-    public boolean release(List<? extends ResourceAllocation<?, ?>> allocations) {
+    public boolean release(List<ResourceAllocation> allocations) {
         checkNotNull(allocations);
 
-        List<DefaultResource<?, ?>> resources = allocations.stream()
-                .map(x -> new DefaultResource<>(x.subject(), x.resource()))
+        List<ResourcePath> resources = allocations.stream()
+                .map(ResourceAllocation::resource)
                 .collect(Collectors.toList());
         List<ResourceConsumer> consumers = allocations.stream()
                 .map(ResourceAllocation::consumer)
@@ -124,33 +83,25 @@ public final class ResourceManager implements ResourceService {
     }
 
     @Override
-    public boolean release(ResourceAllocation<?, ?>... allocations) {
-        checkNotNull(allocations);
-
-        return release(ImmutableList.copyOf(allocations));
-    }
-
-    @Override
     public boolean release(ResourceConsumer consumer) {
         checkNotNull(consumer);
 
-        Collection<ResourceAllocation<?, ?>> allocations = getResourceAllocations(consumer);
+        Collection<ResourceAllocation> allocations = getResourceAllocations(consumer);
         return release(ImmutableList.copyOf(allocations));
     }
 
     @Override
-    public <S, T> Collection<ResourceAllocation<S, T>> getResourceAllocations(S subject, Class<T> cls) {
-        checkNotNull(subject);
+    public <T> Collection<ResourceAllocation> getResourceAllocations(ResourcePath parent, Class<T> cls) {
+        checkNotNull(parent);
         checkNotNull(cls);
 
-        Collection<Resource<S, T>> resources = store.getAllocatedResources(subject, cls);
-        List<ResourceAllocation<S, T>> allocations = new ArrayList<>(resources.size());
-        for (Resource<S, T> resource: resources) {
+        Collection<ResourcePath> resources = store.getAllocatedResources(parent, cls);
+        List<ResourceAllocation> allocations = new ArrayList<>(resources.size());
+        for (ResourcePath resource: resources) {
             // We access store twice in this method, then the store may be updated by others
             Optional<ResourceConsumer> consumer = store.getConsumer(resource);
             if (consumer.isPresent()) {
-                allocations.add(
-                        new DefaultResourceAllocation<>(resource.subject(), resource.resource(), consumer.get()));
+                allocations.add(new ResourceAllocation(resource, consumer.get()));
             }
         }
 
@@ -158,34 +109,40 @@ public final class ResourceManager implements ResourceService {
     }
 
     @Override
-    public Collection<ResourceAllocation<?, ?>> getResourceAllocations(ResourceConsumer consumer) {
+    public Collection<ResourceAllocation> getResourceAllocations(ResourceConsumer consumer) {
         checkNotNull(consumer);
 
-        Collection<Resource<?, ?>> resources = store.getResources(consumer);
+        Collection<ResourcePath> resources = store.getResources(consumer);
         return resources.stream()
-                .map(x -> new DefaultResourceAllocation<>(x.subject(), x.resource(), consumer))
+                .map(x -> new ResourceAllocation(x, consumer))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public <S, T> boolean isAvailable(Resource<S, T> resource) {
+    public boolean isAvailable(ResourcePath resource) {
         checkNotNull(resource);
 
         Optional<ResourceConsumer> consumer = store.getConsumer(resource);
         return !consumer.isPresent();
     }
 
-    /**
-     * Returns if the specified resource is in the resource range.
-     * E.g. VLAN ID against a link must be within 12 bit address space.
-     *
-     * @param resource resource to be checked if it is within the resource range
-     * @param <S> type of the subject
-     * @param <T> type of the resource
-     * @return true if the resource within the range, false otherwise
-     */
-    private <S, T> boolean isValid(Resource<S, T> resource) {
-        // TODO: implement
-        return true;
+    @Override
+    public <T> boolean registerResources(ResourcePath parent, List<T> children) {
+        checkNotNull(parent);
+        checkNotNull(children);
+        checkArgument(!children.isEmpty());
+
+        List<ResourcePath> resources = Lists.transform(children, x -> ResourcePath.child(parent, x));
+        return store.register(resources);
+    }
+
+    @Override
+    public <T> boolean unregisterResources(ResourcePath parent, List<T> children) {
+        checkNotNull(parent);
+        checkNotNull(children);
+        checkArgument(!children.isEmpty());
+
+        List<ResourcePath> resources = Lists.transform(children, x -> ResourcePath.child(parent, x));
+        return store.unregister(resources);
     }
 }

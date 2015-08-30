@@ -173,7 +173,8 @@ public class HostToInterfaceAdaptorTest {
      */
     @Test(expected = NullPointerException.class)
     public void testGetInterfaceNull() {
-        adaptor.getInterface(null);
+        ConnectPoint c = null;
+        adaptor.getInterface(c);
     }
 
     /**

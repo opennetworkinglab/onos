@@ -88,7 +88,7 @@ public class EAP extends BasePacket {
     /**
      * Sets the EAP identifier.
      *
-     * @param identifier
+     * @param identifier EAP identifier
      * @return this
      */
     public EAP setIdentifier(final byte identifier) {

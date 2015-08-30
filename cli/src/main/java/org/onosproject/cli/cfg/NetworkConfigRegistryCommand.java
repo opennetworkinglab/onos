@@ -18,8 +18,8 @@ package org.onosproject.cli.cfg;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.incubator.net.config.ConfigFactory;
-import org.onosproject.incubator.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigRegistry;
 
 /**
  * Displays network configuration registry contents.

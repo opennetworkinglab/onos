@@ -6,10 +6,22 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
+# Scan arguments for user/password or other options...
+while getopts u:p: o; do
+    case "$o" in
+        u) user=$OPTARG;;
+        p) password=$OPTARG;;
+    esac
+done
+user=${user:-onos}           # user defaults to 'onos'
+password=${password:-$user}  # password defaults to user name if not specified
+let OPC=$OPTIND-1
+shift $OPC
+
 node=${1:-$OCI}
 
 if [ $node = "cell" ]; then
-    nodes=$(env | grep "OC[0-9]*=" | cut -d= -f2)
+    nodes=${ONOS_INSTANCES}
     node=${OCI}
 else
     nodes="$@"
@@ -17,4 +29,4 @@ fi
 
 set -x
 
-ssh $ONOS_USER@$node /tmp/$ONOS_BITS/bin/onos-form-cluster $nodes
+ssh $ONOS_USER@$node $ONOS_INSTALL_DIR/bin/onos-form-cluster -u $user -p $password $nodes

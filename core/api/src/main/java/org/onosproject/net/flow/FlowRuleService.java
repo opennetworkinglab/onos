@@ -16,6 +16,7 @@
 package org.onosproject.net.flow;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 
 /**
@@ -25,7 +26,8 @@ import org.onosproject.net.DeviceId;
  * of the flow rules lies with the controller and the devices hold only the
  * 'cached' copy.
  */
-public interface FlowRuleService {
+public interface FlowRuleService
+    extends ListenerService<FlowRuleEvent, FlowRuleListener> {
 
     /**
      * The topic used for obtaining globally unique ids.
@@ -102,17 +104,4 @@ public interface FlowRuleService {
      */
     void apply(FlowRuleOperations ops);
 
-    /**
-     * Adds the specified flow rule listener.
-     *
-     * @param listener flow rule listener
-     */
-    void addListener(FlowRuleListener listener);
-
-    /**
-     * Removes the specified flow rule listener.
-     *
-     * @param listener flow rule listener
-     */
-    void removeListener(FlowRuleListener listener);
 }

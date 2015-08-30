@@ -23,7 +23,7 @@
     'use strict';
 
     // injected refs
-    var $log, $timeout, fs, sus, is, ts, flash, wss,
+    var $log, $timeout, fs, sus, ts, flash, wss, tov,
         tis, tms, td3, tss, tts, tos, fltr, tls, uplink, svg;
 
     // configuration
@@ -172,7 +172,6 @@
             lu[d.egress] = lnk;
             updateLinks();
         }
-
         fStart();
     }
 
@@ -242,6 +241,10 @@
     }
 
     // ========================
+
+    function nodeById(id) {
+        return lu[id];
+    }
 
     function makeNodeKey(node1, node2) {
         return node1 + '-' + node2;
@@ -354,7 +357,8 @@
     }
 
     function removeDeviceElement(d) {
-        var id = d.id;
+        var id = d.id,
+            idx;
         // first, remove associated hosts and links..
         tms.findAttachedHosts(id).forEach(removeHostElement);
         tms.findAttachedLinks(id).forEach(removeLinkElement);
@@ -362,8 +366,10 @@
         // remove from lookup cache
         delete lu[id];
         // remove from nodes array
-        var idx = fs.find(id, network.nodes);
-        network.nodes.splice(idx, 1);
+        idx = fs.find(id, network.nodes);
+        if (idx > -1) {
+            network.nodes.splice(idx, 1);
+        }
 
         if (!network.nodes.length) {
             uplink.showNoDevs(true);
@@ -489,16 +495,37 @@
         suppressLayers(true);
         node.each(function (n) {
             if (n.master === id) {
-                n.el.classed('suppressed', false);
+                n.el.classed('suppressedmax', false);
             }
         });
     }
 
-    function suppressLayers(b) {
-        node.classed('suppressed', b);
-        link.classed('suppressed', b);
-//        d3.selectAll('svg .port').classed('inactive', b);
-//        d3.selectAll('svg .portText').classed('inactive', b);
+    function supAmt(less) {
+        return less ? "suppressed" : "suppressedmax";
+    }
+
+    function suppressLayers(b, less) {
+        var cls = supAmt(less);
+        node.classed(cls, b);
+        link.classed(cls, b);
+    }
+
+    function unsuppressNode(id, less) {
+        var cls = supAmt(less);
+        node.each(function (n) {
+            if (n.id === id) {
+                n.el.classed(cls, false);
+            }
+        });
+    }
+
+    function unsuppressLink(key, less) {
+        var cls = supAmt(less);
+        link.each(function (n) {
+            if (n.key === key) {
+                n.el.classed(cls, false);
+            }
+        });
     }
 
     function showBadLinks() {
@@ -525,6 +552,8 @@
         fNodesTimer = $timeout(_updateNodes, 150);
     }
 
+    // IMPLEMENTATION NOTE: _updateNodes() should NOT stop, start, or resume
+    //  the force layout; that needs to be determined and implemented elsewhere
     function _updateNodes() {
         // select all the nodes in the layout:
         node = nodeG.selectAll('.node')
@@ -541,8 +570,7 @@
                 id: function (d) { return sus.safeId(d.id); },
                 class: mkSvgClass,
                 transform: function (d) {
-                    // sometimes says d.x and d.y are NaN?
-                    // I have a feeling it's a timing issue
+                    // Need to guard against NaN here ??
                     return sus.translate(d.x, d.y);
                 },
                 opacity: 0
@@ -666,15 +694,14 @@
         fLinksTimer = $timeout(_updateLinks, 150);
     }
 
+    // IMPLEMENTATION NOTE: _updateLinks() should NOT stop, start, or resume
+    //  the force layout; that needs to be determined and implemented elsewhere
     function _updateLinks() {
         var th = ts.theme();
 
         link = linkG.selectAll('.link')
             .data(network.links, function (d) { return d.key; });
 
-        // This seems to do nothing? I've only triggered it on timeout errors
-        // when adding links, link var is empty because there aren't any links
-        // when removing links, link var is empty already
         // operate on existing links:
         link.each(function (d) {
             // this is supposed to be an existing link, but we have observed
@@ -749,7 +776,11 @@
 
     var tickStuff = {
         nodeAttr: {
-            transform: function (d) { return sus.translate(d.x, d.y); }
+            transform: function (d) {
+                var dx = isNaN(d.x) ? 0 : d.x,
+                    dy = isNaN(d.y) ? 0 : d.y;
+                return sus.translate(dx, dy);
+            }
         },
         linkAttr: {
             x1: function (d) { return d.position.x1; },
@@ -769,15 +800,15 @@
 
     function tick() {
         // guard against null (which can happen when our view pages out)...
-        if (node) {
+        if (node && node.size()) {
             node.attr(tickStuff.nodeAttr);
         }
-        if (link) {
+        if (link && link.size()) {
             link.call(calcPosition)
                 .attr(tickStuff.linkAttr);
             td3.applyNumLinkLabels(linkNums, numLinkLblsG);
         }
-        if (linkLabel) {
+        if (linkLabel && linkLabel.size()) {
             linkLabel.attr(tickStuff.linkLabelAttr);
         }
     }
@@ -810,9 +841,10 @@
         return true;
     }
 
-    // ==========================
-    // function entry points for traffic module
+    // =============================================
+    // function entry points for overlay module
 
+    // TODO: find an automatic way of tracking via the "showHighlights" events
     var allTrafficClasses = 'primary secondary optical animated ' +
         'port-traffic-Kbps port-traffic-Mbps port-traffic-Gbps ' +
         'port-traffic-Gbps-choked';
@@ -858,7 +890,7 @@
         };
     }
 
-    function mkD3Api(uplink) {
+    function mkD3Api() {
         return {
             node: function () { return node; },
             link: function () { return link; },
@@ -872,7 +904,7 @@
         };
     }
 
-    function mkSelectApi(uplink) {
+    function mkSelectApi() {
         return {
             node: function () { return node; },
             zoomingOrPanning: zoomingOrPanning,
@@ -881,15 +913,25 @@
         };
     }
 
-    function mkTrafficApi(uplink) {
+    function mkTrafficApi() {
+        return {
+            hovered: tss.hovered,
+            somethingSelected: tss.somethingSelected,
+            selectOrder: tss.selectOrder
+        };
+    }
+
+    function mkOverlayApi() {
         return {
             clearLinkTrafficStyle: clearLinkTrafficStyle,
             removeLinkLabels: removeLinkLabels,
-            updateLinks: updateLinks,
             findLinkById: tms.findLinkById,
-            hovered: tss.hovered,
-            validateSelectionContext: tss.validateSelectionContext,
-            selectOrder: tss.selectOrder
+            findNodeById: nodeById,
+            updateLinks: updateLinks,
+            updateNodes: updateNodes,
+            supLayers: suppressLayers,
+            unsupNode: unsuppressNode,
+            unsupLink: unsuppressLink
         };
     }
 
@@ -917,7 +959,7 @@
         };
     }
 
-    function mkFilterApi(uplink) {
+    function mkFilterApi() {
         return {
             node: function () { return node; },
             link: function () { return link; }
@@ -938,11 +980,11 @@
     .factory('TopoForceService',
         ['$log', '$timeout', 'FnService', 'SvgUtilService',
             'ThemeService', 'FlashService', 'WebSocketService',
-            'TopoInstService', 'TopoModelService',
+            'TopoOverlayService', 'TopoInstService', 'TopoModelService',
             'TopoD3Service', 'TopoSelectService', 'TopoTrafficService',
             'TopoObliqueService', 'TopoFilterService', 'TopoLinkService',
 
-        function (_$log_, _$timeout_, _fs_, _sus_, _ts_, _flash_, _wss_,
+        function (_$log_, _$timeout_, _fs_, _sus_, _ts_, _flash_, _wss_, _tov_,
                   _tis_, _tms_, _td3_, _tss_, _tts_, _tos_, _fltr_, _tls_) {
             $log = _$log_;
             $timeout = _$timeout_;
@@ -951,6 +993,7 @@
             ts = _ts_;
             flash = _flash_;
             wss = _wss_;
+            tov = _tov_;
             tis = _tis_;
             tms = _tms_;
             td3 = _td3_;
@@ -979,12 +1022,13 @@
 
                 $log.debug('initForce().. dim = ' + dim);
 
+                tov.setApi(mkOverlayApi(), tss);
                 tms.initModel(mkModelApi(uplink), dim);
-                td3.initD3(mkD3Api(uplink));
-                tss.initSelect(mkSelectApi(uplink));
-                tts.initTraffic(mkTrafficApi(uplink));
+                td3.initD3(mkD3Api());
+                tss.initSelect(mkSelectApi());
+                tts.initTraffic(mkTrafficApi());
                 tos.initOblique(mkObliqueApi(uplink, fltr));
-                fltr.initFilter(mkFilterApi(uplink));
+                fltr.initFilter(mkFilterApi());
                 tls.initLink(mkLinkApi(svg, uplink), td3);
 
                 settings = angular.extend({}, defaultSettings, opts);
@@ -1029,6 +1073,7 @@
                 tss.destroySelect();
                 td3.destroyD3();
                 tms.destroyModel();
+                // note: no need to destroy overlay service
                 ts.removeListener(themeListener);
                 themeListener = null;
 

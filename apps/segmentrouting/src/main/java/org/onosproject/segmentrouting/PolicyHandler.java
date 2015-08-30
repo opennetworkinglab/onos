@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.TpPort;
 import org.onosproject.cli.net.IpProtocol;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
@@ -59,10 +60,11 @@ public class PolicyHandler {
     /**
      * Creates a reference.
      *
-     * @param appId segment routing application ID
-     * @param deviceConfiguration DeviceConfiguration reference
+     * @param appId                segment routing application ID
+     * @param deviceConfiguration  DeviceConfiguration reference
      * @param flowObjectiveService FlowObjectiveService reference
-     * @param policyStore policy store
+     * @param tunnelHandler        tunnel handler reference
+     * @param policyStore          policy store
      */
     public PolicyHandler(ApplicationId appId,
                          DeviceConfiguration deviceConfiguration,
@@ -192,17 +194,17 @@ public class PolicyHandler {
             tsb.matchIPProtocol(ipProto.byteValue());
             if (IpProtocol.valueOf(policy.ipProto()).equals(IpProtocol.TCP)) {
                 if (policy.srcPort() != 0) {
-                    tsb.matchTcpSrc(policy.srcPort());
+                    tsb.matchTcpSrc(TpPort.tpPort(policy.srcPort()));
                 }
                 if (policy.dstPort() != 0) {
-                    tsb.matchTcpDst(policy.dstPort());
+                    tsb.matchTcpDst(TpPort.tpPort(policy.dstPort()));
                 }
             } else if (IpProtocol.valueOf(policy.ipProto()).equals(IpProtocol.UDP)) {
                 if (policy.srcPort() != 0) {
-                    tsb.matchUdpSrc(policy.srcPort());
+                    tsb.matchUdpSrc(TpPort.tpPort(policy.srcPort()));
                 }
                 if (policy.dstPort() != 0) {
-                    tsb.matchUdpDst(policy.dstPort());
+                    tsb.matchUdpDst(TpPort.tpPort(policy.dstPort()));
                 }
             }
         }

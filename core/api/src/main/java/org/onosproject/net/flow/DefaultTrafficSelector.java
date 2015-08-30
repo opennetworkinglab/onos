@@ -21,6 +21,7 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.PortNumber;
@@ -208,33 +209,69 @@ public final class DefaultTrafficSelector implements TrafficSelector {
             return add(Criteria.matchIPDst(ip));
         }
 
+        @Deprecated
         @Override
         public Builder matchTcpSrc(short tcpPort) {
+            return matchTcpSrc(TpPort.tpPort(tcpPort));
+        }
+
+        @Override
+        public Builder matchTcpSrc(TpPort tcpPort) {
             return add(Criteria.matchTcpSrc(tcpPort));
         }
 
+        @Deprecated
         @Override
         public Builder matchTcpDst(short tcpPort) {
+            return matchTcpDst(TpPort.tpPort(tcpPort));
+        }
+
+        @Override
+        public Builder matchTcpDst(TpPort tcpPort) {
             return add(Criteria.matchTcpDst(tcpPort));
         }
 
+        @Deprecated
         @Override
         public Builder matchUdpSrc(short udpPort) {
+            return matchUdpSrc(TpPort.tpPort(udpPort));
+        }
+
+        @Override
+        public Builder matchUdpSrc(TpPort udpPort) {
             return add(Criteria.matchUdpSrc(udpPort));
         }
 
+        @Deprecated
         @Override
         public Builder matchUdpDst(short udpPort) {
+            return matchUdpDst(TpPort.tpPort(udpPort));
+        }
+
+        @Override
+        public Builder matchUdpDst(TpPort udpPort) {
             return add(Criteria.matchUdpDst(udpPort));
         }
 
+        @Deprecated
         @Override
         public Builder matchSctpSrc(short sctpPort) {
-            return add(Criteria.matchSctpSrc(sctpPort));
+            return matchSctpSrc(TpPort.tpPort(sctpPort));
         }
 
         @Override
+        public Builder matchSctpSrc(TpPort sctpPort) {
+            return add(Criteria.matchSctpSrc(sctpPort));
+        }
+
+        @Deprecated
+        @Override
         public Builder matchSctpDst(short sctpPort) {
+            return matchSctpDst(TpPort.tpPort(sctpPort));
+        }
+
+        @Override
+        public Builder matchSctpDst(TpPort sctpPort) {
             return add(Criteria.matchSctpDst(sctpPort));
         }
 
@@ -291,6 +328,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Override
         public Builder matchMplsLabel(MplsLabel mplsLabel) {
             return add(Criteria.matchMplsLabel(mplsLabel));
+        }
+
+        @Override
+        public Builder matchMplsBos(boolean mplsBos) {
+            return add(Criteria.matchMplsLabel(mplsBos));
         }
 
         @Override

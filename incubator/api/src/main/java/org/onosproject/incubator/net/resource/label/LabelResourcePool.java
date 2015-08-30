@@ -14,11 +14,11 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * Abstraction of the capacity of device label resource or global label
- * resource. it's contiguous range of label resource.when a application apply
- * some labels of some device,first catch from Set that store
- * available labels,if the size of the Set less than the apply number,then get
+ * resource. It's contiguous range of label resource. When a application apply
+ * some labels of some device, first catch from Set that store
+ * available labels, if the size of the Set less than the apply number, then get
  * labels by calculating with three attributes, beginLabel,endLabel and
- * currentUsedMaxLabelId
+ * currentUsedMaxLabelId.
  */
 @Beta
 public class LabelResourcePool {
@@ -48,7 +48,8 @@ public class LabelResourcePool {
 
     /**
      * Creates a pool by device id,begin label id,end label id.
-     * used to update a pool in the store.
+     * Used to update a pool in the store.
+     *
      * @param deviceId device identifier
      * @param beginLabel represents for the first label id in the range of label
      *            resource pool
@@ -95,7 +96,7 @@ public class LabelResourcePool {
     }
 
     /**
-     * Returns a end Label id.
+     * Returns an end Label id.
      *
      * @return end Label id
      */

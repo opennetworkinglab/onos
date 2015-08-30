@@ -21,10 +21,11 @@
     'use strict';
 
     // injected refs
-    var $log, $interval, fs, wss;
+    var $log, $interval, $timeout, fs, wss;
 
     // constants
-    var refreshInterval = 2000;
+    var refreshInterval = 2000,
+        loadingWait = 500;
 
     // example params to buildTable:
     // {
@@ -47,17 +48,21 @@
             onSel = fs.isF(o.selCb),
             onResp = fs.isF(o.respCb),
             oldTableData = [],
-            promise;
+            loaded = false,
+            refreshPromise, loadingPromise;
 
         o.scope.tableData = [];
         o.scope.changedData = [];
         o.scope.sortParams = {};
+        o.scope.loading = true;
         o.scope.autoRefresh = true;
         o.scope.autoRefreshTip = 'Toggle auto refresh';
 
         // === websocket functions --------------------
         // response
         function respCb(data) {
+            loaded = true;
+            o.scope.loading = false;
             o.scope.tableData = data[root];
             onResp && onResp();
 
@@ -83,8 +88,19 @@
         function sortCb(params) {
             var p = angular.extend({}, params, o.query);
             wss.sendEvent(req, p);
+            stillLoading();
         }
         o.scope.sortCallback = sortCb;
+
+        // show loading wheel if it's taking a while for the server to respond
+        function stillLoading() {
+            loaded = false;
+            loadingPromise = $timeout(function () {
+                if (!loaded) {
+                    o.scope.loading = true;
+                }
+            }, loadingWait);
+        }
 
         // === selecting a row functions ----------------
         function selCb($event, selRow) {
@@ -95,7 +111,7 @@
 
         // === autoRefresh functions ------------------
         function startRefresh() {
-            promise = $interval(function () {
+            refreshPromise = $interval(function () {
                 if (fs.debugOn('widget')) {
                     $log.debug('Refreshing ' + root + ' page');
                 }
@@ -104,9 +120,9 @@
         }
 
         function stopRefresh() {
-            if (angular.isDefined(promise)) {
-                $interval.cancel(promise);
-                promise = undefined;
+            if (angular.isDefined(refreshPromise)) {
+                $interval.cancel(refreshPromise);
+                refreshPromise = undefined;
             }
         }
 
@@ -120,6 +136,10 @@
         o.scope.$on('$destroy', function () {
             wss.unbindHandlers(handlers);
             stopRefresh();
+            if (angular.isDefined(loadingPromise)) {
+                $timeout.cancel(loadingPromise);
+                loadingPromise = undefined;
+            }
         });
 
         sortCb();
@@ -128,11 +148,12 @@
 
     angular.module('onosWidget')
         .factory('TableBuilderService',
-        ['$log', '$interval', 'FnService', 'WebSocketService',
+        ['$log', '$interval', '$timeout', 'FnService', 'WebSocketService',
 
-            function (_$log_, _$interval_, _fs_, _wss_) {
+            function (_$log_, _$interval_, _$timeout_, _fs_, _wss_) {
                 $log = _$log_;
                 $interval = _$interval_;
+                $timeout = _$timeout_;
                 fs = _fs_;
                 wss = _wss_;
 

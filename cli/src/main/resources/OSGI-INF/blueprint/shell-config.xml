@@ -113,6 +113,18 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.AddMeter"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.Meters"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.DeviceRoleCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
@@ -323,6 +335,9 @@
         <command>
             <action class="org.onosproject.cli.net.AddressBindingsListCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.cli.net.InterfacesListCommand"/>
+        </command>
 
         <command>
             <action class="org.onosproject.cli.net.GroupsListCommand"/>
@@ -341,7 +356,7 @@
         </command>
 
         <command>
-            <action class="org.onosproject.cli.net.AddFlowsCommand"/>
+            <action class="org.onosproject.cli.net.AddTestFlowsCommand"/>
         </command>
         <command>
             <action class="org.onosproject.cli.net.LeaderCommand"/>
@@ -365,7 +380,7 @@
                 <entry key="-a" value-ref="allAppNameCompleter"/>
             </optional-completers>
         </command>
-        
+
         <command>
             <action class="org.onosproject.cli.net.GlobalLabelCommand"/>
         </command>

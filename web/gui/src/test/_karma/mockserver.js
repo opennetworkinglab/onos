@@ -7,7 +7,9 @@ var fs = require('fs'),
     http = require('http'),
     WebSocketServer = require('websocket').server,
     port = 8123,
-    scenarioRoot = 'ev/';
+    scenarioRoot = 'ev/',
+    verbose = false,         // show received messages from client
+    extraVerbose = false;    // show ALL received messages from client
 
 var lastcmd,        // last command executed
     lastargs,       // arguments to last command
@@ -23,8 +25,19 @@ var lastcmd,        // last command executed
     evdata;         // event data
 
 
+process.argv.forEach(function (val) {
+    switch (val) {
+        case '-v': verbose = true; break;
+        case '-v!': extraVerbose = true; break;
+    }
+});
+
 var scFiles = fs.readdirSync(scenarioRoot);
+console.log();
 console.log('Mock Server v1.0');
+if (verbose || extraVerbose) {
+    console.log('Verbose=' + verbose, 'ExtraVerbose=' + extraVerbose);
+}
 console.log('================');
 listScenarios();
 
@@ -62,6 +75,15 @@ function originIsAllowed(origin) {
     return true;
 }
 
+// displays the message if our arguments say we should
+function displayMsg(msg) {
+    var ev = JSON.parse(msg);
+    switch (ev.event) {
+        case 'topoHeartbeat': return extraVerbose;
+        default: return true;
+    }
+}
+
 wsServer.on('request', function(request) {
     console.log(); // newline after prompt
     console.log("Origin: ", request.origin);
@@ -81,15 +103,19 @@ wsServer.on('request', function(request) {
     rl.prompt();
 
     connection.on('message', function(message) {
-        if (message.type === 'utf8') {
-            console.log(); // newline after prompt
-            console.log('Received Message: ' + message.utf8Data);
-            //connection.sendUTF(message.utf8Data);
-            rl.prompt();
-        }
-        else if (message.type === 'binary') {
-            console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
-            //connection.sendBytes(message.binaryData);
+        if (verbose || extraVerbose) {
+            if (message.type === 'utf8') {
+                if (displayMsg(message.utf8Data)) {
+                    console.log(); // newline after prompt
+                    console.log('Received Message: ' + message.utf8Data);
+                }
+                //connection.sendUTF(message.utf8Data);
+                rl.prompt();
+            }
+            else if (message.type === 'binary') {
+                console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
+                //connection.sendBytes(message.binaryData);
+            }
         }
     });
     connection.on('close', function(reasonCode, description) {

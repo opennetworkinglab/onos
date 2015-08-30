@@ -1,0 +1,22 @@
+#!/bin/bash
+#! usage: onos-create-intent target-onos-instance name point deviceId1 deviceId2
+#!        onos-create-intent target-onos-instance name host hostId1 hostId2
+# -----------------------------------------------------------------------------
+# Installs a new intent using the ONOS CLI
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+aux=/tmp/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+target=$1
+name=$2
+type=$3
+arg1=$4
+arg2=$5
+
+set -x
+
+onos $target "onos:add-${type}-intent" --key $name "${arg1}" "${arg2}"
+

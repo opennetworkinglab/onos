@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static java.lang.System.currentTimeMillis;
 import static org.onlab.stc.Coordinator.Status.*;
@@ -43,6 +44,9 @@ public final class Main {
     private static final String GREEN = "\u001B[32;1m";
     private static final String BLUE = "\u001B[36m";
 
+    private static final String SUCCESS_SUMMARY = "%sPassed! %d steps succeeded%s";
+    private static final String FAILURE_SUMMARY = "%sFailed! %d steps succeeded; %d steps failed; %d steps skipped%s";
+
     private enum Command {
         LIST, RUN, RUN_RANGE, HELP
     }
@@ -54,6 +58,7 @@ public final class Main {
     private String runToPatterns = "";
 
     private Coordinator coordinator;
+    private Monitor monitor;
     private Listener delegate = new Listener();
 
     private static boolean useColor = Objects.equals("true", System.getenv("stcColor"));
@@ -105,13 +110,16 @@ public final class Main {
             Compiler compiler = new Compiler(scenario);
             compiler.compile();
 
-            // Execute process flow
+            // Setup the process flow coordinator
             coordinator = new Coordinator(scenario, compiler.processFlow(),
                                           compiler.logDir());
             coordinator.addListener(delegate);
 
-            startMonitorServer();
+            // Prepare the GUI monitor
+            monitor = new Monitor(coordinator, compiler);
+            startMonitorServer(monitor);
 
+            // Execute process flow
             processCommand();
 
         } catch (FileNotFoundException e) {
@@ -120,11 +128,12 @@ public final class Main {
     }
 
     // Initiates a web-server for the monitor GUI.
-    private static void startMonitorServer() {
+    private static void startMonitorServer(Monitor monitor) {
         org.eclipse.jetty.util.log.Log.setLog(new NullLogger());
         Server server = new Server(9999);
         ServletHandler handler = new ServletHandler();
         server.setHandler(handler);
+        MonitorWebSocketServlet.setMonitor(monitor);
         handler.addServletWithMapping(MonitorWebSocketServlet.class, "/*");
         try {
             server.start();
@@ -152,33 +161,46 @@ public final class Main {
 
     // Processes the scenario 'run' command.
     private void processRun() {
-        try {
-            coordinator.reset();
-            coordinator.start();
-            int exitCode = coordinator.waitFor();
-            pause(100); // allow stdout to flush
-            System.exit(exitCode);
-        } catch (InterruptedException e) {
-            print("Unable to execute scenario %s", scenarioFile);
-        }
+        coordinator.reset();
+        runCoordinator();
+    }
+
+    // Processes the scenario 'run' command for range of steps.
+    private void processRunRange() {
+        coordinator.reset(list(runFromPatterns), list(runToPatterns));
+        runCoordinator();
     }
 
     // Processes the scenario 'list' command.
     private void processList() {
         coordinator.getRecords()
                 .forEach(event -> logStatus(event.time(), event.name(), event.status(), event.command()));
+        System.exit(0);
     }
 
-    // Processes the scenario 'run' command for range of steps.
-    private void processRunRange() {
+    // Runs the coordinator and waits for it to finish.
+    private void runCoordinator() {
         try {
-            coordinator.reset(list(runFromPatterns), list(runToPatterns));
             coordinator.start();
             int exitCode = coordinator.waitFor();
             pause(100); // allow stdout to flush
+            printSummary(exitCode);
             System.exit(exitCode);
         } catch (InterruptedException e) {
             print("Unable to execute scenario %s", scenarioFile);
+        }
+    }
+
+    private void printSummary(int exitCode) {
+        Set<Step> steps = coordinator.getSteps();
+        int count = steps.size();
+        if (exitCode == 0) {
+            print(SUCCESS_SUMMARY, color(SUCCEEDED), count, color(null));
+        } else {
+            long success = steps.stream().filter(s -> coordinator.getStatus(s) == SUCCEEDED).count();
+            long failed = steps.stream().filter(s -> coordinator.getStatus(s) == FAILED).count();
+            long skipped = steps.stream().filter(s -> coordinator.getStatus(s) == SKIPPED).count();
+            print(FAILURE_SUMMARY, color(FAILED), success, failed, skipped, color(null));
         }
     }
 
@@ -187,8 +209,8 @@ public final class Main {
      */
     private static class Listener implements StepProcessListener {
         @Override
-        public void onStart(Step step) {
-            logStatus(currentTimeMillis(), step.name(), IN_PROGRESS, step.command());
+        public void onStart(Step step, String command) {
+            logStatus(currentTimeMillis(), step.name(), IN_PROGRESS, command);
         }
 
         @Override

@@ -73,7 +73,7 @@ public class TopologyManagerTest {
         registry = mgr;
 
         mgr.store = new SimpleTopologyStore();
-        mgr.eventDispatcher = new TestEventDispatcher();
+        injectEventDispatcher(mgr, new TestEventDispatcher());
         mgr.activate();
 
         service.addListener(listener);

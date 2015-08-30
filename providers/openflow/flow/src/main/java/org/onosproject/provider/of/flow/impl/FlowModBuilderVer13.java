@@ -31,6 +31,7 @@ import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambda
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsBosInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
@@ -58,6 +59,7 @@ import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.IPv6FlowLabel;
 import org.projectfloodlight.openflow.types.MacAddress;
+import org.projectfloodlight.openflow.types.OFBooleanValue;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
@@ -161,6 +163,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         if (treatment.writeMetadata() != null) {
             instructions.add(buildMetadata(treatment.writeMetadata()));
         }
+        if (treatment.metered() != null) {
+            instructions.add(buildMeter(treatment.metered()));
+        }
 
         long cookie = flowRule().id().value();
 
@@ -263,6 +268,11 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         return instruction;
     }
 
+    private OFInstruction buildMeter(Instructions.MeterInstruction metered) {
+        return factory().instructions().meter(metered.meterId().id());
+    }
+
+
     private OFAction buildL0Modification(Instruction i) {
         L0ModificationInstruction l0m = (L0ModificationInstruction) i;
         switch (l0m.subtype()) {
@@ -332,8 +342,13 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
             case MPLS_LABEL:
                 ModMplsLabelInstruction mplsLabel =
                         (ModMplsLabelInstruction) l2m;
-                oxm = factory().oxms().mplsLabel(U32.of(mplsLabel.label()
-                                                                .longValue()));
+                oxm = factory().oxms().mplsLabel(U32.of(mplsLabel.mplsLabel().toInt()));
+                break;
+            case MPLS_BOS:
+                ModMplsBosInstruction mplsBos = (ModMplsBosInstruction) l2m;
+                oxm = factory().oxms()
+                        .mplsBos(mplsBos.mplsBos() ? OFBooleanValue.TRUE
+                                                   : OFBooleanValue.FALSE);
                 break;
             case DEC_MPLS_TTL:
                 return factory().actions().decMplsTtl();
@@ -415,19 +430,19 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         switch (l4m.subtype()) {
             case TCP_SRC:
                 tp = (ModTransportPortInstruction) l4m;
-                oxm = factory().oxms().tcpSrc(TransportPort.of(tp.port()));
+                oxm = factory().oxms().tcpSrc(TransportPort.of(tp.port().toInt()));
                 break;
             case TCP_DST:
                 tp = (ModTransportPortInstruction) l4m;
-                oxm = factory().oxms().tcpDst(TransportPort.of(tp.port()));
+                oxm = factory().oxms().tcpDst(TransportPort.of(tp.port().toInt()));
                 break;
             case UDP_SRC:
                 tp = (ModTransportPortInstruction) l4m;
-                oxm = factory().oxms().udpSrc(TransportPort.of(tp.port()));
+                oxm = factory().oxms().udpSrc(TransportPort.of(tp.port().toInt()));
                 break;
             case UDP_DST:
                 tp = (ModTransportPortInstruction) l4m;
-                oxm = factory().oxms().udpDst(TransportPort.of(tp.port()));
+                oxm = factory().oxms().udpDst(TransportPort.of(tp.port().toInt()));
                 break;
             default:
                 log.warn("Unimplemented action type {}.", l4m.subtype());

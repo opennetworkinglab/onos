@@ -33,11 +33,17 @@ import java.util.Set;
 import static org.onlab.util.Tools.nullIsNotFound;
 
 /**
- * REST resource for cluster-wide component configuration.
+ * Manage component configurations.
  */
 @Path("configuration")
 public class ComponentConfigWebResource extends AbstractWebResource {
 
+    /**
+     * Get all component configurations.
+     * Returns collection of all registered component configurations.
+     *
+     * @return 200 OK
+     */
     @GET
     public Response getComponentConfigs() {
         ComponentConfigService service = get(ComponentConfigService.class);
@@ -47,6 +53,12 @@ public class ComponentConfigWebResource extends AbstractWebResource {
         return ok(root).build();
     }
 
+    /**
+     * Get configuration of the specified component.
+     *
+     * @param component component name
+     * @return 200 OK
+     */
     @GET
     @Path("{component}")
     public Response getComponentConfigs(@PathParam("component") String component) {
@@ -65,10 +77,19 @@ public class ComponentConfigWebResource extends AbstractWebResource {
         props.forEach(p -> compNode.put(p.name(), p.value()));
     }
 
+    /**
+     * Selectively set configuration properties.
+     * Sets only the properties present in the JSON request.
+     *
+     * @param component component name
+     * @param request   JSON configuration
+     * @return 200 OK
+     * @throws IOException to signify bad request
+     */
     @POST
     @Path("{component}")
-    public Response setComponentConfigs(@PathParam("component") String component,
-                                        InputStream request) throws IOException {
+    public Response setConfigs(@PathParam("component") String component,
+                               InputStream request) throws IOException {
         ComponentConfigService service = get(ComponentConfigService.class);
         ObjectNode props = (ObjectNode) mapper().readTree(request);
         props.fieldNames().forEachRemaining(k -> service.setProperty(component, k,
@@ -76,10 +97,19 @@ public class ComponentConfigWebResource extends AbstractWebResource {
         return Response.noContent().build();
     }
 
+    /**
+     * Selectively clear configuration properties.
+     * Clears only the properties present in the JSON request.
+     *
+     * @param component component name
+     * @param request   JSON configuration
+     * @return 200 OK
+     * @throws IOException to signify bad request
+     */
     @DELETE
     @Path("{component}")
-    public Response unsetComponentConfigs(@PathParam("component") String component,
-                                          InputStream request) throws IOException {
+    public Response unsetConfigs(@PathParam("component") String component,
+                                 InputStream request) throws IOException {
         ComponentConfigService service = get(ComponentConfigService.class);
         ObjectNode props = (ObjectNode) mapper().readTree(request);
         props.fieldNames().forEachRemaining(k -> service.unsetProperty(component, k));

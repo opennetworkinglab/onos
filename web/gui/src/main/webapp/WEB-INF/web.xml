@@ -14,7 +14,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee"
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
          xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
          id="ONOS" version="2.5">
@@ -25,38 +26,44 @@
     </welcome-file-list>
 
     <!--
+    -->
     <security-constraint>
-        <display-name>authenticated</display-name>
         <web-resource-collection>
-            <web-resource-name>All files</web-resource-name>
-            <description/>
-            <url-pattern>/*</url-pattern>
+            <web-resource-name>Secured</web-resource-name>
+            <url-pattern>/index.html</url-pattern>
         </web-resource-collection>
         <auth-constraint>
-            <description/>
             <role-name>admin</role-name>
         </auth-constraint>
+        <!--
+        <user-data-constraint>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+        -->
     </security-constraint>
 
-    <login-config>
-        <auth-method>BASIC</auth-method>
-        <realm-name>karaf</realm-name>
-    </login-config>
-
     <security-role>
-        <description/>
         <role-name>admin</role-name>
     </security-role>
-    -->
 
-    <!--
-    -->
+    <login-config>
+        <auth-method>FORM</auth-method>
+        <realm-name>karaf</realm-name>
+        <form-login-config>
+            <form-login-page>/login.html</form-login-page>
+            <form-error-page>/error.html</form-error-page>
+        </form-login-config>
+    </login-config>
+
     <servlet>
         <servlet-name>Index Page</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer
+        </servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
+            <param-name>com.sun.jersey.config.property.resourceConfigClass
+            </param-name>
+            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig
+            </param-value>
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
@@ -68,19 +75,22 @@
     <servlet-mapping>
         <servlet-name>Index Page</servlet-name>
         <url-pattern>/index.html</url-pattern>
-        <url-pattern>/main.html</url-pattern>
     </servlet-mapping>
 
     <servlet>
         <servlet-name>Main Module</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer
+        </servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
+            <param-name>com.sun.jersey.config.property.resourceConfigClass
+            </param-name>
+            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig
+            </param-value>
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
-            <param-value>org.onosproject.ui.impl.MainModuleResource</param-value>
+            <param-value>org.onosproject.ui.impl.MainModuleResource
+            </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
@@ -92,10 +102,13 @@
 
     <servlet>
         <servlet-name>Nav Module</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer
+        </servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
+            <param-name>com.sun.jersey.config.property.resourceConfigClass
+            </param-name>
+            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig
+            </param-value>
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
@@ -111,10 +124,13 @@
 
     <servlet>
         <servlet-name>View Module</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer
+        </servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
+            <param-name>com.sun.jersey.config.property.resourceConfigClass
+            </param-name>
+            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig
+            </param-value>
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
@@ -130,14 +146,18 @@
 
     <servlet>
         <servlet-name>JAX-RS Service</servlet-name>
-        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+        <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer
+        </servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
+            <param-name>com.sun.jersey.config.property.resourceConfigClass
+            </param-name>
+            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig
+            </param-value>
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
             <param-value>
+                org.onosproject.ui.impl.LogoutResource,
                 org.onosproject.ui.impl.TopologyResource,
                 org.onosproject.ui.impl.ApplicationResource
             </param-value>
@@ -152,7 +172,8 @@
 
     <servlet>
         <servlet-name>Web Socket Service</servlet-name>
-        <servlet-class>org.onosproject.ui.impl.UiWebSocketServlet</servlet-class>
+        <servlet-class>org.onosproject.ui.impl.UiWebSocketServlet
+        </servlet-class>
         <load-on-startup>2</load-on-startup>
     </servlet>
 

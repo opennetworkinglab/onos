@@ -26,6 +26,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -35,10 +37,6 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.statistic.StatisticStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.cluster.messaging.ClusterMessage;
-import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
-import org.onosproject.store.flow.ReplicaInfo;
-import org.onosproject.store.flow.ReplicaInfoService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;
 import org.slf4j.Logger;
@@ -73,7 +71,7 @@ public class DistributedStatisticStore implements StatisticStore {
     private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 4;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ReplicaInfoService replicaInfoManager;
+    protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;
@@ -112,23 +110,18 @@ public class DistributedStatisticStore implements StatisticStore {
                 MESSAGE_HANDLER_THREAD_POOL_SIZE,
                 groupedThreads("onos/store/statistic", "message-handlers"));
 
-        clusterCommunicator.addSubscriber(GET_CURRENT, new ClusterMessageHandler() {
+        clusterCommunicator.<ConnectPoint, Set<FlowEntry>>addSubscriber(GET_CURRENT,
+                SERIALIZER::decode,
+                this::getCurrentStatisticInternal,
+                SERIALIZER::encode,
+                messageHandlingExecutor);
 
-            @Override
-            public void handle(ClusterMessage message) {
-                ConnectPoint cp = SERIALIZER.decode(message.payload());
-                message.respond(SERIALIZER.encode(getCurrentStatisticInternal(cp)));
-            }
-        }, messageHandlingExecutor);
+        clusterCommunicator.<ConnectPoint, Set<FlowEntry>>addSubscriber(GET_PREVIOUS,
+                SERIALIZER::decode,
+                this::getPreviousStatisticInternal,
+                SERIALIZER::encode,
+                messageHandlingExecutor);
 
-        clusterCommunicator.addSubscriber(GET_PREVIOUS, new ClusterMessageHandler() {
-
-            @Override
-            public void handle(ClusterMessage message) {
-                ConnectPoint cp = SERIALIZER.decode(message.payload());
-                message.respond(SERIALIZER.encode(getPreviousStatisticInternal(cp)));
-            }
-        }, messageHandlingExecutor);
         log.info("Started");
     }
 
@@ -200,12 +193,12 @@ public class DistributedStatisticStore implements StatisticStore {
     @Override
     public Set<FlowEntry> getCurrentStatistic(ConnectPoint connectPoint) {
         final DeviceId deviceId = connectPoint.deviceId();
-        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
-        if (!replicaInfo.master().isPresent()) {
+        NodeId master = mastershipService.getMasterFor(deviceId);
+        if (master == null) {
             log.warn("No master for {}", deviceId);
             return Collections.emptySet();
         }
-        if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
+        if (master.equals(clusterService.getLocalNode().id())) {
             return getCurrentStatisticInternal(connectPoint);
         } else {
             return Tools.futureGetOrElse(clusterCommunicator.sendAndReceive(
@@ -213,7 +206,7 @@ public class DistributedStatisticStore implements StatisticStore {
                                         GET_CURRENT,
                                         SERIALIZER::encode,
                                         SERIALIZER::decode,
-                                        replicaInfo.master().get()),
+                                        master),
                                    STATISTIC_STORE_TIMEOUT_MILLIS,
                                    TimeUnit.MILLISECONDS,
                                    Collections.emptySet());
@@ -228,12 +221,12 @@ public class DistributedStatisticStore implements StatisticStore {
     @Override
     public Set<FlowEntry> getPreviousStatistic(ConnectPoint connectPoint) {
         final DeviceId deviceId = connectPoint.deviceId();
-        ReplicaInfo replicaInfo = replicaInfoManager.getReplicaInfoFor(deviceId);
-        if (!replicaInfo.master().isPresent()) {
+        NodeId master = mastershipService.getMasterFor(deviceId);
+        if (master == null) {
             log.warn("No master for {}", deviceId);
             return Collections.emptySet();
         }
-        if (replicaInfo.master().get().equals(clusterService.getLocalNode().id())) {
+        if (master.equals(clusterService.getLocalNode().id())) {
             return getPreviousStatisticInternal(connectPoint);
         } else {
             return Tools.futureGetOrElse(clusterCommunicator.sendAndReceive(
@@ -241,7 +234,7 @@ public class DistributedStatisticStore implements StatisticStore {
                                         GET_PREVIOUS,
                                         SERIALIZER::encode,
                                         SERIALIZER::decode,
-                                        replicaInfo.master().get()),
+                                        master),
                                    STATISTIC_STORE_TIMEOUT_MILLIS,
                                    TimeUnit.MILLISECONDS,
                                    Collections.emptySet());

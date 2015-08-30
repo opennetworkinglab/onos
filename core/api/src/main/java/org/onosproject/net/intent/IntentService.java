@@ -17,6 +17,7 @@ package org.onosproject.net.intent;
 
 
 import com.google.common.annotations.Beta;
+import org.onosproject.event.ListenerService;
 
 import java.util.List;
 
@@ -24,7 +25,9 @@ import java.util.List;
  * Service for application submitting or withdrawing their intents.
  */
 @Beta
-public interface IntentService {
+public interface IntentService
+    extends ListenerService<IntentEvent, IntentListener> {
+
     /**
      * Submits an intent into the system.
      * <p>
@@ -117,17 +120,4 @@ public interface IntentService {
      */
     Iterable<Intent> getPending();
 
-    /**
-     * Adds the specified listener for intent events.
-     *
-     * @param listener listener to be added
-     */
-    void addListener(IntentListener listener);
-
-    /**
-     * Removes the specified listener for intent events.
-     *
-     * @param listener listener to be removed
-     */
-    void removeListener(IntentListener listener);
 }

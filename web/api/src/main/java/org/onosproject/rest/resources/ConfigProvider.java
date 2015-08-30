@@ -254,6 +254,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
                                                   annotations);
             case FIBER:
                 // Currently, assume OMS when FIBER. Provide sane defaults.
+                annotations = annotations(node.get("annotations"));
                 return new OmsPortDescription(port, node.path("enabled").asBoolean(true),
                                               CENTER, CENTER.add(TOTAL),
                                               Frequency.ofGHz(100), annotations);

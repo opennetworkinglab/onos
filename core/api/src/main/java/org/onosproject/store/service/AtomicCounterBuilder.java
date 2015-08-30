@@ -15,8 +15,6 @@
  */
 package org.onosproject.store.service;
 
-import java.util.concurrent.ScheduledExecutorService;
-
 /**
  * Builder for AtomicCounter.
  */
@@ -50,23 +48,12 @@ public interface AtomicCounterBuilder {
     AtomicCounterBuilder withPartitionsDisabled();
 
     /**
-     * Enables retries when counter operations fail.
-     * <p>
-     * Note: Use with caution. By default retries are disabled.
-     * </p>
+     * Instantiates Metering service to gather usage and performance metrics.
+     * By default, usage data will be stored.
+     *
      * @return this AtomicCounterBuilder
      */
-    AtomicCounterBuilder withRetryOnFailure();
-
-    /**
-     * Sets the executor service to use for retrying failed operations.
-     * <p>
-     * Note: Must be set when retries are enabled
-     * </p>
-     * @param executor executor service
-     * @return this AtomicCounterBuilder
-     */
-    AtomicCounterBuilder withRetryExecutor(ScheduledExecutorService executor);
+    AtomicCounterBuilder withMeteringDisabled();
 
     /**
      * Builds a AtomicCounter based on the configuration options

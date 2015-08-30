@@ -15,25 +15,17 @@
  */
 package org.onosproject.incubator.net.tunnel.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.event.EventDeliveryService;
-import org.onosproject.event.ListenerRegistry;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
-import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.incubator.net.tunnel.TunnelAdminService;
 import org.onosproject.incubator.net.tunnel.TunnelDescription;
 import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
@@ -51,10 +43,16 @@ import org.onosproject.incubator.net.tunnel.TunnelSubscription;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Path;
-import org.onosproject.net.provider.AbstractProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the tunnel NB/SB APIs.
@@ -62,24 +60,19 @@ import org.slf4j.Logger;
 @Component(immediate = true, enabled = true)
 @Service
 public class TunnelManager
-        extends AbstractProviderRegistry<TunnelProvider, TunnelProviderService>
+        extends AbstractListenerProviderRegistry<TunnelEvent, TunnelListener,
+                                                 TunnelProvider, TunnelProviderService>
         implements TunnelService, TunnelAdminService, TunnelProviderRegistry {
 
     private static final String TUNNNEL_ID_NULL = "Tunnel ID cannot be null";
 
     private final Logger log = getLogger(getClass());
 
-    protected final ListenerRegistry<TunnelEvent, TunnelListener>
-            listenerRegistry = new ListenerRegistry<>();
-
     private final TunnelStoreDelegate delegate = new InternalStoreDelegate();
-
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TunnelStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
     @Activate
     public void activate() {
@@ -294,16 +287,6 @@ public class TunnelManager
         return new InternalTunnelProviderService(provider);
     }
 
-    @Override
-    public void addListener(TunnelListener listener) {
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(TunnelListener listener) {
-        listenerRegistry.removeListener(listener);
-    }
-
     private class InternalTunnelProviderService
             extends AbstractProviderService<TunnelProvider>
             implements TunnelProviderService {
@@ -370,7 +353,7 @@ public class TunnelManager
         @Override
         public void notify(TunnelEvent event) {
             if (event != null) {
-                eventDispatcher.post(event);
+                post(event);
             }
         }
     }

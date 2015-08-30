@@ -31,5 +31,8 @@
     <command>
       <action class="org.onosproject.routing.cli.RemoveRouteCommand"/>
     </command>
+    <command>
+      <action class="org.onosproject.routing.cli.BgpSpeakersListCommand"/>
+    </command>
   </command-bundle>
 </blueprint>

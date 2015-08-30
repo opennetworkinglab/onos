@@ -319,7 +319,7 @@ public class NewDistributedFlowRuleStore
         NodeId master = mastershipService.getMasterFor(rule.deviceId());
 
         if (master == null) {
-            log.warn("Failed to getFlowEntry: No master for {}", rule.deviceId());
+            log.debug("Failed to getFlowEntry: No master for {}", rule.deviceId());
             return null;
         }
 
@@ -345,7 +345,7 @@ public class NewDistributedFlowRuleStore
         NodeId master = mastershipService.getMasterFor(deviceId);
 
         if (master == null) {
-            log.warn("Failed to getFlowEntries: No master for {}", deviceId);
+            log.debug("Failed to getFlowEntries: No master for {}", deviceId);
             return Collections.emptyList();
         }
 

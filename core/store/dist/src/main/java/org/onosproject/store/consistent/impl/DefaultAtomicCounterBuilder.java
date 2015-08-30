@@ -15,13 +15,12 @@
  */
 package org.onosproject.store.consistent.impl;
 
-import java.util.concurrent.ScheduledExecutorService;
-
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.AtomicCounterBuilder;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Default implementation of AtomicCounterBuilder.
@@ -32,8 +31,7 @@ public class DefaultAtomicCounterBuilder implements AtomicCounterBuilder {
     private boolean partitionsEnabled = true;
     private final Database partitionedDatabase;
     private final Database inMemoryDatabase;
-    private boolean retryOnFailure = false;
-    private ScheduledExecutorService retryExecutor = null;
+    private boolean metering = true;
 
     public DefaultAtomicCounterBuilder(Database inMemoryDatabase, Database partitionedDatabase) {
         this.inMemoryDatabase = inMemoryDatabase;
@@ -57,33 +55,23 @@ public class DefaultAtomicCounterBuilder implements AtomicCounterBuilder {
     public AtomicCounter build() {
         validateInputs();
         Database database = partitionsEnabled ? partitionedDatabase : inMemoryDatabase;
-        return new DefaultAtomicCounter(name, database, retryOnFailure, retryExecutor);
+        return new DefaultAtomicCounter(name, database, metering);
     }
 
     @Override
     public AsyncAtomicCounter buildAsyncCounter() {
         validateInputs();
         Database database = partitionsEnabled ? partitionedDatabase : inMemoryDatabase;
-        return new DefaultAsyncAtomicCounter(name, database, retryOnFailure, retryExecutor);
+        return new DefaultAsyncAtomicCounter(name, database, metering);
     }
 
     @Override
-    public AtomicCounterBuilder withRetryOnFailure() {
-        retryOnFailure = true;
-        return this;
-    }
-
-    @Override
-    public AtomicCounterBuilder withRetryExecutor(ScheduledExecutorService executor) {
-        this.retryExecutor = executor;
+    public AtomicCounterBuilder withMeteringDisabled() {
+        metering = false;
         return this;
     }
 
     private void validateInputs() {
-        if (retryOnFailure) {
-            if (retryExecutor == null) {
-                throw new IllegalArgumentException("RetryExecutor must be specified when retries are enabled");
-            }
-        }
+        checkState(name != null, "name must be specified");
     }
 }

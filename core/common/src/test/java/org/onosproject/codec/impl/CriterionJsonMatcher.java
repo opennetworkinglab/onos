@@ -249,7 +249,7 @@ public final class CriterionJsonMatcher extends
      * @return true if the JSON matches the criterion, false otherwise.
      */
     private boolean matchCriterion(TcpPortCriterion criterion) {
-        final int tcpPort = criterion.tcpPort();
+        final int tcpPort = criterion.tcpPort().toInt();
         final int jsonTcpPort = jsonCriterion.get("tcpPort").intValue();
         if (tcpPort != jsonTcpPort) {
             description.appendText("tcp port was "
@@ -266,7 +266,7 @@ public final class CriterionJsonMatcher extends
      * @return true if the JSON matches the criterion, false otherwise.
      */
     private boolean matchCriterion(UdpPortCriterion criterion) {
-        final int udpPort = criterion.udpPort();
+        final int udpPort = criterion.udpPort().toInt();
         final int jsonUdpPort = jsonCriterion.get("udpPort").intValue();
         if (udpPort != jsonUdpPort) {
             description.appendText("udp port was "
@@ -283,7 +283,7 @@ public final class CriterionJsonMatcher extends
      * @return true if the JSON matches the criterion, false otherwise.
      */
     private boolean matchCriterion(SctpPortCriterion criterion) {
-        final int sctpPort = criterion.sctpPort();
+        final int sctpPort = criterion.sctpPort().toInt();
         final int jsonSctpPort = jsonCriterion.get("sctpPort").intValue();
         if (sctpPort != jsonSctpPort) {
             description.appendText("sctp port was "

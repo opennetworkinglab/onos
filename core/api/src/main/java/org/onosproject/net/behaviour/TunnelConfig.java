@@ -25,30 +25,30 @@ import org.onosproject.net.driver.HandlerBehaviour;
 public interface TunnelConfig extends HandlerBehaviour {
 
     /**
-     * Create a tunnel.
+     * Creates a tunnel on this device.
      *
-     * @param tunnel tunnel entity
+     * @param tunnel tunnel descriptor
      */
     void createTunnel(TunnelDescription tunnel);
 
     /**
-     * Remove a tunnel.
+     * Removes a tunnel on this device.
      *
-     * @param tunnel tunnel entity
+     * @param tunnel tunnel descriptor
      */
     void removeTunnel(TunnelDescription tunnel);
 
     /**
-     * Update a tunnel.
+     * Updates a tunnel on this device.
      *
-     * @param tunnel tunnel entity
+     * @param tunnel tunnel descriptor
      */
     void updateTunnel(TunnelDescription tunnel);
 
     /**
-     * Gets tunnels.
+     * Returns tunnels created on this device.
      *
-     * return collection of tunnel
+     * @return collection of tunnels
      */
     Collection<TunnelDescription> getTunnels();
 

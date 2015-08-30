@@ -16,16 +16,17 @@
 package org.onosproject.net.flow.criteria;
 
 import org.onlab.packet.EthType;
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.MplsLabel;
+import org.onlab.packet.TpPort;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criterion.Type;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.Ip6Address;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.MplsLabel;
-import org.onlab.packet.VlanId;
 import org.onosproject.net.OchSignalType;
 
 /**
@@ -184,50 +185,110 @@ public final class Criteria {
     /**
      * Creates a match on TCP source port field using the specified value.
      *
-     * @param tcpPort TCP source port (16 bits unsigned integer)
+     * @param tcpPort TCP source port
+     * @return match criterion
+     * @deprecated in Drake release
+     */
+    @Deprecated
+    public static Criterion matchTcpSrc(short tcpPort) {
+        return new TcpPortCriterion(TpPort.tpPort(tcpPort), Type.TCP_SRC);
+    }
+
+    /**
+     * Creates a match on TCP source port field using the specified value.
+     *
+     * @param tcpPort TCP source port
      * @return match criterion
      */
-    public static Criterion matchTcpSrc(int tcpPort) {
+    public static Criterion matchTcpSrc(TpPort tcpPort) {
         return new TcpPortCriterion(tcpPort, Type.TCP_SRC);
     }
 
     /**
      * Creates a match on TCP destination port field using the specified value.
      *
-     * @param tcpPort TCP destination port (16 bits unsigned integer)
+     * @param tcpPort TCP destination port
+     * @return match criterion
+     * @deprecated in Drake release
+     */
+    @Deprecated
+    public static Criterion matchTcpDst(short tcpPort) {
+        return new TcpPortCriterion(TpPort.tpPort(tcpPort), Type.TCP_DST);
+    }
+
+    /**
+     * Creates a match on TCP destination port field using the specified value.
+     *
+     * @param tcpPort TCP destination port
      * @return match criterion
      */
-    public static Criterion matchTcpDst(int tcpPort) {
+    public static Criterion matchTcpDst(TpPort tcpPort) {
         return new TcpPortCriterion(tcpPort, Type.TCP_DST);
     }
 
     /**
      * Creates a match on UDP source port field using the specified value.
      *
-     * @param udpPort UDP source port (16 bits unsigned integer)
+     * @param udpPort UDP source port
+     * @return match criterion
+     * @deprecated in Drake release
+     */
+    @Deprecated
+    public static Criterion matchUdpSrc(short udpPort) {
+        return new UdpPortCriterion(TpPort.tpPort(udpPort), Type.UDP_SRC);
+    }
+
+    /**
+     * Creates a match on UDP source port field using the specified value.
+     *
+     * @param udpPort UDP source port
      * @return match criterion
      */
-    public static Criterion matchUdpSrc(int udpPort) {
+    public static Criterion matchUdpSrc(TpPort udpPort) {
         return new UdpPortCriterion(udpPort, Type.UDP_SRC);
     }
 
     /**
      * Creates a match on UDP destination port field using the specified value.
      *
-     * @param udpPort UDP destination port (16 bits unsigned integer)
+     * @param udpPort UDP destination port
+     * @return match criterion
+     * @deprecated in Drake release
+     */
+    @Deprecated
+    public static Criterion matchUdpDst(short udpPort) {
+        return new UdpPortCriterion(TpPort.tpPort(udpPort), Type.UDP_DST);
+    }
+
+    /**
+     * Creates a match on UDP destination port field using the specified value.
+     *
+     * @param udpPort UDP destination port
      * @return match criterion
      */
-    public static Criterion matchUdpDst(int udpPort) {
+    public static Criterion matchUdpDst(TpPort udpPort) {
         return new UdpPortCriterion(udpPort, Type.UDP_DST);
     }
 
     /**
      * Creates a match on SCTP source port field using the specified value.
      *
-     * @param sctpPort SCTP source port (16 bits unsigned integer)
+     * @param sctpPort SCTP source port
+     * @return match criterion
+     * @deprecated in Drake release
+     */
+    @Deprecated
+    public static Criterion matchSctpSrc(short sctpPort) {
+        return new SctpPortCriterion(TpPort.tpPort(sctpPort), Type.SCTP_SRC);
+    }
+
+    /**
+     * Creates a match on SCTP source port field using the specified value.
+     *
+     * @param sctpPort SCTP source port
      * @return match criterion
      */
-    public static Criterion matchSctpSrc(int sctpPort) {
+    public static Criterion matchSctpSrc(TpPort sctpPort) {
         return new SctpPortCriterion(sctpPort, Type.SCTP_SRC);
     }
 
@@ -235,10 +296,23 @@ public final class Criteria {
      * Creates a match on SCTP destination port field using the specified
      * value.
      *
-     * @param sctpPort SCTP destination port (16 bits unsigned integer)
+     * @param sctpPort SCTP destination port
+     * @return match criterion
+     * @deprecated in Drake release
+     */
+    @Deprecated
+    public static Criterion matchSctpDst(short sctpPort) {
+        return new SctpPortCriterion(TpPort.tpPort(sctpPort), Type.SCTP_DST);
+    }
+
+    /**
+     * Creates a match on SCTP destination port field using the specified
+     * value.
+     *
+     * @param sctpPort SCTP destination port
      * @return match criterion
      */
-    public static Criterion matchSctpDst(int sctpPort) {
+    public static Criterion matchSctpDst(TpPort sctpPort) {
         return new SctpPortCriterion(sctpPort, Type.SCTP_DST);
     }
 
@@ -353,6 +427,16 @@ public final class Criteria {
      */
     public static Criterion matchMplsLabel(MplsLabel mplsLabel) {
         return new MplsCriterion(mplsLabel);
+    }
+
+    /**
+     * Creates a match on MPLS Bottom-of-Stack indicator bit.
+     *
+     * @param mplsBos boolean value indicating true (BOS=1) or false (BOS=0)
+     * @return match criterion
+     */
+    public static Criterion matchMplsLabel(boolean mplsBos) {
+        return new MplsBosCriterion(mplsBos);
     }
 
     /**

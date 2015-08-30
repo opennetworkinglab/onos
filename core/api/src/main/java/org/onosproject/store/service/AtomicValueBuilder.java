@@ -60,6 +60,14 @@ public interface AtomicValueBuilder<V> {
     AtomicValueBuilder<V> withPartitionsDisabled();
 
     /**
+     * Instantiates Metering service to gather usage and performance metrics.
+     * By default, usage data will be stored.
+     *
+     * @return this AtomicValueBuilder for method chaining
+     */
+    AtomicValueBuilder<V> withMeteringDisabled();
+
+    /**
      * Builds a AtomicValue based on the configuration options
      * supplied to this builder.
      *

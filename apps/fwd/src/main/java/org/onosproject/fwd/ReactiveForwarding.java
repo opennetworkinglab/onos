@@ -32,6 +32,7 @@ import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TCP;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onosproject.cfg.ComponentConfigService;
@@ -187,7 +188,7 @@ public class ReactiveForwarding {
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.fwd");
 
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
+        packetService.addProcessor(processor, PacketProcessor.director(2));
         topologyService.addListener(topologyListener);
         readComponentConfiguration(context);
         requestIntercepts();
@@ -474,11 +475,10 @@ public class ReactiveForwarding {
 
             // Otherwise, pick a path that does not lead back to where we
             // came from; if no such path, flood and bail.
-            Path path = pickForwardPath(paths, pkt.receivedFrom().port());
+            Path path = pickForwardPathIfPossible(paths, pkt.receivedFrom().port());
             if (path == null) {
-                log.warn("Doh... don't know where to go... {} -> {} received on {}",
-                         ethPkt.getSourceMAC(), ethPkt.getDestinationMAC(),
-                         pkt.receivedFrom());
+                log.warn("Don't know where to go from here {} for {} -> {}",
+                         pkt.receivedFrom(), ethPkt.getSourceMAC(), ethPkt.getDestinationMAC());
                 flood(context);
                 return;
             }
@@ -501,14 +501,16 @@ public class ReactiveForwarding {
     }
 
     // Selects a path from the given set that does not lead back to the
-    // specified port.
-    private Path pickForwardPath(Set<Path> paths, PortNumber notToPort) {
+    // specified port if possible.
+    private Path pickForwardPathIfPossible(Set<Path> paths, PortNumber notToPort) {
+        Path lastPath = null;
         for (Path path : paths) {
+            lastPath = path;
             if (!path.src().port().equals(notToPort)) {
                 return path;
             }
         }
-        return null;
+        return lastPath;
     }
 
     // Floods the specified packet if permissible.
@@ -586,14 +588,14 @@ public class ReactiveForwarding {
                 if (matchTcpUdpPorts && ipv4Protocol == IPv4.PROTOCOL_TCP) {
                     TCP tcpPacket = (TCP) ipv4Packet.getPayload();
                     selectorBuilder.matchIPProtocol(ipv4Protocol)
-                            .matchTcpSrc(tcpPacket.getSourcePort())
-                            .matchTcpDst(tcpPacket.getDestinationPort());
+                            .matchTcpSrc(TpPort.tpPort(tcpPacket.getSourcePort()))
+                            .matchTcpDst(TpPort.tpPort(tcpPacket.getDestinationPort()));
                 }
                 if (matchTcpUdpPorts && ipv4Protocol == IPv4.PROTOCOL_UDP) {
                     UDP udpPacket = (UDP) ipv4Packet.getPayload();
                     selectorBuilder.matchIPProtocol(ipv4Protocol)
-                            .matchUdpSrc(udpPacket.getSourcePort())
-                            .matchUdpDst(udpPacket.getDestinationPort());
+                            .matchUdpSrc(TpPort.tpPort(udpPacket.getSourcePort()))
+                            .matchUdpDst(TpPort.tpPort(udpPacket.getDestinationPort()));
                 }
                 if (matchIcmpFields && ipv4Protocol == IPv4.PROTOCOL_ICMP) {
                     ICMP icmpPacket = (ICMP) ipv4Packet.getPayload();
@@ -627,14 +629,14 @@ public class ReactiveForwarding {
                 if (matchTcpUdpPorts && ipv6NextHeader == IPv6.PROTOCOL_TCP) {
                     TCP tcpPacket = (TCP) ipv6Packet.getPayload();
                     selectorBuilder.matchIPProtocol(ipv6NextHeader)
-                            .matchTcpSrc(tcpPacket.getSourcePort())
-                            .matchTcpDst(tcpPacket.getDestinationPort());
+                            .matchTcpSrc(TpPort.tpPort(tcpPacket.getSourcePort()))
+                            .matchTcpDst(TpPort.tpPort(tcpPacket.getDestinationPort()));
                 }
                 if (matchTcpUdpPorts && ipv6NextHeader == IPv6.PROTOCOL_UDP) {
                     UDP udpPacket = (UDP) ipv6Packet.getPayload();
                     selectorBuilder.matchIPProtocol(ipv6NextHeader)
-                            .matchUdpSrc(udpPacket.getSourcePort())
-                            .matchUdpDst(udpPacket.getDestinationPort());
+                            .matchUdpSrc(TpPort.tpPort(udpPacket.getSourcePort()))
+                            .matchUdpDst(TpPort.tpPort(udpPacket.getDestinationPort()));
                 }
                 if (matchIcmpFields && ipv6NextHeader == IPv6.PROTOCOL_ICMP6) {
                     ICMP6 icmp6Packet = (ICMP6) ipv6Packet.getPayload();
@@ -734,7 +736,7 @@ public class ReactiveForwarding {
                 Set<Path> pathsFromCurDevice =
                         topologyService.getPaths(topologyService.currentTopology(),
                                                  curDevice, dstId);
-                if (pickForwardPath(pathsFromCurDevice, curLink.src().port()) != null) {
+                if (pickForwardPathIfPossible(pathsFromCurDevice, curLink.src().port()) != null) {
                     break;
                 } else {
                     if (i + 1 == pathLinks.size()) {
@@ -792,8 +794,8 @@ public class ReactiveForwarding {
         return builder.build();
     }
 
-    // Returns set of flowEntries which were created by this application and which egress from the
-    // specified connection port
+    // Returns set of flow entries which were created by this application and
+    // which egress from the specified connection port
     private Set<FlowEntry> getFlowRulesFrom(ConnectPoint egress) {
         ImmutableSet.Builder<FlowEntry> builder = ImmutableSet.builder();
         flowRuleService.getFlowEntries(egress.deviceId()).forEach(r -> {

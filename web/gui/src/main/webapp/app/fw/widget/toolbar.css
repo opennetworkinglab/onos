@@ -18,21 +18,37 @@
  ONOS GUI -- Toolbar Service -- CSS file
  */
 
-.light .tbarArrow svg.embeddedIcon .icon .glyph {
+.light .tbar-arrow svg.embeddedIcon .icon .glyph {
     fill: #838383;
 }
-.dark .tbarArrow svg.embeddedIcon .icon .glyph {
+.dark .tbar-arrow svg.embeddedIcon .icon .glyph {
     fill: #B2B2B2;
 }
 
 
-.tbarArrow svg.embeddedIcon .icon rect {
+div.tbar-arrow {
+    position: absolute;
+    top: 53%;
+    left: 96%;
+    margin-right: -4%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+}
+.safari div.tbar-arrow {
+    top: 46%;
+}
+.firefox div.tbar-arrow {
+    left: 97%;
+    margin-right: -3%;
+}
+
+.tbar-arrow svg.embeddedIcon .icon rect {
     stroke: none;
 }
-.light .tbarArrow svg.embeddedIcon .icon rect {
+.light .tbar-arrow svg.embeddedIcon .icon rect {
     fill: none;
 }
-.dark .tbarArrow svg.embeddedIcon .icon rect {
+.dark .tbar-arrow svg.embeddedIcon .icon rect {
     fill: none;
 }
 

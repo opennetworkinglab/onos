@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
+import static org.onosproject.net.host.HostEvent.Type.HOST_UPDATED;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.REMOVE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -49,6 +50,7 @@ import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
@@ -123,7 +125,8 @@ public class ECHostStore
                         hostDescription.hwAddress(),
                         hostDescription.vlan(),
                         hostDescription.location(),
-                        ImmutableSet.copyOf(hostDescription.ipAddress()));
+                        ImmutableSet.copyOf(hostDescription.ipAddress()),
+                        hostDescription.annotations());
             hosts.put(hostId, newhost);
             return new HostEvent(HOST_ADDED, newhost);
         }
@@ -173,7 +176,8 @@ public class ECHostStore
 
     @Override
     public Set<Host> getConnectedHosts(DeviceId deviceId) {
-        return locations.entries()
+        return ImmutableMultimap.copyOf(locations)
+                .entries()
                 .stream()
                 .filter(entry -> entry.getKey().deviceId().equals(deviceId))
                 .map(entry -> entry.getValue())
@@ -246,14 +250,17 @@ public class ECHostStore
     }
 
     private class HostLocationTracker implements EventuallyConsistentMapListener<HostId, DefaultHost> {
-
         @Override
         public void event(EventuallyConsistentMapEvent<HostId, DefaultHost> event) {
             DefaultHost host = checkNotNull(event.value());
             if (event.type() == PUT) {
-                locations.put(host.location(), host);
+                boolean isNew = locations.put(host.location(), host);
+                notifyDelegate(new HostEvent(isNew ? HOST_ADDED : HOST_UPDATED, host));
             } else if (event.type() == REMOVE) {
-                locations.remove(host.location(), host);
+                if (locations.remove(host.location(), host)) {
+                    notifyDelegate(new HostEvent(HOST_REMOVED, host));
+                }
+
             }
         }
     }

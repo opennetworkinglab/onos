@@ -33,41 +33,28 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.rest.AbstractWebResource;
 
 /**
- * REST resource for interacting with path calculations.
+ * Compute paths in the network graph.
  */
 @Path("paths")
 public class PathsWebResource extends AbstractWebResource {
 
-    // Host id format is 00:00:00:00:00:01/-1
-    private static final int VLAN_SEPARATOR_OFFSET = 17;
-    private static final int FIRST_MAC_ADDRESS_SEPARATOR_OFFSET = 2;
-    private static final int SECOND_MAC_ADDRESS_SEPARATOR_OFFSET = 5;
-    private static final int THIRD_MAC_ADDRESS_SEPARATOR_OFFSET = 8;
-
     /**
      * Determines if the id appears to be the id of a host.
+     * Host id format is 00:00:00:00:00:01/-1
      *
      * @param id id string
      * @return HostId if the id is valid, null otherwise
      */
     private HostId isHostId(String id) {
-
-        if (id.length() < VLAN_SEPARATOR_OFFSET + 1 ||
-            id.charAt(FIRST_MAC_ADDRESS_SEPARATOR_OFFSET) != ':' ||
-            id.charAt(SECOND_MAC_ADDRESS_SEPARATOR_OFFSET) != ':' ||
-            id.charAt(THIRD_MAC_ADDRESS_SEPARATOR_OFFSET) != ':' ||
-            id.charAt(VLAN_SEPARATOR_OFFSET) != '/') {
-            return null;
-        }
-
-        return HostId.hostId(id);
+        return id.matches("..:..:..:..:..:../.*") ? HostId.hostId(id) : null;
     }
 
     /**
-     * Gets the paths between two elements.
+     * Get all shortest paths between any two hosts or devices.
+     * Returns array of all shortest paths between any two elements.
      *
-     * @param src source
-     * @param dst destination
+     * @param src source identifier
+     * @param dst destination identifier
      * @return path data
      */
     @GET
@@ -90,10 +77,8 @@ public class PathsWebResource extends AbstractWebResource {
             dstElement = DeviceId.deviceId(dst);
         }
 
-        Set<org.onosproject.net.Path> paths =
-                pathService.getPaths(srcElement, dstElement);
-        ObjectNode root =
-                    encodeArray(org.onosproject.net.Path.class, "paths", paths);
+        Set<org.onosproject.net.Path> paths = pathService.getPaths(srcElement, dstElement);
+        ObjectNode root = encodeArray(org.onosproject.net.Path.class, "paths", paths);
         return ok(root).build();
     }
 

@@ -84,9 +84,14 @@ public abstract class L2ModificationInstruction implements Instruction {
         VLAN_PUSH,
 
         /**
-         * Tunnle id modification.
+         * Tunnel id modification.
          */
-        TUNNEL_ID
+        TUNNEL_ID,
+
+        /**
+         * MPLS BOS instruction.
+         */
+        MPLS_BOS
     }
 
     // TODO: Create factory class 'Instructions' that will have various factory
@@ -337,8 +342,19 @@ public abstract class L2ModificationInstruction implements Instruction {
             this.mplsLabel = mplsLabel;
         }
 
+        /**
+         * @deprecated in Drake Release.
+         */
+        // Consider changing return value to MplsLabel
+        // after deprecation process so that it'll be symmetric to
+        // MplsCriterion#label()
+        @Deprecated
         public Integer label() {
             return mplsLabel.toInt();
+        }
+
+        public MplsLabel mplsLabel() {
+            return mplsLabel;
         }
 
         @Override
@@ -365,6 +381,51 @@ public abstract class L2ModificationInstruction implements Instruction {
             if (obj instanceof ModMplsLabelInstruction) {
                 ModMplsLabelInstruction that = (ModMplsLabelInstruction) obj;
                 return Objects.equals(mplsLabel, that.mplsLabel);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Represents a MPLS BOS modification.
+     */
+    public static final class ModMplsBosInstruction
+            extends L2ModificationInstruction {
+
+        private final boolean mplsBos;
+
+        ModMplsBosInstruction(boolean mplsBos) {
+            this.mplsBos = mplsBos;
+        }
+
+        public boolean mplsBos() {
+            return mplsBos;
+        }
+
+        @Override
+        public L2SubType subtype() {
+            return L2SubType.MPLS_BOS;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(subtype().toString()).add("bos", mplsBos)
+                    .toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype(), mplsBos);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModMplsBosInstruction) {
+                ModMplsBosInstruction that = (ModMplsBosInstruction) obj;
+                return Objects.equals(mplsBos, that.mplsBos());
             }
             return false;
         }

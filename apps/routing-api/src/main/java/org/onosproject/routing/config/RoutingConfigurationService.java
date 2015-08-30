@@ -77,7 +77,9 @@ public interface RoutingConfigurationService {
      * Retrieves the entire set of interfaces in the network.
      *
      * @return the set of interfaces
+     * @deprecated in Drake release - use InterfaceService instead
      */
+    @Deprecated
     Set<Interface> getInterfaces();
 
     /**
@@ -86,7 +88,7 @@ public interface RoutingConfigurationService {
      *
      * @return the set of connect points connected to BGP peers
      */
-    public Set<ConnectPoint> getBgpPeerConnectPoints();
+    Set<ConnectPoint> getBgpPeerConnectPoints();
 
     /**
      * Retrieves the interface associated with the given connect point.
@@ -94,8 +96,20 @@ public interface RoutingConfigurationService {
      * @param connectPoint the connect point to retrieve interface information
      * for
      * @return the interface
+     * @deprecated in Drake release - use InterfaceService instead
      */
+    @Deprecated
     Interface getInterface(ConnectPoint connectPoint);
+
+    /**
+     * Retrieves the interface associated with the given IP address.
+     *
+     * @param ip IP address of the interface
+     * @return the interface
+     * @deprecated in Drake release - use InterfaceService instead
+     */
+    @Deprecated
+    Interface getInterface(IpAddress ip);
 
     /**
      * Retrieves the interface that matches the given IP address. Matching
@@ -103,7 +117,9 @@ public interface RoutingConfigurationService {
      *
      * @param ipAddress IP address to match
      * @return the matching interface
+     * @deprecated in Drake release - use InterfaceService instead
      */
+    @Deprecated
     Interface getMatchingInterface(IpAddress ipAddress);
 
 }

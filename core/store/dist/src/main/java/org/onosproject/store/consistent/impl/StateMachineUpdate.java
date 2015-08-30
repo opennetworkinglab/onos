@@ -29,10 +29,20 @@ public class StateMachineUpdate {
         /**
          * Update is for a map.
          */
-        MAP,
+        MAP_UPDATE,
 
         /**
-         * Update is for a non-map data structure.
+         * Update is a transaction commit.
+         */
+        TX_COMMIT,
+
+        /**
+         * Update is a queue push.
+         */
+        QUEUE_PUSH,
+
+        /**
+         * Update is for some other operation.
          */
         OTHER
     }
@@ -50,7 +60,11 @@ public class StateMachineUpdate {
     public Target target() {
         // FIXME: This check is brittle
         if (operationName.contains("mapUpdate")) {
-            return Target.MAP;
+            return Target.MAP_UPDATE;
+        } else if (operationName.contains("commit") || operationName.contains("prepareAndCommit")) {
+            return Target.TX_COMMIT;
+        } else if (operationName.contains("queuePush")) {
+            return Target.QUEUE_PUSH;
         } else {
             return Target.OTHER;
         }

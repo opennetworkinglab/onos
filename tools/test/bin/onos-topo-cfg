@@ -9,5 +9,6 @@
 node="${1:-$OCI}"
 file="${2:-$ONOS_ROOT/tools/test/topos/oe-linear-3.json}"
 
-curl -sS --fail -L -X POST -H 'Content-Type:application/json' \
+curl -sS --fail -L --user $ONOS_WEB_USER:$ONOS_WEB_PASS \
+    -X POST -H 'Content-Type:application/json' \
     http://$node:8181/onos/v1/config/topology -d@$file

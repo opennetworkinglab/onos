@@ -33,17 +33,16 @@ import org.onosproject.cluster.ClusterStore;
 import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.core.Permission;
-import org.onosproject.event.ListenerRegistry;
-import org.onosproject.event.EventDeliveryService;
 import org.slf4j.Logger;
 
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -51,24 +50,20 @@ import static org.onosproject.security.AppGuard.checkPermission;
  */
 @Component(immediate = true)
 @Service
-public class ClusterManager implements ClusterService, ClusterAdminService {
+public class ClusterManager
+        extends AbstractListenerManager<ClusterEvent, ClusterEventListener>
+        implements ClusterService, ClusterAdminService {
 
     public static final String INSTANCE_ID_NULL = "Instance ID cannot be null";
     private final Logger log = getLogger(getClass());
 
     private ClusterStoreDelegate delegate = new InternalStoreDelegate();
 
-    protected final ListenerRegistry<ClusterEvent, ClusterEventListener>
-            listenerRegistry = new ListenerRegistry<>();
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterDefinitionService clusterDefinitionService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterStore store;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected SystemService systemService;
@@ -150,24 +145,11 @@ public class ClusterManager implements ClusterService, ClusterAdminService {
         store.removeNode(nodeId);
     }
 
-    @Override
-    public void addListener(ClusterEventListener listener) {
-        checkPermission(Permission.CLUSTER_EVENT);
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(ClusterEventListener listener) {
-        checkPermission(Permission.CLUSTER_EVENT);
-        listenerRegistry.removeListener(listener);
-    }
-
     // Store delegate to re-post events emitted from the store.
     private class InternalStoreDelegate implements ClusterStoreDelegate {
         @Override
         public void notify(ClusterEvent event) {
-            checkNotNull(event, "Event cannot be null");
-            eventDispatcher.post(event);
+            post(event);
         }
     }
 }

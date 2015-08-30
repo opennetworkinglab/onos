@@ -384,8 +384,8 @@ public class OpenFlowDeviceProviderTest {
         }
 
         @Override
-        public boolean isOptical() {
-            return false;
+        public Device.Type deviceType() {
+            return Device.Type.SWITCH;
         }
 
         @Override

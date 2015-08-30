@@ -36,6 +36,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostProvider;
@@ -116,7 +117,7 @@ public class OvsdbHostProvider extends AbstractProvider implements HostProvider 
                         .portNumber().value(), subject.portName().value());
                 HostLocation loaction = new HostLocation(deviceId, portNumber,
                                                          0L);
-                DefaultAnnotations annotations = DefaultAnnotations.builder()
+                SparseAnnotations annotations = DefaultAnnotations.builder()
                         .set("ifaceid", subject.ifaceid().value()).build();
                 HostDescription hostDescription = new DefaultHostDescription(
                                                                              subject.hwAddress(),

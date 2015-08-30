@@ -210,7 +210,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 flowObjectiveService, tunnelHandler, policyStore);
         linkStatsService = new LinkStatsService(this);
 
-        packetService.addProcessor(processor, PacketProcessor.ADVISOR_MAX + 2);
+        packetService.addProcessor(processor, PacketProcessor.director(2));
         linkService.addListener(new InternalLinkListener());
         deviceService.addListener(new InternalDeviceListener());
 

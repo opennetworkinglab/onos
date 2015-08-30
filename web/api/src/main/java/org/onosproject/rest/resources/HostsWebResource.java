@@ -56,7 +56,7 @@ import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.HostId.hostId;
 
 /**
- * REST resource for interacting with the inventory of hosts.
+ * Manage inventory of end-station hosts.
  */
 @Path("hosts")
 public class HostsWebResource extends AbstractWebResource {
@@ -65,6 +65,12 @@ public class HostsWebResource extends AbstractWebResource {
     UriInfo uriInfo;
     public static final String HOST_NOT_FOUND = "Host is not found";
 
+    /**
+     * Get all end-station hosts.
+     * Returns array of all known end-station hosts.
+     *
+     * @return 200 OK
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getHosts() {
@@ -73,6 +79,13 @@ public class HostsWebResource extends AbstractWebResource {
         return ok(root).build();
     }
 
+    /**
+     * Get details of end-station host.
+     * Returns detailed properties of the specified end-station host.
+     *
+     * @param id host identifier
+     * @return 200 OK
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
@@ -83,6 +96,14 @@ public class HostsWebResource extends AbstractWebResource {
         return ok(root).build();
     }
 
+    /**
+     * Get details of end-station host with MAC/VLAN.
+     * Returns detailed properties of the specified end-station host.
+     *
+     * @param mac  host MAC address
+     * @param vlan host VLAN identifier
+     * @return 200 OK
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{mac}/{vlan}")
@@ -112,8 +133,9 @@ public class HostsWebResource extends AbstractWebResource {
             ObjectNode root = (ObjectNode) mapper().readTree(stream);
 
             HostProviderRegistry hostProviderRegistry = get(HostProviderRegistry.class);
-            InternalHostProvider hostProvider = new InternalHostProvider(hostProviderRegistry);
-            hostProvider.register();
+            InternalHostProvider hostProvider = new InternalHostProvider();
+            HostProviderService hostProviderService = hostProviderRegistry.register(hostProvider);
+            hostProvider.setHostProviderService(hostProviderService);
             HostId hostId = hostProvider.parseHost(root);
 
             UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
@@ -121,71 +143,48 @@ public class HostsWebResource extends AbstractWebResource {
                     .path(hostId.mac().toString())
                     .path(hostId.vlanId().toString());
             location = locationBuilder.build();
-            hostProvider.unregister();
+            hostProviderRegistry.unregister(hostProvider);
 
         } catch (IOException ex) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            throw new IllegalArgumentException(ex);
         }
         return Response
                 .created(location)
                 .build();
     }
 
-    /**
-     * Produces annotations from specified JsonNode. Copied from the ConfigProvider
-     * class for use in the POST method.
-     *
-     * @param node node to be annotated
-     * @return SparseAnnotations object with information about node
-     */
-    private SparseAnnotations annotations(JsonNode node) {
-        if (node == null) {
-            return DefaultAnnotations.EMPTY;
-        }
-
-        DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
-        Iterator<String> it = node.fieldNames();
-        while (it.hasNext()) {
-            String k = it.next();
-            builder.set(k, node.get(k).asText());
-        }
-        return builder.build();
-    }
-
     private final class InternalHostProvider implements HostProvider {
         private final ProviderId providerId =
                 new ProviderId("host", "org.onosproject.rest", true);
-        private HostProviderRegistry hostProviderRegistry;
         private HostProviderService hostProviderService;
 
+        private InternalHostProvider() {
+        }
+
         public void triggerProbe(Host host) {
-            // No need to implement since we don't need to check if the host exists
+            // Not implemented since there is no need to check for hosts on network
         }
 
-        private InternalHostProvider(HostProviderRegistry hostProviderRegistry) {
-            this.hostProviderRegistry = hostProviderRegistry;
+        public void setHostProviderService(HostProviderService service) {
+            this.hostProviderService = service;
         }
 
-        private void register() {
-            this.hostProviderService = hostProviderRegistry.register(this);
-        }
-
-        private void unregister() {
-            hostProviderRegistry.unregister(this);
-        }
-
+        /*
+         * Return the ProviderId of "this"
+         */
         public ProviderId id() {
             return providerId;
         }
 
         /**
          * Creates and adds new host based on given data and returns its host ID.
+         *
          * @param node JsonNode containing host information
          * @return host ID of new host created
          */
         private HostId parseHost(JsonNode node) {
             MacAddress mac = MacAddress.valueOf(node.get("mac").asText());
-            VlanId vlanId = VlanId.vlanId(((short) node.get("vlan").asInt((VlanId.UNTAGGED))));
+            VlanId vlanId = VlanId.vlanId((short) node.get("vlan").asInt(VlanId.UNTAGGED));
             JsonNode locationNode = node.get("location");
             String deviceAndPort = locationNode.get("elementId").asText() + "/" +
                     locationNode.get("port").asText();
@@ -204,6 +203,28 @@ public class HostsWebResource extends AbstractWebResource {
             hostProviderService.hostDetected(hostId, desc);
             return hostId;
         }
+
+        /**
+         * Produces annotations from specified JsonNode. Copied from the ConfigProvider
+         * class for use in the POST method.
+         *
+         * @param node node to be annotated
+         * @return SparseAnnotations object with information about node
+         */
+        private SparseAnnotations annotations(JsonNode node) {
+            if (node == null) {
+                return DefaultAnnotations.EMPTY;
+            }
+
+            DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
+            Iterator<String> it = node.fieldNames();
+            while (it.hasNext()) {
+                String k = it.next();
+                builder.set(k, node.get(k).asText());
+            }
+            return builder.build();
+        }
+
     }
 }
 

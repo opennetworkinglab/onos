@@ -74,6 +74,17 @@ public interface DistributedSetBuilder<E> {
     DistributedSetBuilder<E> withUpdatesDisabled();
 
     /**
+     * Provides weak consistency for set reads.
+     * <p>
+     * While this can lead to improved read performance, it can also make the behavior
+     * heard to reason. Only turn this on if you know what you are doing. By default
+     * reads are strongly consistent.
+     *
+     * @return this DistributedSetBuilder
+     */
+    DistributedSetBuilder<E> withRelaxedReadConsistency();
+
+    /**
      * Disables distribution of set entries across multiple database partitions.
      * <p>
      * When partitioning is disabled, the returned set will have a single partition
@@ -90,6 +101,13 @@ public interface DistributedSetBuilder<E> {
      * @return this DistributedSetBuilder
      */
     DistributedSetBuilder<E> withPartitionsDisabled();
+
+    /**
+     * Instantiate Metrics service to gather usage and performance metrics.
+     * By default usage information is enabled
+     * @return this DistributedSetBuilder
+     */
+    DistributedSetBuilder<E> withMeteringDisabled();
 
     /**
      * Purges set contents when the application owning the set is uninstalled.

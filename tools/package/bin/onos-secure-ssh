@@ -7,6 +7,17 @@ rm -f $(dirname $0)/onos
 
 set -e
 
+# Scan arguments for user/password or other options...
+while getopts u:p: o; do
+    case "$o" in
+        u) user=$OPTARG;;
+        p) password=$OPTARG;;
+    esac
+done
+password=${password:-$user} # password defaults to the user if not specified
+let OPC=$OPTIND-1
+shift $OPC
+
 cd $(dirname $0)/../apache-karaf-*/etc
 USERS=users.properties
 KEYS=keys.properties
@@ -18,5 +29,10 @@ egrep -v "^(#karaf|onos)[ ]*=" $KEYS > $KEYS.new && mv $KEYS.new $KEYS
 # Remove any previous known keys for the local host.
 ssh-keygen -f "$HOME/.ssh/known_hosts" -R [localhost]:8101
 
-# Swap the onos client to use the SSH variant
+# Swap the onos client to use the SSH variant.
 ln -s $(dirname $0)/onos-ssh $(dirname $0)/onos
+
+# If user and password options were given, setup the user/password.
+if [ -n "$user" -a -n "$password" ]; then
+    echo "$user = $password,_g_:admingroup" >> $USERS
+fi

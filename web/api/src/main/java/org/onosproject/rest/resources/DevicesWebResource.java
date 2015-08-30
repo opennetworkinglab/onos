@@ -34,19 +34,32 @@ import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.DeviceId.deviceId;
 
 /**
- * REST resource for interacting with the inventory of infrastructure devices.
+ * Manage inventory of infrastructure devices.
  */
 @Path("devices")
 public class DevicesWebResource extends AbstractWebResource {
 
     public static final String DEVICE_NOT_FOUND = "Device is not found";
 
+    /**
+     * Get all infrastructure devices.
+     * Returns array of all discovered infrastructure devices.
+     *
+     * @return 200 OK
+     */
     @GET
     public Response getDevices() {
         Iterable<Device> devices = get(DeviceService.class).getDevices();
         return ok(encodeArray(Device.class, "devices", devices)).build();
     }
 
+    /**
+     * Get details of infrastructure device.
+     * Returns details of the specified infrastructure device.
+     *
+     * @param id device identifier
+     * @return 200 OK
+     */
     @GET
     @Path("{id}")
     public Response getDevice(@PathParam("id") String id) {
@@ -55,6 +68,14 @@ public class DevicesWebResource extends AbstractWebResource {
         return ok(codec(Device.class).encode(device, this)).build();
     }
 
+    /**
+     * Remove infrastructure device.
+     * Administratively deletes the specified device from the inventory of
+     * known devices.
+     *
+     * @param id device identifier
+     * @return 200 OK
+     */
     @DELETE
     @Path("{id}")
     public Response removeDevice(@PathParam("id") String id) {
@@ -64,6 +85,13 @@ public class DevicesWebResource extends AbstractWebResource {
         return ok(codec(Device.class).encode(device, this)).build();
     }
 
+    /**
+     * Get ports of infrastructure device.
+     * Returns details of the specified infrastructure device.
+     *
+     * @param id device identifier
+     * @return 200 OK
+     */
     @GET
     @Path("{id}/ports")
     public Response getDevicePorts(@PathParam("id") String id) {

@@ -1,0 +1,36 @@
+{
+  "domains" : {
+    "cord" : {
+      "basic" : {
+        "name" : "Core Fabric",
+        "applicationName" : "org.onosproject.testdomain",
+        "internalDevices" : [ "of:1" ],
+        "edgePorts" : [ "of:12/1", "of:14/1" ]
+      }
+    },
+    "mpls" : {
+      "basic" : {
+        "name" : "MPLS Core",
+        "applicationName" : "org.onosproject.testdomain",
+        "internalDevices" : [ "of:2" ],
+        "edgePorts" : [ "of:12/2", "of:23/2" ]
+      }
+    },
+    "dc" : {
+      "basic" : {
+        "name" : "Data Center Fabric",
+        "applicationName" : "org.onosproject.testdomain",
+        "internalDevices" : [ "of:3" ],
+        "edgePorts" : [ "of:23/3", "of:34/3" ]
+      }
+    },
+    "optical" : {
+      "basic" : {
+        "name" : "Optical Core",
+        "applicationName" : "org.onosproject.testdomain",
+        "internalDevices" : [ "of:4" ],
+        "edgePorts" : [ "of:14/4", "of:34/4" ]
+      }
+    }
+  }
+}

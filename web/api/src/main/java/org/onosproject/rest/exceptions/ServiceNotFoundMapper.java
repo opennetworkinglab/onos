@@ -18,10 +18,12 @@ package org.onosproject.rest.exceptions;
 import org.onlab.osgi.ServiceNotFoundException;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
 
 /**
  * Mapper for service not found exceptions to the SERVICE_UNAVAILABLE response code.
  */
+@Provider
 public class ServiceNotFoundMapper extends AbstractMapper<ServiceNotFoundException> {
     @Override
     protected Response.Status responseStatus() {

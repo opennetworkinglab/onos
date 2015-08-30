@@ -39,16 +39,15 @@ import java.util.List;
 import static org.onlab.util.Tools.nullIsNotFound;
 
 /**
- * REST resource for interacting with the inventory of clusters.
+ * Query network topology graph and its components.
  */
-
 @Path("topology")
 public class TopologyWebResource extends AbstractWebResource {
 
     public static final String CLUSTER_NOT_FOUND = "Cluster is not found";
 
     /**
-     * Gets the topology overview for a REST GET operation.
+     * Get overview of current topology.
      *
      * @return topology overview
      */
@@ -61,7 +60,7 @@ public class TopologyWebResource extends AbstractWebResource {
     }
 
     /**
-     * Gets the topology clusters overview for a REST GET operation.
+     * Get overview of topology SCCs.
      *
      * @return topology clusters overview
      */
@@ -77,7 +76,7 @@ public class TopologyWebResource extends AbstractWebResource {
     }
 
     /**
-     * Gets details for a topology cluster for a REST GET operation.
+     * Get details of a specific SCC.
      *
      * @param clusterId id of the cluster to query
      * @return topology cluster details
@@ -100,7 +99,7 @@ public class TopologyWebResource extends AbstractWebResource {
     }
 
     /**
-     * Gets devices for a topology cluster for a REST GET operation.
+     * Get devices in a specific SCC.
      *
      * @param clusterId id of the cluster to query
      * @return topology cluster devices
@@ -123,7 +122,7 @@ public class TopologyWebResource extends AbstractWebResource {
     }
 
     /**
-     * Gets links for a topology cluster for a REST GET operation.
+     * Get links in specific SCC.
      *
      * @param clusterId id of the cluster to query
      * @return topology cluster links
@@ -171,18 +170,16 @@ public class TopologyWebResource extends AbstractWebResource {
     }
 
     /**
-     * Gets the broadcast flag of a connect point for a REST GET operation.
+     * Test if a connect point is in broadcast set.
      *
-     * @param connectPointString string representation of the connect point to query.
-     *                           Format is deviceid:portnumber
+     * @param connectPointString deviceid:portnumber
      * @return JSON representation of true if the connect point is broadcast,
      *         false otherwise
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("broadcast/{connectPoint}")
-    public Response getConnectPointBroadcast(
-            @PathParam("connectPoint") String connectPointString) {
+    public Response getConnectPointBroadcast(@PathParam("connectPoint") String connectPointString) {
         Topology topology = get(TopologyService.class).currentTopology();
 
         DeviceId deviceId = DeviceId.deviceId(getDeviceId(connectPointString));
@@ -197,18 +194,16 @@ public class TopologyWebResource extends AbstractWebResource {
     }
 
     /**
-     * Gets the infrastructure flag of a connect point for a REST GET operation.
+     * Test if a connect point is infrastructure or edge.
      *
-     * @param connectPointString string representation of the connect point to query.
-     *                           Format is deviceid:portnumber
+     * @param connectPointString deviceid:portnumber
      * @return JSON representation of true if the connect point is broadcast,
      *         false otherwise
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("infrastructure/{connectPoint}")
-    public Response getConnectPointInfrastructure(
-            @PathParam("connectPoint") String connectPointString) {
+    public Response getConnectPointInfrastructure(@PathParam("connectPoint") String connectPointString) {
         Topology topology = get(TopologyService.class).currentTopology();
 
         DeviceId deviceId = DeviceId.deviceId(getDeviceId(connectPointString));

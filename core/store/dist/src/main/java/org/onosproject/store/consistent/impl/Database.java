@@ -88,7 +88,9 @@ public interface Database extends DatabaseProxy<String, byte[]>, Resource<Databa
    * Tells whether the database supports change notifications.
    * @return true if notifications are supported; false otherwise
    */
-  boolean hasChangeNotificationSupport();
+  default boolean hasChangeNotificationSupport() {
+      return true;
+  }
 
   /**
    * Registers a new consumer of StateMachineUpdates.

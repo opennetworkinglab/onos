@@ -13,12 +13,13 @@
         {"type":"L2MODIFICATION","subtype":"ETH_DST","mac":"98:76:54:32:01:00"},
         {"type":"L2MODIFICATION","subtype":"VLAN_ID","vlanId":22},
         {"type":"L2MODIFICATION","subtype":"VLAN_PCP","vlanPcp":1},
-        {"type":"L2MODIFICATION","subtype":"MPLS_LABEL","label":777},
+        {"type":"L2MODIFICATION","subtype":"MPLS_LABEL","label":1048575},
         {"type":"L2MODIFICATION","subtype":"MPLS_PUSH"},
         {"type":"L2MODIFICATION","subtype":"MPLS_POP"},
         {"type":"L2MODIFICATION","subtype":"DEC_MPLS_TTL"},
         {"type":"L2MODIFICATION","subtype":"VLAN_POP"},
         {"type":"L2MODIFICATION","subtype":"VLAN_PUSH"},
+        {"type":"L2MODIFICATION","subtype":"TUNNEL_ID", "tunnelId":100},
         {"type":"L3MODIFICATION","subtype":"IPV4_SRC", "ip":"1.2.3.4"},
         {"type":"L3MODIFICATION","subtype":"IPV4_DST", "ip":"1.2.3.3"},
         {"type":"L3MODIFICATION","subtype":"IPV6_SRC", "ip":"1.2.3.2"},
@@ -26,7 +27,11 @@
         {"type":"L3MODIFICATION","subtype":"IPV6_FLABEL", "flowLabel":8},
         {"type":"L0MODIFICATION","subtype":"LAMBDA","lambda":7},
         {"type":"L0MODIFICATION","subtype":"OCH","gridType":"DWDM",
-          "channelSpacing":"CHL_100GHZ","spacingMultiplier":4,"slotGranularity":8}
+          "channelSpacing":"CHL_100GHZ","spacingMultiplier":4,"slotGranularity":8},
+        {"type":"L4MODIFICATION","subtype":"TCP_DST","tcpPort":40001},
+        {"type":"L4MODIFICATION","subtype":"TCP_SRC","tcpPort":40002},
+        {"type":"L4MODIFICATION","subtype":"UDP_DST","udpPort":40003},
+        {"type":"L4MODIFICATION","subtype":"UDP_SRC","udpPort":40004}
       ],
       "deferred":[]
   },

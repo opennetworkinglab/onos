@@ -9,7 +9,7 @@ app=${3}
 
 export URL=http://$node:8181/onos/v1/applications
 export HDR="-HContent-Type:application/octet-stream"
-export curl="curl -sS"
+export curl="curl -sS --user $ONOS_WEB_USER:$ONOS_WEB_PASS"
 
 # Prints usage help
 function usage {
@@ -66,4 +66,7 @@ case $cmd in
     *) usage;;
 esac
 
+
+status=$?
 echo # new line for prompt
+exit $status

@@ -23,9 +23,10 @@ public interface StepProcessListener {
     /**
      * Indicates that process step has started.
      *
-     * @param step subject step
+     * @param step    subject step
+     * @param command actual command executed; includes run-time substitutions
      */
-    default void onStart(Step step) {
+    default void onStart(Step step, String command) {
     }
 
     /**

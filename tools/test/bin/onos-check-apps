@@ -9,16 +9,26 @@
 aux=/tmp/stc-$$.log
 trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
 
-onos ${1:-$OCI} "onos:apps -s -a" | grep -v /bin/client > $aux
-cat $aux
+for attempt in {1..3}; do
+    onos ${1:-$OCI} "onos:apps -s -a" | grep -v /bin/client > $aux
+    cat $aux
 
-# Normalize the installed apps
-cut -c7- $aux | grep -v '/bin/client' | cut -d\  -f1 | sort > $aux.1
+    # Normalize the installed apps
+    cut -c7- $aux | grep -v '/bin/client' | cut -d\  -f1 | sort > $aux.1
 
-# Normalize the expected apps
-apps=${2:-$ONOS_APPS}
-apps=${apps:-drivers,openflow}
-(for app in ${apps//,/ }; do echo org.onosproject.$app; done) | sort > $aux.2
+    # Normalize the expected apps
+    apps=${2:-$ONOS_APPS}
+    apps=${apps:-drivers,openflow}
+    (for app in ${apps//,/ }; do echo org.onosproject.$app; done) | sort > $aux.2
 
-# Check for differences
-diff $aux.1 $aux.2
+    # Check for differences
+    case ${3:-equals} in
+    equals) diff $aux.1 $aux.2;;
+    includes) [ $(egrep -c -f $aux.2 $aux.1) -eq $(wc -l $aux.2 | sed "s|$aux.2||g") ];;
+    excludes) ! egrep -f $aux.2 $aux.1;;
+    esac
+
+    [ $? -eq 0 ] && exit 0 || sleep 1
+done
+
+exit 1;

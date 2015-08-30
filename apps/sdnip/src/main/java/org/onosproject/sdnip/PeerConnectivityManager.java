@@ -20,24 +20,28 @@ import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.routing.config.BgpPeer;
-import org.onosproject.routing.config.BgpSpeaker;
-import org.onosproject.routing.config.Interface;
-import org.onosproject.routing.config.InterfaceAddress;
-import org.onosproject.routing.config.RoutingConfigurationService;
+import org.onosproject.routing.RoutingService;
+import org.onosproject.routing.config.BgpConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Manages the connectivity requirements between peers.
@@ -51,9 +55,11 @@ public class PeerConnectivityManager {
     private static final short BGP_PORT = 179;
 
     private final IntentSynchronizer intentSynchronizer;
-    private final RoutingConfigurationService configService;
+    private final NetworkConfigService configService;
+    private final InterfaceService interfaceService;
 
     private final ApplicationId appId;
+    private final ApplicationId routerAppId;
 
     /**
      * Creates a new PeerConnectivityManager.
@@ -64,28 +70,20 @@ public class PeerConnectivityManager {
      */
     public PeerConnectivityManager(ApplicationId appId,
                                    IntentSynchronizer intentSynchronizer,
-                                   RoutingConfigurationService configService) {
+                                   NetworkConfigService configService,
+                                   ApplicationId routerAppId,
+                                   InterfaceService interfaceService) {
         this.appId = appId;
         this.intentSynchronizer = intentSynchronizer;
         this.configService = configService;
+        this.routerAppId = routerAppId;
+        this.interfaceService = interfaceService;
     }
 
     /**
      * Starts the peer connectivity manager.
      */
     public void start() {
-        if (configService.getInterfaces().isEmpty()) {
-            log.warn("No interfaces found in configuration file");
-        }
-
-        if (configService.getBgpPeers().isEmpty()) {
-            log.warn("No BGP peers found in configuration file");
-        }
-
-        if (configService.getBgpSpeakers().isEmpty()) {
-            log.error("No BGP speakers found in configuration file");
-        }
-
         setUpConnectivity();
     }
 
@@ -97,75 +95,74 @@ public class PeerConnectivityManager {
 
     /**
      * Sets up paths to establish connectivity between all internal
-     * {@link BgpSpeaker}s and all external {@link BgpPeer}s.
+     * BGP speakers and external BGP peers.
      */
     private void setUpConnectivity() {
         List<PointToPointIntent> intents = new ArrayList<>();
 
-        for (BgpSpeaker bgpSpeaker : configService.getBgpSpeakers()
-                .values()) {
+        BgpConfig config = configService.getConfig(routerAppId, RoutingService.CONFIG_CLASS);
+
+        if (config == null) {
+            log.warn("No BgpConfig found");
+            return;
+        }
+
+        for (BgpConfig.BgpSpeakerConfig bgpSpeaker : config.bgpSpeakers()) {
             log.debug("Start to set up BGP paths for BGP speaker: {}",
-                      bgpSpeaker);
+                    bgpSpeaker);
 
-            for (BgpPeer bgpPeer : configService.getBgpPeers().values()) {
-
-                log.debug("Start to set up BGP paths between BGP speaker: {} "
-                                  + "to BGP peer: {}", bgpSpeaker, bgpPeer);
-
-                intents.addAll(buildPeerIntents(bgpSpeaker, bgpPeer));
-            }
+            intents.addAll(buildSpeakerIntents(bgpSpeaker));
         }
 
         // Submit all the intents.
         intentSynchronizer.submitPeerIntents(intents);
     }
 
-    /**
-     * Builds the required intents between a given internal BGP speaker and
-     * external BGP peer.
-     *
-     * @param bgpSpeaker the BGP speaker
-     * @param bgpPeer the BGP peer
-     * @return the intents to install
-     */
-    private Collection<PointToPointIntent> buildPeerIntents(
-            BgpSpeaker bgpSpeaker,
-            BgpPeer bgpPeer) {
+    private Collection<PointToPointIntent> buildSpeakerIntents(BgpConfig.BgpSpeakerConfig speaker) {
         List<PointToPointIntent> intents = new ArrayList<>();
 
-        ConnectPoint bgpdConnectPoint = bgpSpeaker.connectPoint();
+        for (IpAddress peerAddress : speaker.peers()) {
+            Interface peeringInterface = interfaceService.getMatchingInterface(peerAddress);
 
-        List<InterfaceAddress> interfaceAddresses =
-                bgpSpeaker.interfaceAddresses();
-
-        Interface peerInterface = configService.getInterface(
-                bgpPeer.connectPoint());
-
-        if (peerInterface == null) {
-            log.error("No interface found for peer {}", bgpPeer.ipAddress());
-            return intents;
-        }
-
-        IpAddress bgpdAddress = null;
-        for (InterfaceAddress interfaceAddress : interfaceAddresses) {
-            if (interfaceAddress.connectPoint().equals(
-                    peerInterface.connectPoint())) {
-                bgpdAddress = interfaceAddress.ipAddress();
-                break;
+            if (peeringInterface == null) {
+                log.debug("No peering interface found for peer {} on speaker {}",
+                        peerAddress, speaker);
+                continue;
             }
-        }
-        if (bgpdAddress == null) {
-            log.debug("No IP address found for peer {} on interface {}",
-                    bgpPeer, bgpPeer.connectPoint());
-            return intents;
+
+            IpAddress peeringAddress = null;
+            for (InterfaceIpAddress address : peeringInterface.ipAddresses()) {
+                if (address.subnetAddress().contains(peerAddress)) {
+                    peeringAddress = address.ipAddress();
+                    break;
+                }
+            }
+
+            checkNotNull(peeringAddress);
+
+            intents.addAll(buildIntents(speaker.connectPoint(), peeringAddress,
+                    peeringInterface.connectPoint(), peerAddress));
         }
 
-        IpAddress bgpdPeerAddress = bgpPeer.ipAddress();
-        ConnectPoint bgpdPeerConnectPoint = peerInterface.connectPoint();
+        return intents;
+    }
 
-        if (bgpdAddress.version() != bgpdPeerAddress.version()) {
-            return intents;
-        }
+    /**
+     * Builds the required intents between the two pairs of connect points and
+     * IP addresses.
+     *
+     * @param portOne the first connect point
+     * @param ipOne the first IP address
+     * @param portTwo the second connect point
+     * @param ipTwo the second IP address
+     * @return the intents to install
+     */
+    private Collection<PointToPointIntent> buildIntents(ConnectPoint portOne,
+                                                        IpAddress ipOne,
+                                                        ConnectPoint portTwo,
+                                                        IpAddress ipTwo) {
+
+        List<PointToPointIntent> intents = new ArrayList<>();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
 
@@ -174,7 +171,7 @@ public class PeerConnectivityManager {
         byte tcpProtocol;
         byte icmpProtocol;
 
-        if (bgpdAddress.isIp4()) {
+        if (ipOne.isIp4()) {
             tcpProtocol = IPv4.PROTOCOL_TCP;
             icmpProtocol = IPv4.PROTOCOL_ICMP;
         } else {
@@ -184,26 +181,24 @@ public class PeerConnectivityManager {
 
         // Path from BGP speaker to BGP peer matching destination TCP port 179
         selector = buildSelector(tcpProtocol,
-                bgpdAddress,
-                bgpdPeerAddress,
+                ipOne,
+                ipTwo,
                 null,
                 BGP_PORT);
-
-        int priority = PRIORITY_OFFSET;
 
         intents.add(PointToPointIntent.builder()
                 .appId(appId)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(bgpdConnectPoint)
-                .egressPoint(bgpdPeerConnectPoint)
-                .priority(priority)
+                .ingressPoint(portOne)
+                .egressPoint(portTwo)
+                .priority(PRIORITY_OFFSET)
                 .build());
 
         // Path from BGP speaker to BGP peer matching source TCP port 179
         selector = buildSelector(tcpProtocol,
-                bgpdAddress,
-                bgpdPeerAddress,
+                ipOne,
+                ipTwo,
                 BGP_PORT,
                 null);
 
@@ -211,15 +206,15 @@ public class PeerConnectivityManager {
                 .appId(appId)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(bgpdConnectPoint)
-                .egressPoint(bgpdPeerConnectPoint)
-                .priority(priority)
+                .ingressPoint(portOne)
+                .egressPoint(portTwo)
+                .priority(PRIORITY_OFFSET)
                 .build());
 
         // Path from BGP peer to BGP speaker matching destination TCP port 179
         selector = buildSelector(tcpProtocol,
-                bgpdPeerAddress,
-                bgpdAddress,
+                ipTwo,
+                ipOne,
                 null,
                 BGP_PORT);
 
@@ -227,15 +222,15 @@ public class PeerConnectivityManager {
                 .appId(appId)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(bgpdPeerConnectPoint)
-                .egressPoint(bgpdConnectPoint)
-                .priority(priority)
+                .ingressPoint(portTwo)
+                .egressPoint(portOne)
+                .priority(PRIORITY_OFFSET)
                 .build());
 
         // Path from BGP peer to BGP speaker matching source TCP port 179
         selector = buildSelector(tcpProtocol,
-                bgpdPeerAddress,
-                bgpdAddress,
+                ipTwo,
+                ipOne,
                 BGP_PORT,
                 null);
 
@@ -243,15 +238,15 @@ public class PeerConnectivityManager {
                 .appId(appId)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(bgpdPeerConnectPoint)
-                .egressPoint(bgpdConnectPoint)
-                .priority(priority)
+                .ingressPoint(portTwo)
+                .egressPoint(portOne)
+                .priority(PRIORITY_OFFSET)
                 .build());
 
         // ICMP path from BGP speaker to BGP peer
         selector = buildSelector(icmpProtocol,
-                bgpdAddress,
-                bgpdPeerAddress,
+                ipOne,
+                ipTwo,
                 null,
                 null);
 
@@ -259,15 +254,15 @@ public class PeerConnectivityManager {
                 .appId(appId)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(bgpdConnectPoint)
-                .egressPoint(bgpdPeerConnectPoint)
-                .priority(priority)
+                .ingressPoint(portOne)
+                .egressPoint(portTwo)
+                .priority(PRIORITY_OFFSET)
                 .build());
 
         // ICMP path from BGP peer to BGP speaker
         selector = buildSelector(icmpProtocol,
-                bgpdPeerAddress,
-                bgpdAddress,
+                ipTwo,
+                ipOne,
                 null,
                 null);
 
@@ -275,9 +270,9 @@ public class PeerConnectivityManager {
                 .appId(appId)
                 .selector(selector)
                 .treatment(treatment)
-                .ingressPoint(bgpdPeerConnectPoint)
-                .egressPoint(bgpdConnectPoint)
-                .priority(priority)
+                .ingressPoint(portTwo)
+                .egressPoint(portOne)
+                .priority(PRIORITY_OFFSET)
                 .build());
 
         return intents;
@@ -296,32 +291,24 @@ public class PeerConnectivityManager {
     private TrafficSelector buildSelector(byte ipProto, IpAddress srcIp,
                                           IpAddress dstIp, Short srcTcpPort,
                                           Short dstTcpPort) {
-        TrafficSelector.Builder builder = null;
+        TrafficSelector.Builder builder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPProtocol(ipProto);
 
         if (dstIp.isIp4()) {
-            builder = DefaultTrafficSelector.builder()
-                    .matchEthType(Ethernet.TYPE_IPV4)
-                    .matchIPProtocol(ipProto)
-                    .matchIPSrc(IpPrefix.valueOf(srcIp,
-                            IpPrefix.MAX_INET_MASK_LENGTH))
-                    .matchIPDst(IpPrefix.valueOf(dstIp,
-                            IpPrefix.MAX_INET_MASK_LENGTH));
+            builder.matchIPSrc(IpPrefix.valueOf(srcIp, IpPrefix.MAX_INET_MASK_LENGTH))
+                    .matchIPDst(IpPrefix.valueOf(dstIp, IpPrefix.MAX_INET_MASK_LENGTH));
         } else {
-            builder = DefaultTrafficSelector.builder()
-                    .matchEthType(Ethernet.TYPE_IPV6)
-                    .matchIPProtocol(ipProto)
-                    .matchIPv6Src(IpPrefix.valueOf(srcIp,
-                            IpPrefix.MAX_INET6_MASK_LENGTH))
-                    .matchIPv6Dst(IpPrefix.valueOf(dstIp,
-                            IpPrefix.MAX_INET6_MASK_LENGTH));
+            builder.matchIPv6Src(IpPrefix.valueOf(srcIp, IpPrefix.MAX_INET6_MASK_LENGTH))
+                    .matchIPv6Dst(IpPrefix.valueOf(dstIp, IpPrefix.MAX_INET6_MASK_LENGTH));
         }
 
         if (srcTcpPort != null) {
-            builder.matchTcpSrc(srcTcpPort);
+            builder.matchTcpSrc(TpPort.tpPort(srcTcpPort));
         }
 
         if (dstTcpPort != null) {
-            builder.matchTcpDst(dstTcpPort);
+            builder.matchTcpDst(TpPort.tpPort(dstTcpPort));
         }
 
         return builder.build();

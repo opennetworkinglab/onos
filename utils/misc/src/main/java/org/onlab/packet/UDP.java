@@ -25,14 +25,13 @@ import java.util.Map;
 import static org.onlab.packet.PacketUtils.*;
 
 /**
- *
+ * Representation of a UDP packet.
  */
-
 public class UDP extends BasePacket {
-    public static final Map<Short, Deserializer<? extends IPacket>> PORT_DESERIALIZER_MAP =
+    public static final Map<Integer, Deserializer<? extends IPacket>> PORT_DESERIALIZER_MAP =
             new HashMap<>();
-    public static final short DHCP_SERVER_PORT = (short) 67;
-    public static final short DHCP_CLIENT_PORT = (short) 68;
+    public static final int DHCP_SERVER_PORT = 67;
+    public static final int DHCP_CLIENT_PORT = 68;
 
     private static final short UDP_HEADER_LENGTH = 8;
 
@@ -46,24 +45,24 @@ public class UDP extends BasePacket {
 
     }
 
-    protected short sourcePort;
-    protected short destinationPort;
+    protected int sourcePort;
+    protected int destinationPort;
     protected short length;
     protected short checksum;
 
     /**
      * @return the sourcePort
      */
-    public short getSourcePort() {
+    public int getSourcePort() {
         return this.sourcePort;
     }
 
     /**
      * @param sourcePort
-     *            the sourcePort to set
+     *            the sourcePort to set (16 bits unsigned integer)
      * @return this
      */
-    public UDP setSourcePort(final short sourcePort) {
+    public UDP setSourcePort(final int sourcePort) {
         this.sourcePort = sourcePort;
         return this;
     }
@@ -71,16 +70,16 @@ public class UDP extends BasePacket {
     /**
      * @return the destinationPort
      */
-    public short getDestinationPort() {
+    public int getDestinationPort() {
         return this.destinationPort;
     }
 
     /**
      * @param destinationPort
-     *            the destinationPort to set
+     *            the destinationPort to set (16 bits unsigned integer)
      * @return this
      */
-    public UDP setDestinationPort(final short destinationPort) {
+    public UDP setDestinationPort(final int destinationPort) {
         this.destinationPort = destinationPort;
         return this;
     }
@@ -134,8 +133,8 @@ public class UDP extends BasePacket {
         final byte[] data = new byte[this.length];
         final ByteBuffer bb = ByteBuffer.wrap(data);
 
-        bb.putShort(this.sourcePort);
-        bb.putShort(this.destinationPort);
+        bb.putShort((short) (this.sourcePort & 0xffff));
+        bb.putShort((short) (this.destinationPort & 0xffff));
         bb.putShort(this.length);
         bb.putShort(this.checksum);
         if (payloadData != null) {
@@ -200,8 +199,8 @@ public class UDP extends BasePacket {
     public IPacket deserialize(final byte[] data, final int offset,
                                final int length) {
         final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-        this.sourcePort = bb.getShort();
-        this.destinationPort = bb.getShort();
+        this.sourcePort = (bb.getShort() & 0xffff);
+        this.destinationPort = (bb.getShort() & 0xffff);
         this.length = bb.getShort();
         this.checksum = bb.getShort();
 
@@ -284,8 +283,8 @@ public class UDP extends BasePacket {
             UDP udp = new UDP();
 
             ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
-            udp.sourcePort = bb.getShort();
-            udp.destinationPort = bb.getShort();
+            udp.sourcePort = (bb.getShort() & 0xffff);
+            udp.destinationPort = (bb.getShort() & 0xffff);
             udp.length = bb.getShort();
             udp.checksum = bb.getShort();
 
