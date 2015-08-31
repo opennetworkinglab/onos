@@ -37,7 +37,6 @@
         <module>fwd</module>
         <module>mobility</module>
         <module>proxyarp</module>
-        <module>config</module>
         <module>sdnip</module>
         <module>optical</module>
         <module>metrics</module>

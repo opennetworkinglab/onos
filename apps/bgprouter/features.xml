@@ -20,7 +20,6 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/onos-app-routing-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-config/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-proxyarp/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-bgprouter/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-routing/${project.version}</bundle>
