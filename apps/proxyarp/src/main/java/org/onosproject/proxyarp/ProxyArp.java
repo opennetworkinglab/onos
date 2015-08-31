@@ -82,7 +82,7 @@ public class ProxyArp {
 
         packetService.addProcessor(processor, PacketProcessor.director(1));
         readComponentConfiguration(context);
-        requestPackests();
+        requestPackets();
 
         log.info("Started with Application ID {}", appId.id());
     }
@@ -99,13 +99,13 @@ public class ProxyArp {
     @Modified
     public void modified(ComponentContext context) {
         readComponentConfiguration(context);
-        requestPackests();
+        requestPackets();
     }
 
     /**
      * Request packet in via PacketService.
      */
-    private void requestPackests() {
+    private void requestPackets() {
         TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
         selectorBuilder.matchEthType(TYPE_ARP);
