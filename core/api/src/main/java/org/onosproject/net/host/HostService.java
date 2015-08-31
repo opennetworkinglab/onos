@@ -123,24 +123,4 @@ public interface HostService
      */
     void requestMac(IpAddress ip);
 
-    /**
-     * Returns the addresses information for all connection points.
-     *
-     * @return the set of address bindings for all connection points
-     * @deprecated in Drake release: use InterfaceService instead
-     */
-    @Deprecated
-    Set<PortAddresses> getAddressBindings();
-
-    /**
-     * Retrieves the addresses that have been bound to the given connection
-     * point.
-     *
-     * @param connectPoint the connection point to retrieve address bindings for
-     * @return addresses bound to the port
-     * @deprecated in Drake release: use InterfaceService instead
-     */
-    @Deprecated
-    Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint);
-
 }

@@ -43,7 +43,6 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.InterfaceIpAddress;
-import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
@@ -140,8 +139,6 @@ public class HostMonitorTest {
         deviceService.addDevice(device, Collections.singleton(port));
 
         ConnectPoint cp = new ConnectPoint(devId, portNum);
-        PortAddresses pa =
-                new PortAddresses(cp, Collections.singleton(IA1), sourceMac, VlanId.NONE);
 
         expect(hostManager.getHostsByIp(TARGET_IP_ADDR))
                 .andReturn(Collections.emptySet()).anyTimes();
@@ -211,9 +208,6 @@ public class HostMonitorTest {
         deviceService.addDevice(device, Collections.singleton(port));
 
         ConnectPoint cp = new ConnectPoint(devId, portNum);
-        PortAddresses pa =
-                new PortAddresses(cp, Collections.singleton(IA1), sourceMac,
-                                  VlanId.vlanId(vlan));
 
         expect(hostManager.getHostsByIp(TARGET_IP_ADDR))
                 .andReturn(Collections.emptySet()).anyTimes();

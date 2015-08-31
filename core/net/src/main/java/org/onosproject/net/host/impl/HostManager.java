@@ -46,7 +46,6 @@ import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
-import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
@@ -197,33 +196,6 @@ public class HostManager
         if (event != null) {
             post(event);
         }
-    }
-
-    @Override
-    public void bindAddressesToPort(PortAddresses addresses) {
-        store.updateAddressBindings(addresses);
-    }
-
-    @Override
-    public void unbindAddressesFromPort(PortAddresses portAddresses) {
-        store.removeAddressBindings(portAddresses);
-    }
-
-    @Override
-    public void clearAddresses(ConnectPoint connectPoint) {
-        store.clearAddressBindings(connectPoint);
-    }
-
-    @Override
-    public Set<PortAddresses> getAddressBindings() {
-        checkPermission(HOST_READ);
-        return store.getAddressBindings();
-    }
-
-    @Override
-    public Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint) {
-        checkPermission(HOST_READ);
-        return store.getAddressBindingsForPort(connectPoint);
     }
 
     // Personalized host provider service issued to the supplied provider.

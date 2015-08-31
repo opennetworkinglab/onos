@@ -331,9 +331,6 @@
             </completers>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.AddressBindingsListCommand"/>
-        </command>
-        <command>
             <action class="org.onosproject.cli.net.InterfacesListCommand"/>
         </command>
 

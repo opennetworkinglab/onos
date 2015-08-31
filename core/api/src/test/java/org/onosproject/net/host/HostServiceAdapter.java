@@ -15,15 +15,15 @@
  */
 package org.onosproject.net.host;
 
-import java.util.Set;
-
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
+
+import java.util.Set;
 
 /**
  * Test adapter for host service.
@@ -87,16 +87,6 @@ public class HostServiceAdapter implements HostService {
 
     @Override
     public void removeListener(HostListener listener) {
-    }
-
-    @Override
-    public Set<PortAddresses> getAddressBindings() {
-        return null;
-    }
-
-    @Override
-    public Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint) {
-        return null;
     }
 
 }

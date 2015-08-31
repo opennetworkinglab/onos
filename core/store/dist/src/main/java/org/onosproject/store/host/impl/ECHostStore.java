@@ -25,7 +25,6 @@ import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.RE
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -52,7 +51,6 @@ import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
-import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.host.HostEvent.Type;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
@@ -93,10 +91,6 @@ public class ECHostStore
             Multimaps.synchronizedSetMultimap(
                     HashMultimap.<ConnectPoint, Host>create());
 
-    private final SetMultimap<ConnectPoint, PortAddresses> portAddresses =
-            Multimaps.synchronizedSetMultimap(
-                    HashMultimap.<ConnectPoint, PortAddresses>create());
-
     private EventuallyConsistentMap<HostId, DefaultHost> hosts;
 
     private EventuallyConsistentMapListener<HostId, DefaultHost> hostLocationTracker =
@@ -123,7 +117,6 @@ public class ECHostStore
         hosts.removeListener(hostLocationTracker);
         hosts.destroy();
         locations.clear();
-        portAddresses.clear();
 
         log.info("Stopped");
     }
@@ -197,34 +190,6 @@ public class ECHostStore
                 .filter(entry -> entry.getKey().deviceId().equals(deviceId))
                 .map(entry -> entry.getValue())
                 .collect(Collectors.toSet());
-    }
-
-    @Override
-    public void updateAddressBindings(PortAddresses addresses) {
-        portAddresses.put(addresses.connectPoint(), addresses);
-    }
-
-    @Override
-    public void removeAddressBindings(PortAddresses addresses) {
-        portAddresses.remove(addresses.connectPoint(), addresses);
-    }
-
-    @Override
-    public void clearAddressBindings(ConnectPoint connectPoint) {
-        portAddresses.removeAll(connectPoint);
-    }
-
-    @Override
-    public Set<PortAddresses> getAddressBindings() {
-        return ImmutableSet.copyOf(portAddresses.values());
-    }
-
-    @Override
-    public Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint) {
-        synchronized (portAddresses) {
-            Set<PortAddresses> addresses = portAddresses.get(connectPoint);
-            return addresses == null ? Collections.emptySet() : ImmutableSet.copyOf(addresses);
-        }
     }
 
     private Set<Host> filter(Collection<DefaultHost> collection, Predicate<DefaultHost> predicate) {

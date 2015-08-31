@@ -25,7 +25,6 @@ import org.onosproject.net.ElementId;
 import org.onosproject.net.Port;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.group.Group;
-import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.topology.TopologyCluster;
 
 import java.util.Comparator;
@@ -110,13 +109,6 @@ public final class Comparators {
             return (compareId != 0) ?
                 compareId :
                 Long.signum(o1.port().toLong() - o2.port().toLong());
-        }
-    };
-
-    public static final Comparator<PortAddresses> ADDRESSES_COMPARATOR = new Comparator<PortAddresses>() {
-        @Override
-        public int compare(PortAddresses arg0, PortAddresses arg1) {
-            return CONNECT_POINT_COMPARATOR.compare(arg0.connectPoint(), arg1.connectPoint());
         }
     };
 
