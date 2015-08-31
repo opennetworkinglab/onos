@@ -5,8 +5,11 @@
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
+. $ONOS_ROOT/tools/test/bin/find-node.sh
 
-remote=$ONOS_USER@${1:-$OCI}
+node=$(find_node ${1:-$OCI})
+
+remote=$ONOS_USER@$node
 
 ssh -t $remote "
     # Wait until we reach the run-level 100
