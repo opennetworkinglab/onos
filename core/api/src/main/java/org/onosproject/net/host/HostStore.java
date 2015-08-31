@@ -15,17 +15,17 @@
  */
 package org.onosproject.net.host;
 
-import java.util.Set;
-
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.Store;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
+
+import java.util.Set;
 
 /**
  * Manages inventory of end-station hosts; not intended for direct use.
@@ -120,7 +120,9 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * information is added to any previously held information for the port.
      *
      * @param addresses the port and address information
+     * @deprecated in Drake release: address info now stored in InterfaceService
      */
+    @Deprecated
     void updateAddressBindings(PortAddresses addresses);
 
     /**
@@ -128,7 +130,9 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * a port.
      *
      * @param addresses the port and address information
+     * @deprecated in Drake release: address info now stored in InterfaceService
      */
+    @Deprecated
     void removeAddressBindings(PortAddresses addresses);
 
     /**
@@ -136,14 +140,18 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * point.
      *
      * @param connectPoint the connection point
+     * @deprecated in Drake release: address info now stored in InterfaceService
      */
+    @Deprecated
     void clearAddressBindings(ConnectPoint connectPoint);
 
     /**
      * Returns the address bindings stored for all connection points.
      *
      * @return the set of address bindings
+     * @deprecated in Drake release: address info now stored in InterfaceService
      */
+    @Deprecated
     Set<PortAddresses> getAddressBindings();
 
     /**
@@ -152,6 +160,8 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * @param connectPoint the connection point to return address information
      *                     for
      * @return address information for the connection point
+     * @deprecated in Drake release: address info now stored in InterfaceService
      */
+    @Deprecated
     Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint);
 }
