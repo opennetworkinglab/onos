@@ -137,7 +137,7 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
     /**
      * Returns the list of delta port statistics of the specified device.
      *
-     * @param deviceId
+     * @param deviceId device identifier
      * @return list of delta port statistics of all ports of the device
      */
     List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId);

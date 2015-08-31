@@ -57,6 +57,7 @@ final class ResourceLinkListener implements LinkListener {
      * Creates an instance with the specified ResourceAdminService and ExecutorService.
      *
      * @param adminService instance invoked to register resources
+     * @param driverService driver service instance
      * @param executor executor used for processing resource registration
      */
     ResourceLinkListener(ResourceAdminService adminService, DriverService driverService, ExecutorService executor) {
