@@ -1,0 +1,7 @@
+org.onosproject.metrics.*
+org.onosproject.demo*
+org.onosproject.election*
+org.onosproject.distributedprimitives*
+org.onosproject.intentperf*
+org.onosproject.messagingperf*
+org.onosproject.optical.testapp*
