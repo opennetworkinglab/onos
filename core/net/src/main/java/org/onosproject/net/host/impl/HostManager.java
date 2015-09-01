@@ -25,6 +25,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -90,6 +91,9 @@ public class HostManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EdgePortService edgePortService;
+
     private HostMonitor monitor;
 
     @Activate
@@ -97,7 +101,7 @@ public class HostManager
         store.setDelegate(delegate);
         eventDispatcher.addSink(HostEvent.class, listenerRegistry);
         networkConfigService.addListener(networkConfigListener);
-        monitor = new HostMonitor(packetService, this, interfaceService);
+        monitor = new HostMonitor(packetService, this, interfaceService, edgePortService);
         monitor.start();
         log.info("Started");
     }

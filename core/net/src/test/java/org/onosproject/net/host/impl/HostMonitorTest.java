@@ -19,6 +19,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
@@ -37,6 +38,7 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.host.HostProvider;
@@ -51,6 +53,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -70,7 +73,17 @@ public class HostMonitorTest {
             new InterfaceIpAddress(SOURCE_ADDR, IpPrefix.valueOf("10.0.0.0/24"));
     private MacAddress sourceMac = MacAddress.valueOf(1L);
 
+    private EdgePortService edgePortService;
+
     private HostMonitor hostMonitor;
+
+    @Before
+    public void setUp() {
+        edgePortService = createMock(EdgePortService.class);
+        expect(edgePortService.isEdgePoint(anyObject(ConnectPoint.class)))
+                .andReturn(true).anyTimes();
+        replay(edgePortService);
+    }
 
     @After
     public void shutdown() {
@@ -96,7 +109,7 @@ public class HostMonitorTest {
         expectLastCall().once();
         replay(hostProvider);
 
-        hostMonitor = new HostMonitor(null, hostManager, null);
+        hostMonitor = new HostMonitor(null, hostManager, null, edgePortService);
 
         hostMonitor.registerHostProvider(hostProvider);
         hostMonitor.addMonitoringFor(TARGET_IP_ADDR);
@@ -144,7 +157,7 @@ public class HostMonitorTest {
 
 
         // Run the test
-        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService);
+        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService);
 
         hostMonitor.addMonitoringFor(TARGET_IP_ADDR);
         hostMonitor.run(null);
@@ -216,7 +229,7 @@ public class HostMonitorTest {
 
 
         // Run the test
-        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService);
+        hostMonitor = new HostMonitor(packetService, hostManager, interfaceService, edgePortService);
 
         hostMonitor.addMonitoringFor(TARGET_IP_ADDR);
         hostMonitor.run(null);

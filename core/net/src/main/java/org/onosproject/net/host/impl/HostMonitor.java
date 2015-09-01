@@ -31,6 +31,7 @@ import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
+import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostProvider;
@@ -39,6 +40,8 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.ProviderId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
@@ -56,9 +59,13 @@ import java.util.concurrent.TimeUnit;
  * </p>
  */
 public class HostMonitor implements TimerTask {
+
+    private Logger log = LoggerFactory.getLogger(getClass());
+
     private PacketService packetService;
     private HostManager hostManager;
     private InterfaceService interfaceService;
+    private EdgePortService edgePortService;
 
     private final Set<IpAddress> monitoredAddresses;
 
@@ -79,11 +86,13 @@ public class HostMonitor implements TimerTask {
      * @param interfaceService interface service for interface information
      */
     public HostMonitor(PacketService packetService, HostManager hostManager,
-                       InterfaceService interfaceService) {
+                       InterfaceService interfaceService,
+                       EdgePortService edgePortService) {
 
         this.packetService = packetService;
         this.hostManager = hostManager;
         this.interfaceService = interfaceService;
+        this.edgePortService = edgePortService;
 
         monitoredAddresses = Collections.newSetFromMap(new ConcurrentHashMap<>());
         hostProviders = new ConcurrentHashMap<>();
@@ -170,6 +179,11 @@ public class HostMonitor implements TimerTask {
         Interface intf = interfaceService.getMatchingInterface(targetIp);
 
         if (intf == null) {
+            return;
+        }
+
+        if (!edgePortService.isEdgePoint(intf.connectPoint())) {
+            log.warn("Attempt to send probe out non-edge port: {}", intf);
             return;
         }
 
