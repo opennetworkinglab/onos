@@ -26,6 +26,7 @@ import org.onosproject.pcepio.types.PcepErrorDetailInfo;
 import org.onosproject.pcepio.types.PcepObjectHeader;
 import org.onosproject.pcepio.types.PcepValueType;
 import org.onosproject.pcepio.types.StatefulIPv4LspIdentidiersTlv;
+import org.onosproject.pcepio.types.StatefulLspDbVerTlv;
 import org.onosproject.pcepio.types.StatefulLspErrorCodeTlv;
 import org.onosproject.pcepio.types.StatefulRsvpErrorSpecTlv;
 import org.onosproject.pcepio.types.SymbolicPathNameTlv;
@@ -336,6 +337,9 @@ public class PcepLspObjectVer1 implements PcepLspObject {
                 break;
             case SymbolicPathNameTlv.TYPE:
                 tlv = SymbolicPathNameTlv.read(cb, hLength);
+                break;
+            case StatefulLspDbVerTlv.TYPE:
+                tlv = StatefulLspDbVerTlv.read(cb);
                 break;
             default:
                 throw new PcepParseException("Received unsupported TLV type :" + hType);

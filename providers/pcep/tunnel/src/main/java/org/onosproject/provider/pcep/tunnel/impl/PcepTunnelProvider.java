@@ -1008,7 +1008,10 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             PcepStateReport.PcepMsgPath msgPath = stateRpt.getMsgPath();
             checkNotNull(msgPath);
             PcepRroObject rroObj = msgPath.getRroObject();
-            checkNotNull(rroObj);
+            if (rroObj == null) {
+                log.debug("RRO object is null in sate report");
+                return;
+            }
             int bandwidth = 0;
 
             log.debug("Handle Sync report received from PCC.");
