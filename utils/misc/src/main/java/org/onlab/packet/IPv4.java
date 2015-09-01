@@ -32,6 +32,7 @@ import static org.onlab.packet.PacketUtils.*;
  */
 public class IPv4 extends BasePacket {
     public static final byte PROTOCOL_ICMP = 0x1;
+    public static final byte PROTOCOL_IGMP = 0x2;
     public static final byte PROTOCOL_TCP = 0x6;
     public static final byte PROTOCOL_UDP = 0x11;
     public static final Map<Byte, Deserializer<? extends IPacket>> PROTOCOL_DESERIALIZER_MAP =
@@ -39,6 +40,7 @@ public class IPv4 extends BasePacket {
 
     static {
         IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_ICMP, ICMP.deserializer());
+        IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_IGMP, IGMP.deserializer());
         IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_TCP, TCP.deserializer());
         IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_UDP, UDP.deserializer());
     }
