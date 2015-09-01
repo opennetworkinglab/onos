@@ -32,6 +32,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP lable update message.
+ */
 class PcepLabelUpdateMsgVer1 implements PcepLabelUpdateMsg {
 
     // Pcep version: 1
@@ -72,7 +75,9 @@ class PcepLabelUpdateMsgVer1 implements PcepLabelUpdateMsg {
 
     static final PcepLabelUpdateMsgVer1.Reader READER = new Reader();
 
-    //Reader reads LabelUpdate Message from the channel.
+    /**
+     * Reader reads LabelUpdate Message from the channel.
+     */
     static class Reader implements PcepMessageReader<PcepLabelUpdateMsg> {
 
         @Override
@@ -131,6 +136,9 @@ class PcepLabelUpdateMsgVer1 implements PcepLabelUpdateMsg {
         this.llPcLabelUpdateList = llPcLabelUpdateList;
     }
 
+    /**
+     * Builder class for PCEP label update message.
+     */
     static class Builder implements PcepLabelUpdateMsg.Builder {
 
         LinkedList<PcepLabelUpdate> llPcLabelUpdateList;
@@ -169,7 +177,9 @@ class PcepLabelUpdateMsgVer1 implements PcepLabelUpdateMsg {
 
     static final Writer WRITER = new Writer();
 
-    //Writer writes LabelUpdate Message to the channel.
+    /**
+     * Writer writes LabelUpdate Message to the channel.
+     */
     static class Writer implements PcepMessageWriter<PcepLabelUpdateMsgVer1> {
 
         @Override

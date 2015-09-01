@@ -15,6 +15,6 @@
  */
 
 /**
- * PCEP controller API.
+ * PCEP client controller API.
  */
 package org.onosproject.pcep.controller;

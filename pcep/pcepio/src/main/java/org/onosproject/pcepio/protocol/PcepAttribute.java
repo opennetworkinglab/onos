@@ -16,14 +16,14 @@
 
 package org.onosproject.pcepio.protocol;
 
-/**
- * Abstraction of an entity which Provides List of PCEP Attributes.
- */
 import java.util.LinkedList;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 
+/**
+ * Abstraction of an entity which Provides List of PCEP Attributes.
+ */
 public interface PcepAttribute {
 
     /**

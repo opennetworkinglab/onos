@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP fec Object IPv4 Adjacency object.
+ */
 public class PcepFecObjectIPv4AdjacencyVer1 implements PcepFecObjectIPv4Adjacency {
 
     /*

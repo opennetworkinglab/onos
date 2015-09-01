@@ -20,6 +20,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 
+/**
+ * Provides PCEP Error Message.
+ */
 public class PcepErrorMsgVer1 implements PcepErrorMsg {
 
     /*
@@ -71,6 +74,9 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
         this.errInfo = errInfo;
     }
 
+    /**
+     * Reader class for reading PCEP error Message from channel buffer.
+     */
     public static class Reader implements PcepMessageReader<PcepErrorMsg> {
 
         ErrorObjListWithOpen errObjListWithOpen;
@@ -187,7 +193,6 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
                     break;
                 }
             }
-
             return tempObjHeader;
         }
     }
@@ -246,6 +251,9 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
 
     public static final Writer WRITER = new Writer();
 
+    /**
+     * Writer class for writing PCEP error Message to channel buffer.
+     */
     static class Writer implements PcepMessageWriter<PcepErrorMsgVer1> {
         @Override
         public void write(ChannelBuffer cb, PcepErrorMsgVer1 message) throws PcepParseException {

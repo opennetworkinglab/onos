@@ -15,13 +15,10 @@
  */
 package org.onosproject.pcep.controller.impl;
 
-
 import org.onosproject.pcep.controller.PcepPacketStats;
+
 /**
- * A representation of a packet context which allows any provider
- * to view a packet in event, but may block the response to the
- * event if blocked has been called. This packet context can be used
- * to react to the packet in event with a packet out.
+ * The implementation for PCEP packet statistics.
  */
 public class PcepPacketStatsImpl implements PcepPacketStats {
 
@@ -30,6 +27,9 @@ public class PcepPacketStatsImpl implements PcepPacketStats {
     private int wrongPacketCount;
     private long time;
 
+    /**
+     * Default constructor.
+     */
     public PcepPacketStatsImpl() {
         this.inPacketCount = 0;
         this.outPacketCount = 0;
@@ -82,6 +82,9 @@ public class PcepPacketStatsImpl implements PcepPacketStats {
         this.wrongPacketCount++;
     }
 
+    /**
+     * Resets wrong packet count.
+     */
     public void resetWrongPacket() {
         this.wrongPacketCount = 0;
     }

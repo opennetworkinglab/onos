@@ -37,7 +37,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-/*
+/**
+ * Provides PCEP open object.
+ */
+public class PcepOpenObjectVer1 implements PcepOpenObject {
+
+    /*
      message format.
       0                   1                   2                   3
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -52,10 +57,7 @@ import com.google.common.base.MoreObjects;
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
                      The OPEN Object format
- */
-
-public class PcepOpenObjectVer1 implements PcepOpenObject {
-
+     */
     protected static final Logger log = LoggerFactory.getLogger(PcepOpenObjectVer1.class);
 
     public static final PcepType MSG_TYPE = PcepType.OPEN;
@@ -341,10 +343,12 @@ public class PcepOpenObjectVer1 implements PcepOpenObject {
                 }
             }
         }
-
         return cb.writerIndex() - startIndex;
     }
 
+    /**
+     * Builder class for PCPE open object.
+     */
     public static class Builder implements PcepOpenObject.Builder {
         // Pcep open message fields
         private boolean bIsHeaderSet = false;

@@ -150,6 +150,7 @@ public class StatefulRsvpErrorSpecTlv implements PcepValueType {
      *
      * @param cb of type channel buffer
      * @return object of StatefulRsvpErrorSpecTlv
+     * @throws PcepParseException while parsing this tlv from channel buffer
      */
     public static PcepValueType read(ChannelBuffer cb) throws PcepParseException {
 

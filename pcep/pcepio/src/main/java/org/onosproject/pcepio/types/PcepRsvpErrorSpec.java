@@ -17,6 +17,9 @@ package org.onosproject.pcepio.types;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 
+/**
+ * Abstraction of an entity which provides PCPE RSVP error spec.
+ */
 public interface PcepRsvpErrorSpec extends PcepValueType {
 
     /**

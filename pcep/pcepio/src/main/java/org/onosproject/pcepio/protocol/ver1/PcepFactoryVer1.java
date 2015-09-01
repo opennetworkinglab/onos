@@ -52,6 +52,9 @@ import org.onosproject.pcepio.protocol.PcepUpdateMsg;
 import org.onosproject.pcepio.protocol.PcepUpdateRequest;
 import org.onosproject.pcepio.protocol.PcepVersion;
 
+/**
+ * Provides PCEP Factory and returns builder classes for all objects and messages.
+ */
 public class PcepFactoryVer1 implements PcepFactory {
 
     public static final PcepFactoryVer1 INSTANCE = new PcepFactoryVer1();

@@ -32,8 +32,13 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-/*
- *   ref : draft-zhao-pce-pcep-extension-for-pce-controller-01 , section : 7.4.
+/**
+ * Provides PCEP label object.
+ */
+public class PcepLabelObjectVer1 implements PcepLabelObject {
+
+    /*
+     *   ref : draft-zhao-pce-pcep-extension-for-pce-controller-01 , section : 7.4.
 
         0                   1                   2                   3
            0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -47,9 +52,7 @@ import com.google.common.base.MoreObjects;
        |                                                               |
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
                      The LABEL Object format
- */
-public class PcepLabelObjectVer1 implements PcepLabelObject {
-
+     */
     protected static final Logger log = LoggerFactory.getLogger(PcepLspObjectVer1.class);
 
     public static final byte LABEL_OBJ_TYPE = 1;

@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP keep alive message.
+ */
 class PcepKeepaliveMsgVer1 implements PcepKeepaliveMsg {
 
     /*
@@ -47,6 +50,9 @@ class PcepKeepaliveMsgVer1 implements PcepKeepaliveMsg {
 
     public static final PcepKeepaliveMsgVer1.Reader READER = new Reader();
 
+    /**
+     * Reader class for reading PCEP keepalive message from channel buffer.
+     */
     static class Reader implements PcepMessageReader<PcepKeepaliveMsg> {
 
         @Override
@@ -81,6 +87,9 @@ class PcepKeepaliveMsgVer1 implements PcepKeepaliveMsg {
     PcepKeepaliveMsgVer1() {
     }
 
+    /**
+     * Builder class for PCEP keepalive message.
+     */
     static class Builder implements PcepKeepaliveMsg.Builder {
         @Override
         public PcepVersion getVersion() {
@@ -105,6 +114,9 @@ class PcepKeepaliveMsgVer1 implements PcepKeepaliveMsg {
 
     static final Writer WRITER = new Writer();
 
+    /**
+     * Writer class for writing the PCEP keepalive message to channel buffer.
+     */
     static class Writer implements PcepMessageWriter<PcepKeepaliveMsgVer1> {
 
         @Override

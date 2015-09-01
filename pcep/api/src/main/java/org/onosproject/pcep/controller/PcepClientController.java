@@ -20,7 +20,7 @@ import java.util.Collection;
 import org.onosproject.pcepio.protocol.PcepMessage;
 
 /**
- * Abstraction of an Pcep controller. Serves as a one stop
+ * Abstraction of an Pcep client controller. Serves as a one stop
  * shop for obtaining Pcep devices and (un)register listeners
  * on pcep events
  */

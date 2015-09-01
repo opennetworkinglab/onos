@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP SRP obejct.
+ */
 public class PcepSrpObjectVer1 implements PcepSrpObject {
 
     /*
@@ -276,7 +279,7 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
     }
 
     /**
-     * builder class for PCEP srp Object.
+     * Builder class for PCEP srp Object.
      */
     public static class Builder implements PcepSrpObject.Builder {
         private boolean bIsHeaderSet = false;

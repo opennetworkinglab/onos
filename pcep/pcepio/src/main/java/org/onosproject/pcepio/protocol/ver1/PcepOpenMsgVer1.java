@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP open message.
+ */
 public class PcepOpenMsgVer1 implements PcepOpenMsg {
 
     /*
@@ -87,6 +90,9 @@ public class PcepOpenMsgVer1 implements PcepOpenMsg {
         return MSG_TYPE;
     }
 
+    /**
+     * Reader class for reading PCEP open message from channel buffer.
+     */
     public static class Reader implements PcepMessageReader<PcepOpenMsg> {
 
         @Override
@@ -162,6 +168,9 @@ public class PcepOpenMsgVer1 implements PcepOpenMsg {
 
     public static final Writer WRITER = new Writer();
 
+    /**
+     * Writer class for writing PCEP opne message to channel buffer.
+     */
     public static class Writer implements PcepMessageWriter<PcepOpenMsgVer1> {
 
         @Override

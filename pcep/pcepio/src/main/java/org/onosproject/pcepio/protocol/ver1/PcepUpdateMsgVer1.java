@@ -36,9 +36,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.MoreObjects;
 
 /**
- * PCEP Update Message: A Path Computation LSP Update Request message
- * (also referred to as PCUpd message) is a PCEP message sent by a PCE
- * to a PCC to update attributes of an LSP.
+ * Provides PCEP update message.
  */
 
 class PcepUpdateMsgVer1 implements PcepUpdateMsg {
@@ -88,7 +86,9 @@ class PcepUpdateMsgVer1 implements PcepUpdateMsg {
 
     public static final PcepUpdateMsgVer1.Reader READER = new Reader();
 
-    //Reader reads UpdateMessage from the channel.
+    /**
+     * Reader reads UpdateMessage from the channel.
+     */
     static class Reader implements PcepMessageReader<PcepUpdateMsg> {
 
         LinkedList<PcepUpdateRequest> llUpdateRequestList;
@@ -184,7 +184,7 @@ class PcepUpdateMsgVer1 implements PcepUpdateMsg {
     }
 
     /**
-     * builder class for PCPE update message.
+     * Builder class for PCPE update message.
      */
     static class Builder implements PcepUpdateMsg.Builder {
 
@@ -226,7 +226,9 @@ class PcepUpdateMsgVer1 implements PcepUpdateMsg {
 
     static final Writer WRITER = new Writer();
 
-    //Writer writes UpdateMessage to the channel buffer.
+    /**
+     * Writer writes UpdateMessage to the channel buffer.
+     */
     static class Writer implements PcepMessageWriter<PcepUpdateMsgVer1> {
 
         @Override

@@ -28,7 +28,7 @@
     <artifactId>onos-pcep-controller-impl</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS PCEP controller subsystem API</description>
+    <description>ONOS PCEP client controller subsystem API implementation</description>
 
     <dependencies>
         <dependency>

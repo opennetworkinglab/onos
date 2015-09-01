@@ -102,7 +102,7 @@ public class PcepMsgPathVer1 implements PcepMsgPath {
     }
 
     /**
-     * builder class for PCEP Message path.
+     * Builder class for PCEP Message path.
      */
     public static class Builder implements PcepMsgPath.Builder {
 

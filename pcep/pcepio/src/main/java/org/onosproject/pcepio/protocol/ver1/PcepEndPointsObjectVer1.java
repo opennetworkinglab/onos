@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP Endpoints Object.
+ */
 public class PcepEndPointsObjectVer1 implements PcepEndPointsObject {
 
     /*

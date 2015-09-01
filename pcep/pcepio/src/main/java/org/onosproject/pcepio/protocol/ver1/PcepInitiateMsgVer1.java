@@ -37,6 +37,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP initiate message.
+ */
 class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
     protected static final Logger log = LoggerFactory.getLogger(PcepInitiateMsgVer1.class);
@@ -70,6 +73,9 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
     private LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList;
     public static final PcepInitiateMsgVer1.Reader READER = new Reader();
 
+    /**
+     * Reader class for reading of Pcep initiate message from channel buffer.
+     */
     static class Reader implements PcepMessageReader<PcepInitiateMsg> {
 
         LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList;
@@ -159,7 +165,6 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
                 }
                 llPcInitiatedLspRequestList.add(pceInitLspReq);
             }
-
             return true;
         }
     }
@@ -219,6 +224,9 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
     static final Writer WRITER = new Writer();
 
+    /**
+     * Writer class for writing pcep initiate message to channel buffer.
+     */
     static class Writer implements PcepMessageWriter<PcepInitiateMsgVer1> {
 
         @Override

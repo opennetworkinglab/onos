@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP RP object.
+ */
 public class PcepRPObjectVer1 implements PcepRPObject {
 
     /*
@@ -271,6 +274,9 @@ public class PcepRPObjectVer1 implements PcepRPObject {
         return cb.writerIndex();
     }
 
+    /**
+     * Builder class for PCEP rp object.
+     */
     public static class Builder implements PcepRPObject.Builder {
 
         private boolean bIsHeaderSet = false;

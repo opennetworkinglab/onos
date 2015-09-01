@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP label range object.
+ */
 public class PcepLabelRangeObjectVer1 implements PcepLabelRangeObject {
 
     /*

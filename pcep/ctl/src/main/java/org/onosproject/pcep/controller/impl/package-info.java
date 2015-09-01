@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation of the PCEP controller subsystem.
+ * Implementation of the PCEP client controller subsystem.
  */
 package org.onosproject.pcep.controller.impl;

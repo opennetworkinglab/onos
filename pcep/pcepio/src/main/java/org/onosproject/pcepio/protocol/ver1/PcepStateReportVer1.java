@@ -89,9 +89,10 @@ public class PcepStateReportVer1 implements PcepStateReport {
          * @param eroObj PCEP ERO Object
          * @param attrList PCEP Attribute
          * @param rroObj PCEP Rro Object
+         * @param bandwidth PCEP bandwidth object
          */
         public PcepMsgPath(PcepEroObject eroObj, PcepAttribute attrList, PcepRroObject rroObj,
-                PcepBandwidthObject bandwidth) {
+                           PcepBandwidthObject bandwidth) {
 
             this.eroObj = eroObj;
             this.attrList = attrList;

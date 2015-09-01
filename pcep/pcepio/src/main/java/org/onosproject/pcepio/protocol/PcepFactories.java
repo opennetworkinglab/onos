@@ -22,6 +22,9 @@ import org.onosproject.pcepio.protocol.ver1.PcepFactoryVer1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Abstraction to provide the version for PCEP.
+ */
 public final class PcepFactories {
 
     protected static final Logger log = LoggerFactory.getLogger(PcepFactories.class);

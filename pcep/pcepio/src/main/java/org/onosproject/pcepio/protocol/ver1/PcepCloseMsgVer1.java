@@ -33,25 +33,29 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-/*
- * RFC : 5440 , section : 6.8
- * <Close Message>           ::= <Common Header> <CLOSE>
- *
-     0                   1                   2                   3
-     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    | Ver |  Flags  |  Message-Type |       Message-Length          |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    | Object-Class  |   OT  |Res|P|I|   Object Length (bytes)       |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |          Reserved             |      Flags    |    Reason     |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    |                                                               |
-    //                         Optional TLVs                       //
-    |                                                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/**
+ * Provides PCEP Close Message.
  */
 class PcepCloseMsgVer1 implements PcepCloseMsg {
+
+    /*
+     * RFC : 5440 , section : 6.8
+     * <Close Message>           ::= <Common Header> <CLOSE>
+     *
+         0                   1                   2                   3
+         0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        | Ver |  Flags  |  Message-Type |       Message-Length          |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        | Object-Class  |   OT  |Res|P|I|   Object Length (bytes)       |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |          Reserved             |      Flags    |    Reason     |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                                                               |
+        //                         Optional TLVs                       //
+        |                                                               |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     */
 
     protected static final Logger log = LoggerFactory.getLogger(PcepCloseMsgVer1.class);
 
@@ -74,6 +78,9 @@ class PcepCloseMsgVer1 implements PcepCloseMsg {
 
     public static final PcepCloseMsgVer1.Reader READER = new Reader();
 
+    /**
+     * Reader class for reading close message for channel buffer.
+     */
     static class Reader implements PcepMessageReader<PcepCloseMsg> {
         PcepObjectHeader closeObjHeader;
         byte yReason;
@@ -248,6 +255,9 @@ class PcepCloseMsgVer1 implements PcepCloseMsg {
 
     static final Writer WRITER = new Writer();
 
+    /**
+     * Writer class for writing close message to channel buffer.
+     */
     static class Writer implements PcepMessageWriter<PcepCloseMsgVer1> {
 
         @Override

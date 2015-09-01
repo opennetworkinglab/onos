@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides TE Node Attributes Tlv.
+ */
 public class TENodeAttributesTlv implements PcepValueType {
     /*
      * Reference :PCEP Extension for Transporting TE Data draft-dhodylee-pce-pcep-te-data-extn-02

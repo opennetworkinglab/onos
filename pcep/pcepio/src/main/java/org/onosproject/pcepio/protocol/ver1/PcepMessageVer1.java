@@ -25,6 +25,9 @@ import org.onosproject.pcepio.types.PcepErrorDetailInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Provides PCEP messages.
+ */
 public abstract class PcepMessageVer1 {
 
     protected static final Logger log = LoggerFactory.getLogger(PcepFactories.class);
@@ -48,6 +51,9 @@ public abstract class PcepMessageVer1 {
 
     public static final PcepMessageVer1.Reader READER = new Reader();
 
+    /**
+     * Reader class for reading PCEP messages from channel buffer.
+     */
     static class Reader implements PcepMessageReader<PcepMessage> {
         @Override
         public PcepMessage readFrom(ChannelBuffer cb) throws PcepParseException {

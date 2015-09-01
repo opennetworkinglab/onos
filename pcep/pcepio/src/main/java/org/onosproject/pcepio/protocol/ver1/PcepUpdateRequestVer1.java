@@ -26,8 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-/*
- * PCEP Update Request List.
+/**
+ * Provides PCEP Update Request List.
  */
 public class PcepUpdateRequestVer1 implements PcepUpdateRequest {
 

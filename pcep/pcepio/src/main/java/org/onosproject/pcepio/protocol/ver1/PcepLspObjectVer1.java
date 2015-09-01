@@ -34,7 +34,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-/*
+/**
+ * Provides PCEP lsp object.
+ */
+public class PcepLspObjectVer1 implements PcepLspObject {
+
+    /*
      message format.
      Reference : draft-ietf-pce-stateful-pce-11, section 7.3.
       0                   1                   2                   3
@@ -49,10 +54,7 @@ import com.google.common.base.MoreObjects;
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
                      The LSP Object format
- */
-
-public class PcepLspObjectVer1 implements PcepLspObject {
-
+     */
     protected static final Logger log = LoggerFactory.getLogger(PcepLspObjectVer1.class);
 
     public static final byte LSP_OBJ_TYPE = 1;

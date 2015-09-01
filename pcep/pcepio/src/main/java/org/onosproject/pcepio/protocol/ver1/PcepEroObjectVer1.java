@@ -35,8 +35,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-/*
- * rfc3209
+/**
+ * Provides PCEP Ero Object.
+ */
+public class PcepEroObjectVer1 implements PcepEroObject {
+    /*
+     * rfc3209
       0                   1                   2                   3
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -130,8 +134,7 @@ import com.google.common.base.MoreObjects;
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      //                        NAI (variable)                       //
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- */
-public class PcepEroObjectVer1 implements PcepEroObject {
+     */
 
     protected static final Logger log = LoggerFactory.getLogger(PcepEroObjectVer1.class);
 

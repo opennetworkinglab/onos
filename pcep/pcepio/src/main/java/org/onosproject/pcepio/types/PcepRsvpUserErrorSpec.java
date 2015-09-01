@@ -24,6 +24,9 @@ import org.onosproject.pcepio.protocol.PcepVersion;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides Pcep Rsvp User Error Spec.
+ */
 public class PcepRsvpUserErrorSpec implements PcepRsvpErrorSpec {
 
     /*

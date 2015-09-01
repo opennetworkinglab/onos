@@ -35,6 +35,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP TE Object.
+ */
 public class PcepTEObjectVer1 implements PcepTEObject {
     /*
      *
@@ -325,7 +328,6 @@ public class PcepTEObjectVer1 implements PcepTEObject {
 
             throw new PcepParseException("Optional Tlv parsing error. Extra bytes received.");
         }
-
         return llOutOptionalTlv;
     }
 
@@ -358,10 +360,12 @@ public class PcepTEObjectVer1 implements PcepTEObject {
                 }
             }
         }
-
         return cb.writerIndex();
     }
 
+    /**
+     * Builder class for PCEP te object.
+     */
     public static class Builder implements PcepTEObject.Builder {
         private boolean bIsHeaderSet = false;
         private boolean bIsProtocolIdSet = false;

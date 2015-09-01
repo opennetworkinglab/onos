@@ -16,9 +16,6 @@
 
 package org.onosproject.pcepio.protocol.ver1;
 
-/*
- * Provides PCEP Attribute List.
- */
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -36,18 +33,20 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 
-/* Reference : RFC5440
- *  where:
- *      <attribute-list>                  ::=[<LSPA>]
- *                                           [<BANDWIDTH>]
- *                                           [<metric-list>]
- *                                           [<IRO>]
- *
- *      <metric-list>                     ::=<METRIC>[<metric-list>]
+/**
+ * Provides PCEP Attribute List.
  */
-
 public class PcepAttributeVer1 implements PcepAttribute {
 
+    /* Reference : RFC5440
+     *  where:
+     *      <attribute-list>                  ::=[<LSPA>]
+     *                                           [<BANDWIDTH>]
+     *                                           [<metric-list>]
+     *                                           [<IRO>]
+     *
+     *      <metric-list>                     ::=<METRIC>[<metric-list>]
+     */
     protected static final Logger log = LoggerFactory.getLogger(PcepAttributeVer1.class);
 
     public static final int OBJECT_HEADER_LENGTH = 4;

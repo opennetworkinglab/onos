@@ -23,6 +23,9 @@ import org.onosproject.pcepio.protocol.PcepNai;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides Pcep Nai Ipv4 Node Id.
+ */
 public class PcepNaiIpv4NodeId implements PcepNai {
 
     public static final byte ST_TYPE = 0x01;

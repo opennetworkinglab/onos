@@ -13,19 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pcep.controller;
 
-import org.onosproject.pcepio.protocol.PcepMessage;
 /**
- * Notifies providers about PCEP message events.
+ * PCEP custom exceptions.
  */
-public interface PcepEventListener {
-
-    /**
-     * Handles the message event.
-     *
-     * @param pccId id of the pcc
-     * @param msg the message
-     */
-    public void handleMessage(PccId pccId, PcepMessage msg);
-}
+package org.onosproject.pcepio.exceptions;

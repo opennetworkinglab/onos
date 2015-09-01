@@ -29,6 +29,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP label range reserve message.
+ */
 class PcepLabelRangeResvMsgVer1 implements PcepLabelRangeResvMsg {
 
     // Pcep version: 1
@@ -57,7 +60,9 @@ class PcepLabelRangeResvMsgVer1 implements PcepLabelRangeResvMsg {
 
     public static final PcepLabelRangeResvMsgVer1.Reader READER = new Reader();
 
-    //Reader reads LabelRangeResv Message from the channel.
+    /**
+     * Reader reads LabelRangeResv Message from the channel.
+     */
     static class Reader implements PcepMessageReader<PcepLabelRangeResvMsg> {
 
         @Override
@@ -138,7 +143,9 @@ class PcepLabelRangeResvMsgVer1 implements PcepLabelRangeResvMsg {
 
     static final Writer WRITER = new Writer();
 
-    //Writer writes LabelRangeResv Message to the channel.
+    /**
+     * Writer writes LabelRangeResv Message to the channel.
+     */
     static class Writer implements PcepMessageWriter<PcepLabelRangeResvMsgVer1> {
 
         @Override
