@@ -232,7 +232,7 @@ public class ProxyArpManager implements ProxyArpService {
             }
         }
 
-        if (src != null || dst != null) {
+        if (src != null && dst != null) {
             // We know the target host so we can respond
             buildAndSendNdp(targetAddress, dst.mac(), eth, inPort);
             return;
