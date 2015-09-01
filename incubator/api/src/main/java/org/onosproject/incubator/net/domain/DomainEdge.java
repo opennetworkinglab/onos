@@ -29,6 +29,7 @@ import java.util.Objects;
  */
 @Beta
 public class DomainEdge extends AbstractEdge<DomainVertex> {
+
     ConnectPoint connectPoint;
 
     public DomainEdge(DomainVertex src, DomainVertex dst, ConnectPoint connectPoint) {
@@ -61,5 +62,14 @@ public class DomainEdge extends AbstractEdge<DomainVertex> {
                 .add("dst", dst())
                 .add("connectPoint", connectPoint)
                 .toString();
+    }
+
+    /**
+     * Returns the connect point associated with the domain edge.
+     *
+     * @return this edges connect point
+     */
+    public ConnectPoint connectPoint() {
+        return connectPoint;
     }
 }

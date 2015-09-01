@@ -25,23 +25,44 @@ public class IntentResource {
 
     private final IntentPrimitive primitive;
     private final long tunnelId;
+    private final IntentDomainId domainId;
 
     // TODO add other common fields
     //String ingressTag;
     //String egressTag;
     //etc.
 
-    public IntentResource(IntentPrimitive primitive, long tunnelId) {
+    public IntentResource(IntentPrimitive primitive, long tunnelId, IntentDomainId domainId) {
         this.primitive = primitive;
         this.tunnelId = tunnelId;
+        this.domainId = domainId;
     }
 
+    /**
+     * Returns the intent primitive associated with this resource as creation.
+     *
+     * @return this resource's intent primitive
+     */
     public IntentPrimitive primitive() {
         return primitive;
     }
 
+    /**
+     * Returns the tunnel ID associated with this resource as creation.
+     *
+     * @return this resource's tunnel ID
+     */
     public long tunnelId() {
         return tunnelId;
+    }
+
+    /**
+     * Returns the domain ID associated with this resource as creation.
+     *
+     * @return this resource's domain ID
+     */
+    public IntentDomainId domainId() {
+        return domainId;
     }
 
 }
