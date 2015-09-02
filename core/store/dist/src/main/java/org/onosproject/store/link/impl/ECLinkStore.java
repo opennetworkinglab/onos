@@ -336,8 +336,13 @@ public class ECLinkStore
     @Override
     public LinkEvent removeLink(ConnectPoint src, ConnectPoint dst) {
         final LinkKey linkKey = LinkKey.linkKey(src, dst);
+        ProviderId primaryProviderId = getBaseProviderId(linkKey);
+        // Stop if there is no base provider.
+        if (primaryProviderId == null) {
+            return null;
+        }
         LinkDescription removedLinkDescription =
-                linkDescriptions.remove(new Provided<>(linkKey, checkNotNull(getBaseProviderId(linkKey))));
+                linkDescriptions.remove(new Provided<>(linkKey, primaryProviderId));
         if (removedLinkDescription != null) {
             return purgeLinkCache(linkKey);
         }
