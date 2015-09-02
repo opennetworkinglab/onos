@@ -296,8 +296,7 @@ public class PcepTEObjectVer1 implements PcepTEObject {
                 tlv = LocalTENodeDescriptorsTLV.read(cb, hLength);
                 break;
             case RemoteTENodeDescriptorsTLV.TYPE:
-                RemoteTENodeDescriptorsTLV.hLength = hLength;
-                tlv = RemoteTENodeDescriptorsTLV.read(cb);
+                tlv = RemoteTENodeDescriptorsTLV.read(cb, hLength);
                 break;
             case TELinkDescriptorsTLV.TYPE:
                 tlv = TELinkDescriptorsTLV.read(cb, hLength);

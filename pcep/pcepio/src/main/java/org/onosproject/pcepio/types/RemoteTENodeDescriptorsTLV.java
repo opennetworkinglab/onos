@@ -50,7 +50,7 @@ public class RemoteTENodeDescriptorsTLV implements PcepValueType {
     protected static final Logger log = LoggerFactory.getLogger(RemoteTENodeDescriptorsTLV.class);
 
     public static final short TYPE = 1003; //TODD:change this TBD9
-    public static short hLength;
+    public short hLength;
 
     public static final int TLV_HEADER_LENGTH = 4;
     // Node Descriptor Sub-TLVs (variable)
@@ -172,7 +172,7 @@ public class RemoteTENodeDescriptorsTLV implements PcepValueType {
         }
 
         hLength = (short) (c.writerIndex() - tlvStartIndex);
-        c.setShort(tlvLenIndex, hLength);
+        c.setShort(tlvLenIndex, (hLength - TLV_HEADER_LENGTH));
 
         return c.writerIndex() - tlvStartIndex;
     }
@@ -184,12 +184,12 @@ public class RemoteTENodeDescriptorsTLV implements PcepValueType {
      * @return object of RemoteTENodeDescriptorsTLV
      * @throws PcepParseException if mandatory fields are missing
      */
-    public static PcepValueType read(ChannelBuffer c) throws PcepParseException {
+    public static PcepValueType read(ChannelBuffer c , short length) throws PcepParseException {
 
         // Node Descriptor Sub-TLVs (variable)
         LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs = new LinkedList<PcepValueType>();
 
-        ChannelBuffer tempCb = c.readBytes(hLength - TLV_HEADER_LENGTH);
+        ChannelBuffer tempCb = c.readBytes(length);
 
         while (TLV_HEADER_LENGTH <= tempCb.readableBytes()) {
 

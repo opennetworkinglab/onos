@@ -63,7 +63,6 @@ public class TELinkAttributesTlv implements PcepValueType {
      */
     public TELinkAttributesTlv(LinkedList<PcepValueType> llLinkAttributesSubTLVs) {
         this.llLinkAttributesSubTLVs = llLinkAttributesSubTLVs;
-
     }
 
     /**
@@ -171,7 +170,7 @@ public class TELinkAttributesTlv implements PcepValueType {
         }
 
         hLength = (short) (c.writerIndex() - tlvStartIndex);
-        c.setShort(tlvLenIndex, hLength);
+        c.setShort(tlvLenIndex, (hLength - TLV_HEADER_LENGTH));
 
         return c.writerIndex() - tlvStartIndex;
     }
@@ -189,7 +188,7 @@ public class TELinkAttributesTlv implements PcepValueType {
         // Node Descriptor Sub-TLVs (variable)
         LinkedList<PcepValueType> llLinkAttributesSubTLVs = new LinkedList<PcepValueType>();
 
-        ChannelBuffer tempCb = c.readBytes(hLength - TLV_HEADER_LENGTH);
+        ChannelBuffer tempCb = c.readBytes(hLength);
 
         while (TLV_HEADER_LENGTH <= tempCb.readableBytes()) {
 

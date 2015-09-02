@@ -167,7 +167,7 @@ public class TELinkDescriptorsTLV implements PcepValueType {
         }
 
         hLength = (short) (c.writerIndex() - tlvStartIndex);
-        c.setShort(tlvLenIndex, hLength);
+        c.setShort(tlvLenIndex, (hLength - TLV_HEADER_LENGTH));
 
         return c.writerIndex() - tlvStartIndex;
     }
@@ -185,7 +185,7 @@ public class TELinkDescriptorsTLV implements PcepValueType {
         // Node Descriptor Sub-TLVs (variable)
         LinkedList<PcepValueType> llLinkDescriptorsSubTLVs = new LinkedList<PcepValueType>();
 
-        ChannelBuffer tempCb = c.readBytes(length - TLV_HEADER_LENGTH);
+        ChannelBuffer tempCb = c.readBytes(length);
 
         while (TLV_HEADER_LENGTH <= tempCb.readableBytes()) {
 
