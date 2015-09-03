@@ -15,6 +15,8 @@
  */
 package org.onosproject.sdnip;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
@@ -22,16 +24,18 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.InterfaceIpAddress;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.BgpConfig;
 import org.slf4j.Logger;
@@ -49,17 +53,25 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class PeerConnectivityManager {
     private static final int PRIORITY_OFFSET = 1000;
 
+    private static final String SUFFIX_DST = "dst";
+    private static final String SUFFIX_SRC = "src";
+    private static final String SUFFIX_ICMP = "icmp";
+
     private static final Logger log = LoggerFactory.getLogger(
             PeerConnectivityManager.class);
 
     private static final short BGP_PORT = 179;
 
-    private final IntentSynchronizer intentSynchronizer;
+    private final IntentSynchronizationService intentSynchronizer;
     private final NetworkConfigService configService;
     private final InterfaceService interfaceService;
 
     private final ApplicationId appId;
     private final ApplicationId routerAppId;
+
+    // Just putting something random here for now. Figure out exactly what
+    // indexes we need when we start making use of them.
+    private final Multimap<BgpConfig.BgpSpeakerConfig, PointToPointIntent> peerIntents;
 
     /**
      * Creates a new PeerConnectivityManager.
@@ -71,7 +83,7 @@ public class PeerConnectivityManager {
      * @param routerAppId        application ID
      */
     public PeerConnectivityManager(ApplicationId appId,
-                                   IntentSynchronizer intentSynchronizer,
+                                   IntentSynchronizationService intentSynchronizer,
                                    NetworkConfigService configService,
                                    ApplicationId routerAppId,
                                    InterfaceService interfaceService) {
@@ -80,6 +92,8 @@ public class PeerConnectivityManager {
         this.configService = configService;
         this.routerAppId = routerAppId;
         this.interfaceService = interfaceService;
+
+        peerIntents = HashMultimap.create();
     }
 
     /**
@@ -100,8 +114,6 @@ public class PeerConnectivityManager {
      * BGP speakers and external BGP peers.
      */
     private void setUpConnectivity() {
-        List<PointToPointIntent> intents = new ArrayList<>();
-
         BgpConfig config = configService.getConfig(routerAppId, RoutingService.CONFIG_CLASS);
 
         if (config == null) {
@@ -113,11 +125,12 @@ public class PeerConnectivityManager {
             log.debug("Start to set up BGP paths for BGP speaker: {}",
                     bgpSpeaker);
 
-            intents.addAll(buildSpeakerIntents(bgpSpeaker));
-        }
+            buildSpeakerIntents(bgpSpeaker).forEach(i -> {
+                peerIntents.put(bgpSpeaker, i);
+                intentSynchronizer.submit(i);
+            });
 
-        // Submit all the intents.
-        intentSynchronizer.submitPeerIntents(intents);
+        }
     }
 
     private Collection<PointToPointIntent> buildSpeakerIntents(BgpConfig.BgpSpeakerConfig speaker) {
@@ -167,8 +180,8 @@ public class PeerConnectivityManager {
         List<PointToPointIntent> intents = new ArrayList<>();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
-
         TrafficSelector selector;
+        Key key;
 
         byte tcpProtocol;
         byte icmpProtocol;
@@ -188,8 +201,11 @@ public class PeerConnectivityManager {
                 null,
                 BGP_PORT);
 
+        key = buildKey(ipOne, ipTwo, SUFFIX_DST);
+
         intents.add(PointToPointIntent.builder()
                 .appId(appId)
+                .key(key)
                 .selector(selector)
                 .treatment(treatment)
                 .ingressPoint(portOne)
@@ -204,8 +220,11 @@ public class PeerConnectivityManager {
                 BGP_PORT,
                 null);
 
+        key = buildKey(ipOne, ipTwo, SUFFIX_SRC);
+
         intents.add(PointToPointIntent.builder()
                 .appId(appId)
+                .key(key)
                 .selector(selector)
                 .treatment(treatment)
                 .ingressPoint(portOne)
@@ -220,8 +239,11 @@ public class PeerConnectivityManager {
                 null,
                 BGP_PORT);
 
+        key = buildKey(ipTwo, ipOne, SUFFIX_DST);
+
         intents.add(PointToPointIntent.builder()
                 .appId(appId)
+                .key(key)
                 .selector(selector)
                 .treatment(treatment)
                 .ingressPoint(portTwo)
@@ -236,8 +258,11 @@ public class PeerConnectivityManager {
                 BGP_PORT,
                 null);
 
+        key = buildKey(ipTwo, ipOne, SUFFIX_SRC);
+
         intents.add(PointToPointIntent.builder()
                 .appId(appId)
+                .key(key)
                 .selector(selector)
                 .treatment(treatment)
                 .ingressPoint(portTwo)
@@ -252,8 +277,11 @@ public class PeerConnectivityManager {
                 null,
                 null);
 
+        key = buildKey(ipOne, ipTwo, SUFFIX_ICMP);
+
         intents.add(PointToPointIntent.builder()
                 .appId(appId)
+                .key(key)
                 .selector(selector)
                 .treatment(treatment)
                 .ingressPoint(portOne)
@@ -268,8 +296,11 @@ public class PeerConnectivityManager {
                 null,
                 null);
 
+        key = buildKey(ipTwo, ipOne, SUFFIX_ICMP);
+
         intents.add(PointToPointIntent.builder()
                 .appId(appId)
+                .key(key)
                 .selector(selector)
                 .treatment(treatment)
                 .ingressPoint(portTwo)
@@ -314,6 +345,29 @@ public class PeerConnectivityManager {
         }
 
         return builder.build();
+    }
+
+    /**
+     * Builds an intent Key for a point-to-point intent based off the source
+     * and destination IP address, as well as a suffix String to distinguish
+     * between different types of intents between the same source and
+     * destination.
+     *
+     * @param srcIp source IP address
+     * @param dstIp destination IP address
+     * @param suffix suffix string
+     * @return
+     */
+    private Key buildKey(IpAddress srcIp, IpAddress dstIp, String suffix) {
+        String keyString = new StringBuilder()
+                .append(srcIp.toString())
+                .append("-")
+                .append(dstIp.toString())
+                .append("-")
+                .append(suffix)
+                .toString();
+
+        return Key.of(keyString, appId);
     }
 
 }

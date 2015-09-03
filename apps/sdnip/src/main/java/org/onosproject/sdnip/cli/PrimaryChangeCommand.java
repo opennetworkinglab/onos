@@ -18,7 +18,7 @@ package org.onosproject.sdnip.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.sdnip.SdnIpService;
+import org.onosproject.routing.SdnIpService;
 
 /**
  * Command to change whether this SDNIP instance is primary or not.

@@ -35,9 +35,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
@@ -46,7 +44,6 @@ import org.onosproject.routing.BgpService;
 import org.onosproject.routing.FibEntry;
 import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
-import org.onosproject.routing.IntentRequestListener;
 import org.onosproject.routing.RouteEntry;
 import org.onosproject.routing.RouteListener;
 import org.onosproject.routing.RouteUpdate;
@@ -61,7 +58,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -100,7 +96,6 @@ public class Router implements RoutingService {
     private final Map<IpAddress, MacAddress> ip2Mac = new ConcurrentHashMap<>();
 
     private FibListener fibComponent;
-    private IntentRequestListener intentRequestListener;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -145,12 +140,6 @@ public class Router implements RoutingService {
     @Override
     public void addFibListener(FibListener fibListener) {
         this.fibComponent = checkNotNull(fibListener);
-
-    }
-
-    @Override
-    public void addIntentRequestListener(IntentRequestListener intentRequestListener) {
-        this.intentRequestListener = checkNotNull(intentRequestListener);
     }
 
     @Override
@@ -287,12 +276,10 @@ public class Router implements RoutingService {
     void addRibRoute(RouteEntry routeEntry) {
         if (routeEntry.isIp4()) {
             // IPv4
-            ribTable4.put(createBinaryString(routeEntry.prefix()),
-                    routeEntry);
+            ribTable4.put(createBinaryString(routeEntry.prefix()), routeEntry);
         } else {
             // IPv6
-            ribTable6.put(createBinaryString(routeEntry.prefix()),
-                    routeEntry);
+            ribTable6.put(createBinaryString(routeEntry.prefix()), routeEntry);
         }
     }
 
@@ -553,17 +540,6 @@ public class Router implements RoutingService {
     }
 
     @Override
-    public LocationType getLocationType(IpAddress ipAddress) {
-        if (routingConfigurationService.isIpAddressLocal(ipAddress)) {
-            return LocationType.LOCAL;
-        } else if (getLongestMatchableRouteEntry(ipAddress) != null) {
-            return LocationType.INTERNET;
-        } else {
-            return LocationType.NO_ROUTE;
-        }
-    }
-
-    @Override
     public RouteEntry getLongestMatchableRouteEntry(IpAddress ipAddress) {
         RouteEntry routeEntry = null;
         Iterable<RouteEntry> routeEntries;
@@ -587,142 +563,4 @@ public class Router implements RoutingService {
         return routeEntry;
     }
 
-    @Override
-    public ConnectPoint getEgressConnectPoint(IpAddress dstIpAddress) {
-        LocationType type = getLocationType(dstIpAddress);
-        if (type == LocationType.LOCAL) {
-            Set<Host> hosts = hostService.getHostsByIp(dstIpAddress);
-            if (!hosts.isEmpty()) {
-                return hosts.iterator().next().location();
-            } else {
-                hostService.startMonitoringIp(dstIpAddress);
-                return null;
-            }
-        } else if (type == LocationType.INTERNET) {
-            IpAddress nextHopIpAddress = null;
-            RouteEntry routeEntry = getLongestMatchableRouteEntry(dstIpAddress);
-            if (routeEntry != null) {
-                nextHopIpAddress = routeEntry.nextHop();
-                Interface it = interfaceService.getMatchingInterface(nextHopIpAddress);
-                if (it != null) {
-                    return it.connectPoint();
-                } else {
-                    return null;
-                }
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public void packetReactiveProcessor(IpAddress dstIpAddress,
-                                        IpAddress srcIpAddress,
-                                        ConnectPoint srcConnectPoint,
-                                        MacAddress srcMacAddress) {
-        checkNotNull(dstIpAddress);
-        checkNotNull(srcIpAddress);
-        checkNotNull(srcConnectPoint);
-        checkNotNull(srcMacAddress);
-
-        //
-        // Step1: Try to update the existing intent first if it exists.
-        //
-        IpPrefix ipPrefix = null;
-        if (routingConfigurationService.isIpAddressLocal(dstIpAddress)) {
-            if (dstIpAddress.isIp4()) {
-                ipPrefix = IpPrefix.valueOf(dstIpAddress,
-                        Ip4Address.BIT_LENGTH);
-            } else {
-                ipPrefix = IpPrefix.valueOf(dstIpAddress,
-                        Ip6Address.BIT_LENGTH);
-            }
-        } else {
-            // Get IP prefix from BGP route table
-            RouteEntry routeEntry = getLongestMatchableRouteEntry(dstIpAddress);
-            if (routeEntry != null) {
-                ipPrefix = routeEntry.prefix();
-            }
-        }
-        if (ipPrefix != null
-                && intentRequestListener.mp2pIntentExists(ipPrefix)) {
-            intentRequestListener.updateExistingMp2pIntent(ipPrefix,
-                    srcConnectPoint);
-            return;
-        }
-
-        //
-        // Step2: There is no existing intent for the destination IP address.
-        // Check whether it is necessary to create a new one. If necessary then
-        // create a new one.
-        //
-        TrafficType trafficType =
-                trafficTypeClassifier(srcConnectPoint, dstIpAddress);
-
-        switch (trafficType) {
-        case HOST_TO_INTERNET:
-            // If the destination IP address is outside the local SDN network.
-            // The Step 1 has already handled it. We do not need to do anything here.
-            break;
-        case INTERNET_TO_HOST:
-            intentRequestListener.setUpConnectivityInternetToHost(dstIpAddress);
-            break;
-        case HOST_TO_HOST:
-            intentRequestListener.setUpConnectivityHostToHost(dstIpAddress,
-                    srcIpAddress, srcMacAddress, srcConnectPoint);
-            break;
-        case INTERNET_TO_INTERNET:
-            log.trace("This is transit traffic, "
-                    + "the intent should be preinstalled already");
-            break;
-        case DROP:
-            // TODO here should setUpDropPaccketIntent(...);
-            // We need a new type of intent here.
-            break;
-        case UNKNOWN:
-            log.trace("This is unknown traffic, so we do nothing");
-            break;
-        default:
-            break;
-        }
-    }
-
-    /**
-     * Classifies the traffic and return the traffic type.
-     *
-     * @param srcConnectPoint the connect point where the packet comes from
-     * @param dstIp the destination IP address in packet
-     * @return the traffic type which this packet belongs to
-     */
-    private TrafficType trafficTypeClassifier(ConnectPoint srcConnectPoint,
-                                              IpAddress dstIp) {
-        LocationType dstIpLocationType = getLocationType(dstIp);
-        Optional<Interface> srcInterface =
-                interfaceService.getInterfacesByPort(srcConnectPoint).stream().findFirst();
-
-        switch (dstIpLocationType) {
-        case INTERNET:
-            if (!srcInterface.isPresent()) {
-                return TrafficType.HOST_TO_INTERNET;
-            } else {
-                return TrafficType.INTERNET_TO_INTERNET;
-            }
-        case LOCAL:
-            if (!srcInterface.isPresent()) {
-                return TrafficType.HOST_TO_HOST;
-            } else {
-                // TODO Currently we only consider local public prefixes.
-                // In the future, we will consider the local private prefixes.
-                // If dstIpLocationType is a local private, we should return
-                // TrafficType.DROP.
-                return TrafficType.INTERNET_TO_HOST;
-            }
-        case NO_ROUTE:
-            return TrafficType.DROP;
-        default:
-            return TrafficType.UNKNOWN;
-        }
-    }
 }

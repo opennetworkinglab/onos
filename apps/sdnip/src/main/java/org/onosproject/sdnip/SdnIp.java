@@ -32,7 +32,9 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.routing.RoutingService;
+import org.onosproject.routing.SdnIpService;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 
@@ -79,6 +81,7 @@ public class SdnIp implements SdnIpService {
 
     private IntentSynchronizer intentSynchronizer;
     private PeerConnectivityManager peerConnectivity;
+    private SdnIpFib fib;
 
     private LeadershipEventListener leadershipEventListener =
         new InnerLeadershipEventListener();
@@ -93,10 +96,7 @@ public class SdnIp implements SdnIpService {
 
         localControllerNode = clusterService.getLocalNode();
 
-        intentSynchronizer = new IntentSynchronizer(appId, intentService,
-                                                    hostService,
-                                                    config,
-                                                    interfaceService);
+        intentSynchronizer = new IntentSynchronizer(appId, intentService);
         intentSynchronizer.start();
 
         peerConnectivity = new PeerConnectivityManager(appId,
@@ -106,8 +106,9 @@ public class SdnIp implements SdnIpService {
                                                        interfaceService);
         peerConnectivity.start();
 
-        routingService.addFibListener(intentSynchronizer);
-        routingService.addIntentRequestListener(intentSynchronizer);
+        fib = new SdnIpFib(appId, interfaceService, intentSynchronizer);
+
+        routingService.addFibListener(fib);
         routingService.start();
 
         leadershipService.addListener(leadershipEventListener);
@@ -129,6 +130,11 @@ public class SdnIp implements SdnIpService {
     @Override
     public void modifyPrimary(boolean isPrimary) {
         intentSynchronizer.leaderChanged(isPrimary);
+    }
+
+    @Override
+    public IntentSynchronizationService getIntentSynchronizationService() {
+        return intentSynchronizer;
     }
 
     /**

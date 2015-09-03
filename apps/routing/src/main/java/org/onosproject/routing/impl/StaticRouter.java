@@ -18,10 +18,7 @@ package org.onosproject.routing.impl;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.routing.FibListener;
-import org.onosproject.routing.IntentRequestListener;
 import org.onosproject.routing.RouteEntry;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.StaticRoutingService;
@@ -49,11 +46,6 @@ public class StaticRouter implements RoutingService, StaticRoutingService {
     }
 
     @Override
-    public void addIntentRequestListener(IntentRequestListener intentRequestListener) {
-
-    }
-
-    @Override
     public void stop() {
 
     }
@@ -69,24 +61,8 @@ public class StaticRouter implements RoutingService, StaticRoutingService {
     }
 
     @Override
-    public LocationType getLocationType(IpAddress ipAddress) {
-        return null;
-    }
-
-    @Override
     public RouteEntry getLongestMatchableRouteEntry(IpAddress ipAddress) {
         return null;
-    }
-
-    @Override
-    public ConnectPoint getEgressConnectPoint(IpAddress dstIpAddress) {
-        return null;
-    }
-
-    @Override
-    public void packetReactiveProcessor(IpAddress dstIpAddress, IpAddress srcIpAddress,
-                                        ConnectPoint srcConnectPoint, MacAddress srcMacAddress) {
-
     }
 
     @Override

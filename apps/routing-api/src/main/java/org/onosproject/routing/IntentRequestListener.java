@@ -47,6 +47,16 @@ public interface IntentRequestListener {
                                      ConnectPoint srcConnectPoint);
 
     /**
+     * Sets up connectivity for packet from a local host to the Internet.
+     *
+     * @param hostIp IP address of the local host
+     * @param prefix external IP prefix that the host is talking to
+     * @param nextHopIpAddress IP address of the next hop router for the prefix
+     */
+    void setUpConnectivityHostToInternet(IpAddress hostIp, IpPrefix prefix,
+                                                IpAddress nextHopIpAddress);
+
+    /**
      * Adds one new ingress connect point into ingress points of an existing
      * intent and resubmits the new intent.
      * <p>

@@ -17,7 +17,6 @@ package org.onosproject.sdnip;
 
 import org.easymock.IArgumentMatcher;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.sdnip.IntentSynchronizer.IntentKey;
 
 import static org.easymock.EasyMock.reportMatcher;
 
@@ -53,8 +52,6 @@ public final class TestIntentServiceHelper {
      * the solution is to use an EasyMock matcher that verifies that all the
      * value properties of the provided intent match the expected values, but
      * ignores the intent ID when testing equality.
-     *
-     * FIXME this currently does not take key into account
      */
     private static final class IdAgnosticIntentMatcher implements
                 IArgumentMatcher {
@@ -86,9 +83,7 @@ public final class TestIntentServiceHelper {
             Intent providedIntent = (Intent) object;
             providedString = providedIntent.toString();
 
-            IntentKey thisIntentKey = new IntentKey(intent);
-            IntentKey providedIntentKey = new IntentKey(providedIntent);
-            return thisIntentKey.equals(providedIntentKey);
+            return IntentUtils.equals(intent, providedIntent);
         }
     }
 

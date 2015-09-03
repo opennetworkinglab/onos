@@ -521,7 +521,7 @@ public class EventuallyConsistentMapImpl<K, V>
             return;
         }
         peers.forEach(node ->
-            senderPending.computeIfAbsent(node, unusedKey -> new EventAccumulator(node)).add(event)
+                        senderPending.computeIfAbsent(node, unusedKey -> new EventAccumulator(node)).add(event)
         );
     }
 
@@ -574,8 +574,10 @@ public class EventuallyConsistentMapImpl<K, V>
             return;
         }
         try {
-            log.debug("Received anti-entropy advertisement from {} for {} with {} entries in it",
-                    mapName, ad.sender(), ad.digest().size());
+            if (log.isTraceEnabled()) {
+                log.trace("Received anti-entropy advertisement from {} for {} with {} entries in it",
+                        mapName, ad.sender(), ad.digest().size());
+            }
             antiEntropyCheckLocalItems(ad).forEach(this::notifyListeners);
 
             if (!lightweightAntiEntropy) {

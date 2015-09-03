@@ -19,7 +19,6 @@ import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
@@ -28,13 +27,14 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
+import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -42,8 +42,9 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.routing.config.BgpConfig;
 import org.onosproject.routing.config.BgpPeer;
 import org.onosproject.routing.config.BgpSpeaker;
@@ -71,26 +72,15 @@ import static org.onosproject.sdnip.TestIntentServiceHelper.eqExceptId;
  */
 public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
-    private static final ApplicationId APPID = new ApplicationId() {
-        @Override
-        public short id() {
-            return 0;
-        }
-
-        @Override
-        public String name() {
-            return "foo";
-        }
-    };
+    private static final ApplicationId APPID = TestApplicationId.create("foo");
 
     private static final ApplicationId CONFIG_APP_ID = APPID;
 
     private PeerConnectivityManager peerConnectivityManager;
-    private IntentSynchronizer intentSynchronizer;
+    private IntentSynchronizationService intentSynchronizer;
     private RoutingConfigurationService routingConfig;
     private InterfaceService interfaceService;
     private NetworkConfigService networkConfigService;
-    private IntentService intentService;
 
     private Set<BgpConfig.BgpSpeakerConfig> bgpSpeakers;
     private Map<String, Interface> interfaces;
@@ -98,8 +88,6 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
     private BgpConfig bgpConfig;
 
-    private Map<String, Interface> configuredInterfaces;
-    private Map<IpAddress, BgpPeer> configuredPeers;
     private List<PointToPointIntent> intentList;
 
     private final String dpid1 = "00:00:00:00:00:00:00:01";
@@ -136,7 +124,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         // These will set expectations on routingConfig and interfaceService
         bgpSpeakers = setUpBgpSpeakers();
         interfaces = Collections.unmodifiableMap(setUpInterfaces());
-        peers = Collections.unmodifiableMap(setUpPeers());
+        peers = setUpPeers();
 
         initPeerConnectivity();
         intentList = setUpIntentList();
@@ -169,11 +157,11 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      * Sets up logical interfaces, which emulate the configured interfaces
      * in SDN-IP application.
      *
-     * @return configured interfaces as a MAP from Interface name to Interface
+     * @return configured interfaces as a map from interface name to Interface
      */
     private Map<String, Interface> setUpInterfaces() {
 
-        configuredInterfaces = new HashMap<>();
+        Map<String, Interface> configuredInterfaces = new HashMap<>();
 
         String interfaceSw1Eth1 = "s1-eth1";
         InterfaceIpAddress ia1 =
@@ -242,7 +230,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      */
     private Map<IpAddress, BgpPeer> setUpPeers() {
 
-        configuredPeers = new HashMap<>();
+        Map<IpAddress, BgpPeer> configuredPeers = new HashMap<>();
 
         String peerSw1Eth1 = "192.168.10.1";
         configuredPeers.put(IpAddress.valueOf(peerSw1Eth1),
@@ -266,14 +254,12 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      * @return point to point intent list
      */
     private List<PointToPointIntent> setUpIntentList() {
-
         intentList = new ArrayList<>();
 
         setUpBgpIntents();
         setUpIcmpIntents();
 
         return intentList;
-
     }
 
     /**
@@ -306,8 +292,12 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
             builder.matchTcpDst(TpPort.tpPort(dstTcpPort));
         }
 
+        Key key = Key.of(srcPrefix.split("/")[0] + "-" + dstPrefix.split("/")[0]
+                + "-" + ((srcTcpPort == null) ? "dst" : "src"), APPID);
+
         PointToPointIntent intent = PointToPointIntent.builder()
                 .appId(APPID)
+                .key(key)
                 .selector(builder.build())
                 .treatment(noTreatment)
                 .ingressPoint(srcConnectPoint)
@@ -392,8 +382,12 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
                 .matchIPDst(IpPrefix.valueOf(dstPrefix))
                 .build();
 
+        Key key = Key.of(srcPrefix.split("/")[0] + "-" + dstPrefix.split("/")[0]
+                + "-" + "icmp", APPID);
+
         PointToPointIntent intent = PointToPointIntent.builder()
                 .appId(APPID)
+                .key(key)
                 .selector(selector)
                 .treatment(noTreatment)
                 .ingressPoint(srcConnectPoint)
@@ -434,19 +428,14 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
         expect(bgpConfig.bgpSpeakers()).andReturn(bgpSpeakers).anyTimes();
         replay(bgpConfig);
-        expect(networkConfigService.getConfig(APPID, BgpConfig.class)).andReturn(bgpConfig).anyTimes();
+        expect(networkConfigService.getConfig(APPID, BgpConfig.class))
+                .andReturn(bgpConfig).anyTimes();
         replay(networkConfigService);
         replay(routingConfig);
         replay(interfaceService);
 
-        intentService = createMock(IntentService.class);
-        replay(intentService);
-
-        intentSynchronizer = new IntentSynchronizer(APPID, intentService,
-                                                    null, routingConfig,
-                                                    interfaceService);
-        intentSynchronizer.leaderChanged(true);
-        TestUtils.setField(intentSynchronizer, "isActivatedLeader", true);
+        intentSynchronizer = createMock(IntentSynchronizationService.class);
+        replay(intentSynchronizer);
 
         peerConnectivityManager =
             new PeerConnectivityManager(APPID, intentSynchronizer,
@@ -464,20 +453,18 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
      */
     @Test
     public void testConnectionSetup() {
-
-        reset(intentService);
+        reset(intentSynchronizer);
 
         // Setup the expected intents
         for (Intent intent : intentList) {
-            intentService.submit(eqExceptId(intent));
+            intentSynchronizer.submit(eqExceptId(intent));
         }
-        replay(intentService);
+        replay(intentSynchronizer);
 
         // Running the interface to be tested.
         peerConnectivityManager.start();
 
-        verify(intentService);
-
+        verify(intentSynchronizer);
     }
 
     /**
@@ -488,7 +475,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         reset(interfaceService);
 
         expect(interfaceService.getInterfaces()).andReturn(
-                Sets.<Interface>newHashSet()).anyTimes();
+                Sets.newHashSet()).anyTimes();
         expect(interfaceService.getInterfacesByPort(s2Eth1))
                 .andReturn(Collections.emptySet()).anyTimes();
         expect(interfaceService.getInterfacesByPort(s1Eth1))
@@ -508,10 +495,10 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
 
         replay(interfaceService);
 
-        reset(intentService);
-        replay(intentService);
+        reset(intentSynchronizer);
+        replay(intentSynchronizer);
         peerConnectivityManager.start();
-        verify(intentService);
+        verify(intentSynchronizer);
     }
 
     /**
@@ -527,10 +514,10 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         expect(routingConfig.getBgpPeers()).andReturn(peers).anyTimes();
         replay(routingConfig);
 
-        reset(intentService);
-        replay(intentService);
+        reset(intentSynchronizer);
+        replay(intentSynchronizer);
         peerConnectivityManager.start();
-        verify(intentService);
+        verify(intentSynchronizer);
     }
 
     /**
@@ -540,7 +527,7 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
     @Test
     public void testNoPeerInterface() {
         String peerSw100Eth1 = "192.168.200.1";
-        configuredPeers.put(IpAddress.valueOf(peerSw100Eth1),
+        peers.put(IpAddress.valueOf(peerSw100Eth1),
                 new BgpPeer("00:00:00:00:00:00:01:00", 1, peerSw100Eth1));
         testConnectionSetup();
     }
