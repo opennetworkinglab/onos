@@ -256,7 +256,14 @@ public class StatefulPceCapabilityTlv implements PcepValueType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("type", TYPE).add("Length", LENGTH).add("DFlag", bDFlag)
-                .add("TFlag", bTFlag).add("IFlag", bIFlag).add("SFlag", bSFlag).add("UFlag", bUFlag).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("type", TYPE)
+                .add("Length", LENGTH)
+                .add("DFlag", bDFlag)
+                .add("TFlag", bTFlag)
+                .add("IFlag", bIFlag)
+                .add("SFlag", bSFlag)
+                .add("UFlag", bUFlag)
+                .toString();
     }
 }

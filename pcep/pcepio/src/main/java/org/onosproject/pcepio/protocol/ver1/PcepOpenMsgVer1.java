@@ -197,6 +197,8 @@ public class PcepOpenMsgVer1 implements PcepOpenMsg {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("OpenObject", pcepOpenObj).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("OpenObject", pcepOpenObj)
+                .toString();
     }
 }

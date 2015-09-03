@@ -95,6 +95,8 @@ public class PcepNaiIpv6NodeId implements PcepNai {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("IPV6NodeID", ipv6NodeId).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("IPV6NodeID", ipv6NodeId)
+                .toString();
     }
 }

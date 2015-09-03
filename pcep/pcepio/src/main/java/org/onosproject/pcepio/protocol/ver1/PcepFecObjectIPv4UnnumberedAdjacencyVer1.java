@@ -326,7 +326,8 @@ public class PcepFecObjectIPv4UnnumberedAdjacencyVer1 implements PcepFecObjectIP
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("LocalNodeID: ", localNodeID)
+        return MoreObjects.toStringHelper(getClass())
+                .add("LocalNodeID: ", localNodeID)
                 .add("LocalInterfaceID: ", localInterfaceID).add("RemoteNodeID: ", remoteNodeID)
                 .add("RemoteInterfaceID: ", remoteInterfaceID).toString();
     }

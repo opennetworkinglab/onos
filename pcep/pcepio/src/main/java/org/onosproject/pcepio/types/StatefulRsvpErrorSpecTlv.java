@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
 
 /**
  * Provides StatefulRsvpErrorSpecTlv.
@@ -207,13 +206,11 @@ public class StatefulRsvpErrorSpecTlv implements PcepValueType {
 
     @Override
     public String toString() {
-        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
-
-        if (!isErrSpceObjSet) {
-            toStrHelper.add("Type", TYPE).add("Length", hLength);
-        } else {
-            toStrHelper.add("Type", TYPE).add("Length", hLength).add("RSVPErrorSpecObject", rsvpErrSpecObj);
-        }
-        return toStrHelper.toString();
+        return MoreObjects.toStringHelper(getClass())
+                .omitNullValues()
+                .add("Type", TYPE)
+                .add("Length", hLength)
+                .add("RSVPErrorSpecObject", rsvpErrSpecObj)
+                .toString();
     }
 }

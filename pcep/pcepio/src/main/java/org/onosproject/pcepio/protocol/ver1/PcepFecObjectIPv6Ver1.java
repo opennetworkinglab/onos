@@ -212,7 +212,9 @@ public class PcepFecObjectIPv6Ver1 implements PcepFecObjectIPv6 {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("fecObjHeader", fecObjHeader).add("NodeID: ", nodeID)
+        return MoreObjects.toStringHelper(getClass())
+                .add("fecObjHeader", fecObjHeader)
+                .add("NodeID: ", nodeID)
                 .toString();
     }
 }

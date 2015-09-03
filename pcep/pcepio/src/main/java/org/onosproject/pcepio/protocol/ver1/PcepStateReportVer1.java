@@ -411,17 +411,11 @@ public class PcepStateReportVer1 implements PcepStateReport {
 
     @Override
     public String toString() {
-        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
-
-        if (this.srpObject != null) {
-            toStrHelper.add("SrpObject", srpObject);
-        }
-        if (this.lspObject != null) {
-            toStrHelper.add("LspObject", lspObject);
-        }
-        if (this.msgPath != null) {
-            toStrHelper.add("MsgPath", msgPath);
-        }
-        return toStrHelper.toString();
+        return MoreObjects.toStringHelper(getClass())
+                .omitNullValues()
+                .add("SrpObject", srpObject)
+                .add("LspObject", lspObject)
+                .add("MsgPath", msgPath)
+                .toString();
     }
 }

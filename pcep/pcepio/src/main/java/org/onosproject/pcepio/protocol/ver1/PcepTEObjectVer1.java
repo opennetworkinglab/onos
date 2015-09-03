@@ -494,8 +494,13 @@ public class PcepTEObjectVer1 implements PcepTEObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("ObjectHeader", teObjHeader).add("ProtocolId", yProtocolId)
-                .add("RFlag", (bRFlag) ? 1 : 0).add("SFlag", (bSFlag) ? 1 : 0).add("TeId", iTEId)
-                .add("OptionalTlv", llOptionalTlv).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("ObjectHeader", teObjHeader)
+                .add("ProtocolId", yProtocolId)
+                .add("RFlag", (bRFlag) ? 1 : 0)
+                .add("SFlag", (bSFlag) ? 1 : 0)
+                .add("TeId", iTEId)
+                .add("OptionalTlv", llOptionalTlv)
+                .toString();
     }
 }

@@ -480,8 +480,12 @@ public class PcepOpenObjectVer1 implements PcepOpenObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("ObjectHeader", openObjHeader)
-                .add("Keepalive", keepAliveTime).add("DeadTimer", deadTime).add("SessionId", sessionId)
-                .add("OptionalTlv", llOptionalTlv).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("ObjectHeader", openObjHeader)
+                .add("Keepalive", keepAliveTime)
+                .add("DeadTimer", deadTime)
+                .add("SessionId", sessionId)
+                .add("OptionalTlv", llOptionalTlv)
+                .toString();
     }
 }

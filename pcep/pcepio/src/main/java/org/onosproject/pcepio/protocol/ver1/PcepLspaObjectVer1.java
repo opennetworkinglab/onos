@@ -516,8 +516,14 @@ public class PcepLspaObjectVer1 implements PcepLspaObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("LFlag", bLFlag).add("SetupPriority", cSetupPriority)
-                .add("HoldPriority", cHoldPriority).add("IncludeAll", iIncludeAll).add("IncludeAny", iIncludeAny)
-                .add("ExcludeAny", iExcludeAny).add("OptionalTlvList", llOptionalTlv).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("LFlag", bLFlag)
+                .add("SetupPriority", cSetupPriority)
+                .add("HoldPriority", cHoldPriority)
+                .add("IncludeAll", iIncludeAll)
+                .add("IncludeAny", iIncludeAny)
+                .add("ExcludeAny", iExcludeAny)
+                .add("OptionalTlvList", llOptionalTlv)
+                .toString();
     }
 }

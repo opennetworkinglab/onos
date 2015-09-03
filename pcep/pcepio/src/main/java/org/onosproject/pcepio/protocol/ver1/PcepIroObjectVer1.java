@@ -292,7 +292,8 @@ public class PcepIroObjectVer1 implements PcepIroObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("IroObjectHeader", iroObjHeader)
+        return MoreObjects.toStringHelper(getClass())
+                .add("IroObjectHeader", iroObjHeader)
                 .add("SubObjects", llSubObjects).toString();
     }
 }

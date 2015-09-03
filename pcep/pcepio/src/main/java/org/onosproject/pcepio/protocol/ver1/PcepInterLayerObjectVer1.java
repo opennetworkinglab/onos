@@ -257,6 +257,8 @@ public class PcepInterLayerObjectVer1 implements PcepInterLayerObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("IFlag", bIFlag).add("NFlag", bNFlag).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("IFlag", bIFlag)
+                .add("NFlag", bNFlag).toString();
     }
 }

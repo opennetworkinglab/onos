@@ -237,7 +237,10 @@ public class LocalTENodeDescriptorsTlv implements PcepValueType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("Type", TYPE).add("Length", hLength)
-                .add("NodeDescriptorSubTLVs", llNodeDescriptorSubTLVs).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("Type", TYPE)
+                .add("Length", hLength)
+                .add("NodeDescriptorSubTLVs", llNodeDescriptorSubTLVs)
+                .toString();
     }
 }

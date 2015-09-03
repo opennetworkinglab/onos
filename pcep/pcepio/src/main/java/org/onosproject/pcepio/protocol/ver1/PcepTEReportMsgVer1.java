@@ -218,6 +218,8 @@ class PcepTEReportMsgVer1 implements PcepTEReportMsg {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("TeReportList", teReportList).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("TeReportList", teReportList)
+                .toString();
     }
 }

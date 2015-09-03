@@ -160,7 +160,12 @@ public class LabelSubObject implements PcepValueType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("type", TYPE).add("Length", LENGTH).add("flags", flags)
-                .add("C-type", cType).add("contents", contents).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("type", TYPE)
+                .add("Length", LENGTH)
+                .add("flags", flags)
+                .add("C-type", cType)
+                .add("contents", contents)
+                .toString();
     }
 }

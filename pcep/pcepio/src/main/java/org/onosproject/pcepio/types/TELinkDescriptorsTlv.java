@@ -242,7 +242,10 @@ public class TELinkDescriptorsTlv implements PcepValueType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("Type", TYPE).add("Length", hLength)
-                .add("LinkDescriptorsSubTLVs", llLinkDescriptorsSubTLVs).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("Type", TYPE)
+                .add("Length", hLength)
+                .add("LinkDescriptorsSubTLVs", llLinkDescriptorsSubTLVs)
+                .toString();
     }
 }

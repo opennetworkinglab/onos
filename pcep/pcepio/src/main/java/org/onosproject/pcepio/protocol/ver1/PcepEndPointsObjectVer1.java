@@ -248,7 +248,8 @@ public class PcepEndPointsObjectVer1 implements PcepEndPointsObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("sourceIpAddress", sourceIpAddress)
+        return MoreObjects.toStringHelper(getClass())
+                .add("sourceIpAddress", sourceIpAddress)
                 .add("destIpAddress", destIpAddress).toString();
     }
 

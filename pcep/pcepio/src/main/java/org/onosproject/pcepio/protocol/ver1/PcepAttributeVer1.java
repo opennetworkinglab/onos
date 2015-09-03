@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
 
 /**
  * Provides PCEP Attribute List.
@@ -421,20 +420,12 @@ public class PcepAttributeVer1 implements PcepAttribute {
 
     @Override
     public String toString() {
-        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
-
-        if (lspaObject != null) {
-            toStrHelper.add("lspaObject", lspaObject);
-        }
-        if (bandwidthObject != null) {
-            toStrHelper.add("bandwidthObject", bandwidthObject);
-        }
-        if (llMetricList instanceof PcepMetricObject) {
-            toStrHelper.add("MetricObjectList", llMetricList);
-        }
-        if (iroObject != null) {
-            toStrHelper.add("IroObject", iroObject);
-        }
-        return toStrHelper.toString();
+        return MoreObjects.toStringHelper(getClass())
+                .omitNullValues()
+                .add("lspaObject", lspaObject)
+                .add("bandwidthObject", bandwidthObject)
+                .add("MetricObjectList", llMetricList)
+                .add("IroObject", iroObject)
+                .toString();
     }
 }

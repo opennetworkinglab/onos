@@ -367,7 +367,11 @@ public class PcepLabelRangeObjectVer1 implements PcepLabelRangeObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("LabelType", labelType).add("rangeSize", rangeSize)
-                .add("labelBase", labelBase).add("optionalTlvList", llOptionalTlv).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("LabelType", labelType)
+                .add("rangeSize", rangeSize)
+                .add("labelBase", labelBase)
+                .add("optionalTlvList", llOptionalTlv)
+                .toString();
     }
 }

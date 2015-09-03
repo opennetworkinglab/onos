@@ -191,6 +191,8 @@ class PcepLabelRangeResvMsgVer1 implements PcepLabelRangeResvMsg {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("labelRange", labelRange).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("labelRange", labelRange)
+                .toString();
     }
 }

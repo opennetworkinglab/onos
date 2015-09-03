@@ -432,8 +432,14 @@ public class PcepRPObjectVer1 implements PcepRPObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("ObjectHeader", rpObjHeader).add("OFlag", (bOFlag) ? 1 : 0)
-                .add("BFlag", (bBFlag) ? 1 : 0).add("RFlag", (bRFlag) ? 1 : 0).add("PriFlag", yPriFlag)
-                .add("RequestIdNumber", iRequestIdNum).add("OptionalTlv", llOptionalTlv).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("ObjectHeader", rpObjHeader)
+                .add("OFlag", (bOFlag) ? 1 : 0)
+                .add("BFlag", (bBFlag) ? 1 : 0)
+                .add("RFlag", (bRFlag) ? 1 : 0)
+                .add("PriFlag", yPriFlag)
+                .add("RequestIdNumber", iRequestIdNum)
+                .add("OptionalTlv", llOptionalTlv)
+                .toString();
     }
 }

@@ -344,7 +344,8 @@ class PcepCloseMsgVer1 implements PcepCloseMsg {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("closeObjectHeader", closeObjHeader).add("Reason", yReason)
+        return MoreObjects.toStringHelper(getClass())
+                .add("closeObjectHeader", closeObjHeader).add("Reason", yReason)
                 .add("OptionalTlvlist", llOptionalTlv).toString();
     }
 }

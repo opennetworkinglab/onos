@@ -319,7 +319,8 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("ObjectHeader", errorObjHeader).add("ErrorType", yErrorType)
+        return MoreObjects.toStringHelper(getClass())
+                .add("ObjectHeader", errorObjHeader).add("ErrorType", yErrorType)
                 .add("ErrorValue", yErrorValue).add("OptionalTlv", llOptionalTlv).toString();
     }
 }

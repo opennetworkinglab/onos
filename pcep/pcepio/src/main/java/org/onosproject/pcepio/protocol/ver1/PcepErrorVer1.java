@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
 
 /**
  * Provides PcepError list which contains RP or TE objects.
@@ -390,19 +389,11 @@ public class PcepErrorVer1 implements PcepError {
 
     @Override
     public String toString() {
-        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
-
-        //RP Object list is optional
-        if (llRPObjList != null) {
-            toStrHelper.add("RpObjectList", llRPObjList);
-        }
-
-        //TE Object list is optional
-        if (llTEObjList != null) {
-            toStrHelper.add("TeObjectList", llTEObjList);
-        }
-
-        //Error Object List is mandatory
-        return toStrHelper.add("ErrorObjectList", llErrObjList).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .omitNullValues()
+                .add("RpObjectList", llRPObjList)
+                .add("TeObjectList", llTEObjList)
+                .add("ErrorObjectList", llErrObjList)
+                .toString();
     }
 }

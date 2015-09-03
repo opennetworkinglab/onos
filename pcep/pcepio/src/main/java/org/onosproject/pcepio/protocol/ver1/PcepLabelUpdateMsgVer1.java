@@ -232,6 +232,8 @@ class PcepLabelUpdateMsgVer1 implements PcepLabelUpdateMsg {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("PcLabelUpdateList", llPcLabelUpdateList).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("PcLabelUpdateList", llPcLabelUpdateList)
+                .toString();
     }
 }

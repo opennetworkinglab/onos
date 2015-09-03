@@ -383,7 +383,10 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("RFlag", bRFlag).add("SRPID", srpId)
-                .add("OptionalTlvList", llOptionalTlv).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("RFlag", bRFlag)
+                .add("SRPID", srpId)
+                .add("OptionalTlvList", llOptionalTlv)
+                .toString();
     }
 }

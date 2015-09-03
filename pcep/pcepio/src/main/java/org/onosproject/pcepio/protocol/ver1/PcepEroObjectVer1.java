@@ -400,7 +400,8 @@ public class PcepEroObjectVer1 implements PcepEroObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("EroObjHeader", eroObjHeader).add("SubObjects", llSubObjects)
+        return MoreObjects.toStringHelper(getClass())
+                .add("EroObjHeader", eroObjHeader).add("SubObjects", llSubObjects)
                 .toString();
     }
 }

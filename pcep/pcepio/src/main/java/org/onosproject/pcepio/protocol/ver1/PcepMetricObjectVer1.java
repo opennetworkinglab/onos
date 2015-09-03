@@ -366,7 +366,11 @@ public class PcepMetricObjectVer1 implements PcepMetricObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("MetricValue", iMetricVal).add("BFlag", bBFlag)
-                .add("CFlag", bCFlag).add("BType", bType).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("MetricValue", iMetricVal)
+                .add("BFlag", bBFlag)
+                .add("CFlag", bCFlag)
+                .add("BType", bType)
+                .toString();
     }
 }

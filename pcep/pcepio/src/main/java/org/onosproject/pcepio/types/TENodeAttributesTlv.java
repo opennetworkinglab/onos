@@ -241,7 +241,10 @@ public class TENodeAttributesTlv implements PcepValueType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("Type", TYPE).add("Length", hLength)
-                .add("NodeAttributesSubTLVs", llNodeAttributesSubTLVs).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("Type", TYPE)
+                .add("Length", hLength)
+                .add("NodeAttributesSubTLVs", llNodeAttributesSubTLVs)
+                .toString();
     }
 }

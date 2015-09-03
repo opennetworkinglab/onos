@@ -209,12 +209,12 @@ public class PcepRsvpUserErrorSpec implements PcepRsvpErrorSpec {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("enterpriseNumber:", enterpriseNum)
-                .add("subOrganization:", subOrg)
-                .add("errDescLength:", errDescLen)
-                .add("userErrorValue:", userErrorValue)
-                .add("errDesc:", errDesc)
-                .add("RsvpUserSpecSubObject:", llRsvpUserSpecSubObj)
+                .add("enterpriseNumber", enterpriseNum)
+                .add("subOrganization", subOrg)
+                .add("errDescLength", errDescLen)
+                .add("userErrorValue", userErrorValue)
+                .add("errDesc", errDesc)
+                .add("RsvpUserSpecSubObject", llRsvpUserSpecSubObj)
                 .toString();
     }
 }

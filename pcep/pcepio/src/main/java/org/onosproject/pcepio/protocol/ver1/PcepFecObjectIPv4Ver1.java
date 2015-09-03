@@ -209,7 +209,9 @@ public class PcepFecObjectIPv4Ver1 implements PcepFecObjectIPv4 {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("fecObjHeader", fecObjHeader).add("nodeID: ", nodeID)
+        return MoreObjects.toStringHelper(getClass())
+                .add("fecObjHeader", fecObjHeader)
+                .add("nodeID: ", nodeID)
                 .toString();
     }
 }

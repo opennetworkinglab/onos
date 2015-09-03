@@ -160,7 +160,9 @@ public class PcepLabelRangeVer1 implements PcepLabelRange {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("srpObject", srpObject)
-                .add("LabelRangeList", llLabelRangeList).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("srpObject", srpObject)
+                .add("LabelRangeList", llLabelRangeList)
+                .toString();
     }
 }

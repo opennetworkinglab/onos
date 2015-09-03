@@ -338,6 +338,8 @@ public class PcepRroObjectVer1 implements PcepRroObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("SubObjects", llSubObjects).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("SubObjects", llSubObjects)
+                .toString();
     }
 }

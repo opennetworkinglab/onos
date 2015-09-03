@@ -293,6 +293,8 @@ class PcepUpdateMsgVer1 implements PcepUpdateMsg {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("UpdateRequestList", llUpdateRequestList).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("UpdateRequestList", llUpdateRequestList)
+                .toString();
     }
 }

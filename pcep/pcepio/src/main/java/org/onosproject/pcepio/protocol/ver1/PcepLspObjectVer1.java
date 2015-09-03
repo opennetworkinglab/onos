@@ -562,8 +562,14 @@ public class PcepLspObjectVer1 implements PcepLspObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("PlspIDValue", iPlspId).add("OFlag", yOFlag)
-                .add("AFlag", bAFlag).add("RFlag", bRFlag).add("SFlag", bSFlag).add("DFlag", bDFlag)
-                .add("OptionalTlvList", llOptionalTlv).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("PlspIDValue", iPlspId)
+                .add("OFlag", yOFlag)
+                .add("AFlag", bAFlag)
+                .add("RFlag", bRFlag)
+                .add("SFlag", bSFlag)
+                .add("DFlag", bDFlag)
+                .add("OptionalTlvList", llOptionalTlv)
+                .toString();
     }
 }

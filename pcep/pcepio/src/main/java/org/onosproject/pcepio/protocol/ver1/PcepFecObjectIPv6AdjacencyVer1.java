@@ -241,7 +241,9 @@ public class PcepFecObjectIPv6AdjacencyVer1 implements PcepFecObjectIPv6Adjacenc
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("localIPv6Address", localIPv6Address)
-                .add("remoteIPv6Address: ", remoteIPv6Address).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("localIPv6Address", localIPv6Address)
+                .add("remoteIPv6Address: ", remoteIPv6Address)
+                .toString();
     }
 }

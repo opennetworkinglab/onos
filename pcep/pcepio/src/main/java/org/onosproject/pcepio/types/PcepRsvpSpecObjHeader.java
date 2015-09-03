@@ -147,7 +147,10 @@ public class PcepRsvpSpecObjHeader {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("ObjectClassNum: ", objClassNum)
-                .add("ObjectCType: ", objClassType).add("ObjectLength: ", objLen).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("ObjectClassNum: ", objClassNum)
+                .add("ObjectCType: ", objClassType)
+                .add("ObjectLength: ", objLen)
+                .toString();
     }
 }

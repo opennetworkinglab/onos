@@ -361,7 +361,10 @@ public class PcepLabelObjectVer1 implements PcepLabelObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("OFlag", bOFlag).add("label", label)
-                .add("OptionalTlvList", llOptionalTlv).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("OFlag", bOFlag)
+                .add("label", label)
+                .add("OptionalTlvList", llOptionalTlv)
+                .toString();
     }
 }

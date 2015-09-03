@@ -110,7 +110,7 @@ public class PcepNaiUnnumberedAdjacencyIpv4 implements PcepNai {
                 .add("localNodeId", localNodeId)
                 .add("localInterfaceId", localInterfaceId)
                 .add("remoteNodeId", remoteNodeId)
-                .add("remoteInterfaceId:", remoteInterfaceId)
+                .add("remoteInterfaceId", remoteInterfaceId)
                 .toString();
     }
 }
