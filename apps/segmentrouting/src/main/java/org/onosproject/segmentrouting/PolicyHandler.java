@@ -190,7 +190,7 @@ public class PolicyHandler {
             tsb.matchIPSrc(IpPrefix.valueOf(policy.srcIp()));
         }
         if (policy.ipProto() != null && !policy.ipProto().isEmpty()) {
-            Short ipProto = Short.valueOf(IpProtocol.valueOf(policy.ipProto()).value());
+            Short ipProto = IpProtocol.valueOf(policy.ipProto()).value();
             tsb.matchIPProtocol(ipProto.byteValue());
             if (IpProtocol.valueOf(policy.ipProto()).equals(IpProtocol.TCP)) {
                 if (policy.srcPort() != 0) {
