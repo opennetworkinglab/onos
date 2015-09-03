@@ -17,18 +17,18 @@
 package org.onosproject.pcepio;
 
 import org.junit.Test;
-import org.onosproject.pcepio.types.RoutingUniverseTLV;
+import org.onosproject.pcepio.types.RoutingUniverseTlv;
 
 import com.google.common.testing.EqualsTester;
 
 /**
  * Equality test for RoutingUniverseTlv.
  */
-public class RoutingUniverseTLVTest {
+public class RoutingUniverseTlvTest {
 
-    private final RoutingUniverseTLV tlv1 = RoutingUniverseTLV.of(2);
-    private final RoutingUniverseTLV tlv2 = RoutingUniverseTLV.of(2);
-    private final RoutingUniverseTLV tlv3 = RoutingUniverseTLV.of(3);
+    private final RoutingUniverseTlv tlv1 = RoutingUniverseTlv.of(2);
+    private final RoutingUniverseTlv tlv2 = RoutingUniverseTlv.of(2);
+    private final RoutingUniverseTlv tlv3 = RoutingUniverseTlv.of(3);
 
     @Test
     public void basics() {

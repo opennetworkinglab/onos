@@ -21,14 +21,14 @@ import org.junit.Test;
 import org.onosproject.pcepio.types.AutonomousSystemTlv;
 import org.onosproject.pcepio.types.BGPLSidentifierTlv;
 import org.onosproject.pcepio.types.PcepValueType;
-import org.onosproject.pcepio.types.RemoteTENodeDescriptorsTLV;
+import org.onosproject.pcepio.types.RemoteTENodeDescriptorsTlv;
 
 import com.google.common.testing.EqualsTester;
 
 /**
  * Test case for Remote TE Node Descriptors tlv.
  */
-public class RemoteTENodeDescriptorsTLVTest {
+public class RemoteTENodeDescriptorsTlvTest {
 
     private final AutonomousSystemTlv autonomousSystemTlv1 = new AutonomousSystemTlv(10);
     private final BGPLSidentifierTlv bGPLSidentifierTlv1 = new BGPLSidentifierTlv(20);
@@ -44,10 +44,10 @@ public class RemoteTENodeDescriptorsTLVTest {
     private final boolean c = llRemoteTENodeDescriptorSubTLV2.add(autonomousSystemTlv2);
     private final boolean d = llRemoteTENodeDescriptorSubTLV2.add(bGPLSidentifierTlv2);
 
-    private final RemoteTENodeDescriptorsTLV tlv1 = RemoteTENodeDescriptorsTLV.of(llRemoteTENodeDescriptorSubTLV1);
-    private final RemoteTENodeDescriptorsTLV sameAsTlv1 =
-            RemoteTENodeDescriptorsTLV.of(llRemoteTENodeDescriptorSubTLV1);
-    private final RemoteTENodeDescriptorsTLV tlv2 = RemoteTENodeDescriptorsTLV.of(llRemoteTENodeDescriptorSubTLV2);
+    private final RemoteTENodeDescriptorsTlv tlv1 = RemoteTENodeDescriptorsTlv.of(llRemoteTENodeDescriptorSubTLV1);
+    private final RemoteTENodeDescriptorsTlv sameAsTlv1 =
+            RemoteTENodeDescriptorsTlv.of(llRemoteTENodeDescriptorSubTLV1);
+    private final RemoteTENodeDescriptorsTlv tlv2 = RemoteTENodeDescriptorsTlv.of(llRemoteTENodeDescriptorSubTLV2);
 
     @Test
     public void basics() {

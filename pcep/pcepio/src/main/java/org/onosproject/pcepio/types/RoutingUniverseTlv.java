@@ -27,7 +27,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides RoutingUniverseTLV identifiers.
  */
-public class RoutingUniverseTLV implements PcepValueType {
+public class RoutingUniverseTlv implements PcepValueType {
 
     /*
      * Reference : draft-dhodylee-pce-pcep-te-data-extn-02, section 9.2.1.
@@ -50,7 +50,7 @@ public class RoutingUniverseTLV implements PcepValueType {
                    +------------+---------------------+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(RoutingUniverseTLV.class);
+    protected static final Logger log = LoggerFactory.getLogger(RoutingUniverseTlv.class);
 
     public static final short TYPE = 14; // TODO:need to change TBD7
     public static final short LENGTH = 8;
@@ -62,7 +62,7 @@ public class RoutingUniverseTLV implements PcepValueType {
      *
      * @param rawValue raw value
      */
-    public RoutingUniverseTLV(long rawValue) {
+    public RoutingUniverseTlv(long rawValue) {
         this.rawValue = rawValue;
     }
 
@@ -72,8 +72,8 @@ public class RoutingUniverseTLV implements PcepValueType {
      * @param raw value
      * @return object of RoutingUniverseTLV
      */
-    public static RoutingUniverseTLV of(final long raw) {
-        return new RoutingUniverseTLV(raw);
+    public static RoutingUniverseTlv of(final long raw) {
+        return new RoutingUniverseTlv(raw);
     }
 
     /**
@@ -110,8 +110,8 @@ public class RoutingUniverseTLV implements PcepValueType {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof RoutingUniverseTLV) {
-            RoutingUniverseTLV other = (RoutingUniverseTLV) obj;
+        if (obj instanceof RoutingUniverseTlv) {
+            RoutingUniverseTlv other = (RoutingUniverseTlv) obj;
             return Objects.equals(this.rawValue, other.rawValue);
         }
         return false;
@@ -132,8 +132,8 @@ public class RoutingUniverseTLV implements PcepValueType {
      * @param c input channel buffer
      * @return object of RoutingUniverseTLV
      */
-    public static RoutingUniverseTLV read(ChannelBuffer c) {
-        return RoutingUniverseTLV.of(c.readLong());
+    public static RoutingUniverseTlv read(ChannelBuffer c) {
+        return RoutingUniverseTlv.of(c.readLong());
     }
 
     @Override

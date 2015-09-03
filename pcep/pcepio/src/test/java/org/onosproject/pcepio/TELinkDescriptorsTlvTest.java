@@ -21,14 +21,14 @@ import org.junit.Test;
 import org.onosproject.pcepio.types.IPv4InterfaceAddressTlv;
 import org.onosproject.pcepio.types.LinkLocalRemoteIdentifiersTlv;
 import org.onosproject.pcepio.types.PcepValueType;
-import org.onosproject.pcepio.types.TELinkDescriptorsTLV;
+import org.onosproject.pcepio.types.TELinkDescriptorsTlv;
 
 import com.google.common.testing.EqualsTester;
 
 /**
  * Test case for TE link descriptors Tlv.
  */
-public class TELinkDescriptorsTLVTest {
+public class TELinkDescriptorsTlvTest {
     private final LinkLocalRemoteIdentifiersTlv linkLocalRemoteIdentifiersTlv1 = new
             LinkLocalRemoteIdentifiersTlv(10, 10);
     private final IPv4InterfaceAddressTlv iPv4InterfaceAddressTlv1 = new IPv4InterfaceAddressTlv(0x01010101);
@@ -45,9 +45,9 @@ public class TELinkDescriptorsTLVTest {
     private final boolean c = llLinkDescriptorsSubTLVs2.add(linkLocalRemoteIdentifiersTlv2);
     private final boolean d = llLinkDescriptorsSubTLVs2.add(iPv4InterfaceAddressTlv2);
 
-    private final TELinkDescriptorsTLV tlv1 = TELinkDescriptorsTLV.of(llLinkDescriptorsSubTLVs1);
-    private final TELinkDescriptorsTLV sameAstlv1 = TELinkDescriptorsTLV.of(llLinkDescriptorsSubTLVs1);
-    private final TELinkDescriptorsTLV tlv2 = TELinkDescriptorsTLV.of(llLinkDescriptorsSubTLVs2);
+    private final TELinkDescriptorsTlv tlv1 = TELinkDescriptorsTlv.of(llLinkDescriptorsSubTLVs1);
+    private final TELinkDescriptorsTlv sameAstlv1 = TELinkDescriptorsTlv.of(llLinkDescriptorsSubTLVs1);
+    private final TELinkDescriptorsTlv tlv2 = TELinkDescriptorsTlv.of(llLinkDescriptorsSubTLVs2);
 
     @Test
     public void basics() {

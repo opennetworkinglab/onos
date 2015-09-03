@@ -29,59 +29,60 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.MoreObjects;
 
 /**
- * Provides Remote TE Node Descriptors TLV.
+ * Provides TE Link Descriptors TLV.
  */
-public class RemoteTENodeDescriptorsTLV implements PcepValueType {
+public class TELinkDescriptorsTlv implements PcepValueType {
 
-    /* Reference :PCEP Extension for Transporting TE Data
-        draft-dhodylee-pce-pcep-te-data-extn-02
-     *
-          0                   1                   2                   3
-          0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-         |           Type=[TBD9]         |             Length            |
-         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-         |                                                               |
-         //              Node Descriptor Sub-TLVs (variable)            //
-         |                                                               |
-         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    /*
+     * Reference: PCEP Extension for Transporting TE Data draft-dhodylee-pce-pcep-te-data-extn-02
+     *   0                   1                   2                   3
+      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |           Type=[TBD14]        |             Length            |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     |                                                               |
+     //              Link Descriptor Sub-TLVs (variable)            //
+     |                                                               |
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(RemoteTENodeDescriptorsTLV.class);
+    protected static final Logger log = LoggerFactory.getLogger(TELinkDescriptorsTlv.class);
 
-    public static final short TYPE = 1003; //TODD:change this TBD9
+    public static final short TYPE = 1070; //TODD:change this TBD14
     public short hLength;
 
     public static final int TLV_HEADER_LENGTH = 4;
-    // Node Descriptor Sub-TLVs (variable)
-    private LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs;
+
+    // LinkDescriptors Sub-TLVs (variable)
+    private LinkedList<PcepValueType> llLinkDescriptorsSubTLVs;
 
     /**
-     * Constructor to initialize llRemoteTENodeDescriptorSubTLVs.
+     * Constructor to initialize llLinkDescriptorsSubTLVs.
      *
-     * @param llRemoteTENodeDescriptorSubTLVs LinkedList of PcepValueType
+     * @param llLinkDescriptorsSubTLVs of PcepValueType
      */
-    public RemoteTENodeDescriptorsTLV(LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs) {
-        this.llRemoteTENodeDescriptorSubTLVs = llRemoteTENodeDescriptorSubTLVs;
+    public TELinkDescriptorsTlv(LinkedList<PcepValueType> llLinkDescriptorsSubTLVs) {
+        this.llLinkDescriptorsSubTLVs = llLinkDescriptorsSubTLVs;
     }
 
     /**
-     * Returns object of Remote TE Node Descriptors TLV.
+     * Returns object of TELinkDescriptorsTLV.
      *
-     * @param llRemoteTENodeDescriptorSubTLVs LinkedList of PcepValueType
-     * @return object of RemoteTENodeDescriptorsTLV
+     * @param llLinkDescriptorsSubTLVs of PcepValueType
+     * @return object of TELinkDescriptorsTLV
      */
-    public static RemoteTENodeDescriptorsTLV of(final LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs) {
-        return new RemoteTENodeDescriptorsTLV(llRemoteTENodeDescriptorSubTLVs);
+    public static TELinkDescriptorsTlv of(final LinkedList<PcepValueType> llLinkDescriptorsSubTLVs) {
+        return new TELinkDescriptorsTlv(llLinkDescriptorsSubTLVs);
     }
 
     /**
-     * Returns Remote TE Node Descriptor Sub TLVs.
+     * Returns linked list of Link Attribute of Sub TLV.
      *
-     * @return llRemoteTENodeDescriptorSubTLVs
+     * @return llLinkDescriptorsSubTLVs linked list of Link Attribute of Sub TLV
      */
-    public LinkedList<PcepValueType> getllRemoteTENodeDescriptorSubTLVs() {
-        return llRemoteTENodeDescriptorSubTLVs;
+    public LinkedList<PcepValueType> getllLinkDescriptorsSubTLVs() {
+        return llLinkDescriptorsSubTLVs;
     }
 
     @Override
@@ -101,7 +102,7 @@ public class RemoteTENodeDescriptorsTLV implements PcepValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(llRemoteTENodeDescriptorSubTLVs.hashCode());
+        return Objects.hash(llLinkDescriptorsSubTLVs.hashCode());
     }
 
     @Override
@@ -117,22 +118,21 @@ public class RemoteTENodeDescriptorsTLV implements PcepValueType {
          * the size, if both are same then we should check for the subtlv objects otherwise
          * we should return false.
          */
-        if (obj instanceof RemoteTENodeDescriptorsTLV) {
+        if (obj instanceof TELinkDescriptorsTlv) {
             int countObjSubTlv = 0;
             int countOtherSubTlv = 0;
             boolean isCommonSubTlv = true;
-            RemoteTENodeDescriptorsTLV other = (RemoteTENodeDescriptorsTLV) obj;
-            Iterator<PcepValueType> objListIterator = ((RemoteTENodeDescriptorsTLV) obj).llRemoteTENodeDescriptorSubTLVs
-                    .iterator();
-            countObjSubTlv = ((RemoteTENodeDescriptorsTLV) obj).llRemoteTENodeDescriptorSubTLVs.size();
-            countOtherSubTlv = other.llRemoteTENodeDescriptorSubTLVs.size();
+            TELinkDescriptorsTlv other = (TELinkDescriptorsTlv) obj;
+            Iterator<PcepValueType> objListIterator = ((TELinkDescriptorsTlv) obj).llLinkDescriptorsSubTLVs.iterator();
+            countObjSubTlv = ((TELinkDescriptorsTlv) obj).llLinkDescriptorsSubTLVs.size();
+            countOtherSubTlv = other.llLinkDescriptorsSubTLVs.size();
             if (countObjSubTlv != countOtherSubTlv) {
                 return false;
             } else {
                 while (objListIterator.hasNext() && isCommonSubTlv) {
                     PcepValueType subTlv = objListIterator.next();
-                    isCommonSubTlv = Objects.equals(llRemoteTENodeDescriptorSubTLVs.contains(subTlv),
-                            other.llRemoteTENodeDescriptorSubTLVs.contains(subTlv));
+                    isCommonSubTlv = Objects.equals(llLinkDescriptorsSubTLVs.contains(subTlv),
+                            other.llLinkDescriptorsSubTLVs.contains(subTlv));
                 }
                 return isCommonSubTlv;
             }
@@ -142,22 +142,17 @@ public class RemoteTENodeDescriptorsTLV implements PcepValueType {
 
     @Override
     public int write(ChannelBuffer c) {
-
         int tlvStartIndex = c.writerIndex();
         c.writeShort(TYPE);
         int tlvLenIndex = c.writerIndex();
         hLength = 0;
         c.writeShort(hLength);
 
-        ListIterator<PcepValueType> listIterator = llRemoteTENodeDescriptorSubTLVs.listIterator();
+        ListIterator<PcepValueType> listIterator = llLinkDescriptorsSubTLVs.listIterator();
 
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
 
-            if (tlv == null) {
-                log.debug("TLV is null from subTlv list");
-                continue;
-            }
             tlv.write(c);
 
             // need to take care of padding
@@ -178,16 +173,17 @@ public class RemoteTENodeDescriptorsTLV implements PcepValueType {
     }
 
     /**
-     * Reads channel buffer and returns object of Remote TE Node Descriptors TLV.
+     * Reads channel buffer and returns object of TELinkDescriptorsTLV.
      *
      * @param c input channel buffer
-     * @return object of RemoteTENodeDescriptorsTLV
+     * @param length length
+     * @return object of TELinkDescriptorsTLV
      * @throws PcepParseException if mandatory fields are missing
      */
-    public static PcepValueType read(ChannelBuffer c , short length) throws PcepParseException {
+    public static PcepValueType read(ChannelBuffer c, short length) throws PcepParseException {
 
         // Node Descriptor Sub-TLVs (variable)
-        LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llLinkDescriptorsSubTLVs = new LinkedList<PcepValueType>();
 
         ChannelBuffer tempCb = c.readBytes(length);
 
@@ -197,26 +193,32 @@ public class RemoteTENodeDescriptorsTLV implements PcepValueType {
             short hType = tempCb.readShort();
             int iValue = 0;
             short hLength = tempCb.readShort();
+            log.debug("sub Tlv Length" + hLength);
             switch (hType) {
 
-            case AutonomousSystemTlv.TYPE:
+            case LinkLocalRemoteIdentifiersTlv.TYPE:
+                tlv = LinkLocalRemoteIdentifiersTlv.read(tempCb);
+                break;
+            case IPv4InterfaceAddressTlv.TYPE:
                 iValue = tempCb.readInt();
-                tlv = new AutonomousSystemTlv(iValue);
+                tlv = new IPv4InterfaceAddressTlv(iValue);
                 break;
-            case BGPLSidentifierTlv.TYPE:
+            case IPv4NeighborAddressTlv.TYPE:
                 iValue = tempCb.readInt();
-                tlv = new BGPLSidentifierTlv(iValue);
+                tlv = new IPv4NeighborAddressTlv(iValue);
                 break;
-            case OSPFareaIDsubTlv.TYPE:
-                iValue = tempCb.readInt();
-                tlv = new OSPFareaIDsubTlv(iValue);
+            case IPv6InterfaceAddressTlv.TYPE:
+                byte[] ipv6Value = new byte[IPv6InterfaceAddressTlv.VALUE_LENGTH];
+                tempCb.readBytes(ipv6Value, 0, IPv6InterfaceAddressTlv.VALUE_LENGTH);
+                tlv = new IPv6InterfaceAddressTlv(ipv6Value);
                 break;
-            case RouterIDSubTlv.TYPE:
-                tlv = RouterIDSubTlv.read(tempCb, hLength);
+            case IPv6NeighborAddressTlv.TYPE:
+                byte[] ipv6NeighborAdd = new byte[IPv6NeighborAddressTlv.VALUE_LENGTH];
+                tempCb.readBytes(ipv6NeighborAdd, 0, IPv6NeighborAddressTlv.VALUE_LENGTH);
+                tlv = new IPv6NeighborAddressTlv(ipv6NeighborAdd);
                 break;
-
             default:
-                throw new PcepParseException("Unsupported Sub TLV type :" + hType);
+                throw new PcepParseException("Unsupported Sub TLV type:" + hType);
             }
 
             // Check for the padding
@@ -227,20 +229,20 @@ public class RemoteTENodeDescriptorsTLV implements PcepValueType {
                     tempCb.skipBytes(pad);
                 }
             }
+            llLinkDescriptorsSubTLVs.add(tlv);
 
-            llRemoteTENodeDescriptorSubTLVs.add(tlv);
         }
 
         if (0 < tempCb.readableBytes()) {
 
             throw new PcepParseException("Sub Tlv parsing error. Extra bytes received.");
         }
-        return new RemoteTENodeDescriptorsTLV(llRemoteTENodeDescriptorSubTLVs);
+        return new TELinkDescriptorsTlv(llLinkDescriptorsSubTLVs);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass()).add("Type", TYPE).add("Length", hLength)
-                .add("RemoteTeNodeDescriptorSubTLVs", llRemoteTENodeDescriptorSubTLVs).toString();
+                .add("LinkDescriptorsSubTLVs", llLinkDescriptorsSubTLVs).toString();
     }
 }

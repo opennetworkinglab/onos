@@ -22,13 +22,13 @@ import java.util.ListIterator;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcepTEObject;
-import org.onosproject.pcepio.types.LocalTENodeDescriptorsTLV;
+import org.onosproject.pcepio.types.LocalTENodeDescriptorsTlv;
 import org.onosproject.pcepio.types.PcepObjectHeader;
 import org.onosproject.pcepio.types.PcepValueType;
-import org.onosproject.pcepio.types.RemoteTENodeDescriptorsTLV;
-import org.onosproject.pcepio.types.RoutingUniverseTLV;
+import org.onosproject.pcepio.types.RemoteTENodeDescriptorsTlv;
+import org.onosproject.pcepio.types.RoutingUniverseTlv;
 import org.onosproject.pcepio.types.TELinkAttributesTlv;
-import org.onosproject.pcepio.types.TELinkDescriptorsTLV;
+import org.onosproject.pcepio.types.TELinkDescriptorsTlv;
 import org.onosproject.pcepio.types.TENodeAttributesTlv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -288,18 +288,18 @@ public class PcepTEObjectVer1 implements PcepTEObject {
 
             switch (hType) {
 
-            case RoutingUniverseTLV.TYPE:
+            case RoutingUniverseTlv.TYPE:
                 lValue = cb.readLong();
-                tlv = new RoutingUniverseTLV(lValue);
+                tlv = new RoutingUniverseTlv(lValue);
                 break;
-            case LocalTENodeDescriptorsTLV.TYPE:
-                tlv = LocalTENodeDescriptorsTLV.read(cb, hLength);
+            case LocalTENodeDescriptorsTlv.TYPE:
+                tlv = LocalTENodeDescriptorsTlv.read(cb, hLength);
                 break;
-            case RemoteTENodeDescriptorsTLV.TYPE:
-                tlv = RemoteTENodeDescriptorsTLV.read(cb, hLength);
+            case RemoteTENodeDescriptorsTlv.TYPE:
+                tlv = RemoteTENodeDescriptorsTlv.read(cb, hLength);
                 break;
-            case TELinkDescriptorsTLV.TYPE:
-                tlv = TELinkDescriptorsTLV.read(cb, hLength);
+            case TELinkDescriptorsTlv.TYPE:
+                tlv = TELinkDescriptorsTlv.read(cb, hLength);
                 break;
             case TENodeAttributesTlv.TYPE:
                 tlv = TENodeAttributesTlv.read(cb, hLength);

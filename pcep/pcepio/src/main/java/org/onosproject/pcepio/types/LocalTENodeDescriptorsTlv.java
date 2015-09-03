@@ -31,7 +31,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides Local TE Node Descriptors TLV which contains Node Descriptor Sub-TLVs.
  */
-public class LocalTENodeDescriptorsTLV implements PcepValueType {
+public class LocalTENodeDescriptorsTlv implements PcepValueType {
 
     /* REFERENCE :draft-ietf-idr-ls-distribution-10
      *  0                   1                   2                   3
@@ -46,7 +46,7 @@ public class LocalTENodeDescriptorsTLV implements PcepValueType {
      Note: Length is including header here. Refer Routing Universe TLV.
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(LocalTENodeDescriptorsTLV.class);
+    protected static final Logger log = LoggerFactory.getLogger(LocalTENodeDescriptorsTlv.class);
 
     public static final short TYPE = 1637; //TODD:change this TBD8
     public short hLength;
@@ -60,7 +60,7 @@ public class LocalTENodeDescriptorsTLV implements PcepValueType {
      *
      * @param llNodeDescriptorSubTLVs LinkedList of PcepValueType
      */
-    public LocalTENodeDescriptorsTLV(LinkedList<PcepValueType> llNodeDescriptorSubTLVs) {
+    public LocalTENodeDescriptorsTlv(LinkedList<PcepValueType> llNodeDescriptorSubTLVs) {
         this.llNodeDescriptorSubTLVs = llNodeDescriptorSubTLVs;
     }
 
@@ -70,8 +70,8 @@ public class LocalTENodeDescriptorsTLV implements PcepValueType {
      * @param llNodeDescriptorSubTLVs linked list of Node Descriptor Sub TLVs
      * @return object of LocalTENodeDescriptorsTLV
      */
-    public static LocalTENodeDescriptorsTLV of(final LinkedList<PcepValueType> llNodeDescriptorSubTLVs) {
-        return new LocalTENodeDescriptorsTLV(llNodeDescriptorSubTLVs);
+    public static LocalTENodeDescriptorsTlv of(final LinkedList<PcepValueType> llNodeDescriptorSubTLVs) {
+        return new LocalTENodeDescriptorsTlv(llNodeDescriptorSubTLVs);
     }
 
     /**
@@ -117,14 +117,14 @@ public class LocalTENodeDescriptorsTLV implements PcepValueType {
          * the size, if both are same then we should check for the subtlv objects otherwise
          * we should return false.
          */
-        if (obj instanceof LocalTENodeDescriptorsTLV) {
+        if (obj instanceof LocalTENodeDescriptorsTlv) {
             int countObjSubTlv = 0;
             int countOtherSubTlv = 0;
             boolean isCommonSubTlv = true;
-            LocalTENodeDescriptorsTLV other = (LocalTENodeDescriptorsTLV) obj;
-            Iterator<PcepValueType> objListIterator = ((LocalTENodeDescriptorsTLV) obj).llNodeDescriptorSubTLVs
+            LocalTENodeDescriptorsTlv other = (LocalTENodeDescriptorsTlv) obj;
+            Iterator<PcepValueType> objListIterator = ((LocalTENodeDescriptorsTlv) obj).llNodeDescriptorSubTLVs
                     .iterator();
-            countObjSubTlv = ((LocalTENodeDescriptorsTLV) obj).llNodeDescriptorSubTLVs.size();
+            countObjSubTlv = ((LocalTENodeDescriptorsTlv) obj).llNodeDescriptorSubTLVs.size();
             countOtherSubTlv = other.llNodeDescriptorSubTLVs.size();
             if (countObjSubTlv != countOtherSubTlv) {
                 return false;
@@ -232,7 +232,7 @@ public class LocalTENodeDescriptorsTLV implements PcepValueType {
         if (0 < tempCb.readableBytes()) {
             throw new PcepParseException("Sub Tlv parsing error. Extra bytes received.");
         }
-        return new LocalTENodeDescriptorsTLV(llNodeDescriptorSubTLVs);
+        return new LocalTENodeDescriptorsTlv(llNodeDescriptorSubTLVs);
     }
 
     @Override
