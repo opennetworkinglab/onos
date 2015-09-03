@@ -51,7 +51,7 @@ public class PcepErrorInfoVer1 implements PcepErrorInfo {
     public PcepErrorInfoVer1(LinkedList<PcepRPObject> llRPObjList, LinkedList<PcepTEObject> llTEObjList,
             LinkedList<PcepErrorObject> llErrObjList) {
         this.errList = new LinkedList<PcepError>();
-        if ((null != llErrObjList) && (!llErrObjList.isEmpty())) {
+        if ((llErrObjList != null) && (!llErrObjList.isEmpty())) {
             this.errList.add(new PcepErrorVer1(llRPObjList, llTEObjList, llErrObjList));
         }
     }
