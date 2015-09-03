@@ -26,6 +26,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.vtnrsc.DefaultTenantNetwork;
 import org.onosproject.vtnrsc.PhysicalNetwork;
 import org.onosproject.vtnrsc.SegmentationId;
 import org.onosproject.vtnrsc.TenantId;
@@ -76,6 +77,7 @@ public class TenantNetworkManager implements TenantNetworkService {
                 .withPurgeOnUninstall()
                 .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API),
                                                  TenantNetworkId.class,
+                                                 DefaultTenantNetwork.class,
                                                  TenantNetwork.State.class,
                                                  TenantId.class,
                                                  TenantNetwork.Type.class,
