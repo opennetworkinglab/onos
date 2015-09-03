@@ -29,6 +29,7 @@ import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -113,16 +114,16 @@ public class OLT {
         );*/
 
 
-        deviceService.getPorts(DeviceId.deviceId(gfastDevice)).stream().forEach(
-                port -> {
-                    if (!port.number().isLogical() && port.isEnabled()) {
-                        short vlanId = (short) (fetchVlanId(port.number()) + OFFSET);
-                        if (vlanId > 0) {
-                            provisionVlanOnPort(gfastDevice, gfastUplink, port.number(), vlanId);
+        deviceService.getPorts(DeviceId.deviceId(gfastDevice)).stream()
+                .filter(port -> !port.number().isLogical())
+                .filter(Port::isEnabled)
+                .forEach(port -> {
+                            short vlanId = (short) (fetchVlanId(port.number()) + OFFSET);
+                            if (vlanId > 0) {
+                                provisionVlanOnPort(gfastDevice, gfastUplink, port.number(), vlanId);
+                            }
                         }
-                    }
-                }
-        );
+                );
         log.info("Started with Application ID {}", appId.id());
     }
 
