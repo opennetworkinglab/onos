@@ -24,6 +24,9 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
     public static final String STATIC_PORT = "staticPort";
     public static final String STATIC_LAMBDA = "staticLambda";
 
+    // **Linc-OE : remove if it's not needed after all.**
+    public static final String SPEED = "speed";
+
     /**
      * Returns the Enum value representing the type of port.
      *
@@ -75,7 +78,8 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
 
     /**
      * Returns the output lambda configured for this port. The lambda value is
-     * expressed as a frequency value.
+     * expressed as a frequency value. If the port type doesn't have a notion of
+     * lambdas, this returns an empty Optional.
      *
      * @return an Optional that may contain a frequency value.
      */
@@ -85,6 +89,20 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
             return Optional.empty();
         }
         return Optional.of(sl.asLong());
+    }
+
+    /**
+     * Returns the port speed configured for this port. If the port doesn't have
+     * a notion of speed, this returns an empty Optional.
+     *
+     * @return a port speed value whose default is 0.
+     */
+    public Optional<Integer> speed() {
+        JsonNode s = node.path(SPEED);
+        if (s.isMissingNode()) {
+            return Optional.empty();
+        }
+        return Optional.of(s.asInt());
     }
 
     /**
@@ -144,4 +162,14 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
         return (OpticalPortConfig) setOrClear(STATIC_LAMBDA, index);
     }
 
+    /**
+     * Sets the port speed, or updates it if already set. A null argument
+     * removes this field.
+     *
+     * @param bw the port bandwidth
+     * @return this OpticalPortConfig instance
+     */
+    public OpticalPortConfig speed(Integer bw) {
+        return (OpticalPortConfig) setOrClear(SPEED, bw);
+    }
 }
