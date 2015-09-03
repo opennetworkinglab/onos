@@ -32,8 +32,7 @@
 
         <!-- Verify some links using the REST API -->
         <step name="Net-REST.Query-Link-1" requires="Net-REST.Find-Host-2"
-              exec="${ONOS_ROOT}/tools/test/scenarios/net-rest/find-link.py
-                    ${OC1} link1 of:0000000000000001 5 of:0000000000000006 4"/>
+              exec="find-link.py ${OC1} link1 of:0000000000000001 5 of:0000000000000006 4"/>
         <step name="Net-REST.Validate-Link-1-State" requires="^"
               exec="test '${link1State}' == 'ACTIVE'"/>
         <step name="Net-REST.Validate-Link-1-Type" requires="^"
@@ -48,8 +47,7 @@
               exec="test '${link1DstPort}' == '4'"/>
 
         <step name="Net-REST.Query-Link-2" requires="Net-REST.Find-Host-2"
-              exec="${ONOS_ROOT}/tools/test/scenarios/net-rest/find-link.py
-                    ${OC1} link2 of:0000000000000019 7 of:0000000000000006 3"/>
+              exec="find-link.py ${OC1} link2 of:0000000000000019 7 of:0000000000000006 3"/>
         <step name="Net-REST.Validate-Link-2-State" requires="^"
               exec="test '${link2State}' == 'ACTIVE'"/>
         <step name="Net-REST.Validate-Link-2-Type" requires="^"
@@ -65,8 +63,7 @@
 
         <!-- Verify the hosts using the REST API -->
         <step name="Net-REST.Query-Host-1" requires="Net-REST.Find-Host-2"
-              exec="${ONOS_ROOT}/tools/test/scenarios/net-rest/find-host.py
-                    ${OC1} host1 00:00:00:00:00:01/-1"/>
+              exec="find-host.py ${OC1} host1 00:00:00:00:00:01/-1"/>
         <step name="Net-REST.Validate-Host-1-Id" requires="^"
               exec="test '${host1Id}' == '00:00:00:00:00:01/-1'"/>
         <step name="Net-REST.Validate-Host-1-Mac" requires="^"
@@ -75,8 +72,7 @@
               exec="test '${host1IpAddress}' == '10.0.0.1'"/>
 
         <step name="Net-REST.Query-Host-2" requires="Net-REST.Find-Host-2"
-              exec="${ONOS_ROOT}/tools/test/scenarios/net-rest/find-host.py
-                    ${OC1} host2 00:00:00:00:00:04/-1"/>
+              exec="find-host.py ${OC1} host2 00:00:00:00:00:04/-1"/>
         <step name="Net-REST.Validate-Host-2-Id" requires="^"
               exec="test '${host2Id}' == '00:00:00:00:00:04/-1'"/>
         <step name="Net-REST.Validate-Host-2-Mac" requires="^"
@@ -86,8 +82,7 @@
 
         <!-- Verify a switch using the REST API -->
         <step name="Net-REST.Query-Dev-1" requires="Net-REST.Find-Host-2"
-              exec="${ONOS_ROOT}/tools/test/scenarios/net-rest/find-device.py
-                    ${OC1} dev1 of:0000000000000014"/>
+              exec="find-device.py ${OC1} dev1 of:0000000000000014"/>
         <step name="Net-REST.Validate-Dev1-Id" requires="^"
               exec="test '${dev1Id}' == 'of:0000000000000014'"/>
         <step name="Net-REST.Validate-Dev1-Type" requires="^"
@@ -95,15 +90,13 @@
         <step name="Net-REST.Validate-Dev1-Available" requires="^"
               exec="test '${dev1Available}' == 'True'"/>
         <step name="Net-REST.Validate-Dev1-ChannelId" requires="^"
-              exec="test '${dev1IpAddress}' == '192.168.56.102'"/>
+              exec="test '${dev1IpAddress}' == '${OCN}'"/>
 
         <!-- Use REST API to create a point to point intent in each direction -->
         <step name="Net-REST.Create-Intent-XY" requires="Net-REST.Find-Host-2"
-              exec="${ONOS_ROOT}/tools/test/scenarios/net-rest/create-intent.py
-                    ${OC1} xy of:0000000000000001 1 of:0000000000000004 1"/>
+              exec="create-intent.py ${OC1} xy of:0000000000000001 1 of:0000000000000004 1"/>
         <step name="Net-REST.Create-Intent-YX" requires="^"
-              exec="${ONOS_ROOT}/tools/test/scenarios/net-rest/create-intent.py
-                    ${OC1} yx of:0000000000000004 1 of:0000000000000001 1"/>
+              exec="create-intent.py ${OC1} yx of:0000000000000004 1 of:0000000000000001 1"/>
 
         <!-- Check that the intents can be fetched via the REST API -->
         <step name="Net-REST.Validate-Intent-XY-Installed"
@@ -116,16 +109,14 @@
         <!-- Use REST API to query flows created by the intents -->
         <step name="Net-REST.Validate-Intent-XY-Flow-Installed"
               requires="Net-REST.Create-Intent-YX"
-              exec="${ONOS_ROOT}/tools/test/scenarios/net-rest/find-flow.py
-                    ${OC1} dev1out of:0000000000000001"/>
+              exec="find-flow.py ${OC1} dev1out of:0000000000000001"/>
         <step name="Net-REST.Validate-XY-Flow-State" requires="^"
               exec="test '${dev1outFlowState}' == 'ADDED' -o '${dev1outFlowState}' == 'PENDING_ADD'"/>
         <step name="Net-REST.Validate-XY-Flow-Port" requires="^"
               exec="test ${dev1outFlowPort} -ge 1 -a ${dev1outFlowPort} -le 5"/>
 
         <step name="Net-REST.Validate-Intent-YX-Flow-Installed" requires="Net-REST.Create-Intent-YX"
-              exec="${ONOS_ROOT}/tools/test/scenarios/net-rest/find-flow.py
-                    ${OC1} dev4out of:0000000000000004"/>
+              exec="find-flow.py ${OC1} dev4out of:0000000000000004"/>
         <step name="Net-REST.Validate-YX-Flow-State" requires="^"
               exec="test '${dev4outFlowState}' == 'ADDED' -o '${dev4outFlowState}' == 'PENDING_ADD'"/>
         <step name="Net-REST.Validate-YX-Flow-Port" requires="^"
@@ -151,12 +142,10 @@
 
         <!-- Use REST API to be sure that flows are no longer installed -->
         <step name="Net-REST.Validate-XY-Flows-Removed" requires="Net-REST.Delete-Intent-XY"
-              exec="${ONOS_ROOT}/tools/test/scenarios/net-rest/find-flow.py
-                    ${OC1} dev1out of:0000000000000001"
+              exec="find-flow.py ${OC1} dev1out of:0000000000000001"
               env="!"/>
         <step name="Net-REST.Validate-YX-Flows-Removed" requires="Net-REST.Delete-Intent-YX"
-              exec="${ONOS_ROOT}/tools/test/scenarios/net-rest/find-flow.py
-                    ${OC1} dev4out of:0000000000000004"
+              exec="find-flow.py ${OC1} dev4out of:0000000000000004"
               env="!"/>
 
         <!-- Check that the deleted intents no longer appear in the REST API -->
