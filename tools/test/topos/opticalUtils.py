@@ -70,6 +70,9 @@ from mininet.cli import CLI
 SLEEP_TIME = 2
 TIMEOUT = 60
 
+REST_USER = 'onos'
+REST_PW = 'rocks'
+
 class OpticalSwitch(Switch):
     """
     For now, same as Switch class.
@@ -428,6 +431,13 @@ class LINCSwitch(OpticalSwitch):
         info('*** Waiting for all devices to be available in ONOS...\n')
         url = 'http://%s:8181/onos/v1/devices' % LINCSwitch.controllers[0].ip
         time = 0
+        # Set up password authentication
+        pw_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+        pw_mgr.add_password(None, url, REST_USER, REST_PW)
+        handler = urllib2.HTTPBasicAuthHandler(pw_mgr)
+        opener = urllib2.build_opener(handler)
+        opener.open(url)
+        urllib2.install_opener(opener)
         while True:
             response = json.load(urllib2.urlopen(url))
             devs = response.get('devices')
