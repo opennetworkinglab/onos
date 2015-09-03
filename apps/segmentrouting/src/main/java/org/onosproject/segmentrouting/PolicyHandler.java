@@ -86,8 +86,7 @@ public class PolicyHandler {
     public List<Policy> getPolicies() {
         return policyStore.values()
                 .stream()
-                // keep the original behavior, but it may cause a cast error
-                // it is better to use filter() to omit instances not being TunnelPolicy
+                .filter(policy -> policy instanceof TunnelPolicy)
                 .map(policy -> new TunnelPolicy((TunnelPolicy) policy))
                 .collect(Collectors.toList());
     }
