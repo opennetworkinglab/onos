@@ -240,10 +240,8 @@ public class VTNManager implements VTNService {
                 BridgeDescription sw = it.next();
                 Set<PortNumber> ports = bridgeConfig.getPortNumbers();
                 ports.stream().filter(p -> p.name().equalsIgnoreCase(vxlanName))
-                        .forEach(p -> {
-                    programTunnelOut(sw.deviceId(), network.segmentationId(), p,
-                                     h.mac(), appId, Objective.Operation.ADD);
-                });
+                        .forEach(p -> programTunnelOut(sw.deviceId(), network.segmentationId(), p,
+                                h.mac(), appId, Objective.Operation.ADD));
             }
 
         });
@@ -308,12 +306,10 @@ public class VTNManager implements VTNService {
                         ports.stream()
                                 .filter(p -> p.name()
                                         .equalsIgnoreCase(tunnelName))
-                                .forEach(p -> {
-                            programTunnelOut(sw.deviceId(),
-                                             network.segmentationId(), p,
-                                             host.mac(), appId,
-                                             Objective.Operation.ADD);
-                        });
+                                .forEach(p -> programTunnelOut(sw.deviceId(),
+                                        network.segmentationId(), p,
+                                        host.mac(), appId,
+                                        Objective.Operation.ADD));
                     }
                 });
         programLocalIn(deviceId, network.segmentationId(), inPort, host.mac(),
@@ -374,12 +370,10 @@ public class VTNManager implements VTNService {
                         ports.stream()
                                 .filter(p -> p.name()
                                         .equalsIgnoreCase(vxlanName))
-                                .forEach(p -> {
-                            programTunnelOut(sw.deviceId(),
-                                             segId, p,
-                                             host.mac(), appId,
-                                             Objective.Operation.REMOVE);
-                        });
+                                .forEach(p -> programTunnelOut(sw.deviceId(),
+                                        segId, p,
+                                        host.mac(), appId,
+                                        Objective.Operation.REMOVE));
                     }
                 });
         programLocalIn(deviceId, segId, inPort, host.mac(),
