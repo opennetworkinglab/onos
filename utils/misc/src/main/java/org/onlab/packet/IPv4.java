@@ -35,6 +35,7 @@ public class IPv4 extends BasePacket {
     public static final byte PROTOCOL_IGMP = 0x2;
     public static final byte PROTOCOL_TCP = 0x6;
     public static final byte PROTOCOL_UDP = 0x11;
+    public static final byte PROTOCOL_PIM = 0x67;
     public static final Map<Byte, Deserializer<? extends IPacket>> PROTOCOL_DESERIALIZER_MAP =
             new HashMap<>();
 
@@ -43,6 +44,7 @@ public class IPv4 extends BasePacket {
         IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_IGMP, IGMP.deserializer());
         IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_TCP, TCP.deserializer());
         IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_UDP, UDP.deserializer());
+        IPv4.PROTOCOL_DESERIALIZER_MAP.put(IPv4.PROTOCOL_PIM, PIM.deserializer());
     }
 
     private static final byte DSCP_MASK = 0x3f;
