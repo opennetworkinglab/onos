@@ -163,7 +163,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
                 this.errInfo = new PcepErrorInfoVer1(null, null, llErrObjList);
                 this.errInfo.read(cb);
 
-            } else if ((llErrObjList != null) && (!llErrObjList.isEmpty())) {
+            } else if (!llErrObjList.isEmpty()) {
                 //If only PCEP-ERROR list is present then store it in errObjListWithOpen.
                 this.errObjListWithOpen = new ErrorObjListWithOpen(llErrObjList);
             } else {
