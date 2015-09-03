@@ -423,16 +423,16 @@ public class PcepAttributeVer1 implements PcepAttribute {
     public String toString() {
         ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
 
-        if (lspaObject instanceof PcepLspaObject) {
+        if (lspaObject != null) {
             toStrHelper.add("lspaObject", lspaObject);
         }
-        if (bandwidthObject instanceof PcepBandwidthObject) {
+        if (bandwidthObject != null) {
             toStrHelper.add("bandwidthObject", bandwidthObject);
         }
         if (llMetricList instanceof PcepMetricObject) {
             toStrHelper.add("MetricObjectList", llMetricList);
         }
-        if (iroObject instanceof PcepIroObject) {
+        if (iroObject != null) {
             toStrHelper.add("IroObject", iroObject);
         }
         return toStrHelper.toString();

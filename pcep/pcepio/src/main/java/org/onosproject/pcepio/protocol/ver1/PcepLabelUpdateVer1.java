@@ -350,10 +350,10 @@ public class PcepLabelUpdateVer1 implements PcepLabelUpdate {
     public String toString() {
         ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
 
-        if (labelDownload instanceof PcepLabelDownload) {
+        if (labelDownload != null) {
             toStrHelper.add("LabelDownload", labelDownload);
         }
-        if (labelMap instanceof PcepLabelMap) {
+        if (labelMap != null) {
             toStrHelper.add("LabelMap", labelMap);
         }
         return toStrHelper.toString();

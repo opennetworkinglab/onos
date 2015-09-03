@@ -252,7 +252,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
                 //Srp Object is mandatory
                 PcepSrpObject srpObj = listReq.getSrpObject();
-                if (srpObj instanceof PcepSrpObject) {
+                if (srpObj != null) {
                     isDelLspRequest = srpObj.getRFlag();
                     srpObj.write(cb);
                 } else {
@@ -261,7 +261,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
                 //LSP Object is mandatory
                 PcepLspObject lspObj = listReq.getLspObject();
-                if (lspObj instanceof PcepLspObject) {
+                if (lspObj != null) {
                     lspObj.write(cb);
                 } else {
                     throw new PcepParseException("LSP Object is mandatory for PcInitiate message.");
@@ -275,7 +275,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
                     //EndPoints object is mandatory
                     PcepEndPointsObject endPointObj = listReq.getEndPointsObject();
-                    if (endPointObj instanceof PcepEndPointsObject) {
+                    if (endPointObj != null) {
                         endPointObj.write(cb);
                     } else {
                         throw new PcepParseException("End points Object is mandatory for PcInitiate message.");
@@ -283,7 +283,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
                     //Ero object is mandatory
                     PcepEroObject eroObj = listReq.getEroObject();
-                    if (eroObj instanceof PcepEroObject) {
+                    if (eroObj != null) {
                         eroObj.write(cb);
                     } else {
                         throw new PcepParseException("ERO Object is mandatory for PcInitiate message.");
@@ -291,7 +291,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
                     //PcepAttribute is optional
                     PcepAttribute pcepAttribute = listReq.getPcepAttribute();
-                    if (pcepAttribute instanceof PcepAttribute) {
+                    if (pcepAttribute != null) {
                         pcepAttribute.write(cb);
                     }
                 }

@@ -283,13 +283,13 @@ public class PcInitiatedLspRequestVer1 implements PcInitiatedLspRequest {
         ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
         toStrHelper.add("SrpObject", srpObject).add("LspObject", lspObject);
 
-        if (endPointsObject instanceof PcepEndPointsObject) {
+        if (endPointsObject != null) {
             toStrHelper.add("EndPointObject", endPointsObject);
         }
-        if (eroObject instanceof PcepEroObject) {
+        if (eroObject != null) {
             toStrHelper.add("EroObject", eroObject);
         }
-        if (pcepAttribute instanceof PcepAttribute) {
+        if (pcepAttribute != null) {
             toStrHelper.add("PcepAttribute", pcepAttribute);
         }
         return toStrHelper.toString();

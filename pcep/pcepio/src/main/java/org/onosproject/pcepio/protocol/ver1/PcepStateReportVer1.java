@@ -263,7 +263,7 @@ public class PcepStateReportVer1 implements PcepStateReport {
         public String toString() {
             ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
 
-            if (attrList instanceof PcepAttribute) {
+            if (attrList != null) {
                 toStrHelper.add("AttributeList", attrList);
             }
             if (rroObj instanceof PcepRroObjectVer1) {
@@ -413,13 +413,13 @@ public class PcepStateReportVer1 implements PcepStateReport {
     public String toString() {
         ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
 
-        if (this.srpObject instanceof PcepSrpObject) {
+        if (this.srpObject != null) {
             toStrHelper.add("SrpObject", srpObject);
         }
-        if (this.lspObject instanceof PcepLspObject) {
+        if (this.lspObject != null) {
             toStrHelper.add("LspObject", lspObject);
         }
-        if (this.msgPath instanceof PcepStateReport.PcepMsgPath) {
+        if (this.msgPath != null) {
             toStrHelper.add("MsgPath", msgPath);
         }
         return toStrHelper.toString();
