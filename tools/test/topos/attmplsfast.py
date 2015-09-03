@@ -15,14 +15,10 @@ from mininet.util import dumpNodeConnections
 class AttMplsTopo( Topo ):
     "Internet Topology Zoo Specimen."
 
-    def __init__( self ):
+    def build( self ):
         "Create a topology."
 
-        # Initialize Topology
-        Topo.__init__( self )
-
         # add nodes, switches first...
-        NY54 = self.addSwitch( 's25' ) # 40.728270, -73.994483
         CMBR = self.addSwitch( 's1' )  # 42.373730, -71.109734
         CHCG = self.addSwitch( 's2' )  # 41.877461, -87.642892
         CLEV = self.addSwitch( 's3' )  # 41.498928, -81.695217
@@ -47,9 +43,9 @@ class AttMplsTopo( Topo ):
         LA03 = self.addSwitch( 's22' ) # 34.056346, -118.235951
         SNDG = self.addSwitch( 's23' ) # 32.714564, -117.153528
         PHNX = self.addSwitch( 's24' ) # 33.448289, -112.076299
+        NY54 = self.addSwitch( 's25' ) # 40.728270, -73.994483
 
         # ... and now hosts
-        NY54_host = self.addHost( 'h25' )
         CMBR_host = self.addHost( 'h1' )
         CHCG_host = self.addHost( 'h2' )
         CLEV_host = self.addHost( 'h3' )
@@ -74,6 +70,7 @@ class AttMplsTopo( Topo ):
         LA03_host = self.addHost( 'h22' )
         SNDG_host = self.addHost( 'h23' )
         PHNX_host = self.addHost( 'h24' )
+        NY54_host = self.addHost( 'h25' )
 
         # add edges between switch and corresponding host
         self.addLink( NY54 , NY54_host )
