@@ -30,8 +30,8 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -84,11 +84,12 @@ public class PolicyHandler {
      * @return policy list
      */
     public List<Policy> getPolicies() {
-        List<Policy> policies = new ArrayList<>();
-        policyStore.values().forEach(policy -> policies.add(
-                new TunnelPolicy((TunnelPolicy) policy)));
-
-        return policies;
+        return policyStore.values()
+                .stream()
+                // keep the original behavior, but it may cause a cast error
+                // it is better to use filter() to omit instances not being TunnelPolicy
+                .map(policy -> new TunnelPolicy((TunnelPolicy) policy))
+                .collect(Collectors.toList());
     }
 
     /**
