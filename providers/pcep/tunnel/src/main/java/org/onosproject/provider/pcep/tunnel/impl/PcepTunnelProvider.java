@@ -628,7 +628,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         PcepValueType tlv;
         LinkedList<PcepValueType> llSubObjects = createPcepPath(path);
 
-        if (null == llSubObjects || 0 == llSubObjects.size()) {
+        if (llSubObjects == null || llSubObjects.size() == 0) {
             log.error("There is no link information to create tunnel");
             return null;
         }
@@ -661,7 +661,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         PcepEroObject eroobj = pc.factory().buildEroObject().setSubObjects(llSubObjects).build();
 
         int iBandwidth = DEFAULT_BANDWIDTH_VALUE;
-        if (null != tunnel.annotations().value("bandwidth")) {
+        if (tunnel.annotations().value("bandwidth") != null) {
             iBandwidth = Integer.parseInt(tunnel.annotations().value("bandwidth"));
         }
         // build bandwidth object
@@ -692,7 +692,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
             LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList = createPcInitiatedLspReqList(tunnel, path,
                                                                                                         pc, srpId);
-            if (null == llPcInitiatedLspRequestList || 0 == llPcInitiatedLspRequestList.size()) {
+            if (llPcInitiatedLspRequestList == null || llPcInitiatedLspRequestList.size() == 0) {
                 log.error("Failed to create PcInitiatedLspRequestList");
                 return;
             }
@@ -740,7 +740,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
             LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList = new LinkedList<PcInitiatedLspRequest>();
 
-            if (null != statefulIpv4IndentifierTlv) {
+            if (statefulIpv4IndentifierTlv != null) {
                 tlv = statefulIpv4IndentifierTlv;
             } else {
                 tlv = new StatefulIPv4LspIdentidiersTlv((
@@ -819,7 +819,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             PcepEroObject eroobj = pc.factory().buildEroObject().setSubObjects(llSubObjects).build();
 
             int iBandwidth = DEFAULT_BANDWIDTH_VALUE;
-            if (null != tunnel.annotations().value("bandwidth")) {
+            if (tunnel.annotations().value("bandwidth") != null) {
                 iBandwidth = Integer.parseInt(tunnel.annotations().value("bandwidth"));
             }
             // build bandwidth object
@@ -957,7 +957,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     break;
                 }
             }
-            if (null != ipv4LspTlv) {
+            if (ipv4LspTlv != null) {
                 pcepTunnelData.setStatefulIpv4IndentifierTlv(ipv4LspTlv);
             }
 
@@ -1021,7 +1021,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             }
             log.debug("Sync report received");
 
-            if (null != msgPath.getBandwidthObject()) {
+            if (msgPath.getBandwidthObject() != null) {
                 bandwidth = msgPath.getBandwidthObject().getBandwidth();
             }
 

@@ -235,7 +235,7 @@ public class PcepLabelRangeObjectVer1 implements PcepLabelRangeObject {
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
 
-            if (null == tlv) {
+            if (tlv == null) {
                 log.debug("tlv is null from OptionalTlv list");
                 continue;
             }

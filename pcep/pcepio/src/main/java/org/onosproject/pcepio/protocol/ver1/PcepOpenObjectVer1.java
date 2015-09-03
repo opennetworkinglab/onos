@@ -326,7 +326,7 @@ public class PcepOpenObjectVer1 implements PcepOpenObject {
         ListIterator<PcepValueType> listIterator = llOptionalTlv.listIterator();
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
-            if (null == tlv) {
+            if (tlv == null) {
                 log.debug("TLV is null from OptionalTlv list");
                 continue;
             }

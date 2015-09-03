@@ -102,13 +102,13 @@ public class PcepRsvpUserErrorSpec implements PcepRsvpErrorSpec {
         cb.writeShort(userErrorValue);
         cb.writeBytes(errDesc);
 
-        if (null != llRsvpUserSpecSubObj) {
+        if (llRsvpUserSpecSubObj != null) {
 
             ListIterator<PcepValueType> listIterator = llRsvpUserSpecSubObj.listIterator();
 
             while (listIterator.hasNext()) {
                 PcepValueType tlv = listIterator.next();
-                if (null == tlv) {
+                if (tlv == null) {
                     continue;
                 }
                 tlv.write(cb);
@@ -145,7 +145,7 @@ public class PcepRsvpUserErrorSpec implements PcepRsvpErrorSpec {
 
         objHeader = PcepRsvpSpecObjHeader.read(cb);
 
-        if (CLASS_NUM != objHeader.getObjClassNum() || CLASS_TYPE != objHeader.getObjClassType()) {
+        if (objHeader.getObjClassNum() != CLASS_NUM || objHeader.getObjClassType() != CLASS_TYPE) {
             throw new PcepParseException("Expected PcepRsvpUserErrorSpec object.");
         }
         enterpriseNum = cb.readInt();

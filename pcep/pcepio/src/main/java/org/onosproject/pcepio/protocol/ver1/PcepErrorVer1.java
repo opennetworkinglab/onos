@@ -393,12 +393,12 @@ public class PcepErrorVer1 implements PcepError {
         ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
 
         //RP Object list is optional
-        if (null != llRPObjList) {
+        if (llRPObjList != null) {
             toStrHelper.add("RpObjectList", llRPObjList);
         }
 
         //TE Object list is optional
-        if (null != llTEObjList) {
+        if (llTEObjList != null) {
             toStrHelper.add("TeObjectList", llTEObjList);
         }
 

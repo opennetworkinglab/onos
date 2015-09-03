@@ -308,7 +308,7 @@ public class PcepLspaObjectVer1 implements PcepLspaObject {
         ListIterator<PcepValueType> listIterator = llOptionalTlv.listIterator();
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
-            if (null == tlv) {
+            if (tlv == null) {
                 log.debug("Warning: tlv is null from OptionalTlv list");
                 continue;
             }

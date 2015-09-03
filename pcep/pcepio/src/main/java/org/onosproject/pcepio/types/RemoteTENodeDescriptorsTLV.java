@@ -154,7 +154,7 @@ public class RemoteTENodeDescriptorsTLV implements PcepValueType {
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
 
-            if (null == tlv) {
+            if (tlv == null) {
                 log.debug("TLV is null from subTlv list");
                 continue;
             }

@@ -253,7 +253,7 @@ class PcepReportMsgVer1 implements PcepReportMsg {
                 PcepSrpObject srpObj = stateRpt.getSrpObject();
 
                 //SRP object is optional
-                if (null != srpObj) {
+                if (srpObj != null) {
                     srpObj.write(cb);
                 }
 

@@ -120,8 +120,8 @@ public class PcepEndPointsObjectVer1 implements PcepEndPointsObject {
         int destIpAddress;
 
         endPointsObjHeader = PcepObjectHeader.read(cb);
-        if (END_POINTS_OBJ_TYPE == endPointsObjHeader.getObjType()
-                && END_POINTS_OBJ_CLASS == endPointsObjHeader.getObjClass()) {
+        if (endPointsObjHeader.getObjType() == END_POINTS_OBJ_TYPE
+                && endPointsObjHeader.getObjClass() == END_POINTS_OBJ_CLASS) {
             sourceIpAddress = cb.readInt();
             destIpAddress = cb.readInt();
         } else {

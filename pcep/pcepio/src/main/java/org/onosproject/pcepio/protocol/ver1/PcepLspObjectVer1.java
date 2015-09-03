@@ -377,7 +377,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
 
-            if (null == tlv) {
+            if (tlv == null) {
                 log.debug("tlv is null from OptionalTlv list");
                 continue;
             }

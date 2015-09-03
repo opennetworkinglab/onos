@@ -343,7 +343,7 @@ public class PcepTEObjectVer1 implements PcepTEObject {
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
 
-            if (null == tlv) {
+            if (tlv == null) {
                 log.debug("TLV is null from OptionalTlv list");
                 continue;
             }

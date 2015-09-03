@@ -159,7 +159,7 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
 
         srpObjHeader = PcepObjectHeader.read(cb);
 
-        if (SRP_OBJ_CLASS != srpObjHeader.getObjClass()) {
+        if (srpObjHeader.getObjClass() != SRP_OBJ_CLASS) {
             throw new PcepParseException("SRP object expected. But received " + srpObjHeader.getObjClass());
         }
 
@@ -258,7 +258,7 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
 
-            if (null == tlv) {
+            if (tlv == null) {
                 log.debug("tlv is null from OptionalTlv list");
                 continue;
             }

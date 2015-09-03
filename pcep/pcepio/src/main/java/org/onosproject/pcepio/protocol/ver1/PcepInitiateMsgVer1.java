@@ -126,7 +126,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
             boolean isDelLspRequest = false;
 
-            if (null == cb) {
+            if (cb == null) {
                 throw new PcepParseException("Channel buffer is empty");
             }
 
