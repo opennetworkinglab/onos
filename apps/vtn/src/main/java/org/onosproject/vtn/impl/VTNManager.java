@@ -163,9 +163,8 @@ public class VTNManager implements VTNService {
         IpAddress ip = IpAddress.valueOf(ipAddress);
         Sets.newHashSet(devices).stream()
                 .filter(d -> Device.Type.CONTROLLER == d.type())
-                .filter(d -> !device.id().equals(d.id())).forEach(d -> {
-                    if (!device.id().equals(d.id())
-                            && Device.Type.CONTROLLER == d.type()) {
+                .filter(d -> !device.id().equals(d.id()))
+                .forEach(d -> {
                         String ipAddress1 = d.annotations()
                                 .value(CONTROLLER_IP_KEY);
                         IpAddress ip1 = IpAddress.valueOf(ipAddress1);
@@ -173,7 +172,6 @@ public class VTNManager implements VTNService {
                         DriverHandler handler1 = driverService
                                 .createHandler(d.id());
                         applyTunnelConfig(ip1, ip, handler1);
-                    }
                 });
     }
 
