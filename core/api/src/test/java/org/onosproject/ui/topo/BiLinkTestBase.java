@@ -74,6 +74,13 @@ public abstract class BiLinkTestBase {
         public <B extends Behaviour> boolean is(Class<B> projectionClass) {
             return false;
         }
+
+        @Override public void setWeight(int weight) {
+            return;
+        }
+        @Override public int getWeight() {
+            return 0;
+        }
     }
 
     protected static final DeviceId DEV_A_ID = DeviceId.deviceId("device-A");

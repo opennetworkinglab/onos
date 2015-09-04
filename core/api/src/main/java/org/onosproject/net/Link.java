@@ -135,6 +135,6 @@ public interface Link extends Annotated, Provided, Projectable, NetworkResource 
      *
      * @return link weight
      */
-    int weight();
+    int getWeight();
 
 }
