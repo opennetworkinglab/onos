@@ -103,7 +103,7 @@
               requires="Net-REST.Create-Intent-YX"
               exec="curl -f -uonos:rocks ${xyLocation}"/>
         <step name="Net-REST.Validate-Intent-YX-Installed"
-              requires="Net-REST.Create-Intent-YX"
+              requires="^"
               exec="curl -f -uonos:rocks ${yxLocation}"/>
 
         <!-- Use REST API to query flows created by the intents -->
@@ -149,9 +149,11 @@
               env="!"/>
 
         <!-- Check that the deleted intents no longer appear in the REST API -->
-        <step name="Net-REST.Validate-Intent-XY-Removed" requires="Net-REST.Delete-Intent-XY"
+        <step name="Net-REST.Allow-Intents-To-Purge" requires="Net-REST.Delete-Intent-XY"
+              exec="sleep 1"/>
+        <step name="Net-REST.Validate-Intent-XY-Removed" requires="Net-REST.Allow-Intents-To-Purge"
               exec="curl -f -uonos:rocks ${xyLocation}" env="!"/>
-        <step name="Net-REST.Validate-Intent-YX-Removed" requires="Net-REST.Delete-Intent-YX"
+        <step name="Net-REST.Validate-Intent-YX-Removed" requires="Net-REST.Allow-Intents-To-Purge"
               exec="curl -f -uonos:rocks ${yxLocation}" env="!"/>
 
     </group>
