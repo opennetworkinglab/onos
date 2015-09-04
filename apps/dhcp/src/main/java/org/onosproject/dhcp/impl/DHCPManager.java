@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ARP;
 import org.onlab.packet.DHCP;
 import org.onlab.packet.DHCPOption;
+import org.onlab.packet.DHCPPacketType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -395,7 +396,7 @@ public class DHCPManager implements DHCPService {
                 builder.setOutput(sourcePoint.port());
 
                 packetService.emit(new DefaultOutboundPacket(sourcePoint.deviceId(),
-                                    builder.build(), ByteBuffer.wrap(reply.serialize())));
+                        builder.build(), ByteBuffer.wrap(reply.serialize())));
             }
         }
 
@@ -435,20 +436,20 @@ public class DHCPManager implements DHCPService {
                 }
 
                 String ipOffered = "";
-                DHCP.DHCPMessageType outgoingPacketType;
+                DHCPPacketType outgoingPacketType;
                 MacAddress clientMAC = new MacAddress(dhcpPayload.getClientHardwareAddress());
 
-                if (incomingPacketType == DHCP.DHCPMessageType.MessageType_Discover.getValue()) {
+                if (incomingPacketType == DHCPPacketType.DHCPDISCOVER.getValue()) {
 
-                    outgoingPacketType = DHCP.DHCPMessageType.MessageType_Offer;
+                    outgoingPacketType = DHCPPacketType.DHCPOFFER;
                     ipOffered = dhcpStore.suggestIP(clientMAC, requestedIP).toString();
 
-                    Ethernet ethReply = buildReply(packet, ipOffered, outgoingPacketType.getValue());
+                    Ethernet ethReply = buildReply(packet, ipOffered, (byte) outgoingPacketType.getValue());
                     sendReply(context, ethReply);
 
-                } else if (incomingPacketType == DHCP.DHCPMessageType.MessageType_Request.getValue()) {
+                } else if (incomingPacketType == DHCPPacketType.DHCPREQUEST.getValue()) {
 
-                    outgoingPacketType = DHCP.DHCPMessageType.MessageType_ACK;
+                    outgoingPacketType = DHCPPacketType.DHCPACK;
 
                     if (flagIfServerIP && flagIfRequestedIP) {
                         // SELECTING state
@@ -456,7 +457,7 @@ public class DHCPManager implements DHCPService {
                                 dhcpStore.assignIP(clientMAC, requestedIP, leaseTime)) {
 
                             Ethernet ethReply = buildReply(packet, requestedIP.toString(),
-                                    outgoingPacketType.getValue());
+                                    (byte) outgoingPacketType.getValue());
                             sendReply(context, ethReply);
                             discoverHost(context, requestedIP);
                         }
@@ -464,7 +465,7 @@ public class DHCPManager implements DHCPService {
                         // INIT-REBOOT state
                         if (dhcpStore.assignIP(clientMAC, requestedIP, leaseTime)) {
                             Ethernet ethReply = buildReply(packet, requestedIP.toString(),
-                                    outgoingPacketType.getValue());
+                                    (byte) outgoingPacketType.getValue());
                             sendReply(context, ethReply);
                             discoverHost(context, requestedIP);
                         }
@@ -475,13 +476,13 @@ public class DHCPManager implements DHCPService {
                             Ip4Address clientIaddr = Ip4Address.valueOf(ciaadr);
                             if (dhcpStore.assignIP(clientMAC, clientIaddr, leaseTime)) {
                                 Ethernet ethReply = buildReply(packet, clientIaddr.toString(),
-                                        outgoingPacketType.getValue());
+                                        (byte) outgoingPacketType.getValue());
                                 sendReply(context, ethReply);
                                 discoverHost(context, clientIaddr);
                             }
                         }
                     }
-                } else if (incomingPacketType == DHCP.DHCPMessageType.MessageType_Release.getValue()) {
+                } else if (incomingPacketType == DHCPPacketType.DHCPRELEASE.getValue()) {
 
                     dhcpStore.releaseIP(clientMAC);
                 }
@@ -628,7 +629,7 @@ public class DHCPManager implements DHCPService {
             }
             if ((cfg.startIP() != null) && (cfg.endIP() != null)) {
                 dhcpStore.populateIPPoolfromRange(Ip4Address.valueOf(cfg.startIP()),
-                                                    Ip4Address.valueOf(cfg.endIP()));
+                        Ip4Address.valueOf(cfg.endIP()));
             }
         }
 

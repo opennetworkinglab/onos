@@ -73,22 +73,6 @@ public class DHCP extends BasePacket {
         }
     }
 
-    public enum DHCPMessageType {
-        MessageType_Discover((byte) 1), MessageType_Offer((byte) 2), MessageType_Request((byte) 3),
-        MessageType_Decline((byte) 4), MessageType_ACK((byte) 5), MessageType_Nak((byte) 6),
-        MessageType_Release((byte) 7), MessageType_Inform((byte) 8);
-
-        protected byte value;
-
-        private DHCPMessageType(final byte value) {
-            this.value = value;
-        }
-
-        public byte getValue() {
-            return this.value;
-        }
-    }
-
     protected byte opCode;
     protected byte hardwareType;
     protected byte hardwareAddressLength;

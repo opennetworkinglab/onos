@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.DHCP;
 import org.onlab.packet.DHCPOption;
+import org.onlab.packet.DHCPPacketType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -102,7 +103,7 @@ public class DHCPManagerTest {
      */
     @Test
     public void testDiscover() {
-        Ethernet reply = constructDHCPPacket(DHCP.DHCPMessageType.MessageType_Discover);
+        Ethernet reply = constructDHCPPacket(DHCPPacketType.DHCPDISCOVER);
         sendPacket(reply);
     }
 
@@ -111,7 +112,7 @@ public class DHCPManagerTest {
      */
     @Test
     public void testRequest() {
-        Ethernet reply = constructDHCPPacket(DHCP.DHCPMessageType.MessageType_Request);
+        Ethernet reply = constructDHCPPacket(DHCPPacketType.DHCPREQUEST);
         sendPacket(reply);
     }
 
@@ -131,10 +132,10 @@ public class DHCPManagerTest {
 
     /**
      * Constructs an Ethernet packet containing a DHCP Payload.
-     * @param messageType DHCP Message Type
+     * @param packetType DHCP Message Type
      * @return Ethernet packet
      */
-    private Ethernet constructDHCPPacket(DHCP.DHCPMessageType messageType) {
+    private Ethernet constructDHCPPacket(DHCPPacketType packetType) {
 
         // Ethernet Frame.
         Ethernet ethReply = new Ethernet();
@@ -173,7 +174,7 @@ public class DHCPManagerTest {
         // DHCP Message Type.
         option.setCode(DHCP.DHCPOptionCode.OptionCode_MessageType.getValue());
         option.setLength((byte) 1);
-        byte[] optionData = {messageType.getValue()};
+        byte[] optionData = {(byte) packetType.getValue()};
         option.setData(optionData);
         optionList.add(option);
 
