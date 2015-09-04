@@ -119,7 +119,7 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
     }
 
     @Override
-    public int weight() {
+    public int getWeight() {
         return weight;
     }
 
