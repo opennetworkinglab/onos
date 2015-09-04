@@ -628,6 +628,9 @@ public class DHCP extends BasePacket {
                         }
                     }
                 } else if (code == 255) {
+                    DHCPOption end = new DHCPOption();
+                    end.setCode((byte) 255);
+                    dhcp.options.add(end);
                     // remaining bytes are supposed to be 0, but ignore them just in
                     // case
                     foundEndOptionsMarker = true;

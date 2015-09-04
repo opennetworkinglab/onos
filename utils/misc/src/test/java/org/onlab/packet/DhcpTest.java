@@ -130,7 +130,7 @@ public class DhcpTest {
 
         assertEquals(serverName, dhcp.serverName);
         assertEquals(bootFileName, dhcp.bootFileName);
-        assertEquals(1, dhcp.options.size());
+        assertEquals(2, dhcp.options.size());
         assertEquals(hostNameOption, dhcp.options.get(0));
     }
 
