@@ -133,13 +133,14 @@ public class ECMPShortestPathGraph {
                 }
 
                 Integer distance = deviceSearched.get(reachedDevice);
-                if ((distance != null) && (distance.intValue() < (currDistance + link.weight()))) {
+                if ((distance != null) && (distance.intValue() < (currDistance + link.getWeight()))) {
                     continue;
                 }
 
                 /* First time visiting this Device node or update the distance */
-                if (distance == null || distance.intValue() >= (currDistance + link.weight())) {
-                    DeviceDistance reachedDeviceObj = new DeviceDistance(reachedDevice, currDistance + link.weight());
+                if (distance == null || distance.intValue() >= (currDistance + link.getWeight())) {
+                    DeviceDistance reachedDeviceObj = new DeviceDistance(reachedDevice,
+                                                                         currDistance + link.getWeight());
                     devicePriorityQueue.add(reachedDeviceObj);
                     deviceSearched.put(reachedDeviceObj.deviceId(), reachedDeviceObj.distance());
 
@@ -153,11 +154,11 @@ public class ECMPShortestPathGraph {
                     }
 
                     ArrayList<DeviceId> distanceSwArray = distanceDeviceMap
-                            .get(currDistance + link.weight());
+                            .get(currDistance + link.getWeight());
                     if (distanceSwArray == null) {
                         distanceSwArray = new ArrayList<DeviceId>();
                         distanceSwArray.add(reachedDevice);
-                        distanceDeviceMap.put(currDistance + link.weight(), distanceSwArray);
+                        distanceDeviceMap.put(currDistance + link.getWeight(), distanceSwArray);
                     } else {
                         distanceSwArray.add(reachedDevice);
                     }
@@ -171,7 +172,7 @@ public class ECMPShortestPathGraph {
                     upstreamLinks.put(reachedDevice, upstreamLinkArray);
                 } else {
                     /* ECMP links */
-                    if (distance.intValue() > (currDistance + link.weight())) {
+                    if (distance.intValue() > (currDistance + link.getWeight())) {
                         upstreamLinkArray.clear();
                     }
                     upstreamLinkArray.add(copyDefaultLink(link));
