@@ -59,7 +59,7 @@ public interface PcepMsgPath {
      * @return PcepMsgPath
      * @throws PcepParseException while parsing Message Path from Channel Buffer.
      */
-    public PcepMsgPath read(ChannelBuffer bb) throws PcepParseException;
+    PcepMsgPath read(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * writes ERO object and attribute list to channel.
@@ -69,7 +69,7 @@ public interface PcepMsgPath {
      * @throws PcepParseException while writing Message Path into Channel Buffer.
      */
 
-    public int write(ChannelBuffer bb) throws PcepParseException;
+    int write(ChannelBuffer bb) throws PcepParseException;
 
     /**
      * Builder interface with get and set functions to build PcepMsgPath.
