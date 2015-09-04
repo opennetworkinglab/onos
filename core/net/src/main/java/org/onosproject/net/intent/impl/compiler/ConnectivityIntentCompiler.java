@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Component;
@@ -99,12 +98,8 @@ public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
         Set<Path> paths = pathService.getPaths(one, two, weight(intent.constraints()));
         final List<Constraint> constraints = intent.constraints();
         ImmutableList<Path> filtered = FluentIterable.from(paths)
-                .filter(new Predicate<Path>() {
-                    @Override
-                    public boolean apply(Path path) {
-                        return checkPath(path, constraints);
-                    }
-                }).toList();
+                .filter(path -> checkPath(path, constraints))
+                .toList();
         if (filtered.isEmpty()) {
             throw new PathNotFoundException(one, two);
         }
