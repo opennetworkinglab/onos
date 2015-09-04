@@ -61,6 +61,12 @@ public abstract class BiLinkTestBase {
         @Override public ProviderId providerId() {
             return null;
         }
+        @Override public void setWeight(int weight) {
+            return;
+        }
+        @Override public int getWeight() {
+            return 0;
+        }
     }
 
     protected static final DeviceId DEV_A_ID = DeviceId.deviceId("device-A");

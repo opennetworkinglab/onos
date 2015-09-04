@@ -123,6 +123,6 @@ public interface Link extends Annotated, Provided, NetworkResource {
      *
      * @return link weight
      */
-    int weight();
+    int getWeight();
 
 }
