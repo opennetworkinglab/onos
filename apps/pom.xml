@@ -57,7 +57,7 @@
         <module>vtnrsc</module>
         <module>vtn</module>
         <module>vtnweb</module>
-        <module>onos-app-dhcp</module>
+        <module>dhcp</module>
     </modules>
 
     <properties>
