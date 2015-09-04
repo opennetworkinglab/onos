@@ -46,7 +46,7 @@ public class BgpConfig extends Config<ApplicationId> {
     public Set<BgpSpeakerConfig> bgpSpeakers() {
         Set<BgpSpeakerConfig> speakers = Sets.newHashSet();
 
-        JsonNode speakersNode = node.get(SPEAKERS);
+        JsonNode speakersNode = object.get(SPEAKERS);
         speakersNode.forEach(jsonNode -> {
             Set<IpAddress> listenAddresses = Sets.newHashSet();
             jsonNode.path(PEERS).forEach(addressNode ->

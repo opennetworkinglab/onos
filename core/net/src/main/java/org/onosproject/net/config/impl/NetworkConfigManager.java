@@ -15,7 +15,7 @@
  */
 package org.onosproject.net.config.impl;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
@@ -197,7 +197,7 @@ public class NetworkConfigManager
     }
 
     @Override
-    public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, ObjectNode json) {
+    public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, JsonNode json) {
         checkNotNull(subject, NULL_SUBJECT_MSG);
         checkNotNull(configClass, NULL_CCLASS_MSG);
         return store.applyConfig(subject, configClass, json);

@@ -50,7 +50,8 @@ public class InterfaceConfig extends Config<ConnectPoint> {
         Set<Interface> interfaces = Sets.newHashSet();
 
         try {
-            for (JsonNode intfNode : node.path(INTERFACES)) {
+            // TODO: rework this to take advantage of ArrayNode backing
+            for (JsonNode intfNode : object.path(INTERFACES)) {
                 Set<InterfaceIpAddress> ips = getIps(intfNode);
                 if (ips.isEmpty()) {
                     throw new ConfigException(IP_MISSING_ERROR);

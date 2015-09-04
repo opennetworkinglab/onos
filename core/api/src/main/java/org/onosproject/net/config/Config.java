@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -41,8 +42,12 @@ public abstract class Config<S> {
 
     protected S subject;
     protected String key;
-    protected ObjectNode node;
+
+    protected JsonNode node;
+    protected ObjectNode object;
+    protected ArrayNode array;
     protected ObjectMapper mapper;
+
     protected ConfigApplyDelegate delegate;
 
     /**
@@ -50,15 +55,17 @@ public abstract class Config<S> {
      *
      * @param subject  configuration subject
      * @param key      configuration key
-     * @param node     JSON object node where configuration data is stored
+     * @param node     JSON node where configuration data is stored
      * @param mapper   JSON object mapper
      * @param delegate delegate context
      */
-    public void init(S subject, String key, ObjectNode node, ObjectMapper mapper,
+    public void init(S subject, String key, JsonNode node, ObjectMapper mapper,
                      ConfigApplyDelegate delegate) {
         this.subject = checkNotNull(subject);
         this.key = key;
         this.node = checkNotNull(node);
+        this.object = node instanceof ObjectNode ? (ObjectNode) node : null;
+        this.array = node instanceof ArrayNode ? (ArrayNode) node : null;
         this.mapper = checkNotNull(mapper);
         this.delegate = checkNotNull(delegate);
     }
@@ -88,8 +95,8 @@ public abstract class Config<S> {
      *
      * @return JSON node backing the configuration
      */
-    public ObjectNode node() {
-        return node;
+    public JsonNode node() {
+        return object;
     }
 
     /**
@@ -110,7 +117,7 @@ public abstract class Config<S> {
      * @return property value or default value
      */
     protected String get(String name, String defaultValue) {
-        return node.path(name).asText(defaultValue);
+        return object.path(name).asText(defaultValue);
     }
 
     /**
@@ -122,9 +129,9 @@ public abstract class Config<S> {
      */
     protected Config<S> setOrClear(String name, String value) {
         if (value != null) {
-            node.put(name, value);
+            object.put(name, value);
         } else {
-            node.remove(name);
+            object.remove(name);
         }
         return this;
     }
@@ -137,7 +144,7 @@ public abstract class Config<S> {
      * @return property value or default value
      */
     protected boolean get(String name, boolean defaultValue) {
-        return node.path(name).asBoolean(defaultValue);
+        return object.path(name).asBoolean(defaultValue);
     }
 
     /**
@@ -149,9 +156,9 @@ public abstract class Config<S> {
      */
     protected Config<S> setOrClear(String name, Boolean value) {
         if (value != null) {
-            node.put(name, value.booleanValue());
+            object.put(name, value.booleanValue());
         } else {
-            node.remove(name);
+            object.remove(name);
         }
         return this;
     }
@@ -164,7 +171,7 @@ public abstract class Config<S> {
      * @return property value or default value
      */
     protected int get(String name, int defaultValue) {
-        return node.path(name).asInt(defaultValue);
+        return object.path(name).asInt(defaultValue);
     }
 
     /**
@@ -176,9 +183,9 @@ public abstract class Config<S> {
      */
     protected Config<S> setOrClear(String name, Integer value) {
         if (value != null) {
-            node.put(name, value.intValue());
+            object.put(name, value.intValue());
         } else {
-            node.remove(name);
+            object.remove(name);
         }
         return this;
     }
@@ -191,7 +198,7 @@ public abstract class Config<S> {
      * @return property value or default value
      */
     protected long get(String name, long defaultValue) {
-        return node.path(name).asLong(defaultValue);
+        return object.path(name).asLong(defaultValue);
     }
 
     /**
@@ -203,9 +210,9 @@ public abstract class Config<S> {
      */
     protected Config<S> setOrClear(String name, Long value) {
         if (value != null) {
-            node.put(name, value.longValue());
+            object.put(name, value.longValue());
         } else {
-            node.remove(name);
+            object.remove(name);
         }
         return this;
     }
@@ -218,7 +225,7 @@ public abstract class Config<S> {
      * @return property value or default value
      */
     protected double get(String name, double defaultValue) {
-        return node.path(name).asDouble(defaultValue);
+        return object.path(name).asDouble(defaultValue);
     }
 
     /**
@@ -230,9 +237,9 @@ public abstract class Config<S> {
      */
     protected Config<S> setOrClear(String name, Double value) {
         if (value != null) {
-            node.put(name, value.doubleValue());
+            object.put(name, value.doubleValue());
         } else {
-            node.remove(name);
+            object.remove(name);
         }
         return this;
     }
@@ -247,7 +254,7 @@ public abstract class Config<S> {
      * @return property value or default value
      */
     protected <E extends Enum<E>> E get(String name, E defaultValue, Class<E> enumClass) {
-        return Enum.valueOf(enumClass, node.path(name).asText(defaultValue.toString()));
+        return Enum.valueOf(enumClass, object.path(name).asText(defaultValue.toString()));
     }
 
     /**
@@ -260,9 +267,9 @@ public abstract class Config<S> {
      */
     protected <E extends Enum> Config<S> setOrClear(String name, E value) {
         if (value != null) {
-            node.put(name, value.toString());
+            object.put(name, value.toString());
         } else {
-            node.remove(name);
+            object.remove(name);
         }
         return this;
     }
@@ -277,7 +284,7 @@ public abstract class Config<S> {
      */
     protected <T> List<T> getList(String name, Function<String, T> function) {
         List<T> list = Lists.newArrayList();
-        ArrayNode arrayNode = (ArrayNode) node.path(name);
+        ArrayNode arrayNode = (ArrayNode) object.path(name);
         arrayNode.forEach(i -> list.add(function.apply(i.asText())));
         return list;
     }
@@ -293,11 +300,11 @@ public abstract class Config<S> {
      */
     protected <T> Config<S> setOrClear(String name, Collection<T> collection) {
         if (collection == null) {
-            node.remove(name);
+            object.remove(name);
         } else {
             ArrayNode arrayNode = mapper.createArrayNode();
             collection.forEach(i -> arrayNode.add(i.toString()));
-            node.set(name, arrayNode);
+            object.set(name, arrayNode);
         }
         return this;
     }
