@@ -37,27 +37,19 @@
       <artifactId>concurrent-trees</artifactId>
     </dependency>
 
-        <dependency>
-          <!-- FIXME once fixes get merged to upstream -->
-          <groupId>org.onosproject</groupId>
-            <artifactId>copycat-api</artifactId>
-            <version>${copycat.version}</version>
-        </dependency>
+    <dependency>
+      <!-- FIXME once fixes get merged to upstream -->
+      <groupId>org.onosproject</groupId>
+        <artifactId>copycat-api</artifactId>
+        <version>${copycat.version}</version>
+    </dependency>
 
-        <dependency>
-          <!-- FIXME once fixes get merged to upstream -->
-          <groupId>org.onosproject</groupId>
-            <artifactId>copycat-core</artifactId>
-            <version>${copycat.version}</version>
-        </dependency>
-
-        <dependency>
-          <!-- FIXME once fixes get merged to upstream -->
-          <groupId>org.onosproject</groupId>
-            <artifactId>copycat-netty</artifactId>
-            <version>${copycat.version}</version>
-        </dependency>
-
+    <dependency>
+      <!-- FIXME once fixes get merged to upstream -->
+      <groupId>org.onosproject</groupId>
+        <artifactId>copycat-core</artifactId>
+        <version>${copycat.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
