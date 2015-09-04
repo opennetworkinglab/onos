@@ -33,6 +33,7 @@ public class DomainVertex implements Vertex {
     // A domain vertex is either an intent domain or a device:
     private final IntentDomainId domainId;
     // ----- or -----
+
     private final DeviceId deviceId;
 
     // Serialization constructor
@@ -65,5 +66,23 @@ public class DomainVertex implements Vertex {
             return MoreObjects.toStringHelper(this)
                     .toString();
         }
+    }
+
+    /**
+     * Returns the device ID of this vertex if it is a device, returns null if it is a domain.
+     *
+     * @return the device ID of this vertex if applicable, else null
+     */
+    public DeviceId deviceId() {
+        return deviceId;
+    }
+
+    /**
+     * Returns the domain ID of this vertex if it is a domain, returns null if it is a device.
+     *
+     * @return the domain ID of this vertex if applicable, else null
+     */
+    public IntentDomainId domainId() {
+        return domainId;
     }
 }

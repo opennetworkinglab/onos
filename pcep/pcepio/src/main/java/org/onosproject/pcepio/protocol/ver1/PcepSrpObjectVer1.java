@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP SRP obejct.
+ */
 public class PcepSrpObjectVer1 implements PcepSrpObject {
 
     /*
@@ -156,7 +159,7 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
 
         srpObjHeader = PcepObjectHeader.read(cb);
 
-        if (SRP_OBJ_CLASS != srpObjHeader.getObjClass()) {
+        if (srpObjHeader.getObjClass() != SRP_OBJ_CLASS) {
             throw new PcepParseException("SRP object expected. But received " + srpObjHeader.getObjClass());
         }
 
@@ -255,7 +258,7 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
 
-            if (null == tlv) {
+            if (tlv == null) {
                 log.debug("tlv is null from OptionalTlv list");
                 continue;
             }
@@ -276,7 +279,7 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
     }
 
     /**
-     * builder class for PCEP srp Object.
+     * Builder class for PCEP srp Object.
      */
     public static class Builder implements PcepSrpObject.Builder {
         private boolean bIsHeaderSet = false;
@@ -380,7 +383,10 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("RFlag", bRFlag).add("SRPID", srpId)
-                .add("OptionalTlvList", llOptionalTlv).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("RFlag", bRFlag)
+                .add("SRPID", srpId)
+                .add("OptionalTlvList", llOptionalTlv)
+                .toString();
     }
 }

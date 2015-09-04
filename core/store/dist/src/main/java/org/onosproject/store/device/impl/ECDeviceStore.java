@@ -589,9 +589,9 @@ public class ECDeviceStore
     /**
      * Calculate delta statistics by subtracting previous from new statistics.
      *
-     * @param deviceId
-     * @param prvStats
-     * @param newStats
+     * @param deviceId device indentifier
+     * @param prvStats previous port statistics
+     * @param newStats new port statistics
      * @return PortStatistics
      */
     public PortStatistics calcDeltaStats(DeviceId deviceId, PortStatistics prvStats, PortStatistics newStats) {

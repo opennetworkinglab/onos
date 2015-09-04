@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
 
 /**
  * Provides PcInitiatedLspRequest for PCEP Initiate message.
@@ -280,18 +279,13 @@ public class PcInitiatedLspRequestVer1 implements PcInitiatedLspRequest {
 
     @Override
     public String toString() {
-        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
-        toStrHelper.add("SrpObject", srpObject).add("LspObject", lspObject);
-
-        if (endPointsObject instanceof PcepEndPointsObject) {
-            toStrHelper.add("EndPointObject", endPointsObject);
-        }
-        if (eroObject instanceof PcepEroObject) {
-            toStrHelper.add("EroObject", eroObject);
-        }
-        if (pcepAttribute instanceof PcepAttribute) {
-            toStrHelper.add("PcepAttribute", pcepAttribute);
-        }
-        return toStrHelper.toString();
+        return MoreObjects.toStringHelper(getClass())
+                .omitNullValues()
+                .add("SrpObject", srpObject)
+                .add("LspObject", lspObject)
+                .add("EndPointObject", endPointsObject)
+                .add("EroObject", eroObject)
+                .add("PcepAttribute", pcepAttribute)
+                .toString();
     }
 }

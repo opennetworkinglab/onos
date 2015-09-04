@@ -17,7 +17,7 @@ package org.onosproject.pcep.controller;
 
 import org.onosproject.pcepio.protocol.PcepMessage;
 /**
- * Notifies providers about pcep msg events.
+ * Notifies providers about PCEP message events.
  */
 public interface PcepEventListener {
 

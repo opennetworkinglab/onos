@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
 
 /**
  * Provides StatefulRsvpErrorSpecTlv.
@@ -104,7 +103,7 @@ public class StatefulRsvpErrorSpecTlv implements PcepValueType {
 
     public static final short TYPE = 21;
     public static final int OBJECT_HEADER_LENGTH = 4;
-    private final short hLength;
+    private short hLength;
 
     private final PcepRsvpErrorSpec rsvpErrSpecObj;
     private final boolean isErrSpceObjSet;
@@ -113,12 +112,10 @@ public class StatefulRsvpErrorSpecTlv implements PcepValueType {
      * Constructor to initialize errSpecObj.
      *
      * @param rsvpErrSpecObj Rsvp error spec object
-     * @param hLength length of rsvp error spec object
      */
-    public StatefulRsvpErrorSpecTlv(PcepRsvpErrorSpec rsvpErrSpecObj, short hLength) {
+    public StatefulRsvpErrorSpecTlv(PcepRsvpErrorSpec rsvpErrSpecObj) {
         this.rsvpErrSpecObj = rsvpErrSpecObj;
         this.isErrSpceObjSet = true;
-        this.hLength = hLength;
     }
 
     /**
@@ -150,6 +147,7 @@ public class StatefulRsvpErrorSpecTlv implements PcepValueType {
      *
      * @param cb of type channel buffer
      * @return object of StatefulRsvpErrorSpecTlv
+     * @throws PcepParseException while parsing this tlv from channel buffer
      */
     public static PcepValueType read(ChannelBuffer cb) throws PcepParseException {
 
@@ -170,7 +168,7 @@ public class StatefulRsvpErrorSpecTlv implements PcepValueType {
                 && PcepRsvpUserErrorSpec.CLASS_TYPE == rsvpErrSpecObjHeader.getObjClassType()) {
             rsvpErrSpecObj = PcepRsvpUserErrorSpec.read(cb);
         }
-        return rsvpErrSpecObj;
+        return new StatefulRsvpErrorSpecTlv(rsvpErrSpecObj);
     }
 
     @Override
@@ -195,25 +193,24 @@ public class StatefulRsvpErrorSpecTlv implements PcepValueType {
         int iStartIndex = c.writerIndex();
         c.writeShort(TYPE);
         int tlvLenIndex = c.writerIndex();
+        hLength = 0;
         c.writeShort(hLength);
         if (isErrSpceObjSet) {
             rsvpErrSpecObj.write(c);
         }
-        short tlvLen = (short) (c.writerIndex() - iStartIndex + 4);
-        c.setShort(tlvLenIndex, tlvLen);
+        hLength = (short) (c.writerIndex() - iStartIndex);
+        c.setShort(tlvLenIndex, (hLength - OBJECT_HEADER_LENGTH));
 
-        return tlvLen;
+        return c.writerIndex() - iStartIndex;
     }
 
     @Override
     public String toString() {
-        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
-
-        if (!isErrSpceObjSet) {
-            toStrHelper.add("Type", TYPE).add("Length", hLength);
-        } else {
-            toStrHelper.add("Type", TYPE).add("Length", hLength).add("RSVPErrorSpecObject", rsvpErrSpecObj);
-        }
-        return toStrHelper.toString();
+        return MoreObjects.toStringHelper(getClass())
+                .omitNullValues()
+                .add("Type", TYPE)
+                .add("Length", hLength)
+                .add("RSVPErrorSpecObject", rsvpErrSpecObj)
+                .toString();
     }
 }

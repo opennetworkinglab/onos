@@ -16,8 +16,8 @@
 package org.onosproject.app;
 
 import org.onosproject.core.ApplicationRole;
-import org.onosproject.core.Permission;
 import org.onosproject.core.Version;
+import org.onosproject.security.Permission;
 
 import java.net.URI;
 import java.util.List;

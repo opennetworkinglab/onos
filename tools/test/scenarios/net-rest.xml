@@ -1,0 +1,160 @@
+<!--
+  ~ Copyright 2015 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="net-rest"
+          description="Network REST API test">
+    <!-- TODO: parametrize this via recipes -->
+    <group name="Net-REST">
+
+        <!-- Make sure that reactive forwarding is off -->
+        <step name="Net-REST.Uninstall-Reactive-Forwarding"
+              exec="onos ${OC1} app deactivate org.onosproject.fwd org.onosproject.ifwd"/>
+        <step name="Net-REST.Check-Apps" requires="^"
+              exec="onos-check-apps ${OC1} fwd,ifwd excludes"/>
+
+        <!-- Force discovery of hosts -->
+        <step name="Net-REST.Find-Host-1" requires="^"
+              exec="onos-mininet sendAndExpect h1 ping -c1 -w1 h4 --expect ."/>
+        <step name="Net-REST.Find-Host-2" requires="^"
+              exec="onos-mininet sendAndExpect h4 ping -c1 -w1 h1 --expect ."/>
+
+        <!-- Verify some links using the REST API -->
+        <step name="Net-REST.Query-Link-1" requires="Net-REST.Find-Host-2"
+              exec="find-link.py ${OC1} link1 of:0000000000000001 5 of:0000000000000006 4"/>
+        <step name="Net-REST.Validate-Link-1-State" requires="^"
+              exec="test '${link1State}' == 'ACTIVE'"/>
+        <step name="Net-REST.Validate-Link-1-Type" requires="^"
+              exec="test '${link1Type}' == 'DIRECT'"/>
+        <step name="Net-REST.Validate-Link-1-Src-Device" requires="^"
+              exec="test '${link1SrcDevice}' == 'of:0000000000000001'"/>
+        <step name="Net-REST.Validate-Link-1-Dst-Device" requires="^"
+              exec="test '${link1DstDevice}' == 'of:0000000000000006'"/>
+        <step name="Net-REST.Validate-Link-1-Src-Port" requires="^"
+              exec="test '${link1SrcPort}' == '5'"/>
+        <step name="Net-REST.Validate-Link-1-Dst-Port" requires="^"
+              exec="test '${link1DstPort}' == '4'"/>
+
+        <step name="Net-REST.Query-Link-2" requires="Net-REST.Find-Host-2"
+              exec="find-link.py ${OC1} link2 of:0000000000000019 7 of:0000000000000006 3"/>
+        <step name="Net-REST.Validate-Link-2-State" requires="^"
+              exec="test '${link2State}' == 'ACTIVE'"/>
+        <step name="Net-REST.Validate-Link-2-Type" requires="^"
+              exec="test '${link2Type}' == 'DIRECT'"/>
+        <step name="Net-REST.Validate-Link-2-Src-Device" requires="^"
+              exec="test '${link2SrcDevice}' == 'of:0000000000000019'"/>
+        <step name="Net-REST.Validate-Link-2-Dst-Device" requires="^"
+              exec="test '${link2DstDevice}' == 'of:0000000000000006'"/>
+        <step name="Net-REST.Validate-Link-2-Src-Port" requires="^"
+              exec="test '${link2SrcPort}' == '7'"/>
+        <step name="Net-REST.Validate-Link-2-Dst-Port" requires="^"
+              exec="test '${link2DstPort}' == '3'"/>
+
+        <!-- Verify the hosts using the REST API -->
+        <step name="Net-REST.Query-Host-1" requires="Net-REST.Find-Host-2"
+              exec="find-host.py ${OC1} host1 00:00:00:00:00:01/-1"/>
+        <step name="Net-REST.Validate-Host-1-Id" requires="^"
+              exec="test '${host1Id}' == '00:00:00:00:00:01/-1'"/>
+        <step name="Net-REST.Validate-Host-1-Mac" requires="^"
+              exec="test '${host1Mac}' == '00:00:00:00:00:01'"/>
+        <step name="Net-REST.Validate-Host-1-Ip" requires="^"
+              exec="test '${host1IpAddress}' == '10.0.0.1'"/>
+
+        <step name="Net-REST.Query-Host-2" requires="Net-REST.Find-Host-2"
+              exec="find-host.py ${OC1} host2 00:00:00:00:00:04/-1"/>
+        <step name="Net-REST.Validate-Host-2-Id" requires="^"
+              exec="test '${host2Id}' == '00:00:00:00:00:04/-1'"/>
+        <step name="Net-REST.Validate-Host-2-Mac" requires="^"
+              exec="test '${host2Mac}' == '00:00:00:00:00:04'"/>
+        <step name="Net-REST.Validate-Host-2-Ip" requires="^"
+              exec="test '${host2IpAddress}' == '10.0.0.4'"/>
+
+        <!-- Verify a switch using the REST API -->
+        <step name="Net-REST.Query-Dev-1" requires="Net-REST.Find-Host-2"
+              exec="find-device.py ${OC1} dev1 of:0000000000000014"/>
+        <step name="Net-REST.Validate-Dev1-Id" requires="^"
+              exec="test '${dev1Id}' == 'of:0000000000000014'"/>
+        <step name="Net-REST.Validate-Dev1-Type" requires="^"
+              exec="test '${dev1Type}' == 'SWITCH'"/>
+        <step name="Net-REST.Validate-Dev1-Available" requires="^"
+              exec="test '${dev1Available}' == 'True'"/>
+        <step name="Net-REST.Validate-Dev1-ChannelId" requires="^"
+              exec="test '${dev1IpAddress}' == '${OCN}'"/>
+
+        <!-- Use REST API to create a point to point intent in each direction -->
+        <step name="Net-REST.Create-Intent-XY" requires="Net-REST.Find-Host-2"
+              exec="create-intent.py ${OC1} xy of:0000000000000001 1 of:0000000000000004 1"/>
+        <step name="Net-REST.Create-Intent-YX" requires="^"
+              exec="create-intent.py ${OC1} yx of:0000000000000004 1 of:0000000000000001 1"/>
+
+        <!-- Check that the intents can be fetched via the REST API -->
+        <step name="Net-REST.Validate-Intent-XY-Installed"
+              requires="Net-REST.Create-Intent-YX"
+              exec="curl -f -uonos:rocks ${xyLocation}"/>
+        <step name="Net-REST.Validate-Intent-YX-Installed"
+              requires="^"
+              exec="curl -f -uonos:rocks ${yxLocation}"/>
+
+        <!-- Use REST API to query flows created by the intents -->
+        <step name="Net-REST.Validate-Intent-XY-Flow-Installed"
+              requires="Net-REST.Create-Intent-YX"
+              exec="find-flow.py ${OC1} dev1out of:0000000000000001"/>
+        <step name="Net-REST.Validate-XY-Flow-State" requires="^"
+              exec="test '${dev1outFlowState}' == 'ADDED' -o '${dev1outFlowState}' == 'PENDING_ADD'"/>
+        <step name="Net-REST.Validate-XY-Flow-Port" requires="^"
+              exec="test ${dev1outFlowPort} -ge 1 -a ${dev1outFlowPort} -le 5"/>
+
+        <step name="Net-REST.Validate-Intent-YX-Flow-Installed" requires="Net-REST.Create-Intent-YX"
+              exec="find-flow.py ${OC1} dev4out of:0000000000000004"/>
+        <step name="Net-REST.Validate-YX-Flow-State" requires="^"
+              exec="test '${dev4outFlowState}' == 'ADDED' -o '${dev4outFlowState}' == 'PENDING_ADD'"/>
+        <step name="Net-REST.Validate-YX-Flow-Port" requires="^"
+              exec="test '${dev4outFlowPort}' == '3'"/>
+
+        <!-- Check that connectivity was established -->
+        <step name="Net-REST.Ping-XY" requires="Net-REST.Create-Intent-XY,Net-REST.Create-Intent-YX"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
+        <step name="Net-REST.Ping-YX" requires="^"
+              exec="onos-mininet sendAndExpect h4 ping -c1 h1 --expect \ 0% packet loss"/>
+
+        <!-- Remove the intents via the REST API -->
+        <step name="Net-REST.Delete-Intent-XY"
+              requires="Net-REST.Validate-Intent-XY-Installed,
+                        Net-REST.Validate-Intent-YX-Installed,
+                        Net-REST.Validate-Intent-XY-Flow-Installed,
+                        Net-REST.Validate-Intent-YX-Flow-Installed,
+                        Net-REST.Ping-XY,
+                        Net-REST.Ping-YX"
+              exec="curl -f -X DELETE -uonos:rocks ${xyLocation}"/>
+        <step name="Net-REST.Delete-Intent-YX" requires="^"
+              exec="curl -f -X DELETE -uonos:rocks ${yxLocation}"/>
+
+        <!-- Use REST API to be sure that flows are no longer installed -->
+        <step name="Net-REST.Validate-XY-Flows-Removed" requires="Net-REST.Delete-Intent-XY"
+              exec="find-flow.py ${OC1} dev1out of:0000000000000001"
+              env="!"/>
+        <step name="Net-REST.Validate-YX-Flows-Removed" requires="Net-REST.Delete-Intent-YX"
+              exec="find-flow.py ${OC1} dev4out of:0000000000000004"
+              env="!"/>
+
+        <!-- Check that the deleted intents no longer appear in the REST API -->
+        <step name="Net-REST.Allow-Intents-To-Purge" requires="Net-REST.Delete-Intent-XY"
+              exec="sleep 1"/>
+        <step name="Net-REST.Validate-Intent-XY-Removed" requires="Net-REST.Allow-Intents-To-Purge"
+              exec="curl -f -uonos:rocks ${xyLocation}" env="!"/>
+        <step name="Net-REST.Validate-Intent-YX-Removed" requires="Net-REST.Allow-Intents-To-Purge"
+              exec="curl -f -uonos:rocks ${yxLocation}" env="!"/>
+
+    </group>
+</scenario>

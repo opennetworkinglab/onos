@@ -162,8 +162,8 @@ public class DevicePortStatsCommand extends DevicesListCommand {
     /**
      * Converts bytes to human readable string with Kilo, Mega, Giga, etc.
      *
-     * @param bytes
-     * @return
+     * @param bytes input byte array
+     * @return human readble string
      */
     public static String humanReadable(long bytes) {
         int unit = 1000;
@@ -177,8 +177,8 @@ public class DevicePortStatsCommand extends DevicesListCommand {
     /**
      * Converts bps to human readable format.
      *
-     * @param bps
-     * @return
+     * @param bps input rate
+     * @return human readble string
      */
     public static String humanReadableBps(float bps) {
         int unit = 1000;

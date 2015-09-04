@@ -318,6 +318,14 @@
             // but the map looks weird without it showing.
             return c.properties.adm0_a3 === 'GBR' ||
                 c.properties.adm0_a3 === 'IRL';
+        },
+
+        s_korea: function (c) {
+            return c.properties.adm0_a3 === 'KOR';
+        },
+
+        australia: function (c) {
+            return c.properties.adm0_a3 === 'AUS';
         }
     };
 

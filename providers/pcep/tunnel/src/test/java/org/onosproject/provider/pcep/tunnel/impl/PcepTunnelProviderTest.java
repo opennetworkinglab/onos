@@ -38,6 +38,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.cfg.ComponentConfigAdapter;
 
 public class PcepTunnelProviderTest {
 
@@ -46,6 +47,7 @@ public class PcepTunnelProviderTest {
     private final TunnelProviderRegistryAdapter registry = new TunnelProviderRegistryAdapter();
     private final PcepClientControllerAdapter controller = new PcepClientControllerAdapter();
     private final PcepControllerAdapter ctl = new PcepControllerAdapter();
+    private final TunnelServiceAdapter  tunnelService = new TunnelServiceAdapter();
 
     @Test
     public void testCasePcepSetupTunnel() {
@@ -53,6 +55,8 @@ public class PcepTunnelProviderTest {
         tunnelProvider.tunnelProviderRegistry = registry;
         tunnelProvider.pcepClientController = controller;
         tunnelProvider.controller = ctl;
+        tunnelProvider.cfgService = new ComponentConfigAdapter();
+        tunnelProvider.tunnelService = tunnelService;
         tunnelProvider.activate();
 
         Tunnel tunnel;

@@ -185,8 +185,8 @@ public class PcepTunnelApiMapper {
     /**
      * Returns whether tunnel exist in tunnel db.
      *
-     * @param tunnelId
-     * @return true/false
+     * @param tunnelId tunnel id
+     * @return true/false if the tunnel exists in the tunnel db
      */
     public boolean checkFromTunnelDBQueue(TunnelId tunnelId) {
         int value = tunnelIdMap.get(tunnelId);

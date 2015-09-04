@@ -133,7 +133,10 @@ public class LinkProtectionTypeTlv implements PcepValueType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("Type", TYPE).add("Length", LENGTH)
-                .add("ProtectionCap", protectionCap).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("Type", TYPE)
+                .add("Length", LENGTH)
+                .add("ProtectionCap", protectionCap)
+                .toString();
     }
 }

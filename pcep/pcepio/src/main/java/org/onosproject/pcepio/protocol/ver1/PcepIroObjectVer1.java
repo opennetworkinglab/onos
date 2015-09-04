@@ -30,7 +30,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-/*
+/**
+ * Provides PCEP iro object.
+ */
+public class PcepIroObjectVer1 implements PcepIroObject {
+
+    /*
       0                   1                   2                   3
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -50,9 +55,7 @@ import com.google.common.base.MoreObjects;
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         | IPv4 address (continued)      | Prefix Length |      Resvd    |
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- */
-public class PcepIroObjectVer1 implements PcepIroObject {
-
+     */
     protected static final Logger log = LoggerFactory.getLogger(PcepIroObjectVer1.class);
 
     public static final byte IRO_OBJ_TYPE = 1;
@@ -217,6 +220,9 @@ public class PcepIroObjectVer1 implements PcepIroObject {
         return objLenIndex;
     }
 
+    /**
+     * Builder class for PCEP iro object.
+     */
     public static class Builder implements PcepIroObject.Builder {
 
         private boolean bIsHeaderSet = false;
@@ -286,7 +292,8 @@ public class PcepIroObjectVer1 implements PcepIroObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("IroObjectHeader", iroObjHeader)
+        return MoreObjects.toStringHelper(getClass())
+                .add("IroObjectHeader", iroObjHeader)
                 .add("SubObjects", llSubObjects).toString();
     }
 }

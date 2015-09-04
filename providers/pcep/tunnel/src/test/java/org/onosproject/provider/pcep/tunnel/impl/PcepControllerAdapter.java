@@ -77,4 +77,9 @@ public class PcepControllerAdapter implements PcepController {
     public Boolean updateTunnelBandwidth(String id, long bandwidth) {
         return null;
     }
+
+    @Override
+    public void getTunnelStatistics(String pcepTunnelId) {
+
+    }
 }

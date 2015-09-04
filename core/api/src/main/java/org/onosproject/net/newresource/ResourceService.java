@@ -127,6 +127,7 @@ public interface ResourceService {
     /**
      * Returns allocated resources being as children of the specified parent and being the specified resource type.
      *
+     * @param parent parent resource path
      * @param cls class to specify a type of resource
      * @param <T> type of the resource
      * @return non-empty collection of resource allocations if resources are allocated with the subject and type,

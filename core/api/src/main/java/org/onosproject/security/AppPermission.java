@@ -23,12 +23,57 @@ import java.security.BasicPermission;
  */
 public class AppPermission extends BasicPermission {
 
+    public enum Type {
+        APP_READ,
+        APP_EVENT,
+        CONFIG_READ,
+        CONFIG_WRITE,
+        CLUSTER_READ,
+        CLUSTER_WRITE,
+        CLUSTER_EVENT,
+        DEVICE_READ,
+        DEVICE_EVENT,
+        DRIVER_READ,
+        DRIVER_WRITE,
+        FLOWRULE_READ,
+        FLOWRULE_WRITE,
+        FLOWRULE_EVENT,
+        GROUP_READ,
+        GROUP_WRITE,
+        GROUP_EVENT,
+        HOST_READ,
+        HOST_WRITE,
+        HOST_EVENT,
+        INTENT_READ,
+        INTENT_WRITE,
+        INTENT_EVENT,
+        LINK_READ,
+        LINK_WRITE,
+        LINK_EVENT,
+        PACKET_READ,
+        PACKET_WRITE,
+        PACKET_EVENT,
+        STATISTIC_READ,
+        TOPOLOGY_READ,
+        TOPOLOGY_EVENT,
+        TUNNEL_READ,
+        TUNNEL_WRITE,
+        TUNNEL_EVENT,
+        STORAGE_WRITE
+    }
+
+    protected Type type;
     /**
      * Creates new application permission using the supplied data.
      * @param name permission name
      */
     public AppPermission(String name) {
         super(name.toUpperCase(), "");
+        try {
+            type = Type.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            type = null;
+        }
     }
 
     /**
@@ -38,6 +83,28 @@ public class AppPermission extends BasicPermission {
      */
     public AppPermission(String name, String actions) {
         super(name.toUpperCase(), actions);
+        try {
+            type = Type.valueOf(name);
+        } catch (IllegalArgumentException e) {
+            type = null;
+        }
+    }
+
+    /**
+     * Crates new application permission using the supplied data.
+     * @param type permission type
+     */
+    public AppPermission(Type type) {
+        super(type.name(), "");
+        this.type = type;
+    }
+
+    /**
+     * Returns type of permission.
+     * @return application permission type
+     */
+    public Type getType() {
+        return this.type;
     }
 
 }

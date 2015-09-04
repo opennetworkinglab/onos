@@ -17,7 +17,7 @@ package org.onosproject.app;
 
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.Permission;
+import org.onosproject.security.Permission;
 import org.onosproject.store.AbstractStore;
 
 import java.io.InputStream;

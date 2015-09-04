@@ -26,6 +26,9 @@ public interface TriConsumer<U, V, W> {
 
     /**
      * Applies the given arguments to the function.
+     * @param arg1 first argument
+     * @param arg2 second argument
+     * @param arg3 third argument
      */
     void accept(U arg1, V arg2, W arg3);
 

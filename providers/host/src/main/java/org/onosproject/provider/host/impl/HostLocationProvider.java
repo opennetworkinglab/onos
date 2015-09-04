@@ -72,8 +72,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Provider which uses an OpenFlow controller to detect network
- * end-station hosts.
+ * Provider which uses an OpenFlow controller to detect network end-station
+ * hosts.
  */
 @Component(immediate = true)
 public class HostLocationProvider extends AbstractProvider implements HostProvider {
@@ -289,7 +289,9 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         private void updateLocationIP(HostId hid, MacAddress mac,
                                       VlanId vlan, HostLocation hloc,
                                       IpAddress ip) {
-            HostDescription desc = new DefaultHostDescription(mac, vlan, hloc, ip);
+            HostDescription desc = ip.isZero() ?
+                    new DefaultHostDescription(mac, vlan, hloc) :
+                    new DefaultHostDescription(mac, vlan, hloc, ip);
             try {
                 providerService.hostDetected(hid, desc);
             } catch (IllegalStateException e) {
@@ -323,9 +325,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 return;
             }
 
-            HostLocation hloc =
-                    new HostLocation(heardOn, System.currentTimeMillis());
-
+            HostLocation hloc = new HostLocation(heardOn, System.currentTimeMillis());
             HostId hid = HostId.hostId(eth.getSourceMAC(), vlan);
 
             // ARP: possible new hosts, update both location and IP

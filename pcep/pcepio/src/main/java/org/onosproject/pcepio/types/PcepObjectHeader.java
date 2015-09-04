@@ -213,8 +213,12 @@ public class PcepObjectHeader {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("ObjectClass", objClass).add("ObjectType", objType)
-                .add("ObjectLength", objLen).add("PFlag", (bPFlag) ? 1 : 0).add("IFlag", (bIFlag) ? 1 : 0)
+        return MoreObjects.toStringHelper(getClass())
+                .add("ObjectClass", objClass)
+                .add("ObjectType", objType)
+                .add("ObjectLength", objLen)
+                .add("PFlag", (bPFlag) ? 1 : 0)
+                .add("IFlag", (bIFlag) ? 1 : 0)
                 .toString();
     }
 }

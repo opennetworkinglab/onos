@@ -299,10 +299,12 @@ public class FlowsResourceTest extends ResourceTest {
      */
     public static class FlowJsonMatcher extends TypeSafeMatcher<JsonObject> {
         private final FlowEntry flow;
+        private final String expectedAppId;
         private String reason = "";
 
-        public FlowJsonMatcher(FlowEntry flowValue) {
+        public FlowJsonMatcher(FlowEntry flowValue, String expectedAppIdValue) {
             flow = flowValue;
+            expectedAppId = expectedAppIdValue;
         }
 
         @Override
@@ -316,8 +318,8 @@ public class FlowsResourceTest extends ResourceTest {
             }
 
             // check application id
-            final int jsonAppId = jsonFlow.get("appId").asInt();
-            if (jsonAppId != flow.appId()) {
+            final String jsonAppId = jsonFlow.get("appId").asString();
+            if (!jsonAppId.equals(expectedAppId)) {
                 reason = "appId " + Short.toString(flow.appId());
                 return false;
             }
@@ -399,8 +401,8 @@ public class FlowsResourceTest extends ResourceTest {
      * @param flow flow object we are looking for
      * @return matcher
      */
-    private static FlowJsonMatcher matchesFlow(FlowEntry flow) {
-        return new FlowJsonMatcher(flow);
+    private static FlowJsonMatcher matchesFlow(FlowEntry flow, String expectedAppName) {
+        return new FlowJsonMatcher(flow, expectedAppName);
     }
 
     /**
@@ -430,7 +432,7 @@ public class FlowsResourceTest extends ResourceTest {
                     flowFound = true;
 
                     //  We found the correct flow, check attribute values
-                    assertThat(jsonFlow, matchesFlow(flow));
+                    assertThat(jsonFlow, matchesFlow(flow, APP_ID.name()));
                 }
             }
             if (!flowFound) {

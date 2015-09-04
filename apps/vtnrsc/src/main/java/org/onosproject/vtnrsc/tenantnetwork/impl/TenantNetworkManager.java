@@ -15,20 +15,32 @@
  */
 package org.onosproject.vtnrsc.tenantnetwork.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
+import org.onosproject.vtnrsc.DefaultTenantNetwork;
+import org.onosproject.vtnrsc.PhysicalNetwork;
+import org.onosproject.vtnrsc.SegmentationId;
+import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.TenantNetwork;
 import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
 import org.slf4j.Logger;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the tenantNetworkService.
@@ -39,20 +51,45 @@ public class TenantNetworkManager implements TenantNetworkService {
 
     private static final String NETWORK_ID_NULL = "Network ID cannot be null";
     private static final String NETWORK_NOT_NULL = "Network ID cannot be null";
+    private static final String TENANTNETWORK = "vtn-tenant-network-store";
+    private static final String VTNRSC_APP = "org.onosproject.vtnrsc";
 
-    protected ConcurrentHashMap<TenantNetworkId, TenantNetwork> networkIdAsKeyStore =
-            new ConcurrentHashMap<>();
+    protected Map<TenantNetworkId, TenantNetwork> networkIdAsKeyStore;
+    protected ApplicationId appId;
 
     private final Logger log = getLogger(getClass());
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+
     @Activate
     public void activate() {
+
+        appId = coreService.registerApplication(VTNRSC_APP);
+
+        networkIdAsKeyStore = storageService.<TenantNetworkId, TenantNetwork>consistentMapBuilder()
+                .withName(TENANTNETWORK)
+                .withApplicationId(appId)
+                .withPurgeOnUninstall()
+                .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API),
+                                                 TenantNetworkId.class,
+                                                 DefaultTenantNetwork.class,
+                                                 TenantNetwork.State.class,
+                                                 TenantId.class,
+                                                 TenantNetwork.Type.class,
+                                                 PhysicalNetwork.class,
+                                                 SegmentationId.class))
+                .build().asJavaMap();
+
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        networkIdAsKeyStore.clear();
         log.info("Stopped");
     }
 

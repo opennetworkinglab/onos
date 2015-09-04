@@ -33,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
 
 /**
  * Provides PCEP LABEL update .
@@ -348,14 +347,10 @@ public class PcepLabelUpdateVer1 implements PcepLabelUpdate {
 
     @Override
     public String toString() {
-        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
-
-        if (labelDownload instanceof PcepLabelDownload) {
-            toStrHelper.add("LabelDownload", labelDownload);
-        }
-        if (labelMap instanceof PcepLabelMap) {
-            toStrHelper.add("LabelMap", labelMap);
-        }
-        return toStrHelper.toString();
+        return MoreObjects.toStringHelper(getClass())
+                .omitNullValues()
+                .add("LabelDownload", labelDownload)
+                .add("LabelMap", labelMap)
+                .toString();
     }
 }

@@ -5,6 +5,9 @@ import org.onosproject.pcepio.protocol.PcepVersion;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides Pcep Rsvp Ipv6 Error Spec.
+ */
 public class PcepRsvpIpv6ErrorSpec implements PcepRsvpErrorSpec {
 
     /*
@@ -138,10 +141,10 @@ public class PcepRsvpIpv6ErrorSpec implements PcepRsvpErrorSpec {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("IPv6Address:", ipv6Addr)
-                .add("flags:", flags)
-                .add("errorCode:", errCode)
-                .add("errorValue:", errValue)
+                .add("IPv6Address", ipv6Addr)
+                .add("flags", flags)
+                .add("errorCode", errCode)
+                .add("errorValue", errValue)
                 .toString();
     }
 }

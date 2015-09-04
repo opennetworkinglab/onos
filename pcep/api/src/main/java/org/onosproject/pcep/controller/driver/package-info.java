@@ -15,6 +15,6 @@
  */
 
 /**
- * PCEP controller driver API.
+ * PCEP client controller driver API.
  */
 package org.onosproject.pcep.controller.driver;

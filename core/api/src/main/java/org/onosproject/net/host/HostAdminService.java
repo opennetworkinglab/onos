@@ -38,7 +38,9 @@ public interface HostAdminService extends HostService {
      *
      * @param addresses address object containing addresses to add and the port
      * to add them to
+     * @deprecated in Drake release: address info now stored in InterfaceService
      */
+    @Deprecated
     void bindAddressesToPort(PortAddresses addresses);
 
     /**
@@ -47,14 +49,18 @@ public interface HostAdminService extends HostService {
      *
      * @param portAddresses set of addresses to remove and port to remove them
      * from
+     * @deprecated in Drake release: address info now stored in InterfaceService
      */
+    @Deprecated
     void unbindAddressesFromPort(PortAddresses portAddresses);
 
     /**
      * Removes all address information for the given connection point.
      *
      * @param connectPoint the connection point to remove address information
+     * @deprecated in Drake release: address info now stored in InterfaceService
      */
+    @Deprecated
     void clearAddresses(ConnectPoint connectPoint);
 
 }

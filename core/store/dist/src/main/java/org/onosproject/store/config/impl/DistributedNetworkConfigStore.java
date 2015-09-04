@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -90,7 +91,7 @@ public class DistributedNetworkConfigStore
                 .register(ConfigKey.class, ObjectNode.class, ArrayNode.class,
                           JsonNodeFactory.class, LinkedHashMap.class,
                           TextNode.class, BooleanNode.class,
-                          LongNode.class, DoubleNode.class, ShortNode.class);
+                          LongNode.class, DoubleNode.class, ShortNode.class, IntNode.class);
 
         configs = storageService.<ConfigKey, ObjectNode>consistentMapBuilder()
                 .withSerializer(Serializer.using(kryoBuilder.build()))

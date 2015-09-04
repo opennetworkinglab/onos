@@ -5,6 +5,7 @@
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
+. $ONOS_ROOT/tools/test/bin/find-node.sh
 
 function print_usage {
     command_name=`basename $0`
@@ -38,7 +39,7 @@ case $2 in
         if [ "${1}" = "--cell" ]; then
             nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
         else
-            nodes=${1:-$OCI}
+            nodes=$(find_node ${1:-$OCI})
         fi
 
         # Execute the remote commands

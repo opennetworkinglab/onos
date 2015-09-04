@@ -16,6 +16,7 @@
 package org.onosproject.incubator.net.domain;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.Path;
 
 /**
  * Context for intent primitive requests to an intent domain provider. A context
@@ -29,12 +30,14 @@ import com.google.common.annotations.Beta;
 public class RequestContext {
     private final IntentDomain domain;
     private final IntentResource resource;
+    private final Path path;
     //TODO other common parameters:
     //String cost;
 
-    public RequestContext(IntentDomain domain, IntentResource resource) {
+    public RequestContext(IntentDomain domain, IntentResource resource, Path path) {
         this.domain = domain;
         this.resource = resource;
+        this.path = path;
     }
 
     public IntentDomain domain() {
@@ -43,5 +46,9 @@ public class RequestContext {
 
     public IntentResource resource() {
         return resource;
+    }
+
+    public Path path() {
+        return path;
     }
 }

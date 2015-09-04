@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-/*
+/**
  * Provides  PCEP TE Report Message.
  */
 class PcepTEReportMsgVer1 implements PcepTEReportMsg {
@@ -55,6 +55,9 @@ class PcepTEReportMsgVer1 implements PcepTEReportMsg {
 
     public static final PcepTEReportMsgVer1.Reader READER = new Reader();
 
+    /**
+     * Reader class for reading PCPE te report message form channel buffer.
+     */
     static class Reader implements PcepMessageReader<PcepTEReportMsg> {
 
         LinkedList<PcepTEObject> teReportList;
@@ -118,6 +121,9 @@ class PcepTEReportMsgVer1 implements PcepTEReportMsg {
         this.teReportList = teReportList;
     }
 
+    /**
+     * Builder class for PCEP te report message.
+     */
     static class Builder implements PcepTEReportMsg.Builder {
         // PCEP TE Report message fields
         LinkedList<PcepTEObject> teReportList;
@@ -156,6 +162,9 @@ class PcepTEReportMsgVer1 implements PcepTEReportMsg {
 
     static final Writer WRITER = new Writer();
 
+    /**
+     * Writer class for writing PCEP te report message to channel buffer.
+     */
     static class Writer implements PcepMessageWriter<PcepTEReportMsgVer1> {
 
         @Override
@@ -209,6 +218,8 @@ class PcepTEReportMsgVer1 implements PcepTEReportMsg {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("TeReportList", teReportList).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("TeReportList", teReportList)
+                .toString();
     }
 }

@@ -104,6 +104,7 @@ public class Versioned<V> {
      * a default value.
      * @param versioned versioned object
      * @param defaultValue default value to return if versioned object is null
+     * @param <U> type of the versioned value
      * @return versioned value or default value if versioned object is null
      */
     public static <U> U valueOrElse(Versioned<U> versioned, U defaultValue) {

@@ -1,0 +1,7 @@
+*.impl
+*.impl.*
+
+org.onosproject.json
+org.onosproject.json.*
+:org.onosproject.common.*
+org.onosproject.security.*

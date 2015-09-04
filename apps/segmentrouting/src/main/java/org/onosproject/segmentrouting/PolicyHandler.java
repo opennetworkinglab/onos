@@ -30,8 +30,8 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -84,11 +84,11 @@ public class PolicyHandler {
      * @return policy list
      */
     public List<Policy> getPolicies() {
-        List<Policy> policies = new ArrayList<>();
-        policyStore.values().forEach(policy -> policies.add(
-                new TunnelPolicy((TunnelPolicy) policy)));
-
-        return policies;
+        return policyStore.values()
+                .stream()
+                .filter(policy -> policy instanceof TunnelPolicy)
+                .map(policy -> new TunnelPolicy((TunnelPolicy) policy))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -190,7 +190,7 @@ public class PolicyHandler {
             tsb.matchIPSrc(IpPrefix.valueOf(policy.srcIp()));
         }
         if (policy.ipProto() != null && !policy.ipProto().isEmpty()) {
-            Short ipProto = Short.valueOf(IpProtocol.valueOf(policy.ipProto()).value());
+            Short ipProto = IpProtocol.valueOf(policy.ipProto()).value();
             tsb.matchIPProtocol(ipProto.byteValue());
             if (IpProtocol.valueOf(policy.ipProto()).equals(IpProtocol.TCP)) {
                 if (policy.srcPort() != 0) {

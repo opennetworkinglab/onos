@@ -63,7 +63,6 @@ public class TELinkAttributesTlv implements PcepValueType {
      */
     public TELinkAttributesTlv(LinkedList<PcepValueType> llLinkAttributesSubTLVs) {
         this.llLinkAttributesSubTLVs = llLinkAttributesSubTLVs;
-
     }
 
     /**
@@ -153,7 +152,7 @@ public class TELinkAttributesTlv implements PcepValueType {
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
 
-            if (null == tlv) {
+            if (tlv == null) {
                 log.debug("TLV is null from subTlv list");
                 continue;
             }
@@ -171,7 +170,7 @@ public class TELinkAttributesTlv implements PcepValueType {
         }
 
         hLength = (short) (c.writerIndex() - tlvStartIndex);
-        c.setShort(tlvLenIndex, hLength);
+        c.setShort(tlvLenIndex, (hLength - TLV_HEADER_LENGTH));
 
         return c.writerIndex() - tlvStartIndex;
     }
@@ -189,7 +188,7 @@ public class TELinkAttributesTlv implements PcepValueType {
         // Node Descriptor Sub-TLVs (variable)
         LinkedList<PcepValueType> llLinkAttributesSubTLVs = new LinkedList<PcepValueType>();
 
-        ChannelBuffer tempCb = c.readBytes(hLength - TLV_HEADER_LENGTH);
+        ChannelBuffer tempCb = c.readBytes(hLength);
 
         while (TLV_HEADER_LENGTH <= tempCb.readableBytes()) {
 
@@ -284,7 +283,10 @@ public class TELinkAttributesTlv implements PcepValueType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("Type", TYPE).add("Length", hLength)
-                .add("LinkAttributesSubTLVs", llLinkAttributesSubTLVs).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("Type", TYPE)
+                .add("Length", hLength)
+                .add("LinkAttributesSubTLVs", llLinkAttributesSubTLVs)
+                .toString();
     }
 }

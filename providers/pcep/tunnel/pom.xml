@@ -19,5 +19,21 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onos-pcep-controller-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-incubator-net</artifactId>
+            <version>${project.version} </version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

@@ -116,30 +116,31 @@ public class PcepRsvpSpecObjHeader {
     /**
      * Writes the byte stream of PcepRsvpObjectHeader to channel buffer.
      *
-     * @param bb of type channel buffer
+     * @param cb of type channel buffer
      * @return object length index
      */
-    public int write(ChannelBuffer bb) {
-        int objLenIndex = bb.writerIndex();
-        bb.writeShort(objLen);
-        bb.writeByte(objClassNum);
-        bb.writeByte(objClassType);
-        return bb.writerIndex() - objLenIndex;
+    public int write(ChannelBuffer cb) {
+        int objLenIndex = cb.writerIndex();
+        objLen = 0;
+        cb.writeShort(objLen);
+        cb.writeByte(objClassNum);
+        cb.writeByte(objClassType);
+        return objLenIndex;
     }
 
     /**
      * Reads the PcepRsvpObjectHeader.
      *
-     * @param bb of type channel buffer
+     * @param cb of type channel buffer
      * @return PcepRsvpObjectHeader
      */
-    public static PcepRsvpSpecObjHeader read(ChannelBuffer bb) {
+    public static PcepRsvpSpecObjHeader read(ChannelBuffer cb) {
         byte objClassNum;
         byte objClassType;
         short objLen;
-        objLen = bb.readShort();
-        objClassNum = bb.readByte();
-        objClassType = bb.readByte();
+        objLen = cb.readShort();
+        objClassNum = cb.readByte();
+        objClassType = cb.readByte();
 
         return new PcepRsvpSpecObjHeader(objLen, objClassNum, objClassType);
     }
@@ -147,9 +148,9 @@ public class PcepRsvpSpecObjHeader {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("ObjectClassNum: " , objClassNum)
-                .add("ObjectCType: " , objClassType)
-                .add("ObjectLength: " , objLen)
+                .add("ObjectClassNum: ", objClassNum)
+                .add("ObjectCType: ", objClassType)
+                .add("ObjectLength: ", objLen)
                 .toString();
     }
 }

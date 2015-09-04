@@ -23,6 +23,9 @@ import org.onosproject.pcepio.protocol.PcepNai;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides Pcep Nai Ipv6 Node Id.
+ */
 public class PcepNaiIpv6NodeId implements PcepNai {
 
     public static final byte ST_TYPE = 0x02;
@@ -92,6 +95,8 @@ public class PcepNaiIpv6NodeId implements PcepNai {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("IPV6NodeID", ipv6NodeId).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("IPV6NodeID", ipv6NodeId)
+                .toString();
     }
 }

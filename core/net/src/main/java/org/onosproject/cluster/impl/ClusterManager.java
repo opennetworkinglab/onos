@@ -34,7 +34,6 @@ import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.AbstractListenerManager;
-import org.onosproject.core.Permission;
 import org.slf4j.Logger;
 
 import java.util.Set;
@@ -43,6 +42,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppPermission.Type.*;
+
 
 
 /**
@@ -86,26 +87,26 @@ public class ClusterManager
 
     @Override
     public ControllerNode getLocalNode() {
-        checkPermission(Permission.CLUSTER_READ);
+        checkPermission(CLUSTER_READ);
         return store.getLocalNode();
     }
 
     @Override
     public Set<ControllerNode> getNodes() {
-        checkPermission(Permission.CLUSTER_READ);
+        checkPermission(CLUSTER_READ);
         return store.getNodes();
     }
 
     @Override
     public ControllerNode getNode(NodeId nodeId) {
-        checkPermission(Permission.CLUSTER_READ);
+        checkPermission(CLUSTER_READ);
         checkNotNull(nodeId, INSTANCE_ID_NULL);
         return store.getNode(nodeId);
     }
 
     @Override
     public ControllerNode.State getState(NodeId nodeId) {
-        checkPermission(Permission.CLUSTER_READ);
+        checkPermission(CLUSTER_READ);
         checkNotNull(nodeId, INSTANCE_ID_NULL);
         return store.getState(nodeId);
     }
@@ -113,7 +114,7 @@ public class ClusterManager
 
     @Override
     public DateTime getLastUpdated(NodeId nodeId) {
-        checkPermission(Permission.CLUSTER_READ);
+        checkPermission(CLUSTER_READ);
         return store.getLastUpdated(nodeId);
     }
 

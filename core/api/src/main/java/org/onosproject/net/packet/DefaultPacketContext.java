@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.packet;
 
-import org.onosproject.core.Permission;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment.Builder;
@@ -23,7 +22,7 @@ import org.onosproject.net.flow.TrafficTreatment.Builder;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.onosproject.security.AppGuard.checkPermission;
-
+import static org.onosproject.security.AppPermission.Type.*;
 
 /**
  * Default implementation of a packet context.
@@ -57,29 +56,25 @@ public abstract class DefaultPacketContext implements PacketContext {
 
     @Override
     public long time() {
-        checkPermission(Permission.PACKET_READ);
-
+        checkPermission(PACKET_READ);
         return time;
     }
 
     @Override
     public InboundPacket inPacket() {
-        checkPermission(Permission.PACKET_READ);
-
+        checkPermission(PACKET_READ);
         return inPkt;
     }
 
     @Override
     public OutboundPacket outPacket() {
-        checkPermission(Permission.PACKET_READ);
-
+        checkPermission(PACKET_READ);
         return outPkt;
     }
 
     @Override
     public Builder treatmentBuilder() {
-        checkPermission(Permission.PACKET_READ);
-
+        checkPermission(PACKET_READ);
         return builder;
     }
 
@@ -88,15 +83,13 @@ public abstract class DefaultPacketContext implements PacketContext {
 
     @Override
     public boolean block() {
-        checkPermission(Permission.PACKET_WRITE);
-
+        checkPermission(PACKET_WRITE);
         return this.block.getAndSet(true);
     }
 
     @Override
     public boolean isHandled() {
-        checkPermission(Permission.PACKET_READ);
-
+        checkPermission(PACKET_READ);
         return this.block.get();
     }
 }

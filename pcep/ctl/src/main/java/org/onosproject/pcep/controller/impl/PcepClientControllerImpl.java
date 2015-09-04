@@ -15,23 +15,16 @@
  */
 package org.onosproject.pcep.controller.impl;
 
-import static org.onlab.util.Tools.groupedThreads;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.net.driver.DriverService;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepClientController;
@@ -44,20 +37,14 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 
+/**
+ * Implementation of PCEP client controller.
+ */
 @Component(immediate = true)
 @Service
 public class PcepClientControllerImpl implements PcepClientController {
 
     private static final Logger log = LoggerFactory.getLogger(PcepClientControllerImpl.class);
-
-    //@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverService driverService;
-
-    private final ExecutorService executorMsgs =
-            Executors.newFixedThreadPool(32, groupedThreads("onos/pcep", "event-stats-%d"));
-
-    private final ExecutorService executorBarrier =
-            Executors.newFixedThreadPool(4, groupedThreads("onos/pcep", "event-barrier-%d"));
 
     protected ConcurrentHashMap<PccId, PcepClient> connectedClients =
             new ConcurrentHashMap<PccId, PcepClient>();
@@ -188,7 +175,6 @@ public class PcepClientControllerImpl implements PcepClientController {
     public class PcepClientAgent implements PcepAgent {
 
         private final Logger log = LoggerFactory.getLogger(PcepClientAgent.class);
-        private final Lock clientLock = new ReentrantLock();
 
         @Override
         public boolean addConnectedClient(PccId pccId, PcepClient pc) {

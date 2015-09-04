@@ -1,0 +1,4 @@
+org.onosproject
+org.onosproject.*
+org.onosproject.rest
+org.onosproject.security

@@ -89,30 +89,31 @@ public class PcepStateReportVer1 implements PcepStateReport {
          * @param eroObj PCEP ERO Object
          * @param attrList PCEP Attribute
          * @param rroObj PCEP Rro Object
+         * @param bandwidth PCEP bandwidth object
          */
         public PcepMsgPath(PcepEroObject eroObj, PcepAttribute attrList, PcepRroObject rroObj,
-                PcepBandwidthObject bandwidth) {
+                           PcepBandwidthObject bandwidth) {
 
             this.eroObj = eroObj;
             this.attrList = attrList;
             this.rroObj = rroObj;
             this.bandwidth = bandwidth;
-            if (null == rroObj) {
+            if (rroObj == null) {
                 this.isRroObjectSet = false;
             } else {
                 this.isRroObjectSet = true;
             }
-            if (null == eroObj) {
+            if (eroObj == null) {
                 this.isEroObjectSet = false;
             } else {
                 this.isEroObjectSet = true;
             }
-            if (null == attrList) {
+            if (attrList == null) {
                 this.isAttributeListSet = false;
             } else {
                 this.isAttributeListSet = true;
             }
-            if (null == bandwidth) {
+            if (bandwidth == null) {
                 this.isBandwidthObjectSet = false;
             } else {
                 this.isBandwidthObjectSet = true;
@@ -262,7 +263,7 @@ public class PcepStateReportVer1 implements PcepStateReport {
         public String toString() {
             ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
 
-            if (attrList instanceof PcepAttribute) {
+            if (attrList != null) {
                 toStrHelper.add("AttributeList", attrList);
             }
             if (rroObj instanceof PcepRroObjectVer1) {
@@ -410,17 +411,11 @@ public class PcepStateReportVer1 implements PcepStateReport {
 
     @Override
     public String toString() {
-        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
-
-        if (this.srpObject instanceof PcepSrpObject) {
-            toStrHelper.add("SrpObject", srpObject);
-        }
-        if (this.lspObject instanceof PcepLspObject) {
-            toStrHelper.add("LspObject", lspObject);
-        }
-        if (this.msgPath instanceof PcepStateReport.PcepMsgPath) {
-            toStrHelper.add("MsgPath", msgPath);
-        }
-        return toStrHelper.toString();
+        return MoreObjects.toStringHelper(getClass())
+                .omitNullValues()
+                .add("SrpObject", srpObject)
+                .add("LspObject", lspObject)
+                .add("MsgPath", msgPath)
+                .toString();
     }
 }

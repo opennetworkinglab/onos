@@ -17,7 +17,6 @@ package org.onosproject.driver.pipeline;
 
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
@@ -43,7 +42,6 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
-import org.onosproject.net.flow.criteria.IPProtocolCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -234,59 +232,40 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
     private Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
         log.debug("Processing versatile forwarding objective");
         TrafficSelector selector = fwd.selector();
+        TrafficTreatment treatment = fwd.treatment();
+        Collection<FlowRule> flowrules = new ArrayList<FlowRule>();
+
+        // first add this rule for basic single-table operation
+        // or non-ARP related multi-table operation
+        FlowRule rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(fwd.priority())
+                .fromApp(fwd.appId())
+                .makePermanent()
+                .forTable(ACL_TABLE).build();
+        flowrules.add(rule);
 
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
         if (ethType == null) {
-            log.error("Versatile forwarding objective must include ethType");
-            fail(fwd, ObjectiveError.UNKNOWN);
-            return Collections.emptySet();
+            log.warn("No ethType in versatile forwarding obj. Not processing further.");
+            return flowrules;
         }
 
+        // now deal with possible mix of ARP with filtering objectives
+        // in multi-table scenarios
         if (ethType.ethType().toShort() == Ethernet.TYPE_ARP) {
             if (filters.isEmpty()) {
                 pendingVersatiles.add(fwd);
-                return Collections.emptySet();
+                return flowrules;
             }
-            Collection<FlowRule> flowrules = new ArrayList<FlowRule>();
             for (Filter filter : filters) {
                 flowrules.addAll(processVersatilesWithFilters(filter, fwd));
             }
-            return flowrules;
-        } else if (ethType.ethType().toShort() == Ethernet.TYPE_LLDP ||
-                ethType.ethType().toShort() == Ethernet.TYPE_BSN) {
-            log.warn("Driver currently does not currently handle LLDP packets");
-            fail(fwd, ObjectiveError.UNSUPPORTED);
-            return Collections.emptySet();
-        } else if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
-            IPCriterion ipSrc = (IPCriterion) selector
-                    .getCriterion(Criterion.Type.IPV4_SRC);
-            IPCriterion ipDst = (IPCriterion) selector
-                    .getCriterion(Criterion.Type.IPV4_DST);
-            IPProtocolCriterion ipProto = (IPProtocolCriterion) selector
-                    .getCriterion(Criterion.Type.IP_PROTO);
-            if (ipSrc != null) {
-                log.warn("Driver does not currently handle matching Src IP");
-                fail(fwd, ObjectiveError.UNSUPPORTED);
-                return Collections.emptySet();
-            }
-            if (ipDst != null) {
-                log.error("Driver handles Dst IP matching as specific forwarding "
-                        + "objective, not versatile");
-                fail(fwd, ObjectiveError.UNSUPPORTED);
-                return Collections.emptySet();
-            }
-            if (ipProto != null && ipProto.protocol() == IPv4.PROTOCOL_TCP) {
-                log.warn("Driver automatically punts all packets reaching the "
-                        + "ACL table to the controller");
-                pass(fwd);
-                return Collections.emptySet();
-            }
         }
-
-        log.warn("Driver does not support given versatile forwarding objective");
-        fail(fwd, ObjectiveError.UNSUPPORTED);
-        return Collections.emptySet();
+        return flowrules;
     }
 
     private Collection<FlowRule> processVersatilesWithFilters(
@@ -560,6 +539,5 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
         public byte[] data() {
             return appKryo.serialize(nextActions);
         }
-
     }
 }

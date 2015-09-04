@@ -49,27 +49,21 @@
                 <version>2.10.1</version>
                 <configuration>
                     <show>package</show>
-                    <excludePackageNames>org.onlab.thirdparty:*.impl:*.impl.*:org.onosproject.provider.*:org.onosproject.rest:org.onosproject.cli*:org.onosproject.tvue:org.onosproject.foo:org.onosproject.mobility:org.onosproject.proxyarp:org.onosproject.fwd:org.onosproject.ifwd:org.onosproject.optical:org.onosproject.config:org.onosproject.calendar:org.onosproject.sdnip*:org.onosproject.oecfg:org.onosproject.metrics:org.onosproject.store.*:org.onosproject.openflow.*:org.onosproject.common.*:org.onosproject.net.group.impl:org.onosproject.routing*:org.onosproject.bgprouter:org.onosproject.intentperf:org.onosproject.maven:org.onosproject.cordfabric*:org.onosproject.driver*:org.onosproject.segmentrouting*:org.onosproject.reactive*:org.onosproject.distributedprimitives*:org.onosproject.messagingperf*.org.onosproject.virtualbng*.org.onosproject.election*:org.onosproject.demo*:org.onlab.jdvue*:org.onlab.stc*:org.onosproject.xosintegration*:org.onosproject.app.vtn*:org.onosproject.ovsdb*:org.onosproject.aaa:org.onosproject.acl*:org.onosproject.flowanalyzer</excludePackageNames>
+                    <excludePackageNames>@external-excludes</excludePackageNames>
                     <docfilessubdirs>true</docfilessubdirs>
                     <doctitle>ONOS Java API (1.3.0-SNAPSHOT)</doctitle>
                     <groups>
                         <group>
                             <title>Network Model &amp; Services</title>
-                            <packages>
-                                org.onosproject:org.onosproject.*:org.onosproject.rest
-                            </packages>
-                        </group>
-                        <group>
-                            <title>Utilities</title>
-                            <packages>
-                                org.onlab.*
-                            </packages>
+                            <packages>@external-apis</packages>
                         </group>
                         <group>
                             <title>Incubator for Network Model &amp; Services</title>
-                            <packages>
-                                org.onosproject.exp:org.onosproject.incubator.*
-                            </packages>
+                            <packages>@external-incubator-apis</packages>
+                        </group>
+                        <group>
+                            <title>Utilities</title>
+                            <packages>@utils</packages>
                         </group>
                     </groups>
                 </configuration>

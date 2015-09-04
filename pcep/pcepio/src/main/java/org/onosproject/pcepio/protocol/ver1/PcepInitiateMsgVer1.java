@@ -37,6 +37,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP initiate message.
+ */
 class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
     protected static final Logger log = LoggerFactory.getLogger(PcepInitiateMsgVer1.class);
@@ -70,6 +73,9 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
     private LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList;
     public static final PcepInitiateMsgVer1.Reader READER = new Reader();
 
+    /**
+     * Reader class for reading of Pcep initiate message from channel buffer.
+     */
     static class Reader implements PcepMessageReader<PcepInitiateMsg> {
 
         LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList;
@@ -120,7 +126,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
             boolean isDelLspRequest = false;
 
-            if (null == cb) {
+            if (cb == null) {
                 throw new PcepParseException("Channel buffer is empty");
             }
 
@@ -159,7 +165,6 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
                 }
                 llPcInitiatedLspRequestList.add(pceInitLspReq);
             }
-
             return true;
         }
     }
@@ -219,6 +224,9 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
     static final Writer WRITER = new Writer();
 
+    /**
+     * Writer class for writing pcep initiate message to channel buffer.
+     */
     static class Writer implements PcepMessageWriter<PcepInitiateMsgVer1> {
 
         @Override
@@ -244,7 +252,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
                 //Srp Object is mandatory
                 PcepSrpObject srpObj = listReq.getSrpObject();
-                if (srpObj instanceof PcepSrpObject) {
+                if (srpObj != null) {
                     isDelLspRequest = srpObj.getRFlag();
                     srpObj.write(cb);
                 } else {
@@ -253,7 +261,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
                 //LSP Object is mandatory
                 PcepLspObject lspObj = listReq.getLspObject();
-                if (lspObj instanceof PcepLspObject) {
+                if (lspObj != null) {
                     lspObj.write(cb);
                 } else {
                     throw new PcepParseException("LSP Object is mandatory for PcInitiate message.");
@@ -267,7 +275,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
                     //EndPoints object is mandatory
                     PcepEndPointsObject endPointObj = listReq.getEndPointsObject();
-                    if (endPointObj instanceof PcepEndPointsObject) {
+                    if (endPointObj != null) {
                         endPointObj.write(cb);
                     } else {
                         throw new PcepParseException("End points Object is mandatory for PcInitiate message.");
@@ -275,7 +283,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
                     //Ero object is mandatory
                     PcepEroObject eroObj = listReq.getEroObject();
-                    if (eroObj instanceof PcepEroObject) {
+                    if (eroObj != null) {
                         eroObj.write(cb);
                     } else {
                         throw new PcepParseException("ERO Object is mandatory for PcInitiate message.");
@@ -283,7 +291,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
                     //PcepAttribute is optional
                     PcepAttribute pcepAttribute = listReq.getPcepAttribute();
-                    if (pcepAttribute instanceof PcepAttribute) {
+                    if (pcepAttribute != null) {
                         pcepAttribute.write(cb);
                     }
                 }
@@ -317,7 +325,8 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("PcInitiaitedLspRequestList", llPcInitiatedLspRequestList)
+        return MoreObjects.toStringHelper(getClass())
+                .add("PcInitiaitedLspRequestList", llPcInitiatedLspRequestList)
                 .toString();
     }
 }

@@ -163,9 +163,8 @@ public class VTNManager implements VTNService {
         IpAddress ip = IpAddress.valueOf(ipAddress);
         Sets.newHashSet(devices).stream()
                 .filter(d -> Device.Type.CONTROLLER == d.type())
-                .filter(d -> !device.id().equals(d.id())).forEach(d -> {
-                    if (!device.id().equals(d.id())
-                            && Device.Type.CONTROLLER == d.type()) {
+                .filter(d -> !device.id().equals(d.id()))
+                .forEach(d -> {
                         String ipAddress1 = d.annotations()
                                 .value(CONTROLLER_IP_KEY);
                         IpAddress ip1 = IpAddress.valueOf(ipAddress1);
@@ -173,7 +172,6 @@ public class VTNManager implements VTNService {
                         DriverHandler handler1 = driverService
                                 .createHandler(d.id());
                         applyTunnelConfig(ip1, ip, handler1);
-                    }
                 });
     }
 
@@ -242,10 +240,8 @@ public class VTNManager implements VTNService {
                 BridgeDescription sw = it.next();
                 Set<PortNumber> ports = bridgeConfig.getPortNumbers();
                 ports.stream().filter(p -> p.name().equalsIgnoreCase(vxlanName))
-                        .forEach(p -> {
-                    programTunnelOut(sw.deviceId(), network.segmentationId(), p,
-                                     h.mac(), appId, Objective.Operation.ADD);
-                });
+                        .forEach(p -> programTunnelOut(sw.deviceId(), network.segmentationId(), p,
+                                h.mac(), appId, Objective.Operation.ADD));
             }
 
         });
@@ -310,12 +306,10 @@ public class VTNManager implements VTNService {
                         ports.stream()
                                 .filter(p -> p.name()
                                         .equalsIgnoreCase(tunnelName))
-                                .forEach(p -> {
-                            programTunnelOut(sw.deviceId(),
-                                             network.segmentationId(), p,
-                                             host.mac(), appId,
-                                             Objective.Operation.ADD);
-                        });
+                                .forEach(p -> programTunnelOut(sw.deviceId(),
+                                        network.segmentationId(), p,
+                                        host.mac(), appId,
+                                        Objective.Operation.ADD));
                     }
                 });
         programLocalIn(deviceId, network.segmentationId(), inPort, host.mac(),
@@ -376,12 +370,10 @@ public class VTNManager implements VTNService {
                         ports.stream()
                                 .filter(p -> p.name()
                                         .equalsIgnoreCase(vxlanName))
-                                .forEach(p -> {
-                            programTunnelOut(sw.deviceId(),
-                                             segId, p,
-                                             host.mac(), appId,
-                                             Objective.Operation.REMOVE);
-                        });
+                                .forEach(p -> programTunnelOut(sw.deviceId(),
+                                        segId, p,
+                                        host.mac(), appId,
+                                        Objective.Operation.REMOVE));
                     }
                 });
         programLocalIn(deviceId, segId, inPort, host.mac(),

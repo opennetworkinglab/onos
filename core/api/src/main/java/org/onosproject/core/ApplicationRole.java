@@ -23,9 +23,9 @@ public enum ApplicationRole {
     ADMIN,
 
     /**
-     * Indicates that an application has a REGULAR role.
+     * Indicates that an application has a USER role.
      */
-    REGULAR,
+    USER,
 
     /**
      * Indicates that an application role has not been specified.

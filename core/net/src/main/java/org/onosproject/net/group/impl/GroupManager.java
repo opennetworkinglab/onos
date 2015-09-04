@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.Permission;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -51,6 +50,8 @@ import java.util.Collections;
 
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppPermission.Type.*;
+
 
 
 /**
@@ -96,7 +97,7 @@ public class GroupManager
      */
     @Override
     public void addGroup(GroupDescription groupDesc) {
-        checkPermission(Permission.GROUP_WRITE);
+        checkPermission(GROUP_WRITE);
         store.storeGroupDescription(groupDesc);
     }
 
@@ -115,7 +116,7 @@ public class GroupManager
      */
     @Override
     public Group getGroup(DeviceId deviceId, GroupKey appCookie) {
-        checkPermission(Permission.GROUP_READ);
+        checkPermission(GROUP_READ);
         return store.getGroup(deviceId, appCookie);
     }
 
@@ -137,7 +138,7 @@ public class GroupManager
                                   GroupBuckets buckets,
                                   GroupKey newCookie,
                                   ApplicationId appId) {
-        checkPermission(Permission.GROUP_WRITE);
+        checkPermission(GROUP_WRITE);
         store.updateGroupDescription(deviceId,
                                      oldCookie,
                                      UpdateType.ADD,
@@ -163,7 +164,7 @@ public class GroupManager
                                        GroupBuckets buckets,
                                        GroupKey newCookie,
                                        ApplicationId appId) {
-        checkPermission(Permission.GROUP_WRITE);
+        checkPermission(GROUP_WRITE);
         store.updateGroupDescription(deviceId,
                                      oldCookie,
                                      UpdateType.REMOVE,
@@ -185,7 +186,7 @@ public class GroupManager
     public void removeGroup(DeviceId deviceId,
                             GroupKey appCookie,
                             ApplicationId appId) {
-        checkPermission(Permission.GROUP_WRITE);
+        checkPermission(GROUP_WRITE);
         store.deleteGroupDescription(deviceId, appCookie);
     }
 
@@ -200,13 +201,13 @@ public class GroupManager
     @Override
     public Iterable<Group> getGroups(DeviceId deviceId,
                                      ApplicationId appId) {
-        checkPermission(Permission.GROUP_READ);
+        checkPermission(GROUP_READ);
         return store.getGroups(deviceId);
     }
 
     @Override
     public Iterable<Group> getGroups(DeviceId deviceId) {
-        checkPermission(Permission.GROUP_READ);
+        checkPermission(GROUP_READ);
         return store.getGroups(deviceId);
     }
 

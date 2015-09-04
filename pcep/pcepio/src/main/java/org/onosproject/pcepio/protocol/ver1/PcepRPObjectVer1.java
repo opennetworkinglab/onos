@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP RP object.
+ */
 public class PcepRPObjectVer1 implements PcepRPObject {
 
     /*
@@ -271,6 +274,9 @@ public class PcepRPObjectVer1 implements PcepRPObject {
         return cb.writerIndex();
     }
 
+    /**
+     * Builder class for PCEP rp object.
+     */
     public static class Builder implements PcepRPObject.Builder {
 
         private boolean bIsHeaderSet = false;
@@ -426,8 +432,14 @@ public class PcepRPObjectVer1 implements PcepRPObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("ObjectHeader", rpObjHeader).add("OFlag", (bOFlag) ? 1 : 0)
-                .add("BFlag", (bBFlag) ? 1 : 0).add("RFlag", (bRFlag) ? 1 : 0).add("PriFlag", yPriFlag)
-                .add("RequestIdNumber", iRequestIdNum).add("OptionalTlv", llOptionalTlv).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("ObjectHeader", rpObjHeader)
+                .add("OFlag", (bOFlag) ? 1 : 0)
+                .add("BFlag", (bBFlag) ? 1 : 0)
+                .add("RFlag", (bRFlag) ? 1 : 0)
+                .add("PriFlag", yPriFlag)
+                .add("RequestIdNumber", iRequestIdNum)
+                .add("OptionalTlv", llOptionalTlv)
+                .toString();
     }
 }

@@ -36,7 +36,6 @@ import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
-import org.onosproject.core.Permission;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -79,6 +78,8 @@ import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_ADD_REQUESTED;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVE_REQUESTED;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.security.AppPermission.Type.*;
+
 
 
 /**
@@ -165,19 +166,19 @@ public class FlowRuleManager
 
     @Override
     public int getFlowRuleCount() {
-        checkPermission(Permission.FLOWRULE_READ);
+        checkPermission(FLOWRULE_READ);
         return store.getFlowRuleCount();
     }
 
     @Override
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
-        checkPermission(Permission.FLOWRULE_READ);
+        checkPermission(FLOWRULE_READ);
         return store.getFlowEntries(deviceId);
     }
 
     @Override
     public void applyFlowRules(FlowRule... flowRules) {
-        checkPermission(Permission.FLOWRULE_WRITE);
+        checkPermission(FLOWRULE_WRITE);
 
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
         for (int i = 0; i < flowRules.length; i++) {
@@ -188,7 +189,7 @@ public class FlowRuleManager
 
     @Override
     public void removeFlowRules(FlowRule... flowRules) {
-        checkPermission(Permission.FLOWRULE_WRITE);
+        checkPermission(FLOWRULE_WRITE);
 
         FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
         for (int i = 0; i < flowRules.length; i++) {
@@ -199,13 +200,13 @@ public class FlowRuleManager
 
     @Override
     public void removeFlowRulesById(ApplicationId id) {
-        checkPermission(Permission.FLOWRULE_WRITE);
+        checkPermission(FLOWRULE_WRITE);
         removeFlowRules(Iterables.toArray(getFlowRulesById(id), FlowRule.class));
     }
 
     @Override
     public Iterable<FlowRule> getFlowRulesById(ApplicationId id) {
-        checkPermission(Permission.FLOWRULE_READ);
+        checkPermission(FLOWRULE_READ);
 
         Set<FlowRule> flowEntries = Sets.newHashSet();
         for (Device d : deviceService.getDevices()) {
@@ -220,7 +221,7 @@ public class FlowRuleManager
 
     @Override
     public Iterable<FlowRule> getFlowRulesByGroupId(ApplicationId appId, short groupId) {
-        checkPermission(Permission.FLOWRULE_READ);
+        checkPermission(FLOWRULE_READ);
 
         Set<FlowRule> matches = Sets.newHashSet();
         long toLookUp = ((long) appId.id() << 16) | groupId;
@@ -236,7 +237,7 @@ public class FlowRuleManager
 
     @Override
     public void apply(FlowRuleOperations ops) {
-        checkPermission(Permission.FLOWRULE_WRITE);
+        checkPermission(FLOWRULE_WRITE);
         operationsService.submit(new FlowOperationsProcessor(ops));
     }
 

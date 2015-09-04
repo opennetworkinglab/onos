@@ -145,8 +145,11 @@ public class LinkLocalRemoteIdentifiersTlv implements PcepValueType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("Type", TYPE).add("Length", LENGTH)
-                .add("LinkLocalIdentifier", iLinkLocalIdentifier).add("LinkRemoteIdentifier", iLinkRemoteIdentifier)
+        return MoreObjects.toStringHelper(getClass())
+                .add("Type", TYPE)
+                .add("Length", LENGTH)
+                .add("LinkLocalIdentifier", iLinkLocalIdentifier)
+                .add("LinkRemoteIdentifier", iLinkRemoteIdentifier)
                 .toString();
     }
 }

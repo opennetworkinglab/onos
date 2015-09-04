@@ -16,9 +16,6 @@
 
 package org.onosproject.pcepio.protocol.ver1;
 
-/*
- * Provides PCEP Attribute List.
- */
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -34,20 +31,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
 
-/* Reference : RFC5440
- *  where:
- *      <attribute-list>                  ::=[<LSPA>]
- *                                           [<BANDWIDTH>]
- *                                           [<metric-list>]
- *                                           [<IRO>]
- *
- *      <metric-list>                     ::=<METRIC>[<metric-list>]
+/**
+ * Provides PCEP Attribute List.
  */
-
 public class PcepAttributeVer1 implements PcepAttribute {
 
+    /* Reference : RFC5440
+     *  where:
+     *      <attribute-list>                  ::=[<LSPA>]
+     *                                           [<BANDWIDTH>]
+     *                                           [<metric-list>]
+     *                                           [<IRO>]
+     *
+     *      <metric-list>                     ::=<METRIC>[<metric-list>]
+     */
     protected static final Logger log = LoggerFactory.getLogger(PcepAttributeVer1.class);
 
     public static final int OBJECT_HEADER_LENGTH = 4;
@@ -145,7 +143,7 @@ public class PcepAttributeVer1 implements PcepAttribute {
      */
     public boolean parseMetricList(ChannelBuffer cb) throws PcepParseException {
 
-        if (null == llMetricList) {
+        if (llMetricList == null) {
             llMetricList = new LinkedList<PcepMetricObject>();
         }
 
@@ -422,20 +420,12 @@ public class PcepAttributeVer1 implements PcepAttribute {
 
     @Override
     public String toString() {
-        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
-
-        if (lspaObject instanceof PcepLspaObject) {
-            toStrHelper.add("lspaObject", lspaObject);
-        }
-        if (bandwidthObject instanceof PcepBandwidthObject) {
-            toStrHelper.add("bandwidthObject", bandwidthObject);
-        }
-        if (llMetricList instanceof PcepMetricObject) {
-            toStrHelper.add("MetricObjectList", llMetricList);
-        }
-        if (iroObject instanceof PcepIroObject) {
-            toStrHelper.add("IroObject", iroObject);
-        }
-        return toStrHelper.toString();
+        return MoreObjects.toStringHelper(getClass())
+                .omitNullValues()
+                .add("lspaObject", lspaObject)
+                .add("bandwidthObject", bandwidthObject)
+                .add("MetricObjectList", llMetricList)
+                .add("IroObject", iroObject)
+                .toString();
     }
 }

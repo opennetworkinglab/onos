@@ -31,4 +31,21 @@ public class TunnelPrimitive extends IntentPrimitive {
         this.one = one;
         this.two = two;
     }
+
+    /**
+     * The getter for the first connection point associated with a tunnel.
+     *
+     * @return the first connection point
+     */
+    public ConnectPoint one() {
+        return one;
+    }
+
+    /**
+     * The getter for the second connection point associated with a tunnel.
+     * @return the second connection point
+     */
+    public ConnectPoint two() {
+        return two;
+    }
 }

@@ -29,6 +29,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP label Object .
+ */
 public class PcepLspaObjectVer1 implements PcepLspaObject {
 
     /* LSPA Object Body Format
@@ -72,8 +75,6 @@ public class PcepLspaObjectVer1 implements PcepLspaObject {
     private int iIncludeAll;
     private byte cSetupPriority;
     private byte cHoldPriority;
-    private byte flags;
-    private byte reserved;
     private boolean bLFlag;
     private LinkedList<PcepValueType> llOptionalTlv; //Optional TLV
 
@@ -307,7 +308,7 @@ public class PcepLspaObjectVer1 implements PcepLspaObject {
         ListIterator<PcepValueType> listIterator = llOptionalTlv.listIterator();
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
-            if (null == tlv) {
+            if (tlv == null) {
                 log.debug("Warning: tlv is null from OptionalTlv list");
                 continue;
             }
@@ -343,7 +344,7 @@ public class PcepLspaObjectVer1 implements PcepLspaObject {
     }
 
     /**
-     * builder class for PCEP lspa object.
+     * Builder class for PCEP lspa object.
      */
     public static class Builder implements PcepLspaObject.Builder {
         private boolean bIsHeaderSet = false;
@@ -515,8 +516,14 @@ public class PcepLspaObjectVer1 implements PcepLspaObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("LFlag", bLFlag).add("SetupPriority", cSetupPriority)
-                .add("HoldPriority", cHoldPriority).add("IncludeAll", iIncludeAll).add("IncludeAny", iIncludeAny)
-                .add("ExcludeAny", iExcludeAny).add("OptionalTlvList", llOptionalTlv).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("LFlag", bLFlag)
+                .add("SetupPriority", cSetupPriority)
+                .add("HoldPriority", cHoldPriority)
+                .add("IncludeAll", iIncludeAll)
+                .add("IncludeAny", iIncludeAny)
+                .add("ExcludeAny", iExcludeAny)
+                .add("OptionalTlvList", llOptionalTlv)
+                .toString();
     }
 }

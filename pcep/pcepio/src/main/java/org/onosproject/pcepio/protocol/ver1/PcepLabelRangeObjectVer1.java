@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP label range object.
+ */
 public class PcepLabelRangeObjectVer1 implements PcepLabelRangeObject {
 
     /*
@@ -232,7 +235,7 @@ public class PcepLabelRangeObjectVer1 implements PcepLabelRangeObject {
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
 
-            if (null == tlv) {
+            if (tlv == null) {
                 log.debug("tlv is null from OptionalTlv list");
                 continue;
             }
@@ -364,7 +367,11 @@ public class PcepLabelRangeObjectVer1 implements PcepLabelRangeObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("LabelType", labelType).add("rangeSize", rangeSize)
-                .add("labelBase", labelBase).add("optionalTlvList", llOptionalTlv).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("LabelType", labelType)
+                .add("rangeSize", rangeSize)
+                .add("labelBase", labelBase)
+                .add("optionalTlvList", llOptionalTlv)
+                .toString();
     }
 }

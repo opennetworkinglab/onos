@@ -53,7 +53,7 @@ public class MeteringAgent {
      *
      * @param primitiveName Type of primitive to be metered
      * @param objName Global name of the primitive
-     * @param activated
+     * @param activated boolean flag for whether metering is enabled or not
      */
     public MeteringAgent(String primitiveName, String objName, boolean activated) {
         checkNotNull(objName, "Object name cannot be null");
@@ -75,6 +75,7 @@ public class MeteringAgent {
      * Initializes a specific timer for a given operation.
      *
      * @param op Specific operation being metered
+     * @return timer context
      */
     public Context startTimer(String op) {
         if (!activated) {
@@ -98,8 +99,8 @@ public class MeteringAgent {
         /**
          * Constructs Context.
          *
-         * @param context
-         * @param operation
+         * @param context context
+         * @param operation operation name
          */
         public Context(Timer.Context context, String operation) {
             this.context = context;
@@ -108,7 +109,7 @@ public class MeteringAgent {
 
         /**
          * Stops timer given a specific context and updates all related metrics.
-         * @param e
+         * @param e throwable
          */
         public void stop(Throwable e) {
             if (!activated) {

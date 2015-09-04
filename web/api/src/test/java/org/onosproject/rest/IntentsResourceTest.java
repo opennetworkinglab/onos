@@ -400,7 +400,7 @@ public class IntentsResourceTest extends ResourceTest {
                 .post(ClientResponse.class, jsonStream);
         assertThat(response.getStatus(), is(HttpURLConnection.HTTP_CREATED));
         String location = response.getLocation().getPath();
-        assertThat(location, Matchers.startsWith("/intents/2/"));
+        assertThat(location, Matchers.startsWith("/intents/myApp/"));
     }
 
     /**

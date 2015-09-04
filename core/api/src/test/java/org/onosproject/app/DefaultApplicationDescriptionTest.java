@@ -19,8 +19,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 import org.onosproject.core.ApplicationRole;
-import org.onosproject.core.Permission;
 import org.onosproject.core.Version;
+import org.onosproject.security.AppPermission;
+import org.onosproject.security.Permission;
 
 import java.net.URI;
 import java.util.List;
@@ -40,7 +41,9 @@ public class DefaultApplicationDescriptionTest {
     public static final String DESC = "Awesome application from Circus, Inc.";
     public static final String ORIGIN = "Circus";
     public static final ApplicationRole ROLE = ApplicationRole.ADMIN;
-    public static final Set<Permission> PERMS = ImmutableSet.of(Permission.FLOWRULE_WRITE, Permission.FLOWRULE_READ);
+    public static final Set<Permission> PERMS = ImmutableSet.of(
+                            new Permission(AppPermission.class.getName(), "FLOWRULE_WRITE"),
+                            new Permission(AppPermission.class.getName(), "FLOWRULE_READ"));
     public static final URI FURL = URI.create("mvn:org.foo-features/1.2a/xml/features");
     public static final List<String> FEATURES = ImmutableList.of("foo", "bar");
 

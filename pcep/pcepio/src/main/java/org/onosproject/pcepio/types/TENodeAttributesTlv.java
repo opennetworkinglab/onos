@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides TE Node Attributes Tlv.
+ */
 public class TENodeAttributesTlv implements PcepValueType {
     /*
      * Reference :PCEP Extension for Transporting TE Data draft-dhodylee-pce-pcep-te-data-extn-02
@@ -164,7 +167,7 @@ public class TENodeAttributesTlv implements PcepValueType {
         }
 
         hLength = (short) (c.writerIndex() - tlvStartIndex);
-        c.setShort(tlvLenIndex, hLength);
+        c.setShort(tlvLenIndex, (hLength - TLV_HEADER_LENGTH));
 
         return c.writerIndex() - tlvStartIndex;
     }
@@ -182,7 +185,7 @@ public class TENodeAttributesTlv implements PcepValueType {
         // Node Descriptor Sub-TLVs (variable)
         LinkedList<PcepValueType> llNodeAttributesSubTLVs = new LinkedList<PcepValueType>();
 
-        ChannelBuffer tempCb = c.readBytes(hLength - TLV_HEADER_LENGTH);
+        ChannelBuffer tempCb = c.readBytes(hLength);
 
         while (TLV_HEADER_LENGTH <= tempCb.readableBytes()) {
             PcepValueType tlv;
@@ -238,7 +241,10 @@ public class TENodeAttributesTlv implements PcepValueType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("Type", TYPE).add("Length", hLength)
-                .add("NodeAttributesSubTLVs", llNodeAttributesSubTLVs).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("Type", TYPE)
+                .add("Length", hLength)
+                .add("NodeAttributesSubTLVs", llNodeAttributesSubTLVs)
+                .toString();
     }
 }

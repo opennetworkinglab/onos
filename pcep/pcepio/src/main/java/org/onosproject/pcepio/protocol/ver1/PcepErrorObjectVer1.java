@@ -13,22 +13,24 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-/*
-0                   1                   2                   3
-0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| Object-Class  |   OT  |Res|P|I|   Object Length (bytes)       |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|   Reserved    |      Flags    |   Error-Type  |  Error-value  |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                                                               |
-//                     Optional TLVs                           //
-|                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/**
+ * Provides PCEP Error Object.
  */
-
 public class PcepErrorObjectVer1 implements PcepErrorObject {
 
+    /*
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    | Object-Class  |   OT  |Res|P|I|   Object Length (bytes)       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |   Reserved    |      Flags    |   Error-Type  |  Error-value  |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                                                               |
+    //                         Optional TLVs                       //
+    |                                                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     */
     protected static final Logger log = LoggerFactory.getLogger(PcepErrorObjectVer1.class);
 
     public static final byte ERROR_OBJ_TYPE = 1;
@@ -210,7 +212,7 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
         while (listIterator.hasNext()) {
             PcepValueType tlv = listIterator.next();
 
-            if (null == tlv) {
+            if (tlv == null) {
                 log.debug("TLV is null from OptionalTlv list");
                 continue;
             }
@@ -317,7 +319,8 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("ObjectHeader", errorObjHeader).add("ErrorType", yErrorType)
+        return MoreObjects.toStringHelper(getClass())
+                .add("ObjectHeader", errorObjHeader).add("ErrorType", yErrorType)
                 .add("ErrorValue", yErrorValue).add("OptionalTlv", llOptionalTlv).toString();
     }
 }

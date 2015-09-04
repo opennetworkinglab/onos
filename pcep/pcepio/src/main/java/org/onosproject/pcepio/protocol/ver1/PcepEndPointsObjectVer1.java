@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides PCEP Endpoints Object.
+ */
 public class PcepEndPointsObjectVer1 implements PcepEndPointsObject {
 
     /*
@@ -117,8 +120,8 @@ public class PcepEndPointsObjectVer1 implements PcepEndPointsObject {
         int destIpAddress;
 
         endPointsObjHeader = PcepObjectHeader.read(cb);
-        if (END_POINTS_OBJ_TYPE == endPointsObjHeader.getObjType()
-                && END_POINTS_OBJ_CLASS == endPointsObjHeader.getObjClass()) {
+        if (endPointsObjHeader.getObjType() == END_POINTS_OBJ_TYPE
+                && endPointsObjHeader.getObjClass() == END_POINTS_OBJ_CLASS) {
             sourceIpAddress = cb.readInt();
             destIpAddress = cb.readInt();
         } else {
@@ -245,7 +248,8 @@ public class PcepEndPointsObjectVer1 implements PcepEndPointsObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("sourceIpAddress", sourceIpAddress)
+        return MoreObjects.toStringHelper(getClass())
+                .add("sourceIpAddress", sourceIpAddress)
                 .add("destIpAddress", destIpAddress).toString();
     }
 

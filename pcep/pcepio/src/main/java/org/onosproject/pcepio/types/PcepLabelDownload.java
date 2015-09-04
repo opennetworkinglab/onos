@@ -81,7 +81,10 @@ public class PcepLabelDownload {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("SrpObject", srpObject).add("LspObject", lspObject)
-                .add("LabelObjectList", llLabelList).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("SrpObject", srpObject)
+                .add("LspObject", lspObject)
+                .add("LabelObjectList", llLabelList)
+                .toString();
     }
 }

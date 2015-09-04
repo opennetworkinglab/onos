@@ -20,6 +20,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 
+/**
+ * Provides PCEP Error Message.
+ */
 public class PcepErrorMsgVer1 implements PcepErrorMsg {
 
     /*
@@ -71,6 +74,9 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
         this.errInfo = errInfo;
     }
 
+    /**
+     * Reader class for reading PCEP error Message from channel buffer.
+     */
     public static class Reader implements PcepMessageReader<PcepErrorMsg> {
 
         ErrorObjListWithOpen errObjListWithOpen;
@@ -140,7 +146,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
             tempObjHeader = parseErrorObjectList(llErrObjList, cb);
 
             //check whether OPEN-OBJECT is present.
-            if ((tempObjHeader instanceof PcepObjectHeader)
+            if ((tempObjHeader != null)
                     && (tempObjHeader.getObjClass() == PcepOpenObjectVer1.OPEN_OBJ_CLASS)) {
 
                 if (llErrObjList.isEmpty()) {
@@ -150,14 +156,14 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
                 PcepOpenObject pcepOpenObj = PcepOpenObjectVer1.read(cb);
                 this.errObjListWithOpen = new ErrorObjListWithOpen(llErrObjList, pcepOpenObj);
 
-            } else if ((tempObjHeader instanceof PcepObjectHeader) //check whether RP or TE Object is present.
+            } else if ((tempObjHeader != null) //check whether RP or TE Object is present.
                     && ((tempObjHeader.getObjClass() == PcepRPObjectVer1.RP_OBJ_CLASS)
                             || (tempObjHeader.getObjClass() == PcepTEObjectVer1.TE_OBJ_CLASS))) {
 
                 this.errInfo = new PcepErrorInfoVer1(null, null, llErrObjList);
                 this.errInfo.read(cb);
 
-            } else if ((null != llErrObjList) && (!llErrObjList.isEmpty())) {
+            } else if (!llErrObjList.isEmpty()) {
                 //If only PCEP-ERROR list is present then store it in errObjListWithOpen.
                 this.errObjListWithOpen = new ErrorObjListWithOpen(llErrObjList);
             } else {
@@ -187,7 +193,6 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
                     break;
                 }
             }
-
             return tempObjHeader;
         }
     }
@@ -246,6 +251,9 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
 
     public static final Writer WRITER = new Writer();
 
+    /**
+     * Writer class for writing PCEP error Message to channel buffer.
+     */
     static class Writer implements PcepMessageWriter<PcepErrorMsgVer1> {
         @Override
         public void write(ChannelBuffer cb, PcepErrorMsgVer1 message) throws PcepParseException {
@@ -265,10 +273,10 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
             // write ( <error-obj-list> [<Open>] ) if exists.
             // otherwise write <error> [<error-list>]
 
-            if ((errObjListWithOpen instanceof ErrorObjListWithOpen)
+            if ((errObjListWithOpen != null)
                     && (errObjListWithOpen.isErrorObjListWithOpenPresent())) {
                 errObjListWithOpen.write(cb);
-            } else if ((errInfo instanceof PcepErrorInfo) && (errInfo.isErrorInfoPresent())) {
+            } else if ((errInfo != null) && (errInfo.isErrorInfoPresent())) {
                 errInfo.write(cb);
             } else {
                 throw new PcepParseException("Empty PCEP-ERROR message.");
@@ -316,10 +324,10 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
      */
     public LinkedList<Integer> getErrorType() {
         LinkedList<Integer> llErrorType = new LinkedList<Integer>();
-        if ((errObjListWithOpen instanceof ErrorObjListWithOpen)
+        if ((errObjListWithOpen != null)
                 && (errObjListWithOpen.isErrorObjListWithOpenPresent())) {
             llErrorType = errObjListWithOpen.getErrorType();
-        } else if ((errInfo instanceof PcepErrorInfo) && (errInfo.isErrorInfoPresent())) {
+        } else if ((errInfo != null) && (errInfo.isErrorInfoPresent())) {
             llErrorType = errInfo.getErrorType();
         }
 
@@ -333,10 +341,10 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
      */
     public LinkedList<Integer> getErrorValue() {
         LinkedList<Integer> llErrorValue = new LinkedList<Integer>();
-        if ((errObjListWithOpen instanceof ErrorObjListWithOpen)
+        if ((errObjListWithOpen != null)
                 && (errObjListWithOpen.isErrorObjListWithOpenPresent())) {
             llErrorValue = errObjListWithOpen.getErrorValue();
-        } else if ((errInfo instanceof PcepErrorInfo) && (errInfo.isErrorInfoPresent())) {
+        } else if ((errInfo != null) && (errInfo.isErrorInfoPresent())) {
             llErrorValue = errInfo.getErrorValue();
         }
 
@@ -347,11 +355,11 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
     public String toString() {
         ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
 
-        if ((errObjListWithOpen instanceof ErrorObjListWithOpen)
+        if ((errObjListWithOpen != null)
                 && (errObjListWithOpen.isErrorObjListWithOpenPresent())) {
             toStrHelper.add("ErrorObjectListWithOpen", errObjListWithOpen);
         }
-        if ((errInfo instanceof PcepErrorInfo) && (errInfo.isErrorInfoPresent())) {
+        if ((errInfo != null) && (errInfo.isErrorInfoPresent())) {
             toStrHelper.add("ErrorInfo", errInfo);
         }
 

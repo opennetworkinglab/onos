@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
 
 /**
  * Provide the error object list with open object.
@@ -137,14 +136,10 @@ public class ErrorObjListWithOpen {
 
     @Override
     public String toString() {
-        ToStringHelper toStrHelper = MoreObjects.toStringHelper(getClass());
-
-        toStrHelper.add("ErrorObjList", llerrorObjList);
-
-        // OPEN Object is optional
-        if (openObject != null) {
-            toStrHelper.add("Open", openObject);
-        }
-        return toStrHelper.toString();
+        return MoreObjects.toStringHelper(getClass())
+                .omitNullValues()
+                .add("ErrorObjList", llerrorObjList)
+                .add("Open", openObject)
+                .toString();
     }
 }

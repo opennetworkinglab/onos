@@ -23,6 +23,9 @@ import org.onosproject.pcepio.protocol.PcepNai;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides Pcep Nai Ipv6 Adjacency.
+ */
 public class PcepNaiIpv6Adjacency implements PcepNai {
 
     public static final byte ST_TYPE = 0x04;

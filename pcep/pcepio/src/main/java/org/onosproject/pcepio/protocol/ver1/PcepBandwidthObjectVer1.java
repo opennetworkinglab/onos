@@ -226,7 +226,8 @@ public class PcepBandwidthObjectVer1 implements PcepBandwidthObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("BandwidthObjectHeader", bandwidthObjHeader)
+        return MoreObjects.toStringHelper(getClass())
+                .add("BandwidthObjectHeader", bandwidthObjHeader)
                 .add("Bandwidth", iBandwidth).toString();
     }
 }

@@ -209,7 +209,10 @@ public class MPLSProtocolMaskTlv implements PcepValueType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("Type", TYPE).add("Length", LENGTH).add("Value", rawValue)
+        return MoreObjects.toStringHelper(getClass())
+                .add("Type", TYPE)
+                .add("Length", LENGTH)
+                .add("Value", rawValue)
                 .toString();
     }
 }

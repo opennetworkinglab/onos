@@ -375,7 +375,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                             executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
                         }
                     } else {
-                        log.warn("Unsupported stats type : {}", reply.getStatsType());
+                        executorMsgs.submit(new OFMessageHandler(dpid, reply));
                     }
                     break;
                 default:

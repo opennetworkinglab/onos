@@ -15,24 +15,33 @@
  */
 package org.onosproject.vtnrsc.subnet.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.vtnrsc.AllocationPool;
+import org.onosproject.vtnrsc.HostRoute;
 import org.onosproject.vtnrsc.Subnet;
 import org.onosproject.vtnrsc.SubnetId;
+import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.subnet.SubnetService;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
 import org.slf4j.Logger;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the Subnet service.
@@ -43,26 +52,49 @@ public class SubnetManager implements SubnetService {
 
     private static final String SUBNET_ID_NULL = "Subnet ID cannot be null";
     private static final String SUBNET_NOT_NULL = "Subnet cannot be null";
+    private static final String SUBNET = "vtn-subnet-store";
+    private static final String VTNRSC_APP = "org.onosproject.vtnrsc";
+
 
     private final Logger log = getLogger(getClass());
 
-    protected ConcurrentHashMap<SubnetId, Subnet> subnetStore =
-            new ConcurrentHashMap<>();
+    protected Map<SubnetId, Subnet> subnetStore;
+    protected ApplicationId appId;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TenantNetworkService tenantNetworkService;
 
     @Activate
     public void activate() {
-        log.info("SubnetManager started");
+
+        appId = coreService.registerApplication(VTNRSC_APP);
+
+        subnetStore = storageService.<SubnetId, Subnet>consistentMapBuilder()
+                .withName(SUBNET)
+                .withApplicationId(appId)
+                .withPurgeOnUninstall()
+                .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API),
+                                                 Subnet.class,
+                                                 SubnetId.class,
+                                                 TenantNetworkId.class,
+                                                 TenantId.class,
+                                                 HostRoute.class,
+                                                 Subnet.Mode.class,
+                                                 AllocationPool.class))
+                .build().asJavaMap();
+
+        log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        subnetStore.clear();
-        log.info("SubnetManager stopped");
+        log.info("Stopped");
     }
 
     @Override

@@ -15,20 +15,24 @@
  */
 package org.onosproject.vtnrsc.virtualport.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.IpAddress;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.vtnrsc.AllowedAddressPair;
+import org.onosproject.vtnrsc.BindingHostId;
+import org.onosproject.vtnrsc.FixedIp;
+import org.onosproject.vtnrsc.SecurityGroup;
+import org.onosproject.vtnrsc.SubnetId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.VirtualPort;
@@ -37,6 +41,13 @@ import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Provides implementation of the VirtualPort APIs.
@@ -47,21 +58,48 @@ public class VirtualPortManager implements VirtualPortService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final String VIRTUALPORT = "vtn-virtual-port";
+    private static final String VTNRSC_APP = "org.onosproject.vtnrsc";
+
     private static final String VIRTUALPORT_ID_NULL = "VirtualPort ID cannot be null";
     private static final String VIRTUALPORT_NOT_NULL = "VirtualPort  cannot be null";
     private static final String TENANTID_NOT_NULL = "TenantId  cannot be null";
     private static final String NETWORKID_NOT_NULL = "NetworkId  cannot be null";
     private static final String DEVICEID_NOT_NULL = "DeviceId  cannot be null";
 
-    protected ConcurrentHashMap<VirtualPortId, VirtualPort> vPortStore =
-            new ConcurrentHashMap<>();
+    protected Map<VirtualPortId, VirtualPort> vPortStore;
+    protected ApplicationId appId;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TenantNetworkService networkService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
     @Activate
     public void activate() {
+
+        appId = coreService.registerApplication(VTNRSC_APP);
+
+        vPortStore = storageService.<VirtualPortId, VirtualPort>consistentMapBuilder()
+                .withName(VIRTUALPORT)
+                .withApplicationId(appId)
+                .withPurgeOnUninstall()
+                .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API),
+                                                 VirtualPortId.class,
+                                                 TenantNetworkId.class,
+                                                 VirtualPort.State.class,
+                                                 TenantId.class,
+                                                 AllowedAddressPair.class,
+                                                 FixedIp.class,
+                                                 BindingHostId.class,
+                                                 SecurityGroup.class,
+                                                 SubnetId.class,
+                                                 IpAddress.class))
+                .build().asJavaMap();
         log.info("Started");
     }
 

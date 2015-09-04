@@ -222,8 +222,13 @@ public class NodeFlagBitsTlv implements PcepValueType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("Type", TYPE).add("Length", LENGTH)
-                .add("OFlag", (bOFlag) ? 1 : 0).add("TFlag", (bTFlag) ? 1 : 0).add("EFlag", (bEFlag) ? 1 : 0)
-                .add("BFlag", (bBFlag) ? 1 : 0).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("Type", TYPE)
+                .add("Length", LENGTH)
+                .add("OFlag", (bOFlag) ? 1 : 0)
+                .add("TFlag", (bTFlag) ? 1 : 0)
+                .add("EFlag", (bEFlag) ? 1 : 0)
+                .add("BFlag", (bBFlag) ? 1 : 0)
+                .toString();
     }
 }

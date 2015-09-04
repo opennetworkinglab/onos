@@ -152,7 +152,7 @@ public class IntentsWebResource extends AbstractWebResource {
             service.submit(intent);
             UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
                     .path("intents")
-                    .path(Short.toString(intent.appId().id()))
+                    .path(intent.appId().name())
                     .path(Long.toString(intent.id().fingerprint()));
             return Response
                     .created(locationBuilder.build())

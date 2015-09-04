@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
+/**
+ * Provides Pcep Fec Object IPv6 Adjacency object.
+ */
 public class PcepFecObjectIPv6AdjacencyVer1 implements PcepFecObjectIPv6Adjacency {
 
     /*
@@ -238,7 +241,9 @@ public class PcepFecObjectIPv6AdjacencyVer1 implements PcepFecObjectIPv6Adjacenc
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("localIPv6Address", localIPv6Address)
-                .add("remoteIPv6Address: ", remoteIPv6Address).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("localIPv6Address", localIPv6Address)
+                .add("remoteIPv6Address: ", remoteIPv6Address)
+                .toString();
     }
 }

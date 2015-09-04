@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-/*
+/**
  * Provides SrEroSubObject.
  */
 public class SrEroSubObject implements PcepValueType {

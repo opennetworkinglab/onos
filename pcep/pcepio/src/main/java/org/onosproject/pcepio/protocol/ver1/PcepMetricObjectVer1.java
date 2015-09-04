@@ -25,7 +25,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-/*
+/**
+ * Provides PCEP metric object.
+ */
+public class PcepMetricObjectVer1 implements PcepMetricObject {
+
+    /*
      METRIC Object Body Format.
 
     0                   1                   2                   3
@@ -35,9 +40,7 @@ import com.google.common.base.MoreObjects;
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     |                          metric-value                         |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- */
-
-public class PcepMetricObjectVer1 implements PcepMetricObject {
+     */
 
     protected static final Logger log = LoggerFactory.getLogger(PcepMetricObjectVer1.class);
 
@@ -363,7 +366,11 @@ public class PcepMetricObjectVer1 implements PcepMetricObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("MetricValue", iMetricVal).add("BFlag", bBFlag)
-                .add("CFlag", bCFlag).add("BType", bType).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("MetricValue", iMetricVal)
+                .add("BFlag", bBFlag)
+                .add("CFlag", bCFlag)
+                .add("BType", bType)
+                .toString();
     }
 }

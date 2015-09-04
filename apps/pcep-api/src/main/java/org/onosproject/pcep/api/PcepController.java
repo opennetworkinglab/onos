@@ -112,4 +112,11 @@ public interface PcepController {
      */
     Boolean updateTunnelBandwidth(String id, long bandwidth);
 
+    /**
+     * Send statistic request by tunnel id.
+     *
+     * @param pcepTunnelId PCEP tunnel id
+     */
+    void getTunnelStatistics(String pcepTunnelId);
+
 }

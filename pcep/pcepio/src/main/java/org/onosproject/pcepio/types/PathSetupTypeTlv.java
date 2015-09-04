@@ -140,7 +140,10 @@ public class PathSetupTypeTlv implements PcepValueType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("Type", TYPE).add("Length", LENGTH).add("PST", pst)
+        return MoreObjects.toStringHelper(getClass())
+                .add("Type", TYPE)
+                .add("Length", LENGTH)
+                .add("PST", pst)
                 .toString();
     }
 }

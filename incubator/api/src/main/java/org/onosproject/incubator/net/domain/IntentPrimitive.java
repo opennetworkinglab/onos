@@ -29,4 +29,13 @@ public abstract class IntentPrimitive {
     public IntentPrimitive(ApplicationId appId) {
         this.appId = appId;
     }
+
+    /**
+     * The getter for the application ID associated with the intent primitive upon creation.
+     *
+     * @return the application ID associated with the intent primitive
+     */
+    public ApplicationId appId() {
+        return appId;
+    }
 }

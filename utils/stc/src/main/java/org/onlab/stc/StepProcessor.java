@@ -35,6 +35,8 @@ import static org.onlab.stc.Coordinator.print;
 class StepProcessor implements Runnable {
 
     private static final String IGNORE_CODE = "~";
+    private static final String NEGATE_CODE = "!";
+
     private static final int FAIL = -1;
 
     static String launcher = "stc-launcher ";
@@ -67,7 +69,9 @@ class StepProcessor implements Runnable {
         delegate.onStart(step, command);
         int code = execute();
         boolean ignoreCode = step.env() != null && step.env.equals(IGNORE_CODE);
-        Status status = ignoreCode || code == 0 ? SUCCEEDED : FAILED;
+        boolean negateCode = step.env() != null && step.env.equals(NEGATE_CODE);
+        Status status = ignoreCode || code == 0 && !negateCode || code != 0 && negateCode ?
+                SUCCEEDED : FAILED;
         delegate.onCompletion(step, status);
     }
 

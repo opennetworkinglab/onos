@@ -32,8 +32,13 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-/*
- * rfc3209
+/**
+ * Provides PCEP RRO object.
+ */
+public class PcepRroObjectVer1 implements PcepRroObject {
+
+    /*
+     * rfc3209
           0                   1                   2                   3
           0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
          +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -88,9 +93,7 @@ import com.google.common.base.MoreObjects;
            |       Contents of Label Object                                |
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
- */
-public class PcepRroObjectVer1 implements PcepRroObject {
-
+     */
     protected static final Logger log = LoggerFactory.getLogger(PcepRroObjectVer1.class);
 
     public static final byte RRO_OBJ_TYPE = 1;
@@ -335,6 +338,8 @@ public class PcepRroObjectVer1 implements PcepRroObject {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).add("SubObjects", llSubObjects).toString();
+        return MoreObjects.toStringHelper(getClass())
+                .add("SubObjects", llSubObjects)
+                .toString();
     }
 }
