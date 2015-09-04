@@ -1,0 +1,93 @@
+<!--
+  ~ Copyright 2015 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="net-create-flows"
+          description="Network Flow Creation Test Using REST API">
+    <!-- TODO: parametrize this via recipes -->
+    <group name="Net-Create-Flows">
+
+        <!-- Make sure that reactive forwarding is off -->
+        <step name="Net-Create-Flows.Uninstall-Reactive-Forwarding"
+              exec="onos ${OC1} app deactivate org.onosproject.fwd org.onosproject.ifwd"/>
+        <step name="Net-Create-Flows.Check-Apps" requires="^"
+              exec="onos-check-apps ${OC1} fwd,ifwd excludes"/>
+
+        <!-- Force discovery of hosts -->
+        <step name="Net-Create-Flows.Find-Host-1" requires="^"
+              exec="onos-mininet sendAndExpect h1 ping -c1 -w1 h4 --expect 100% packet loss"/>
+        <step name="Net-Create-Flows.Find-Host-2" requires="^"
+              exec="onos-mininet sendAndExpect h4 ping -c1 -w1 h1 --expect 100% packet loss"/>
+
+
+        <!-- Use REST API to create a point to point intent in each direction -->
+        <step name="Net-Create-Flows.1-to-Host" requires="Net-Create-Flows.Find-Host-2"
+              exec="create-flow.py ${OC1} f1 of:0000000000000001 5 1"/>
+        <step name="Net-Create-Flows.1-to-19" requires="^"
+              exec="create-flow.py ${OC1} f2 of:0000000000000001 1 2"/>
+        <step name="Net-Create-Flows.19-to-7" requires="^"
+              exec="create-flow.py ${OC1} f3 of:0000000000000019 2 8"/>
+        <step name="Net-Create-Flows.7-to-4" requires="^"
+              exec="create-flow.py ${OC1} f4 of:0000000000000007 2 3"/>
+        <step name="Net-Create-Flows.4-to-Host" requires="^"
+              exec="create-flow.py ${OC1} f5 of:0000000000000004 1 3"/>
+
+        <step name="Net-Create-Flows.Host-to-1" requires="^"
+              exec="create-flow.py ${OC1} f6 of:0000000000000001 1 5"/>
+        <step name="Net-Create-Flows.19-to-1" requires="^"
+              exec="create-flow.py ${OC1} f7 of:0000000000000001 2 1"/>
+        <step name="Net-Create-Flows.7-to-19" requires="^"
+              exec="create-flow.py ${OC1} f8 of:0000000000000019 8 2"/>
+        <step name="Net-Create-Flows.4-to-7" requires="^"
+              exec="create-flow.py ${OC1} f9 of:0000000000000007 3 2"/>
+        <step name="Net-Create-Flows.Host-to-4" requires="^"
+              exec="create-flow.py ${OC1} f10 of:0000000000000004 3 1"/>
+
+        <!-- Check that connectivity was established -->
+        <step name="Net-Create-Flows.Ping-XY" requires="^"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"/>
+        <step name="Net-Create-Flows.Ping-YX" requires="^"
+              exec="onos-mininet sendAndExpect h4 ping -c1 h1 --expect \ 0% packet loss"/>
+
+        <!-- Use REST API to remove the flows. -->
+        <step name="Net-Create-Flows.Delete-f1" requires="^"
+              exec="curl -f -X DELETE -uonos:rocks ${f1Location}"/>
+        <step name="Net-Create-Flows.Delete-f2" requires="^"
+              exec="curl -f -X DELETE -uonos:rocks ${f2Location}"/>
+        <step name="Net-Create-Flows.Delete-f3" requires="^"
+              exec="curl -f -X DELETE -uonos:rocks ${f3Location}"/>
+        <step name="Net-Create-Flows.Delete-f4" requires="^"
+              exec="curl -f -X DELETE -uonos:rocks ${f4Location}"/>
+        <step name="Net-Create-Flows.Delete-f5" requires="^"
+              exec="curl -f -X DELETE -uonos:rocks ${f5Location}"/>
+        <step name="Net-Create-Flows.Delete-f6" requires="^"
+              exec="curl -f -X DELETE -uonos:rocks ${f6Location}"/>
+        <step name="Net-Create-Flows.Delete-f7" requires="^"
+              exec="curl -f -X DELETE -uonos:rocks ${f7Location}"/>
+        <step name="Net-Create-Flows.Delete-f8" requires="^"
+              exec="curl -f -X DELETE -uonos:rocks ${f8Location}"/>
+        <step name="Net-Create-Flows.Delete-f9" requires="^"
+              exec="curl -f -X DELETE -uonos:rocks ${f9Location}"/>
+        <step name="Net-Create-Flows.Delete-f10" requires="^"
+              exec="curl -f -X DELETE -uonos:rocks ${f10Location}"/>
+
+        <!-- Ping again to be sure the path was removed. -->
+        <step name="Net-Create-Flows.Fail-Ping-XY" requires="^"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 100% packet loss"/>
+        <step name="Net-Create-Flows.Fail-Ping-YX" requires="^"
+              exec="onos-mininet sendAndExpect h4 ping -c1 h1 --expect \ 100% packet loss"/>
+
+
+    </group>
+</scenario>
