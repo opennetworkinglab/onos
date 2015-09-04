@@ -16,6 +16,7 @@
 package org.onosproject.net.device.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.onosproject.net.config.ConfigOperator;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
@@ -92,5 +93,13 @@ public final class BasicDeviceOperator implements ConfigOperator {
         }
         DefaultAnnotations newAnnotations = newBuilder.build();
         return DefaultAnnotations.union(an, newAnnotations);
+    }
+
+    public static DeviceDescription descriptionOf(Device device) {
+        checkNotNull(device, "Must supply non-null Device");
+        return new DefaultDeviceDescription(device.id().uri(), device.type(),
+                                            device.manufacturer(), device.hwVersion(),
+                                            device.swVersion(), device.serialNumber(),
+                                            device.chassisId(), (SparseAnnotations) device.annotations());
     }
 }

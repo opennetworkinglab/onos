@@ -16,11 +16,16 @@
 package org.onosproject.net.device.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.onosproject.net.config.ConfigOperator;
 import org.onosproject.net.config.basics.OpticalPortConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.OchPort;
+import org.onosproject.net.OduCltPort;
+import org.onosproject.net.OmsPort;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultPortDescription;
@@ -136,5 +141,33 @@ public final class OpticalPortOperator implements ConfigOperator {
             b.set(AnnotationKeys.PORT_NAME, opc.name());
         }
         return DefaultAnnotations.union(an, b.build());
+    }
+
+    /**
+     * Returns a description built from an existing port.
+     *
+     * @param port the device port
+     * @return a PortDescription based on the port
+     */
+    public static PortDescription descriptionOf(Port port) {
+        checkNotNull(port, "Must supply non-null Port");
+        final PortNumber ptn = port.number();
+        final boolean isup = port.isEnabled();
+        final SparseAnnotations an = (SparseAnnotations) port.annotations();
+        switch (port.type()) {
+            case OMS:
+                OmsPort oms = (OmsPort) port;
+                return new OmsPortDescription(ptn, isup, oms.minFrequency(),
+                        oms.maxFrequency(), oms.grid(), an);
+            case OCH:
+                OchPort och = (OchPort) port;
+                return new OchPortDescription(ptn, isup, och.signalType(),
+                        och.isTunable(), och.lambda(), an);
+            case ODUCLT:
+                OduCltPort odu = (OduCltPort) port;
+                return new OduCltPortDescription(ptn, isup, odu.signalType(), an);
+            default:
+                return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
+        }
     }
 }

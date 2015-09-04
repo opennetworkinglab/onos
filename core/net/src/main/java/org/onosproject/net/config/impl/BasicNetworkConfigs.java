@@ -84,7 +84,7 @@ public class BasicNetworkConfigs {
             },
             new ConfigFactory<ConnectPoint, OpticalPortConfig>(CONNECT_POINT_SUBJECT_FACTORY,
                                                                OpticalPortConfig.class,
-                                                               "basic") {
+                                                               "optical") {
                 @Override
                 public OpticalPortConfig createConfig() {
                     return new OpticalPortConfig();
