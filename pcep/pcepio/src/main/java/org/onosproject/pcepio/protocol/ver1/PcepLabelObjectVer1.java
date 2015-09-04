@@ -145,7 +145,7 @@ public class PcepLabelObjectVer1 implements PcepLabelObject {
         ChannelBuffer tempCb = cb.readBytes(labelObjHeader.getObjLen() - OBJECT_HEADER_LENGTH);
 
         int iTemp = tempCb.readInt();
-        bOFlag = (iTemp & (byte) 0x01) == 1 ? true : false;
+        bOFlag = (iTemp & (byte) 0x01) == 1;
         label = tempCb.readInt();
 
         // parse optional TLV

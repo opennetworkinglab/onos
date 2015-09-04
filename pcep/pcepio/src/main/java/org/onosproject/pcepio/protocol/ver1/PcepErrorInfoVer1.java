@@ -67,7 +67,7 @@ public class PcepErrorInfoVer1 implements PcepErrorInfo {
 
     @Override
     public boolean isErrorInfoPresent() {
-        return (!this.errList.isEmpty()) ? true : false;
+        return !this.errList.isEmpty();
     }
 
     @Override

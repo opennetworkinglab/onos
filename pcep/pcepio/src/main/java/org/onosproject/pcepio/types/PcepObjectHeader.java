@@ -204,8 +204,8 @@ public class PcepObjectHeader {
         short objLen;
         objClass = cb.readByte();
         byte temp = cb.readByte();
-        bIFlag = ((temp & IFLAG_SET) == IFLAG_SET) ? true : false;
-        bPFlag = ((temp & PFLAG_SET) == PFLAG_SET) ? true : false;
+        bIFlag = (temp & IFLAG_SET) == IFLAG_SET;
+        bPFlag = (temp & PFLAG_SET) == PFLAG_SET;
         objType = (byte) (temp >> OBJECT_TYPE_SHIFT_VALUE);
         objLen = cb.readShort();
         return new PcepObjectHeader(objClass, objType, bPFlag, bIFlag, objLen);

@@ -48,8 +48,8 @@ public class PceccCapabilityTlv implements PcepValueType {
         this.rawValue = rawValue;
         this.isRawValueSet = true;
 
-        bLFlag = (rawValue & LFLAG_CHECK) == LFLAG_CHECK ? true : false;
-        bGFlag = (rawValue & GFLAG_CHECK) == GFLAG_CHECK ? true : false;
+        bLFlag = (rawValue & LFLAG_CHECK) == LFLAG_CHECK;
+        bGFlag = (rawValue & GFLAG_CHECK) == GFLAG_CHECK;
     }
 
     /**

@@ -525,7 +525,7 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
             }
         }
 
-        return (bFoundPceccCapability && bFoundStatefulPceCapability && bFoundPcInstantiationCapability) ? true : false;
+        return (bFoundPceccCapability && bFoundStatefulPceCapability && bFoundPcInstantiationCapability);
     }
 
     /**

@@ -198,9 +198,9 @@ public class PcepRPObjectVer1 implements PcepRPObject {
 
         int iTemp = tempCb.readInt();
         yPriFlag = (byte) (iTemp & PRIFLAG_TEMP_SHIFT_VALUE);
-        bOFlag = (iTemp & OFLAG_TEMP_SHIFT_VALUE) == OFLAG_TEMP_SHIFT_VALUE ? true : false;
-        bBFlag = (iTemp & BFLAG_TEMP_SHIFT_VALUE) == BFLAG_TEMP_SHIFT_VALUE ? true : false;
-        bRFlag = (iTemp & RFLAG_TEMP_SHIFT_VALUE) == RFLAG_TEMP_SHIFT_VALUE ? true : false;
+        bOFlag = (iTemp & OFLAG_TEMP_SHIFT_VALUE) == OFLAG_TEMP_SHIFT_VALUE;
+        bBFlag = (iTemp & BFLAG_TEMP_SHIFT_VALUE) == BFLAG_TEMP_SHIFT_VALUE;
+        bRFlag = (iTemp & RFLAG_TEMP_SHIFT_VALUE) == RFLAG_TEMP_SHIFT_VALUE;
 
         iRequestIdNum = tempCb.readInt();
 

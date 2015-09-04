@@ -275,10 +275,10 @@ public class SrEroSubObject implements PcepValueType {
         byte st;
         PcepNai nai = null;
 
-        bMFlag = (temp & MFLAG_SET) == MFLAG_SET ? true : false;
-        bCFlag = (temp & CFLAG_SET) == CFLAG_SET ? true : false;
-        bSFlag = (temp & SFLAG_SET) == SFLAG_SET ? true : false;
-        bFFlag = (temp & FFLAG_SET) == FFLAG_SET ? true : false;
+        bMFlag = (temp & MFLAG_SET) == MFLAG_SET;
+        bCFlag = (temp & CFLAG_SET) == CFLAG_SET;
+        bSFlag = (temp & SFLAG_SET) == SFLAG_SET;
+        bFFlag = (temp & FFLAG_SET) == FFLAG_SET;
 
         st = (byte) (temp >> SHIFT_ST);
 

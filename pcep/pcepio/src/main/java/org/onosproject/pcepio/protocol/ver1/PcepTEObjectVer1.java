@@ -211,8 +211,8 @@ public class PcepTEObjectVer1 implements PcepTEObject {
         tempCb.readShort();
 
         Integer iTemp = (int) tempCb.readByte(); //read 3rd byte Flag
-        bSFlag = ((iTemp & FLAG_SET_S_FLAG) == FLAG_SET_S_FLAG) ? true : false;
-        bRFlag = ((iTemp & FLAG_SET_R_FLAG) == FLAG_SET_R_FLAG) ? true : false;
+        bSFlag = (iTemp & FLAG_SET_S_FLAG) == FLAG_SET_S_FLAG;
+        bRFlag = (iTemp & FLAG_SET_R_FLAG) == FLAG_SET_R_FLAG;
 
         iTEId = tempCb.readInt();
 

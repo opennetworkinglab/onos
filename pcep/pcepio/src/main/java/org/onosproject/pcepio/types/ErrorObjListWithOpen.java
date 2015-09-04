@@ -99,7 +99,7 @@ public class ErrorObjListWithOpen {
     public boolean isErrorObjListWithOpenPresent() {
         // ( <error-obj-list> [<Open>]
         // At least in this case <error-obj-list> should be present.
-        return (!this.llerrorObjList.isEmpty()) ? true : false;
+        return !this.llerrorObjList.isEmpty();
     }
 
     /**

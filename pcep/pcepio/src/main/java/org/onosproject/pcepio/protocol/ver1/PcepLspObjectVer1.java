@@ -249,13 +249,13 @@ public class PcepLspObjectVer1 implements PcepLspObject {
         Integer iX = (iTemp & OFLAG_TEMP_SHIFT_VALUE) >> OFLAG_SHIFT_VALUE;
         yOFlag = iX.byteValue();
         iX = (iTemp & AFLAG_TEMP_SHIFT_VALUE) >> AFLAG_SHIFT_VALUE;
-        bAFlag = (iX > 0) ? true : false;
+        bAFlag = iX > 0;
         iX = (iTemp & RFLAG_TEMP_SHIFT_VALUE) >> RFLAG_SHIFT_VALUE;
-        bRFlag = (iX > 0) ? true : false;
+        bRFlag = iX > 0;
         iX = (iTemp & SFLAG_TEMP_SHIFT_VALUE) >> SFLAG_SHIFT_VALUE;
-        bSFlag = (iX > 0) ? true : false;
+        bSFlag = iX > 0;
         iX = iTemp & DFLAG_TEMP_SHIFT_VALUE;
-        bDFlag = (iX > 0) ? true : false;
+        bDFlag = iX > 0;
 
         // parse optional TLV
         llOptionalTlv = parseOptionalTlv(tempCb);

@@ -227,7 +227,7 @@ public class PcepLspaObjectVer1 implements PcepLspaObject {
         flags = tempCb.readByte();
         tempCb.readByte();
 
-        bLFlag = (flags & (byte) LFLAG_SET) == LFLAG_SET ? true : false;
+        bLFlag = (flags & (byte) LFLAG_SET) == LFLAG_SET;
 
         llOptionalTlv = parseOptionalTlv(tempCb);
 

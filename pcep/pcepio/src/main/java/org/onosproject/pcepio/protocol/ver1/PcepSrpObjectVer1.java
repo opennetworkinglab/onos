@@ -166,7 +166,7 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
         //take only SrpObject buffer.
         ChannelBuffer tempCb = cb.readBytes(srpObjHeader.getObjLen() - MINIMUM_COMMON_HEADER_LENGTH);
         flags = tempCb.readInt();
-        bRFlag = (0 < flags) ? true : false;
+        bRFlag = 0 < flags;
         srpID = tempCb.readInt();
 
         llOptionalTlv = parseOptionalTlv(tempCb);
