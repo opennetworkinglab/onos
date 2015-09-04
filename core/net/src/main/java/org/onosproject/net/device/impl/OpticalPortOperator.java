@@ -64,14 +64,14 @@ public final class OpticalPortOperator implements ConfigOperator {
         if (port == null) {
             // try to get the portNumber from the numName.
             if (!numName.isEmpty()) {
-                final long pn = Long.valueOf(numName);
+                final long pn = Long.parseLong(numName);
                 newPort = (!name.isEmpty()) ? PortNumber.portNumber(pn, name) : PortNumber.portNumber(pn);
             } else {
                 // we don't have defining info (a port number value)
                 throw new RuntimeException("Possible misconfig, bailing on handling for: \n\t" + descr);
             }
         } else if ((!name.isEmpty()) && !name.equals(port.name())) {
-            final long pn = (numName.isEmpty()) ? port.toLong() : Long.valueOf(numName);
+            final long pn = (numName.isEmpty()) ? port.toLong() : Long.parseLong(numName);
             newPort = PortNumber.portNumber(pn, name);
         }
 

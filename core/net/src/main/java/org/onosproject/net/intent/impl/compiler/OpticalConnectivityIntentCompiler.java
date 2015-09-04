@@ -127,7 +127,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
             // FIXME: need to actually reserve the lambda for static lambda's
             if (staticLambda != null) {
-                ochSignal = new OchSignal(Frequency.ofHz(Long.valueOf(staticLambda)),
+                ochSignal = new OchSignal(Frequency.ofHz(Long.parseLong(staticLambda)),
                         srcOchPort.lambda().channelSpacing(),
                         srcOchPort.lambda().slotGranularity());
             } else if (!srcOchPort.isTunable() || !dstOchPort.isTunable()) {
