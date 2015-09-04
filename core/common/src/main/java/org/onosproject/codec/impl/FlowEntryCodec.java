@@ -17,6 +17,7 @@ package org.onosproject.codec.impl;
 
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -34,9 +35,11 @@ public final class FlowEntryCodec extends JsonCodec<FlowEntry> {
     public ObjectNode encode(FlowEntry flowEntry, CodecContext context) {
         checkNotNull(flowEntry, "Flow entry cannot be null");
 
+        CoreService service = context.getService(CoreService.class);
+
         final ObjectNode result = context.mapper().createObjectNode()
                 .put("id", Long.toString(flowEntry.id().value()))
-                .put("appId", flowEntry.appId())
+                .put("appId", service.getAppId(flowEntry.appId()).name())
                 .put("groupId", flowEntry.groupId().id())
                 .put("priority", flowEntry.priority())
                 .put("timeout", flowEntry.timeout())
