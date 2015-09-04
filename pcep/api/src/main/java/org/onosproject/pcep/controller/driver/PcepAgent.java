@@ -33,7 +33,7 @@ public interface PcepAgent {
      * @param pc the actual pce client object.
      * @return true if added, false otherwise.
      */
-    public boolean addConnectedClient(PccId pccId, PcepClient pc);
+    boolean addConnectedClient(PccId pccId, PcepClient pc);
 
     /**
      * Checks if the activation for this pcc client is valid.
@@ -41,7 +41,7 @@ public interface PcepAgent {
      * @param pccId the id of pcc client to check
      * @return true if valid, false otherwise
      */
-    public boolean validActivation(PccId pccId);
+    boolean validActivation(PccId pccId);
 
     /**
      * Clear all state in controller client maps for a pcc client that has
@@ -50,7 +50,7 @@ public interface PcepAgent {
      *
      * @param pccIds the id of pcc client to remove.
      */
-    public void removeConnectedClient(PccId pccIds);
+    void removeConnectedClient(PccId pccIds);
 
     /**
      * Process a message coming from a pcc client.
@@ -58,6 +58,6 @@ public interface PcepAgent {
      * @param pccId the id of pcc client the message was received.
      * @param m the message to process
      */
-    public void processPcepMessage(PccId pccId, PcepMessage m);
+    void processPcepMessage(PccId pccId, PcepMessage m);
 
 }

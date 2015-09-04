@@ -27,5 +27,5 @@ public interface PcepEventListener {
      * @param pccId id of the pcc
      * @param msg the message
      */
-    public void handleMessage(PccId pccId, PcepMessage msg);
+    void handleMessage(PccId pccId, PcepMessage msg);
 }

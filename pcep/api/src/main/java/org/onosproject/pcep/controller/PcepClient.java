@@ -30,81 +30,81 @@ public interface PcepClient {
      *
      * @param msg the message to write
      */
-    public void sendMessage(PcepMessage msg);
+    void sendMessage(PcepMessage msg);
 
     /**
      * Writes the PcepMessage list to the driver.
      *
      * @param msgs the messages to be written
      */
-    public void sendMessage(List<PcepMessage> msgs);
+    void sendMessage(List<PcepMessage> msgs);
 
     /**
      * Handle a message from the pcc.
      *
      * @param fromClient the message to handle
      */
-    public void handleMessage(PcepMessage fromClient);
+    void handleMessage(PcepMessage fromClient);
 
     /**
      * Provides the factory for this PCEP version.
      *
      * @return PCEP version specific factory.
      */
-    public PcepFactory factory();
+    PcepFactory factory();
 
     /**
      * Gets a string version of the ID for this pcc.
      *
      * @return string version of the ID
      */
-    public String getStringId();
+    String getStringId();
 
     /**
      * Gets the ipAddress of the client.
      *
      * @return the client pccId in IPAddress format
      */
-    public PccId getPccId();
+    PccId getPccId();
 
     /**
      * Checks if the pcc is still connected.
      *
      * @return true if client is connected, false otherwise
      */
-    public boolean isConnected();
+    boolean isConnected();
 
     /**
      * Disconnects the pcc by closing the TCP connection. Results in a call
      * to the channel handler's channelDisconnected method for cleanup.
      */
-    public void disconnectClient();
+    void disconnectClient();
 
     /**
      * Indicates if this pcc is optical.
      *
      * @return true if optical
      */
-    public boolean isOptical();
+    boolean isOptical();
 
     /**
      * Identifies the channel used to communicate with the pcc.
      *
      * @return string representation of the connection to the client
      */
-    public String channelId();
+    String channelId();
 
     /**
      * To set the status of state synchronization.
      *
      * @param value to set the synchronization status
      */
-    public void setIsSyncComplete(boolean value);
+    void setIsSyncComplete(boolean value);
 
     /**
      * Indicates the state synchronization status of this pcc.
      *
      * @return true/false if the synchronization is completed/not completed
      */
-    public boolean isSyncComplete();
+    boolean isSyncComplete();
 }

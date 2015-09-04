@@ -34,33 +34,33 @@ public interface PcepClientDriver extends PcepClient {
      *
      * @param agent the agent to set.
      */
-    public void setAgent(PcepAgent agent);
+    void setAgent(PcepAgent agent);
 
     /**
      * Announce to the Pcep agent that this pcc client has connected.
      *
      * @return true if successful, false if duplicate switch.
      */
-    public boolean connectClient();
+    boolean connectClient();
 
     /**
      * Remove this pcc client from the Pcep agent.
      */
-    public void removeConnectedClient();
+    void removeConnectedClient();
 
     /**
      * Sets the PCEP version for this pcc.
      *
      * @param pcepVersion the version to set.
      */
-    public void setPcVersion(PcepVersion pcepVersion);
+    void setPcVersion(PcepVersion pcepVersion);
 
     /**
      * Sets the associated Netty channel for this pcc.
      *
      * @param channel the Netty channel
      */
-    public void setChannel(Channel channel);
+    void setChannel(Channel channel);
 
 
     /**
@@ -68,28 +68,28 @@ public interface PcepClientDriver extends PcepClient {
      *
      * @param keepAliveTime the keep alive time to set.
      */
-    public void setPcKeepAliveTime(byte keepAliveTime);
+    void setPcKeepAliveTime(byte keepAliveTime);
 
     /**
      * Sets the dead time for this pcc.
      *
      * @param deadTime the dead timer value to set.
      */
-    public void setPcDeadTime(byte deadTime);
+    void setPcDeadTime(byte deadTime);
 
     /**
      * Sets the session id for this pcc.
      *
      * @param sessionId the session id value to set.
      */
-    public void setPcSessionId(byte sessionId);
+    void setPcSessionId(byte sessionId);
 
     /**
      * Sets whether the pcc is connected.
      *
      * @param connected whether the pcc is connected
      */
-    public void setConnected(boolean connected);
+    void setConnected(boolean connected);
 
     /**
      * Initializes the behavior.
