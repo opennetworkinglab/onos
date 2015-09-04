@@ -20,7 +20,9 @@ org.onosproject.calendar
 org.onosproject.sdnip*
 org.onosproject.oecfg
 org.onosproject.metrics
-org.onosproject.store.*
+org.onosproject.store.ecmap
+org.onosproject.store.flow
+org.onosproject.store.serializers*
 org.onosproject.openflow*
 org.onosproject.common*
 org.onosproject.routing*
