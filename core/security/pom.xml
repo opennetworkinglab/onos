@@ -43,6 +43,14 @@
             <groupId>org.apache.karaf.features</groupId>
             <artifactId>org.apache.karaf.features.core</artifactId>
         </dependency>
+        <!-- Adding dependency to pull the artifact from Maven Central.
+             Note: This is just needed for the onos-security feature. -->
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>org.apache.felix.framework.security</artifactId>
+            <version>2.2.0.onos</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
