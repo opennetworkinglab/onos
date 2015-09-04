@@ -26,15 +26,15 @@ import com.google.common.testing.EqualsTester;
 public class SymbolicPathNameTlvTest {
 
     private final byte[] value1 = {0x41 };
-    private final Short length1 = new Short((short) 2);
+    private final Short length1 = 2;
     private final SymbolicPathNameTlv tlv1 = SymbolicPathNameTlv.of(value1, length1);
 
     private final byte[] value2 = {0x41 };
-    private final Short length2 = new Short((short) 2);
+    private final Short length2 = 2;
     private final SymbolicPathNameTlv tlv2 = SymbolicPathNameTlv.of(value1, length2);
 
     private final byte[] value3 = {0x41, 0x43 };
-    private final Short length3 = new Short((short) 3);
+    private final Short length3 = 3;
     private final SymbolicPathNameTlv tlv3 = SymbolicPathNameTlv.of(value3, length3);
 
     @Test
