@@ -19,6 +19,7 @@
 package org.onlab.packet;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import static org.onlab.packet.PacketUtils.*;
 
@@ -420,7 +421,7 @@ public class TCP extends BasePacket {
                 && this.flags == other.flags
                 && this.windowSize == other.windowSize
                 && this.urgentPointer == other.urgentPointer
-                && (this.dataOffset == 5 || this.options.equals(other.options));
+                && (this.dataOffset == 5 || Arrays.equals(this.options, other.options));
     }
 
     /**
