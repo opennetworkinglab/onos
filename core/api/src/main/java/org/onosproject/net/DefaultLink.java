@@ -112,7 +112,7 @@ public class DefaultLink extends AbstractModel implements Link {
     }
 
     @Override
-    public int weight() {
+    public int getWeight() {
         return weight;
     }
 
