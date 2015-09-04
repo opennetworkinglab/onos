@@ -185,7 +185,7 @@ public class PcepLabelUpdateVer1 implements PcepLabelUpdate {
             labelDownload.setLspObject(PcepLspObjectVer1.read(cb));
 
             //<label-list>
-            LinkedList<PcepLabelObject> llLabelList = new LinkedList<PcepLabelObject>();
+            LinkedList<PcepLabelObject> llLabelList = new LinkedList<>();
             PcepLabelObject labelObject;
 
             while (0 < cb.readableBytes()) {

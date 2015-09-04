@@ -100,7 +100,7 @@ class PcepUpdateMsgVer1 implements PcepUpdateMsg {
                 throw new PcepParseException("Readable bytes is less than update message minimum length");
             }
 
-            llUpdateRequestList = new LinkedList<PcepUpdateRequest>();
+            llUpdateRequestList = new LinkedList<>();
 
             // fixed value property version == 1
             byte version = cb.readByte();

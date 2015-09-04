@@ -47,7 +47,7 @@ public class PcepClientControllerImpl implements PcepClientController {
     private static final Logger log = LoggerFactory.getLogger(PcepClientControllerImpl.class);
 
     protected ConcurrentHashMap<PccId, PcepClient> connectedClients =
-            new ConcurrentHashMap<PccId, PcepClient>();
+            new ConcurrentHashMap<>();
 
     protected PcepClientAgent agent = new PcepClientAgent();
     protected Set<PcepClientListener> pcepClientListener = new HashSet<>();

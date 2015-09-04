@@ -142,7 +142,7 @@ public class PcepLabelRangeObjectVer1 implements PcepLabelRangeObject {
         int rangeSize;
         int labelBase;
 
-        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         labelRangeObjHeader = PcepObjectHeader.read(cb);
 
@@ -189,7 +189,7 @@ public class PcepLabelRangeObjectVer1 implements PcepLabelRangeObject {
      */
     public static LinkedList<PcepValueType> parseOptionalTlv(ChannelBuffer cb) throws PcepParseException {
 
-        LinkedList<PcepValueType> llOutOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOutOptionalTlv = new LinkedList<>();
 
         while (MINIMUM_COMMON_HEADER_LENGTH <= cb.readableBytes()) {
 
@@ -272,7 +272,7 @@ public class PcepLabelRangeObjectVer1 implements PcepLabelRangeObject {
         private boolean bIFlag;
         private PcepObjectHeader labelRangeObjHeader;
 
-        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         @Override
         public PcepLabelRangeObject build() throws PcepParseException {

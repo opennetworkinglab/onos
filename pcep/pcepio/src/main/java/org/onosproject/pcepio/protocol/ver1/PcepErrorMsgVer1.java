@@ -142,7 +142,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
             }
 
             //parse PCEP-ERROR list
-            llErrObjList = new LinkedList<PcepErrorObject>();
+            llErrObjList = new LinkedList<>();
             tempObjHeader = parseErrorObjectList(llErrObjList, cb);
 
             //check whether OPEN-OBJECT is present.
@@ -323,7 +323,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
      * @return error types list
      */
     public LinkedList<Integer> getErrorType() {
-        LinkedList<Integer> llErrorType = new LinkedList<Integer>();
+        LinkedList<Integer> llErrorType = new LinkedList<>();
         if ((errObjListWithOpen != null)
                 && (errObjListWithOpen.isErrorObjListWithOpenPresent())) {
             llErrorType = errObjListWithOpen.getErrorType();
@@ -340,7 +340,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
      * @return error value list
      */
     public LinkedList<Integer> getErrorValue() {
-        LinkedList<Integer> llErrorValue = new LinkedList<Integer>();
+        LinkedList<Integer> llErrorValue = new LinkedList<>();
         if ((errObjListWithOpen != null)
                 && (errObjListWithOpen.isErrorObjListWithOpenPresent())) {
             llErrorValue = errObjListWithOpen.getErrorValue();

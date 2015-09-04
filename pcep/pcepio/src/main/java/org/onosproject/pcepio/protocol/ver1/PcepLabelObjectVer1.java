@@ -138,7 +138,7 @@ public class PcepLabelObjectVer1 implements PcepLabelObject {
         int label;
 
         // Optional TLV
-        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
         labelObjHeader = PcepObjectHeader.read(cb);
 
         //take only LspObject buffer.
@@ -191,7 +191,7 @@ public class PcepLabelObjectVer1 implements PcepLabelObject {
      */
     protected static LinkedList<PcepValueType> parseOptionalTlv(ChannelBuffer cb) throws PcepParseException {
 
-        LinkedList<PcepValueType> llOutOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOutOptionalTlv = new LinkedList<>();
 
         while (MINIMUM_COMMON_HEADER_LENGTH <= cb.readableBytes()) {
 
@@ -272,7 +272,7 @@ public class PcepLabelObjectVer1 implements PcepLabelObject {
         private boolean bOFlag;
         private int label;
 
-        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         private boolean bIsPFlagSet = false;
         private boolean bPFlag;

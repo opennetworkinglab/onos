@@ -234,7 +234,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
         boolean bDFlag;
 
         // Optional TLV
-        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         lspObjHeader = PcepObjectHeader.read(cb);
 
@@ -314,7 +314,7 @@ public class PcepLspObjectVer1 implements PcepLspObject {
 
         LinkedList<PcepValueType> llOutOptionalTlv;
 
-        llOutOptionalTlv = new LinkedList<PcepValueType>();
+        llOutOptionalTlv = new LinkedList<>();
 
         while (MINIMUM_COMMON_HEADER_LENGTH <= cb.readableBytes()) {
 

@@ -290,7 +290,7 @@ public class PcepLspaObjectVer1 implements PcepLspaObject {
      */
     public static LinkedList<PcepValueType> parseOptionalTlv(ChannelBuffer cb) throws PcepParseException {
 
-        LinkedList<PcepValueType> llOutOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOutOptionalTlv = new LinkedList<>();
 
         return llOutOptionalTlv;
     }

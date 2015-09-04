@@ -162,7 +162,7 @@ public class PcepRsvpUserErrorSpec implements PcepRsvpErrorSpec {
     }
 
     private static LinkedList<PcepValueType> parseErrSpecSubObj(ChannelBuffer cb) throws PcepParseException {
-        LinkedList<PcepValueType> llRsvpUserSpecSubObj = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llRsvpUserSpecSubObj = new LinkedList<>();
         while (0 < cb.readableBytes()) {
             PcepValueType tlv = null;
             short hType = cb.readShort();

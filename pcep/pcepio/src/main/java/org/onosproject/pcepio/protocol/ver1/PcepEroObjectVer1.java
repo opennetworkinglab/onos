@@ -153,7 +153,7 @@ public class PcepEroObjectVer1 implements PcepEroObject {
             PcepObjectHeader.REQ_OBJ_OPTIONAL_PROCESS, PcepObjectHeader.RSP_OBJ_PROCESSED, ERO_OBJ_MINIMUM_LENGTH);
 
     private PcepObjectHeader eroObjHeader;
-    private LinkedList<PcepValueType> llSubObjects = new LinkedList<PcepValueType>();
+    private LinkedList<PcepValueType> llSubObjects = new LinkedList<>();
 
     /**
      * reset variables.
@@ -213,7 +213,7 @@ public class PcepEroObjectVer1 implements PcepEroObject {
     public static PcepEroObject read(ChannelBuffer cb) throws PcepParseException {
 
         PcepObjectHeader eroObjHeader;
-        LinkedList<PcepValueType> llSubObjects = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llSubObjects = new LinkedList<>();
 
         eroObjHeader = PcepObjectHeader.read(cb);
 
@@ -239,7 +239,7 @@ public class PcepEroObjectVer1 implements PcepEroObject {
      */
     protected static LinkedList<PcepValueType> parseSubObjects(ChannelBuffer cb) throws PcepParseException {
 
-        LinkedList<PcepValueType> llSubObjects = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llSubObjects = new LinkedList<>();
 
         while (0 < cb.readableBytes()) {
 
@@ -342,7 +342,7 @@ public class PcepEroObjectVer1 implements PcepEroObject {
         private boolean bIFlag;
 
         private PcepObjectHeader eroObjHeader;
-        LinkedList<PcepValueType> llSubObjects = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llSubObjects = new LinkedList<>();
 
         @Override
         public PcepEroObject build() {

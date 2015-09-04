@@ -57,7 +57,7 @@ public class PcepMessageDecoder extends FrameDecoder {
         // a list of the parsed messages to the controller.
         // The performance *may or may not* not be as good as before.
         PcepMessageReader<PcepMessage> reader = PcepFactories.getGenericReader();
-        List<PcepMessage> msgList = new LinkedList<PcepMessage>();
+        List<PcepMessage> msgList = new LinkedList<>();
 
         while (buffer.readableBytes() > 0) {
             PcepMessage message = reader.readFrom(buffer);

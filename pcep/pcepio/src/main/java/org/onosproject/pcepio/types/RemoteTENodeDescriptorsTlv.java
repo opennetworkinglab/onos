@@ -187,7 +187,7 @@ public class RemoteTENodeDescriptorsTlv implements PcepValueType {
     public static PcepValueType read(ChannelBuffer c , short length) throws PcepParseException {
 
         // Node Descriptor Sub-TLVs (variable)
-        LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs = new LinkedList<>();
 
         ChannelBuffer tempCb = c.readBytes(length);
 

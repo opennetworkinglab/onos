@@ -50,7 +50,7 @@ public class PcepErrorInfoVer1 implements PcepErrorInfo {
      */
     public PcepErrorInfoVer1(LinkedList<PcepRPObject> llRPObjList, LinkedList<PcepTEObject> llTEObjList,
             LinkedList<PcepErrorObject> llErrObjList) {
-        this.errList = new LinkedList<PcepError>();
+        this.errList = new LinkedList<>();
         if ((llErrObjList != null) && (!llErrObjList.isEmpty())) {
             this.errList.add(new PcepErrorVer1(llRPObjList, llTEObjList, llErrObjList));
         }
@@ -133,7 +133,7 @@ public class PcepErrorInfoVer1 implements PcepErrorInfo {
 
     @Override
     public LinkedList<Integer> getErrorType() {
-        LinkedList<Integer> errorType = new LinkedList<Integer>();
+        LinkedList<Integer> errorType = new LinkedList<>();
         ListIterator<PcepError> listIterator = errList.listIterator();
         PcepErrorObject errObj;
         int error;
@@ -154,7 +154,7 @@ public class PcepErrorInfoVer1 implements PcepErrorInfo {
 
     @Override
     public LinkedList<Integer> getErrorValue() {
-        LinkedList<Integer> errorValue = new LinkedList<Integer>();
+        LinkedList<Integer> errorValue = new LinkedList<>();
         ListIterator<PcepError> listIterator = errList.listIterator();
         PcepErrorObject errObj;
         int error;

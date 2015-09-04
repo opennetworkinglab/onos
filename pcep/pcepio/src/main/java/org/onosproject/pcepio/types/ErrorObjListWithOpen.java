@@ -57,7 +57,7 @@ public class ErrorObjListWithOpen {
      * @return error types list
      */
     public LinkedList<Integer> getErrorType() {
-        LinkedList<Integer> errorType = new LinkedList<Integer>();
+        LinkedList<Integer> errorType = new LinkedList<>();
         if (llerrorObjList != null) {
             ListIterator<PcepErrorObject> errObjListIterator = llerrorObjList.listIterator();
             int error;
@@ -77,7 +77,7 @@ public class ErrorObjListWithOpen {
      * @return error values list
      */
     public LinkedList<Integer> getErrorValue() {
-        LinkedList<Integer> errorValue = new LinkedList<Integer>();
+        LinkedList<Integer> errorValue = new LinkedList<>();
         if (llerrorObjList != null) {
             ListIterator<PcepErrorObject> errObjListIterator = llerrorObjList.listIterator();
             int error;

@@ -149,7 +149,7 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
      */
     protected static LinkedList<PcepValueType> parseOptionalTlv(ChannelBuffer cb) {
 
-        LinkedList<PcepValueType> llOutOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOutOptionalTlv = new LinkedList<>();
 
         byte[] yTemp = new byte[cb.readableBytes()];
         cb.readBytes(yTemp);
@@ -239,7 +239,7 @@ public class PcepErrorObjectVer1 implements PcepErrorObject {
         private boolean bIsIFlagSet = false;
         private boolean bIFlag;
 
-        private LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        private LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         @Override
         public PcepErrorObject build() {

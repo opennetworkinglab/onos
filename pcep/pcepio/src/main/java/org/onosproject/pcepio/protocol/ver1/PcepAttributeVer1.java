@@ -144,7 +144,7 @@ public class PcepAttributeVer1 implements PcepAttribute {
     public boolean parseMetricList(ChannelBuffer cb) throws PcepParseException {
 
         if (llMetricList == null) {
-            llMetricList = new LinkedList<PcepMetricObject>();
+            llMetricList = new LinkedList<>();
         }
 
         PcepMetricObject metriclist;

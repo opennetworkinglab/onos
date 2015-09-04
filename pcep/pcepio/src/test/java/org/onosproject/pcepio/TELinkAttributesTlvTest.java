@@ -38,11 +38,11 @@ public class TELinkAttributesTlvTest {
     private final MaximumReservableLinkBandwidthTlv maximumReservableLinkBandwidthTlv2 =
             new MaximumReservableLinkBandwidthTlv(30);
 
-    private final LinkedList<PcepValueType> llLinkAttributesSubTLV1 = new LinkedList<PcepValueType>();
+    private final LinkedList<PcepValueType> llLinkAttributesSubTLV1 = new LinkedList<>();
     private final boolean a = llLinkAttributesSubTLV1.add(administrativeGroupTlv1);
     private final boolean b = llLinkAttributesSubTLV1.add(maximumReservableLinkBandwidthTlv1);
 
-    private final LinkedList<PcepValueType> llLinkAttributesSubTLV2 = new LinkedList<PcepValueType>();
+    private final LinkedList<PcepValueType> llLinkAttributesSubTLV2 = new LinkedList<>();
 
     private final boolean c = llLinkAttributesSubTLV2.add(administrativeGroupTlv2);
     private final boolean d = llLinkAttributesSubTLV2.add(maximumReservableLinkBandwidthTlv2);

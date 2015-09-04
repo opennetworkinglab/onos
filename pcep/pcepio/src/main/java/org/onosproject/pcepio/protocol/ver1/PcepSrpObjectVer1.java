@@ -155,7 +155,7 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
 
         int srpID;
         int flags;
-        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         srpObjHeader = PcepObjectHeader.read(cb);
 
@@ -212,7 +212,7 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
      */
     public static LinkedList<PcepValueType> parseOptionalTlv(ChannelBuffer cb) throws PcepParseException {
 
-        LinkedList<PcepValueType> llOutOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOutOptionalTlv = new LinkedList<>();
 
         while (MINIMUM_COMMON_HEADER_LENGTH <= cb.readableBytes()) {
 
@@ -289,7 +289,7 @@ public class PcepSrpObjectVer1 implements PcepSrpObject {
         private PcepObjectHeader srpObjHeader;
         private int srpId;
         private boolean bRFlag;
-        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         private boolean bIsPFlagSet = false;
         private boolean bPFlag;

@@ -189,7 +189,7 @@ public class PcepRPObjectVer1 implements PcepRPObject {
         boolean bBFlag;
         boolean bRFlag;
         byte yPriFlag; // 3bytes
-        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         rpObjHeader = PcepObjectHeader.read(cb);
 
@@ -253,7 +253,7 @@ public class PcepRPObjectVer1 implements PcepRPObject {
      */
     protected static LinkedList<PcepValueType> parseOptionalTlv(ChannelBuffer cb) throws PcepParseException {
 
-        LinkedList<PcepValueType> llOutOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOutOptionalTlv = new LinkedList<>();
         //Currently no optional TLvs, will be added based on requirements.
         return llOutOptionalTlv;
     }
@@ -292,7 +292,7 @@ public class PcepRPObjectVer1 implements PcepRPObject {
         private boolean bBFlag;
         private boolean bRFlag;
         private byte yPriFlag;
-        private LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        private LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         private boolean bIsPFlagSet = false;
         private boolean bPFlag;

@@ -183,7 +183,7 @@ public class TELinkDescriptorsTlv implements PcepValueType {
     public static PcepValueType read(ChannelBuffer c, short length) throws PcepParseException {
 
         // Node Descriptor Sub-TLVs (variable)
-        LinkedList<PcepValueType> llLinkDescriptorsSubTLVs = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llLinkDescriptorsSubTLVs = new LinkedList<>();
 
         ChannelBuffer tempCb = c.readBytes(length);
 

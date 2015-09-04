@@ -569,7 +569,7 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
      * @throws PcepParseException while bulding error message
      */
     public PcepErrorMsg getErrorMsg(byte errorType, byte errorValue) throws PcepParseException {
-        LinkedList<PcepErrorObject> llerrObj = new LinkedList<PcepErrorObject>();
+        LinkedList<PcepErrorObject> llerrObj = new LinkedList<>();
         PcepErrorMsg errMsg;
 
         PcepErrorObject errObj = factory1.buildPcepErrorObject()
@@ -597,7 +597,7 @@ class PcepChannelHandler extends IdleStateAwareChannelHandler {
         } else {
 
             //If Error caught in other than Openmessage
-            LinkedList<PcepError> llPcepErr = new LinkedList<PcepError>();
+            LinkedList<PcepError> llPcepErr = new LinkedList<>();
 
             PcepError pcepErr = factory1.buildPcepError()
                     .setErrorObjList(llerrObj)

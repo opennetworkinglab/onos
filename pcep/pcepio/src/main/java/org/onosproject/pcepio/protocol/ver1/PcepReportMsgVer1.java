@@ -88,7 +88,7 @@ class PcepReportMsgVer1 implements PcepReportMsg {
                 throw new PcepParseException("Received packet size " + cb.readableBytes()
                         + " is less than the expected size: " + PACKET_MINIMUM_LENGTH);
             }
-            llStateReportList = new LinkedList<PcepStateReport>();
+            llStateReportList = new LinkedList<>();
             byte version = cb.readByte();
             version = (byte) (version >> PcepMessageVer1.SHIFT_FLAG);
 

@@ -117,7 +117,7 @@ public class PcepErrorVer1 implements PcepError {
         byte yObjClass;
         byte yObjType;
 
-        llRPObjList = new LinkedList<PcepRPObject>();
+        llRPObjList = new LinkedList<>();
 
         // caller should verify for RP object
         if (cb.readableBytes() < OBJECT_HEADER_LENGTH) {
@@ -157,7 +157,7 @@ public class PcepErrorVer1 implements PcepError {
         byte yObjClass;
         byte yObjType;
 
-        llTEObjList = new LinkedList<PcepTEObject>();
+        llTEObjList = new LinkedList<>();
 
         // caller should verify for TE object
         if (cb.readableBytes() < OBJECT_HEADER_LENGTH) {
@@ -199,7 +199,7 @@ public class PcepErrorVer1 implements PcepError {
         byte yObjType;
         boolean bIsErrorObjFound = false;
 
-        llErrObjList = new LinkedList<PcepErrorObject>();
+        llErrObjList = new LinkedList<>();
 
         // caller should verify for RP object
         if (cb.readableBytes() < OBJECT_HEADER_LENGTH) {
