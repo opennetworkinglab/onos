@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 
 export AROOT=/tmp/foo
-export ARCHETYPE_OPTS="-DarchetypeGroupId=org.onosproject -DarchetypeVersion=1.3.0-SNAPSHOT"
+export ARCHETYPE_OPTS="-DarchetypeGroupId=org.onosproject -DarchetypeVersion=1.3.0-rc1"
 
 mkdir -p $AROOT
 for an in api bundle cli ui; do
