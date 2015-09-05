@@ -26,7 +26,7 @@
     <url>http://onosproject.org</url>
 
     <properties>
-        <onos.version>1.3.0-rc1</onos.version>
+        <onos.version>1.3.0-SNAPSHOT</onos.version>
         <!-- Uncomment to generate ONOS app from this module.
         <onos.app.name>org.foo.app</onos.app.name>
         <onos.app.origin>Foo, Inc.</onos.app.origin>
