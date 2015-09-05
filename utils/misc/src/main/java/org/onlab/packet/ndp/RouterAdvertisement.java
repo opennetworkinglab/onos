@@ -310,11 +310,13 @@ public class RouterAdvertisement extends BasePacket {
             routerAdvertisement.reachableTime = bb.getInt();
             routerAdvertisement.retransmitTimer = bb.getInt();
 
-            NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
-                    .deserialize(data, bb.position(), bb.limit() - bb.position());
+            if (bb.limit() - bb.position() > 0) {
+                NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
+                        .deserialize(data, bb.position(), bb.limit() - bb.position());
 
-            for (NeighborDiscoveryOptions.Option option : options.options()) {
-                routerAdvertisement.addOption(option.type(), option.data());
+                for (NeighborDiscoveryOptions.Option option : options.options()) {
+                    routerAdvertisement.addOption(option.type(), option.data());
+                }
             }
 
             return routerAdvertisement;

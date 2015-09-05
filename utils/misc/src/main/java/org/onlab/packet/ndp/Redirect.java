@@ -210,11 +210,13 @@ public class Redirect extends BasePacket {
             bb.get(redirect.targetAddress, 0, Ip6Address.BYTE_LENGTH);
             bb.get(redirect.destinationAddress, 0, Ip6Address.BYTE_LENGTH);
 
-            NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
-                    .deserialize(data, bb.position(), bb.limit() - bb.position());
+            if (bb.limit() - bb.position() > 0) {
+                NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
+                        .deserialize(data, bb.position(), bb.limit() - bb.position());
 
-            for (NeighborDiscoveryOptions.Option option : options.options()) {
-                redirect.addOption(option.type(), option.data());
+                for (NeighborDiscoveryOptions.Option option : options.options()) {
+                    redirect.addOption(option.type(), option.data());
+                }
             }
 
             return redirect;

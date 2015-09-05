@@ -21,6 +21,8 @@ import org.onlab.packet.Deserializer;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.PacketTestUtils;
 
+import java.nio.ByteBuffer;
+
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
@@ -71,7 +73,11 @@ public class RouterSolicitationTest {
 
     @Test
     public void testDeserializeTruncated() throws Exception {
-        PacketTestUtils.testDeserializeTruncated(RouterSolicitation.deserializer(), bytePacket);
+        // Run the truncation test only on the RouterSolicitation header
+        byte[] rsHeader = new byte[RouterSolicitation.HEADER_LENGTH];
+        ByteBuffer.wrap(bytePacket).get(rsHeader);
+
+        PacketTestUtils.testDeserializeTruncated(RouterSolicitation.deserializer(), rsHeader);
     }
 
     /**

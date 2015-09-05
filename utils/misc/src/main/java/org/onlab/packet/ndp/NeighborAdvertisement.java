@@ -263,11 +263,13 @@ public class NeighborAdvertisement extends BasePacket {
             neighborAdvertisement.overrideFlag = (byte) (iscratch >> 29 & 0x1);
             bb.get(neighborAdvertisement.targetAddress, 0, Ip6Address.BYTE_LENGTH);
 
-            NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
-                    .deserialize(data, bb.position(), bb.limit() - bb.position());
+            if (bb.limit() - bb.position() > 0) {
+                NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
+                        .deserialize(data, bb.position(), bb.limit() - bb.position());
 
-            for (NeighborDiscoveryOptions.Option option : options.options()) {
-                neighborAdvertisement.addOption(option.type(), option.data());
+                for (NeighborDiscoveryOptions.Option option : options.options()) {
+                    neighborAdvertisement.addOption(option.type(), option.data());
+                }
             }
 
             return neighborAdvertisement;
