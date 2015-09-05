@@ -3,6 +3,8 @@
 # Drives the ONOS snapshot process.
 # -----------------------------------------------------------------------------
 
+set -e
+
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 

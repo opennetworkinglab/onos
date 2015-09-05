@@ -3,6 +3,8 @@
 # Packages ONOS distributable into onos.tar.gz, onos.zip or a deb file
 # -----------------------------------------------------------------------------
 
+set -e
+
 # Build the staging directory used to produce the packages
 function build_stage_dir() {
     # Make sure we have the original apache karaf bits first
