@@ -73,7 +73,7 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-yang-tool</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>1.3</version>
         </dependency>
     </dependencies>
 
