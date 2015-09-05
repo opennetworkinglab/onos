@@ -15,8 +15,8 @@
  */
 package org.onosproject.pcepio;
 
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsSame.sameInstance;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -51,7 +51,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -95,7 +95,7 @@ public class PcepUpdateMsgTest {
         PcepMessage message = null;
 
         message = reader.readFrom(buffer);
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -132,7 +132,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -170,7 +170,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -208,7 +208,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -247,7 +247,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -287,7 +287,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -326,7 +326,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -367,7 +367,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -410,7 +410,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -454,7 +454,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -497,7 +497,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -540,7 +540,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -582,7 +582,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -624,7 +624,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -665,7 +665,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -705,7 +705,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -744,7 +744,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -784,7 +784,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -829,7 +829,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -868,7 +868,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -909,7 +909,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -951,7 +951,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -994,7 +994,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1037,7 +1037,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1081,7 +1081,7 @@ public class PcepUpdateMsgTest {
         PcepMessage message = null;
 
         message = reader.readFrom(buffer);
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1126,7 +1126,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1172,7 +1172,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1214,7 +1214,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1253,7 +1253,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1293,7 +1293,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1332,7 +1332,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1372,7 +1372,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();
@@ -1413,7 +1413,7 @@ public class PcepUpdateMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepUpdateMsg) message));
+        assertThat(message, instanceOf(PcepUpdateMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testupdateMsg = buf.array();

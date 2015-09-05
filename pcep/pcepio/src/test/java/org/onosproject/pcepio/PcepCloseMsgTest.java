@@ -25,8 +25,8 @@ import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepMessageReader;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsSame.sameInstance;
 
 public class PcepCloseMsgTest {
 
@@ -46,7 +46,7 @@ public class PcepCloseMsgTest {
         PcepMessage message;
 
         message = reader.readFrom(buffer);
-        assertThat(message, sameInstance((PcepCloseMsg) message));
+        assertThat(message, instanceOf(PcepCloseMsg.class));
 
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
