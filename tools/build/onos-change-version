@@ -19,7 +19,7 @@ cd $ONOS_ROOT
 mvn versions:set -DnewVersion=$NEW_VERSION versions:commit
 
 # Augment the version of the Java API pom files and the overview.html file.
-for pom in docs/pom.xml docs/external.xml; do
+for pom in docs/internal.xml docs/external.xml; do
     sed -i "" -E "1,/<version>/s/<version>[^<]*</<version>$NEW_VERSION</g" $pom
     sed -i "" -E "1,/<doctitle>/s/<doctitle>ONOS Java API[^<]*</<doctitle>ONOS Java API ($NEW_VERSION)</g" $pom
 done
