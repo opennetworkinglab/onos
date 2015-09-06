@@ -15,8 +15,26 @@
  */
 package org.onosproject.net.device.impl;
 
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Futures;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.net.MastershipRole.NONE;
+import static org.onosproject.net.MastershipRole.STANDBY;
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.DEVICE_READ;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -26,12 +44,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.net.provider.AbstractListenerProviderRegistry;
-import org.onosproject.net.config.NetworkConfigEvent;
-import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.basics.BasicDeviceConfig;
-import org.onosproject.net.config.basics.OpticalPortConfig;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
@@ -44,6 +56,11 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
+import org.onosproject.net.config.basics.OpticalPortConfig;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceAdminService;
@@ -58,27 +75,11 @@ import org.onosproject.net.device.DeviceStore;
 import org.onosproject.net.device.DeviceStoreDelegate;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.MastershipRole.*;
-import static org.onosproject.security.AppGuard.checkPermission;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppPermission.Type.*;
+import com.google.common.util.concurrent.Futures;
 
 /**
  * Provides implementation of the device SB &amp; NB APIs.
@@ -347,11 +348,15 @@ public class DeviceManager
             log.info("Device {} disconnected from this node", deviceId);
 
             List<Port> ports = store.getPorts(deviceId);
-            List<PortDescription> descs = Lists.newArrayList();
-            ports.forEach(port ->
-                                  descs.add(new DefaultPortDescription(port.number(),
-                                                                       false, port.type(),
-                                                                       port.portSpeed())));
+            final Device device = getDevice(deviceId);
+
+            List<PortDescription> descs = ports.stream().map(
+              port -> (!(Device.Type.ROADM.equals(device.type()))) ?
+                  new DefaultPortDescription(port.number(), false,
+                          port.type(), port.portSpeed()) :
+                      OpticalPortOperator.descriptionOf(port, false)
+                 ).collect(Collectors.toList());
+
             store.updatePorts(this.provider().id(), deviceId, descs);
             try {
                 if (mastershipService.isLocalMaster(deviceId)) {
@@ -430,6 +435,12 @@ public class DeviceManager
                           portDescription);
                 return;
             }
+            final Device device = getDevice(deviceId);
+            if ((Device.Type.ROADM.equals(device.type()))) {
+                Port port = getPort(deviceId, portDescription.portNumber());
+                portDescription = OpticalPortOperator.descriptionOf(port, portDescription.isEnabled());
+            }
+
             portDescription = consolidate(deviceId, portDescription);
             final DeviceEvent event = store.updatePortStatus(this.provider().id(),
                                                              deviceId, portDescription);

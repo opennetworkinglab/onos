@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
+import org.onlab.util.Frequency;
 import org.onosproject.cli.Comparators;
 import org.onosproject.net.Device;
+import org.onosproject.net.OchPort;
+import org.onosproject.net.OduCltPort;
+import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
@@ -41,7 +45,10 @@ import static org.onosproject.net.DeviceId.deviceId;
          description = "Lists all ports or all ports of a device")
 public class DevicePortsListCommand extends DevicesListCommand {
 
-    private static final String FMT = "  port=%s, state=%s, type=%s, speed=%s%s";
+    private static final String FMT = "  port=%s, state=%s, type=%s, speed=%s %s";
+    private static final String FMT_OCH = "  port=%s, state=%s, type=%s, signalType=%s, isTunable=%s %s";
+    private static final String FMT_ODUCLT = "  port=%s, state=%s, type=%s, signalType=%s %s";
+    private static final String FMT_OMS = "  port=%s, state=%s, type=%s, Freqs= %s / %s / %s GHz, totalChannels=%s %s";
 
     @Option(name = "-e", aliases = "--enabled", description = "Show only enabled ports",
             required = false, multiValued = false)
@@ -137,13 +144,34 @@ public class DevicePortsListCommand extends DevicesListCommand {
         List<Port> ports = new ArrayList<>(service.getPorts(device.id()));
         Collections.sort(ports, Comparators.PORT_COMPARATOR);
         for (Port port : ports) {
-            if (isIncluded(port)) {
-                print(FMT, portName(port.number()),
-                      port.isEnabled() ? "enabled" : "disabled",
-                      port.type().toString().toLowerCase(), port.portSpeed(),
-                      annotations(port.annotations()));
+            if (!isIncluded(port)) {
+                continue;
+            }
+            String portName = portName(port.number());
+            Object portIsEnabled = port.isEnabled() ? "enabled" : "disabled";
+            String portType = port.type().toString().toLowerCase();
+            String annotations = annotations(port.annotations());
+            switch (port.type()) {
+                case OCH:
+                     print(FMT_OCH, portName, portIsEnabled, portType,
+                             ((OchPort) port).signalType().toString(),
+                             ((OchPort) port).isTunable() ? "yes" : "no", annotations);
+                     break;
+                case ODUCLT:
+                     print(FMT_ODUCLT, portName, portIsEnabled, portType,
+                            ((OduCltPort) port).signalType().toString(), annotations);
+                     break;
+                case OMS:
+                     print(FMT_OMS, portName, portIsEnabled, portType,
+                                ((OmsPort) port).minFrequency().asHz() / Frequency.ofGHz(1).asHz(),
+                                ((OmsPort) port).maxFrequency().asHz() / Frequency.ofGHz(1).asHz(),
+                                ((OmsPort) port).grid().asHz() / Frequency.ofGHz(1).asHz(),
+                                ((OmsPort) port).totalChannels(), annotations);
+                    break;
+                default:
+                     print(FMT, portName, portIsEnabled, portType, port.portSpeed(), annotations);
+                    break;
             }
         }
     }
-
 }

@@ -151,8 +151,25 @@ public final class OpticalPortOperator implements ConfigOperator {
      */
     public static PortDescription descriptionOf(Port port) {
         checkNotNull(port, "Must supply non-null Port");
+        final boolean isUp = port.isEnabled();
+        return descriptionOfPort(port, isUp);
+    }
+
+    /**
+     * Returns a description built from an existing port and reported status.
+     *
+     * @param port
+     * @param isEnabled
+     * @return a PortDescription based on the port
+     */
+    static PortDescription descriptionOf(Port port, boolean isEnabled) {
+        checkNotNull(port, "Must supply non-null Port");
+        final boolean isup = isEnabled;
+        return descriptionOfPort(port, isup);
+    }
+
+    private static PortDescription descriptionOfPort(Port port, final boolean isup) {
         final PortNumber ptn = port.number();
-        final boolean isup = port.isEnabled();
         final SparseAnnotations an = (SparseAnnotations) port.annotations();
         switch (port.type()) {
             case OMS:
