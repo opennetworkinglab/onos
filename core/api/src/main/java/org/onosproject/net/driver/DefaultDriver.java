@@ -153,8 +153,8 @@ public class DefaultDriver implements Driver {
     // Creates an instance of behaviour primed with the specified driver data.
     private <T extends Behaviour> T createBehaviour(DriverData data, DriverHandler handler,
                                                     Class<T> behaviourClass) {
-        checkArgument(handler != null || !HandlerBehaviour.class.isAssignableFrom(behaviourClass),
-                      "{} is applicable only to handler context", behaviourClass.getName());
+        //checkArgument(handler != null || !HandlerBehaviour.class.isAssignableFrom(behaviourClass),
+        //              "{} is applicable only to handler context", behaviourClass.getName());
 
         // Locate the implementation of the requested behaviour.
         Class<? extends Behaviour> implementation = behaviours.get(behaviourClass);

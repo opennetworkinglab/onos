@@ -33,6 +33,8 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
@@ -49,12 +51,16 @@ import org.onosproject.net.behaviour.BridgeDescription;
 import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.behaviour.DefaultTunnelDescription;
 import org.onosproject.net.behaviour.IpTunnelEndPoint;
+import org.onosproject.net.behaviour.Pipeliner;
+import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.behaviour.TunnelConfig;
 import org.onosproject.net.behaviour.TunnelDescription;
 import org.onosproject.net.behaviour.TunnelEndPoint;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -66,6 +72,7 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective.Flag;
 import org.onosproject.net.flowobjective.Objective;
@@ -115,6 +122,9 @@ public class VTNManager implements VTNService {
     protected DriverService driverService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowObjectiveStore flowObjectiveStore;
+    protected ServiceDirectory serviceDirectory = new DefaultServiceDirectory();
     private EventuallyConsistentMap<HostId, SegmentationId> binding;
     private ApplicationId appId;
     private HostListener hostListener = new InnerHostListener();
@@ -128,6 +138,7 @@ public class VTNManager implements VTNService {
     private static final int DEFAULT_PORT_PRIORITY = 0x0000;
     private static final int PORT_PRIORITY = 0xffff;
     private static final String SWITCH_CHANNEL_ID = "channelId";
+    private static final String DRIVER_NAME = "onosfw";
 
     @Activate
     public void activate() {
@@ -163,8 +174,7 @@ public class VTNManager implements VTNService {
         IpAddress ip = IpAddress.valueOf(ipAddress);
         Sets.newHashSet(devices).stream()
                 .filter(d -> Device.Type.CONTROLLER == d.type())
-                .filter(d -> !device.id().equals(d.id()))
-                .forEach(d -> {
+                .filter(d -> !device.id().equals(d.id())).forEach(d -> {
                         String ipAddress1 = d.annotations()
                                 .value(CONTROLLER_IP_KEY);
                         IpAddress ip1 = IpAddress.valueOf(ipAddress1);
@@ -172,6 +182,7 @@ public class VTNManager implements VTNService {
                         DriverHandler handler1 = driverService
                                 .createHandler(d.id());
                         applyTunnelConfig(ip1, ip, handler1);
+
                 });
     }
 
@@ -221,30 +232,6 @@ public class VTNManager implements VTNService {
     public void onOvsDetected(Device device) {
         programMacDefaultRules(device.id(), appId, Objective.Operation.ADD);
         programPortDefaultRules(device.id(), appId, Objective.Operation.ADD);
-        Set<Host> hosts = hostService.getConnectedHosts(device.id());
-        hosts.forEach(h -> {
-            String ifaceId = h.annotations().value(IFACEID);
-            String currentControllerIp = getControllerIpOfSwitch(device.id());
-            VirtualPortId portId = VirtualPortId.portId(ifaceId);
-            VirtualPort port = virtualPortService.getPort(portId);
-            TenantNetwork network = tenantNetworkService
-                    .getNetwork(port.networkId());
-            String vxlanName = "vxlan-" + currentControllerIp;
-
-            DriverHandler handler = driverService.createHandler(device.id());
-            BridgeConfig bridgeConfig = handler.behaviour(BridgeConfig.class);
-            Collection<BridgeDescription> bridgeDescriptions = bridgeConfig
-                    .getBridges();
-            Iterator<BridgeDescription> it = bridgeDescriptions.iterator();
-            if (it.hasNext()) {
-                BridgeDescription sw = it.next();
-                Set<PortNumber> ports = bridgeConfig.getPortNumbers();
-                ports.stream().filter(p -> p.name().equalsIgnoreCase(vxlanName))
-                        .forEach(p -> programTunnelOut(sw.deviceId(), network.segmentationId(), p,
-                                h.mac(), appId, Objective.Operation.ADD));
-            }
-
-        });
     }
 
     @Override
@@ -267,27 +254,23 @@ public class VTNManager implements VTNService {
         binding.put(host.id(), network.segmentationId());
         List<Port> allPorts = deviceService.getPorts(deviceId);
         PortNumber inPort = host.location().port();
-        Set<Port> localPorts = new HashSet<>();
-        Set<Port> tunnelPorts = new HashSet<>();
-        List<Port> outports = new ArrayList<>();
+        List<PortNumber> localVmPorts = getLocalPorts(deviceId, ifaceId);
+        List<PortNumber> localTunnelPorts = new ArrayList<>();
         Sets.newHashSet(allPorts.iterator()).stream()
         .filter(p -> !p.number().equals(PortNumber.LOCAL)).forEach(p -> {
-            if (!p.annotations().value("portName").startsWith(PORT_HEAD)) {
-                localPorts.add(p);
-            } else {
-                tunnelPorts.add(p);
+            if (p.annotations().value("portName").startsWith(PORT_HEAD)) {
+                localTunnelPorts.add(p.number());
             }
-            outports.add(p);
         });
 
-        programLocalBcastRules(deviceId, network.segmentationId(), inPort,
-                               outports, appId, Objective.Operation.ADD);
+        localVmPorts.forEach(lp -> programLocalBcastRules(deviceId, network.segmentationId(), lp, localVmPorts,
+                                                          localTunnelPorts, appId, Objective.Operation.ADD));
         programLocalOut(deviceId, network.segmentationId(), inPort, host.mac(),
                         appId, Objective.Operation.ADD);
-        tunnelPorts
+        localTunnelPorts
                 .forEach(tp -> programTunnelFloodOut(deviceId,
                                                      network.segmentationId(),
-                                                     tp.number(), localPorts,
+                                                     tp, localVmPorts,
                                                      appId,
                                                      Objective.Operation.ADD));
         Sets.newHashSet(devices).stream()
@@ -306,52 +289,54 @@ public class VTNManager implements VTNService {
                         ports.stream()
                                 .filter(p -> p.name()
                                         .equalsIgnoreCase(tunnelName))
-                                .forEach(p -> programTunnelOut(sw.deviceId(),
-                                        network.segmentationId(), p,
-                                        host.mac(), appId,
-                                        Objective.Operation.ADD));
+                                .forEach(p -> {
+                            programTunnelOut(sw.deviceId(),
+                                             network.segmentationId(), p,
+                                             host.mac(), appId,
+                                             Objective.Operation.ADD);
+                        });
                     }
                 });
         programLocalIn(deviceId, network.segmentationId(), inPort, host.mac(),
                        appId, Objective.Operation.ADD);
-        tunnelPorts
+        localTunnelPorts
                 .forEach(tp -> programTunnelIn(deviceId,
                                                network.segmentationId(),
-                                               tp.number(), inPort, host.mac(),
+                                               tp, inPort, host.mac(),
                                                appId, Objective.Operation.ADD));
 
     }
 
     @Override
     public void onHostVanished(Host host) {
+        String ifaceId = host.annotations().value(IFACEID);
         SegmentationId segId = binding.remove(host.id());
         DeviceId deviceId = host.location().deviceId();
         String currentControllerIp = getControllerIpOfSwitch(deviceId);
         Iterable<Device> devices = deviceService.getAvailableDevices();
+
+        String tunnelName = "vxlan-" + currentControllerIp;
         List<Port> allPorts = deviceService.getPorts(deviceId);
         PortNumber inPort = host.location().port();
-        String vxlanName = "vxlan-" + currentControllerIp;
-        Set<Port> localPorts = new HashSet<>();
-        Set<Port> tunnelPorts = new HashSet<>();
-        List<Port> outports = new ArrayList<>();
+
+        List<PortNumber> localTunnelPorts = new ArrayList<>();
         Sets.newHashSet(allPorts.iterator()).stream()
         .filter(p -> !p.number().equals(PortNumber.LOCAL)).forEach(p -> {
-            if (!p.annotations().value("portName").startsWith(PORT_HEAD)) {
-                localPorts.add(p);
-            } else {
-                tunnelPorts.add(p);
+            if (p.annotations().value("portName").startsWith(PORT_HEAD)) {
+                localTunnelPorts.add(p.number());
             }
-            outports.add(p);
         });
 
-        programLocalBcastRules(deviceId, segId, inPort,
-                               outports, appId, Objective.Operation.REMOVE);
+        List<PortNumber> localVmPorts = getLocalPorts(deviceId, ifaceId);
+        localVmPorts.add(inPort);
+        localVmPorts.forEach(lp -> programLocalBcastRules(deviceId, segId, lp, localVmPorts,
+                                                          localTunnelPorts, appId, Objective.Operation.REMOVE));
         programLocalOut(deviceId, segId, inPort, host.mac(),
                         appId, Objective.Operation.REMOVE);
-        tunnelPorts
+        localTunnelPorts
                 .forEach(tp -> programTunnelFloodOut(deviceId,
                                                      segId,
-                                                     tp.number(), localPorts,
+                                                     tp, localVmPorts,
                                                      appId,
                                                      Objective.Operation.REMOVE));
         Sets.newHashSet(devices).stream()
@@ -369,19 +354,21 @@ public class VTNManager implements VTNService {
                         Set<PortNumber> ports = bridgeConfig.getPortNumbers();
                         ports.stream()
                                 .filter(p -> p.name()
-                                        .equalsIgnoreCase(vxlanName))
-                                .forEach(p -> programTunnelOut(sw.deviceId(),
-                                        segId, p,
-                                        host.mac(), appId,
-                                        Objective.Operation.REMOVE));
+                                        .equalsIgnoreCase(tunnelName))
+                                .forEach(p -> {
+                            programTunnelOut(sw.deviceId(),
+                                             segId, p,
+                                             host.mac(), appId,
+                                             Objective.Operation.REMOVE);
+                        });
                     }
                 });
         programLocalIn(deviceId, segId, inPort, host.mac(),
                        appId, Objective.Operation.REMOVE);
-        tunnelPorts
+        localTunnelPorts
                 .forEach(tp -> programTunnelIn(deviceId,
                                                segId,
-                                               tp.number(), inPort, host.mac(),
+                                               tp, inPort, host.mac(),
                                                appId, Objective.Operation.REMOVE));
     }
 
@@ -448,19 +435,18 @@ public class VTNManager implements VTNService {
                                  ApplicationId appid,
                                  Objective.Operation type) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchTunnelId(Long.parseLong(segmentationId.toString()))
                 .matchEthDst(sourceMac).build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .add(Instructions
-                        .modTunnelId(Long.parseLong(segmentationId.toString())))
                 .setOutput(outPort).build();
         ForwardingObjective.Builder objective = DefaultForwardingObjective
                 .builder().withTreatment(treatment).withSelector(selector)
                 .fromApp(appId).withFlag(Flag.SPECIFIC)
                 .withPriority(MAC_PRIORITY);
         if (type.equals(Objective.Operation.ADD)) {
-            flowObjectiveService.forward(dpid, objective.add());
+            flowServiceForward(dpid, objective.add());
         } else {
-            flowObjectiveService.forward(dpid, objective.remove());
+            flowServiceForward(dpid, objective.remove());
         }
 
     }
@@ -482,19 +468,19 @@ public class VTNManager implements VTNService {
                 .fromApp(appId).withFlag(Flag.SPECIFIC)
                 .withPriority(MAC_PRIORITY);
         if (type.equals(Objective.Operation.ADD)) {
-            flowObjectiveService.forward(dpid, objective.add());
+            flowServiceForward(dpid, objective.add());
         } else {
-            flowObjectiveService.forward(dpid, objective.remove());
+            flowServiceForward(dpid, objective.remove());
         }
 
     }
 
     // Used to forward multicast flows to remote VMs of the same tenant via
     // VXLAN tunnel.
-    private void programTunnelFloodOut(DeviceId dpid,
+    private void programTunnelFloodOut(DeviceId deviceId,
                                        SegmentationId segmentationId,
                                        PortNumber ofPortOut,
-                                       Iterable<Port> localports,
+                                       List<PortNumber> localVmPorts,
                                        ApplicationId appid,
                                        Objective.Operation type) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
@@ -504,8 +490,9 @@ public class VTNManager implements VTNService {
                              .toString()))).matchEthDst(MacAddress.BROADCAST)
                 .build();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        for (Port outport : localports) {
-            treatment.setOutput(outport.number());
+
+        for (PortNumber outPort : localVmPorts) {
+                treatment.setOutput(outPort);
         }
 
         ForwardingObjective.Builder objective = DefaultForwardingObjective
@@ -513,9 +500,9 @@ public class VTNManager implements VTNService {
                 .withSelector(selector).fromApp(appId).makePermanent()
                 .withFlag(Flag.SPECIFIC).withPriority(MAC_PRIORITY);
         if (type.equals(Objective.Operation.ADD)) {
-            flowObjectiveService.forward(dpid, objective.add());
+            flowServiceForward(deviceId, objective.add());
         } else {
-            flowObjectiveService.forward(dpid, objective.remove());
+            flowServiceForward(deviceId, objective.remove());
         }
     }
 
@@ -530,16 +517,18 @@ public class VTNManager implements VTNService {
                 .fromApp(appId).makePermanent().withFlag(Flag.SPECIFIC)
                 .withPriority(DEFAULT_MAC_PRIORITY);
         if (type.equals(Objective.Operation.ADD)) {
-            flowObjectiveService.forward(dpid, objective.add());
+            flowServiceForward(dpid, objective.add());
         } else {
-            flowObjectiveService.forward(dpid, objective.remove());
+            flowServiceForward(dpid, objective.remove());
         }
     }
 
     // Used to forward the flows to the local VMs with the same tenant.
-    private void programLocalBcastRules(DeviceId dpid,
+    private void programLocalBcastRules(DeviceId deviceId,
                                         SegmentationId segmentationId,
-                                        PortNumber inPort, List<Port> allports,
+                                        PortNumber inPort,
+                                        List<PortNumber> localVmPorts,
+                                        List<PortNumber> localTunnelPorts,
                                         ApplicationId appid,
                                         Objective.Operation type) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
@@ -548,20 +537,22 @@ public class VTNManager implements VTNService {
                         .parseLong(segmentationId.toString())))
                 .build();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-
-        for (Port outport : allports) {
-            if (inPort != outport.number()) {
-                treatment.setOutput(outport.number());
+        for (PortNumber outPort : localVmPorts) {
+            if (inPort != outPort) {
+                treatment.setOutput(outPort);
             }
+        }
+        for (PortNumber outport : localTunnelPorts) {
+                treatment.setOutput(outport);
         }
         ForwardingObjective.Builder objective = DefaultForwardingObjective
                 .builder().withTreatment(treatment.build())
                 .withSelector(selector).fromApp(appId).makePermanent()
                 .withFlag(Flag.SPECIFIC).withPriority(MAC_PRIORITY);
         if (type.equals(Objective.Operation.ADD)) {
-            flowObjectiveService.forward(dpid, objective.add());
+            flowServiceForward(deviceId, objective.add());
         } else {
-            flowObjectiveService.forward(dpid, objective.remove());
+            flowServiceForward(deviceId, objective.remove());
         }
     }
 
@@ -579,9 +570,9 @@ public class VTNManager implements VTNService {
                 .withSelector(selector).fromApp(appId).makePermanent()
                 .withFlag(Flag.SPECIFIC).withPriority(PORT_PRIORITY);
         if (type.equals(Objective.Operation.ADD)) {
-            flowObjectiveService.forward(dpid, objective.add());
+            flowServiceForward(dpid, objective.add());
         } else {
-            flowObjectiveService.forward(dpid, objective.remove());
+            flowServiceForward(dpid, objective.remove());
         }
     }
 
@@ -601,9 +592,9 @@ public class VTNManager implements VTNService {
                 .fromApp(appId).makePermanent().withFlag(Flag.SPECIFIC)
                 .withPriority(PORT_PRIORITY);
         if (type.equals(Objective.Operation.ADD)) {
-            flowObjectiveService.forward(dpid, objective.add());
+            flowServiceForward(dpid, objective.add());
         } else {
-            flowObjectiveService.forward(dpid, objective.remove());
+            flowServiceForward(dpid, objective.remove());
         }
     }
 
@@ -617,9 +608,9 @@ public class VTNManager implements VTNService {
                 .fromApp(appId).makePermanent().withFlag(Flag.SPECIFIC)
                 .withPriority(DEFAULT_PORT_PRIORITY);
         if (type.equals(Objective.Operation.ADD)) {
-            flowObjectiveService.forward(dpid, objective.add());
+            flowServiceForward(dpid, objective.add());
         } else {
-            flowObjectiveService.forward(dpid, objective.remove());
+            flowServiceForward(dpid, objective.remove());
         }
     }
 
@@ -628,6 +619,63 @@ public class VTNManager implements VTNService {
         Device device = deviceService.getDevice(deviceId);
         String url = device.annotations().value(SWITCH_CHANNEL_ID);
         return url.substring(0, url.lastIndexOf(":"));
+    }
+
+    private Iterable<String> getIfaceIds(String ifaceId) {
+        VirtualPortId portId = VirtualPortId.portId(ifaceId);
+        VirtualPort port = virtualPortService.getPort(portId);
+        TenantNetwork network = tenantNetworkService
+                .getNetwork(port.networkId());
+        Collection<String> ifaceIds = new HashSet<String>();
+        Collection<VirtualPort> ports = virtualPortService
+                .getPorts(network.id());
+        Sets.newHashSet(ports).stream()
+                .forEach(p -> ifaceIds.add(p.portId().portId()));
+        return ifaceIds;
+    }
+
+    private List<PortNumber> getLocalPorts(DeviceId deviceId, String ifaceId) {
+        DriverHandler handler = driverService
+                .createHandler(getController(deviceId));
+        BridgeConfig bridgeConfig = handler.behaviour(BridgeConfig.class);
+        Iterable<String> ifaceIds = getIfaceIds(ifaceId);
+        return bridgeConfig.getLocalPorts(ifaceIds);
+    }
+
+    private DeviceId getController(DeviceId deviceId) {
+        Iterable<Device> devices = deviceService.getAvailableDevices();
+        for (Device device : devices) {
+            if (device.type() == Device.Type.CONTROLLER && device.id()
+                    .toString().contains(getControllerIpOfSwitch(deviceId))) {
+                return device.id();
+            }
+        }
+        log.info("Can not find controller for device : {}", deviceId);
+        return null;
+    }
+
+    //Used to apply flowRule
+    private void flowServiceForward(DeviceId deviceId, ForwardingObjective forwardingObjective) {
+        Driver driver = driverService.getDriver(DRIVER_NAME);
+        Pipeliner pipeLiner = driver.createBehaviour(new DefaultDriverData(driver, deviceId), Pipeliner.class);
+        if (pipeLiner != null) {
+            final PipelinerContext context = new InnerPipelineContext();
+            pipeLiner.init(deviceId, context);
+            pipeLiner.forward(forwardingObjective);
+        }
+    }
+
+    // Processing context for initializing pipeline driver behaviours.
+    private class InnerPipelineContext implements PipelinerContext {
+        @Override
+        public ServiceDirectory directory() {
+            return serviceDirectory;
+        }
+
+        @Override
+        public FlowObjectiveStore store() {
+            return flowObjectiveStore;
+        }
     }
 
 }

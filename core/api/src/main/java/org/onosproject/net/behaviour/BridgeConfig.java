@@ -16,6 +16,7 @@
 package org.onosproject.net.behaviour;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.onosproject.net.PortNumber;
@@ -75,4 +76,12 @@ public interface BridgeConfig extends HandlerBehaviour {
      * @return portNumbers set of PortNumber
      */
     Set<PortNumber> getPortNumbers();
+
+    /**
+     * Get logical/virtual ports by ifaceIds.
+     *
+     * @param ifaceIds the ifaceid that needed
+     * @return list of PortNumber
+     */
+    List<PortNumber> getLocalPorts(Iterable<String> ifaceIds);
 }

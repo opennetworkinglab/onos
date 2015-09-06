@@ -46,6 +46,7 @@ import org.onosproject.ovsdb.rfc.message.OperationResult;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.notation.Condition;
 import org.onosproject.ovsdb.rfc.notation.Mutation;
+import org.onosproject.ovsdb.rfc.notation.OvsdbMap;
 import org.onosproject.ovsdb.rfc.notation.OvsdbSet;
 import org.onosproject.ovsdb.rfc.notation.Row;
 import org.onosproject.ovsdb.rfc.notation.UUID;
@@ -74,6 +75,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -1124,5 +1126,63 @@ public class DefaultOvsdbClient
         // return (long) ofPorts.toArray()[0];
         Iterator<Integer> it = ofPorts.iterator();
         return Long.parseLong(it.next().toString());
+    }
+
+    @Override
+    public Set<OvsdbPort> getLocalPorts(Iterable<String> ifaceids) {
+        Set<OvsdbPort> ovsdbPorts = new HashSet<OvsdbPort>();
+        OvsdbTableStore tableStore = getTableStore(OvsdbConstant.DATABASENAME);
+        if (tableStore == null) {
+            return null;
+        }
+        OvsdbRowStore rowStore = tableStore.getRows(OvsdbConstant.INTERFACE);
+        if (rowStore == null) {
+            return null;
+        }
+        ConcurrentMap<String, Row> rows = rowStore.getRowStore();
+        for (String uuid : rows.keySet()) {
+            Row row = getRow(OvsdbConstant.DATABASENAME,
+                             OvsdbConstant.INTERFACE, uuid);
+            DatabaseSchema dbSchema = getDatabaseSchema(OvsdbConstant.DATABASENAME);
+            Interface intf = (Interface) TableGenerator
+                    .getTable(dbSchema, row, OvsdbTable.INTERFACE);
+            if (intf == null || getIfaceid(intf) == null) {
+                continue;
+            }
+            String portName = intf.getName();
+            Set<String> ifaceidSet = Sets.newHashSet(ifaceids);
+            if (portName.startsWith("vxlan")
+                    || !ifaceidSet.contains(getIfaceid(intf))) {
+                continue;
+            }
+            long ofPort = getOfPort(intf);
+            if ((ofPort < 0) || (portName == null)) {
+                continue;
+            }
+
+            OvsdbPort ovsdbPort = new OvsdbPort(new OvsdbPortNumber(ofPort),
+                                                new OvsdbPortName(portName));
+            if (ovsdbPort != null) {
+                ovsdbPorts.add(ovsdbPort);
+            }
+        }
+        return ovsdbPorts;
+    }
+
+    private String getIfaceid(Interface intf) {
+        OvsdbMap ovsdbMap = (OvsdbMap) intf.getExternalIdsColumn().data();
+        @SuppressWarnings("unchecked")
+        Map<String, String> externalIds = ovsdbMap.map();
+        if (externalIds.isEmpty()) {
+            log.warn("The external_ids is null");
+            return null;
+        }
+        String ifaceid = externalIds
+                .get(OvsdbConstant.EXTERNAL_ID_INTERFACE_ID);
+        if (ifaceid == null) {
+            log.warn("The ifaceid is null");
+            return null;
+        }
+        return ifaceid;
     }
 }

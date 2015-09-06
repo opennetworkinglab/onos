@@ -212,7 +212,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     void removeRow(String dbName, String tableName, String uuid);
 
     /**
-     * Update the local ovsdb store.
+     * Updates the local ovsdb store.
      *
      * @param dbName database name
      * @param tableName table name
@@ -221,4 +221,11 @@ public interface OvsdbClientService extends OvsdbRPC {
      */
     void updateOvsdbStore(String dbName, String tableName, String uuid, Row row);
 
+    /**
+     * Gets ovsdb local ports.
+     *
+     * @param ifaceids the ifaceid that needed
+     * @return ovsdb ports
+     */
+    Set<OvsdbPort> getLocalPorts(Iterable<String> ifaceids);
 }

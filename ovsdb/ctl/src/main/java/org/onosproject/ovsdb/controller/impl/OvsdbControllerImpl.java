@@ -220,7 +220,6 @@ public class OvsdbControllerImpl implements OvsdbController {
                 log.debug("Begin to process table updates uuid: {}, databaseName: {}, tableName: {}",
                           uuid.value(), dbName, tableName);
 
-                Row oldRow = update.getOld(uuid);
                 Row newRow = update.getNew(uuid);
                 if (newRow != null) {
                     clientService.updateOvsdbStore(dbName, tableName,
@@ -228,18 +227,19 @@ public class OvsdbControllerImpl implements OvsdbController {
 
                     if (OvsdbConstant.INTERFACE.equals(tableName)) {
                         dispatchInterfaceEvent(clientService,
-                                               newRow, null,
+                                               newRow,
                                                OvsdbEvent.Type.PORT_ADDED,
                                                dbSchema);
                     }
                 } else if (update.getOld(uuid) != null) {
-                    clientService.removeRow(dbName, tableName, uuid.value());
-                    if (OvsdbConstant.PORT.equals(tableName)) {
-                        dispatchInterfaceEvent(clientService, null,
-                                               oldRow,
+                    if (OvsdbConstant.INTERFACE.equals(tableName)) {
+                        Row row = clientService.getRow(OvsdbConstant.DATABASENAME, tableName, uuid.value());
+                        dispatchInterfaceEvent(clientService,
+                                               row,
                                           OvsdbEvent.Type.PORT_REMOVED,
                                           dbSchema);
                     }
+                    clientService.removeRow(dbName, tableName, uuid.value());
                 }
             }
         }
@@ -255,13 +255,13 @@ public class OvsdbControllerImpl implements OvsdbController {
      * @param dbSchema ovsdb database schema
      */
     private void dispatchInterfaceEvent(OvsdbClientService clientService,
-                                        Row newRow, Row oldRow,
+                                        Row row,
                                         Type eventType,
                                         DatabaseSchema dbSchema) {
 
         long dpid = getDataPathid(clientService, dbSchema);
         Interface intf = (Interface) TableGenerator
-                .getTable(dbSchema, newRow, OvsdbTable.INTERFACE);
+                .getTable(dbSchema, row, OvsdbTable.INTERFACE);
         if (intf == null) {
             return;
         }
