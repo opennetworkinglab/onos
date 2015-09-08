@@ -211,7 +211,10 @@ public class ECLinkStore
         // otherwise signal the actual master.
         if (clusterService.getLocalNode().id().equals(dstNodeId)) {
             LinkKey linkKey = linkKey(linkDescription.src(), linkDescription.dst());
-            Provided<LinkKey> internalLinkKey = new Provided<>(linkKey, providerId);
+            Provided<LinkKey> internalLinkKey = getProvided(linkKey, providerId);
+            if (internalLinkKey == null) {
+                return null;
+            }
             linkDescriptions.compute(internalLinkKey, (k, v) -> createOrUpdateLinkInternal(v  , linkDescription));
             return refreshLinkCache(linkKey);
         } else {
@@ -223,6 +226,18 @@ public class ECLinkStore
                     SERIALIZER::encode,
                     SERIALIZER::decode,
                     dstNodeId));
+        }
+    }
+
+    private Provided<LinkKey> getProvided(LinkKey linkKey, ProviderId provId) {
+        ProviderId bpid = getBaseProviderId(linkKey);
+        if (provId == null) {
+            // The LinkService didn't know who this LinkKey belongs to.
+            // A fix is to either modify the getProvider() in LinkService classes
+            // or expose the contents of linkDescriptions to the LinkService.
+            return (bpid == null) ? null : new Provided<>(linkKey, bpid);
+        } else {
+            return new Provided<>(linkKey, provId);
         }
     }
 
