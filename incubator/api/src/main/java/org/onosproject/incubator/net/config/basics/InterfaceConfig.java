@@ -31,7 +31,6 @@ import java.util.Set;
  * Configuration for interfaces.
  */
 public class InterfaceConfig extends Config<ConnectPoint> {
-    public static final String INTERFACES = "interfaces";
     public static final String IPS = "ips";
     public static final String MAC = "mac";
     public static final String VLAN = "vlan";
@@ -50,8 +49,7 @@ public class InterfaceConfig extends Config<ConnectPoint> {
         Set<Interface> interfaces = Sets.newHashSet();
 
         try {
-            // TODO: rework this to take advantage of ArrayNode backing
-            for (JsonNode intfNode : object.path(INTERFACES)) {
+            for (JsonNode intfNode : array) {
                 Set<InterfaceIpAddress> ips = getIps(intfNode);
                 if (ips.isEmpty()) {
                     throw new ConfigException(IP_MISSING_ERROR);

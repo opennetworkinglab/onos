@@ -60,7 +60,8 @@ public class BasicNetworkConfigs {
             },
             new ConfigFactory<ConnectPoint, InterfaceConfig>(CONNECT_POINT_SUBJECT_FACTORY,
                                                              InterfaceConfig.class,
-                                                             "interfaces") {
+                                                             "interfaces",
+                                                             true) {
                 @Override
                 public InterfaceConfig createConfig() {
                     return new InterfaceConfig();
