@@ -63,6 +63,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 @Path("subnets")
 public class SubnetWebResource extends AbstractWebResource {
@@ -211,8 +212,8 @@ public class SubnetWebResource extends AbstractWebResource {
             Subnet subnet = new DefaultSubnet(id, subnetName, networkId,
                                               tenantId, ipVersion, cidr,
                                               gatewayIp, dhcpEnabled, shared,
-                                              hostRoutesIt, ipV6AddressMode,
-                                              ipV6RaMode, allocationPoolsIt);
+                                              Sets.newHashSet(hostRoutesIt), ipV6AddressMode,
+                                              ipV6RaMode, Sets.newHashSet(allocationPoolsIt));
             subMap.put(id, subnet);
         }
         return Collections.unmodifiableCollection(subMap.values());
@@ -267,9 +268,9 @@ public class SubnetWebResource extends AbstractWebResource {
 
         Subnet subnet = new DefaultSubnet(id, subnetName, networkId, tenantId,
                                           ipVersion, cidr, gatewayIp,
-                                          dhcpEnabled, shared, hostRoutesIt,
+                                          dhcpEnabled, shared, Sets.newHashSet(hostRoutesIt),
                                           ipV6AddressMode, ipV6RaMode,
-                                          allocationPoolsIt);
+                                          Sets.newHashSet(allocationPoolsIt));
         subMap.put(id, subnet);
         return Collections.unmodifiableCollection(subMap.values());
     }

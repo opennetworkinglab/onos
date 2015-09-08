@@ -15,7 +15,6 @@
  */
 package org.onosproject.vtnrsc.cli.virtualport;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -106,11 +105,11 @@ public class VirtualPortCreateCommand extends AbstractShellCommand {
 
     @Option(name = "-l", aliases = "--allowedAddress", description = "virtual allowedAddressPair.",
             required = false, multiValued = false)
-    Collection<AllowedAddressPair> allowedAddressPairs = Sets.newHashSet();
+    Set<AllowedAddressPair> allowedAddressPairs = Sets.newHashSet();
 
     @Option(name = "-e", aliases = "--securityGroups", description = "virtualPort securityGroups.",
             required = false, multiValued = false)
-    Collection<SecurityGroup> securityGroups = Sets.newHashSet();
+    Set<SecurityGroup> securityGroups = Sets.newHashSet();
 
     @Override
     protected void execute() {

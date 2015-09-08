@@ -18,6 +18,7 @@ package org.onosproject.vtnrsc;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
+import java.util.Set;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpAddress.Version;
@@ -38,8 +39,8 @@ public final class DefaultSubnet implements Subnet {
     private final boolean shared;
     private final Mode ipV6AddressMode;
     private final Mode ipV6RaMode;
-    private final Iterable<HostRoute> hostRoutes;
-    private final Iterable<AllocationPool> allocationPools;
+    private final Set<HostRoute> hostRoutes;
+    private final Set<AllocationPool> allocationPools;
 
     /**
      * Creates a subnet object.
@@ -64,9 +65,9 @@ public final class DefaultSubnet implements Subnet {
                          TenantNetworkId networkId, TenantId tenantId,
                          Version ipVersion, IpPrefix cidr, IpAddress gatewayIp,
                          boolean dhcpEnabled, boolean shared,
-                         Iterable<HostRoute> hostRoutes, Mode ipV6AddressMode,
+                         Set<HostRoute> hostRoutes, Mode ipV6AddressMode,
                          Mode ipV6RaMode,
-                         Iterable<AllocationPool> allocationPoolsIt) {
+                         Set<AllocationPool> allocationPoolsIt) {
         this.id = id;
         this.subnetName = subnetName;
         this.networkId = networkId;

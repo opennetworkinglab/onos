@@ -54,8 +54,8 @@ import org.onosproject.vtnrsc.SubnetId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.VirtualPort;
-import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.VirtualPort.State;
+import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
 import org.onosproject.vtnrsc.web.VirtualPortCodec;
 import org.slf4j.Logger;
@@ -65,6 +65,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * REST resource for interacting with the inventory of infrastructure
@@ -249,8 +250,8 @@ public class VirtualPortWebResource extends AbstractWebResource {
                                                        macAddress, tenantId,
                                                        deviceId, fixedIps,
                                                        bindingHostId,
-                                                       allowedAddressPairs,
-                                                       securityGroups);
+                                                       Sets.newHashSet(allowedAddressPairs),
+                                                       Sets.newHashSet(securityGroups));
             portMap.put(id, vPort);
         }
         return Collections.unmodifiableCollection(portMap.values());
@@ -308,8 +309,8 @@ public class VirtualPortWebResource extends AbstractWebResource {
                                                    macAddress, tenantId,
                                                    deviceId, fixedIps,
                                                    bindingHostId,
-                                                   allowedAddressPairs,
-                                                   securityGroups);
+                                                   Sets.newHashSet(allowedAddressPairs),
+                                                   Sets.newHashSet(securityGroups));
         vportMap.put(id, vPort);
 
         return Collections.unmodifiableCollection(vportMap.values());

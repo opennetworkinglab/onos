@@ -30,6 +30,7 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.vtnrsc.AllowedAddressPair;
 import org.onosproject.vtnrsc.BindingHostId;
+import org.onosproject.vtnrsc.DefaultVirtualPort;
 import org.onosproject.vtnrsc.FixedIp;
 import org.onosproject.vtnrsc.SecurityGroup;
 import org.onosproject.vtnrsc.SubnetId;
@@ -98,7 +99,8 @@ public class VirtualPortManager implements VirtualPortService {
                                                  BindingHostId.class,
                                                  SecurityGroup.class,
                                                  SubnetId.class,
-                                                 IpAddress.class))
+                                                 IpAddress.class,
+                                                 DefaultVirtualPort.class))
                 .build().asJavaMap();
         log.info("Started");
     }
