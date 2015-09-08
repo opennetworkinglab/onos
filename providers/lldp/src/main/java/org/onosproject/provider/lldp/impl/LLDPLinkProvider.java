@@ -275,6 +275,10 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
     }
 
+    private LinkDiscovery createLinkDiscovery(Device device) {
+        return new LinkDiscovery(device, packetService, masterService,
+                                 providerService, useBDDP);
+    }
 
     private class InternalRoleListener implements MastershipListener {
 
@@ -297,11 +301,8 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             synchronized (discoverers) {
                 if (!discoverers.containsKey(deviceId)) {
                     // ideally, should never reach here
-                    log.debug("Device mastership changed ({}) {}",
-                              event.type(), deviceId);
-                    discoverers.put(deviceId, new LinkDiscovery(device,
-                                                                packetService, masterService, providerService,
-                                                                useBDDP));
+                    log.debug("Device mastership changed ({}) {}", event.type(), deviceId);
+                    discoverers.put(deviceId, createLinkDiscovery(device));
                 }
             }
         }
@@ -331,15 +332,11 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                                 log.debug("LinkDiscovery from {} disabled by configuration", device.id());
                                 return;
                             }
-                            log.debug("Device added ({}) {}", event.type(),
-                                      deviceId);
-                            discoverers.put(deviceId, new LinkDiscovery(device,
-                                                                        packetService, masterService,
-                                                                        providerService, useBDDP));
+                            log.debug("Device added ({}) {}", event.type(), deviceId);
+                            discoverers.put(deviceId, createLinkDiscovery(device));
                         } else {
                             if (ld.isStopped()) {
-                                log.debug("Device restarted ({}) {}", event.type(),
-                                          deviceId);
+                                log.debug("Device restarted ({}) {}", event.type(), deviceId);
                                 ld.start();
                             }
                         }
@@ -363,15 +360,13 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                         }
                     } else {
                         log.debug("Port down {}", port);
-                        ConnectPoint point = new ConnectPoint(deviceId,
-                                                              port.number());
+                        ConnectPoint point = new ConnectPoint(deviceId, port.number());
                         providerService.linksVanished(point);
                     }
                     break;
                 case PORT_REMOVED:
                     log.debug("Port removed {}", port);
-                    ConnectPoint point = new ConnectPoint(deviceId,
-                                                          port.number());
+                    ConnectPoint point = new ConnectPoint(deviceId, port.number());
                     providerService.linksVanished(point);
 
                     break;
@@ -411,8 +406,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             if (context == null) {
                 return;
             }
-            LinkDiscovery ld = discoverers.get(
-                    context.inPacket().receivedFrom().deviceId());
+            LinkDiscovery ld = discoverers.get(context.inPacket().receivedFrom().deviceId());
             if (ld == null) {
                 return;
             }
@@ -441,8 +435,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                     synchronized (discoverers) {
                         LinkDiscovery discoverer = discoverers.get(did);
                         if (discoverer == null) {
-                            discoverer = new LinkDiscovery(dev, packetService,
-                                    masterService, providerService, useBDDP);
+                            discoverer = createLinkDiscovery(dev);
                             discoverers.put(did, discoverer);
                         }
 
