@@ -96,7 +96,7 @@ public abstract class Config<S> {
      * @return JSON node backing the configuration
      */
     public JsonNode node() {
-        return object;
+        return node;
     }
 
     /**

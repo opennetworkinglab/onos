@@ -56,6 +56,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.easymock.EasyMock.createMock;
@@ -149,9 +150,11 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
     private Set<BgpConfig.BgpSpeakerConfig> setUpBgpSpeakers() {
 
         BgpConfig.BgpSpeakerConfig speaker1 = new BgpConfig.BgpSpeakerConfig(
+                Optional.empty(),
                 s1Eth100, Collections.singleton(IpAddress.valueOf("192.168.10.1")));
 
         BgpConfig.BgpSpeakerConfig speaker2 = new BgpConfig.BgpSpeakerConfig(
+                Optional.empty(),
                 s1Eth100, Sets.newHashSet(IpAddress.valueOf("192.168.20.1"),
                 IpAddress.valueOf("192.168.30.1")));
 

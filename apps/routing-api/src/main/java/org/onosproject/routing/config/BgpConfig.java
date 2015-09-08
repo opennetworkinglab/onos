@@ -20,9 +20,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.net.config.Config;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.config.Config;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -34,6 +35,7 @@ public class BgpConfig extends Config<ApplicationId> {
 
     public static final String SPEAKERS = "bgpSpeakers";
     public static final String CONNECT_POINT = "connectPoint";
+    public static final String NAME = "name";
     public static final String PEERS = "peers";
 
     // TODO add methods for updating config
@@ -50,9 +52,17 @@ public class BgpConfig extends Config<ApplicationId> {
         speakersNode.forEach(jsonNode -> {
             Set<IpAddress> listenAddresses = Sets.newHashSet();
             jsonNode.path(PEERS).forEach(addressNode ->
-                    listenAddresses.add(IpAddress.valueOf(addressNode.asText()))
+                            listenAddresses.add(IpAddress.valueOf(addressNode.asText()))
             );
-            speakers.add(new BgpSpeakerConfig(
+
+            Optional<String> name;
+            if (jsonNode.get(NAME) == null) {
+                name = Optional.empty();
+            } else {
+                name = Optional.of(jsonNode.get(NAME).asText());
+            }
+
+            speakers.add(new BgpSpeakerConfig(name,
                     ConnectPoint.deviceConnectPoint(jsonNode.path(CONNECT_POINT).asText()),
                     listenAddresses));
         });
@@ -65,12 +75,19 @@ public class BgpConfig extends Config<ApplicationId> {
      */
     public static class BgpSpeakerConfig {
 
+        private Optional<String> name;
         private ConnectPoint connectPoint;
         private Set<IpAddress> peers;
 
-        public BgpSpeakerConfig(ConnectPoint connectPoint, Set<IpAddress> peers) {
+        public BgpSpeakerConfig(Optional<String> name, ConnectPoint connectPoint,
+                                Set<IpAddress> peers) {
+            this.name = checkNotNull(name);
             this.connectPoint = checkNotNull(connectPoint);
             this.peers = checkNotNull(peers);
+        }
+
+        public Optional<String> name() {
+            return name;
         }
 
         public ConnectPoint connectPoint() {
