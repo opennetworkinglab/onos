@@ -16,53 +16,73 @@
 package org.onosproject.incubator.net.domain;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.ConnectPoint;
+
 
 /**
  * The abstract base class for the resource that satisfies an intent primitive.
  */
 @Beta
-public class IntentResource {
+public abstract class IntentResource {
 
     private final IntentPrimitive primitive;
-    private final long tunnelId;
-    private final IntentDomainId domainId;
+
+    private final ApplicationId appId;
+    private final ConnectPoint ingress;
+    private final ConnectPoint egress;
+
+    //* QUESTIONABLE ADDITIONS *//
 
     // TODO add other common fields
     //String ingressTag;
     //String egressTag;
     //etc.
 
-    public IntentResource(IntentPrimitive primitive, long tunnelId, IntentDomainId domainId) {
+    public IntentResource(IntentPrimitive primitive, ApplicationId appId,
+                          ConnectPoint ingress, ConnectPoint egress) {
+        this.appId = appId;
+        this.ingress = ingress;
+        this.egress = egress;
         this.primitive = primitive;
-        this.tunnelId = tunnelId;
-        this.domainId = domainId;
     }
 
+    //TODO when is same package tunnelID should be of type tunnelID and netTunnelId not long.
+
+
     /**
-     * Returns the intent primitive associated with this resource as creation.
+     * Returns the intent primitive associated with this resource at creation.
      *
-     * @return this resource's intent primitive
+     * @return this resource's intent primitive.
      */
     public IntentPrimitive primitive() {
         return primitive;
     }
 
     /**
-     * Returns the tunnel ID associated with this resource as creation.
+     * Returns the application ID associated with this resource at creation.
      *
-     * @return this resource's tunnel ID
+     * @return this resource's application ID.
      */
-    public long tunnelId() {
-        return tunnelId;
+    public ApplicationId appId() {
+        return appId;
     }
 
     /**
-     * Returns the domain ID associated with this resource as creation.
+     * Returns the ingress connect point associated with this resource at creation.
      *
-     * @return this resource's domain ID
+     * @return this resource's ingress connect point.
      */
-    public IntentDomainId domainId() {
-        return domainId;
+    public ConnectPoint ingress() {
+        return ingress;
     }
 
+    /**
+     * Returns the egress connect point associated with this resource at creation.
+     *
+     * @return this resource's connect point.
+     */
+    public ConnectPoint egress() {
+        return egress;
+    }
 }
