@@ -31,25 +31,25 @@ import static org.junit.Assert.fail;
 /**
  * Unit Tests for IPAssignment class.
  */
-public class IPAssignmentTest extends TestCase {
+public class IpAssignmentTest extends TestCase {
 
     private final Date dateNow = new Date();
 
-    private final IPAssignment stats1 = IPAssignment.builder()
+    private final IpAssignment stats1 = IpAssignment.builder()
             .ipAddress(Ip4Address.valueOf("10.10.10.10"))
             .leasePeriod(300)
-            .assignmentStatus(IPAssignment.AssignmentStatus.Option_Expired)
+            .assignmentStatus(IpAssignment.AssignmentStatus.Option_Expired)
             .timestamp(dateNow)
             .build();
 
-    private final IPAssignment stats2 = IPAssignment.builder()
+    private final IpAssignment stats2 = IpAssignment.builder()
             .ipAddress(Ip4Address.valueOf("10.10.10.10"))
             .leasePeriod(300)
-            .assignmentStatus(IPAssignment.AssignmentStatus.Option_Assigned)
+            .assignmentStatus(IpAssignment.AssignmentStatus.Option_Assigned)
             .timestamp(dateNow)
             .build();
 
-    private final IPAssignment stats3 = IPAssignment.builder(stats1)
+    private final IpAssignment stats3 = IpAssignment.builder(stats1)
             .build();
 
     /**
@@ -60,7 +60,7 @@ public class IPAssignmentTest extends TestCase {
         assertThat(stats3.ipAddress(), is(Ip4Address.valueOf("10.10.10.10")));
         assertThat(stats3.timestamp(), is(dateNow));
         assertThat(stats3.leasePeriod(), is(300));
-        assertThat(stats3.assignmentStatus(), is(IPAssignment.AssignmentStatus.Option_Expired));
+        assertThat(stats3.assignmentStatus(), is(IpAssignment.AssignmentStatus.Option_Expired));
     }
 
     /**
@@ -88,7 +88,7 @@ public class IPAssignmentTest extends TestCase {
     @Test
     public void testValidateInputs() {
         try {
-            IPAssignment stats4 = IPAssignment.builder()
+            IpAssignment stats4 = IpAssignment.builder()
                     .ipAddress(Ip4Address.valueOf("10.10.10.10"))
                     .leasePeriod(300)
                     .build();

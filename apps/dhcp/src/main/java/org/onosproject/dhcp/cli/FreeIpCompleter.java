@@ -19,7 +19,7 @@ import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.dhcp.DHCPService;
+import org.onosproject.dhcp.DhcpService;
 
 import java.util.Iterator;
 import java.util.List;
@@ -28,13 +28,13 @@ import java.util.SortedSet;
 /**
  * Free IP Completer.
  */
-public class FreeIPCompleter implements Completer {
+public class FreeIpCompleter implements Completer {
 
     @Override
     public int complete(String buffer, int cursor, List<String> candidates) {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
-        DHCPService dhcpService = AbstractShellCommand.get(DHCPService.class);
+        DhcpService dhcpService = AbstractShellCommand.get(DhcpService.class);
         Iterator<Ip4Address> it = dhcpService.getAvailableIPs().iterator();
         SortedSet<String> strings = delegate.getStrings();
 

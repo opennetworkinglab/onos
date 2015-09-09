@@ -22,7 +22,7 @@ import org.onosproject.net.config.basics.BasicElementConfig;
 /**
  * DHCP Store Config class.
  */
-public class DHCPStoreConfig extends Config<ApplicationId> {
+public class DhcpStoreConfig extends Config<ApplicationId> {
 
     public static final String TIMER_DELAY = "delay";
     public static final String DEFAULT_TIMEOUT = "timeout";

@@ -23,14 +23,14 @@ import java.util.Map;
 /**
  * DHCP Service Interface.
  */
-public interface DHCPService {
+public interface DhcpService {
 
     /**
      * Returns a collection of all the MacAddress to IPAddress mapping.
      *
      * @return collection of mappings.
      */
-    Map<MacAddress, IPAssignment> listMapping();
+    Map<MacAddress, IpAssignment> listMapping();
 
     /**
      * Returns the default lease time granted by the DHCP Server.

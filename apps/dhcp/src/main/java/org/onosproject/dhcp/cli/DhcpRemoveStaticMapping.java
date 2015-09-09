@@ -19,14 +19,14 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.dhcp.DHCPService;
+import org.onosproject.dhcp.DhcpService;
 
 /**
  * Removes a static MAC Address to IP Mapping from the DHCP Server.
  */
 @Command(scope = "onos", name = "dhcp-remove-static-mapping",
         description = "Removes a static MAC Address to IP Mapping from the DHCP Server")
-public class DHCPRemoveStaticMapping extends AbstractShellCommand {
+public class DhcpRemoveStaticMapping extends AbstractShellCommand {
 
     @Argument(index = 0, name = "macAddr",
             description = "MAC Address of the client",
@@ -39,7 +39,7 @@ public class DHCPRemoveStaticMapping extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        DHCPService dhcpService = AbstractShellCommand.get(DHCPService.class);
+        DhcpService dhcpService = AbstractShellCommand.get(DhcpService.class);
 
         try {
             MacAddress macID = MacAddress.valueOf(macAddr);

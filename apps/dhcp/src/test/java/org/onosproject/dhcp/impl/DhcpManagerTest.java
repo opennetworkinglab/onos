@@ -28,8 +28,8 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.UDP;
 import org.onosproject.core.CoreServiceAdapter;
-import org.onosproject.dhcp.DHCPStore;
-import org.onosproject.dhcp.IPAssignment;
+import org.onosproject.dhcp.DhcpStore;
+import org.onosproject.dhcp.IpAssignment;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.config.NetworkConfigRegistryAdapter;
@@ -64,9 +64,9 @@ import static org.onosproject.net.NetTestTools.connectPoint;
  * Set of tests of the ONOS application component.
  */
 
-public class DHCPManagerTest {
+public class DhcpManagerTest {
 
-    private DHCPManager dhcpManager;
+    private DhcpManager dhcpXManager;
 
     protected PacketProcessor packetProcessor;
 
@@ -84,20 +84,20 @@ public class DHCPManagerTest {
 
     @Before
     public void setUp() {
-        dhcpManager = new DHCPManager();
-        dhcpManager.cfgService = new TestNetworkConfigRegistry();
-        dhcpManager.packetService = new TestPacketService();
-        dhcpManager.coreService = new TestCoreService();
-        dhcpManager.dhcpStore = new TestDHCPStore();
+        dhcpXManager = new DhcpManager();
+        dhcpXManager.cfgService = new TestNetworkConfigRegistry();
+        dhcpXManager.packetService = new TestPacketService();
+        dhcpXManager.coreService = new TestCoreService();
+        dhcpXManager.dhcpStore = new TestDhcpStore();
         hostProviderService = new TestHostProviderService(new TestHostProvider());
-        dhcpManager.hostProviderService = hostProviderService;
-        dhcpManager.hostProviderRegistry = new TestHostRegistry();
-        dhcpManager.activate();
+        dhcpXManager.hostProviderService = hostProviderService;
+        dhcpXManager.hostProviderRegistry = new TestHostRegistry();
+        dhcpXManager.activate();
     }
 
     @After
     public void tearDown() {
-        dhcpManager.deactivate();
+        dhcpXManager.deactivate();
     }
 
     /**
@@ -217,7 +217,7 @@ public class DHCPManagerTest {
     /**
      * Mocks the DHCPStore.
      */
-    private final class TestDHCPStore implements DHCPStore {
+    private final class TestDhcpStore implements DhcpStore {
 
 
         public void populateIPPoolfromRange(Ip4Address startIP, Ip4Address endIP) {
@@ -240,11 +240,11 @@ public class DHCPManagerTest {
         public void releaseIP(MacAddress macID) {
         }
 
-        public Map<MacAddress, IPAssignment> listMapping() {
-            Map<MacAddress, IPAssignment> map = new HashMap<>();
-            IPAssignment assignment = IPAssignment.builder()
+        public Map<MacAddress, IpAssignment> listMapping() {
+            Map<MacAddress, IpAssignment> map = new HashMap<>();
+            IpAssignment assignment = IpAssignment.builder()
                                         .ipAddress(Ip4Address.valueOf(EXPECTED_IP))
-                                        .assignmentStatus(IPAssignment.AssignmentStatus.Option_Assigned)
+                                        .assignmentStatus(IpAssignment.AssignmentStatus.Option_Assigned)
                                         .leasePeriod(300)
                                         .timestamp(new Date())
                                         .build();

@@ -20,14 +20,14 @@ import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.dhcp.DHCPService;
+import org.onosproject.dhcp.DhcpService;
 
 /**
  * Registers a static MAC Address to IP Mapping with the DHCP Server.
  */
 @Command(scope = "onos", name = "dhcp-set-static-mapping",
         description = "Registers a static MAC Address to IP Mapping with the DHCP Server")
-public class DHCPSetStaticMapping extends AbstractShellCommand {
+public class DhcpSetStaticMapping extends AbstractShellCommand {
 
     @Argument(index = 0, name = "macAddr",
             description = "MAC Address of the client",
@@ -43,7 +43,7 @@ public class DHCPSetStaticMapping extends AbstractShellCommand {
     private static final String DHCP_FAILURE = "Static Mapping Failed. The IP maybe unavailable.";
     @Override
     protected void execute() {
-        DHCPService dhcpService = AbstractShellCommand.get(DHCPService.class);
+        DhcpService dhcpService = AbstractShellCommand.get(DhcpService.class);
 
         try {
             MacAddress macID = MacAddress.valueOf(macAddr);

@@ -23,7 +23,7 @@ import java.util.Map;
 /**
  * DHCPStore Interface.
  */
-public interface DHCPStore {
+public interface DhcpStore {
 
     /**
      * Appends all the IPs in a given range to the free pool of IPs.
@@ -77,7 +77,7 @@ public interface DHCPStore {
      *
      * @return the collection of the mappings
      */
-    Map<MacAddress, IPAssignment> listMapping();
+    Map<MacAddress, IpAssignment> listMapping();
 
     /**
      * Assigns the requested IP to the MAC ID (if available) for an indefinite period of time.

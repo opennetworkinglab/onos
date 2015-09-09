@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
-import org.onosproject.dhcp.DHCPService;
-import org.onosproject.dhcp.IPAssignment;
+import org.onosproject.dhcp.DhcpService;
+import org.onosproject.dhcp.IpAssignment;
 import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
@@ -42,7 +42,7 @@ import java.util.Map;
 @Path("dhcp")
 public class DHCPWebResource extends AbstractWebResource {
 
-    final DHCPService service = get(DHCPService.class);
+    final DhcpService service = get(DhcpService.class);
 
     /**
      * Get DHCP server configuration data.
@@ -53,7 +53,7 @@ public class DHCPWebResource extends AbstractWebResource {
     @GET
     @Path("config")
     public Response getConfigs() {
-        DHCPService service = get(DHCPService.class);
+        DhcpService service = get(DhcpService.class);
         ObjectNode node = mapper().createObjectNode()
                 .put("leaseTime", service.getLeaseTime())
                 .put("renewalTime", service.getRenewalTime())
@@ -72,7 +72,7 @@ public class DHCPWebResource extends AbstractWebResource {
     public Response listMappings() {
         ObjectNode root = mapper().createObjectNode();
 
-        final Map<MacAddress, IPAssignment> intents = service.listMapping();
+        final Map<MacAddress, IpAssignment> intents = service.listMapping();
         ArrayNode arrayNode = root.putArray("mappings");
         intents.entrySet().forEach(i -> arrayNode.add(mapper().createObjectNode()
                 .put("mac", i.getKey().toString())
@@ -124,7 +124,7 @@ public class DHCPWebResource extends AbstractWebResource {
                 }
             }
 
-            final Map<MacAddress, IPAssignment> intents = service.listMapping();
+            final Map<MacAddress, IpAssignment> intents = service.listMapping();
             ArrayNode arrayNode = root.putArray("mappings");
             intents.entrySet().forEach(i -> arrayNode.add(mapper().createObjectNode()
                     .put("mac", i.getKey().toString())
@@ -150,7 +150,7 @@ public class DHCPWebResource extends AbstractWebResource {
         if (!service.removeStaticMapping(MacAddress.valueOf(macID))) {
             throw new IllegalArgumentException("Static Mapping Removal Failed.");
         }
-        final Map<MacAddress, IPAssignment> intents = service.listMapping();
+        final Map<MacAddress, IpAssignment> intents = service.listMapping();
         ArrayNode arrayNode = root.putArray("mappings");
         intents.entrySet().forEach(i -> arrayNode.add(mapper().createObjectNode()
                 .put("mac", i.getKey().toString())

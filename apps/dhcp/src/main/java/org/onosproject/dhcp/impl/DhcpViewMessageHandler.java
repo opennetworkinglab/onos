@@ -19,8 +19,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.dhcp.DHCPService;
-import org.onosproject.dhcp.IPAssignment;
+import org.onosproject.dhcp.DhcpService;
+import org.onosproject.dhcp.IpAssignment;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
@@ -72,15 +72,15 @@ public class DhcpViewMessageHandler extends UiMessageHandler {
 
         @Override
         protected void populateTable(TableModel tm, ObjectNode payload) {
-            DHCPService dhcpService = AbstractShellCommand.get(DHCPService.class);
-            Map<MacAddress, IPAssignment> allocationMap = dhcpService.listMapping();
+            DhcpService dhcpService = AbstractShellCommand.get(DhcpService.class);
+            Map<MacAddress, IpAssignment> allocationMap = dhcpService.listMapping();
 
-            for (Map.Entry<MacAddress, IPAssignment> entry : allocationMap.entrySet()) {
+            for (Map.Entry<MacAddress, IpAssignment> entry : allocationMap.entrySet()) {
                 populateRow(tm.addRow(), entry);
             }
         }
 
-        private void populateRow(TableModel.Row row, Map.Entry<MacAddress, IPAssignment> entry) {
+        private void populateRow(TableModel.Row row, Map.Entry<MacAddress, IpAssignment> entry) {
             if (entry.getValue().leasePeriod() > 0) {
                 Date now = new Date(entry.getValue().timestamp().getTime() + entry.getValue().leasePeriod());
                 row.cell(MAC, entry.getKey())

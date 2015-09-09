@@ -17,21 +17,21 @@ package org.onosproject.dhcp.cli;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.dhcp.DHCPService;
+import org.onosproject.dhcp.DhcpService;
 
 /**
  * Lists all the default lease parameters offered by the DHCP Server.
  */
 @Command(scope = "onos", name = "dhcp-lease",
         description = "Lists all the default lease parameters offered by the DHCP Server")
-public class DHCPLeaseDetails extends AbstractShellCommand {
+public class DhcpLeaseDetails extends AbstractShellCommand {
 
     private static final String DHCP_LEASE_FORMAT = "Lease Time: %ds\nRenewal Time: %ds\nRebinding Time: %ds";
 
     @Override
     protected void execute() {
 
-        DHCPService dhcpService = AbstractShellCommand.get(DHCPService.class);
+        DhcpService dhcpService = AbstractShellCommand.get(DhcpService.class);
         int leaseTime = dhcpService.getLeaseTime();
         int renewTime = dhcpService.getRenewalTime();
         int rebindTime = dhcpService.getRebindingTime();

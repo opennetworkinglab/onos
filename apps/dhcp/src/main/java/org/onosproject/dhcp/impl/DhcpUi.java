@@ -37,11 +37,11 @@ import static org.onosproject.ui.UiView.Category.NETWORK;
  * Mechanism to stream data to the GUI.
  */
 @Component(immediate = true, enabled = true)
-@Service(value = DHCPUi.class)
-public class DHCPUi {
+@Service(value = DhcpUi.class)
+public class DhcpUi {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private static final ClassLoader CL = DHCPUi.class.getClassLoader();
+    private static final ClassLoader CL = DhcpUi.class.getClassLoader();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected UiExtensionService uiExtensionService;

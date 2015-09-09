@@ -22,7 +22,7 @@ import org.onosproject.net.config.basics.BasicElementConfig;
 /**
  * DHCP Config class.
  */
-public class DHCPConfig extends Config<ApplicationId> {
+public class DhcpConfig extends Config<ApplicationId> {
 
     public static final String MY_IP = "ip";
     public static final String MY_MAC = "mac";

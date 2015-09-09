@@ -18,8 +18,8 @@ package org.onosproject.dhcp.cli;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.dhcp.DHCPService;
-import org.onosproject.dhcp.IPAssignment;
+import org.onosproject.dhcp.DhcpService;
+import org.onosproject.dhcp.IpAssignment;
 
 import java.util.Map;
 
@@ -28,16 +28,16 @@ import java.util.Map;
  */
 @Command(scope = "onos", name = "dhcp-list",
         description = "Lists all the MAC to IP mappings held by the DHCP Server")
-public class DHCPListAllMappings extends AbstractShellCommand {
+public class DhcpListAllMappings extends AbstractShellCommand {
 
     private static final String DHCP_MAPPING_FORMAT = "MAC ID: %s -> IP ASSIGNED %s";
     @Override
     protected void execute() {
 
-        DHCPService dhcpService = AbstractShellCommand.get(DHCPService.class);
-        Map<MacAddress, IPAssignment> allocationMap = dhcpService.listMapping();
+        DhcpService dhcpService = AbstractShellCommand.get(DhcpService.class);
+        Map<MacAddress, IpAssignment> allocationMap = dhcpService.listMapping();
 
-        for (Map.Entry<MacAddress, IPAssignment> entry : allocationMap.entrySet()) {
+        for (Map.Entry<MacAddress, IpAssignment> entry : allocationMap.entrySet()) {
             print(DHCP_MAPPING_FORMAT, entry.getKey().toString(), entry.getValue().ipAddress().toString());
         }
     }

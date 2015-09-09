@@ -36,9 +36,9 @@ import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.dhcp.DHCPService;
-import org.onosproject.dhcp.DHCPStore;
-import org.onosproject.dhcp.IPAssignment;
+import org.onosproject.dhcp.DhcpService;
+import org.onosproject.dhcp.DhcpStore;
+import org.onosproject.dhcp.IpAssignment;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -81,7 +81,7 @@ import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FAC
  */
 @Component(immediate = true)
 @Service
-public class DHCPManager implements DHCPService {
+public class DhcpManager implements DhcpService {
 
     private static final ProviderId PID = new ProviderId("of", "org.onosproject.dhcp", true);
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -89,20 +89,20 @@ public class DHCPManager implements DHCPService {
     private final NetworkConfigListener cfgListener = new InternalConfigListener();
 
     private final Set<ConfigFactory> factories = ImmutableSet.of(
-            new ConfigFactory<ApplicationId, DHCPConfig>(APP_SUBJECT_FACTORY,
-                    DHCPConfig.class,
+            new ConfigFactory<ApplicationId, DhcpConfig>(APP_SUBJECT_FACTORY,
+                    DhcpConfig.class,
                     "dhcp") {
                 @Override
-                public DHCPConfig createConfig() {
-                    return new DHCPConfig();
+                public DhcpConfig createConfig() {
+                    return new DhcpConfig();
                 }
             },
-            new ConfigFactory<ApplicationId, DHCPStoreConfig>(APP_SUBJECT_FACTORY,
-                    DHCPStoreConfig.class,
+            new ConfigFactory<ApplicationId, DhcpStoreConfig>(APP_SUBJECT_FACTORY,
+                    DhcpStoreConfig.class,
                     "dhcpstore") {
                 @Override
-                public DHCPStoreConfig createConfig() {
-                    return new DHCPStoreConfig();
+                public DhcpStoreConfig createConfig() {
+                    return new DhcpStoreConfig();
                 }
             }
     );
@@ -118,7 +118,7 @@ public class DHCPManager implements DHCPService {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DHCPStore dhcpStore;
+    protected DhcpStore dhcpStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostProviderRegistry hostProviderRegistry;
@@ -214,7 +214,7 @@ public class DHCPManager implements DHCPService {
     }
 
     @Override
-    public Map<MacAddress, IPAssignment> listMapping() {
+    public Map<MacAddress, IpAssignment> listMapping() {
         return dhcpStore.listMapping();
     }
 
@@ -580,7 +580,7 @@ public class DHCPManager implements DHCPService {
          *
          * @param cfg configuration object
          */
-        private void reconfigureNetwork(DHCPConfig cfg) {
+        private void reconfigureNetwork(DhcpConfig cfg) {
 
             if (cfg.ip() != null) {
                 myIP = cfg.ip();
@@ -619,7 +619,7 @@ public class DHCPManager implements DHCPService {
          *
          * @param cfg configuration object
          */
-        private void reconfigureStore(DHCPStoreConfig cfg) {
+        private void reconfigureStore(DhcpStoreConfig cfg) {
 
             if (cfg.defaultTimeout() != null) {
                 dhcpStore.setDefaultTimeoutForPurge(Integer.valueOf(cfg.defaultTimeout()));
@@ -638,13 +638,13 @@ public class DHCPManager implements DHCPService {
 
             if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
                     event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)) {
-                if (event.configClass().equals(DHCPConfig.class)) {
-                    DHCPConfig cfg = cfgService.getConfig(appId, DHCPConfig.class);
+                if (event.configClass().equals(DhcpConfig.class)) {
+                    DhcpConfig cfg = cfgService.getConfig(appId, DhcpConfig.class);
                     reconfigureNetwork(cfg);
                     log.info("Reconfigured Manager");
                 }
-                if (event.configClass().equals(DHCPStoreConfig.class)) {
-                    DHCPStoreConfig cfg = cfgService.getConfig(appId, DHCPStoreConfig.class);
+                if (event.configClass().equals(DhcpStoreConfig.class)) {
+                    DhcpStoreConfig cfg = cfgService.getConfig(appId, DhcpStoreConfig.class);
                     reconfigureStore(cfg);
                     log.info("Reconfigured Store");
                 }

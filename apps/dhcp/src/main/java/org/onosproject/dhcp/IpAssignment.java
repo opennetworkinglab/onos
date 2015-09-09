@@ -25,7 +25,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Stores the MAC ID to IP Address mapping details.
  */
-public final class IPAssignment {
+public final class IpAssignment {
 
     private final Ip4Address ipAddress;
 
@@ -60,7 +60,7 @@ public final class IPAssignment {
      * @param leasePeriod
      * @param assignmentStatus
      */
-    private IPAssignment(Ip4Address ipAddress,
+    private IpAssignment(Ip4Address ipAddress,
                          long leasePeriod,
                          Date timestamp,
                          AssignmentStatus assignmentStatus) {
@@ -130,7 +130,7 @@ public final class IPAssignment {
      *
      * @return new builder
      */
-    public static Builder builder(IPAssignment assignment) {
+    public static Builder builder(IpAssignment assignment) {
         return new Builder(assignment);
     }
 
@@ -151,16 +151,16 @@ public final class IPAssignment {
 
         }
 
-        private Builder(IPAssignment ipAssignment) {
+        private Builder(IpAssignment ipAssignment) {
             ipAddress = ipAssignment.ipAddress();
             timeStamp = ipAssignment.timestamp();
             leasePeriod = ipAssignment.leasePeriod() * 1000;
             assignmentStatus = ipAssignment.assignmentStatus();
         }
 
-        public IPAssignment build() {
+        public IpAssignment build() {
             validateInputs();
-            return new IPAssignment(ipAddress,
+            return new IpAssignment(ipAddress,
                                     leasePeriod,
                                     timeStamp,
                                     assignmentStatus);
