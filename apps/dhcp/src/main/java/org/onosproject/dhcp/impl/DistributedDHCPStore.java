@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -224,17 +224,17 @@ public class DistributedDHCPStore implements DHCPStore {
     }
 
     @Override
-    public Map<MacAddress, Ip4Address> listMapping() {
+    public Map<MacAddress, IPAssignment> listMapping() {
 
-        Map<MacAddress, Ip4Address> allMapping = new HashMap<>();
+        Map<MacAddress, IPAssignment> allMapping = new HashMap<>();
         for (Map.Entry<MacAddress, Versioned<IPAssignment>> entry: allocationMap.entrySet()) {
             IPAssignment assignment = entry.getValue().value();
             if (assignment.assignmentStatus() == IPAssignment.AssignmentStatus.Option_Assigned) {
-                allMapping.put(entry.getKey(), assignment.ipAddress());
+                allMapping.put(entry.getKey(), assignment);
             }
         }
-
         return allMapping;
+
     }
 
     @Override

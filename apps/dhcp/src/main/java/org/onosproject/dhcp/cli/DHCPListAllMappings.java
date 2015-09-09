@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 package org.onosproject.dhcp.cli;
 
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.dhcp.DHCPService;
+import org.onosproject.dhcp.IPAssignment;
 
 import java.util.Map;
 
@@ -35,10 +35,10 @@ public class DHCPListAllMappings extends AbstractShellCommand {
     protected void execute() {
 
         DHCPService dhcpService = AbstractShellCommand.get(DHCPService.class);
-        Map<MacAddress, Ip4Address> allocationMap = dhcpService.listMapping();
+        Map<MacAddress, IPAssignment> allocationMap = dhcpService.listMapping();
 
-        for (Map.Entry<MacAddress, Ip4Address> entry : allocationMap.entrySet()) {
-            print(DHCP_MAPPING_FORMAT, entry.getKey().toString(), entry.getValue().toString());
+        for (Map.Entry<MacAddress, IPAssignment> entry : allocationMap.entrySet()) {
+            print(DHCP_MAPPING_FORMAT, entry.getKey().toString(), entry.getValue().ipAddress().toString());
         }
     }
 }

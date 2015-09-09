@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ public interface DHCPService {
      *
      * @return collection of mappings.
      */
-    Map<MacAddress, Ip4Address> listMapping();
+    Map<MacAddress, IPAssignment> listMapping();
 
     /**
      * Returns the default lease time granted by the DHCP Server.

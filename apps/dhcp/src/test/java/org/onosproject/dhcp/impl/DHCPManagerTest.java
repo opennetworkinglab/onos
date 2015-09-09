@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,10 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.UDP;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.dhcp.DHCPStore;
-import org.onosproject.net.config.NetworkConfigRegistryAdapter;
+import org.onosproject.dhcp.IPAssignment;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.HostProviderRegistry;
@@ -49,6 +50,7 @@ import org.onosproject.net.provider.ProviderId;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -238,9 +240,15 @@ public class DHCPManagerTest {
         public void releaseIP(MacAddress macID) {
         }
 
-        public Map<MacAddress, Ip4Address> listMapping() {
-            Map<MacAddress, Ip4Address> map = new HashMap<>();
-            map.put(CLIENT1_MAC, Ip4Address.valueOf(EXPECTED_IP));
+        public Map<MacAddress, IPAssignment> listMapping() {
+            Map<MacAddress, IPAssignment> map = new HashMap<>();
+            IPAssignment assignment = IPAssignment.builder()
+                                        .ipAddress(Ip4Address.valueOf(EXPECTED_IP))
+                                        .assignmentStatus(IPAssignment.AssignmentStatus.Option_Assigned)
+                                        .leasePeriod(300)
+                                        .timestamp(new Date())
+                                        .build();
+            map.put(CLIENT1_MAC, assignment);
             return map;
         }
 
