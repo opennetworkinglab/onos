@@ -9,6 +9,7 @@ org.onosproject.provider*
 org.onosproject.rest
 org.onosproject.cli*
 org.onosproject.tvue
+org.onosproject.dhcp
 org.onosproject.foo
 org.onosproject.mobility
 org.onosproject.proxyarp

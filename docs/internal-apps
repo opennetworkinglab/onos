@@ -4,6 +4,7 @@ org.onos.acl*
 org.onosproject.acl*
 org.onosproject.aaa
 org.onosproject.fwd
+org.onosproject.dhcp*
 org.onosproject.flowanalyzer
 org.onosproject.mobility
 org.onosproject.proxyarp
