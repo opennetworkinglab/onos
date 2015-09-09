@@ -172,7 +172,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
      *
      * @param path the path
      * @param linkAllocs the link allocations
-     * @return
+     * @return lambda allocated to the given path
      */
     private LambdaResourceAllocation getWavelength(Path path, LinkResourceAllocations linkAllocs) {
         for (Link link : path.links()) {
