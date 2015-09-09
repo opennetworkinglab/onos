@@ -92,7 +92,7 @@ public class FakeIntentManager implements TestableIntentService {
             // For the fake, we compile using a single level pass
             List<Intent> installable = new ArrayList<>();
             for (Intent compiled : getCompiler(intent).compile(intent, null, null)) {
-                installable.add((Intent) compiled);
+                installable.add(compiled);
             }
             executeInstallingPhase(intent, installable);
 

@@ -199,7 +199,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             if (resource instanceof Link) {
                 intentsByLink.remove(linkKey((Link) resource), intentKey);
             } else if (resource instanceof ElementId) {
-                intentsByDevice.remove((ElementId) resource, intentKey);
+                intentsByDevice.remove(resource, intentKey);
             }
         }
     }
