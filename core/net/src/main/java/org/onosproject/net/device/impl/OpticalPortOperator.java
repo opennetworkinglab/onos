@@ -82,7 +82,7 @@ public final class OpticalPortOperator implements ConfigOperator {
 
         // Port type won't change unless we're overwriting a port completely.
         // Watch out for overwrites to avoid class cast craziness.
-        boolean noOwrite = (opc.type() == descr.type()) ? true : false;
+        boolean noOwrite = opc.type() == descr.type();
 
         SparseAnnotations sa = combine(opc, descr.annotations());
         if (noOwrite) {
