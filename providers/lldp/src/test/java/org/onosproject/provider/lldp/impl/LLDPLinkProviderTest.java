@@ -108,7 +108,6 @@ public class LLDPLinkProviderTest {
         provider.providerRegistry = linkService;
         provider.masterService = masterService;
 
-
         provider.activate(null);
     }
 
