@@ -45,7 +45,12 @@ public final class Main {
     private static final String BLUE = "\u001B[36m";
 
     private static final String SUCCESS_SUMMARY = "%sPassed! %d steps succeeded%s";
-    private static final String FAILURE_SUMMARY = "%sFailed! %d steps succeeded; %d steps failed; %d steps skipped%s";
+    private static final String MIXED_SUMMARY =
+            "%s%d steps succeeded; %s%d steps failed; %s%d steps skipped%s";
+    private static final String FAILURE_SUMMARY = "%sFailed! " + MIXED_SUMMARY;
+    private static final String ABORTED_SUMMARY = "%sAborted! " + MIXED_SUMMARY;
+
+    private boolean isReported = false;
 
     private enum Command {
         LIST, RUN, RUN_RANGE, HELP
@@ -181,26 +186,32 @@ public final class Main {
     // Runs the coordinator and waits for it to finish.
     private void runCoordinator() {
         try {
+            Runtime.getRuntime().addShutdownHook(new ShutdownHook());
             coordinator.start();
             int exitCode = coordinator.waitFor();
             pause(100); // allow stdout to flush
-            printSummary(exitCode);
+            printSummary(exitCode, false);
             System.exit(exitCode);
         } catch (InterruptedException e) {
             print("Unable to execute scenario %s", scenarioFile);
         }
     }
 
-    private void printSummary(int exitCode) {
-        Set<Step> steps = coordinator.getSteps();
-        int count = steps.size();
-        if (exitCode == 0) {
-            print(SUCCESS_SUMMARY, color(SUCCEEDED), count, color(null));
-        } else {
-            long success = steps.stream().filter(s -> coordinator.getStatus(s) == SUCCEEDED).count();
-            long failed = steps.stream().filter(s -> coordinator.getStatus(s) == FAILED).count();
-            long skipped = steps.stream().filter(s -> coordinator.getStatus(s) == SKIPPED).count();
-            print(FAILURE_SUMMARY, color(FAILED), success, failed, skipped, color(null));
+    private synchronized void printSummary(int exitCode, boolean isAborted) {
+        if (!isReported) {
+            isReported = true;
+            Set<Step> steps = coordinator.getSteps();
+            int count = steps.size();
+            if (exitCode == 0) {
+                print(SUCCESS_SUMMARY, color(SUCCEEDED), count, color(null));
+            } else {
+                long success = steps.stream().filter(s -> coordinator.getStatus(s) == SUCCEEDED).count();
+                long failed = steps.stream().filter(s -> coordinator.getStatus(s) == FAILED).count();
+                long skipped = steps.stream().filter(s -> coordinator.getStatus(s) == SKIPPED).count();
+                print(isAborted ? ABORTED_SUMMARY : FAILURE_SUMMARY,
+                      color(FAILED), color(SUCCEEDED), success,
+                      color(FAILED), failed, color(SKIPPED), skipped, color(null));
+            }
         }
     }
 
@@ -267,6 +278,14 @@ public final class Main {
             Thread.sleep(ms);
         } catch (InterruptedException e) {
             print("Interrupted!");
+        }
+    }
+
+    // Shutdown hook to report status even when aborted.
+    private class ShutdownHook extends Thread {
+        @Override
+        public void run() {
+            printSummary(1, true);
         }
     }
 
