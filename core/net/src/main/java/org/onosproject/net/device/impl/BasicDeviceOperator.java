@@ -28,6 +28,8 @@ import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.slf4j.Logger;
 
+import java.util.Objects;
+
 /**
  * Implementations of merge policies for various sources of device configuration
  * information. This includes applications, provides, and network configurations.
@@ -73,7 +75,7 @@ public final class BasicDeviceOperator implements ConfigOperator {
      */
     public static SparseAnnotations combine(BasicDeviceConfig bdc, SparseAnnotations an) {
         DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
-        if (bdc.driver() != an.value(AnnotationKeys.DRIVER)) {
+        if (!Objects.equals(bdc.driver(), an.value(AnnotationKeys.DRIVER))) {
             newBuilder.set(AnnotationKeys.DRIVER, bdc.driver());
         }
         if (bdc.name() != null) {
