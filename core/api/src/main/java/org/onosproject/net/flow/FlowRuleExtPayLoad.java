@@ -3,7 +3,6 @@ package org.onosproject.net.flow;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * Represents for 3rd-party private original flow.
@@ -41,11 +40,11 @@ public final class FlowRuleExtPayLoad {
 
     @Override
     public int hashCode() {
-        return Objects.hash(payLoad);
+        return Arrays.hashCode(payLoad);
     }
 
     public int hash() {
-        return Objects.hash(payLoad);
+        return Arrays.hashCode(payLoad);
     }
 
     @Override
