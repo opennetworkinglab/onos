@@ -78,8 +78,8 @@ public class IGMPMembership extends IGMPGroup {
      *
      * @param bb the ByteBuffer wrapping the serialized message.  The position of the
      *           ByteBuffer should be pointing at the head of either message type.
-     * @return
-     * @throws DeserializationException
+     * @return IGMP Group
+     * @throws DeserializationException if deserialization fails
      */
     public IGMPGroup deserialize(ByteBuffer bb) throws DeserializationException {
 

@@ -67,6 +67,8 @@ public class PeerConnectivityManager {
      * @param appId              the application ID
      * @param intentSynchronizer the intent synchronizer
      * @param configService      the SDN-IP config service
+     * @param interfaceService   the interface service
+     * @param routerAppId        application ID
      */
     public PeerConnectivityManager(ApplicationId appId,
                                    IntentSynchronizer intentSynchronizer,

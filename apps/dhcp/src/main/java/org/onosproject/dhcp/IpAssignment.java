@@ -128,6 +128,7 @@ public final class IpAssignment {
     /**
      * Creates and returns a new builder instance that clones an existing IPAssignment.
      *
+     * @param assignment ip address assignment
      * @return new builder
      */
     public static Builder builder(IpAssignment assignment) {

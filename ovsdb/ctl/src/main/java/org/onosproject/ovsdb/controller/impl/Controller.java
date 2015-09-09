@@ -90,6 +90,7 @@ public class Controller {
 
     /**
      * Tells controller that we're ready to accept ovsdb node loop.
+     * @throws InterruptedException if thread is interrupted
      */
     public void run() throws InterruptedException {
         initEventLoopGroup();

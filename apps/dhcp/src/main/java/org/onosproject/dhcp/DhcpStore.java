@@ -37,6 +37,7 @@ public interface DhcpStore {
      * Returns an IP Address for a Mac ID, in response to a DHCP DISCOVER message.
      *
      * @param macID Mac ID of the client requesting an IP
+     * @param requestedIP requested IP address
      * @return IP address assigned to the Mac ID
      */
     Ip4Address suggestIP(MacAddress macID, Ip4Address requestedIP);

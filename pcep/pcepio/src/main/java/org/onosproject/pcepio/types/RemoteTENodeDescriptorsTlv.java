@@ -181,6 +181,7 @@ public class RemoteTENodeDescriptorsTlv implements PcepValueType {
      * Reads channel buffer and returns object of Remote TE Node Descriptors TLV.
      *
      * @param c input channel buffer
+     * @param length length of buffer
      * @return object of RemoteTENodeDescriptorsTLV
      * @throws PcepParseException if mandatory fields are missing
      */

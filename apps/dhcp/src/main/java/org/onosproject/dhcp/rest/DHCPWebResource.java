@@ -104,6 +104,7 @@ public class DHCPWebResource extends AbstractWebResource {
      * Post a new static MAC/IP binding.
      * Registers a static binding to the DHCP server, and displays the current set of bindings.
      *
+     * @param stream JSON stream
      * @return 200 OK
      */
     @POST
@@ -139,6 +140,7 @@ public class DHCPWebResource extends AbstractWebResource {
      * Delete a static MAC/IP binding.
      * Removes a static binding from the DHCP Server, and displays the current set of bindings.
      *
+     * @param macID mac address identifier
      * @return 200 OK
      */
     @DELETE

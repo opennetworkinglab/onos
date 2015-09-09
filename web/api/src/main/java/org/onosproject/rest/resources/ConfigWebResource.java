@@ -15,15 +15,7 @@
  */
 package org.onosproject.rest.resources;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.onosproject.net.device.DeviceProviderRegistry;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.host.HostProviderRegistry;
-import org.onosproject.net.link.LinkProviderRegistry;
-import org.onlab.rest.BaseResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -31,8 +23,17 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
+
+import org.onlab.rest.BaseResource;
+import org.onosproject.net.device.DeviceProviderRegistry;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.host.HostProviderRegistry;
+import org.onosproject.net.link.LinkProviderRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
@@ -49,13 +50,12 @@ public class ConfigWebResource extends BaseResource {
      *
      * @param input JSON blob
      * @return 200 OK
-     * @throws IOException
      */
     @POST
     @Path("topology")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response topology(InputStream input) throws IOException {
+    public Response topology(InputStream input) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode cfg = mapper.readTree(input);

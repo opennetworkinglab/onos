@@ -181,6 +181,7 @@ public class TrafficMonitor {
      * </ul>
      *
      * @param mode monitoring mode
+     * @param nodeSelection how to select a node
      */
     public synchronized void monitor(Mode mode, NodeSelection nodeSelection) {
         log.debug("monitor: {} -- {}", mode, nodeSelection);

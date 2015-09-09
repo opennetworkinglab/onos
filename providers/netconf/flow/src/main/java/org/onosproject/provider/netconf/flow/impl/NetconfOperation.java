@@ -43,6 +43,11 @@ public class NetconfOperation {
 
     /**
      * This will send a Xml message to the device.
+     * @param xmlMsg XML to send
+     * @param username user name
+     * @param password pass word
+     * @param deviceIp ip address of the device
+     * @param devicePort port on the device
      */
     protected void sendXmlMessage(String xmlMsg, String username,
                                   String password, String deviceIp,
@@ -105,10 +110,18 @@ public class NetconfOperation {
 
     /**
      * To establish SSH Connection.
+     *
+     * @param username user name
+     * @param password pass word
+     * @param sshHost host
+     * @param sshPort port
+     * @return new SSH connection
+     * @throws IOException if connection fails
+     * @throws JNCException if connection causes an error
      */
     public SSHConnection getConnection(String username, String password,
                                        String sshHost, Integer sshPort)
-            throws Exception {
+            throws IOException, JNCException {
         SSHConnection sshConnection;
         try {
             sshConnection = new SSHConnection(sshHost, sshPort);
