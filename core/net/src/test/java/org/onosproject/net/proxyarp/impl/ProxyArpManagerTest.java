@@ -195,7 +195,7 @@ public class ProxyArpManagerTest {
      * need is to occupy the ports with some link.
      */
     private void createLinks(int numDevices) {
-        List<Link> links = new ArrayList<Link>();
+        List<Link> links = new ArrayList<>();
 
         for (int i = 1; i <= numDevices; i++) {
             ConnectPoint src = new ConnectPoint(

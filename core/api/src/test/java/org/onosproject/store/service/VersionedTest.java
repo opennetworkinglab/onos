@@ -64,7 +64,7 @@ public class VersionedTest extends TestCase {
      */
     @Test
     public void testOrElse() {
-        Versioned<String> vv = new Versioned<String>("foo", 1);
+        Versioned<String> vv = new Versioned<>("foo", 1);
         Versioned<String> nullVV = null;
         assertThat(Versioned.valueOrElse(vv, "bar"), is("foo"));
         assertThat(Versioned.valueOrElse(nullVV, "bar"), is("bar"));
