@@ -19,8 +19,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -61,7 +59,6 @@ public class ConsistentApplicationIdStore implements ApplicationIdStore {
     private ConsistentMap<String, ApplicationId> registeredIds;
     private Map<String, ApplicationId> nameToAppIdCache = Maps.newConcurrentMap();
     private Map<Short, ApplicationId> idToAppIdCache = Maps.newConcurrentMap();
-    private ScheduledExecutorService executor;
 
     private static final Serializer SERIALIZER = Serializer.using(new KryoNamespace.Builder()
                                                                         .register(KryoNamespaces.API)
@@ -88,7 +85,6 @@ public class ConsistentApplicationIdStore implements ApplicationIdStore {
 
     @Deactivate
     public void deactivate() {
-        executor.shutdown();
         log.info("Stopped");
     }
 
