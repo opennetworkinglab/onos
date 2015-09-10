@@ -758,6 +758,17 @@ public class IpAddressTest {
     }
 
     /**
+     * Tests if address is self-assigned for IPv4.
+     */
+    @Test
+    public void testIsSelfAssignedIpv4() {
+        IpAddress normalIP = IpAddress.valueOf("10.0.0.1");
+        IpAddress selfAssignedIP = IpAddress.valueOf("169.1.2.3");
+        assertFalse(normalIP.isSelfAssigned());
+        assertTrue(selfAssignedIP.isSelfAssigned());
+    }
+
+    /**
      * Tests comparison of {@link IpAddress} for IPv4.
      */
     @Test

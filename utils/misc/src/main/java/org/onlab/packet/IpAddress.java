@@ -294,7 +294,7 @@ public class IpAddress implements Comparable<IpAddress> {
     /**
      * Check if this IP address is zero.
      *
-     * @return true if this address is zero.
+     * @return true if this address is zero
      */
     public boolean isZero() {
         for (byte b : octets) {
@@ -303,6 +303,15 @@ public class IpAddress implements Comparable<IpAddress> {
             }
         }
         return true;
+    }
+
+    /**
+     * Check if this IP address is self-assigned.
+     *
+     * @return true if this address is self-assigned
+     */
+    public boolean isSelfAssigned() {
+        return isIp4() && octets[0] == (byte) 169;
     }
 
     @Override
