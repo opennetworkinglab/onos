@@ -131,8 +131,7 @@ public class DistributedGroupStore
     private ExecutorService messageHandlingExecutor;
     private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 1;
 
-    private final HashMap<DeviceId, Boolean> deviceAuditStatus =
-            new HashMap<DeviceId, Boolean>();
+    private final HashMap<DeviceId, Boolean> deviceAuditStatus = new HashMap<>();
 
     private final AtomicInteger groupIdGen = new AtomicInteger();
 
@@ -685,8 +684,7 @@ public class DistributedGroupStore
                                                    UpdateType type,
                                                    GroupBuckets buckets) {
         GroupBuckets oldBuckets = oldGroup.buckets();
-        List<GroupBucket> newBucketList = new ArrayList<GroupBucket>(
-                oldBuckets.buckets());
+        List<GroupBucket> newBucketList = new ArrayList<>(oldBuckets.buckets());
         boolean groupDescUpdated = false;
 
         if (type == UpdateType.ADD) {

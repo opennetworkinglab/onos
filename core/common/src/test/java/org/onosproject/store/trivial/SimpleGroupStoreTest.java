@@ -205,10 +205,10 @@ public class SimpleGroupStoreTest {
     private void testStoreAndGetGroup(GroupKey key) {
         PortNumber[] ports = {PortNumber.portNumber(31),
                               PortNumber.portNumber(32)};
-        List<PortNumber> outPorts = new ArrayList<PortNumber>();
+        List<PortNumber> outPorts = new ArrayList<>();
         outPorts.addAll(Arrays.asList(ports));
 
-        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
+        List<GroupBucket> buckets = new ArrayList<>();
         for (PortNumber portNumber: outPorts) {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
             tBuilder.setOutput(portNumber)
@@ -271,7 +271,7 @@ public class SimpleGroupStoreTest {
         Group existingGroup = simpleGroupStore.getGroup(D1, currKey);
         int totalPkts = 0;
         int totalBytes = 0;
-        List<GroupBucket> newBucketList = new ArrayList<GroupBucket>();
+        List<GroupBucket> newBucketList = new ArrayList<>();
         for (GroupBucket bucket:existingGroup.buckets().buckets()) {
             StoredGroupBucketEntry newBucket =
                     (StoredGroupBucketEntry)
@@ -302,15 +302,15 @@ public class SimpleGroupStoreTest {
     // Testing updateGroupDescription for ADD operation from northbound
     private void testAddBuckets(GroupKey currKey, GroupKey addKey) {
         Group existingGroup = simpleGroupStore.getGroup(D1, currKey);
-        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
+        List<GroupBucket> buckets = new ArrayList<>();
         buckets.addAll(existingGroup.buckets().buckets());
 
         PortNumber[] newNeighborPorts = {PortNumber.portNumber(41),
                                          PortNumber.portNumber(42)};
-        List<PortNumber> newOutPorts = new ArrayList<PortNumber>();
+        List<PortNumber> newOutPorts = new ArrayList<>();
         newOutPorts.addAll(Collections.singletonList(newNeighborPorts[0]));
 
-        List<GroupBucket> toAddBuckets = new ArrayList<GroupBucket>();
+        List<GroupBucket> toAddBuckets = new ArrayList<>();
         for (PortNumber portNumber: newOutPorts) {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
             tBuilder.setOutput(portNumber)
@@ -340,10 +340,10 @@ public class SimpleGroupStoreTest {
     // Testing updateGroupDescription for REMOVE operation from northbound
     private void testRemoveBuckets(GroupKey currKey, GroupKey removeKey) {
         Group existingGroup = simpleGroupStore.getGroup(D1, currKey);
-        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
+        List<GroupBucket> buckets = new ArrayList<>();
         buckets.addAll(existingGroup.buckets().buckets());
 
-        List<GroupBucket> toRemoveBuckets = new ArrayList<GroupBucket>();
+        List<GroupBucket> toRemoveBuckets = new ArrayList<>();
 
         // There should be 4 buckets in the current group
         toRemoveBuckets.add(buckets.remove(0));
@@ -405,11 +405,11 @@ public class SimpleGroupStoreTest {
         GroupKey key = new DefaultGroupKey("group1".getBytes());
         PortNumber[] ports = {PortNumber.portNumber(31),
                 PortNumber.portNumber(32)};
-        List<PortNumber> outPorts = new ArrayList<PortNumber>();
+        List<PortNumber> outPorts = new ArrayList<>();
         outPorts.add(ports[0]);
         outPorts.add(ports[1]);
 
-        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
+        List<GroupBucket> buckets = new ArrayList<>();
         for (PortNumber portNumber: outPorts) {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
             tBuilder.setOutput(portNumber)

@@ -83,8 +83,7 @@ public class SimpleGroupStore
     private final ConcurrentMap<DeviceId, ConcurrentMap<GroupId, Group>>
         extraneousGroupEntriesById = new ConcurrentHashMap<>();
 
-    private final HashMap<DeviceId, Boolean> deviceAuditStatus =
-            new HashMap<DeviceId, Boolean>();
+    private final HashMap<DeviceId, Boolean> deviceAuditStatus = new HashMap<>();
 
     private final AtomicInteger groupIdGen = new AtomicInteger();
 
@@ -358,8 +357,7 @@ public class SimpleGroupStore
                                    UpdateType type,
                                    GroupBuckets buckets) {
         GroupBuckets oldBuckets = oldGroup.buckets();
-        List<GroupBucket> newBucketList = new ArrayList<GroupBucket>(
-                oldBuckets.buckets());
+        List<GroupBucket> newBucketList = new ArrayList<>(oldBuckets.buckets());
         boolean groupDescUpdated = false;
 
         if (type == UpdateType.ADD) {

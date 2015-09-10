@@ -62,7 +62,6 @@ import org.onosproject.store.serializers.custom.DistributedStoreSerializers;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -551,7 +550,7 @@ public class GossipLinkStore
      */
     private static <K, V> SetMultimap<K, V> createSynchronizedHashMultiMap() {
         return synchronizedSetMultimap(
-               Multimaps.newSetMultimap(new ConcurrentHashMap<K, Collection<V>>(),
+               Multimaps.newSetMultimap(new ConcurrentHashMap<>(),
                                        () -> Sets.newConcurrentHashSet()));
     }
 

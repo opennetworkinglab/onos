@@ -101,7 +101,7 @@ public class ReplicaInfoManagerTest {
 
         // fake MastershipEvent
         eventDispatcher.post(new MastershipEvent(Type.MASTER_CHANGED, DID1,
-                new RoleInfo(NID1, new LinkedList<NodeId>())));
+                new RoleInfo(NID1, new LinkedList<>())));
 
         assertTrue(latch.await(1, TimeUnit.SECONDS));
     }

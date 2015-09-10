@@ -15,8 +15,8 @@ public class UpdateResultTest {
 
     @Test
     public void testGetters() {
-        Versioned<String> oldValue = new Versioned<String>("a", 1);
-        Versioned<String> newValue = new Versioned<String>("b", 2);
+        Versioned<String> oldValue = new Versioned<>("a", 1);
+        Versioned<String> newValue = new Versioned<>("b", 2);
         UpdateResult<String, String> ur =
                 new UpdateResult<>(true, "foo", "k", oldValue, newValue);
 
@@ -29,8 +29,8 @@ public class UpdateResultTest {
 
     @Test
     public void testToMapEvent() {
-        Versioned<String> oldValue = new Versioned<String>("a", 1);
-        Versioned<String> newValue = new Versioned<String>("b", 2);
+        Versioned<String> oldValue = new Versioned<>("a", 1);
+        Versioned<String> newValue = new Versioned<>("b", 2);
         UpdateResult<String, String> ur1 =
                 new UpdateResult<>(true, "foo", "k", oldValue, newValue);
         MapEvent<String, String> event1 = ur1.toMapEvent();
@@ -59,8 +59,8 @@ public class UpdateResultTest {
 
     @Test
     public void testMap() {
-        Versioned<String> oldValue = new Versioned<String>("a", 1);
-        Versioned<String> newValue = new Versioned<String>("b", 2);
+        Versioned<String> oldValue = new Versioned<>("a", 1);
+        Versioned<String> newValue = new Versioned<>("b", 2);
         UpdateResult<String, String> ur1 =
                 new UpdateResult<>(true, "foo", "k", oldValue, newValue);
         UpdateResult<Integer, Integer> ur2 = ur1.map(s -> s.length(), s -> s.length());

@@ -276,10 +276,10 @@ public class GroupManagerTest {
         PortNumber[] addPorts = {PortNumber.portNumber(51),
                                  PortNumber.portNumber(52)};
         List<PortNumber> outPorts;
-        outPorts = new ArrayList<PortNumber>();
+        outPorts = new ArrayList<>();
         outPorts.addAll(Arrays.asList(addPorts));
         List<GroupBucket> addBuckets;
-        addBuckets = new ArrayList<GroupBucket>();
+        addBuckets = new ArrayList<>();
         for (PortNumber portNumber: outPorts) {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
             tBuilder.setOutput(portNumber)

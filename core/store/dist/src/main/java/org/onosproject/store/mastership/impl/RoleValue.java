@@ -45,9 +45,9 @@ final class RoleValue {
      * Constructs empty RoleValue.
      */
     public RoleValue() {
-        value.put(MastershipRole.MASTER, new LinkedList<NodeId>());
-        value.put(MastershipRole.STANDBY, new LinkedList<NodeId>());
-        value.put(MastershipRole.NONE, new LinkedList<NodeId>());
+        value.put(MastershipRole.MASTER, new LinkedList<>());
+        value.put(MastershipRole.STANDBY, new LinkedList<>());
+        value.put(MastershipRole.NONE, new LinkedList<>());
     }
 
     /**

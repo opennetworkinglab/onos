@@ -44,7 +44,6 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -280,7 +279,7 @@ public class SimpleLinkStore
      */
     private static <K, V> SetMultimap<K, V> createSynchronizedHashMultiMap() {
         return synchronizedSetMultimap(
-               Multimaps.newSetMultimap(new ConcurrentHashMap<K, Collection<V>>(),
+               Multimaps.newSetMultimap(new ConcurrentHashMap<>(),
                                        () -> Sets.newConcurrentHashSet()));
     }
 
