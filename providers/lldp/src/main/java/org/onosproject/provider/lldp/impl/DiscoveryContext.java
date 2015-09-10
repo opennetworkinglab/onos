@@ -16,13 +16,14 @@
 package org.onosproject.provider.lldp.impl;
 
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.LinkKey;
 import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.packet.PacketService;
 
 /**
  * Shared context for use by link discovery.
  */
-public interface DiscoveryContext {
+interface DiscoveryContext {
 
     /**
      * Returns the shared mastership service reference.
@@ -53,16 +54,16 @@ public interface DiscoveryContext {
     long probeRate();
 
     /**
-     * Returns the max stale link age in millis.
-     *
-     * @return stale link age
-     */
-    long staleLinkAge();
-
-    /**
      * Indicates whether to emit BDDP.
      *
      * @return true to emit BDDP
      */
     boolean useBDDP();
+
+    /**
+     * Touches the link identified by the given key to indicate that it's active.
+     *
+     * @param key link key
+     */
+    void touchLink(LinkKey key);
 }
