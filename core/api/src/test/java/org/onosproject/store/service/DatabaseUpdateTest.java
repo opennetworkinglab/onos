@@ -16,7 +16,6 @@
 package org.onosproject.store.service;
 
 import com.google.common.testing.EqualsTester;
-import junit.framework.TestCase;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,7 +25,7 @@ import static org.hamcrest.Matchers.is;
  * Unit Tests for DatabseUpdate class.
  */
 
-public class DatabaseUpdateTest extends TestCase {
+public class DatabaseUpdateTest {
 
     private final DatabaseUpdate stats1 = DatabaseUpdate.newBuilder()
             .withCurrentValue("1".getBytes())

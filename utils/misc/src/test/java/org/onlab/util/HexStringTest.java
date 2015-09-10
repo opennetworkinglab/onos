@@ -21,12 +21,14 @@ import com.esotericsoftware.minlog.Log;
 
 import junit.framework.TestCase;
 
+import static org.junit.Assert.fail;
+
 /**
  * Test of the Hexstring.
  *
  */
 
-public class HexStringTest extends TestCase {
+public class HexStringTest {
 
     @Test
     public void testMarshalling() throws Exception {

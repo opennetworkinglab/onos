@@ -16,7 +16,6 @@
 package org.onosproject.store.service;
 
 import com.google.common.testing.EqualsTester;
-import junit.framework.TestCase;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,7 +30,7 @@ import static org.hamcrest.Matchers.notNullValue;
 /**
  * MultiValuedTimestamp unit tests.
  */
-public class MultiValuedTimestampTest extends TestCase {
+public class MultiValuedTimestampTest {
 
     private final MultiValuedTimestamp<Integer, Integer> stats1 = new MultiValuedTimestamp<>(1, 3);
 

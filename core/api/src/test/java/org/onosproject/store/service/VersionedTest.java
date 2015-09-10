@@ -16,7 +16,6 @@
 package org.onosproject.store.service;
 
 import com.google.common.testing.EqualsTester;
-import junit.framework.TestCase;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,7 +24,7 @@ import static org.hamcrest.Matchers.is;
 /**
  * Versioned unit tests.
  */
-public class VersionedTest extends TestCase {
+public class VersionedTest {
 
     private final Versioned<Integer> stats1 = new Versioned<>(1, 2, 3);
 

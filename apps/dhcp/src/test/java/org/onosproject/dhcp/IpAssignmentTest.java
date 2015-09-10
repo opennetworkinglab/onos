@@ -16,7 +16,6 @@
 package org.onosproject.dhcp;
 
 import com.google.common.testing.EqualsTester;
-import junit.framework.TestCase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
@@ -31,7 +30,7 @@ import static org.junit.Assert.fail;
 /**
  * Unit Tests for IPAssignment class.
  */
-public class IpAssignmentTest extends TestCase {
+public class IpAssignmentTest {
 
     private final Date dateNow = new Date();
 
