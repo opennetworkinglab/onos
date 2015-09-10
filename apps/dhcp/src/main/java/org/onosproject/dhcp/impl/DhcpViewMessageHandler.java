@@ -54,6 +54,7 @@ public class DhcpViewMessageHandler extends UiMessageHandler {
         );
     }
 
+    // handler for dhcp table requests
     private final class DataRequestHandler extends TableRequestHandler {
 
         private DataRequestHandler() {
