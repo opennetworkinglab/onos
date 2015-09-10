@@ -78,7 +78,7 @@ public class PIMAddrGroup {
     /**
      * Set the encoded source address.
      *
-     * @param pfx
+     * @param pfx address prefix
      */
     public void setAddr(IpPrefix pfx) {
         this.addr = pfx.address();
@@ -145,7 +145,7 @@ public class PIMAddrGroup {
     /**
      * Serialize this group address.
      *
-     * @return the serialized address in a buffer.
+     * @return the serialized address in a buffer
      */
     public byte[] serialize() {
         int len = getByteSize();
@@ -168,7 +168,8 @@ public class PIMAddrGroup {
      * Deserialze from a ByteBuffer.
      *
      * @param bb the ByteBuffer
-     * @return an encoded PIM group address.
+     * @return an encoded PIM group address
+     * @throws DeserializationException if unable to deserialize the packet data
      */
     public PIMAddrGroup deserialize(ByteBuffer bb) throws DeserializationException {
 

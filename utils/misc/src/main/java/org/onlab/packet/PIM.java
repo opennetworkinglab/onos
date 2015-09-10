@@ -101,7 +101,7 @@ public class PIM extends BasePacket {
     /**
      * Set the PIM version type. Should not change from 2.
      *
-     * @param version
+     * @param version PIM version
      */
     public void setVersion(byte version) {
          this.version = version;
