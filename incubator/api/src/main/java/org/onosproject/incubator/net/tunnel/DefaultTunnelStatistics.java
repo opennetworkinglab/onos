@@ -16,12 +16,15 @@
 
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
+
 import java.time.Duration;
 import java.util.List;
 
 /**
  * Default implementation of immutable tunnel statistics.
  */
+@Beta
 public final class DefaultTunnelStatistics implements TunnelStatistics {
     private final TunnelId tunnelId;
     private final double bwUtilization;

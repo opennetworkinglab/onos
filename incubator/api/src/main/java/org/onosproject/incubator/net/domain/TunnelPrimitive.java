@@ -15,12 +15,14 @@
  */
 package org.onosproject.incubator.net.domain;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 
 /**
  * Provides connectivity through a domain.
  */
+@Beta
 public class TunnelPrimitive extends IntentPrimitive {
 
     private final ConnectPoint one;

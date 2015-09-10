@@ -16,6 +16,7 @@
 package org.onosproject.incubator.net.tunnel;
 
 
+import com.google.common.annotations.Beta;
 import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.cell.AbstractCellFormatter;
 
@@ -23,6 +24,7 @@ import org.onosproject.ui.table.cell.AbstractCellFormatter;
  * Formats a optical tunnel endpoint as "(type)/(element-id)/(port)".
  * Formats a ip tunnel endpoint as "ip".
  */
+@Beta
 public final class TunnelEndPointFormatter extends AbstractCellFormatter {
     //non-instantiable
     private TunnelEndPointFormatter() {

@@ -25,3 +25,4 @@ org.onosproject.json
 org.onosproject.json.*
 org.onosproject.common.*
 org.onosproject.security.impl
+org.onosproject.security.store

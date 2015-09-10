@@ -16,12 +16,15 @@
 
 package org.onosproject.incubator.net.tunnel;
 
+import com.google.common.annotations.Beta;
+
 import java.time.Duration;
 import java.util.List;
 
 /**
  * Statistics of a tunnel.
  */
+@Beta
 public interface TunnelStatistics {
 
     /**

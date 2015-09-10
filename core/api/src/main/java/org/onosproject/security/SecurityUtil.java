@@ -16,6 +16,7 @@
 
 package org.onosproject.security;
 
+import com.google.common.annotations.Beta;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.ServiceNotFoundException;
@@ -24,6 +25,7 @@ import org.onosproject.core.ApplicationId;
 /**
  * Utility class to aid Security-Mode ONOS.
  */
+@Beta
 public final class SecurityUtil {
 
     protected static ServiceDirectory serviceDirectory = new DefaultServiceDirectory();

@@ -16,11 +16,14 @@
 
 package org.onosproject.security;
 
+import com.google.common.annotations.Beta;
+
 import java.security.BasicPermission;
 
 /**
  * Implementation of API access permission.
  */
+@Beta
 public class AppPermission extends BasicPermission {
 
     public enum Type {

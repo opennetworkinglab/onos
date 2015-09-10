@@ -17,9 +17,12 @@
 package org.onosproject.security;
 
 
+import com.google.common.annotations.Beta;
+
 /**
  * Aids SM-ONOS to perform API-level permission checking.
  */
+@Beta
 public final class AppGuard {
 
     private AppGuard() {

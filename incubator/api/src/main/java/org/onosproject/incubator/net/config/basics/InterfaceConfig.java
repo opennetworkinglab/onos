@@ -17,6 +17,7 @@
 package org.onosproject.incubator.net.config.basics;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.Beta;
 import com.google.common.collect.Sets;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -30,6 +31,7 @@ import java.util.Set;
 /**
  * Configuration for interfaces.
  */
+@Beta
 public class InterfaceConfig extends Config<ConnectPoint> {
     public static final String IPS = "ips";
     public static final String MAC = "mac";

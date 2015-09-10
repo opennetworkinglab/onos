@@ -15,6 +15,7 @@
  */
 package org.onosproject.incubator.net.intf;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
 import org.onlab.packet.MacAddress;
@@ -31,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * An Interface maps network configuration information (such as addresses and
  * vlans) to a port in the network.
  */
+@Beta
 public class Interface {
     private final ConnectPoint connectPoint;
     private final Set<InterfaceIpAddress> ipAddresses;
