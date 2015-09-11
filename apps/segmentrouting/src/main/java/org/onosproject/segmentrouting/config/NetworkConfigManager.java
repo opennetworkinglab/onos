@@ -150,7 +150,7 @@ public class NetworkConfigManager implements NetworkConfigService {
 
     @Override
     public List<SwitchConfig> getConfiguredAllowedSwitches() {
-        List<SwitchConfig> allowed = new ArrayList<SwitchConfig>();
+        List<SwitchConfig> allowed = new ArrayList<>();
         for (SwitchConfig swc : configuredSwitches.values()) {
             if (swc.isAllowed()) {
                 allowed.add(swc);
@@ -161,7 +161,7 @@ public class NetworkConfigManager implements NetworkConfigService {
 
     @Override
     public List<LinkConfig> getConfiguredAllowedLinks() {
-        List<LinkConfig> allowed = new ArrayList<LinkConfig>();
+        List<LinkConfig> allowed = new ArrayList<>();
         for (LinkConfig lkc : configuredLinks.values()) {
             if (lkc.isAllowed()) {
                 allowed.add(lkc);
@@ -259,8 +259,8 @@ public class NetworkConfigManager implements NetworkConfigService {
     }
 
     private void validateSwitchConfig(List<SwitchConfig> swConfList) {
-        Set<DeviceId> swDpids = new HashSet<DeviceId>();
-        Set<String> swNames = new HashSet<String>();
+        Set<DeviceId> swDpids = new HashSet<>();
+        Set<String> swNames = new HashSet<>();
         for (SwitchConfig swc : swConfList) {
             if (swc.getNodeDpid() == null || swc.getDpid() == null) {
                 throw new NetworkConfigException.DpidNotSpecified(swc.getName());
@@ -330,9 +330,9 @@ public class NetworkConfigManager implements NetworkConfigService {
      */
     public void init() {
         loadNetworkConfig();
-        configuredSwitches = new ConcurrentHashMap<DeviceId, SwitchConfig>();
-        configuredLinks = new ConcurrentHashMap<Link, LinkConfig>();
-        nameToDpid = new HashMap<String, DeviceId>();
+        configuredSwitches = new ConcurrentHashMap<>();
+        configuredLinks = new ConcurrentHashMap<>();
+        nameToDpid = new HashMap<>();
         parseNetworkConfig();
     }
 }

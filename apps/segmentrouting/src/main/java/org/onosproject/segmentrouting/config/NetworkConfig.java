@@ -45,8 +45,8 @@ public class NetworkConfig {
      * Default constructor.
      */
     public NetworkConfig() {
-        switches = new ArrayList<SwitchConfig>();
-        links = new ArrayList<LinkConfig>();
+        switches = new ArrayList<>();
+        links = new ArrayList<>();
     }
 
     @JsonProperty("comment")

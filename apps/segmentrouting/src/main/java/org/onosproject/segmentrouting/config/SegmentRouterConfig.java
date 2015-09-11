@@ -67,9 +67,9 @@ public class SegmentRouterConfig extends SwitchConfig {
         this.setLongitude(swc.getLongitude());
         this.setParams(swc.getParams());
         this.setAllowed(swc.isAllowed());
-        publishAttributes = new ConcurrentHashMap<String, String>();
-        adjacencySids = new ArrayList<AdjacencySid>();
-        subnets = new ArrayList<Subnet>();
+        publishAttributes = new ConcurrentHashMap<>();
+        adjacencySids = new ArrayList<>();
+        subnets = new ArrayList<>();
         parseParams();
         validateParams();
         setPublishAttributes();
@@ -282,7 +282,7 @@ public class SegmentRouterConfig extends SwitchConfig {
                 } else if (fe.getKey().equals("ports")) {
                     if (fe.getValue().isArray()) {
                         Iterator<JsonNode> i = fe.getValue().elements();
-                        ports = new ArrayList<Integer>();
+                        ports = new ArrayList<>();
                         while (i.hasNext()) {
                             ports.add(i.next().asInt());
                         }

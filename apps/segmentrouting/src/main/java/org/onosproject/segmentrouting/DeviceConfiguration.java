@@ -279,8 +279,7 @@ public class DeviceConfiguration implements DeviceProperties {
             log.debug("getSubnetGatewayIps for device{} is {}",
                     deviceId,
                     deviceConfigMap.get(deviceId).gatewayIps.values());
-            return new ArrayList<Ip4Address>(deviceConfigMap.
-                    get(deviceId).gatewayIps.values());
+            return new ArrayList<>(deviceConfigMap.get(deviceId).gatewayIps.values());
         } else {
             return null;
         }
@@ -297,8 +296,7 @@ public class DeviceConfiguration implements DeviceProperties {
             log.debug("getSubnets for device{} is {}",
                     deviceId,
                     deviceConfigMap.get(deviceId).subnets.values());
-            return new ArrayList<Ip4Prefix>(deviceConfigMap.
-                    get(deviceId).subnets.values());
+            return new ArrayList<>(deviceConfigMap.get(deviceId).subnets.values());
         } else {
             return null;
         }

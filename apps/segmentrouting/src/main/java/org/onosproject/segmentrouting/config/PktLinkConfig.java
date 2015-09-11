@@ -48,7 +48,7 @@ public class PktLinkConfig extends LinkConfig {
         type = lkc.getType();
         allowed = lkc.isAllowed();
         params = lkc.getParams();
-        publishAttributes = new ConcurrentHashMap<String, String>();
+        publishAttributes = new ConcurrentHashMap<>();
         parseParams();
         validateParams();
         setPublishAttributes();
