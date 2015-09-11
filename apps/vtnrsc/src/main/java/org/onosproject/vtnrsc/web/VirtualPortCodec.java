@@ -36,16 +36,16 @@ public final class VirtualPortCodec extends JsonCodec<VirtualPort> {
                 .put("id", vPort.portId().toString())
                 .put("network_id", vPort.networkId().toString())
                 .put("admin_state_up", vPort.adminStateUp())
-                .put("name", vPort.name().toString())
+                .put("name", vPort.name())
                 .put("status", vPort.state().toString())
                 .put("mac_address", vPort.macAddress().toString())
                 .put("tenant_id", vPort.tenantId().toString())
                 .put("device_id", vPort.deviceId().toString())
-                .put("device_owner", vPort.deviceOwner().toString())
-                .put("binding:vnic_type", vPort.bindingVnicType().toString())
-                .put("binding:Vif_type", vPort.bindingVifType().toString())
+                .put("device_owner", vPort.deviceOwner())
+                .put("binding:vnic_type", vPort.bindingVnicType())
+                .put("binding:Vif_type", vPort.bindingVifType())
                 .put("binding:host_id", vPort.bindingHostId().toString())
-                .put("binding:vif_details", vPort.bindingVifDetails().toString());
+                .put("binding:vif_details", vPort.bindingVifDetails());
         result.set("allowed_address_pairs", new AllowedAddressPairCodec().encode(
                                                                                vPort.allowedAddressPairs(), context));
         result.set("fixed_ips", new FixedIpCodec().encode(

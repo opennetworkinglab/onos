@@ -33,7 +33,7 @@ public final class TenantNetworkCodec extends JsonCodec<TenantNetwork> {
         checkNotNull(network, "Network cannot be null");
         ObjectNode result = context.mapper().createObjectNode()
                 .put("id", network.id().toString())
-                .put("name", network.name().toString())
+                .put("name", network.name())
                 .put("admin_state_up", network.adminStateUp())
                 .put("status", "" + network.state())
                 .put("shared", network.shared())

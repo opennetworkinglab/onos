@@ -95,8 +95,7 @@ public class TenantNetworkWebResource extends AbstractWebResource {
         while (networkors.hasNext()) {
             TenantNetwork network = networkors.next();
             if ((queryId == null || queryId.equals(network.id().toString()))
-                    && (queryName == null || queryName.equals(network.name()
-                            .toString()))
+                    && (queryName == null || queryName.equals(network.name()))
                     && (queryadminStateUp == null || queryadminStateUp
                             .equals(network.adminStateUp()))
                     && (querystate == null || querystate.equals(network.state()
