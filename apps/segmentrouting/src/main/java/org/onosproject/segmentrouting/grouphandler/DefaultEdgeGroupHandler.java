@@ -69,7 +69,7 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
         Set<Set<DeviceId>> powerSet = getPowerSetOfNeighbors(neighbors);
         log.trace("createGroupsAtEdgeRouter: The size of neighbor powerset "
                 + "for sw {} is {}", deviceId, powerSet.size());
-        Set<NeighborSet> nsSet = new HashSet<NeighborSet>();
+        Set<NeighborSet> nsSet = new HashSet<>();
         for (Set<DeviceId> combo : powerSet) {
             if (combo.isEmpty()) {
                 continue;
@@ -148,7 +148,7 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
                                             Set<DeviceId> updatedNeighbors) {
         Set<Set<DeviceId>> powerSet = getPowerSetOfNeighbors(updatedNeighbors);
 
-        Set<DeviceId> tmp = new HashSet<DeviceId>();
+        Set<DeviceId> tmp = new HashSet<>();
         tmp.addAll(updatedNeighbors);
         tmp.remove(impactedNeighbor);
         Set<Set<DeviceId>> tmpPowerSet = getPowerSetOfNeighbors(tmp);
@@ -156,7 +156,7 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
         // Compute the impacted neighbor sets
         powerSet.removeAll(tmpPowerSet);
 
-        Set<NeighborSet> nsSet = new HashSet<NeighborSet>();
+        Set<NeighborSet> nsSet = new HashSet<>();
         for (Set<DeviceId> combo : powerSet) {
             if (combo.isEmpty()) {
                 continue;

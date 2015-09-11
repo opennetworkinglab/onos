@@ -54,7 +54,7 @@ public class SetTestRemoveCommand extends AbstractShellCommand {
     String[] values = null;
 
     Set<String> set;
-    Set<String> givenValues = new HashSet<String>();
+    Set<String> givenValues = new HashSet<>();
     Serializer serializer = Serializer.using(
             new KryoNamespace.Builder().register(KryoNamespaces.BASIC).build());
 

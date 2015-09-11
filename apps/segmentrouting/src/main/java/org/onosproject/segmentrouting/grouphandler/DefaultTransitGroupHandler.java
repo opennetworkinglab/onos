@@ -63,7 +63,7 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
         sets = filterEdgeRouterOnlyPairings(sets);
         log.debug("createGroupsAtTransitRouter: The size of neighbor powerset "
                 + "for sw {} is {}", deviceId, sets.size());
-        Set<NeighborSet> nsSet = new HashSet<NeighborSet>();
+        Set<NeighborSet> nsSet = new HashSet<>();
         for (Set<DeviceId> combo : sets) {
             if (combo.isEmpty()) {
                 continue;
@@ -137,7 +137,7 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
                                             Set<DeviceId> updatedNeighbors) {
         Set<Set<DeviceId>> powerSet = getPowerSetOfNeighbors(updatedNeighbors);
 
-        Set<DeviceId> tmp = new HashSet<DeviceId>();
+        Set<DeviceId> tmp = new HashSet<>();
         tmp.addAll(updatedNeighbors);
         tmp.remove(impactedNeighbor);
         Set<Set<DeviceId>> tmpPowerSet = getPowerSetOfNeighbors(tmp);
@@ -146,7 +146,7 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
         powerSet.removeAll(tmpPowerSet);
 
         powerSet = filterEdgeRouterOnlyPairings(powerSet);
-        Set<NeighborSet> nsSet = new HashSet<NeighborSet>();
+        Set<NeighborSet> nsSet = new HashSet<>();
         for (Set<DeviceId> combo : powerSet) {
             if (combo.isEmpty()) {
                 continue;
@@ -163,7 +163,7 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
     }
 
     private Set<Set<DeviceId>> filterEdgeRouterOnlyPairings(Set<Set<DeviceId>> sets) {
-        Set<Set<DeviceId>> fiteredSets = new HashSet<Set<DeviceId>>();
+        Set<Set<DeviceId>> fiteredSets = new HashSet<>();
         for (Set<DeviceId> deviceSubSet : sets) {
             if (deviceSubSet.size() > 1) {
                 boolean avoidEdgeRouterPairing = true;

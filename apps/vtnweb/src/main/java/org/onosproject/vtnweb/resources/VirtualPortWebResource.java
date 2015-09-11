@@ -131,7 +131,7 @@ public class VirtualPortWebResource extends AbstractWebResource {
     @Path("{portUUID}")
     @DELETE
     public Response deletePorts(@PathParam("portUUID") String id) {
-        Set<VirtualPortId> vPortIds = new HashSet<VirtualPortId>();
+        Set<VirtualPortId> vPortIds = new HashSet<>();
         try {
             if (id != null) {
                 vPortIds.add(VirtualPortId.portId(id));
@@ -201,8 +201,8 @@ public class VirtualPortWebResource extends AbstractWebResource {
      */
     public Iterable<VirtualPort> changeJsonToPorts(JsonNode vPortNodes) {
         checkNotNull(vPortNodes, JSON_NOT_NULL);
-        Map<VirtualPortId, VirtualPort> portMap = new HashMap<VirtualPortId, VirtualPort>();
-        Map<String, String> strMap = new HashMap<String, String>();
+        Map<VirtualPortId, VirtualPort> portMap = new HashMap<>();
+        Map<String, String> strMap = new HashMap<>();
         for (JsonNode vPortnode : vPortNodes) {
             VirtualPortId id = VirtualPortId.portId(vPortnode.get("id")
                     .asText());
@@ -220,7 +220,7 @@ public class VirtualPortWebResource extends AbstractWebResource {
                     .asText());
             String deviceOwner = vPortnode.get("device_owner").asText();
             JsonNode fixedIpNodes = vPortNodes.get("fixed_ips");
-            Set<FixedIp> fixedIps = new HashSet<FixedIp>();
+            Set<FixedIp> fixedIps = new HashSet<>();
             for (JsonNode fixedIpNode : fixedIpNodes) {
                 FixedIp fixedIp = jsonNodeToFixedIps(fixedIpNode);
                 fixedIps.add(fixedIp);
@@ -265,8 +265,8 @@ public class VirtualPortWebResource extends AbstractWebResource {
      */
     public Iterable<VirtualPort> changeJsonToPort(JsonNode vPortNodes) {
         checkNotNull(vPortNodes, JSON_NOT_NULL);
-        Map<VirtualPortId, VirtualPort> vportMap = new HashMap<VirtualPortId, VirtualPort>();
-        Map<String, String> strMap = new HashMap<String, String>();
+        Map<VirtualPortId, VirtualPort> vportMap = new HashMap<>();
+        Map<String, String> strMap = new HashMap<>();
         VirtualPortId id = VirtualPortId.portId(vPortNodes.get("id").asText());
         String name = vPortNodes.get("name").asText();
         TenantId tenantId = TenantId.tenantId(vPortNodes.get("tenant_id")
@@ -281,7 +281,7 @@ public class VirtualPortWebResource extends AbstractWebResource {
                 .asText());
         String deviceOwner = vPortNodes.get("device_owner").asText();
         JsonNode fixedIpNodes = vPortNodes.get("fixed_ips");
-        Set<FixedIp> fixedIps = new HashSet<FixedIp>();
+        Set<FixedIp> fixedIps = new HashSet<>();
         for (JsonNode fixedIpNode : fixedIpNodes) {
             FixedIp fixedIp = jsonNodeToFixedIps(fixedIpNode);
             fixedIps.add(fixedIp);

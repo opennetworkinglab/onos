@@ -234,7 +234,7 @@ public class DistributedAclStore extends AbstractStore implements AclStore {
         ruleToDevice.computeIf(ruleId,
                                deviceIdSet -> (deviceIdSet == null || !deviceIdSet.contains(deviceId)),
                                (id, deviceIdSet) -> {
-                                   Set<DeviceId> newSet = new HashSet<DeviceId>();
+                                   Set<DeviceId> newSet = new HashSet<>();
                                    if (deviceIdSet != null) {
                                        newSet.addAll(deviceIdSet);
                                    }

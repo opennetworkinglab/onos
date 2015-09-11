@@ -48,7 +48,7 @@ public class DeviceConfiguration implements DeviceProperties {
 
     private static final Logger log = LoggerFactory
             .getLogger(DeviceConfiguration.class);
-    private final List<Integer> allSegmentIds = new ArrayList<Integer>();
+    private final List<Integer> allSegmentIds = new ArrayList<>();
     private final HashMap<DeviceId, SegmentRouterInfo> deviceConfigMap = new HashMap<>();
     private final NetworkConfigManager configService;
 
@@ -88,7 +88,7 @@ public class DeviceConfiguration implements DeviceProperties {
             info.ip = prefix.address();
             info.isEdge = ((SegmentRouterConfig) cfg).isEdgeRouter();
             info.subnets = new HashMap<>();
-            info.gatewayIps = new HashMap<PortNumber, Ip4Address>();
+            info.gatewayIps = new HashMap<>();
             for (Subnet s: ((SegmentRouterConfig) cfg).getSubnets()) {
                 info.subnets.put(PortNumber.portNumber(s.getPortNo()),
                                  Ip4Prefix.valueOf(s.getSubnetIp()));

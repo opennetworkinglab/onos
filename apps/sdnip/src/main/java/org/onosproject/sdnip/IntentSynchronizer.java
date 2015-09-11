@@ -887,7 +887,7 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
         checkNotNull(dstMacAddress);
         checkNotNull(srcConnectPoint);
 
-        Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
+        Set<ConnectPoint> ingressPoints = new HashSet<>();
         ingressPoints.add(srcConnectPoint);
         IpPrefix dstIpPrefix = dstIpAddress.toIpPrefix();
 

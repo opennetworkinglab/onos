@@ -626,7 +626,7 @@ public class VTNManager implements VTNService {
         VirtualPort port = virtualPortService.getPort(portId);
         TenantNetwork network = tenantNetworkService
                 .getNetwork(port.networkId());
-        Collection<String> ifaceIds = new HashSet<String>();
+        Collection<String> ifaceIds = new HashSet<>();
         Collection<VirtualPort> ports = virtualPortService
                 .getPorts(network.id());
         Sets.newHashSet(ports).stream()

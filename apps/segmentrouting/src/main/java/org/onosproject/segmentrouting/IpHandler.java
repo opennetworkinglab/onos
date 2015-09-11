@@ -50,7 +50,7 @@ public class IpHandler {
     public IpHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
         this.config = checkNotNull(srManager.deviceConfiguration);
-        ipPacketQueue = new ConcurrentHashMap<Ip4Address, ConcurrentLinkedQueue<IPv4>>();
+        ipPacketQueue = new ConcurrentHashMap<>();
     }
 
     /**
@@ -104,7 +104,7 @@ public class IpHandler {
         Ip4Address destIpAddress = Ip4Address.valueOf(ipPacket.getDestinationAddress());
 
         if (ipPacketQueue.get(destIpAddress) == null) {
-            ConcurrentLinkedQueue<IPv4> queue = new ConcurrentLinkedQueue<IPv4>();
+            ConcurrentLinkedQueue<IPv4> queue = new ConcurrentLinkedQueue<>();
             queue.add(ipPacket);
             ipPacketQueue.put(destIpAddress, queue);
         } else {

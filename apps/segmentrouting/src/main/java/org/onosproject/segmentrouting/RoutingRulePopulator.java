@@ -221,7 +221,7 @@ public class RoutingRulePopulator {
                                     Set<DeviceId> nextHops) {
 
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        List<ForwardingObjective.Builder> fwdObjBuilders = new ArrayList<ForwardingObjective.Builder>();
+        List<ForwardingObjective.Builder> fwdObjBuilders = new ArrayList<>();
 
         // TODO Handle the case of Bos == false
         sbuilder.matchMplsLabel(MplsLabel.mplsLabel(config.getSegmentId(destSwId)));

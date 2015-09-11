@@ -44,7 +44,7 @@ public class SetTestAddCommand extends AbstractShellCommand {
     String[] values = null;
 
     Set<String> set;
-    Set<String> toAdd = new HashSet<String>();
+    Set<String> toAdd = new HashSet<>();
 
 
     Serializer serializer = Serializer.using(
