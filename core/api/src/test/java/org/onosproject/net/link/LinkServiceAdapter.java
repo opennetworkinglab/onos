@@ -22,7 +22,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Link.State;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 
 /**
@@ -42,13 +41,7 @@ public class LinkServiceAdapter implements LinkService {
     @Override
     public Iterable<Link> getActiveLinks() {
         return FluentIterable.from(getLinks())
-                .filter(new Predicate<Link>() {
-
-                    @Override
-                    public boolean apply(Link input) {
-                        return input.state() == State.ACTIVE;
-                    }
-                });
+                .filter(input -> input.state() == State.ACTIVE);
     }
 
     @Override

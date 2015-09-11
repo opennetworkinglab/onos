@@ -348,12 +348,7 @@ public class StatisticManager implements StatisticService {
      * @return predicate
      */
     private static Predicate<FlowEntry> hasApplicationId(ApplicationId appId) {
-        return new Predicate<FlowEntry>() {
-            @Override
-            public boolean apply(FlowEntry flowEntry) {
-                return flowEntry.appId() == appId.id();
-            }
-        };
+        return flowEntry -> flowEntry.appId() == appId.id();
     }
 
     /**
@@ -364,16 +359,13 @@ public class StatisticManager implements StatisticService {
      * @return predicate
      */
     private static Predicate<FlowEntry> hasGroupId(Optional<GroupId> groupId) {
-        return new Predicate<FlowEntry>() {
-            @Override
-            public boolean apply(FlowEntry flowEntry) {
-                if (!groupId.isPresent()) {
-                    return false;
-                }
-                // FIXME: The left hand type and right hand type don't match
-                // FlowEntry.groupId() still returns a short value, not int.
-                return flowEntry.groupId().equals(groupId.get());
+        return flowEntry -> {
+            if (!groupId.isPresent()) {
+                return false;
             }
+            // FIXME: The left hand type and right hand type don't match
+            // FlowEntry.groupId() still returns a short value, not int.
+            return flowEntry.groupId().equals(groupId.get());
         };
     }
 }

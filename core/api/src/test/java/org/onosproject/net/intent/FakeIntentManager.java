@@ -49,30 +49,23 @@ public class FakeIntentManager implements TestableIntentService {
     // Provides an out-of-thread simulation of intent submit life-cycle
     private void executeSubmit(final Intent intent) {
         registerSubclassCompilerIfNeeded(intent);
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    executeCompilingPhase(intent);
-                } catch (IntentException e) {
-                    exceptions.add(e);
-                }
+        executor.execute(() -> {
+            try {
+                executeCompilingPhase(intent);
+            } catch (IntentException e) {
+                exceptions.add(e);
             }
         });
     }
 
     // Provides an out-of-thread simulation of intent withdraw life-cycle
     private void executeWithdraw(final Intent intent) {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    List<Intent> installable = getInstallable(intent.key());
-                    executeWithdrawingPhase(intent, installable);
-                } catch (IntentException e) {
-                    exceptions.add(e);
-                }
-
+        executor.execute(() -> {
+            try {
+                List<Intent> installable = getInstallable(intent.key());
+                executeWithdrawingPhase(intent, installable);
+            } catch (IntentException e) {
+                exceptions.add(e);
             }
         });
     }

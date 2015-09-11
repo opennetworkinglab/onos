@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 import java.time.Duration;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.AnnotationKeys;
@@ -53,11 +52,7 @@ public class BasicLinkOperatorTest {
     private static final SparseAnnotations SA = DefaultAnnotations.builder()
             .set(AnnotationKeys.DURABLE, "true").build();
     private static final LinkDescription LD = new DefaultLinkDescription(SRC, DST, Link.Type.DIRECT, SA);
-    private final ConfigApplyDelegate delegate = new ConfigApplyDelegate() {
-        @Override
-        public void onApply(Config config) {
-        }
-    };
+    private final ConfigApplyDelegate delegate = config -> { };
     private final ObjectMapper mapper = new ObjectMapper();
 
     private static final BasicLinkConfig BLC = new BasicLinkConfig();

@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.device.impl;
 
-import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -564,13 +563,10 @@ public class GossipDeviceStore
                 final DeviceDescriptions descs = device.get(providerId);
                 List<PortDescription> mergedList =
                         FluentIterable.from(portDescriptions)
-                                .transform(new Function<PortDescription, PortDescription>() {
-                                    @Override
-                                    public PortDescription apply(PortDescription input) {
-                                        // lookup merged port description
-                                        return descs.getPortDesc(input.portNumber()).value();
-                                    }
-                                }).toList();
+                                .transform(input ->
+                                    // lookup merged port description
+                                    descs.getPortDesc(input.portNumber()).value()
+                                ).toList();
                 merged = new Timestamped<>(mergedList, newTimestamp);
             }
 

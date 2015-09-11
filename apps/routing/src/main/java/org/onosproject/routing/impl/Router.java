@@ -159,12 +159,7 @@ public class Router implements RoutingService {
 
         bgpService.start(new InternalRouteListener());
 
-        bgpUpdatesExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                doUpdatesThread();
-            }
-        });
+        bgpUpdatesExecutor.execute(this::doUpdatesThread);
     }
 
     @Override

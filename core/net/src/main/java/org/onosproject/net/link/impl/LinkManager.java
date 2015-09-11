@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.link.impl;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 
@@ -126,13 +125,7 @@ public class LinkManager
     public Iterable<Link> getActiveLinks() {
         checkPermission(LINK_READ);
         return FluentIterable.from(getLinks())
-                .filter(new Predicate<Link>() {
-
-                    @Override
-                    public boolean apply(Link input) {
-                        return input.state() == State.ACTIVE;
-                    }
-                });
+                .filter(input -> input.state() == State.ACTIVE);
     }
 
     @Override

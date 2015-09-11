@@ -55,7 +55,6 @@ import org.onosproject.net.group.StoredGroupEntry;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
-import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 
@@ -188,15 +187,7 @@ public class SimpleGroupStore
     public Iterable<Group> getGroups(DeviceId deviceId) {
         // flatten and make iterator unmodifiable
         return FluentIterable.from(getGroupKeyTable(deviceId).values())
-            .transform(
-                    new Function<StoredGroupEntry, Group>() {
-
-                        @Override
-                        public Group apply(
-                                StoredGroupEntry input) {
-                            return input;
-                        }
-                    });
+            .transform(input -> input);
     }
 
     /**

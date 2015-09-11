@@ -802,31 +802,22 @@ public class GossipDeviceStoreTest {
     @Test
     public final void testEvents() throws InterruptedException {
         final CountDownLatch addLatch = new CountDownLatch(1);
-        DeviceStoreDelegate checkAdd = new DeviceStoreDelegate() {
-            @Override
-            public void notify(DeviceEvent event) {
-                assertEquals(DEVICE_ADDED, event.type());
-                assertDevice(DID1, SW1, event.subject());
-                addLatch.countDown();
-            }
+        DeviceStoreDelegate checkAdd = event -> {
+            assertEquals(DEVICE_ADDED, event.type());
+            assertDevice(DID1, SW1, event.subject());
+            addLatch.countDown();
         };
         final CountDownLatch updateLatch = new CountDownLatch(1);
-        DeviceStoreDelegate checkUpdate = new DeviceStoreDelegate() {
-            @Override
-            public void notify(DeviceEvent event) {
-                assertEquals(DEVICE_UPDATED, event.type());
-                assertDevice(DID1, SW2, event.subject());
-                updateLatch.countDown();
-            }
+        DeviceStoreDelegate checkUpdate = event -> {
+            assertEquals(DEVICE_UPDATED, event.type());
+            assertDevice(DID1, SW2, event.subject());
+            updateLatch.countDown();
         };
         final CountDownLatch removeLatch = new CountDownLatch(1);
-        DeviceStoreDelegate checkRemove = new DeviceStoreDelegate() {
-            @Override
-            public void notify(DeviceEvent event) {
-                assertEquals(DEVICE_REMOVED, event.type());
-                assertDevice(DID1, SW2, event.subject());
-                removeLatch.countDown();
-            }
+        DeviceStoreDelegate checkRemove = event -> {
+            assertEquals(DEVICE_REMOVED, event.type());
+            assertDevice(DID1, SW2, event.subject());
+            removeLatch.countDown();
         };
 
         DeviceDescription description =

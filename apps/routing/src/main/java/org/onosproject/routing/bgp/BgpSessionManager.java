@@ -300,21 +300,18 @@ public class BgpSessionManager implements BgpInfoService, BgpService {
         ChannelFactory channelFactory = new NioServerSocketChannelFactory(
                 newCachedThreadPool(groupedThreads("onos/bgp", "sm-boss-%d")),
                 newCachedThreadPool(groupedThreads("onos/bgp", "sm-worker-%d")));
-        ChannelPipelineFactory pipelineFactory = new ChannelPipelineFactory() {
-            @Override
-            public ChannelPipeline getPipeline() throws Exception {
-                // Allocate a new session per connection
-                BgpSession bgpSessionHandler =
-                        new BgpSession(BgpSessionManager.this);
-                BgpFrameDecoder bgpFrameDecoder =
-                        new BgpFrameDecoder(bgpSessionHandler);
+        ChannelPipelineFactory pipelineFactory = () -> {
+            // Allocate a new session per connection
+            BgpSession bgpSessionHandler =
+                    new BgpSession(BgpSessionManager.this);
+            BgpFrameDecoder bgpFrameDecoder =
+                    new BgpFrameDecoder(bgpSessionHandler);
 
-                // Setup the processing pipeline
-                ChannelPipeline pipeline = Channels.pipeline();
-                pipeline.addLast("BgpFrameDecoder", bgpFrameDecoder);
-                pipeline.addLast("BgpSession", bgpSessionHandler);
-                return pipeline;
-            }
+            // Setup the processing pipeline
+            ChannelPipeline pipeline = Channels.pipeline();
+            pipeline.addLast("BgpFrameDecoder", bgpFrameDecoder);
+            pipeline.addLast("BgpSession", bgpSessionHandler);
+            return pipeline;
         };
         InetSocketAddress listenAddress =
                 new InetSocketAddress(bgpPort);

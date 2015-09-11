@@ -51,7 +51,6 @@ import org.onosproject.net.resource.link.LinkResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
-import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -265,34 +264,31 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     private Set<Path> getOpticalPaths(OpticalConnectivityIntent intent) {
         // Route in WDM topology
         Topology topology = topologyService.currentTopology();
-        LinkWeight weight = new LinkWeight() {
-            @Override
-            public double weight(TopologyEdge edge) {
-                // Disregard inactive or non-optical links
-                if (edge.link().state() == Link.State.INACTIVE) {
-                    return -1;
-                }
-                if (edge.link().type() != Link.Type.OPTICAL) {
-                    return -1;
-                }
-                // Adhere to static port mappings
-                DeviceId srcDeviceId = edge.link().src().deviceId();
-                if (srcDeviceId.equals(intent.getSrc().deviceId())) {
-                    ConnectPoint srcStaticPort = staticPort(intent.getSrc());
-                    if (srcStaticPort != null) {
-                        return srcStaticPort.equals(edge.link().src()) ? 1 : -1;
-                    }
-                }
-                DeviceId dstDeviceId = edge.link().dst().deviceId();
-                if (dstDeviceId.equals(intent.getDst().deviceId())) {
-                    ConnectPoint dstStaticPort = staticPort(intent.getDst());
-                    if (dstStaticPort != null) {
-                        return dstStaticPort.equals(edge.link().dst()) ? 1 : -1;
-                    }
-                }
-
-                return 1;
+        LinkWeight weight = edge -> {
+            // Disregard inactive or non-optical links
+            if (edge.link().state() == Link.State.INACTIVE) {
+                return -1;
             }
+            if (edge.link().type() != Link.Type.OPTICAL) {
+                return -1;
+            }
+            // Adhere to static port mappings
+            DeviceId srcDeviceId = edge.link().src().deviceId();
+            if (srcDeviceId.equals(intent.getSrc().deviceId())) {
+                ConnectPoint srcStaticPort = staticPort(intent.getSrc());
+                if (srcStaticPort != null) {
+                    return srcStaticPort.equals(edge.link().src()) ? 1 : -1;
+                }
+            }
+            DeviceId dstDeviceId = edge.link().dst().deviceId();
+            if (dstDeviceId.equals(intent.getDst().deviceId())) {
+                ConnectPoint dstStaticPort = staticPort(intent.getDst());
+                if (dstStaticPort != null) {
+                    return dstStaticPort.equals(edge.link().dst()) ? 1 : -1;
+                }
+            }
+
+            return 1;
         };
 
         ConnectPoint start = intent.getSrc();

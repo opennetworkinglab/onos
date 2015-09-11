@@ -151,19 +151,15 @@ public class BgpSessionManagerTest {
                 new NioClientSocketChannelFactory(
                         Executors.newCachedThreadPool(),
                         Executors.newCachedThreadPool());
-            ChannelPipelineFactory pipelineFactory =
-                new ChannelPipelineFactory() {
-                    @Override
-                    public ChannelPipeline getPipeline() throws Exception {
-                        // Setup the transmitting pipeline
-                        ChannelPipeline pipeline = Channels.pipeline();
-                        pipeline.addLast("TestBgpPeerFrameDecoder",
-                                         peerFrameDecoder);
-                        pipeline.addLast("TestBgpPeerChannelHandler",
-                                         peerChannelHandler);
-                        return pipeline;
-                    }
-                };
+            ChannelPipelineFactory pipelineFactory = () -> {
+                // Setup the transmitting pipeline
+                ChannelPipeline pipeline = Channels.pipeline();
+                pipeline.addLast("TestBgpPeerFrameDecoder",
+                        peerFrameDecoder);
+                pipeline.addLast("TestBgpPeerChannelHandler",
+                        peerChannelHandler);
+                return pipeline;
+            };
 
             peerBootstrap = new ClientBootstrap(channelFactory);
             peerBootstrap.setOption("child.keepAlive", true);
