@@ -313,13 +313,13 @@ public class DefaultGroupHandler {
                 return -1;
             } else {
                 log.debug("getNextObjectiveId in device{}: Next objective id {} "
-                    + "created for {}", deviceId, nextId.intValue(), ns);
+                    + "created for {}", deviceId, nextId, ns);
             }
         } else {
             log.trace("getNextObjectiveId in device{}: Next objective id {} "
-                    + "found for {}", deviceId, nextId.intValue(), ns);
+                    + "found for {}", deviceId, nextId, ns);
         }
-        return nextId.intValue();
+        return nextId;
     }
 
     /**

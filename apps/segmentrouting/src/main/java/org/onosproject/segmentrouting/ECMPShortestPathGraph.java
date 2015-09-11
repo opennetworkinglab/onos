@@ -97,7 +97,7 @@ public class ECMPShortestPathGraph {
                 }
 
                 Integer distance = deviceSearched.get(reachedDevice);
-                if ((distance != null) && (distance.intValue() < (currDistance + 1))) {
+                if ((distance != null) && (distance < (currDistance + 1))) {
                     continue;
                 }
                 if (distance == null) {
@@ -171,7 +171,7 @@ public class ECMPShortestPathGraph {
                 }
 
                 Integer distance = deviceSearched.get(reachedDevice);
-                if ((distance != null) && (distance.intValue() < (currDistance + 1))) {
+                if ((distance != null) && (distance < (currDistance + 1))) {
                     continue;
                 }
                 if (distance == null) {
