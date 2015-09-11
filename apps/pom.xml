@@ -58,7 +58,8 @@
         <module>vtn</module>
         <module>vtnweb</module>
         <module>dhcp</module>
-    </modules>
+        <module>cordvtn</module>
+  </modules>
 
     <properties>
         <web.context>default</web.context>
