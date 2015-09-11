@@ -70,9 +70,6 @@ from mininet.cli import CLI
 SLEEP_TIME = 2
 TIMEOUT = 60
 
-REST_USER = 'onos'
-REST_PW = 'rocks'
-
 class OpticalSwitch(Switch):
     """
     For now, same as Switch class.
@@ -152,6 +149,17 @@ class LINCSwitch(OpticalSwitch):
             error('Please set ONOS_ROOT environment variable!\n')
         else:
             os.environ[ 'ONOS_ROOT' ] = onosDir
+    ### REST USER/PASS ###
+    try:
+        restUser = os.environ[ 'ONOS_WEB_USER' ]
+        restPass = os.environ[ 'ONOS_WEB_PASS' ]
+    except:
+        error('***WARNING: $ONOS_WEB_USER and $ONOS_WEB_PASS aren\'t set!\n')
+        error('***WARNING: Setting (probably) sane WEB user/pass values\n')
+        restUser = 'onos'
+        restPass = 'rocks'
+        os.environ[ 'ONOS_WEB_USER' ] = restUser
+        os.environ[ 'ONOS_WEB_PASS' ] = restPass
     ### LINC-directory
     lincDir = findDir.__func__('linc-oe', user)
     if not lincDir:
@@ -433,7 +441,7 @@ class LINCSwitch(OpticalSwitch):
         time = 0
         # Set up password authentication
         pw_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        pw_mgr.add_password(None, url, REST_USER, REST_PW)
+        pw_mgr.add_password(None, url, LINCSwitch.restUser, LINCSwitch.restPass)
         handler = urllib2.HTTPBasicAuthHandler(pw_mgr)
         opener = urllib2.build_opener(handler)
         opener.open(url)
