@@ -18,8 +18,6 @@ package org.onosproject.net;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 /**
  * Test for OchSignal.
  */

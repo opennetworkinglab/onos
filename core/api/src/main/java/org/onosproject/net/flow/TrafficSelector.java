@@ -24,7 +24,6 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.DefaultTrafficSelector.Builder;
 import org.onosproject.net.flow.criteria.Criterion;
 
 /**
