@@ -29,6 +29,7 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.vtnrsc.AllocationPool;
 import org.onosproject.vtnrsc.DefaultAllocationPool;
+import org.onosproject.vtnrsc.DefaultHostRoute;
 import org.onosproject.vtnrsc.DefaultSubnet;
 import org.onosproject.vtnrsc.HostRoute;
 import org.onosproject.vtnrsc.Subnet;
@@ -88,6 +89,7 @@ public class SubnetManager implements SubnetService {
                                                  TenantNetworkId.class,
                                                  TenantId.class,
                                                  HostRoute.class,
+                                                 DefaultHostRoute.class,
                                                  Subnet.Mode.class,
                                                  AllocationPool.class,
                                                  DefaultAllocationPool.class,
