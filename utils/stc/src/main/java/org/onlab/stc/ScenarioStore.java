@@ -43,6 +43,9 @@ class ScenarioStore {
     private final List<StepEvent> events = Lists.newArrayList();
     private final Map<String, Status> statusMap = Maps.newConcurrentMap();
 
+    private long startTime = Long.MAX_VALUE;
+    private long endTime = Long.MIN_VALUE;
+
     /**
      * Creates a new scenario store for the specified process flow.
      *
@@ -69,6 +72,8 @@ class ScenarioStore {
             PropertiesConfiguration cfg = new PropertiesConfiguration(storeFile);
             cfg.clear();
             cfg.save();
+            startTime = Long.MAX_VALUE;
+            endTime = Long.MIN_VALUE;
         } catch (ConfigurationException e) {
             print("Unable to store file %s", storeFile);
         }
@@ -156,6 +161,8 @@ class ScenarioStore {
     private synchronized void add(StepEvent event) {
         events.add(event);
         statusMap.put(event.name(), event.status());
+        startTime = Math.min(startTime, event.time());
+        endTime = Math.max(endTime, event.time());
     }
 
     /**
@@ -198,4 +205,22 @@ class ScenarioStore {
         }
     }
 
+    /**
+     * Returns the scenario run start time.
+     *
+     * @return start time in mills since start of epoch
+     */
+    public long startTime() {
+        return startTime;
+    }
+
+    /**
+     * Returns the scenario run end time or current time if the scenario
+     * is still running.
+     *
+     * @return end time (or current time) in mills since start of epoch
+     */
+    public long endTime() {
+        return endTime > 0 ? endTime : System.currentTimeMillis();
+    }
 }

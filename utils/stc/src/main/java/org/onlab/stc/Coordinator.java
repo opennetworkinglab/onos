@@ -109,6 +109,15 @@ public class Coordinator {
     }
 
     /**
+     * Returns number of milliseconds it took to execute.
+     *
+     * @return number of millis elapsed during the run
+     */
+    public long duration() {
+        return store.endTime() - store.startTime();
+    }
+
+    /**
      * Returns a list of steps that match the specified list of patterns.
      *
      * @param runToPatterns list of patterns

@@ -44,11 +44,12 @@ public final class Main {
     private static final String GREEN = "\u001B[32;1m";
     private static final String BLUE = "\u001B[36m";
 
-    private static final String SUCCESS_SUMMARY = "%sPassed! %d steps succeeded%s";
+    private static final String SUCCESS_SUMMARY =
+            "%s %sPassed! %d steps succeeded%s";
     private static final String MIXED_SUMMARY =
             "%s%d steps succeeded; %s%d steps failed; %s%d steps skipped%s";
-    private static final String FAILURE_SUMMARY = "%sFailed! " + MIXED_SUMMARY;
-    private static final String ABORTED_SUMMARY = "%sAborted! " + MIXED_SUMMARY;
+    private static final String FAILURE_SUMMARY = "%s %sFailed! " + MIXED_SUMMARY;
+    private static final String ABORTED_SUMMARY = "%s %sAborted! " + MIXED_SUMMARY;
 
     private boolean isReported = false;
 
@@ -180,6 +181,7 @@ public final class Main {
     private void processList() {
         coordinator.getRecords()
                 .forEach(event -> logStatus(event.time(), event.name(), event.status(), event.command()));
+        printSummary(0, false);
         System.exit(0);
     }
 
@@ -201,14 +203,15 @@ public final class Main {
         if (!isReported) {
             isReported = true;
             Set<Step> steps = coordinator.getSteps();
+            String duration = formatDuration((int) (coordinator.duration() / 1_000));
             int count = steps.size();
             if (exitCode == 0) {
-                print(SUCCESS_SUMMARY, color(SUCCEEDED), count, color(null));
+                print(SUCCESS_SUMMARY, duration, color(SUCCEEDED), count, color(null));
             } else {
                 long success = steps.stream().filter(s -> coordinator.getStatus(s) == SUCCEEDED).count();
                 long failed = steps.stream().filter(s -> coordinator.getStatus(s) == FAILED).count();
                 long skipped = steps.stream().filter(s -> coordinator.getStatus(s) == SKIPPED).count();
-                print(isAborted ? ABORTED_SUMMARY : FAILURE_SUMMARY,
+                print(isAborted ? ABORTED_SUMMARY : FAILURE_SUMMARY, duration,
                       color(FAILED), color(SUCCEEDED), success,
                       color(FAILED), failed, color(SKIPPED), skipped, color(null));
             }
@@ -279,6 +282,17 @@ public final class Main {
         } catch (InterruptedException e) {
             print("Interrupted!");
         }
+    }
+
+    // Formats time duration
+    private static String formatDuration(int totalSeconds) {
+        int seconds = totalSeconds % 60;
+        int totalMinutes = totalSeconds / 60;
+        int minutes = totalMinutes % 60;
+        int hours = totalMinutes / 60;
+        return hours > 0 ?
+                String.format("%d:%02d:%02d", hours, minutes, seconds) :
+                String.format("%d:%02d", minutes, seconds);
     }
 
     // Shutdown hook to report status even when aborted.
