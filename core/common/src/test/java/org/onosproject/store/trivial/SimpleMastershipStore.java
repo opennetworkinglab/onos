@@ -375,14 +375,10 @@ public class SimpleMastershipStore
             .filter(entry -> entry.getValue().contains(nodeId))
             .forEach(entry -> toRelinquish.add(entry.getKey()));
 
-        toRelinquish.forEach(deviceId -> {
-            eventFutures.add(relinquishRole(nodeId, deviceId));
-        });
+        toRelinquish.forEach(deviceId -> eventFutures.add(relinquishRole(nodeId, deviceId)));
 
         eventFutures.forEach(future -> {
-            future.whenComplete((event, error) -> {
-                notifyDelegate(event);
-            });
+            future.whenComplete((event, error) -> notifyDelegate(event));
         });
     }
 }

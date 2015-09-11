@@ -289,12 +289,10 @@ public class VTNManager implements VTNService {
                         ports.stream()
                                 .filter(p -> p.name()
                                         .equalsIgnoreCase(tunnelName))
-                                .forEach(p -> {
-                            programTunnelOut(sw.deviceId(),
-                                             network.segmentationId(), p,
-                                             host.mac(), appId,
-                                             Objective.Operation.ADD);
-                        });
+                                .forEach(p -> programTunnelOut(sw.deviceId(),
+                                                 network.segmentationId(), p,
+                                                 host.mac(), appId,
+                                                 Objective.Operation.ADD));
                     }
                 });
         programLocalIn(deviceId, network.segmentationId(), inPort, host.mac(),
@@ -355,12 +353,10 @@ public class VTNManager implements VTNService {
                         ports.stream()
                                 .filter(p -> p.name()
                                         .equalsIgnoreCase(tunnelName))
-                                .forEach(p -> {
-                            programTunnelOut(sw.deviceId(),
-                                             segId, p,
-                                             host.mac(), appId,
-                                             Objective.Operation.REMOVE);
-                        });
+                                .forEach(p -> programTunnelOut(sw.deviceId(),
+                                                 segId, p,
+                                                 host.mac(), appId,
+                                                 Objective.Operation.REMOVE));
                     }
                 });
         programLocalIn(deviceId, segId, inPort, host.mac(),
@@ -379,26 +375,18 @@ public class VTNManager implements VTNService {
             Device device = event.subject();
             if (Device.Type.CONTROLLER == device.type()
                     && DeviceEvent.Type.DEVICE_ADDED == event.type()) {
-                backgroundService.execute(() -> {
-                    onServerDetected(device);
-                });
+                backgroundService.execute(() -> onServerDetected(device));
             } else if (Device.Type.CONTROLLER == device.type()
                     && DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED == event
                             .type()) {
-                backgroundService.execute(() -> {
-                    onServerVanished(device);
-                });
+                backgroundService.execute(() -> onServerVanished(device));
             } else if (Device.Type.SWITCH == device.type()
                     && DeviceEvent.Type.DEVICE_ADDED == event.type()) {
-                backgroundService.execute(() -> {
-                    onOvsDetected(device);
-                });
+                backgroundService.execute(() -> onOvsDetected(device));
             } else if (Device.Type.SWITCH == device.type()
                     && DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED == event
                             .type()) {
-                backgroundService.execute(() -> {
-                    onOvsVanished(device);
-                });
+                backgroundService.execute(() -> onOvsVanished(device));
             } else {
                 log.info("Do nothing for this device type");
             }
@@ -412,13 +400,9 @@ public class VTNManager implements VTNService {
         public void event(HostEvent event) {
             Host host = event.subject();
             if (HostEvent.Type.HOST_ADDED == event.type()) {
-                backgroundService.execute(() -> {
-                    onHostDetected(host);
-                });
+                backgroundService.execute(() -> onHostDetected(host));
             } else if (HostEvent.Type.HOST_REMOVED == event.type()) {
-                backgroundService.execute(() -> {
-                    onHostVanished(host);
-                });
+                backgroundService.execute(() -> onHostVanished(host));
             } else if (HostEvent.Type.HOST_UPDATED == event.type()) {
                 backgroundService.execute(() -> {
                     onHostVanished(host);
