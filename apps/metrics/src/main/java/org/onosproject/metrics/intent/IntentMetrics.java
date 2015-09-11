@@ -107,7 +107,7 @@ public class IntentMetrics implements IntentMetricsService,
     @Override
     public List<IntentEvent> getEvents() {
         synchronized (lastEvents) {
-            return ImmutableList.<IntentEvent>copyOf(lastEvents);
+            return ImmutableList.copyOf(lastEvents);
         }
     }
 

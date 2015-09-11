@@ -258,7 +258,7 @@ public class DistributedDhcpStore implements DhcpStore {
 
     @Override
     public Iterable<Ip4Address> getAvailableIPs() {
-        return ImmutableSet.<Ip4Address>copyOf(freeIPPool);
+        return ImmutableSet.copyOf(freeIPPool);
     }
 
     @Override
