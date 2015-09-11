@@ -109,7 +109,7 @@ public class ClusterCommunicationManagerTest {
         assertEquals("incorrect event node", nodeId, delegate.nodeId);
     }
 
-    enum Op { DETECTED, VANISHED, REMOVED };
+    enum Op { DETECTED, VANISHED, REMOVED }
 
     private class TestDelegate implements ClusterNodesDelegate {
 

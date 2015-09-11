@@ -49,7 +49,7 @@ public final class IpAssignment {
         /**
          * IP mapping is no longer active.
          */
-        Option_Expired;
+        Option_Expired
     }
 
     /**

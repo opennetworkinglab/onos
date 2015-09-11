@@ -92,7 +92,7 @@ public class SubnetUpdateCommand extends AbstractShellCommand {
 
     @Option(name = "-a", aliases = "--allocationPools",
             description = "Subnet jsonnode allocationPools", required = false, multiValued = false)
-    Set<AllocationPool> allocationPools = Sets.newHashSet();;
+    Set<AllocationPool> allocationPools = Sets.newHashSet();
 
     @Override
     protected void execute() {

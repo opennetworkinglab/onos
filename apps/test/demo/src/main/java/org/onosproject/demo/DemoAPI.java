@@ -24,7 +24,7 @@ import java.util.Optional;
  */
 public interface DemoAPI {
 
-    enum InstallType { MESH, RANDOM };
+    enum InstallType { MESH, RANDOM }
 
     /**
      * Tests flow subsystem based on the parameters supplied.
