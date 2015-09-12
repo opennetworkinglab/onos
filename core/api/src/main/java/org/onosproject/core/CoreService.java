@@ -27,12 +27,12 @@ public interface CoreService {
     /**
      * Name of the core "application".
      */
-    static final String CORE_APP_NAME = "org.onosproject.core";
+    String CORE_APP_NAME = "org.onosproject.core";
 
     /**
      * Identifier of the core "provider".
      */
-    static final ProviderId CORE_PROVIDER_ID = new ProviderId("core", CORE_APP_NAME);
+    ProviderId CORE_PROVIDER_ID = new ProviderId("core", CORE_APP_NAME);
 
     /**
      * Returns the product version.

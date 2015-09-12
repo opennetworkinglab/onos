@@ -25,8 +25,8 @@ import org.onosproject.net.DeviceId;
  */
 public interface FlowRule {
 
-    static final int MAX_TIMEOUT = 60;
-    static final int MIN_PRIORITY = 0;
+    int MAX_TIMEOUT = 60;
+    int MIN_PRIORITY = 0;
 
     /**
      * The FlowRule type is used to determine in which table the flow rule needs
@@ -36,7 +36,7 @@ public interface FlowRule {
      * @deprecated in Cardinal Release
      */
     @Deprecated
-    static enum Type {
+    enum Type {
         /*
          * Default type - used in flow rule for single table switch NOTE: this
          * setting should not be used as Table 0 in a multi-table pipeline

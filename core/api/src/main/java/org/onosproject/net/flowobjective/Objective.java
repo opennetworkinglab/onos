@@ -26,9 +26,9 @@ import java.util.Optional;
 @Beta
 public interface Objective {
 
-    static final boolean DEFAULT_PERMANENT = true;
-    static final int DEFAULT_TIMEOUT = 0;
-    static final int DEFAULT_PRIORITY = 32768;
+    boolean DEFAULT_PERMANENT = true;
+    int DEFAULT_TIMEOUT = 0;
+    int DEFAULT_PRIORITY = 32768;
 
     /**
      * Type of operation.

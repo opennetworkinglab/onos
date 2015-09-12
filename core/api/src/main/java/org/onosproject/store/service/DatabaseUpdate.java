@@ -31,7 +31,7 @@ public final class DatabaseUpdate {
     /**
      * Type of database update operation.
      */
-    public static enum Type {
+    public enum Type {
         /**
          * Insert/Update entry without any checks.
          */

@@ -27,7 +27,7 @@ public interface Subnet {
     /**
      * Coarse classification of the type of the ipV6Mode.
      */
-    public enum Mode {
+    enum Mode {
         DHCPV6_STATEFUL, DHCPV6_STATELESS, SLAAC
     }
 

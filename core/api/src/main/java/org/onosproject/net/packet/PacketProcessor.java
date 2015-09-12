@@ -22,8 +22,8 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public interface PacketProcessor {
 
-    static final int ADVISOR_MAX = Integer.MAX_VALUE / 3;
-    static final int DIRECTOR_MAX = (Integer.MAX_VALUE / 3) * 2;
+    int ADVISOR_MAX = Integer.MAX_VALUE / 3;
+    int DIRECTOR_MAX = (Integer.MAX_VALUE / 3) * 2;
     static final int OBSERVER_MAX = Integer.MAX_VALUE;
 
     /**
