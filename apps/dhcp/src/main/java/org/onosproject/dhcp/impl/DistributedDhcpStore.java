@@ -175,7 +175,7 @@ public class DistributedDhcpStore implements DhcpStore {
         if (allocationMap.containsKey(macID)) {
             assignmentInfo = allocationMap.get(macID).value();
             if ((assignmentInfo.ipAddress().toInt() == ipAddr.toInt()) &&
-                    (ipAddr.toInt() > startIPRange.toInt()) && (ipAddr.toInt() < endIPRange.toInt())) {
+                    (ipAddr.toInt() >= startIPRange.toInt()) && (ipAddr.toInt() <= endIPRange.toInt())) {
 
                 assignmentInfo = IpAssignment.builder()
                         .ipAddress(ipAddr)

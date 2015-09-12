@@ -24,6 +24,8 @@ import org.onosproject.net.config.basics.BasicElementConfig;
  */
 public class DhcpStoreConfig extends Config<ApplicationId> {
 
+    // FIXME: combine with the other config and properly type the values
+
     public static final String TIMER_DELAY = "delay";
     public static final String DEFAULT_TIMEOUT = "timeout";
     public static final String START_IP = "startip";

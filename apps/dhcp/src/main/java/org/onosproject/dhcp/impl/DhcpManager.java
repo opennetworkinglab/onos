@@ -86,7 +86,7 @@ public class DhcpManager implements DhcpService {
     private static final ProviderId PID = new ProviderId("of", "org.onosproject.dhcp", true);
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final NetworkConfigListener cfgListener = new InternalConfigListener();
+    private final InternalConfigListener cfgListener = new InternalConfigListener();
 
     private final Set<ConfigFactory> factories = ImmutableSet.of(
             new ConfigFactory<ApplicationId, DhcpConfig>(APP_SUBJECT_FACTORY,
@@ -163,8 +163,11 @@ public class DhcpManager implements DhcpService {
 
         cfgService.addListener(cfgListener);
         factories.forEach(cfgService::registerConfigFactory);
+        cfgListener.reconfigureNetwork(cfgService.getConfig(appId, DhcpConfig.class));
+        cfgListener.reconfigureStore(cfgService.getConfig(appId, DhcpStoreConfig.class));
+
         hostProviderService = hostProviderRegistry.register(hostProvider);
-        packetService.addProcessor(processor, PacketProcessor.observer(1));
+        packetService.addProcessor(processor, PacketProcessor.director(1));
         requestPackets();
         log.info("Started");
     }
@@ -394,7 +397,7 @@ public class DhcpManager implements DhcpService {
                 TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
                 ConnectPoint sourcePoint = context.inPacket().receivedFrom();
                 builder.setOutput(sourcePoint.port());
-
+                context.block();
                 packetService.emit(new DefaultOutboundPacket(sourcePoint.deviceId(),
                         builder.build(), ByteBuffer.wrap(reply.serialize())));
             }
@@ -407,7 +410,6 @@ public class DhcpManager implements DhcpService {
          * @param dhcpPayload the extracted DHCP payload
          */
         private void processDHCPPacket(PacketContext context, DHCP dhcpPayload) {
-
             Ethernet packet = context.inPacket().parsed();
             boolean flagIfRequestedIP = false;
             boolean flagIfServerIP = false;
@@ -483,7 +485,6 @@ public class DhcpManager implements DhcpService {
                         }
                     }
                 } else if (incomingPacketType == DHCPPacketType.DHCPRELEASE.getValue()) {
-
                     dhcpStore.releaseIP(clientMAC);
                 }
             }
@@ -540,7 +541,6 @@ public class DhcpManager implements DhcpService {
 
         @Override
         public void process(PacketContext context) {
-
             Ethernet packet = context.inPacket().parsed();
             if (packet == null) {
                 return;
@@ -581,7 +581,9 @@ public class DhcpManager implements DhcpService {
          * @param cfg configuration object
          */
         private void reconfigureNetwork(DhcpConfig cfg) {
-
+            if (cfg == null) {
+                return;
+            }
             if (cfg.ip() != null) {
                 myIP = cfg.ip();
             }
@@ -620,6 +622,9 @@ public class DhcpManager implements DhcpService {
          * @param cfg configuration object
          */
         private void reconfigureStore(DhcpStoreConfig cfg) {
+            if (cfg == null) {
+                return;
+            }
 
             if (cfg.defaultTimeout() != null) {
                 dhcpStore.setDefaultTimeoutForPurge(Integer.valueOf(cfg.defaultTimeout()));
