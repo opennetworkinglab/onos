@@ -20,8 +20,10 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.SettableFuture;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -44,6 +46,7 @@ import org.onosproject.net.flow.FlowRuleEvent.Type;
 import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
 import org.onosproject.net.flow.StoredFlowEntry;
+import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
@@ -79,6 +82,9 @@ public class SimpleFlowRuleStore
     private final ConcurrentMap<DeviceId, ConcurrentMap<FlowId, List<StoredFlowEntry>>>
             flowEntries = new ConcurrentHashMap<>();
 
+    private final ConcurrentMap<DeviceId, List<TableStatisticsEntry>>
+            deviceTableStats = new ConcurrentHashMap<>();
+
     private final AtomicInteger localBatchIdGen = new AtomicInteger();
 
     // TODO: make this configurable
@@ -97,6 +103,7 @@ public class SimpleFlowRuleStore
 
     @Deactivate
     public void deactivate() {
+        deviceTableStats.clear();
         flowEntries.clear();
         log.info("Stopped");
     }
@@ -314,5 +321,21 @@ public class SimpleFlowRuleStore
                                                      new TimeoutException()));
             }
         }
+    }
+
+    @Override
+    public FlowRuleEvent updateTableStatistics(DeviceId deviceId,
+                                               List<TableStatisticsEntry> tableStats) {
+        deviceTableStats.put(deviceId, tableStats);
+        return null;
+    }
+
+    @Override
+    public Iterable<TableStatisticsEntry> getTableStatistics(DeviceId deviceId) {
+        List<TableStatisticsEntry> tableStats = deviceTableStats.get(deviceId);
+        if (tableStats == null) {
+            return Collections.emptyList();
+        }
+        return ImmutableList.copyOf(tableStats);
     }
 }

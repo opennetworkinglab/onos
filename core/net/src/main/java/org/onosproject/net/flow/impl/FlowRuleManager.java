@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -58,6 +59,7 @@ import org.onosproject.net.flow.FlowRuleProviderService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
+import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -448,6 +450,12 @@ public class FlowRuleManager
                     operation
             ));
         }
+
+        @Override
+        public void pushTableStatistics(DeviceId deviceId,
+                                          List<TableStatisticsEntry> tableStats) {
+            store.updateTableStatistics(deviceId, tableStats);
+        }
     }
 
     // Store delegate to re-post events emitted from the store.
@@ -602,5 +610,11 @@ public class FlowRuleManager
             }
         }
 
+    }
+
+    @Override
+    public Iterable<TableStatisticsEntry> getFlowTableStatistics(DeviceId deviceId) {
+        checkPermission(FLOWRULE_READ);
+        return store.getTableStatistics(deviceId);
     }
 }

@@ -348,6 +348,10 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.TableStatisticsCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.net.FlowsListCommand"/>
             <completers>
                 <ref component-id="flowRuleStatusCompleter"/>

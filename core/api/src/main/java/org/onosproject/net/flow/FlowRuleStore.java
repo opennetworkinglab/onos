@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.flow;
 
+import java.util.List;
+
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Store;
 
@@ -93,4 +95,23 @@ public interface FlowRuleStore extends Store<FlowRuleBatchEvent, FlowRuleStoreDe
      * @return flow_removed event, or null if nothing removed
      */
     FlowRuleEvent removeFlowRule(FlowEntry rule);
+
+    /**
+     * Updates the flow table statistics of the specified device using
+     * the given statistics.
+     *
+     * @param deviceId    device identifier
+     * @param tableStats   list of table statistics
+     * @return ready to send event describing what occurred;
+     */
+    FlowRuleEvent updateTableStatistics(DeviceId deviceId,
+                                        List<TableStatisticsEntry> tableStats);
+
+    /**
+     * Returns the flow table statistics associated with a device.
+     *
+     * @param deviceId the device ID
+     * @return the flow table statistics
+     */
+    Iterable<TableStatisticsEntry> getTableStatistics(DeviceId deviceId);
 }

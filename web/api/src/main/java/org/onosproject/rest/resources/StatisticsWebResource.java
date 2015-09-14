@@ -21,6 +21,7 @@ import java.util.stream.StreamSupport;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -31,7 +32,12 @@ import javax.ws.rs.core.UriInfo;
 
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.statistic.Load;
 import org.onosproject.net.statistic.StatisticService;
@@ -91,5 +97,60 @@ public class StatisticsWebResource  extends AbstractWebResource {
                 });
         result.set("loads", loads);
         return ok(result).build();
+    }
+
+    /**
+     * Get table statistics for all tables of all devices.
+     *
+     * @return JSON encoded array of table statistics
+     */
+    @GET
+    @Path("flows/tables")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getTableStatistics() {
+        final FlowRuleService service = get(FlowRuleService.class);
+        final Iterable<Device> devices = get(DeviceService.class).getDevices();
+        final ObjectNode root = mapper().createObjectNode();
+        final ArrayNode rootArrayNode = root.putArray("device-table-statistics");
+        for (final Device device : devices) {
+            final ObjectNode deviceStatsNode = mapper().createObjectNode();
+            deviceStatsNode.put("device", device.id().toString());
+            final ArrayNode statisticsNode = deviceStatsNode.putArray("table-statistics");
+            final Iterable<TableStatisticsEntry> tableStatsEntries = service.getFlowTableStatistics(device.id());
+            if (tableStatsEntries != null) {
+                for (final TableStatisticsEntry entry : tableStatsEntries) {
+                    statisticsNode.add(codec(TableStatisticsEntry.class).encode(entry, this));
+                }
+            }
+            rootArrayNode.add(deviceStatsNode);
+        }
+
+        return ok(root).build();
+    }
+
+    /**
+     * Get table statistics for all tables of a specified device.
+     *
+     * @param deviceId device ID
+     * @return JSON encoded array of table statistics
+     */
+    @GET
+    @Path("flows/tables/{deviceId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getTableStatisticsByDeviceId(@PathParam("deviceId") String deviceId) {
+        final FlowRuleService service = get(FlowRuleService.class);
+        final Iterable<TableStatisticsEntry> tableStatisticsEntries =
+                service.getFlowTableStatistics(DeviceId.deviceId(deviceId));
+        final ObjectNode root = mapper().createObjectNode();
+        final ArrayNode rootArrayNode = root.putArray("table-statistics");
+
+        final ObjectNode deviceStatsNode = mapper().createObjectNode();
+        deviceStatsNode.put("device", deviceId);
+        final ArrayNode statisticsNode = deviceStatsNode.putArray("table-statistics");
+        for (final TableStatisticsEntry entry : tableStatisticsEntries) {
+            statisticsNode.add(codec(TableStatisticsEntry.class).encode(entry, this));
+        }
+        rootArrayNode.add(deviceStatsNode);
+        return ok(root).build();
     }
 }

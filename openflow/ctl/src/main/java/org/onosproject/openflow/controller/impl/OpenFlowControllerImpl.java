@@ -47,6 +47,8 @@ import org.projectfloodlight.openflow.protocol.OFExperimenter;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
+import org.projectfloodlight.openflow.protocol.OFTableStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFTableStatsReply;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFGroupDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFGroupStatsEntry;
@@ -127,6 +129,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     protected Set<OpenFlowEventListener> ofEventListener = new CopyOnWriteArraySet<>();
 
     protected Multimap<Dpid, OFFlowStatsEntry> fullFlowStats =
+            ArrayListMultimap.create();
+
+    protected Multimap<Dpid, OFTableStatsEntry> fullTableStats =
             ArrayListMultimap.create();
 
     protected Multimap<Dpid, OFGroupStatsEntry> fullGroupStats =
@@ -230,6 +235,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     @Override
     public void processPacket(Dpid dpid, OFMessage msg) {
         Collection<OFFlowStatsEntry> flowStats;
+        Collection<OFTableStatsEntry> tableStats;
         Collection<OFGroupStatsEntry> groupStats;
         Collection<OFGroupDescStatsEntry> groupDescStats;
         Collection<OFPortStatsEntry> portStats;
@@ -274,6 +280,15 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                                 OFFactories.getFactory(msg.getVersion()).buildFlowStatsReply();
                         rep.setEntries(Lists.newLinkedList(flowStats));
                         rep.setXid(reply.getXid());
+                        executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
+                    }
+                    break;
+                case TABLE:
+                    tableStats = publishTableStats(dpid, (OFTableStatsReply) reply);
+                    if (tableStats != null) {
+                        OFTableStatsReply.Builder rep =
+                                OFFactories.getFactory(msg.getVersion()).buildTableStatsReply();
+                        rep.setEntries(Lists.newLinkedList(tableStats));
                         executorMsgs.submit(new OFMessageHandler(dpid, rep.build()));
                     }
                     break;
@@ -391,6 +406,16 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         fullFlowStats.putAll(dpid, reply.getEntries());
         if (!reply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
             return fullFlowStats.removeAll(dpid);
+        }
+        return null;
+    }
+
+    private synchronized Collection<OFTableStatsEntry> publishTableStats(Dpid dpid,
+                                                                       OFTableStatsReply reply) {
+        //TODO: Get rid of synchronized
+        fullTableStats.putAll(dpid, reply.getEntries());
+        if (!reply.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
+            return fullTableStats.removeAll(dpid);
         }
         return null;
     }

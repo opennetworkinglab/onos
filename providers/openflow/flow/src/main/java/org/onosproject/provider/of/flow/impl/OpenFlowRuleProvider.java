@@ -21,6 +21,7 @@ import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -32,6 +33,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.CompletedBatchOperation;
+import org.onosproject.net.flow.DefaultTableStatisticsEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
@@ -40,6 +42,7 @@ import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderRegistry;
 import org.onosproject.net.flow.FlowRuleProviderService;
+import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.statistic.DefaultLoad;
@@ -58,6 +61,8 @@ import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
+import org.projectfloodlight.openflow.protocol.OFTableStatsReply;
+import org.projectfloodlight.openflow.protocol.OFTableStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
@@ -70,6 +75,7 @@ import java.util.Collections;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Timer;
@@ -121,6 +127,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
     // NewAdaptiveFlowStatsCollector Set
     private final Map<Dpid, NewAdaptiveFlowStatsCollector> afsCollectors = Maps.newHashMap();
+    private final Map<Dpid, FlowStatsCollector> collectors = Maps.newHashMap();
+    private final Map<Dpid, TableStatisticsCollector> tableStatsCollectors = Maps.newHashMap();
 
     /**
      * Creates an OpenFlow host provider.
@@ -214,6 +222,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
             fsc.start();
             simpleCollectors.put(new Dpid(sw.getId()), fsc);
         }
+        TableStatisticsCollector tsc = new TableStatisticsCollector(timer, sw, flowPollFrequency);
+        tsc.start();
+        tableStatsCollectors.put(new Dpid(sw.getId()), tsc);
     }
 
     private void stopCollectors() {
@@ -225,17 +236,19 @@ public class OpenFlowRuleProvider extends AbstractProvider
             simpleCollectors.values().forEach(FlowStatsCollector::stop);
             simpleCollectors.clear();
         }
+        tableStatsCollectors.values().forEach(TableStatisticsCollector::stop);
+        tableStatsCollectors.clear();
     }
 
     private void adjustRate() {
         DefaultLoad.setPollInterval(flowPollFrequency);
-
         if (adaptiveFlowSampling) {
             // NewAdaptiveFlowStatsCollector calAndPollInterval
             afsCollectors.values().forEach(fsc -> fsc.adjustCalAndPollInterval(flowPollFrequency));
         } else {
             simpleCollectors.values().forEach(fsc -> fsc.adjustPollInterval(flowPollFrequency));
         }
+        tableStatsCollectors.values().forEach(tsc -> tsc.adjustPollInterval(flowPollFrequency));
     }
 
     @Override
@@ -384,6 +397,10 @@ public class OpenFlowRuleProvider extends AbstractProvider
                     collector.stop();
                 }
             }
+            TableStatisticsCollector tsc = tableStatsCollectors.remove(dpid);
+            if (tsc != null) {
+                tsc.stop();
+            }
         }
 
         @Override
@@ -413,6 +430,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
                 case STATS_REPLY:
                     if (((OFStatsReply) msg).getStatsType() == OFStatsType.FLOW) {
                         pushFlowMetrics(dpid, (OFFlowStatsReply) msg);
+                    } else if (((OFStatsReply) msg).getStatsType() == OFStatsType.TABLE) {
+                        pushTableStatistics(dpid, (OFTableStatsReply) msg);
                     }
                     break;
                 case BARRIER_REPLY:
@@ -473,7 +492,6 @@ public class OpenFlowRuleProvider extends AbstractProvider
         private void pushFlowMetrics(Dpid dpid, OFFlowStatsReply replies) {
 
             DeviceId did = DeviceId.deviceId(Dpid.uri(dpid));
-            OpenFlowSwitch sw = controller.getSwitch(dpid);
 
             List<FlowEntry> flowEntries = replies.getEntries().stream()
                     .map(entry -> new FlowEntryBuilder(dpid, entry).build())
@@ -511,6 +529,31 @@ public class OpenFlowRuleProvider extends AbstractProvider
                 // call existing entire flow stats update with flowMissing synchronization
                 providerService.pushFlowMetrics(did, flowEntries);
             }
+        }
+
+        private void pushTableStatistics(Dpid dpid, OFTableStatsReply replies) {
+
+            DeviceId did = DeviceId.deviceId(Dpid.uri(dpid));
+            List<TableStatisticsEntry> tableStatsEntries = replies.getEntries().stream()
+                    .map(entry -> buildTableStatistics(did, entry))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            providerService.pushTableStatistics(did, tableStatsEntries);
+        }
+
+        private TableStatisticsEntry buildTableStatistics(DeviceId deviceId,
+                                                          OFTableStatsEntry ofEntry) {
+            TableStatisticsEntry entry = null;
+            if (ofEntry != null) {
+                entry = new DefaultTableStatisticsEntry(deviceId,
+                                                        ofEntry.getTableId().getValue(),
+                                                        ofEntry.getActiveCount(),
+                                                        ofEntry.getLookupCount().getValue(),
+                                                        ofEntry.getMatchedCount().getValue());
+            }
+
+            return entry;
+
         }
     }
 

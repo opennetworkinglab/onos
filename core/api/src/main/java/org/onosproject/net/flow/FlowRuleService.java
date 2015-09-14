@@ -104,4 +104,11 @@ public interface FlowRuleService
      */
     void apply(FlowRuleOperations ops);
 
+    /**
+     * Returns the collection of flow table statistics of the specified device.
+     *
+     * @param deviceId device identifier
+     * @return collection of flow table statistics
+     */
+    Iterable<TableStatisticsEntry> getFlowTableStatistics(DeviceId deviceId);
 }
