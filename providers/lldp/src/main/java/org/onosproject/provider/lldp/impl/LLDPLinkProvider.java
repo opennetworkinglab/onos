@@ -239,6 +239,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         deviceService.addListener(deviceListener);
         packetService.addProcessor(packetProcessor, PacketProcessor.advisor(0));
 
+        loadSuppressionRules();
         loadDevices();
 
         executor = newSingleThreadScheduledExecutor(groupedThreads("onos/link", "discovery-%d"));
@@ -247,7 +248,6 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         executor.scheduleAtFixedRate(new LinkPrunerTask(),
                                      LINK_PRUNER_DELAY, LINK_PRUNER_DELAY, SECONDS);
 
-        loadSuppressionRules();
         requestIntercepts();
     }
 

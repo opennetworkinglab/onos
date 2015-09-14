@@ -104,8 +104,12 @@ class LinkDiscovery implements TimerTask {
     }
 
     synchronized void stop() {
-        isStopped = true;
-        timeout.cancel();
+        if (!isStopped) {
+            isStopped = true;
+            timeout.cancel();
+        } else {
+            log.warn("LinkDiscovery stopped multiple times?");
+        }
     }
 
     synchronized void start() {
