@@ -19,88 +19,41 @@ import org.onlab.packet.BasePacket;
 import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPacket;
 import org.onlab.packet.IpAddress;
-
 import java.nio.ByteBuffer;
-import java.util.Random;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.onlab.packet.PacketUtils.checkInput;
 
 public class PIMHello extends BasePacket {
 
     private IpAddress nbrIpAddress;
-
-    private int holdtime = 105;
-    private int genid = 0;
-    private int priority = 1;
     private boolean priorityPresent = false;
 
-    public static final int MINIMUM_OPTION_LEN_BYTES = 4;
+    private Map<Short, PIMHelloOption> options = new HashMap<>();
 
     /**
-     * PIM Option types.
+     * Create a PIM Hello packet with the most common hello options and default
+     * values.  The values of any options can be easily changed by modifying the value of
+     * the option with the desired change.
      */
-    public enum Option {
-        HOLDTIME  (1, 2),
-        PRUNEDELAY(2, 4),
-        PRIORITY  (19, 4),
-        GENID     (20, 4),
-        ADDRLIST  (24, 0);
-
-        private final int optType;
-        private final int optLen;
-
-        Option(int ot, int ol) {
-            this.optType = ot;
-            this.optLen = ol;
-        }
-
-        public int optType() {
-            return this.optType;
-        }
-
-        public int optLen() {
-            return this.optLen;
-        }
+    public void createDefaultOptions() {
+        options.put(PIMHelloOption.OPT_HOLDTIME, new PIMHelloOption(PIMHelloOption.OPT_HOLDTIME));
+        options.put(PIMHelloOption.OPT_PRIORITY, new PIMHelloOption(PIMHelloOption.OPT_PRIORITY));
+        options.put(PIMHelloOption.OPT_GENID, new PIMHelloOption(PIMHelloOption.OPT_GENID));
     }
 
     /**
-     * Add the holdtime to the packet.
+     * Add a PIM Hello option to this hello message.  Note
      *
-     * @param holdtime the holdtime in seconds
+     * @param opt the PIM Hello option we are adding
      */
-    public void addHoldtime(int holdtime) {
-        this.holdtime = holdtime;
+    public void addOption(PIMHelloOption opt) {
+        this.options.put(opt.getOptType(), opt);
     }
 
-    /**
-     * Add the hello priority.
-     *
-     * @param priority default is 1, the higher the better
-     */
-    public void addPriority(int priority) {
-        this.priority = priority;
-        this.priorityPresent = true;
-    }
-
-    /**
-     * Add a Gen ID.
-     *
-     * @param genid a random generated number, changes only after reset.
-     */
-    public void addGenId(int genid) {
-        if (genid == 0) {
-            this.addGenId();
-        } else {
-            this.genid = genid;
-        }
-    }
-
-    /**
-     * Add the genid.  Let this function figure out the number.
-     */
-    public void addGenId() {
-        Random rand = new Random();
-        this.genid = rand.nextInt();
+    public Map<Short, PIMHelloOption> getOptions() {
+        return this.options;
     }
 
     /**
@@ -111,68 +64,54 @@ public class PIMHello extends BasePacket {
      */
     @Override
     public byte[] serialize() {
+        int totalLen = 0;
 
-        // TODO: Figure out a better way to calculate buffer size
-        int size = Option.PRIORITY.optLen() + 4 +
-                Option.GENID.optLen() + 4 +
-                Option.HOLDTIME.optLen() + 4;
 
-        byte[] data = new byte[size];      // Come up with something better
+         // Since we are likely to only have 3-4 options, go head and walk the
+         // hashmap twice, once to calculate the space needed to allocate a
+         // buffer, the second time serialize the options into the buffer.  This
+         // saves us from allocating an over sized buffer the re-allocating and
+         // copying.
+        for (Short optType : options.keySet()) {
+            PIMHelloOption opt = options.get(optType);
+            totalLen += PIMHelloOption.MINIMUM_OPTION_LEN_BYTES + opt.getOptLength();
+        }
+
+        byte[] data = new byte[totalLen];
         ByteBuffer bb = ByteBuffer.wrap(data);
 
-        // Add the priority
-        bb.putShort((short) Option.PRIORITY.optType);
-        bb.putShort((short) Option.PRIORITY.optLen);
-        bb.putInt(this.priority);
-
-        // Add the genid
-        bb.putShort((short) Option.GENID.optType);
-        bb.putShort((short) Option.GENID.optLen);
-        bb.putInt(this.genid);
-
-        // Add the holdtime
-        bb.putShort((short) Option.HOLDTIME.optType);
-        bb.putShort((short) Option.HOLDTIME.optLen);
-        bb.putShort((short) this.holdtime);
+        // Now serialize the data.
+        for (Short optType : options.keySet()) {
+            PIMHelloOption opt = options.get(optType);
+            bb.put(opt.serialize());
+        }
         return data;
     }
 
     /**
      * XXX: This is deprecated, DO NOT USE, use the deserializer() function instead.
      */
-    // @Override
     public IPacket deserialize(final byte[] data, final int offset,
                                final int length) {
-        //
+        // TODO: throw an expection?
         return null;
     }
 
     /**
      * Deserialize this hello message.
      *
-     * @return a deserialized hello message.
+     * @return a deserialized hello message
      */
     public static Deserializer<PIMHello> deserializer() {
         return (data, offset, length) -> {
-            checkInput(data, offset, length, MINIMUM_OPTION_LEN_BYTES);
+            checkInput(data, offset, length, PIMHelloOption.MINIMUM_OPTION_LEN_BYTES);
             final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
 
             PIMHello hello = new PIMHello();
             while (bb.hasRemaining()) {
-                int optType = bb.getShort();
-                int optLen  = bb.getShort();
-
-                // Check that we have enough buffer for the next option.
-                checkInput(data, bb.position(), bb.limit() - bb.position(), optLen);
-                if (optType == Option.GENID.optType) {
-                    hello.addGenId(bb.getInt());
-                } else if (optType == Option.PRIORITY.optType) {
-                    hello.addPriority(bb.getInt());
-                } else if (optType == Option.HOLDTIME.optType) {
-                    hello.addHoldtime((int) bb.getShort());
-                }
+                PIMHelloOption opt = PIMHelloOption.deserialize(bb);
+                hello.addOption(opt);
             }
-
             return hello;
         };
     }

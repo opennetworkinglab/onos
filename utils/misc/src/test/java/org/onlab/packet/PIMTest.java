@@ -46,6 +46,11 @@ public final class PIMTest {
     private PIM pimJoinPrune;
     private PIMJoinPrune joinPrune;
 
+    /**
+     * Create PIM Hello and Join/Prune packets to be used in testing.
+     *
+     * @throws Exception if packet creation fails
+     */
     @Before
     public void setUp() throws Exception {
 
@@ -56,9 +61,7 @@ public final class PIMTest {
         pimHello.setChecksum((short) 0);
 
         hello = new PIMHello();
-        hello.addHoldtime(0xd2);
-        hello.addPriority(44);
-        hello.addGenId(0xf00d);
+        hello.createDefaultOptions();
         pimHello.setPayload(hello);
         hello.setParent(pimHello);
 
@@ -81,20 +84,32 @@ public final class PIMTest {
         deserializer = PIM.deserializer();
     }
 
+    /**
+     * Make sure our deserializer throws an exception if we recieve bad input.
+     *
+     * @throws Exception if we are given bad input.
+     */
     @Test
-    public void testDerserializeBadInput() throws Exception {
+    public void testDeserializeBadInput() throws Exception {
         PacketTestUtils.testDeserializeBadInput(deserializer);
     }
 
+    /**
+     * Verify we throw an exception if we receive a truncated Join/Prune message.
+     *
+     * @throws Exception if we receive a truncated Join/Prune message.
+     */
     @Test
     public void testDeserializeTruncated() throws Exception {
-        //byte [] bits = pimHello.serialize();
-        //PacketTestUtils.testDeserializeTruncated(deserializer, bits);
-
         byte [] bits = pimJoinPrune.serialize();
         PacketTestUtils.testDeserializeTruncated(deserializer, bits);
     }
 
+    /**
+     * Verify that we correctly deserialize hello messages.
+     *
+     * @throws Exception if our input is bad or truncated.
+     */
     @Test
     public void testDeserializeHello() throws Exception {
         byte [] data = pimHello.serialize();
@@ -102,6 +117,11 @@ public final class PIMTest {
         assertTrue(pim.equals(pimHello));
     }
 
+    /**
+     * Verify that we correctly deserialize Join/Prune messages.
+     *
+     * @throws Exception if our input is bad or truncated.
+     */
     @Test
     public void testDeserializeJoinPrune() throws Exception {
         byte [] data = pimJoinPrune.serialize();

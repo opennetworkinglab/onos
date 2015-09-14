@@ -33,7 +33,7 @@ public class PIM extends BasePacket {
 
     public static final byte TYPE_HELLO = 0x00;
     public static final byte TYPE_REGISTER = 0x01;
-    public static final byte TYPE_REQUEST_STOP = 0x02;
+    public static final byte TYPE_REGISTER_STOP = 0x02;
     public static final byte TYPE_JOIN_PRUNE_REQUEST = 0x03;
     public static final byte TYPE_BOOTSTRAP = 0x04;
     public static final byte TYPE_ASSERT = 0x05;
