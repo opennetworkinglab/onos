@@ -17,6 +17,7 @@ package org.onosproject.dhcp;
 
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.HostId;
 
 import java.util.Map;
 
@@ -36,21 +37,21 @@ public interface DhcpStore {
     /**
      * Returns an IP Address for a Mac ID, in response to a DHCP DISCOVER message.
      *
-     * @param macID Mac ID of the client requesting an IP
+     * @param hostId Host ID of the client requesting an IP
      * @param requestedIP requested IP address
      * @return IP address assigned to the Mac ID
      */
-    Ip4Address suggestIP(MacAddress macID, Ip4Address requestedIP);
+    Ip4Address suggestIP(HostId hostId, Ip4Address requestedIP);
 
     /**
      * Assigns the requested IP to the Mac ID, in response to a DHCP REQUEST message.
      *
-     * @param macID Mac Id of the client requesting an IP
+     * @param hostId Host Id of the client requesting an IP
      * @param ipAddr IP Address being requested
      * @param leaseTime Lease time offered by the server for this mapping
      * @return returns true if the assignment was successful, false otherwise
      */
-    boolean assignIP(MacAddress macID, Ip4Address ipAddr, int leaseTime);
+    boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime);
 
     /**
      * Sets the default time for which suggested IP mappings are valid.
@@ -60,25 +61,18 @@ public interface DhcpStore {
     void setDefaultTimeoutForPurge(int timeInSeconds);
 
     /**
-     * Sets the delay after which the dhcp server will purge expired entries.
-     *
-     * @param timeInSeconds default time
-     */
-    void setTimerDelay(int timeInSeconds);
-
-    /**
      * Releases the IP assigned to a Mac ID into the free pool.
      *
-     * @param macID the macID for which the mapping needs to be changed
+     * @param hostId the host ID for which the mapping needs to be changed
      */
-    void releaseIP(MacAddress macID);
+    void releaseIP(HostId hostId);
 
     /**
      * Returns a collection of all the MacAddress to IPAddress mapping.
      *
      * @return the collection of the mappings
      */
-    Map<MacAddress, IpAssignment> listMapping();
+    Map<HostId, IpAssignment> listMapping();
 
     /**
      * Assigns the requested IP to the MAC ID (if available) for an indefinite period of time.

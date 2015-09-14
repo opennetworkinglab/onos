@@ -100,10 +100,19 @@ public final class IpAssignment {
     /**
      * Returns the lease period of the IP assignment.
      *
-     * @return the lease period
+     * @return the lease period in seconds
      */
     public int leasePeriod() {
-        return (int) this.leasePeriod / 1000;
+        return (int) this.leasePeriod;
+    }
+
+    /**
+     * Returns the lease period of the IP assignment.
+     *
+     * @return the lease period in milliseconds
+     */
+    public int leasePeriodMs() {
+        return (int) this.leasePeriod * 1000;
     }
 
     @Override
@@ -155,7 +164,7 @@ public final class IpAssignment {
         private Builder(IpAssignment ipAssignment) {
             ipAddress = ipAssignment.ipAddress();
             timeStamp = ipAssignment.timestamp();
-            leasePeriod = ipAssignment.leasePeriod() * 1000;
+            leasePeriod = ipAssignment.leasePeriod();
             assignmentStatus = ipAssignment.assignmentStatus();
         }
 
@@ -178,7 +187,7 @@ public final class IpAssignment {
         }
 
         public Builder leasePeriod(int leasePeriodinSeconds) {
-            leasePeriod = leasePeriodinSeconds * 1000;
+            leasePeriod = leasePeriodinSeconds;
             return this;
         }
 

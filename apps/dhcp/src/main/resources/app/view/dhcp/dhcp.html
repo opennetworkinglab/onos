@@ -17,7 +17,7 @@
     <div class="table-header" onos-sortable-header>
       <table>
         <tr>
-          <td colId="mac" sortable>MAC Address</td>
+          <td colId="host" sortable>Host ID</td>
           <td colId="ip" sortable>IP Address</td>
           <td colId="lease" sortable>Lease Expiry</td>
         </tr>
@@ -25,7 +25,7 @@
     </div>
 
     <div class="table-body">
-      <table onos-flash-changes id-prop="mac">
+      <table onos-flash-changes id-prop="host">
         <tr ng-if="!tableData.length" class="no-data">
           <td colspan="2">
             No mappings found
@@ -34,8 +34,8 @@
 
         <tr ng-repeat="dhcp in tableData track by $index"
             ng-click="selectCallback($event, dhcp)"
-            ng-repeat-complete row-id="{{dhcp.mac}}">
-          <td>{{dhcp.mac}}</td>
+            ng-repeat-complete row-id="{{dhcp.host}}">
+          <td>{{dhcp.host}}</td>
           <td>{{dhcp.ip}}</td>
           <td>{{dhcp.lease}}</td>
         </tr>

@@ -72,7 +72,7 @@ public class DhcpManagerTest {
 
     protected HostProviderService hostProviderService;
 
-    private static final MacAddress CLIENT1_MAC = MacAddress.valueOf("1a:1a:1a:1a:1a:1a");
+    private static final HostId CLIENT1_HOST = HostId.hostId(MacAddress.valueOf("1a:1a:1a:1a:1a:1a"));
 
     private static final String EXPECTED_IP = "10.2.0.2";
 
@@ -141,7 +141,7 @@ public class DhcpManagerTest {
 
         // Ethernet Frame.
         Ethernet ethReply = new Ethernet();
-        ethReply.setSourceMACAddress(CLIENT1_MAC);
+        ethReply.setSourceMACAddress(CLIENT1_HOST.mac());
         ethReply.setDestinationMACAddress(MacAddress.BROADCAST);
         ethReply.setEtherType(Ethernet.TYPE_IPV4);
         ethReply.setVlanID((short) 2);
@@ -165,7 +165,7 @@ public class DhcpManagerTest {
         dhcpReply.setServerIPAddress(0);
 
         dhcpReply.setTransactionId(TRANSACTION_ID);
-        dhcpReply.setClientHardwareAddress(CLIENT1_MAC.toBytes());
+        dhcpReply.setClientHardwareAddress(CLIENT1_HOST.mac().toBytes());
         dhcpReply.setHardwareType(DHCP.HWTYPE_ETHERNET);
         dhcpReply.setHardwareAddressLength((byte) 6);
 
@@ -209,7 +209,7 @@ public class DhcpManagerTest {
      */
     private void validatePacket(Ethernet packet) {
         DHCP dhcpPacket = (DHCP) packet.getPayload().getPayload().getPayload();
-        assertEquals(MacAddress.valueOf(dhcpPacket.getClientHardwareAddress()), CLIENT1_MAC);
+        assertEquals(MacAddress.valueOf(dhcpPacket.getClientHardwareAddress()), CLIENT1_HOST.mac());
         assertEquals(Ip4Address.valueOf(dhcpPacket.getYourIPAddress()), Ip4Address.valueOf(EXPECTED_IP));
         assertEquals(dhcpPacket.getTransactionId(), TRANSACTION_ID);
     }
@@ -223,32 +223,29 @@ public class DhcpManagerTest {
         public void populateIPPoolfromRange(Ip4Address startIP, Ip4Address endIP) {
         }
 
-        public Ip4Address suggestIP(MacAddress macID, Ip4Address requestedIP) {
+        public Ip4Address suggestIP(HostId hostId, Ip4Address requestedIP) {
             return Ip4Address.valueOf(EXPECTED_IP);
         }
 
-        public boolean assignIP(MacAddress macID, Ip4Address ipAddr, int leaseTime) {
+        public boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime) {
             return true;
         }
 
         public void setDefaultTimeoutForPurge(int timeInSeconds) {
         }
 
-        public void setTimerDelay(int timeInSeconds) {
+        public void releaseIP(HostId hostId) {
         }
 
-        public void releaseIP(MacAddress macID) {
-        }
-
-        public Map<MacAddress, IpAssignment> listMapping() {
-            Map<MacAddress, IpAssignment> map = new HashMap<>();
+        public Map<HostId, IpAssignment> listMapping() {
+            Map<HostId, IpAssignment> map = new HashMap<>();
             IpAssignment assignment = IpAssignment.builder()
                                         .ipAddress(Ip4Address.valueOf(EXPECTED_IP))
                                         .assignmentStatus(IpAssignment.AssignmentStatus.Option_Assigned)
                                         .leasePeriod(300)
                                         .timestamp(new Date())
                                         .build();
-            map.put(CLIENT1_MAC, assignment);
+            map.put(CLIENT1_HOST, assignment);
             return map;
         }
 

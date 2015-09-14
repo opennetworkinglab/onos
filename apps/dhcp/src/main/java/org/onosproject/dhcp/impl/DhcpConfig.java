@@ -15,6 +15,8 @@
  */
 package org.onosproject.dhcp.impl;
 
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.basics.BasicElementConfig;
@@ -34,14 +36,19 @@ public class DhcpConfig extends Config<ApplicationId> {
     public static final String LEASE_TIME = "lease";
     public static final String RENEW_TIME = "renew";
     public static final String REBIND_TIME = "rebind";
+    public static final String TIMER_DELAY = "delay";
+    public static final String DEFAULT_TIMEOUT = "timeout";
+    public static final String START_IP = "startip";
+    public static final String END_IP = "endip";
 
     /**
      * Returns the dhcp server ip.
      *
      * @return ip address or null if not set
      */
-    public String ip() {
-        return get(MY_IP, null);
+    public Ip4Address ip() {
+        String ip = get(MY_IP, null);
+        return ip != null ? Ip4Address.valueOf(ip) : null;
     }
 
     /**
@@ -59,8 +66,9 @@ public class DhcpConfig extends Config<ApplicationId> {
      *
      * @return server mac or null if not set
      */
-    public String mac() {
-        return get(MY_MAC, null);
+    public MacAddress mac() {
+        String mac = get(MY_MAC, null);
+        return mac != null ? MacAddress.valueOf(mac) : null;
     }
 
     /**
@@ -78,8 +86,9 @@ public class DhcpConfig extends Config<ApplicationId> {
      *
      * @return subnet mask or null if not set
      */
-    public String subnetMask() {
-        return get(SUBNET_MASK, null);
+    public Ip4Address subnetMask() {
+        String ip = get(SUBNET_MASK, null);
+        return ip != null ? Ip4Address.valueOf(ip) : null;
     }
 
     /**
@@ -97,8 +106,9 @@ public class DhcpConfig extends Config<ApplicationId> {
      *
      * @return broadcast address or null if not set
      */
-    public String broadcastAddress() {
-        return get(BROADCAST_ADDRESS, null);
+    public Ip4Address broadcastAddress() {
+        String ip = get(BROADCAST_ADDRESS, null);
+        return ip != null ? Ip4Address.valueOf(ip) : null;
     }
 
     /**
@@ -116,8 +126,8 @@ public class DhcpConfig extends Config<ApplicationId> {
      *
      * @return ttl or null if not set
      */
-    public String ttl() {
-        return get(TTL, null);
+    public int ttl() {
+        return get(TTL, 0);
     }
 
     /**
@@ -126,7 +136,7 @@ public class DhcpConfig extends Config<ApplicationId> {
      * @param ttl new ttl; null to clear
      * @return self
      */
-    public BasicElementConfig ttl(String ttl) {
+    public BasicElementConfig ttl(int ttl) {
         return (BasicElementConfig) setOrClear(TTL, ttl);
     }
 
@@ -135,8 +145,8 @@ public class DhcpConfig extends Config<ApplicationId> {
      *
      * @return lease time or null if not set
      */
-    public String leaseTime() {
-        return get(LEASE_TIME, null);
+    public int leaseTime() {
+        return get(LEASE_TIME, 0);
     }
 
     /**
@@ -145,7 +155,7 @@ public class DhcpConfig extends Config<ApplicationId> {
      * @param lease new lease time; null to clear
      * @return self
      */
-    public BasicElementConfig leaseTime(String lease) {
+    public BasicElementConfig leaseTime(int lease) {
         return (BasicElementConfig) setOrClear(LEASE_TIME, lease);
     }
 
@@ -154,8 +164,8 @@ public class DhcpConfig extends Config<ApplicationId> {
      *
      * @return renew time or null if not set
      */
-    public String renewTime() {
-        return get(RENEW_TIME, null);
+    public int renewTime() {
+        return get(RENEW_TIME, 0);
     }
 
     /**
@@ -164,7 +174,7 @@ public class DhcpConfig extends Config<ApplicationId> {
      * @param renew new renew time; null to clear
      * @return self
      */
-    public BasicElementConfig renewTime(String renew) {
+    public BasicElementConfig renewTime(int renew) {
         return (BasicElementConfig) setOrClear(RENEW_TIME, renew);
     }
 
@@ -173,8 +183,8 @@ public class DhcpConfig extends Config<ApplicationId> {
      *
      * @return rebind time or null if not set
      */
-    public String rebindTime() {
-        return get(REBIND_TIME, null);
+    public int rebindTime() {
+        return get(REBIND_TIME, 0);
     }
 
     /**
@@ -183,7 +193,7 @@ public class DhcpConfig extends Config<ApplicationId> {
      * @param rebind new rebind time; null to clear
      * @return self
      */
-    public BasicElementConfig rebindTime(String rebind) {
+    public BasicElementConfig rebindTime(int rebind) {
         return (BasicElementConfig) setOrClear(REBIND_TIME, rebind);
     }
 
@@ -192,8 +202,9 @@ public class DhcpConfig extends Config<ApplicationId> {
      *
      * @return router address or null if not set
      */
-    public String routerAddress() {
-        return get(ROUTER_ADDRESS, null);
+    public Ip4Address routerAddress() {
+        String ip = get(ROUTER_ADDRESS, null);
+        return ip != null ? Ip4Address.valueOf(ip) : null;
     }
 
     /**
@@ -211,8 +222,9 @@ public class DhcpConfig extends Config<ApplicationId> {
      *
      * @return domain server address or null if not set
      */
-    public String domainServer() {
-        return get(DOMAIN_SERVER, null);
+    public Ip4Address domainServer() {
+        String ip = get(DOMAIN_SERVER, null);
+        return ip != null ? Ip4Address.valueOf(ip) : null;
     }
 
     /**
@@ -223,5 +235,83 @@ public class DhcpConfig extends Config<ApplicationId> {
      */
     public BasicElementConfig domainServer(String domain) {
         return (BasicElementConfig) setOrClear(DOMAIN_SERVER, domain);
+    }
+
+    /**
+     * Returns the delay after which the dhcp server will purge expired entries.
+     *
+     * @return time delay or null if not set
+     */
+    public int timerDelay() {
+        return get(TIMER_DELAY, 0);
+    }
+
+    /**
+     * Sets the delay after which the dhcp server will purge expired entries.
+     *
+     * @param delay new time delay; null to clear
+     * @return self
+     */
+    public BasicElementConfig timerDelay(int delay) {
+        return (BasicElementConfig) setOrClear(TIMER_DELAY, delay);
+    }
+
+    /**
+     * Returns the default timeout for pending assignments.
+     *
+     * @return default timeout or null if not set
+     */
+    public int defaultTimeout() {
+        return get(DEFAULT_TIMEOUT, 0);
+    }
+
+    /**
+     * Sets the default timeout for pending assignments.
+     *
+     * @param defaultTimeout new default timeout; null to clear
+     * @return self
+     */
+    public BasicElementConfig defaultTimeout(int defaultTimeout) {
+        return (BasicElementConfig) setOrClear(DEFAULT_TIMEOUT, defaultTimeout);
+    }
+
+    /**
+     * Returns the start IP for the available IP Range.
+     *
+     * @return start IP or null if not set
+     */
+    public Ip4Address startIp() {
+        String ip = get(START_IP, null);
+        return ip != null ? Ip4Address.valueOf(ip) : null;
+    }
+
+    /**
+     * Sets the start IP for the available IP Range.
+     *
+     * @param startIp new start IP; null to clear
+     * @return self
+     */
+    public BasicElementConfig startIp(String startIp) {
+        return (BasicElementConfig) setOrClear(START_IP, startIp);
+    }
+
+    /**
+     * Returns the end IP for the available IP Range.
+     *
+     * @return end IP or null if not set
+     */
+    public Ip4Address endIp() {
+        String ip = get(END_IP, null);
+        return ip != null ? Ip4Address.valueOf(ip) : null;
+    }
+
+    /**
+     * Sets the end IP for the available IP Range.
+     *
+     * @param endIp new end IP; null to clear
+     * @return self
+     */
+    public BasicElementConfig endIp(String endIp) {
+        return (BasicElementConfig) setOrClear(END_IP, endIp);
     }
 }

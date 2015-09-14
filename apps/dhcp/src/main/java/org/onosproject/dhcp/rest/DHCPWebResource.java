@@ -22,6 +22,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.dhcp.DhcpService;
 import org.onosproject.dhcp.IpAssignment;
+import org.onosproject.net.HostId;
 import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
@@ -72,10 +73,10 @@ public class DHCPWebResource extends AbstractWebResource {
     public Response listMappings() {
         ObjectNode root = mapper().createObjectNode();
 
-        final Map<MacAddress, IpAssignment> intents = service.listMapping();
+        final Map<HostId, IpAssignment> intents = service.listMapping();
         ArrayNode arrayNode = root.putArray("mappings");
         intents.entrySet().forEach(i -> arrayNode.add(mapper().createObjectNode()
-                .put("mac", i.getKey().toString())
+                .put("host", i.getKey().toString())
                 .put("ip", i.getValue().ipAddress().toString())));
 
         return ok(root.toString()).build();
@@ -125,10 +126,10 @@ public class DHCPWebResource extends AbstractWebResource {
                 }
             }
 
-            final Map<MacAddress, IpAssignment> intents = service.listMapping();
+            final Map<HostId, IpAssignment> intents = service.listMapping();
             ArrayNode arrayNode = root.putArray("mappings");
             intents.entrySet().forEach(i -> arrayNode.add(mapper().createObjectNode()
-                    .put("mac", i.getKey().toString())
+                    .put("host", i.getKey().toString())
                     .put("ip", i.getValue().ipAddress().toString())));
         } catch (IOException e) {
             throw new IllegalArgumentException(e.getMessage());
@@ -152,10 +153,10 @@ public class DHCPWebResource extends AbstractWebResource {
         if (!service.removeStaticMapping(MacAddress.valueOf(macID))) {
             throw new IllegalArgumentException("Static Mapping Removal Failed.");
         }
-        final Map<MacAddress, IpAssignment> intents = service.listMapping();
+        final Map<HostId, IpAssignment> intents = service.listMapping();
         ArrayNode arrayNode = root.putArray("mappings");
         intents.entrySet().forEach(i -> arrayNode.add(mapper().createObjectNode()
-                .put("mac", i.getKey().toString())
+                .put("host", i.getKey().toString())
                 .put("ip", i.getValue().ipAddress().toString())));
 
         return ok(root.toString()).build();

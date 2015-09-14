@@ -17,6 +17,7 @@ package org.onosproject.dhcp;
 
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.HostId;
 
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public interface DhcpService {
      *
      * @return collection of mappings.
      */
-    Map<MacAddress, IpAssignment> listMapping();
+    Map<HostId, IpAssignment> listMapping();
 
     /**
      * Returns the default lease time granted by the DHCP Server.

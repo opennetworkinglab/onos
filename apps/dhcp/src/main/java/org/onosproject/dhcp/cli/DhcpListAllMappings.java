@@ -16,10 +16,10 @@
 package org.onosproject.dhcp.cli;
 
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.dhcp.DhcpService;
 import org.onosproject.dhcp.IpAssignment;
+import org.onosproject.net.HostId;
 
 import java.util.Map;
 
@@ -35,9 +35,9 @@ public class DhcpListAllMappings extends AbstractShellCommand {
     protected void execute() {
 
         DhcpService dhcpService = AbstractShellCommand.get(DhcpService.class);
-        Map<MacAddress, IpAssignment> allocationMap = dhcpService.listMapping();
+        Map<HostId, IpAssignment> allocationMap = dhcpService.listMapping();
 
-        for (Map.Entry<MacAddress, IpAssignment> entry : allocationMap.entrySet()) {
+        for (Map.Entry<HostId, IpAssignment> entry : allocationMap.entrySet()) {
             print(DHCP_MAPPING_FORMAT, entry.getKey().toString(), entry.getValue().ipAddress().toString());
         }
     }

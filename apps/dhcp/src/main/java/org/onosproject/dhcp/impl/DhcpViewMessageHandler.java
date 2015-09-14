@@ -17,10 +17,10 @@ package org.onosproject.dhcp.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
-import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.dhcp.DhcpService;
 import org.onosproject.dhcp.IpAssignment;
+import org.onosproject.net.HostId;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
@@ -39,12 +39,12 @@ public class DhcpViewMessageHandler extends UiMessageHandler {
     private static final String DHCP_DATA_RESP = "dhcpDataResponse";
     private static final String DHCP = "dhcps";
 
-    private static final String MAC = "mac";
+    private static final String HOST = "host";
     private static final String IP = "ip";
     private static final String LEASE = "lease";
 
     private static final String[] COL_IDS = {
-            MAC, IP, LEASE
+            HOST, IP, LEASE
     };
 
     @Override
@@ -63,7 +63,7 @@ public class DhcpViewMessageHandler extends UiMessageHandler {
 
         @Override
         protected String defaultColumnId() {
-            return MAC;
+            return HOST;
         }
 
         @Override
@@ -74,21 +74,21 @@ public class DhcpViewMessageHandler extends UiMessageHandler {
         @Override
         protected void populateTable(TableModel tm, ObjectNode payload) {
             DhcpService dhcpService = AbstractShellCommand.get(DhcpService.class);
-            Map<MacAddress, IpAssignment> allocationMap = dhcpService.listMapping();
+            Map<HostId, IpAssignment> allocationMap = dhcpService.listMapping();
 
-            for (Map.Entry<MacAddress, IpAssignment> entry : allocationMap.entrySet()) {
+            for (Map.Entry<HostId, IpAssignment> entry : allocationMap.entrySet()) {
                 populateRow(tm.addRow(), entry);
             }
         }
 
-        private void populateRow(TableModel.Row row, Map.Entry<MacAddress, IpAssignment> entry) {
+        private void populateRow(TableModel.Row row, Map.Entry<HostId, IpAssignment> entry) {
             if (entry.getValue().leasePeriod() > 0) {
                 Date now = new Date(entry.getValue().timestamp().getTime() + entry.getValue().leasePeriod());
-                row.cell(MAC, entry.getKey())
+                row.cell(HOST, entry.getKey())
                         .cell(IP, entry.getValue().ipAddress())
                         .cell(LEASE, now.toString());
             } else {
-                row.cell(MAC, entry.getKey())
+                row.cell(HOST, entry.getKey())
                         .cell(IP, entry.getValue().ipAddress())
                         .cell(LEASE, "Infinite Static Lease");
             }
