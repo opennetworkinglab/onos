@@ -21,11 +21,12 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -608,14 +609,20 @@ public class VTNManager implements VTNService {
     private Iterable<String> getIfaceIds(String ifaceId) {
         VirtualPortId portId = VirtualPortId.portId(ifaceId);
         VirtualPort port = virtualPortService.getPort(portId);
+        if (port == null) {
+            return Collections.emptyList();
+        }
+
         TenantNetwork network = tenantNetworkService
                 .getNetwork(port.networkId());
-        Collection<String> ifaceIds = new HashSet<>();
+        if (network == null) {
+            return Collections.emptyList();
+        }
+
         Collection<VirtualPort> ports = virtualPortService
                 .getPorts(network.id());
-        Sets.newHashSet(ports).stream()
-                .forEach(p -> ifaceIds.add(p.portId().portId()));
-        return ifaceIds;
+        return ports.stream().map(p -> p.portId().portId())
+                .collect(Collectors.toSet());
     }
 
     private List<PortNumber> getLocalPorts(DeviceId deviceId, String ifaceId) {
