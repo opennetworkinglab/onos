@@ -237,7 +237,11 @@ public class DhcpManagerTest {
         public void releaseIP(HostId hostId) {
         }
 
-        public Map<HostId, IpAssignment> listMapping() {
+        public Map<HostId, IpAssignment> listAssignedMapping() {
+            return listAllMapping();
+        }
+
+        public Map<HostId, IpAssignment> listAllMapping() {
             Map<HostId, IpAssignment> map = new HashMap<>();
             IpAssignment assignment = IpAssignment.builder()
                                         .ipAddress(Ip4Address.valueOf(EXPECTED_IP))

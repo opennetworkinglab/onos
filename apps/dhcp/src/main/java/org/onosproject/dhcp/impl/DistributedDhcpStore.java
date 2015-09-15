@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Manages the pool of available IP Addresses in the network and
@@ -107,7 +108,7 @@ public class DistributedDhcpStore implements DhcpStore {
             if (status == IpAssignment.AssignmentStatus.Option_Assigned ||
                     status == IpAssignment.AssignmentStatus.Option_Requested) {
                 // Client has a currently Active Binding.
-                if ((ipAddr.toInt() > startIPRange.toInt()) && (ipAddr.toInt() < endIPRange.toInt())) {
+                if (ipWithinRange(ipAddr)) {
                     return ipAddr;
                 }
 
@@ -126,8 +127,6 @@ public class DistributedDhcpStore implements DhcpStore {
                     }
                 }
             }
-            return assignmentInfo.ipAddress();
-
         } else if (requestedIP.toInt() != 0) {
             // Client has requested an IP.
             if (freeIPPool.contains(requestedIP)) {
@@ -166,17 +165,36 @@ public class DistributedDhcpStore implements DhcpStore {
         IpAssignment assignmentInfo;
         if (allocationMap.containsKey(hostId)) {
             assignmentInfo = allocationMap.get(hostId).value();
-            if ((assignmentInfo.ipAddress().toInt() == ipAddr.toInt()) &&
-                    (ipAddr.toInt() >= startIPRange.toInt()) && (ipAddr.toInt() <= endIPRange.toInt())) {
+            IpAssignment.AssignmentStatus status = assignmentInfo.assignmentStatus();
 
-                assignmentInfo = IpAssignment.builder()
-                        .ipAddress(ipAddr)
-                        .timestamp(new Date())
-                        .leasePeriod(leaseTime)
-                        .assignmentStatus(IpAssignment.AssignmentStatus.Option_Assigned)
-                        .build();
-                allocationMap.put(hostId, assignmentInfo);
-                return true;
+            if (Objects.equals(assignmentInfo.ipAddress(), ipAddr) && ipWithinRange(ipAddr)) {
+
+                if (status == IpAssignment.AssignmentStatus.Option_Assigned ||
+                        status == IpAssignment.AssignmentStatus.Option_Requested) {
+                    // Client has a currently active binding with the server.
+                    assignmentInfo = IpAssignment.builder()
+                            .ipAddress(ipAddr)
+                            .timestamp(new Date())
+                            .leasePeriod(leaseTime)
+                            .assignmentStatus(IpAssignment.AssignmentStatus.Option_Assigned)
+                            .build();
+                    allocationMap.put(hostId, assignmentInfo);
+                    return true;
+                } else if (status == IpAssignment.AssignmentStatus.Option_Expired) {
+                    // Client has an expired binding with the server.
+                    if (freeIPPool.contains(ipAddr)) {
+                        assignmentInfo = IpAssignment.builder()
+                                .ipAddress(ipAddr)
+                                .timestamp(new Date())
+                                .leasePeriod(leaseTime)
+                                .assignmentStatus(IpAssignment.AssignmentStatus.Option_Assigned)
+                                .build();
+                        if (freeIPPool.remove(ipAddr)) {
+                            allocationMap.put(hostId, assignmentInfo);
+                            return true;
+                        }
+                    }
+                }
             }
         } else if (freeIPPool.contains(ipAddr)) {
             assignmentInfo = IpAssignment.builder()
@@ -201,7 +219,7 @@ public class DistributedDhcpStore implements DhcpStore {
                                                     .build();
             Ip4Address freeIP = newAssignment.ipAddress();
             allocationMap.put(hostId, newAssignment);
-            if ((freeIP.toInt() > startIPRange.toInt()) && (freeIP.toInt() < endIPRange.toInt())) {
+            if (ipWithinRange(freeIP)) {
                 freeIPPool.add(freeIP);
             }
         }
@@ -213,17 +231,26 @@ public class DistributedDhcpStore implements DhcpStore {
     }
 
     @Override
-    public Map<HostId, IpAssignment> listMapping() {
+    public Map<HostId, IpAssignment> listAssignedMapping() {
 
-        Map<HostId, IpAssignment> allMapping = new HashMap<>();
+        Map<HostId, IpAssignment> validMapping = new HashMap<>();
+        IpAssignment assignment;
         for (Map.Entry<HostId, Versioned<IpAssignment>> entry: allocationMap.entrySet()) {
-            IpAssignment assignment = entry.getValue().value();
+            assignment = entry.getValue().value();
             if (assignment.assignmentStatus() == IpAssignment.AssignmentStatus.Option_Assigned) {
-                allMapping.put(entry.getKey(), assignment);
+                validMapping.put(entry.getKey(), assignment);
             }
         }
-        return allMapping;
+        return validMapping;
+    }
 
+    @Override
+    public Map<HostId, IpAssignment> listAllMapping() {
+        Map<HostId, IpAssignment> validMapping = new HashMap<>();
+        for (Map.Entry<HostId, Versioned<IpAssignment>> entry: allocationMap.entrySet()) {
+            validMapping.put(entry.getKey(), entry.getValue().value());
+        }
+        return validMapping;
     }
 
     @Override
@@ -240,7 +267,7 @@ public class DistributedDhcpStore implements DhcpStore {
             Ip4Address freeIP = assignment.ipAddress();
             if (assignment.leasePeriod() < 0) {
                 allocationMap.remove(host);
-                if ((freeIP.toInt() > startIPRange.toInt()) && (freeIP.toInt() < endIPRange.toInt())) {
+                if (ipWithinRange(freeIP)) {
                     freeIPPool.add(freeIP);
                 }
                 return true;
@@ -257,9 +284,10 @@ public class DistributedDhcpStore implements DhcpStore {
     @Override
     public void populateIPPoolfromRange(Ip4Address startIP, Ip4Address endIP) {
         // Clear all entries from previous range.
+        allocationMap.clear();
+        freeIPPool.clear();
         startIPRange = startIP;
         endIPRange = endIP;
-        freeIPPool.clear();
 
         int lastIP = endIP.toInt();
         Ip4Address nextIP;
@@ -281,5 +309,18 @@ public class DistributedDhcpStore implements DhcpStore {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns true if the given ip is within the range of available IPs.
+     *
+     * @param ip given ip address
+     * @return true if within range, false otherwise
+     */
+    private boolean ipWithinRange(Ip4Address ip) {
+        if ((ip.toInt() >= startIPRange.toInt()) && (ip.toInt() <= endIPRange.toInt())) {
+            return true;
+        }
+        return false;
     }
 }

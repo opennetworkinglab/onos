@@ -68,11 +68,18 @@ public interface DhcpStore {
     void releaseIP(HostId hostId);
 
     /**
+     * Returns a collection of all the MacAddress to IPAddress mapping assigned to the hosts.
+     *
+     * @return the collection of the mappings
+     */
+    Map<HostId, IpAssignment> listAssignedMapping();
+
+    /**
      * Returns a collection of all the MacAddress to IPAddress mapping.
      *
      * @return the collection of the mappings
      */
-    Map<HostId, IpAssignment> listMapping();
+    Map<HostId, IpAssignment> listAllMapping();
 
     /**
      * Assigns the requested IP to the MAC ID (if available) for an indefinite period of time.

@@ -221,7 +221,7 @@ public class DhcpManager implements DhcpService {
 
     @Override
     public Map<HostId, IpAssignment> listMapping() {
-        return dhcpStore.listMapping();
+        return dhcpStore.listAssignedMapping();
     }
 
     @Override
@@ -658,7 +658,7 @@ public class DhcpManager implements DhcpService {
             IpAssignment ipAssignment;
             Date dateNow = new Date();
 
-            Map<HostId, IpAssignment> ipAssignmentMap = dhcpStore.listMapping();
+            Map<HostId, IpAssignment> ipAssignmentMap = dhcpStore.listAllMapping();
             for (Map.Entry<HostId, IpAssignment> entry: ipAssignmentMap.entrySet()) {
                 ipAssignment = entry.getValue();
 
@@ -667,6 +667,7 @@ public class DhcpManager implements DhcpService {
                         (ipAssignment.leasePeriod() > 0) && (timeLapsed > (ipAssignment.leasePeriodMs()))) {
 
                     dhcpStore.releaseIP(entry.getKey());
+                    // TODO remove only the IP from the host entry when the API is in place.
                     hostProviderService.hostVanished(entry.getKey());
                 }
             }
