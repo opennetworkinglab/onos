@@ -41,6 +41,8 @@ public class DhcpConfig extends Config<ApplicationId> {
     public static final String START_IP = "startip";
     public static final String END_IP = "endip";
 
+    public static final int DEFAULT = -1;
+
     /**
      * Returns the dhcp server ip.
      *
@@ -124,10 +126,10 @@ public class DhcpConfig extends Config<ApplicationId> {
     /**
      * Returns the Time To Live for the reply packets.
      *
-     * @return ttl or null if not set
+     * @return ttl or -1 if not set
      */
     public int ttl() {
-        return get(TTL, 0);
+        return get(TTL, DEFAULT);
     }
 
     /**
@@ -143,10 +145,10 @@ public class DhcpConfig extends Config<ApplicationId> {
     /**
      * Returns the Lease Time offered by the DHCP Server.
      *
-     * @return lease time or null if not set
+     * @return lease time or -1 if not set
      */
     public int leaseTime() {
-        return get(LEASE_TIME, 0);
+        return get(LEASE_TIME, DEFAULT);
     }
 
     /**
@@ -162,10 +164,10 @@ public class DhcpConfig extends Config<ApplicationId> {
     /**
      * Returns the Renew Time offered by the DHCP Server.
      *
-     * @return renew time or null if not set
+     * @return renew time or -1 if not set
      */
     public int renewTime() {
-        return get(RENEW_TIME, 0);
+        return get(RENEW_TIME, DEFAULT);
     }
 
     /**
@@ -181,10 +183,10 @@ public class DhcpConfig extends Config<ApplicationId> {
     /**
      * Returns the Rebind Time offered by the DHCP Server.
      *
-     * @return rebind time or null if not set
+     * @return rebind time or -1 if not set
      */
     public int rebindTime() {
-        return get(REBIND_TIME, 0);
+        return get(REBIND_TIME, DEFAULT);
     }
 
     /**
@@ -238,12 +240,12 @@ public class DhcpConfig extends Config<ApplicationId> {
     }
 
     /**
-     * Returns the delay after which the dhcp server will purge expired entries.
+     * Returns the delay in minutes after which the dhcp server will purge expired entries.
      *
-     * @return time delay or null if not set
+     * @return time delay or -1 if not set
      */
     public int timerDelay() {
-        return get(TIMER_DELAY, 0);
+        return get(TIMER_DELAY, DEFAULT);
     }
 
     /**
@@ -259,10 +261,10 @@ public class DhcpConfig extends Config<ApplicationId> {
     /**
      * Returns the default timeout for pending assignments.
      *
-     * @return default timeout or null if not set
+     * @return default timeout or -1 if not set
      */
     public int defaultTimeout() {
-        return get(DEFAULT_TIMEOUT, 0);
+        return get(DEFAULT_TIMEOUT, DEFAULT);
     }
 
     /**

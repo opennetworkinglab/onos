@@ -74,6 +74,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -559,7 +560,7 @@ public class DhcpManager implements DhcpService {
                 ARP arpPacket = (ARP) packet.getPayload();
 
                 if ((arpPacket.getOpCode() == ARP.OP_REQUEST) &&
-                        (myIP).equals(Ip4Address.valueOf(arpPacket.getTargetProtocolAddress()))) {
+                        Objects.equals(myIP, Ip4Address.valueOf(arpPacket.getTargetProtocolAddress()))) {
 
                     processARPPacket(context, packet);
 
@@ -597,22 +598,22 @@ public class DhcpManager implements DhcpService {
             if (cfg.domainServer() != null) {
                 domainServer = cfg.domainServer();
             }
-            if (cfg.ttl() != 0) {
+            if (cfg.ttl() != -1) {
                 packetTTL = (byte) cfg.ttl();
             }
-            if (cfg.leaseTime() != 0) {
+            if (cfg.leaseTime() != -1) {
                 leaseTime = cfg.leaseTime();
             }
-            if (cfg.renewTime() != 0) {
+            if (cfg.renewTime() != -1) {
                 renewalTime = cfg.renewTime();
             }
-            if (cfg.rebindTime() != 0) {
+            if (cfg.rebindTime() != -1) {
                 rebindingTime = cfg.rebindTime();
             }
-            if (cfg.defaultTimeout() != 0) {
+            if (cfg.defaultTimeout() != -1) {
                 dhcpStore.setDefaultTimeoutForPurge(cfg.defaultTimeout());
             }
-            if (cfg.timerDelay() != 0) {
+            if (cfg.timerDelay() != -1) {
                 timerDelay = cfg.timerDelay();
             }
             if ((cfg.startIp() != null) && (cfg.endIp() != null)) {
