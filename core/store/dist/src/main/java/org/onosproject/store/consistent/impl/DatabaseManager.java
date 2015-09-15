@@ -47,7 +47,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
-
 import org.onosproject.app.ApplicationEvent;
 import org.onosproject.app.ApplicationListener;
 import org.onosproject.app.ApplicationService;
@@ -252,7 +251,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
                     log.info("Successfully closed databases.");
                 }
             });
-        maps.values().forEach(this::unregisterMap);
+        ImmutableList.copyOf(maps.values()).forEach(this::unregisterMap);
         if (applicationService != null) {
             applicationService.removeListener(appListener);
         }
