@@ -11,10 +11,8 @@
         "ttl": "63",
         "lease": "300",
         "renew": "150",
-        "rebind": "200"
-      },
-      "dhcpstore" : {
-        "delay": "3",
+        "rebind": "200",
+        "delay": "2",
         "timeout": "150",
         "startip": "10.1.11.51",
         "endip": "10.1.11.100"
