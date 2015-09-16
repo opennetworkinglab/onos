@@ -43,7 +43,7 @@ ssh $remote "
     mkdir -p -- $ONOS_INSTALL_DIR/$KARAF_DIST/data/raft
 
     # Install the upstart configuration file and setup options for debugging
-    [ -z "$nostart" ] && sudo cp $ONOS_INSTALL_DIR/debian/onos.conf /etc/init/onos.conf
+    [ -z "$nostart" ] && sudo cp $ONOS_INSTALL_DIR/init/onos.conf /etc/init/onos.conf
     echo 'export ONOS_OPTS=debug' > $ONOS_INSTALL_DIR/options
 
     # Setup correct user to run onos-service
