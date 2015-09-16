@@ -30,7 +30,7 @@ function build_stage_dir() {
 
     # Stage the ONOS admin scripts and patch in Karaf service wrapper extras
     cp -r $ONOS_ROOT/tools/package/bin .
-    cp -r $ONOS_ROOT/tools/package/debian $ONOS_STAGE/debian
+    cp -r $ONOS_ROOT/tools/package/init $ONOS_STAGE/init
     cp -r $ONOS_ROOT/tools/package/etc/* $ONOS_STAGE/$KARAF_DIST/etc
 
     # Stage all builtin ONOS apps for factory install
@@ -111,7 +111,7 @@ function build_deb() {
     } > $ONOS_DEB_ROOT/DEBIAN/control
 
     cp -r $ONOS_STAGE $ONOS_DEB_ROOT/opt/onos
-    cp $ONOS_ROOT/tools/package/debian/onos.conf $ONOS_DEB_ROOT/etc/init/
+    cp $ONOS_ROOT/tools/package/init/onos.conf $ONOS_DEB_ROOT/etc/init/
 
     mkdir -p $ONOS_DEB_ROOT/opt/onos/var/
 
@@ -136,7 +136,7 @@ function build_rpm() {
             mkdir -p $ONOS_RPM_ROOT/{BUILD,RPMS,SOURCES/ONOS-$ONOS_RPM_VERSION/{etc/init,opt},SPECS,SRPMS}
 
             cp -r $ONOS_STAGE $ONOS_RPM_ROOT/SOURCES/ONOS-$ONOS_RPM_VERSION/opt/onos
-            cp $ONOS_ROOT/tools/package/debian/onos.conf $ONOS_RPM_ROOT/SOURCES/ONOS-$ONOS_RPM_VERSION/etc/init/
+            cp $ONOS_ROOT/tools/package/init/onos.conf $ONOS_RPM_ROOT/SOURCES/ONOS-$ONOS_RPM_VERSION/etc/init/
 
             cd $ONOS_RPM_ROOT/SOURCES
             COPYFILE_DISABLE=1 tar zcf ONOS-$ONOS_RPM_VERSION.tar.gz ONOS-$ONOS_RPM_VERSION
