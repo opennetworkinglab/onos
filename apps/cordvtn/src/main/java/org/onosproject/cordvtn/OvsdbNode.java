@@ -18,8 +18,6 @@ package org.onosproject.cordvtn;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.behaviour.BridgeConfig;
-import org.onosproject.net.behaviour.TunnelConfig;
 
 /**
  * Representation of a node with ovsdb server.
@@ -29,7 +27,7 @@ public interface OvsdbNode {
      * State of the ovsdb node.
      */
     enum State {
-        READY, CONNECTED, DISCONNECTED
+        INIT, READY, CONNECTED, DISCONNECTED
     }
 
     /**
@@ -47,44 +45,30 @@ public interface OvsdbNode {
     TpPort port();
 
     /**
+     * Returns the hostname of the node.
+     *
+     * @return hostname
+     */
+    String hostname();
+
+    /**
      * Returns the state of the node.
      *
      * @return state of the node
      */
-    State getState();
-
-    /**
-     * Sets the state of the node.
-     *
-     * @param state state of the node
-     */
-    void setState(State state);
+    State state();
 
     /**
      * Returns the device ID of the node.
      *
      * @return device id
      */
-    DeviceId getDeviceId();
+    DeviceId deviceId();
 
     /**
-     * Sets the device id of the node.
+     * Returns the device ID of the bridge associated with this node.
      *
-     * @param deviceId device identifier
+     * @return device id
      */
-    void setDeviceId(DeviceId deviceId);
-
-    /**
-     * Returns the bridge configuration handler of the node.
-     *
-     * @return bridge config behavior instance
-     */
-    BridgeConfig getBridgeConfig();
-
-    /**
-     * Returns the tunnel configuration handler of the node.
-     *
-     * @return tunnel config behavior instance
-     */
-    TunnelConfig getTunnelConfig();
+    DeviceId bridgeId();
 }

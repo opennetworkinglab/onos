@@ -15,6 +15,9 @@
  */
 package org.onosproject.cordvtn;
 
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.TpPort;
+
 import java.util.List;
 
 /**
@@ -22,19 +25,21 @@ import java.util.List;
  */
 public interface CordVtnService {
     /**
-     * Adds new nodes to the service and processes initial setup.
+     * Adds a new node to the service.
      *
-     * @param ovsdbNodes list of nodes
+     * @param hostname hostname of the node
+     * @param ip ip address to access the ovsdb server running on the node
+     * @param port port number to access the ovsdb server running on the node
      */
-    void addNodes(List<OvsdbNode> ovsdbNodes);
+    void addNode(String hostname, IpAddress ip, TpPort port);
 
     /**
-     * Deletes the nodes from the service and cleans up unnecessary configurations
-     * associated with the deleted nodes.
+     * Deletes the node from the service.
      *
-     * @param ovsdbNodes list of nodes
+     * @param ip ip address to access the ovsdb server running on the node
+     * @param port port number to access the ovsdb server running on the node
      */
-    void deleteNodes(List<OvsdbNode> ovsdbNodes);
+    void deleteNode(IpAddress ip, TpPort port);
 
     /**
      * Returns the number of the nodes known to the service.
