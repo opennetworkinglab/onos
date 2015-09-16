@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 import java.io.InputStream;
 import java.util.Collection;
@@ -96,7 +97,8 @@ public class VirtualPortWebResource extends AbstractWebResource {
     public Response getportsById(@PathParam("id") String id) {
 
         if (!get(VirtualPortService.class).exists(VirtualPortId.portId(id))) {
-            return ok("The virtualPort does not exists").build();
+            return Response.status(NOT_FOUND)
+                    .entity(VPORT_NOT_FOUND).build();
         }
         VirtualPort virtualPort = nullIsNotFound(get(VirtualPortService.class)
                 .getPort(VirtualPortId.portId(id)), VPORT_NOT_FOUND);

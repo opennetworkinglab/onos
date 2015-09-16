@@ -18,6 +18,7 @@ package org.onosproject.vtnweb.resources;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -87,7 +88,8 @@ public class SubnetWebResource extends AbstractWebResource {
     public Response getSubnet(@PathParam("subnetUUID") String id) {
 
         if (!get(SubnetService.class).exists(SubnetId.subnetId(id))) {
-            return ok("The subnet does not exists").build();
+            return Response.status(NOT_FOUND)
+                    .entity(SUBNET_NOT_FOUND).build();
         }
         Subnet sub = nullIsNotFound(get(SubnetService.class)
                                             .getSubnet(SubnetId.subnetId(id)),
@@ -112,7 +114,8 @@ public class SubnetWebResource extends AbstractWebResource {
                                             SUBNET_NOT_CREATE);
 
             if (!result) {
-                return Response.status(204).entity(SUBNET_NOT_CREATE).build();
+                return Response.status(INTERNAL_SERVER_ERROR)
+                        .entity(SUBNET_NOT_CREATE).build();
             }
             return Response.status(202).entity(result.toString()).build();
         } catch (Exception e) {
@@ -134,7 +137,8 @@ public class SubnetWebResource extends AbstractWebResource {
             Boolean result = nullIsNotFound(get(SubnetService.class)
                     .updateSubnets(subnets), SUBNET_NOT_FOUND);
             if (!result) {
-                return Response.status(204).entity(SUBNET_NOT_FOUND).build();
+                return Response.status(INTERNAL_SERVER_ERROR)
+                        .entity(SUBNET_NOT_FOUND).build();
             }
             return Response.status(203).entity(result.toString()).build();
         } catch (Exception e) {
@@ -194,8 +198,18 @@ public class SubnetWebResource extends AbstractWebResource {
                     .tenantId(subnetNode.get("tenant_id").asText());
             TenantNetworkId networkId = TenantNetworkId
                     .networkId(subnetNode.get("network_id").asText());
-            Version ipVersion = Version
-                    .valueOf(subnetNode.get("ip_version").asText());
+            String version = subnetNode.get("ip_version").asText();
+            Version ipVersion;
+            switch (version) {
+            case "4":
+                ipVersion = Version.INET;
+                break;
+            case "6":
+                ipVersion = Version.INET;
+                break;
+            default:
+                throw new IllegalArgumentException("ipVersion should be 4 or 6.");
+            }
             IpPrefix cidr = IpPrefix.valueOf(subnetNode.get("cidr").asText());
             IpAddress gatewayIp = IpAddress
                     .valueOf(subnetNode.get("gateway_ip").asText());
