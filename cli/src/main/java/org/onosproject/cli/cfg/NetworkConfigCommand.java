@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli.cfg;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -52,7 +53,7 @@ public class NetworkConfigCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         service = get(NetworkConfigService.class);
-        JsonNode root = new ObjectMapper().createObjectNode();
+        JsonNode root = mapper.createObjectNode();
         if (isNullOrEmpty(subjectKey)) {
             addAll((ObjectNode) root);
         } else {
@@ -68,14 +69,19 @@ public class NetworkConfigCommand extends AbstractShellCommand {
                 }
             }
         }
-        print("%s", root.toString());
+
+        try {
+            print("%s", mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error writing JSON to string", e);
+        }
     }
 
     @SuppressWarnings("unchecked")
     private void addAll(ObjectNode root) {
         service.getSubjectClasses()
                 .forEach(sc -> {
-                    SubjectFactory sf = service.getSubjectFactory((Class) sc);
+                    SubjectFactory sf = service.getSubjectFactory(sc);
                     addSubjectClass(newObject(root, sf.subjectKey()), sf);
                 });
     }
