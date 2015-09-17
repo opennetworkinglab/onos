@@ -93,22 +93,16 @@ function build_compressed_package() {
 
 # Build a DEB package
 function build_deb() {
-    echo "You need to be root in order to generate a proper DEB package."
+    echo "This command may ask for your password to run commands as sudo,"
+    echo "  because you need to be root in order to generate a proper DEB package."
 
     sudo rm -fr $ONOS_DEB_ROOT
 
     mkdir -p $ONOS_DEB_ROOT/{DEBIAN,opt,etc/init}
 
-    {
-        echo "Package: ONOS"
-        echo "Architecture: all"
-        echo "Maintainer: ONOS Project"
-        echo "Depends: debconf (>= 0.5.00), default-jre-headless (>= 1.8) | openjdk-8-jre | oracle-java8-installer"
-        echo "Priority: optional"
-        echo "Version: $ONOS_POM_VERSION"
-        echo "Description: Open Network Operating System (ONOS) is an"
-        echo "  opensource SDN controller."
-    } > $ONOS_DEB_ROOT/DEBIAN/control
+    # Copy the debian directory and fill in version
+    cp -r $ONOS_ROOT/tools/package/deb/* $ONOS_DEB_ROOT/DEBIAN/
+    sed -i'' -E "s/@ONOS_POM_VERSION/$ONOS_POM_VERSION/" $ONOS_DEB_ROOT/DEBIAN/control
 
     cp -r $ONOS_STAGE $ONOS_DEB_ROOT/opt/onos
     cp $ONOS_ROOT/tools/package/init/onos.conf $ONOS_DEB_ROOT/etc/init/
@@ -119,6 +113,8 @@ function build_deb() {
 
     sudo dpkg-deb --build $ONOS_DEB_ROOT > /dev/null &&
     sudo mv $ONOS_STAGE_ROOT/deb.deb $ONOS_DEB && ls -l $ONOS_DEB
+
+    #TODO run lintian on .deb
 }
 
 # Build an RPM package
