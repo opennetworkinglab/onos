@@ -10,7 +10,6 @@
       sleep 1
     done
     [ -z "$(ps -ef | grep karaf.jar | grep -v grep)" ] && echo 'Stopped onos service' || echo 'Failed to stop onos'
-    ps -ef | grep karaf.jar | grep -v grep
 )
 
 # Clean up onos runtime directories

@@ -120,64 +120,26 @@ function build_deb() {
 # Build an RPM package
 function build_rpm() {
     read -r -p "WARN: rpm-build utility and root priviledges are need to build the package. Do you want to continue? [Y/n] " response
-    case $response in
-        [nN][oO])
-            exit 0
-            ;;
-        *)
-            sudo rm -fr $ONOS_RPM_ROOT
+    [[ "$response" =~ ^[Nn] ]] && exit 0
 
-            sudo yum -y install rpm-build
+    sudo rm -fr $ONOS_RPM_ROOT
 
-            mkdir -p $ONOS_RPM_ROOT/{BUILD,RPMS,SOURCES/ONOS-$ONOS_RPM_VERSION/{etc/init,opt},SPECS,SRPMS}
+    sudo yum -y install rpm-build
 
-            cp -r $ONOS_STAGE $ONOS_RPM_ROOT/SOURCES/ONOS-$ONOS_RPM_VERSION/opt/onos
-            cp $ONOS_ROOT/tools/package/init/onos.conf $ONOS_RPM_ROOT/SOURCES/ONOS-$ONOS_RPM_VERSION/etc/init/
+    mkdir -p $ONOS_RPM_ROOT/{BUILD,RPMS,SOURCES/onos-$ONOS_RPM_VERSION/{etc/init,opt},SPECS,SRPMS}
 
-            cd $ONOS_RPM_ROOT/SOURCES
-            COPYFILE_DISABLE=1 tar zcf ONOS-$ONOS_RPM_VERSION.tar.gz ONOS-$ONOS_RPM_VERSION
+    cp -r $ONOS_STAGE $ONOS_RPM_ROOT/SOURCES/onos-$ONOS_RPM_VERSION/opt/onos
+    cp $ONOS_ROOT/tools/package/init/onos.conf $ONOS_RPM_ROOT/SOURCES/onos-$ONOS_RPM_VERSION/etc/init/
 
-            {
-                echo "Name: ONOS"
-                echo "Version: $ONOS_RPM_VERSION"
-                echo "Release: 1"
-                echo "Summary: Open Networking Operating System (ONOS)"
-                echo "Vendor: ONOS Project"
-                echo "Packager: ONOS Project"
-                echo "Group: Applications/Engineering"
-                echo "Requires: jre >= 1:8"
-                echo "License: Apache 2.0"
-                echo "URL: http://www.onosproject.org"
-                echo "Source0: ONOS-$ONOS_RPM_VERSION.tar.gz"
-                echo "BuildArch: noarch"
-                echo "BuildRoot: %{_tmppath}/%{name}-buildroot"
-                echo "%description"
-                echo "Open Network Operating System (ONOS) is an opensource SDN controller."
-                echo -e "\n"
-                echo "%prep"
-                echo "%setup -q"
-                echo -e "\n"
-                echo "%install"
-                echo "mkdir -p %{buildroot}"
-                echo "cp -R * %{buildroot}"
-                echo -e "\n"
-                echo "%clean"
-                echo "rm -rf %{buildroot}"
-                echo -e "\n"
-                echo "%files"
-                echo "%defattr(-,root,root,-)"
-                echo "/etc/init/onos.conf"
-                echo "/opt/onos/"
-                echo -e "\n"
-                echo "%post"
-                echo "echo ONOS successfully installed at /opt/onos"
-            } > $ONOS_RPM_ROOT/SPECS/onos.spec
+    cd $ONOS_RPM_ROOT/SOURCES
+    COPYFILE_DISABLE=1 tar zcf onos-$ONOS_RPM_VERSION.tar.gz onos-$ONOS_RPM_VERSION
 
-            rpmbuild --define "_topdir $ONOS_RPM_ROOT" -bb $ONOS_RPM_ROOT/SPECS/onos.spec
+    cp $ONOS_ROOT/tools/package/rpm/onos.spec $ONOS_RPM_ROOT/SPECS/
+    sed -i'' -E "s/@ONOS_RPM_VERSION/$ONOS_RPM_VERSION/g" $ONOS_RPM_ROOT/SPECS/onos.spec
 
-            cp $ONOS_RPM_ROOT/RPMS/noarch/ONOS-$ONOS_RPM_VERSION-1.noarch.rpm $ONOS_STAGE_ROOT && ls -l $ONOS_STAGE_ROOT/ONOS-$ONOS_RPM_VERSION-1.noarch.rpm
-            ;;
-    esac
+    rpmbuild --define "_topdir $ONOS_RPM_ROOT" -bb $ONOS_RPM_ROOT/SPECS/onos.spec
+
+    cp $ONOS_RPM_ROOT/RPMS/noarch/onos-$ONOS_RPM_VERSION-1.noarch.rpm $ONOS_STAGE_ROOT && ls -l $ONOS_STAGE_ROOT/onos-$ONOS_RPM_VERSION-1.noarch.rpm
 }
 
 # Script entry point
