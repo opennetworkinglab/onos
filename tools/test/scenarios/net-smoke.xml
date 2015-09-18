@@ -42,6 +42,7 @@
         <dependency name="Net-Teardown" requires="~Host-Intent-Connectivity,
                                                   ~P2P-Intent-Connectivity,
                                                   ~Net-REST,
-                                                  ~Net-Create-Flows"/>
+                                                  ~Net-Create-Flows,
+                                                  ~Net-topo"/>
     </group>
 </scenario>

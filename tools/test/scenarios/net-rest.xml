@@ -101,10 +101,10 @@
         <!-- Check that the intents can be fetched via the REST API -->
         <step name="Net-REST.Validate-Intent-XY-Installed"
               requires="Net-REST.Create-Intent-YX"
-              exec="curl -f -uonos:rocks ${xyLocation}"/>
+              exec="curl-with-retry ${xyLocation}"/>
         <step name="Net-REST.Validate-Intent-YX-Installed"
               requires="^"
-              exec="curl -f -uonos:rocks ${yxLocation}"/>
+              exec="curl-with-retry ${yxLocation}"/>
 
         <!-- Use REST API to query flows created by the intents -->
         <step name="Net-REST.Validate-Intent-XY-Flow-Installed"
@@ -120,7 +120,7 @@
         <step name="Net-REST.Validate-YX-Flow-State" requires="^"
               exec="test '${dev4outFlowState}' == 'ADDED' -o '${dev4outFlowState}' == 'PENDING_ADD'"/>
         <step name="Net-REST.Validate-YX-Flow-Port" requires="^"
-              exec="test '${dev4outFlowPort}' == '3'"/>
+              exec="test ${dev4outFlowPort} -ge 1 -a ${dev4outFlowPort} -le 5"/>
 
         <!-- Check that connectivity was established -->
         <step name="Net-REST.Ping-XY" requires="Net-REST.Create-Intent-XY,Net-REST.Create-Intent-YX"
@@ -139,22 +139,23 @@
               exec="curl -f -X DELETE -uonos:rocks ${xyLocation}"/>
         <step name="Net-REST.Delete-Intent-YX" requires="^"
               exec="curl -f -X DELETE -uonos:rocks ${yxLocation}"/>
+        <step name="Net-REST.Allow-Intents-To-Purge"
+              exec="onos-check-intent ${OC1} xy INSTALLED" env="!"
+              requires="Net-REST.Delete-Intent-XY,Net-REST.Delete-Intent-YX"/>
 
         <!-- Use REST API to be sure that flows are no longer installed -->
-        <step name="Net-REST.Validate-XY-Flows-Removed" requires="Net-REST.Delete-Intent-XY"
+        <step name="Net-REST.Validate-XY-Flows-Removed" requires="Net-REST.Allow-Intents-To-Purge"
               exec="find-flow.py ${OC1} dev1out of:0000000000000001"
               env="!"/>
-        <step name="Net-REST.Validate-YX-Flows-Removed" requires="Net-REST.Delete-Intent-YX"
+        <step name="Net-REST.Validate-YX-Flows-Removed" requires="Net-REST.Allow-Intents-To-Purge"
               exec="find-flow.py ${OC1} dev4out of:0000000000000004"
               env="!"/>
 
         <!-- Check that the deleted intents no longer appear in the REST API -->
-        <step name="Net-REST.Allow-Intents-To-Purge" requires="Net-REST.Delete-Intent-XY"
-              exec="sleep 1"/>
         <step name="Net-REST.Validate-Intent-XY-Removed" requires="Net-REST.Allow-Intents-To-Purge"
-              exec="curl -f -uonos:rocks ${xyLocation}" env="!"/>
+              exec="curl-with-retry ${xyLocation}" env="!"/>
         <step name="Net-REST.Validate-Intent-YX-Removed" requires="Net-REST.Allow-Intents-To-Purge"
-              exec="curl -f -uonos:rocks ${yxLocation}" env="!"/>
+              exec="curl-with-retry ${yxLocation}" env="!"/>
 
     </group>
 </scenario>

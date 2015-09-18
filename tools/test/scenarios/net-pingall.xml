@@ -23,7 +23,7 @@
 
         <!-- TODO: take this out when initial pingall sweep is 100% -->
         <step name="Initial-Ping-All" requires="Check-Apps"
-              exec="onos-mininet sendAndExpect py net.pingAll(1) --expect 600 received"/>
+              exec="onos-mininet sendAndExpect py net.pingAll(1) --expect received"/>
 
         <step name="Ping-All-And-Verify" requires="Check-Apps,Initial-Ping-All"
               exec="onos-mininet sendAndExpect py net.pingAll(1) --expect 600/600 received"/>
