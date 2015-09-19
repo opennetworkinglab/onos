@@ -1,17 +1,39 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Verifies connectivity to each node in ONOS cell.
+# Starts a Mininet network topology connected to all nodes in a cell.
 # -----------------------------------------------------------------------------
+
+function __usage() {
+cat << _EOM_
+
+usage:
+ $(basename $0) [file]
+
+options:
+ - [file] : a Mininet topology file. Default is *sol.py* .
+
+summary:
+ Starts a Mininet network topology connected to all nodes in a cell.
+
+ Currently, all topology files are assumed to be found in
+ \$OCN's ~/topos directory. Therefore [file] must be specified as
+ topos/filename.
+
+_EOM_
+}
+
+[ "$1" = "-h" ] && __usage && exit 0
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
 SSHCMD="ssh -o PasswordAuthentication=no"
 SCPCMD="scp -q -o PasswordAuthentication=no"
+topo=${1:-topos/sol.py}
 
 echo "Copying topology files to mininet vm."
 $SSHCMD -n $ONOS_USER@$OCN mkdir -p topos
 $SCPCMD $ONOS_ROOT/tools/test/topos/* $ONOS_USER@$OCN:topos/
 
 echo "Starting Network."
-$SSHCMD -t $ONOS_USER@$OCN sudo python topos/sol.py $(env | sort | egrep "OC[0-9]+" | cut -d= -f2) 
+$SSHCMD -t $ONOS_USER@$OCN sudo python $topo $(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
