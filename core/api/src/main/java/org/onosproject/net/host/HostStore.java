@@ -39,12 +39,13 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * @param providerId      provider identification
      * @param hostId          host identification
      * @param hostDescription host description data
+     * @param replaceIps      replace IP set if true, merge IP set otherwise
      * @return appropriate event or null if no change resulted
      */
     HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
-                                 HostDescription hostDescription);
+                                 HostDescription hostDescription,
+                                 boolean replaceIps);
 
-    // FIXME: API to remove only IpAddress is missing
     /**
      * Removes the specified host from the inventory.
      *

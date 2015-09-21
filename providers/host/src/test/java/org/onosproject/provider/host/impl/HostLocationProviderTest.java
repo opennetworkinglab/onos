@@ -243,7 +243,7 @@ public class HostLocationProviderTest {
         }
 
         @Override
-        public void hostDetected(HostId hostId, HostDescription hostDescription) {
+        public void hostDetected(HostId hostId, HostDescription hostDescription, boolean replaceIps) {
             DeviceId descr = hostDescription.location().deviceId();
             if (added == null) {
                 added = descr;

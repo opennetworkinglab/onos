@@ -207,12 +207,12 @@ public class HostManager
         }
 
         @Override
-        public void hostDetected(HostId hostId, HostDescription hostDescription) {
+        public void hostDetected(HostId hostId, HostDescription hostDescription, boolean replaceIps) {
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
             hostDescription = validateHost(hostDescription, hostId);
             HostEvent event = store.createOrUpdateHost(provider().id(), hostId,
-                                                       hostDescription);
+                                                       hostDescription, replaceIps);
             if (event != null) {
                 post(event);
             }

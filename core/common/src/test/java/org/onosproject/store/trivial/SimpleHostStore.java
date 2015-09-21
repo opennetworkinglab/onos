@@ -84,12 +84,14 @@ public class SimpleHostStore
 
     @Override
     public HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
-                                        HostDescription hostDescription) {
+                                        HostDescription hostDescription,
+                                        boolean replaceIps) {
+        //TODO We need a way to detect conflicting changes and abort update.
         StoredHost host = hosts.get(hostId);
         if (host == null) {
             return createHost(providerId, hostId, hostDescription);
         }
-        return updateHost(providerId, host, hostDescription);
+        return updateHost(providerId, host, hostDescription, replaceIps);
     }
 
     // creates a new host and sends HOST_ADDED
@@ -110,7 +112,7 @@ public class SimpleHostStore
 
     // checks for type of update to host, sends appropriate event
     private HostEvent updateHost(ProviderId providerId, StoredHost host,
-                                 HostDescription descr) {
+                                 HostDescription descr, boolean replaceIps) {
         HostEvent event;
         if (!host.location().equals(descr.location())) {
             host.setLocation(descr.location());
@@ -122,8 +124,14 @@ public class SimpleHostStore
             return null;
         }
 
-        Set<IpAddress> addresses = new HashSet<>(host.ipAddresses());
-        addresses.addAll(descr.ipAddress());
+        final Set<IpAddress> addresses;
+        if (replaceIps) {
+            addresses = ImmutableSet.copyOf(descr.ipAddress());
+        } else {
+            addresses = new HashSet<>(host.ipAddresses());
+            addresses.addAll(descr.ipAddress());
+        }
+
         Annotations annotations = merge((DefaultAnnotations) host.annotations(),
                                         descr.annotations());
         StoredHost updated = new StoredHost(providerId, host.id(),

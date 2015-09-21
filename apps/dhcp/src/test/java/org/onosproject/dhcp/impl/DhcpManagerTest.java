@@ -330,7 +330,7 @@ public class DhcpManagerTest {
         }
 
         @Override
-        public void hostDetected(HostId hostId, HostDescription hostDescription) {
+        public void hostDetected(HostId hostId, HostDescription hostDescription, boolean replaceIps) {
         }
 
         @Override
