@@ -301,10 +301,10 @@ public abstract class Tools {
      * @return file contents
      */
     public static List<String> slurp(File path) {
-        try {
+        try (
             BufferedReader br = new BufferedReader(
                     new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8));
-
+                ) {
             List<String> lines = new ArrayList<>();
             String line;
             while ((line = br.readLine()) != null) {
