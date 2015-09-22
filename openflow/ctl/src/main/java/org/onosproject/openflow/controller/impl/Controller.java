@@ -16,6 +16,8 @@
 
 package org.onosproject.openflow.controller.impl;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
@@ -40,10 +42,15 @@ import org.slf4j.LoggerFactory;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetSocketAddress;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.openflow.controller.Dpid.uri;
@@ -65,8 +72,8 @@ public class Controller {
     private ChannelGroup cg;
 
     // Configuration options
-    protected int openFlowPort = 6653;
-    protected int workerThreads = 0;
+    protected List<Integer> openFlowPorts = ImmutableList.of(6633, 6653);
+    protected int workerThreads = 16;
 
     // Start time of the controller
     protected long systemStartTime;
@@ -129,11 +136,13 @@ public class Controller {
             ChannelPipelineFactory pfact =
                     new OpenflowPipelineFactory(this, null);
             bootstrap.setPipelineFactory(pfact);
-            InetSocketAddress sa = new InetSocketAddress(openFlowPort);
             cg = new DefaultChannelGroup();
-            cg.add(bootstrap.bind(sa));
+            openFlowPorts.forEach(port -> {
+                InetSocketAddress sa = new InetSocketAddress(port);
+                cg.add(bootstrap.bind(sa));
+                log.info("Listening for switch connections on {}", sa);
+            });
 
-            log.info("Listening for switch connections on {}", sa);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -155,18 +164,21 @@ public class Controller {
         }
     }
 
-    public void setConfigParams(Map<String, String> configParams) {
-        String ofPort = configParams.get("openflowport");
-        if (ofPort != null) {
-            this.openFlowPort = Integer.parseInt(ofPort);
+    public void setConfigParams(Dictionary<?, ?> properties) {
+        String ports = get(properties, "openflowPorts");
+        if (!Strings.isNullOrEmpty(ports)) {
+            this.openFlowPorts = Stream.of(ports.split(","))
+                                       .map(s -> Integer.parseInt(s))
+                                       .collect(Collectors.toList());
         }
-        log.debug("OpenFlow port set to {}", this.openFlowPort);
+        log.debug("OpenFlow ports set to {}", this.openFlowPorts);
 
-        String threads = configParams.get("workerthreads");
-        this.workerThreads = threads != null ? Integer.parseInt(threads) : 16;
+        String threads = get(properties, "workerThreads");
+        if (!Strings.isNullOrEmpty(threads)) {
+            this.workerThreads = Integer.parseInt(threads);
+        }
         log.debug("Number of worker threads set to {}", this.workerThreads);
     }
-
 
     /**
      * Initialize internal data structures.
