@@ -166,7 +166,7 @@ public class PIMAddrUnicast {
             return false;
         }
         final PIMAddrUnicast other = (PIMAddrUnicast) obj;
-        if (this.family != this.family) {
+        if (this.family != other.family) {
             return false;
         }
 

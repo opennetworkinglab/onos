@@ -265,7 +265,7 @@ public class PIMAddrSource {
             return false;
         }
         final PIMAddrSource other = (PIMAddrSource) obj;
-        if (this.family != this.family) {
+        if (this.family != other.family) {
             return false;
         }
 

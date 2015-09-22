@@ -241,7 +241,7 @@ public class PIMAddrGroup {
             return false;
         }
         final PIMAddrGroup other = (PIMAddrGroup) obj;
-        if (this.family != this.family) {
+        if (this.family != other.family) {
             return false;
         }
 
