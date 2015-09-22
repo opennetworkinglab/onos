@@ -97,9 +97,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
-    @Property(name = "openflowPort", value = DEFAULT_OFPORT,
-            label = "Port number used by OpenFlow protocol; default is 6653")
-    private String openflowPort = DEFAULT_OFPORT;
+    @Property(name = "openflowPorts", value = DEFAULT_OFPORT,
+            label = "Port numbers (comma separated) used by OpenFlow protocol; default is 6633,6653")
+    private String openflowPorts = DEFAULT_OFPORT;
 
     @Property(name = "workerThreads", intValue = DEFAULT_WORKER_THREADS,
             label = "Number of controller worker threads; default is 16")
