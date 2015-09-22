@@ -20,7 +20,6 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.TrafficSelector;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Service for intercepting data plane packets and for emitting synthetic
@@ -52,13 +51,12 @@ public interface PacketService {
     void removeProcessor(PacketProcessor processor);
 
     /**
-     * Returns priority bindings of all registered packet processors.
+     * Returns priority bindings of all registered packet processor entries.
      *
-     * @return list of existing packet processors
+     * @return list of existing packet processor entries
      */
     @Beta
-    // TODO: Consider returning list of PacketProcessorEntry with processor, priority and stats
-    Map<Integer, PacketProcessor> getProcessors();
+    List<PacketProcessorEntry> getProcessors();
 
     /**
      * Requests that packets matching the given selector are punted from the

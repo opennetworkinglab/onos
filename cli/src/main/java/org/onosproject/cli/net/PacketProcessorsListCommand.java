@@ -17,7 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.net.packet.PacketProcessor;
+import org.onosproject.net.packet.PacketProcessorEntry;
 import org.onosproject.net.packet.PacketService;
 
 import static org.onosproject.net.packet.PacketProcessor.ADVISOR_MAX;
@@ -30,7 +30,7 @@ import static org.onosproject.net.packet.PacketProcessor.DIRECTOR_MAX;
         description = "Lists packet processors")
 public class PacketProcessorsListCommand extends AbstractShellCommand {
 
-    private static final String FMT = "priority=%s, class=%s";
+    private static final String FMT = "priority=%s, class=%s, packets=%d, avgNanos=%d";
 
     @Override
     protected void execute() {
@@ -43,8 +43,10 @@ public class PacketProcessorsListCommand extends AbstractShellCommand {
         }
     }
 
-    private void print(int priority, PacketProcessor processor) {
-        print(FMT, priorityFormat(priority), processor.getClass().getName());
+    private void print(PacketProcessorEntry entry) {
+        print(FMT, priorityFormat(entry.priority()),
+              entry.processor().getClass().getName(),
+              entry.invocations(), entry.averageNanos());
     }
 
     private String priorityFormat(int priority) {

@@ -19,7 +19,6 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.TrafficSelector;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Test adapter for packet service.
@@ -34,7 +33,7 @@ public class PacketServiceAdapter implements PacketService {
     }
 
     @Override
-    public Map<Integer, PacketProcessor> getProcessors() {
+    public List<PacketProcessorEntry> getProcessors() {
         return null;
     }
 
