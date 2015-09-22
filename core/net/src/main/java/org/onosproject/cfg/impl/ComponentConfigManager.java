@@ -61,6 +61,9 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     private static final String COMPONENT_NULL = "Component name cannot be null";
     private static final String PROPERTY_NULL = "Property name cannot be null";
+    private static final String COMPONENT_MISSING = "Component %s is not registered";
+    private static final String PROPERTY_MISSING = "Property %s does not exist for %s";
+
 
     //Symbolic constants for use with the accumulator
     private static final int MAX_ITEMS = 100;
@@ -160,6 +163,11 @@ public class ComponentConfigManager implements ComponentConfigService {
 
         checkNotNull(componentName, COMPONENT_NULL);
         checkNotNull(name, PROPERTY_NULL);
+
+        checkArgument(properties.containsKey(componentName),
+                      COMPONENT_MISSING, componentName);
+        checkArgument(properties.get(componentName).containsKey(name),
+                      PROPERTY_MISSING, name, componentName);
         store.setProperty(componentName, name, value);
     }
 
@@ -169,6 +177,11 @@ public class ComponentConfigManager implements ComponentConfigService {
 
         checkNotNull(componentName, COMPONENT_NULL);
         checkNotNull(name, PROPERTY_NULL);
+
+        checkArgument(properties.containsKey(componentName),
+                      COMPONENT_MISSING, componentName);
+        checkArgument(properties.get(componentName).containsKey(name),
+                      PROPERTY_MISSING, name, componentName);
         store.unsetProperty(componentName, name);
     }
 
