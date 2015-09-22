@@ -110,8 +110,8 @@ public class PcepErrorVer1 implements PcepError {
     /**
      * Parse RP List from the channel buffer.
      *
-     * @throws PcepParseException if mandatory fields are missing
      * @param cb of type channel buffer
+     * @throws PcepParseException if mandatory fields are missing
      */
     public void parseRPList(ChannelBuffer cb) throws PcepParseException {
         byte yObjClass;
