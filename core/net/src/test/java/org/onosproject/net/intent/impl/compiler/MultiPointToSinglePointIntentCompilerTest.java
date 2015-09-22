@@ -21,9 +21,7 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
-import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.flow.TrafficSelector;
@@ -33,12 +31,10 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.net.topology.LinkWeight;
-import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.PathServiceAdapter;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -63,7 +59,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
     /**
      * Mock path service for creating paths within the test.
      */
-    private static class MockPathService implements PathService {
+    private static class MockPathService extends PathServiceAdapter {
 
         final String[] pathHops;
 
@@ -88,33 +84,6 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
             result.add(createPath(allHops));
 
             return result;
-        }
-
-        @Override
-        public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
-            return null;
-        }
-
-        @Override
-        public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst) {
-            return null;
-        }
-
-        @Override
-        public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight) {
-            return null;
-        }
-
-        @Override
-        public Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst,
-                                                      Map<Link, Object> riskProfile) {
-            return null;
-        }
-
-        @Override
-        public Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst, LinkWeight weight,
-                                                      Map<Link, Object> riskProfile) {
-            return null;
         }
     }
 

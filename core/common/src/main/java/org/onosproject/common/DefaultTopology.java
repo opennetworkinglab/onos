@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSetMultimap.Builder;
 import org.onlab.graph.DijkstraGraphSearch;
+import org.onlab.graph.DisjointPathPair;
 import org.onlab.graph.GraphPathSearch;
 import org.onlab.graph.GraphPathSearch.Result;
 import org.onlab.graph.SRLGGraphSearch;
@@ -49,11 +50,11 @@ import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyGraph;
 import org.onosproject.net.topology.TopologyVertex;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -333,7 +334,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * @return set of shortest disjoint path pairs
      */
     public Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst) {
-        return getDisjointPaths(src, dst, null);
+        return getDisjointPaths(src, dst, (LinkWeight) null);
     }
 
     /**
@@ -369,27 +370,15 @@ public class DefaultTopology extends AbstractModel implements Topology {
      *
      * @param src         source device
      * @param dst         destination device
-     * @param riskProfile map representing risk groups for each edge
-     * @return set of shortest disjoint paths
-     */
-    public Set<DisjointPath> getSRLGDisjointPathsD(DeviceId src, DeviceId dst, Map<TopologyEdge, Object> riskProfile) {
-        return getSRLGDisjointPathsD(src, dst, null, riskProfile);
-    }
-
-    /**
-     * Computes on-demand the set of shortest disjoint risk groups path pairs between source and
-     * destination devices.
-     *
-     * @param src         source device
-     * @param dst         destination device
      * @param weight      edge weight object
      * @param riskProfile map representing risk groups for each edge
      * @return set of shortest disjoint paths
      */
-    public Set<DisjointPath> getSRLGDisjointPathsD(DeviceId src, DeviceId dst, LinkWeight weight, Map<TopologyEdge,
-            Object> riskProfile) {
-        final DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
-        final DefaultTopologyVertex dstV = new DefaultTopologyVertex(dst);
+    private Set<DisjointPath> disjointPaths(DeviceId src, DeviceId dst, LinkWeight weight,
+                                                Map<TopologyEdge, Object> riskProfile) {
+        DefaultTopologyVertex srcV = new DefaultTopologyVertex(src);
+        DefaultTopologyVertex dstV = new DefaultTopologyVertex(dst);
+
         Set<TopologyVertex> vertices = graph.getVertexes();
         if (!vertices.contains(srcV) || !vertices.contains(dstV)) {
             // src or dst not part of the current graph
@@ -416,35 +405,27 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * @param riskProfile map representing risk groups for each link
      * @return set of shortest disjoint paths
      */
-    public Set<DisjointPath> getSRLGDisjointPaths(DeviceId src, DeviceId dst, LinkWeight weight,
-                                                  Map<Link, Object> riskProfile) {
+    public Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst, LinkWeight weight,
+                                              Map<Link, Object> riskProfile) {
         Map<TopologyEdge, Object> riskProfile2 = new HashMap<>();
         for (Link l : riskProfile.keySet()) {
             riskProfile2.put(new TopologyEdge() {
-                final Link cur = l;
+                Link cur = l;
 
                 public Link link() {
                     return cur;
                 }
 
                 public TopologyVertex src() {
-                    return new TopologyVertex() {
-                        public DeviceId deviceId() {
-                            return src;
-                        }
-                    };
+                    return () -> src;
                 }
 
                 public TopologyVertex dst() {
-                    return new TopologyVertex() {
-                        public DeviceId deviceId() {
-                            return dst;
-                        }
-                    };
+                    return () -> dst;
                 }
             }, riskProfile.get(l));
         }
-        return getSRLGDisjointPathsD(src, dst, weight, riskProfile2);
+        return disjointPaths(src, dst, weight, riskProfile2);
     }
 
     /**
@@ -456,22 +437,20 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * @param riskProfile map representing risk groups for each link
      * @return set of shortest disjoint paths
      */
-    public Set<DisjointPath> getSRLGDisjointPaths(DeviceId src, DeviceId dst, Map<Link, Object> riskProfile) {
-        return getSRLGDisjointPaths(src, dst, null, riskProfile);
+    public Set<DisjointPath> getDisjointPaths(DeviceId src, DeviceId dst, Map<Link, Object> riskProfile) {
+        return getDisjointPaths(src, dst, null, riskProfile);
     }
 
     // Converts graph path to a network path with the same cost.
     private Path networkPath(org.onlab.graph.Path<TopologyVertex, TopologyEdge> path) {
-        List<Link> links = new ArrayList<>();
-        for (TopologyEdge edge : path.edges()) {
-            links.add(edge.link());
-        }
+        List<Link> links = path.edges().stream().map(TopologyEdge::link).collect(Collectors.toList());
         return new DefaultPath(CORE_PROVIDER_ID, links, path.cost());
     }
 
-    private DisjointPath networkDisjointPath(org.onlab.graph.DisjointPathPair<TopologyVertex, TopologyEdge> path) {
+    private DisjointPath networkDisjointPath(DisjointPathPair<TopologyVertex, TopologyEdge> path) {
         return new DefaultDisjointPath(CORE_PROVIDER_ID,
-                                       (DefaultPath) networkPath(path.path1), (DefaultPath) networkPath(path.path2));
+                                       (DefaultPath) networkPath(path.primary()),
+                                       (DefaultPath) networkPath(path.secondary()));
     }
 
     // Searches for SCC clusters in the network topology graph using Tarjan
@@ -484,6 +463,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private ImmutableMap<ClusterId, TopologyCluster> buildTopologyClusters() {
         ImmutableMap.Builder<ClusterId, TopologyCluster> clusterBuilder = ImmutableMap.builder();
         SCCResult<TopologyVertex, TopologyEdge> results = clusterResults.get();
+
         // Extract both vertexes and edges from the results; the lists form
         // pairs along the same index.
         List<Set<TopologyVertex>> clusterVertexes = results.clusterVertexes();

@@ -44,8 +44,8 @@ public interface PathService {
      * edge-weight entity, between the specified source and destination
      * network elements.
      *
-     * @param src source element
-     * @param dst destination element
+     * @param src    source element
+     * @param dst    destination element
      * @param weight edge-weight entity
      * @return set of all shortest paths between the two element
      */
@@ -55,8 +55,8 @@ public interface PathService {
      * Returns the set of all disjoint shortest path pairs, precomputed in terms of hop-count,
      * between the specified source and destination devices.
      *
-     * @param src      source device
-     * @param dst      destination device
+     * @param src source device
+     * @param dst destination device
      * @return set of all shortest paths between the two devices
      */
     Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst);
@@ -65,9 +65,9 @@ public interface PathService {
      * Returns the set of all disjoint shortest path pairs, computed using the supplied
      * edge-weight entity, between the specified source and destination devices.
      *
-     * @param src      source device
-     * @param dst      destination device
-     * @param weight   edge-weight entity
+     * @param src    source device
+     * @param dst    destination device
+     * @param weight edge-weight entity
      * @return set of all shortest paths between the two devices
      */
     Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
@@ -77,25 +77,25 @@ public interface PathService {
      * Returns the set of all disjoint shortest path pairs, precomputed in terms of hop-count,
      * between the specified source and destination devices.
      *
-     * @param src      source device
-     * @param dst      destination device
+     * @param src         source device
+     * @param dst         destination device
      * @param riskProfile map of edges to risk profiles
      * @return set of all shortest paths between the two devices
      */
-    Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst,
-                                           Map<Link, Object> riskProfile);
+    Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
+                                       Map<Link, Object> riskProfile);
 
     /**
      * Returns the set of all disjoint shortest path pairs, precomputed in terms of hop-count,
      * between the specified source and destination devices.
      *
-     * @param src      source device
-     * @param dst      destination device
-     * @param weight    edge-weight entity
+     * @param src         source device
+     * @param dst         destination device
+     * @param weight      edge-weight entity
      * @param riskProfile map of edges to risk profiles
      * @return set of all shortest paths between the two devices
      */
-    Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst,
-                                           LinkWeight weight, Map<Link, Object> riskProfile);
+    Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
+                                       LinkWeight weight, Map<Link, Object> riskProfile);
 
 }

@@ -15,7 +15,11 @@
  */
 package org.onosproject.rest.resources;
 
-import java.util.Set;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.HostId;
+import org.onosproject.net.topology.PathService;
+import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -23,14 +27,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.ElementId;
-import org.onosproject.net.HostId;
-import org.onosproject.net.topology.PathService;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.rest.AbstractWebResource;
+import java.util.Set;
 
 /**
  * Compute paths in the network graph.
@@ -50,6 +47,17 @@ public class PathsWebResource extends AbstractWebResource {
     }
 
     /**
+     * Returns either host id or device id, depending on the ID format.
+     *
+     * @param id host or device id string
+     * @return element id
+     */
+    private ElementId elementId(String id) {
+        ElementId elementId = isHostId(id);
+        return elementId != null ? elementId : DeviceId.deviceId(id);
+    }
+
+    /**
      * Get all shortest paths between any two hosts or devices.
      * Returns array of all shortest paths between any two elements.
      *
@@ -63,49 +71,27 @@ public class PathsWebResource extends AbstractWebResource {
     public Response getPath(@PathParam("src") String src,
                             @PathParam("dst") String dst) {
         PathService pathService = get(PathService.class);
-
-        ElementId srcElement = isHostId(src);
-        ElementId dstElement = isHostId(dst);
-
-        if (srcElement == null) {
-            // Doesn't look like a host, assume it is a device
-            srcElement = DeviceId.deviceId(src);
-        }
-
-        if (dstElement == null) {
-            // Doesn't look like a host, assume it is a device
-            dstElement = DeviceId.deviceId(dst);
-        }
-
-        Set<org.onosproject.net.Path> paths = pathService.getPaths(srcElement, dstElement);
-        ObjectNode root = encodeArray(org.onosproject.net.Path.class, "paths", paths);
-        return ok(root).build();
+        Set<org.onosproject.net.Path> paths =
+                pathService.getPaths(elementId(src), elementId(dst));
+        return ok(encodeArray(org.onosproject.net.Path.class, "paths", paths)).build();
     }
 
+    /**
+     * Get all shortest disjoint paths between any two hosts or devices.
+     * Returns array of all shortest disjoint paths between any two elements.
+     *
+     * @param src source identifier
+     * @param dst destination identifier
+     * @return path data
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{src}/{dst}/disjoint")
-
     public Response getDisjointPath(@PathParam("src") String src,
-                            @PathParam("dst") String dst) {
+                                    @PathParam("dst") String dst) {
         PathService pathService = get(PathService.class);
-
-        ElementId srcElement = isHostId(src);
-        ElementId dstElement = isHostId(dst);
-
-        if (srcElement == null) {
-            // Doesn't look like a host, assume it is a device
-            srcElement = DeviceId.deviceId(src);
-        }
-
-        if (dstElement == null) {
-            // Doesn't look like a host, assume it is a device
-            dstElement = DeviceId.deviceId(dst);
-        }
         Set<org.onosproject.net.DisjointPath> paths =
-                pathService.getDisjointPaths(srcElement, dstElement);
-        ObjectNode root =
-                    encodeArray(org.onosproject.net.DisjointPath.class, "paths", paths);
-        return ok(root).build();
+                pathService.getDisjointPaths(elementId(src), elementId(dst));
+        return ok(encodeArray(org.onosproject.net.DisjointPath.class, "paths", paths)).build();
     }
 }

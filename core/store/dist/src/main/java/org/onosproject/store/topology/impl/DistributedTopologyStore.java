@@ -179,15 +179,15 @@ public class DistributedTopologyStore
     }
 
     @Override
-    public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                                  Map<Link, Object> riskProfile) {
-        return defaultTopology(topology).getSRLGDisjointPaths(src, dst, riskProfile);
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                              Map<Link, Object> riskProfile) {
+        return defaultTopology(topology).getDisjointPaths(src, dst, riskProfile);
     }
 
     @Override
-    public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                                  LinkWeight weight, Map<Link, Object> riskProfile) {
-        return defaultTopology(topology).getSRLGDisjointPaths(src, dst, weight, riskProfile);
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                              LinkWeight weight, Map<Link, Object> riskProfile) {
+        return defaultTopology(topology).getDisjointPaths(src, dst, weight, riskProfile);
     }
 
     @Override

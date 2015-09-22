@@ -19,19 +19,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
-import org.onosproject.net.Link;
 import org.onosproject.net.Path;
-import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.Topology;
-import org.onosproject.net.topology.TopologyService;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 
 import java.util.HashMap;
@@ -139,7 +135,7 @@ public class PathManagerTest {
     }
 
     // Fake entity to give out paths.
-    private class FakeTopoMgr extends TopologyServiceAdapter implements TopologyService {
+    private class FakeTopoMgr extends TopologyServiceAdapter {
         Set<Path> paths = new HashSet<>();
 
         @Override
@@ -151,32 +147,10 @@ public class PathManagerTest {
         public Set<Path> getPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
             return paths;
         }
-
-        @Override
-        public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst) {
-            return null;
-        }
-
-        @Override
-        public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
-            return null;
-        }
-
-        @Override
-        public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                                      Map<Link, Object> riskProfile) {
-            return null;
-        }
-
-        @Override
-        public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight,
-                                                      Map<Link, Object> riskProfile) {
-            return null;
-        }
     }
 
     // Fake entity to give out hosts.
-    private class FakeHostMgr extends HostServiceAdapter implements HostService {
+    private class FakeHostMgr extends HostServiceAdapter  {
         private Map<HostId, Host> hosts = new HashMap<>();
 
         @Override

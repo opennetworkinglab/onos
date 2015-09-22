@@ -90,25 +90,28 @@ public class TopologyServiceAdapter implements TopologyService {
     @Override
     public void removeListener(TopologyListener listener) {
     }
+
     @Override
     public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst) {
         return null;
     }
 
     @Override
-    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight) {
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
+                                              DeviceId dst, LinkWeight weight) {
         return null;
     }
 
     @Override
-    public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                                  Map<Link, Object> riskProfile) {
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                              Map<Link, Object> riskProfile) {
         return null;
     }
 
     @Override
-    public Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst, LinkWeight weight,
-                                                  Map<Link, Object> riskProfile) {
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
+                                              DeviceId dst, LinkWeight weight,
+                                              Map<Link, Object> riskProfile) {
         return null;
     }
 

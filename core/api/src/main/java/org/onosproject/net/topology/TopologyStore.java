@@ -149,8 +149,8 @@ public interface TopologyStore extends Store<TopologyEvent, TopologyStoreDelegat
      * be treated as if they were in the same risk group.
      * @return set of shortest paths
      */
-    Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                           LinkWeight weight, Map<Link, Object> riskProfile);
+    Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                       LinkWeight weight, Map<Link, Object> riskProfile);
 
     /**
      * Returns the set of pre-computed SRLG shortest paths between src and dest.
@@ -162,8 +162,8 @@ public interface TopologyStore extends Store<TopologyEvent, TopologyStoreDelegat
      * be treated as if they were in the same risk group.
      * @return set of shortest paths
      */
-    Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                           Map<Link, Object> riskProfile);
+    Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                       Map<Link, Object> riskProfile);
 
 
     /**

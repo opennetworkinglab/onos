@@ -29,7 +29,7 @@ import java.util.Set;
  * Service for providing network topology information.
  */
 public interface TopologyService
-    extends ListenerService<TopologyEvent, TopologyListener> {
+        extends ListenerService<TopologyEvent, TopologyListener> {
 
     /**
      * Returns the current topology descriptor.
@@ -74,8 +74,8 @@ public interface TopologyService
     /**
      * Returns the set of devices that belong to the specified cluster.
      *
-     * @param topology  topology descriptor
-     * @param cluster topology cluster
+     * @param topology topology descriptor
+     * @param cluster  topology cluster
      * @return set of cluster devices
      */
     Set<DeviceId> getClusterDevices(Topology topology, TopologyCluster cluster);
@@ -83,8 +83,8 @@ public interface TopologyService
     /**
      * Returns the set of links that form the specified cluster.
      *
-     * @param topology  topology descriptor
-     * @param cluster topology cluster
+     * @param topology topology descriptor
+     * @param cluster  topology cluster
      * @return set of cluster links
      */
     Set<Link> getClusterLinks(Topology topology, TopologyCluster cluster);
@@ -141,28 +141,29 @@ public interface TopologyService
      * Returns the set of all disjoint shortest path pairs, precomputed in terms of hop-count,
      * between the specified source and destination devices.
      *
-     * @param topology topology descriptor
-     * @param src      source device
-     * @param dst      destination device
+     * @param topology    topology descriptor
+     * @param src         source device
+     * @param dst         destination device
      * @param riskProfile map of edges to risk profiles
      * @return set of all shortest paths between the two devices
      */
-    Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                           Map<Link, Object> riskProfile);
+    Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                       Map<Link, Object> riskProfile);
 
     /**
      * Returns the set of all disjoint shortest path pairs, precomputed in terms of hop-count,
      * between the specified source and destination devices.
      *
-     * @param topology topology descriptor
-     * @param src      source device
-     * @param dst      destination device
-     * @param weight    edge-weight entity
+     * @param topology    topology descriptor
+     * @param src         source device
+     * @param dst         destination device
+     * @param weight      edge-weight entity
      * @param riskProfile map of edges to risk profiles
      * @return set of all shortest paths between the two devices
      */
-    Set<DisjointPath> getSRLGDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
-                                           LinkWeight weight, Map<Link, Object> riskProfile);
+    Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                       LinkWeight weight, Map<Link, Object> riskProfile);
+
     /**
      * Indicates whether the specified connection point is part of the network
      * infrastructure or part of network edge.

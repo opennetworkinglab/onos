@@ -134,7 +134,7 @@ public class PathManager implements PathService {
 
     @Override
     public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst) {
-        return getDisjointPaths(src, dst, null);
+        return getDisjointPaths(src, dst, (LinkWeight) null);
     }
 
     @Override
@@ -171,14 +171,14 @@ public class PathManager implements PathService {
     }
 
     @Override
-    public Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst,
-                                                  Map<Link, Object> riskProfile) {
-        return getSRLGDisjointPaths(src, dst, null, riskProfile);
+    public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst,
+                                              Map<Link, Object> riskProfile) {
+        return getDisjointPaths(src, dst, null, riskProfile);
     }
 
     @Override
-    public Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst, LinkWeight weight,
-                                                  Map<Link, Object> riskProfile) {
+    public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight,
+                                              Map<Link, Object> riskProfile) {
         checkNotNull(src, ELEMENT_ID_NULL);
         checkNotNull(dst, ELEMENT_ID_NULL);
 
@@ -204,8 +204,8 @@ public class PathManager implements PathService {
         // devices.
         Topology topology = topologyService.currentTopology();
         Set<DisjointPath> paths = weight == null ?
-                topologyService.getSRLGDisjointPaths(topology, srcDevice, dstDevice, riskProfile) :
-                topologyService.getSRLGDisjointPaths(topology, srcDevice, dstDevice, weight, riskProfile);
+                topologyService.getDisjointPaths(topology, srcDevice, dstDevice, riskProfile) :
+                topologyService.getDisjointPaths(topology, srcDevice, dstDevice, weight, riskProfile);
 
         return edgeToEdgePathsDisjoint(srcEdge, dstEdge, paths);
     }
@@ -249,6 +249,7 @@ public class PathManager implements PathService {
         endToEndPaths.add(edgeToEdgePathD(srcLink, dstLink, null));
         return endToEndPaths;
     }
+
     private Set<DisjointPath> edgeToEdgePathsDisjoint(EdgeLink srcLink, EdgeLink dstLink, Set<DisjointPath> paths) {
         Set<DisjointPath> endToEndPaths = Sets.newHashSetWithExpectedSize(paths.size());
         for (DisjointPath path : paths) {

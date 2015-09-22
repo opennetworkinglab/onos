@@ -17,12 +17,10 @@ package org.onosproject.net.intent;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
-
 import org.onlab.util.Bandwidth;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
@@ -38,6 +36,9 @@ import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.MetadataInstruction;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceRequest;
+import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.resource.link.BandwidthResource;
 import org.onosproject.net.resource.link.BandwidthResourceRequest;
 import org.onosproject.net.resource.link.LambdaResource;
@@ -49,13 +50,10 @@ import org.onosproject.net.resource.link.LinkResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.resource.link.MplsLabel;
 import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
-import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceRequest;
-import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.topology.DefaultTopologyEdge;
 import org.onosproject.net.topology.DefaultTopologyVertex;
 import org.onosproject.net.topology.LinkWeight;
-import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.PathServiceAdapter;
 import org.onosproject.net.topology.TopologyVertex;
 import org.onosproject.store.Timestamp;
 
@@ -65,14 +63,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.onosproject.net.NetTestTools.createPath;
-import static org.onosproject.net.NetTestTools.did;
-import static org.onosproject.net.NetTestTools.link;
+import static org.onosproject.net.NetTestTools.*;
 
 /**
  * Common mocks used by the intent framework tests.
@@ -136,7 +131,7 @@ public class IntentTestsMocks {
     /**
      * Mock path service for creating paths within the test.
      */
-    public static class MockPathService implements PathService {
+    public static class MockPathService extends PathServiceAdapter {
 
         final String[] pathHops;
         final String[] reversePathHops;
@@ -186,28 +181,6 @@ public class IntentTestsMocks {
                 }
             }
             return paths;
-        }
-
-        @Override
-        public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst) {
-            return null;
-        }
-
-        @Override
-        public Set<DisjointPath> getDisjointPaths(ElementId src, ElementId dst, LinkWeight weight) {
-            return null;
-        }
-
-        @Override
-        public Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst,
-                                                      Map<Link, Object> riskProfile) {
-            return null;
-        }
-
-        @Override
-        public Set<DisjointPath> getSRLGDisjointPaths(ElementId src, ElementId dst, LinkWeight weight,
-                                                      Map<Link, Object> riskProfile) {
-            return null;
         }
     }
 
