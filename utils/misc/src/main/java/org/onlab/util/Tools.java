@@ -299,7 +299,9 @@ public abstract class Tools {
      *
      * @param path file path
      * @return file contents
+     * @deprecated in Emu release
      */
+    @Deprecated
     public static List<String> slurp(File path) {
         try (
             BufferedReader br = new BufferedReader(

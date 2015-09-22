@@ -24,7 +24,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.SharedExecutors;
-import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.ApplicationIdStore;
@@ -38,6 +37,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Set;
@@ -87,9 +90,15 @@ public class CoreManager implements CoreService {
     public void activate() {
         registerApplication(CORE_APP_NAME);
         cfgService.registerProperties(getClass());
-        List<String> versionLines = Tools.slurp(VERSION_FILE);
-        if (versionLines != null && !versionLines.isEmpty()) {
-            version = Version.version(versionLines.get(0));
+        try {
+            Path path = Paths.get(VERSION_FILE.getPath());
+            List<String> versionLines = Files.readAllLines(path);
+            if (versionLines != null && !versionLines.isEmpty()) {
+                version = Version.version(versionLines.get(0));
+            }
+        } catch (IOException e) {
+            // version file not found, using default
+            log.trace("Version file not found", e);
         }
     }
 
