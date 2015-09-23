@@ -44,10 +44,6 @@
     text-align: right;
 }
 
-#ov-processor td.type {
-    text-align: center;
-}
-
 #ov-processor tr.no-data td {
     text-align: center;
 }

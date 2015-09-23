@@ -40,6 +40,10 @@ public class ProcessorViewMessageHandler extends UiMessageHandler {
     private static final String PROCESSOR_DATA_RESP = "processorDataResponse";
     private static final String PROCESSORS = "processors";
 
+    private static final String OBSERVER = "observer";
+    private static final String DIRECTOR = "director";
+    private static final String ADVISOR = "advisor";
+
     private static final String ID = "id";
     private static final String TYPE = "type";
     private static final String PRIORITY = "priority";
@@ -58,7 +62,7 @@ public class ProcessorViewMessageHandler extends UiMessageHandler {
         return ImmutableSet.of(new ProcessorDataRequest());
     }
 
-    // handler for link table requests
+    // handler for packet processor table requests
     private final class ProcessorDataRequest extends TableRequestHandler {
         private ProcessorDataRequest() {
             super(PROCESSOR_DATA_REQ, PROCESSOR_DATA_RESP, PROCESSORS);
@@ -67,11 +71,6 @@ public class ProcessorViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
-        }
-
-        @Override
-        protected String defaultColumnId() {
-            return ID;
         }
 
         @Override
@@ -93,12 +92,11 @@ public class ProcessorViewMessageHandler extends UiMessageHandler {
                     .cell(PRIORITY, processorPriority(entry.priority()))
                     .cell(PROCESSOR, entry.processor().getClass().getName())
                     .cell(PACKETS, entry.invocations())
-                    .cell(AVG_MS, entry.averageNanos() / NANOS_IN_MS);
+                    .cell(AVG_MS, (double) entry.averageNanos() / NANOS_IN_MS);
         }
 
         private String processorType(int p) {
-            return p > DIRECTOR_MAX ? "observer" :
-                    p > ADVISOR_MAX ? "director" : "observer";
+            return p > DIRECTOR_MAX ? OBSERVER : p > ADVISOR_MAX ? DIRECTOR : ADVISOR;
         }
 
         private int processorPriority(int p) {

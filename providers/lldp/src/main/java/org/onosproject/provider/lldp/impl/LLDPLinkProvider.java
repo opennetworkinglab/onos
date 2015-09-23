@@ -67,6 +67,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.onlab.packet.Ethernet.TYPE_BSN;
+import static org.onlab.packet.Ethernet.TYPE_LLDP;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.Link.Type.DIRECT;
@@ -326,10 +328,10 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
      */
     private void requestIntercepts() {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchEthType(Ethernet.TYPE_LLDP);
+        selector.matchEthType(TYPE_LLDP);
         packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
 
-        selector.matchEthType(Ethernet.TYPE_BSN);
+        selector.matchEthType(TYPE_BSN);
         if (useBDDP) {
             packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
         } else {
@@ -342,9 +344,9 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
      */
     private void withdrawIntercepts() {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchEthType(Ethernet.TYPE_LLDP);
+        selector.matchEthType(TYPE_LLDP);
         packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
-        selector.matchEthType(Ethernet.TYPE_BSN);
+        selector.matchEthType(TYPE_BSN);
         packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
     }
 
@@ -474,9 +476,15 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
     private class InternalPacketProcessor implements PacketProcessor {
         @Override
         public void process(PacketContext context) {
-            if (context == null) {
+            if (context == null || context.isHandled()) {
                 return;
             }
+
+            Ethernet eth = context.inPacket().parsed();
+            if (eth == null || (eth.getEtherType() != TYPE_LLDP && eth.getEtherType() != TYPE_BSN)) {
+                return;
+            }
+
             LinkDiscovery ld = discoverers.get(context.inPacket().receivedFrom().deviceId());
             if (ld == null) {
                 return;

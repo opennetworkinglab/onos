@@ -16,7 +16,7 @@
                  icon icon-id="processorTable" icon-size="36"></div>
 
             <div class="active"
-                 icon icon-id="requestTable" icon-size="36"
+                 icon icon-id="requestTable" icon-size="36"git sta
                  tooltip tt-msg="requestTip"
                  ng-click="nav('request')"></div>
             -->
@@ -30,11 +30,11 @@
         <div class="table-header" onos-sortable-header>
             <table>
                 <tr>
-                    <td class="type" colId="type" sortable col-width="80px">Type </td>
                     <td class="number" colId="priority" sortable col-width="80px">Priority </td>
+                    <td colId="type" sortable col-width="80px">Type </td>
                     <td colId="processor" sortable col-width="500px">Class </td>
                     <td class="number"  colId="packets" sortable col-width="100px">Packets </td>
-                    <td class="number" colId="avgMillis" sortable col-width="80px">Average (ms) </td>
+                    <td class="number" colId="avgMillis" sortable col-width="100px">Average (ms) </td>
                 </tr>
             </table>
         </div>
@@ -49,8 +49,8 @@
 
                 <tr ng-repeat="processor in tableData track by $index"
                     ng-repeat-complete row-id="{{processor.id}}">
-                    <td class="type">{{processor.type}}</td>
                     <td class="number">{{processor.priority}}</td>
+                    <td>{{processor.type}}</td>
                     <td>{{processor.processor}}</td>
                     <td class="number">{{processor.packets}}</td>
                     <td class="number">{{processor.avgMillis}}</td>
