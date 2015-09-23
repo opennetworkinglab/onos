@@ -28,6 +28,10 @@ function build_stage_dir() {
     [ -f $KARAF_TAR ] && tar zxf $KARAF_TAR && rm -rf $ONOS_STAGE/$KARAF_DIST/demos
     mkdir bin
 
+    # Patch the log-file size in place to increase it to 10 MB
+    perl -pi.old -e "s/maxFileSize=1MB/maxFileSize=10MB/g" \
+        $ONOS_STAGE/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
+
     # Stage the ONOS admin scripts and patch in Karaf service wrapper extras
     cp -r $ONOS_ROOT/tools/package/bin .
     cp -r $ONOS_ROOT/tools/package/init $ONOS_STAGE/init
