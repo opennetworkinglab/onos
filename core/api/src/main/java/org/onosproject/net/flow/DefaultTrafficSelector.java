@@ -29,15 +29,20 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Default traffic selector implementation.
  */
 public final class DefaultTrafficSelector implements TrafficSelector {
+
+    private static final Comparator<? super Criterion> TYPE_COMPARATOR =
+            (c1, c2) -> c1.type().compareTo(c2.type());
 
     private final Set<Criterion> criteria;
 
@@ -50,7 +55,9 @@ public final class DefaultTrafficSelector implements TrafficSelector {
      * @param criteria criteria
      */
     private DefaultTrafficSelector(Set<Criterion> criteria) {
-        this.criteria = ImmutableSet.copyOf(criteria);
+        TreeSet<Criterion> elements = new TreeSet<>(TYPE_COMPARATOR);
+        elements.addAll(criteria);
+        this.criteria = ImmutableSet.copyOf(elements);
     }
 
     @Override
