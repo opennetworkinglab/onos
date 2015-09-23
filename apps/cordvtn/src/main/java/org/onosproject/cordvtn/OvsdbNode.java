@@ -24,51 +24,52 @@ import org.onosproject.net.DeviceId;
  */
 public interface OvsdbNode {
     /**
-     * State of the ovsdb node.
+     * Ovsdb connection state.
      */
     enum State {
-        INIT, READY, CONNECTED, DISCONNECTED
+        INIT, READY, CONNECTED, DISCONNECT, DISCONNECTED
     }
 
     /**
-     * Returns the IP address of ovsdb server.
+     * Returns the IP address of the ovsdb server.
      *
      * @return ip address
      */
     IpAddress ip();
 
     /**
-     * Returns the port number of ovsdb server.
+     * Returns the port number of the ovsdb server.
      *
      * @return port number
      */
     TpPort port();
 
     /**
-     * Returns the hostname of the node.
+     * Returns the host information of the ovsdb server.
+     * It could be hostname or ip address.
      *
-     * @return hostname
+     * @return host
      */
-    String hostname();
+    String host();
 
     /**
-     * Returns the state of the node.
+     * Returns the connection state of the ovsdb server.
      *
-     * @return state of the node
+     * @return connection state
      */
     State state();
 
     /**
-     * Returns the device ID of the node.
+     * Returns the device id of the ovsdb server.
      *
      * @return device id
      */
     DeviceId deviceId();
 
     /**
-     * Returns the device ID of the bridge associated with this node.
+     * Returns the device id of the integration bridge associated with the node.
      *
      * @return device id
      */
-    DeviceId bridgeId();
+    DeviceId intBrId();
 }

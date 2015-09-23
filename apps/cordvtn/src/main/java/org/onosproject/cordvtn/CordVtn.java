@@ -21,24 +21,11 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.TpPort;
 import org.onlab.util.KryoNamespace;
-import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.LeadershipEvent;
-import org.onosproject.cluster.LeadershipEventListener;
-import org.onosproject.cluster.LeadershipService;
-import org.onosproject.cluster.NodeId;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
-import org.onosproject.net.config.ConfigFactory;
-import org.onosproject.net.config.NetworkConfigRegistry;
-import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -57,17 +44,26 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.cordvtn.OvsdbNode.State;
 import static org.onosproject.cordvtn.OvsdbNode.State.INIT;
+import static org.onosproject.cordvtn.OvsdbNode.State.DISCONNECT;
+import static org.onosproject.net.Device.Type.SWITCH;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * CORD VTN Application that provisions overlay virtual tenant networks.
+ * Provides initial setup or cleanup for provisioning virtual tenant networks
+ * on ovsdb, integration bridge and vm when they are added or deleted.
  */
 @Component(immediate = true)
 @Service
 public class CordVtn implements CordVtnService {
 
     protected final Logger log = getLogger(getClass());
+
+    private static final int NUM_THREADS = 1;
+    private static final KryoNamespace.Builder NODE_SERIALIZER = KryoNamespace.newBuilder()
+            .register(KryoNamespaces.API)
+            .register(OvsdbNode.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -79,117 +75,91 @@ public class CordVtn implements CordVtnService {
     protected LogicalClockService clockService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LeadershipService leadershipService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetworkConfigService configService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected NetworkConfigRegistry configRegistry;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MastershipService mastershipService;
+    private final ExecutorService eventExecutor = Executors
+            .newFixedThreadPool(NUM_THREADS, groupedThreads("onos/cordvtn", "event-handler"));
 
-    private static final int DEFAULT_NUM_THREADS = 1;
-    private static final KryoNamespace.Builder NODE_SERIALIZER = KryoNamespace.newBuilder()
-            .register(KryoNamespaces.API)
-            .register(OvsdbNode.class);
-
-    private final ExecutorService eventExecutor = Executors.newFixedThreadPool(
-            DEFAULT_NUM_THREADS, groupedThreads("onos/cordvtn", "event-handler"));
-
-    private final LeadershipEventListener leadershipListener = new InternalLeadershipListener();
     private final DeviceListener deviceListener = new InternalDeviceListener();
     private final HostListener hostListener = new InternalHostListener();
-    private final NodeHandler nodeHandler = new NodeHandler();
+
+    private final OvsdbHandler ovsdbHandler = new OvsdbHandler();
     private final BridgeHandler bridgeHandler = new BridgeHandler();
-    private final VirtualMachineHandler vmHandler = new VirtualMachineHandler();
+    private final VmHandler vmHandler = new VmHandler();
 
-    private final ConfigFactory configFactory =
-            new ConfigFactory(SubjectFactories.APP_SUBJECT_FACTORY, CordVtnConfig.class, "cordvtn") {
-                @Override
-                public CordVtnConfig createConfig() {
-                    return new CordVtnConfig();
-                }
-            };
-
-    private ApplicationId appId;
-    private NodeId local;
     private EventuallyConsistentMap<DeviceId, OvsdbNode> nodeStore;
-    private NodeConnectionManager nodeConnectionManager;
 
     @Activate
     protected void activate() {
-        appId = coreService.registerApplication("org.onosproject.cordvtn");
-
-        local = clusterService.getLocalNode().id();
+        coreService.registerApplication("org.onosproject.cordvtn");
         nodeStore = storageService.<DeviceId, OvsdbNode>eventuallyConsistentMapBuilder()
                 .withName("cordvtn-nodestore")
                 .withSerializer(NODE_SERIALIZER)
                 .withTimestampProvider((k, v) -> clockService.getTimestamp())
                 .build();
-        configRegistry.registerConfigFactory(configFactory);
 
         deviceService.addListener(deviceListener);
         hostService.addListener(hostListener);
-        leadershipService.addListener(leadershipListener);
-        leadershipService.runForLeadership(appId.name());
-        nodeConnectionManager = new NodeConnectionManager(appId, local, nodeStore,
-                                            mastershipService, leadershipService);
-        nodeConnectionManager.start();
+
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-        nodeConnectionManager.stop();
-        leadershipService.removeListener(leadershipListener);
-        leadershipService.withdraw(appId.name());
         deviceService.removeListener(deviceListener);
         hostService.removeListener(hostListener);
+
         eventExecutor.shutdown();
         nodeStore.destroy();
-        configRegistry.unregisterConfigFactory(configFactory);
+
         log.info("Stopped");
     }
 
     @Override
-    public void addNode(String hostname, IpAddress ip, TpPort port) {
-        DefaultOvsdbNode node = new DefaultOvsdbNode(hostname, ip, port, DeviceId.NONE, INIT);
-
-        if (nodeStore.containsKey(node.deviceId())) {
-            log.warn("Node {} with ovsdb-server {}:{} already exists", hostname, ip, port);
+    public void addNode(OvsdbNode ovsdbNode) {
+        if (nodeStore.containsKey(ovsdbNode.deviceId())) {
+            log.warn("Node {} already exists", ovsdbNode.host());
             return;
         }
-        nodeStore.put(node.deviceId(), node);
-        log.info("New node {} with ovsdb-server {}:{} has been added", hostname, ip, port);
+        nodeStore.put(ovsdbNode.deviceId(), ovsdbNode);
+        if (ovsdbNode.state() != INIT) {
+            updateNode(ovsdbNode, INIT);
+        }
     }
 
     @Override
-    public void deleteNode(IpAddress ip, TpPort port) {
-        DeviceId deviceId = DeviceId.deviceId("ovsdb:" + ip + ":" + port);
-        OvsdbNode node = nodeStore.get(deviceId);
-
-        if (node == null) {
-            log.warn("Node with ovsdb-server on {}:{} does not exist", ip, port);
+    public void deleteNode(OvsdbNode ovsdbNode) {
+        if (!nodeStore.containsKey(ovsdbNode.deviceId())) {
+            log.warn("Node {} does not exist", ovsdbNode.host());
             return;
         }
-        nodeConnectionManager.disconnectNode(node);
-        nodeStore.remove(node.deviceId());
+        updateNode(ovsdbNode, DISCONNECT);
+    }
+
+    @Override
+    public void updateNode(OvsdbNode ovsdbNode, State state) {
+        if (!nodeStore.containsKey(ovsdbNode.deviceId())) {
+            log.warn("Node {} does not exist", ovsdbNode.host());
+            return;
+        }
+        DefaultOvsdbNode updatedNode = new DefaultOvsdbNode(ovsdbNode.host(),
+                                                            ovsdbNode.ip(),
+                                                            ovsdbNode.port(),
+                                                            state);
+        nodeStore.put(ovsdbNode.deviceId(), updatedNode);
     }
 
     @Override
     public int getNodeCount() {
         return nodeStore.size();
+    }
+
+    @Override
+    public OvsdbNode getNode(DeviceId deviceId) {
+        return nodeStore.get(deviceId);
     }
 
     @Override
@@ -199,52 +169,22 @@ public class CordVtn implements CordVtnService {
                 .collect(Collectors.toList());
     }
 
-    private void initialSetup() {
-        // Read ovsdb nodes from network config
-        CordVtnConfig config = configService.getConfig(appId, CordVtnConfig.class);
-        if (config == null) {
-            log.warn("No configuration found");
-            return;
-        }
-        config.ovsdbNodes().forEach(
-                node -> addNode(node.hostname(), node.ip(), node.port()));
-    }
-
-    private synchronized void processLeadershipChange(NodeId leader) {
-        // Only the leader performs the initial setup
-        if (leader == null || !leader.equals(local)) {
-            return;
-        }
-        initialSetup();
-    }
-
-    private class InternalLeadershipListener implements LeadershipEventListener {
-
-        @Override
-        public void event(LeadershipEvent event) {
-            if (event.subject().topic().equals(appId.name())) {
-                processLeadershipChange(event.subject().leader());
-            }
-        }
-    }
-
     private class InternalDeviceListener implements DeviceListener {
 
         @Override
         public void event(DeviceEvent event) {
             Device device = event.subject();
-            ConnectionHandler handler =
-                    (device.type() == Device.Type.CONTROLLER ? nodeHandler : bridgeHandler);
+            ConnectionHandler handler = (device.type() == SWITCH ? bridgeHandler : ovsdbHandler);
 
             switch (event.type()) {
-                    case DEVICE_ADDED:
-                        eventExecutor.submit(() -> handler.connected(device));
-                        break;
-                    case DEVICE_AVAILABILITY_CHANGED:
-                        eventExecutor.submit(() -> handler.disconnected(device));
-                        break;
-                    default:
-                        break;
+                case DEVICE_ADDED:
+                    eventExecutor.submit(() -> handler.connected(device));
+                    break;
+                case DEVICE_AVAILABILITY_CHANGED:
+                    eventExecutor.submit(() -> handler.disconnected(device));
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -268,7 +208,7 @@ public class CordVtn implements CordVtnService {
         }
     }
 
-    private class NodeHandler implements ConnectionHandler<Device> {
+    private class OvsdbHandler implements ConnectionHandler<Device> {
 
         @Override
         public void connected(Device device) {
@@ -296,7 +236,7 @@ public class CordVtn implements CordVtnService {
         }
     }
 
-    private class VirtualMachineHandler implements ConnectionHandler<Host> {
+    private class VmHandler implements ConnectionHandler<Host> {
 
         @Override
         public void connected(Host host) {

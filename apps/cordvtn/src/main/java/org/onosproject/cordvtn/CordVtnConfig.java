@@ -27,12 +27,12 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Configuration object for CORD VTN service.
+ * Configuration object for CordVtn service.
  */
 public class CordVtnConfig extends Config<ApplicationId> {
 
     public static final String OVSDB_NODES = "ovsdbNodes";
-    public static final String HOSTNAME = "hostname";
+    public static final String HOST = "host";
     public static final String IP = "ip";
     public static final String PORT = "port";
 
@@ -49,7 +49,7 @@ public class CordVtnConfig extends Config<ApplicationId> {
             return null;
         }
         nodes.forEach(jsonNode -> ovsdbNodes.add(new OvsdbNodeConfig(
-            jsonNode.path(HOSTNAME).asText(),
+            jsonNode.path(HOST).asText(),
             IpAddress.valueOf(jsonNode.path(IP).asText()),
             TpPort.tpPort(jsonNode.path(PORT).asInt()))));
 
@@ -57,27 +57,27 @@ public class CordVtnConfig extends Config<ApplicationId> {
     }
 
     /**
-     * Configuration for an OVSDB node.
+     * Configuration for an ovsdb node.
      */
     public static class OvsdbNodeConfig {
 
-        private final String hostname;
+        private final String host;
         private final IpAddress ip;
         private final TpPort port;
 
-        public OvsdbNodeConfig(String hostname, IpAddress ip, TpPort port) {
-            this.hostname = checkNotNull(hostname);
+        public OvsdbNodeConfig(String host, IpAddress ip, TpPort port) {
+            this.host = checkNotNull(host);
             this.ip = checkNotNull(ip);
             this.port = checkNotNull(port);
         }
 
         /**
-         * Returns hostname of the node.
+         * Returns host information of the node.
          *
-         * @return hostname
+         * @return host
          */
-        public String hostname() {
-            return this.hostname;
+        public String host() {
+            return this.host;
         }
 
         /**

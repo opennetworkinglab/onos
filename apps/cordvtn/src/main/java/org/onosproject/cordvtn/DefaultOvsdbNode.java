@@ -15,6 +15,7 @@
  */
 package org.onosproject.cordvtn;
 
+import com.google.common.base.MoreObjects;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.net.DeviceId;
@@ -26,21 +27,15 @@ import java.util.Objects;
  */
 public class DefaultOvsdbNode implements OvsdbNode {
 
-    private final String hostname;
+    private final String host;
     private final IpAddress ip;
     private final TpPort port;
-    private final DeviceId deviceId;
-    private final DeviceId bridgeId;
     private final State state;
 
-    public DefaultOvsdbNode(String hostname, IpAddress ip, TpPort port,
-                            DeviceId bridgeId, State state) {
-        this.hostname = hostname;
+    public DefaultOvsdbNode(String host, IpAddress ip, TpPort port, State state) {
+        this.host = host;
         this.ip = ip;
         this.port = port;
-        this.deviceId = DeviceId.deviceId(
-                "ovsdb:" + ip.toString() + ":" + port.toString());
-        this.bridgeId = bridgeId;
         this.state = state;
     }
 
@@ -55,8 +50,8 @@ public class DefaultOvsdbNode implements OvsdbNode {
     }
 
     @Override
-    public String hostname() {
-        return this.hostname;
+    public String host() {
+        return this.host;
     }
 
     @Override
@@ -66,12 +61,12 @@ public class DefaultOvsdbNode implements OvsdbNode {
 
     @Override
     public DeviceId deviceId() {
-        return this.deviceId;
+        return DeviceId.deviceId("ovsdb:" + this.ip.toString() + ":" + this.port.toString());
     }
 
     @Override
-    public DeviceId bridgeId() {
-        return this.bridgeId;
+    public DeviceId intBrId() {
+        return DeviceId.deviceId("of:" + this.host);
     }
 
     @Override
@@ -82,8 +77,9 @@ public class DefaultOvsdbNode implements OvsdbNode {
 
         if (o instanceof DefaultOvsdbNode) {
             DefaultOvsdbNode that = (DefaultOvsdbNode) o;
-            // We compare the ip and port only.
-            if (this.ip.equals(that.ip) && this.port.equals(that.port)) {
+            if (this.host.equals(that.host) &&
+                    this.ip.equals(that.ip) &&
+                    this.port.equals(that.port)) {
                 return true;
             }
         }
@@ -92,6 +88,16 @@ public class DefaultOvsdbNode implements OvsdbNode {
 
     @Override
     public int hashCode() {
-        return Objects.hash(ip, port);
+        return Objects.hash(host, ip, port);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("host", host)
+                .add("ip", ip)
+                .add("port", port)
+                .add("state", state)
+                .toString();
     }
 }

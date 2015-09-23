@@ -15,12 +15,19 @@
  */
 package org.onosproject.cordvtn;
 
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.mastership.MastershipService;
-import org.onosproject.net.DeviceId;
-import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.net.Device;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
 import org.slf4j.Logger;
 
 import java.util.concurrent.Executors;
@@ -28,120 +35,131 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.cordvtn.OvsdbNode.State.CONNECTED;
+import static org.onosproject.cordvtn.OvsdbNode.State.DISCONNECTED;
+import static org.onosproject.cordvtn.OvsdbNode.State.READY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Node connection manager.
+ * Provides the connection state management of all nodes registered to the service
+ * so that the nodes keep connected unless it is requested to be deleted.
  */
+@Component(immediate = true)
 public class NodeConnectionManager {
     protected final Logger log = getLogger(getClass());
 
-    private final ApplicationId appId;
-    private final NodeId localId;
-    private final EventuallyConsistentMap<DeviceId, OvsdbNode> nodeStore;
-    private final MastershipService mastershipService;
-    private final LeadershipService leadershipService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    LeadershipService leadershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    CordVtnService cordVtnService;
 
     private static final int DELAY_SEC = 5;
-    private ScheduledExecutorService connectionExecutor;
 
-    /**
-     * Creates a new NodeConnectionManager.
-     *
-     * @param appId             app id
-     * @param localId           local id
-     * @param nodeStore         node store
-     * @param mastershipService mastership service
-     * @param leadershipService leadership service
-     */
-    public NodeConnectionManager(ApplicationId appId, NodeId localId,
-                                 EventuallyConsistentMap<DeviceId, OvsdbNode> nodeStore,
-                                 MastershipService mastershipService,
-                                 LeadershipService leadershipService) {
-        this.appId = appId;
-        this.localId = localId;
-        this.nodeStore = nodeStore;
-        this.mastershipService = mastershipService;
-        this.leadershipService = leadershipService;
-    }
+    private final DeviceListener deviceListener = new InternalDeviceListener();
+    private final ScheduledExecutorService connectionExecutor = Executors
+            .newSingleThreadScheduledExecutor(groupedThreads("onos/cordvtn", "connection-manager"));
 
-    /**
-     * Starts the node connection manager.
-     */
-    public void start() {
-        connectionExecutor = Executors.newSingleThreadScheduledExecutor(
-                groupedThreads("onos/cordvtn", "connection-executor"));
-        connectionExecutor.scheduleWithFixedDelay(() -> nodeStore.values()
+    private NodeId localId;
+
+    @Activate
+    protected void activate() {
+        localId = clusterService.getLocalNode().id();
+        deviceService.addListener(deviceListener);
+
+        connectionExecutor.scheduleWithFixedDelay(() -> cordVtnService.getNodes()
                 .stream()
                 .filter(node -> localId.equals(getMaster(node)))
-                .forEach(this::connectNode), 0, DELAY_SEC, TimeUnit.SECONDS);
+                .forEach(node -> {
+                    connect(node);
+                    disconnect(node);
+                }), 0, DELAY_SEC, TimeUnit.SECONDS);
     }
 
-    /**
-     * Stops the node connection manager.
-     */
+    @Deactivate
     public void stop() {
         connectionExecutor.shutdown();
+        deviceService.removeListener(deviceListener);
     }
 
-    /**
-     * Adds a new node to the system.
-     *
-     * @param ovsdbNode ovsdb node
-     */
-    public void connectNode(OvsdbNode ovsdbNode) {
+    public void connect(OvsdbNode ovsdbNode) {
         switch (ovsdbNode.state()) {
             case INIT:
             case DISCONNECTED:
-                // TODO: set the node to passive mode
+                setPassiveMode(ovsdbNode);
             case READY:
-                // TODO: initiate connection
-                break;
-            case CONNECTED:
+                setupConnection(ovsdbNode);
                 break;
             default:
+                break;
         }
     }
 
-    /**
-     * Deletes the ovsdb node.
-     *
-     * @param ovsdbNode ovsdb node
-     */
-    public void disconnectNode(OvsdbNode ovsdbNode) {
+    public void disconnect(OvsdbNode ovsdbNode) {
         switch (ovsdbNode.state()) {
-            case CONNECTED:
+            case DISCONNECT:
                 // TODO: disconnect
                 break;
-            case INIT:
-            case READY:
-            case DISCONNECTED:
-                break;
             default:
+                break;
+        }
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            Device device = event.subject();
+            if (device.type() != Device.Type.CONTROLLER) {
+                return;
+            }
+
+            DefaultOvsdbNode node;
+            switch (event.type()) {
+                case DEVICE_ADDED:
+                    node = (DefaultOvsdbNode) cordVtnService.getNode(device.id());
+                    if (node != null) {
+                        cordVtnService.updateNode(node, CONNECTED);
+                    }
+                    break;
+                case DEVICE_AVAILABILITY_CHANGED:
+                    node = (DefaultOvsdbNode) cordVtnService.getNode(device.id());
+                    if (node != null) {
+                        cordVtnService.updateNode(node, DISCONNECTED);
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
     private NodeId getMaster(OvsdbNode ovsdbNode) {
-        // Return the master of the bridge(switch) if it exist or
-        // return the current leader
-        if (ovsdbNode.bridgeId() == DeviceId.NONE) {
-            return leadershipService.getLeader(this.appId.name());
-        } else {
-            return mastershipService.getMasterFor(ovsdbNode.bridgeId());
+        NodeId master = mastershipService.getMasterFor(ovsdbNode.intBrId());
+
+        // master is null if there's no such device
+        if (master == null) {
+            master = leadershipService.getLeader(CordVtnService.CORDVTN_APP_ID);
         }
+        return master;
     }
 
     private void setPassiveMode(OvsdbNode ovsdbNode) {
         // TODO: need ovsdb client implementation first
         // TODO: set the remove ovsdb server passive mode
-        // TODO: set the node state READY if it succeed
+        cordVtnService.updateNode(ovsdbNode, READY);
     }
 
-    private void connect(OvsdbNode ovsdbNode) {
-        // TODO: need ovsdb client implementation first
-    }
-
-    private void disconnect(OvsdbNode ovsdbNode) {
-        // TODO: need ovsdb client implementation first
+    private void setupConnection(OvsdbNode ovsdbNode) {
+        // TODO initiate connection
     }
 }

@@ -15,8 +15,8 @@
  */
 package org.onosproject.cordvtn;
 
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.TpPort;
+import org.onosproject.cordvtn.OvsdbNode.State;
+import org.onosproject.net.DeviceId;
 
 import java.util.List;
 
@@ -24,22 +24,30 @@ import java.util.List;
  * Service for provisioning overlay virtual networks on compute nodes.
  */
 public interface CordVtnService {
+
+    String CORDVTN_APP_ID = "org.onosproject.cordvtn";
     /**
      * Adds a new node to the service.
      *
-     * @param hostname hostname of the node
-     * @param ip ip address to access the ovsdb server running on the node
-     * @param port port number to access the ovsdb server running on the node
+     * @param ovsdbNode ovsdb node
      */
-    void addNode(String hostname, IpAddress ip, TpPort port);
+    void addNode(OvsdbNode ovsdbNode);
 
     /**
-     * Deletes the node from the service.
+     * Deletes a node from the service.
      *
-     * @param ip ip address to access the ovsdb server running on the node
-     * @param port port number to access the ovsdb server running on the node
+     * @param ovsdbNode ovsdb node
      */
-    void deleteNode(IpAddress ip, TpPort port);
+    void deleteNode(OvsdbNode ovsdbNode);
+
+    /**
+     * Updates ovsdb node.
+     * It only used for updating node's connection state.
+     *
+     * @param ovsdbNode ovsdb node
+     * @param state ovsdb connection state
+     */
+    void updateNode(OvsdbNode ovsdbNode, State state);
 
     /**
      * Returns the number of the nodes known to the service.
@@ -47,6 +55,14 @@ public interface CordVtnService {
      * @return number of nodes
      */
     int getNodeCount();
+
+    /**
+     * Returns OvsdbNode with given device id.
+     *
+     * @param deviceId device id
+     * @return ovsdb node
+     */
+    OvsdbNode getNode(DeviceId deviceId);
 
     /**
      * Returns all nodes known to the service.
