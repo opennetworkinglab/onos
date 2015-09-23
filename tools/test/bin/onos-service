@@ -34,7 +34,6 @@ fi
 
 case $2 in 
     start|stop|restart|status)
-
         # Select the target
         if [ "${1}" = "--cell" ]; then
             nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)

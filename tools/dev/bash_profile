@@ -148,41 +148,41 @@ function nuke {
     spy "$@" | cut -c7-11 | xargs kill
 }
 
-# Edit a cell file by providing a cell name. Opens the cell file in $EDITOR.
-function vicell() {
-  local apply=false
-  local create=false
-  local cdf=""
-  local cpath="${ONOS_ROOT}/tools/test/cells/"
+# Edit a cell file by providing a cell name; opens the cell file in $EDITOR.
+function vicell {
+    local apply=false
+    local create=false
+    local cdf=""
+    local cpath="${ONOS_ROOT}/tools/test/cells/"
 
-  if [ -z "$1" ] || [ "$1" = "-h" ] ; then
-    printf "usage: vicell [file] [options]\n\noptions:\n"
-    printf "\t-a: apply the cell after editing\n"
-    printf "\t-e: [editor] set EDITOR to [editor] (default *vi*)\n"
-    printf "\t-c: create cell file if none exist\n\n"
-    return 1
-  fi
+    if [ -z "$1" ] || [ "$1" = "-h" ] ; then
+        printf "usage: vicell [file] [options]\n\noptions:\n"
+        printf "\t-a: apply the cell after editing\n"
+        printf "\t-e: [editor] set EDITOR to [editor] (default *vi*)\n"
+        printf "\t-c: create cell file if none exist\n\n"
+        return 1
+    fi
 
-  while [ $# -gt 0 ]; do
-    case "$1" in
-      -a) apply=true ;;
-      -e) EDITOR=$2; shift ;;
-      -c) create=true ;;
-      *) cdf="$1" ;;
-    esac
-    shift
-  done
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -a) apply=true ;;
+            -e) EDITOR=$2; shift ;;
+            -c) create=true ;;
+            *) cdf="$1" ;;
+        esac
+        shift
+    done
 
-  if [ ! -e "${cpath}${cdf}" ] && [ "$create" = "false" ]; then
-       printf "${cdf} : no such cell\n" && return 1
-  fi
+    if [ ! -e "${cpath}${cdf}" ] && [ "$create" = "false" ]; then
+        printf "${cdf} : no such cell\n" && return 1
+    fi
 
-  if [ -z "${EDITOR}" ] || [ -x "$(which ${EDITOR})" ]; then
-    unset EDITOR && vi ${cpath}${cdf}
-  else
-    $EDITOR ${cpath}${cdf}
-  fi
-  ($apply) && cell ${cdf}
+    if [ -z "${EDITOR}" ] || [ -x "$(which ${EDITOR})" ]; then
+        unset EDITOR && vi ${cpath}${cdf}
+    else
+        $EDITOR ${cpath}${cdf}
+    fi
+    ($apply) && cell ${cdf}
 }
 
 # autocomplete for certain utilities
