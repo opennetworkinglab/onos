@@ -48,9 +48,11 @@ public class NodeConnectionManager {
     /**
      * Creates a new NodeConnectionManager.
      *
-     * @param localId local id
-     * @param nodeStore node store
+     * @param appId             app id
+     * @param localId           local id
+     * @param nodeStore         node store
      * @param mastershipService mastership service
+     * @param leadershipService leadership service
      */
     public NodeConnectionManager(ApplicationId appId, NodeId localId,
                                  EventuallyConsistentMap<DeviceId, OvsdbNode> nodeStore,
@@ -68,11 +70,11 @@ public class NodeConnectionManager {
      */
     public void start() {
         connectionExecutor = Executors.newSingleThreadScheduledExecutor(
-                        groupedThreads("onos/cordvtn", "connection-executor"));
+                groupedThreads("onos/cordvtn", "connection-executor"));
         connectionExecutor.scheduleWithFixedDelay(() -> nodeStore.values()
                 .stream()
                 .filter(node -> localId.equals(getMaster(node)))
-                .forEach(node -> connectNode(node)), 0, DELAY_SEC, TimeUnit.SECONDS);
+                .forEach(this::connectNode), 0, DELAY_SEC, TimeUnit.SECONDS);
     }
 
     /**

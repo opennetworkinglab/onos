@@ -84,6 +84,7 @@ public class HostMonitor implements TimerTask {
      * @param hostManager host manager used to look up host information and
      * probe existing hosts
      * @param interfaceService interface service for interface information
+     * @param edgePortService  edge port service
      */
     public HostMonitor(PacketService packetService, HostManager hostManager,
                        InterfaceService interfaceService,
