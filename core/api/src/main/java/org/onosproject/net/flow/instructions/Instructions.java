@@ -303,21 +303,6 @@ public final class Instructions {
      *
      * @param etherType Ethernet type to set
      * @return a L2 modification.
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
-    public static Instruction popMpls(int etherType) {
-        checkNotNull(etherType, "Ethernet type cannot be null");
-        return new L2ModificationInstruction.PushHeaderInstructions(
-                L2ModificationInstruction.L2SubType.MPLS_POP, new EthType(etherType));
-    }
-
-
-    /**
-     * Creates a pop MPLS header instruction with a particular ethertype.
-     *
-     * @param etherType Ethernet type to set
-     * @return a L2 modification.
      */
     public static Instruction popMpls(EthType etherType) {
         checkNotNull(etherType, "Ethernet type cannot be null");
