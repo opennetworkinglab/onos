@@ -23,7 +23,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -350,18 +349,6 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Override
         public Builder matchIPv6ExthdrFlags(short exthdrFlags) {
             return add(Criteria.matchIPv6ExthdrFlags(exthdrFlags));
-        }
-
-        @Deprecated
-        @Override
-        public Builder matchLambda(short lambda) {
-            return add(Criteria.matchLambda(new IndexedLambda(lambda)));
-        }
-
-        @Deprecated
-        @Override
-        public Builder matchOpticalSignalType(short signalType) {
-            return add(Criteria.matchOpticalSignalType(signalType));
         }
 
         @Override

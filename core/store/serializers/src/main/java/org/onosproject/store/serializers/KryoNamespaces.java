@@ -118,7 +118,6 @@ import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
-import org.onosproject.net.flow.criteria.OpticalSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -339,7 +338,6 @@ public final class KryoNamespaces {
                     IndexedLambdaCriterion.class,
                     OchSignalCriterion.class,
                     OchSignalTypeCriterion.class,
-                    OpticalSignalTypeCriterion.class,
                     Criterion.class,
                     Criterion.Type.class,
                     DefaultTrafficTreatment.class,

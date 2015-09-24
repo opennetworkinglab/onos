@@ -461,18 +461,6 @@ public final class Criteria {
     }
 
     /**
-     * Creates a match on lambda field using the specified value.
-     *
-     * @param lambda lambda to match on (16 bits unsigned integer)
-     * @return match criterion
-     * @deprecated in Cardinal Release. Use {@link #matchLambda(Lambda)} instead.
-     */
-    @Deprecated
-    public static Criterion matchLambda(int lambda) {
-        return new LambdaCriterion(lambda, Type.OCH_SIGID);
-    }
-
-    /**
      * Creates a match on lambda using the specified value.
      *
      * @param lambda lambda
@@ -486,18 +474,6 @@ public final class Criteria {
         } else {
             throw new UnsupportedOperationException(String.format("Unsupported type of Lambda: %s", lambda));
         }
-    }
-
-    /**
-     * Creates a match on optical signal type using the specified value.
-     *
-     * @param sigType optical signal type (8 bits unsigned integer)
-     * @return match criterion
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
-    public static Criterion matchOpticalSignalType(short sigType) {
-        return new OpticalSignalTypeCriterion(sigType, Type.OCH_SIGTYPE);
     }
 
     /**

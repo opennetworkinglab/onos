@@ -225,12 +225,6 @@ public class CriteriaTest {
     Criterion matchIpv6ExthdrFlags2 =
         Criteria.matchIPv6ExthdrFlags(ipv6ExthdrFlags2);
 
-    int lambda1 = 1;
-    int lambda2 = 2;
-    Criterion matchLambda1 = Criteria.matchLambda(lambda1);
-    Criterion sameAsMatchLambda1 = Criteria.matchLambda(lambda1);
-    Criterion matchLambda2 = Criteria.matchLambda(lambda2);
-
     Criterion matchOchSignalType1 = Criteria.matchOchSignalType(OchSignalType.FIXED_GRID);
     Criterion sameAsMatchOchSignalType1 = Criteria.matchOchSignalType(OchSignalType.FIXED_GRID);
     Criterion matchOchSignalType2 = Criteria.matchOchSignalType(OchSignalType.FLEX_GRID);
@@ -238,12 +232,6 @@ public class CriteriaTest {
     Criterion matchIndexedLambda1 = Criteria.matchLambda(Lambda.indexedLambda(1));
     Criterion sameAsMatchIndexedLambda1 = Criteria.matchLambda(Lambda.indexedLambda(1));
     Criterion matchIndexedLambda2 = Criteria.matchLambda(Lambda.indexedLambda(2));
-
-    short signalLambda1 = 1;
-    short signalLambda2 = 2;
-    Criterion matchSignalLambda1 = Criteria.matchOpticalSignalType(signalLambda1);
-    Criterion sameAsMatchSignalLambda1 = Criteria.matchOpticalSignalType(signalLambda1);
-    Criterion matchSignalLambda2 = Criteria.matchOpticalSignalType(signalLambda2);
 
     Criterion matchOchSignal1 =
             Criteria.matchLambda(Lambda.ochSignal(GridType.DWDM, ChannelSpacing.CHL_100GHZ, 4, 8));
@@ -306,7 +294,6 @@ public class CriteriaTest {
         assertThatClassIsImmutable(MplsCriterion.class);
         assertThatClassIsImmutable(IPv6ExthdrFlagsCriterion.class);
         assertThatClassIsImmutable(LambdaCriterion.class);
-        assertThatClassIsImmutable(OpticalSignalTypeCriterion.class);
     }
 
     // PortCriterion class
@@ -1057,32 +1044,6 @@ public class CriteriaTest {
                 .testEquals();
     }
 
-    // LambdaCriterion class
-
-    /**
-     * Test the matchLambda method.
-     */
-    @Test
-    public void testMatchLambdaMethod() {
-        Criterion matchLambda = Criteria.matchLambda(lambda1);
-        LambdaCriterion lambdaCriterion =
-                checkAndConvert(matchLambda,
-                        Criterion.Type.OCH_SIGID,
-                        LambdaCriterion.class);
-        assertThat(lambdaCriterion.lambda(), is(equalTo(lambda1)));
-    }
-
-    /**
-     * Test the equals() method of the LambdaCriterion class.
-     */
-    @Test
-    public void testLambdaCriterionEquals() {
-        new EqualsTester()
-                .addEqualityGroup(matchLambda1, sameAsMatchLambda1)
-                .addEqualityGroup(matchLambda2)
-                .testEquals();
-    }
-
     @Test
     public void testIndexedLambdaCriterionEquals() {
         new EqualsTester()
@@ -1107,32 +1068,6 @@ public class CriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchOchSignalType1, sameAsMatchOchSignalType1)
                 .addEqualityGroup(matchOchSignalType2)
-                .testEquals();
-    }
-
-    // OpticalSignalTypeCriterion class
-
-    /**
-     * Test the matchOpticalSignalType method.
-     */
-    @Test
-    public void testMatchOpticalSignalTypeMethod() {
-        Criterion matchLambda = Criteria.matchOpticalSignalType(signalLambda1);
-        OpticalSignalTypeCriterion opticalSignalTypeCriterion =
-                checkAndConvert(matchLambda,
-                        Criterion.Type.OCH_SIGTYPE,
-                        OpticalSignalTypeCriterion.class);
-        assertThat(opticalSignalTypeCriterion.signalType(), is(equalTo(signalLambda1)));
-    }
-
-    /**
-     * Test the equals() method of the OpticalSignalTypeCriterion class.
-     */
-    @Test
-    public void testOpticalSignalTypeCriterionEquals() {
-        new EqualsTester()
-                .addEqualityGroup(matchSignalLambda1, sameAsMatchSignalLambda1)
-                .addEqualityGroup(matchSignalLambda2)
                 .testEquals();
     }
 }

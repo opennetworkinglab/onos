@@ -89,19 +89,6 @@ public final class Instructions {
     }
 
     /**
-     * Creates a l0 modification.
-     *
-     * @param lambda the lambda to modify to
-     * @return a l0 modification
-     * @deprecated in Cardinal Release. Use {@link #modL0Lambda(Lambda)} instead.
-     */
-    @Deprecated
-    public static L0ModificationInstruction modL0Lambda(short lambda) {
-        checkNotNull(lambda, "L0 lambda cannot be null");
-        return new ModLambdaInstruction(L0SubType.LAMBDA, lambda);
-    }
-
-    /**
      * Creates an L0 modification with the specified OCh signal.
      *
      * @param lambda OCh signal
