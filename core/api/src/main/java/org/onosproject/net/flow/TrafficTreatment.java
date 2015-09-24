@@ -269,16 +269,6 @@ public interface TrafficTreatment {
         Builder meter(MeterId meterId);
 
         /**
-         * Sets the next table type to transition to.
-         *
-         * @param type the table type
-         * @return a treatement builder
-         * @deprecated in Cardinal Release
-         */
-        @Deprecated
-        Builder transition(FlowRule.Type type);
-
-        /**
          * Sets the next table id to transition to.
          *
          * @param tableId the table table

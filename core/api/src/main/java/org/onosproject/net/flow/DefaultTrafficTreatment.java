@@ -380,11 +380,6 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
-        public Builder transition(FlowRule.Type type) {
-            return add(Instructions.transition(type.ordinal()));
-        }
-
-        @Override
         public Builder transition(Integer tableId) {
             return add(Instructions.transition(tableId));
         }
