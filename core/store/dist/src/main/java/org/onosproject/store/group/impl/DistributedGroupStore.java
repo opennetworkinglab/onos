@@ -313,8 +313,6 @@ public class DistributedGroupStore
     @Override
     public Iterable<Group> getGroups(DeviceId deviceId) {
         // flatten and make iterator unmodifiable
-        log.debug("getGroups: for device {} total number of groups {}",
-                  deviceId, getGroupStoreKeyMap().values().size());
         return FluentIterable.from(getGroupStoreKeyMap().values())
                 .filter(input -> input.deviceId().equals(deviceId))
                 .transform(input -> input);
@@ -322,8 +320,6 @@ public class DistributedGroupStore
 
     private Iterable<StoredGroupEntry> getStoredGroups(DeviceId deviceId) {
         // flatten and make iterator unmodifiable
-        log.debug("getGroups: for device {} total number of groups {}",
-                  deviceId, getGroupStoreKeyMap().values().size());
         return FluentIterable.from(getGroupStoreKeyMap().values())
                 .filter(input -> input.deviceId().equals(deviceId));
     }
