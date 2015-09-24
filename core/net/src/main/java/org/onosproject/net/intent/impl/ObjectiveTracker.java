@@ -415,9 +415,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         @Override
         public void event(HostEvent event) {
             HostId id = event.subject().id();
-            HostEvent.Type type = event.type();
-            boolean available = (type == HostEvent.Type.HOST_ADDED);
-            executorService.execute(new DeviceAvailabilityHandler(id, available));
+            executorService.execute(new DeviceAvailabilityHandler(id, false));
         }
     }
 

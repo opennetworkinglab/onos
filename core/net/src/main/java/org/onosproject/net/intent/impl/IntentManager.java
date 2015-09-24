@@ -256,15 +256,16 @@ public class IntentManager
             submit(intent);
         }
 
-        // If required, compile all currently failed intents.
-        for (Intent intent : getIntents()) {
-            IntentState state = getIntentState(intent.key());
-            if ((compileAllFailed && RECOMPILE.contains(state))
-                    || intentAllowsPartialFailure(intent)) {
-                if (WITHDRAW.contains(state)) {
-                    withdraw(intent);
-                } else {
-                    submit(intent);
+        if (compileAllFailed) {
+            // If required, compile all currently failed intents.
+            for (Intent intent : getIntents()) {
+                IntentState state = getIntentState(intent.key());
+                if (RECOMPILE.contains(state) || intentAllowsPartialFailure(intent)) {
+                    if (WITHDRAW.contains(state)) {
+                        withdraw(intent);
+                    } else {
+                        submit(intent);
+                    }
                 }
             }
         }
