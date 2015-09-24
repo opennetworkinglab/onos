@@ -33,17 +33,16 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Skeletal ONOS UI Custom-View message handler.
+ * Skeletal ONOS UI Table-View message handler.
  */
 public class AppUiMessageHandler extends UiMessageHandler {
-    // TODO: reduce the code down to just the custom view example
 
-    private static final String SAMPLE_CUSTOM_DATA_REQ = "sampleCustomDataRequest";
-    private static final String SAMPLE_CUSTOM_DATA_RESP = "sampleCustomDataResponse";
-    private static final String SAMPLE_CUSTOMS = "sampleCustoms";
+    private static final String SAMPLE_TABLE_DATA_REQ = "sampleTableDataRequest";
+    private static final String SAMPLE_TABLE_DATA_RESP = "sampleTableDataResponse";
+    private static final String SAMPLE_TABLES = "sampleTables";
 
-    private static final String SAMPLE_CUSTOM_DETAIL_REQ = "sampleCustomDetailsRequest";
-    private static final String SAMPLE_CUSTOM_DETAIL_RESP = "sampleCustomDetailsResponse";
+    private static final String SAMPLE_TABLE_DETAIL_REQ = "sampleTableDetailsRequest";
+    private static final String SAMPLE_TABLE_DETAIL_RESP = "sampleTableDetailsResponse";
     private static final String DETAILS = "details";
 
     private static final String ID = "id";
@@ -60,28 +59,33 @@ public class AppUiMessageHandler extends UiMessageHandler {
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
-                new SampleCustomDataRequestHandler(),
-                new SampleCustomDetailRequestHandler()
+                new SampleTableDataRequestHandler(),
+                new SampleTableDetailRequestHandler()
         );
     }
 
     // handler for sample table requests
-    private final class SampleCustomDataRequestHandler extends TableRequestHandler {
+    private final class SampleTableDataRequestHandler extends TableRequestHandler {
 
-        private SampleCustomDataRequestHandler() {
-            super(SAMPLE_CUSTOM_DATA_REQ, SAMPLE_CUSTOM_DATA_RESP, SAMPLE_CUSTOMS);
+        private SampleTableDataRequestHandler() {
+            super(SAMPLE_TABLE_DATA_REQ, SAMPLE_TABLE_DATA_RESP, SAMPLE_TABLES);
         }
+
+        // if necessary, override defaultColumnId() -- if it isn't "id"
 
         @Override
         protected String[] getColumnIds() {
             return COLUMN_IDS;
         }
 
+        // if required, override createTableModel() to set column formatters / comparators
+
         @Override
         protected void populateTable(TableModel tm, ObjectNode payload) {
-            // === set custom column cell formatters/comparators if need be...
-            // tm.setFormatter(CODE, new CodeFormatter());
-            // tm.setComparator(CODE, new CodeComparator());
+            // === NOTE: the table model supplied here will have been created
+            // via  a call to createTableModel(). To assign non-default
+            // cell formatters or comparators to the table model, override
+            // createTableModel() and set them there.
 
             // === retrieve table row items from some service...
             // SomeService ss = get(SomeService.class);
@@ -103,10 +107,10 @@ public class AppUiMessageHandler extends UiMessageHandler {
 
 
     // handler for sample item details requests
-    private final class SampleCustomDetailRequestHandler extends RequestHandler {
+    private final class SampleTableDetailRequestHandler extends RequestHandler {
 
-        private SampleCustomDetailRequestHandler() {
-            super(SAMPLE_CUSTOM_DETAIL_REQ);
+        private SampleTableDetailRequestHandler() {
+            super(SAMPLE_TABLE_DETAIL_REQ);
         }
 
         @Override
@@ -136,7 +140,7 @@ public class AppUiMessageHandler extends UiMessageHandler {
                 data.put(COMMENT, "Some arbitrary comment");
             }
 
-            sendMessage(SAMPLE_CUSTOM_DETAIL_RESP, 0, rootNode);
+            sendMessage(SAMPLE_TABLE_DETAIL_RESP, 0, rootNode);
         }
     }
 

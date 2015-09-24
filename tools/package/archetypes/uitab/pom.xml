@@ -23,9 +23,9 @@
     <version>1.4.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>onos-ui-archetype</artifactId>
+  <artifactId>onos-uitab-archetype</artifactId>
   <packaging>maven-archetype</packaging>
 
-  <description>ONOS UI Custom-View overlay archetype</description>
+  <description>ONOS UI Table-View overlay archetype</description>
 
 </project>

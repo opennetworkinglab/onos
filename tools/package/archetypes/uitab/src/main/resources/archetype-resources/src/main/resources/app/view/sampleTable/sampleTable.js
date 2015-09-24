@@ -1,14 +1,14 @@
-// js for sample app view
+// js for sample app table view
 (function () {
     'use strict';
 
     // injected refs
-    var $log, $scope, fs, wss, ps;
+    var $log, $scope, fs, wss;
 
     // constants
-    var detailsReq = 'sampleDetailsRequest',
-        detailsResp = 'sampleDetailsResponse',
-        pName = 'item-details-panel',
+    var detailsReq = 'sampleTableDetailsRequest',
+        detailsResp = 'sampleTableDetailsResponse',
+        pName = 'ov-sample-table-item-details-panel',
 
         propOrder = ['id', 'label', 'code'],
         friendlyProps = ['Item ID', 'Item Label', 'Special Code'];
@@ -44,8 +44,8 @@
         $scope.$apply();
     }
 
-    angular.module('ovSample', [])
-        .controller('OvSampleCtrl',
+    angular.module('ovSampleTable', [])
+        .controller('OvSampleTableCtrl',
         ['$log', '$scope', 'TableBuilderService',
             'FnService', 'WebSocketService',
 
@@ -75,24 +75,24 @@
                 // TableBuilderService creating a table for us
                 tbs.buildTable({
                     scope: $scope,
-                    tag: 'sample',
+                    tag: 'sampleTable',
                     selCb: selCb
                 });
 
                 // cleanup
                 $scope.$on('$destroy', function () {
                     wss.unbindHandlers(handlers);
+                    $log.log('OvSampleTableCtrl has been destroyed');
                 });
 
-                $log.log('OvSampleCtrl has been created');
+                $log.log('OvSampleTableCtrl has been created');
             }])
 
-        .directive('itemDetailsPanel', ['PanelService', 'KeyService',
-            function (_ps_, ks) {
+        .directive('ovSampleTableItemDetailsPanel', ['PanelService', 'KeyService',
+            function (ps, ks) {
             return {
                 restrict: 'E',
                 link: function (scope, element, attrs) {
-                    ps = _ps_;
                     // insert details panel with PanelService
                     // create the panel
                     var panel = ps.createPanel(pName, {
@@ -107,7 +107,9 @@
                         if (panel.isVisible()) {
                             $scope.selId = null;
                             panel.hide();
+                            return true;
                         }
+                        return false;
                     }
 
                     // create key bindings to handle panel

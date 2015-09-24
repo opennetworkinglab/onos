@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
   ~ Copyright 2015 Open Networking Laboratory
   ~
@@ -22,7 +23,7 @@
     <version>${version}</version>
     <packaging>bundle</packaging>
 
-    <description>ONOS OSGi UI Custom-View bundle archetype</description>
+    <description>ONOS OSGi UI Table-View bundle archetype</description>
     <url>http://onosproject.org</url>
 
     <properties>

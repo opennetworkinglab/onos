@@ -38,6 +38,7 @@
         <module>bundle</module>
         <module>cli</module>
         <module>ui</module>
+        <module>uitab</module>
     </modules>
 
     <build>
