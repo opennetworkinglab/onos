@@ -137,7 +137,7 @@ class StateMachine {
      */
     private void createIdentifier() throws StateMachineException {
         log.debug("Creating Identifier.");
-        int index = -1;
+        int index;
 
         try {
             //find the first available spot for identifier assignment
@@ -267,7 +267,7 @@ class StateMachine {
     /**
      * Move to the next state.
      *
-     * @param msg
+     * @param msg message
      */
     private void next(int msg) {
         currentState = transition[currentState][msg];
@@ -280,14 +280,10 @@ class StateMachine {
      * @throws StateMachineException if authentication protocol is violated
      */
     public void start() throws StateMachineException {
-        try {
-            states[currentState].start();
-            //move to the next state
-            next(TRANSITION_START);
-            createIdentifier();
-        } catch (StateMachineInvalidTransitionException e) {
-            e.printStackTrace();
-        }
+        states[currentState].start();
+        //move to the next state
+        next(TRANSITION_START);
+        createIdentifier();
     }
 
     /**
@@ -297,13 +293,9 @@ class StateMachine {
      * @throws StateMachineException if authentication protocol is violated
      */
     public void requestAccess() throws StateMachineException {
-        try {
-            states[currentState].requestAccess();
-            //move to the next state
-            next(TRANSITION_REQUEST_ACCESS);
-        } catch (StateMachineInvalidTransitionException e) {
-            e.printStackTrace();
-        }
+        states[currentState].requestAccess();
+        //move to the next state
+        next(TRANSITION_REQUEST_ACCESS);
     }
 
     /**
@@ -313,27 +305,22 @@ class StateMachine {
      * @throws StateMachineException if authentication protocol is violated
      */
     public void authorizeAccess() throws StateMachineException {
-        try {
-            states[currentState].radiusAccepted();
-            //move to the next state
-            next(TRANSITION_AUTHORIZE_ACCESS);
+        states[currentState].radiusAccepted();
+        //move to the next state
+        next(TRANSITION_AUTHORIZE_ACCESS);
 
-            if (voltService != null) {
-                voltService.addTenant(
-                        VoltTenant.builder()
-                                .withHumanReadableName("VCPE-" + this.identifier)
-                                .withId(this.identifier)
-                                .withProviderService(1)
-                                .withServiceSpecificId(String.valueOf(this.identifier))
-                                .withPort(this.supplicantConnectpoint)
-                                .withVlanId(String.valueOf(this.vlanId)).build());
-            }
-
-            deleteIdentifier();
-        } catch (StateMachineInvalidTransitionException e) {
-            e.printStackTrace();
+        if (voltService != null) {
+            voltService.addTenant(
+                    VoltTenant.builder()
+                            .withHumanReadableName("VCPE-" + this.identifier)
+                            .withId(this.identifier)
+                            .withProviderService(1)
+                            .withServiceSpecificId(String.valueOf(this.identifier))
+                            .withPort(this.supplicantConnectpoint)
+                            .withVlanId(String.valueOf(this.vlanId)).build());
         }
 
+        deleteIdentifier();
     }
 
     /**
@@ -343,14 +330,10 @@ class StateMachine {
      * @throws StateMachineException if authentication protocol is violated
      */
     public void denyAccess() throws StateMachineException {
-        try {
-            states[currentState].radiusDenied();
-            //move to the next state
-            next(TRANSITION_DENY_ACCESS);
-            deleteIdentifier();
-        } catch (StateMachineInvalidTransitionException e) {
-            e.printStackTrace();
-        }
+        states[currentState].radiusDenied();
+        //move to the next state
+        next(TRANSITION_DENY_ACCESS);
+        deleteIdentifier();
     }
 
     /**
@@ -360,13 +343,9 @@ class StateMachine {
      * @throws StateMachineException if authentication protocol is violated
      */
     public void logoff() throws StateMachineException {
-        try {
-            states[currentState].logoff();
-            //move to the next state
-            next(TRANSITION_LOGOFF);
-        } catch (StateMachineInvalidTransitionException e) {
-            e.printStackTrace();
-        }
+        states[currentState].logoff();
+        //move to the next state
+        next(TRANSITION_LOGOFF);
     }
 
     /**
@@ -384,117 +363,97 @@ class StateMachine {
         return ("sessionId: " + this.sessionId) + "\t" + ("identifier: " + this.identifier) + "\t" +
                 ("state: " + this.currentState);
     }
-}
 
-// FIXME: A source file should contain no more than one top-level entity!
+    abstract class State {
+        private final Logger log = getLogger(getClass());
 
-abstract class State {
-    private final Logger log = getLogger(getClass());
+        private String name = "State";
 
-    private String name = "State";
+        public void start() throws StateMachineInvalidTransitionException {
+            log.warn("START transition from this state is not allowed.");
+        }
 
-    public void start() throws StateMachineInvalidTransitionException {
-        log.warn("START transition from this state is not allowed.");
+        public void requestAccess() throws StateMachineInvalidTransitionException {
+            log.warn("REQUEST ACCESS transition from this state is not allowed.");
+        }
+
+        public void radiusAccepted() throws StateMachineInvalidTransitionException {
+            log.warn("AUTHORIZE ACCESS transition from this state is not allowed.");
+        }
+
+        public void radiusDenied() throws StateMachineInvalidTransitionException {
+            log.warn("DENY ACCESS transition from this state is not allowed.");
+        }
+
+        public void logoff() throws StateMachineInvalidTransitionException {
+            log.warn("LOGOFF transition from this state is not allowed.");
+        }
     }
 
-    public void requestAccess() throws StateMachineInvalidTransitionException {
-        log.warn("REQUEST ACCESS transition from this state is not allowed.");
+    /**
+     * Idle state: supplicant is logged of from the network.
+     */
+    class Idle extends State {
+        private final Logger log = getLogger(getClass());
+        private String name = "IDLE_STATE";
+
+        public void start() {
+            log.info("Moving from IDLE state to STARTED state.");
+        }
     }
 
-    public void radiusAccepted() throws StateMachineInvalidTransitionException {
-        log.warn("AUTHORIZE ACCESS transition from this state is not allowed.");
+    /**
+     * Started state: supplicant has entered the network and informed the authenticator.
+     */
+    class Started extends State {
+        private final Logger log = getLogger(getClass());
+        private String name = "STARTED_STATE";
+
+        public void requestAccess() {
+            log.info("Moving from STARTED state to PENDING state.");
+        }
     }
 
-    public void radiusDenied() throws StateMachineInvalidTransitionException {
-        log.warn("DENY ACCESS transition from this state is not allowed.");
+    /**
+     * Pending state: supplicant has been identified by the authenticator but has not access yet.
+     */
+    class Pending extends State {
+        private final Logger log = getLogger(getClass());
+        private String name = "PENDING_STATE";
+
+        public void radiusAccepted() {
+            log.info("Moving from PENDING state to AUTHORIZED state.");
+        }
+
+        public void radiusDenied() {
+            log.info("Moving from PENDING state to UNAUTHORIZED state.");
+        }
     }
 
-    public void logoff() throws StateMachineInvalidTransitionException {
-        log.warn("LOGOFF transition from this state is not allowed.");
-    }
-}
+    /**
+     * Authorized state: supplicant port has been accepted, access is granted.
+     */
+    class Authorized extends State {
+        private final Logger log = getLogger(getClass());
+        private String name = "AUTHORIZED_STATE";
 
-/**
- * Idle state: supplicant is logged of from the network.
- */
-class Idle extends State {
-    private final Logger log = getLogger(getClass());
-    private String name = "IDLE_STATE";
+        public void logoff() {
 
-    public void start() {
-        log.info("Moving from IDLE state to STARTED state.");
-    }
-}
-
-/**
- * Started state: supplicant has entered the network and informed the authenticator.
- */
-class Started extends State {
-    private final Logger log = getLogger(getClass());
-    private String name = "STARTED_STATE";
-
-    public void requestAccess() {
-        log.info("Moving from STARTED state to PENDING state.");
-    }
-}
-
-/**
- * Pending state: supplicant has been identified by the authenticator but has not access yet.
- */
-class Pending extends State {
-    private final Logger log = getLogger(getClass());
-    private String name = "PENDING_STATE";
-
-    public void radiusAccepted() {
-        log.info("Moving from PENDING state to AUTHORIZED state.");
+            log.info("Moving from AUTHORIZED state to IDLE state.");
+        }
     }
 
-    public void radiusDenied() {
-        log.info("Moving from PENDING state to UNAUTHORIZED state.");
+    /**
+     * Unauthorized state: supplicant port has been rejected, access is denied.
+     */
+    class Unauthorized extends State {
+        private final Logger log = getLogger(getClass());
+        private String name = "UNAUTHORIZED_STATE";
+
+        public void logoff() {
+            log.info("Moving from UNAUTHORIZED state to IDLE state.");
+        }
     }
-}
-
-/**
- * Authorized state: supplicant port has been accepted, access is granted.
- */
-class Authorized extends State {
-    private final Logger log = getLogger(getClass());
-    private String name = "AUTHORIZED_STATE";
-
-    public void logoff() {
-
-        log.info("Moving from AUTHORIZED state to IDLE state.");
-    }
-}
-
-/**
- * Unauthorized state: supplicant port has been rejected, access is denied.
- */
-class Unauthorized extends State {
-    private final Logger log = getLogger(getClass());
-    private String name = "UNAUTHORIZED_STATE";
-
-    public void logoff() {
-        log.info("Moving from UNAUTHORIZED state to IDLE state.");
-    }
-}
 
 
-/**
- * Exception for the State Machine.
- */
-class StateMachineException extends Exception {
-    public StateMachineException(String message) {
-        super(message);
-
-    }
-}
-
-/**
- * Exception raised when the transition from one state to another is invalid.
- */
-class StateMachineInvalidTransitionException extends StateMachineException {
-    public StateMachineInvalidTransitionException(String message) {
-        super(message);
-    }
 }
