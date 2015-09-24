@@ -30,6 +30,7 @@ public interface HostProviderService extends ProviderService<HostProvider> {
      *
      * @param hostId          id of the host that been detected
      * @param hostDescription description of host and its location
+     * @deprecated in Drake release
      */
     @Deprecated
     default void hostDetected(HostId hostId, HostDescription hostDescription) {
