@@ -193,7 +193,7 @@ public class GossipIntentStore
     private Collection<NodeId> getPeerNodes(Key key, IntentData data) {
         NodeId master = partitionService.getLeader(key);
         NodeId origin = (data != null) ? data.origin() : null;
-        if (master == null || origin == null) {
+        if (data != null && (master == null || origin == null)) {
             log.debug("Intent {} missing master and/or origin; master = {}, origin = {}",
                       key, master, origin);
         }
