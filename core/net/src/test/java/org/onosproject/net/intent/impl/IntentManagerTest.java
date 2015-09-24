@@ -157,7 +157,7 @@ public class IntentManagerTest {
     private static class MockInstallableIntent extends FlowRuleIntent {
 
         public MockInstallableIntent() {
-            super(APPID, Collections.singletonList(new MockFlowRule(100)));
+            super(APPID, Collections.singletonList(new MockFlowRule(100)), Collections.emptyList());
         }
     }
 
