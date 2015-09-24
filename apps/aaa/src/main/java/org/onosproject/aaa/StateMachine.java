@@ -18,13 +18,16 @@
 
 package org.onosproject.aaa;
 
+import java.util.BitSet;
+import java.util.Map;
+
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.xosintegration.VoltTenant;
 import org.onosproject.xosintegration.VoltTenantService;
 import org.slf4j.Logger;
 
-import java.util.BitSet;
+import com.google.common.collect.Maps;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -58,9 +61,9 @@ class StateMachine {
     private byte[] requestAuthenticator;
 
     // Supplicant connectivity info
-    protected ConnectPoint supplicantConnectpoint;
-    protected MacAddress supplicantAddress;
-    protected short vlanId;
+    private ConnectPoint supplicantConnectpoint;
+    private MacAddress supplicantAddress;
+    private short vlanId;
 
     private String sessionId = null;
 
@@ -109,8 +112,28 @@ class StateMachine {
 
     private int currentState = STATE_IDLE;
 
+    // Maps of state machines. Each state machine is represented by an
+    // unique identifier on the switch: dpid + port number
+    private static Map<String, StateMachine> sessionIdMap;
+    private static Map<Integer, StateMachine> identifierMap;
 
-    /**
+    public static void initializeMaps() {
+        sessionIdMap = Maps.newConcurrentMap();
+        identifierMap = Maps.newConcurrentMap();
+    }
+
+    public static void destroyMaps() {
+        sessionIdMap = null;
+        identifierMap = null;
+    }
+
+    public static StateMachine lookupStateMachineById(byte identifier) {
+        return identifierMap.get((int) identifier);
+    }
+
+    public static StateMachine lookupStateMachineBySessionId(String sessionId) {
+        return sessionIdMap.get(sessionId);
+    }    /**
      * State Machine Constructor.
      *
      * @param sessionId   session Id represented by the switch dpid +  port number
@@ -120,15 +143,69 @@ class StateMachine {
         log.info("Creating a new state machine for {}", sessionId);
         this.sessionId = sessionId;
         this.voltService = voltService;
-
+        sessionIdMap.put(sessionId, this);
     }
 
     /**
-     * Get the client id that is requesting for access.
+     * Gets the connect point for the supplicant side.
+     *
+     * @return supplicant connect point
+     */
+    public ConnectPoint supplicantConnectpoint() {
+        return supplicantConnectpoint;
+    }
+
+    /**
+     * Sets the supplicant side connect point.
+     *
+     * @param supplicantConnectpoint supplicant select point.
+     */
+    public void setSupplicantConnectpoint(ConnectPoint supplicantConnectpoint) {
+        this.supplicantConnectpoint = supplicantConnectpoint;
+    }
+
+    /**
+     * Gets the MAC address of the supplicant.
+     *
+     * @return supplicant MAC address
+     */
+    public MacAddress supplicantAddress() {
+        return supplicantAddress;
+    }
+
+    /**
+     * Sets the supplicant MAC address.
+     *
+     * @param supplicantAddress new supplicant MAC address
+     */
+    public void setSupplicantAddress(MacAddress supplicantAddress) {
+        this.supplicantAddress = supplicantAddress;
+    }
+
+    /**
+     * Gets the client's Vlan ID.
+     *
+     * @return client vlan ID
+     */
+    public short vlanId() {
+        return vlanId;
+    }
+
+    /**
+     * Sets the client's vlan ID.
+     *
+     * @param vlanId new client vlan ID
+     */
+    public void setVlanId(short vlanId) {
+        this.vlanId = vlanId;
+    }
+
+    /**
+     * Gets the client id that is requesting for access.
      *
      * @return The client id.
      */
-    public String getSessionId() {
+    public String sessionId() {
         return this.sessionId;
     }
 
@@ -178,11 +255,11 @@ class StateMachine {
     }
 
     /**
-     * Get the challenge EAP identifier set by the RADIUS.
+     * Gets the challenge EAP identifier set by the RADIUS.
      *
      * @return The challenge EAP identifier.
      */
-    protected byte getChallengeIdentifier() {
+    protected byte challengeIdentifier() {
         return this.challengeIdentifier;
     }
 
@@ -198,11 +275,11 @@ class StateMachine {
     }
 
     /**
-     * Get the challenge state set by the RADIUS.
+     * Gets the challenge state set by the RADIUS.
      *
      * @return The challenge state.
      */
-    protected byte[] getChallengeState() {
+    protected byte[] challengeState() {
         return this.challengeState;
     }
 
@@ -217,16 +294,16 @@ class StateMachine {
 
 
     /**
-     * Get the username.
+     * Gets the username.
      *
      * @return The requestAuthenticator.
      */
-    protected byte[] getReqeustAuthenticator() {
+    protected byte[] requestAuthenticator() {
         return this.requestAuthenticator;
     }
 
     /**
-     * Set the username.
+     * Sets the authenticator.
      *
      * @param authenticator The username sent to the RADIUS upon access request.
      */
@@ -236,11 +313,11 @@ class StateMachine {
 
 
     /**
-     * Get the username.
+     * Gets the username.
      *
      * @return The username.
      */
-    protected byte[] getUsername() {
+    protected byte[] username() {
         return this.username;
     }
 
@@ -249,7 +326,7 @@ class StateMachine {
      *
      * @return The state machine identifier.
      */
-    public byte getIdentifier() {
+    public byte identifier() {
         return (byte) this.identifier;
     }
 
@@ -284,6 +361,7 @@ class StateMachine {
         //move to the next state
         next(TRANSITION_START);
         createIdentifier();
+        identifierMap.put(identifier, this);
     }
 
     /**
@@ -349,16 +427,16 @@ class StateMachine {
     }
 
     /**
-     * Get the current state.
+     * Gets the current state.
      *
      * @return The current state. Could be STATE_IDLE, STATE_STARTED, STATE_PENDING, STATE_AUTHORIZED,
      * STATE_UNAUTHORIZED.
      */
-    public int getState() {
+    public int state() {
         return currentState;
     }
 
-
+    @Override
     public String toString() {
         return ("sessionId: " + this.sessionId) + "\t" + ("identifier: " + this.identifier) + "\t" +
                 ("state: " + this.currentState);

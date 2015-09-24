@@ -15,8 +15,13 @@
  */
 package org.onosproject.aaa;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.util.Dictionary;
+import java.util.Optional;
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -61,15 +66,7 @@ import org.onosproject.xosintegration.VoltTenantService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import com.google.common.base.Strings;
 
 import static org.onosproject.net.packet.PacketPriority.CONTROL;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -80,35 +77,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 public class AAA {
-    // a list of our dependencies :
-    // to register with ONOS as an application - described next
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected CoreService coreService;
-
-    // to receive Packet-in events that we'll respond to
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected PacketService packetService;
-
-    // end host information
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostService hostService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected VoltTenantService voltTenantService;
-
-    // for verbose output
-    private final Logger log = getLogger(getClass());
-
-    // our application-specific event handler
-    private ReactivePacketProcessor processor = new ReactivePacketProcessor();
-
-    // our unique identifier
-    private ApplicationId appId;
-
-    // Map of state machines. Each state machine is represented by an
-    // unique identifier on the switch: dpid + port number
-    Map stateMachineMap = null;
-
     // RADIUS server IP address
     private static final String DEFAULT_RADIUS_IP = "192.168.1.10";
     // NAS IP address
@@ -125,43 +93,84 @@ public class AAA {
     private static final String DEFAULT_RADIUS_SWITCH = "of:90e2ba82f97791e9";
     // Radius Port Number
     private static final String DEFAULT_RADIUS_PORT = "129";
-
+    // for verbose output
+    private final Logger log = getLogger(getClass());
+    // a list of our dependencies :
+    // to register with ONOS as an application - described next
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+    // to receive Packet-in events that we'll respond to
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PacketService packetService;
+    // end host information
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected VoltTenantService voltTenantService;
+    // Parsed RADIUS server IP address
+    protected InetAddress parsedRadiusIpAddress;
+    // Parsed NAS IP address
+    protected InetAddress parsedNasIpAddress;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+    // our application-specific event handler
+    private ReactivePacketProcessor processor = new ReactivePacketProcessor();
+    // our unique identifier
+    private ApplicationId appId;
     @Property(name = "radiusIpAddress", value = DEFAULT_RADIUS_IP,
             label = "RADIUS IP Address")
     private String radiusIpAddress = DEFAULT_RADIUS_IP;
-
     @Property(name = "nasIpAddress", value = DEFAULT_NAS_IP,
             label = "NAS IP Address")
     private String nasIpAddress = DEFAULT_NAS_IP;
-
     @Property(name = "radiusMacAddress", value = RADIUS_MAC_ADDRESS,
             label = "RADIUS MAC Address")
     private String radiusMacAddress = RADIUS_MAC_ADDRESS;
-
     @Property(name = "nasMacAddress", value = NAS_MAC_ADDRESS,
             label = "NAS MAC Address")
     private String nasMacAddress = NAS_MAC_ADDRESS;
-
     @Property(name = "radiusSecret", value = DEFAULT_RADIUS_SECRET,
             label = "RADIUS shared secret")
     private String radiusSecret = DEFAULT_RADIUS_SECRET;
-
     @Property(name = "radiusSwitchId", value = DEFAULT_RADIUS_SWITCH,
             label = "Radius switch")
     private String radiusSwitch = DEFAULT_RADIUS_SWITCH;
-
     @Property(name = "radiusPortNumber", value = DEFAULT_RADIUS_PORT,
             label = "Radius port")
     private String radiusPort = DEFAULT_RADIUS_PORT;
 
-    // Parsed RADIUS server IP address
-    protected InetAddress parsedRadiusIpAddress;
+    /**
+     * Builds an EAPOL packet based on the given parameters.
+     *
+     * @param dstMac    destination MAC address
+     * @param srcMac    source MAC address
+     * @param vlan      vlan identifier
+     * @param eapolType EAPOL type
+     * @param eap       EAP payload
+     * @return Ethernet frame
+     */
+    private static Ethernet buildEapolResponse(MacAddress dstMac, MacAddress srcMac,
+                                               short vlan, byte eapolType, EAP eap) {
 
-    // Parsed NAS IP address
-    protected InetAddress parsedNasIpAddress;
+        Ethernet eth = new Ethernet();
+        eth.setDestinationMACAddress(dstMac.toBytes());
+        eth.setSourceMACAddress(srcMac.toBytes());
+        eth.setEtherType(EthType.EtherType.EAPOL.ethType().toShort());
+        if (vlan != Ethernet.VLAN_UNTAGGED) {
+            eth.setVlanID(vlan);
+        }
+        //eapol header
+        EAPOL eapol = new EAPOL();
+        eapol.setEapolType(eapolType);
+        eapol.setPacketLength(eap.getLength());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService cfgService;
+        //eap part
+        eapol.setPayload(eap);
+
+        eth.setPayload(eapol);
+        eth.setPad(true);
+        return eth;
+    }
 
     @Modified
     public void modified(ComponentContext context) {
@@ -207,11 +216,10 @@ public class AAA {
         // register our event handler
         packetService.addProcessor(processor, PacketProcessor.director(2));
         requestIntercepts();
-        // Instantiate the map of the state machines
-        stateMachineMap = Collections.synchronizedMap(Maps.newHashMap());
+
+        StateMachine.initializeMaps();
 
         hostService.startMonitoringIp(IpAddress.valueOf(radiusIpAddress));
-
     }
 
     @Deactivate
@@ -223,6 +231,7 @@ public class AAA {
         // de-register and null our handler
         packetService.removeProcessor(processor);
         processor = null;
+        StateMachine.destroyMaps();
     }
 
     /**
@@ -258,39 +267,6 @@ public class AAA {
                 .matchUdpSrc(TpPort.tpPort(1812))
                 .build();
         packetService.cancelPackets(radSelector, CONTROL, appId);
-    }
-
-    /**
-     * Builds an EAPOL packet based on the given parameters.
-     *
-     * @param dstMac    destination MAC address
-     * @param srcMac    source MAC address
-     * @param vlan      vlan identifier
-     * @param eapolType EAPOL type
-     * @param eap       EAP payload
-     * @return Ethernet frame
-     */
-    private static Ethernet buildEapolResponse(MacAddress dstMac, MacAddress srcMac,
-                                               short vlan, byte eapolType, EAP eap) {
-
-        Ethernet eth = new Ethernet();
-        eth.setDestinationMACAddress(dstMac.toBytes());
-        eth.setSourceMACAddress(srcMac.toBytes());
-        eth.setEtherType(EthType.EtherType.EAPOL.ethType().toShort());
-        if (vlan != Ethernet.VLAN_UNTAGGED) {
-            eth.setVlanID(vlan);
-        }
-        //eapol header
-        EAPOL eapol = new EAPOL();
-        eapol.setEapolType(eapolType);
-        eapol.setPacketLength(eap.getLength());
-
-        //eap part
-        eapol.setPayload(eap);
-
-        eth.setPayload(eapol);
-        eth.setPad(true);
-        return eth;
     }
 
     // our handler defined as a private inner class
@@ -351,7 +327,11 @@ public class AAA {
             DeviceId deviceId = inPacket.receivedFrom().deviceId();
             PortNumber portNumber = inPacket.receivedFrom().port();
             String sessionId = deviceId.toString() + portNumber.toString();
-            StateMachine stateMachine = getStateMachine(sessionId);
+            StateMachine stateMachine = StateMachine.lookupStateMachineBySessionId(sessionId);
+            if (stateMachine == null) {
+                stateMachine = new StateMachine(sessionId, voltTenantService);
+            }
+
 
             EAPOL eapol = (EAPOL) ethPkt.getPayload();
 
@@ -359,17 +339,17 @@ public class AAA {
                 case EAPOL.EAPOL_START:
                     try {
                         stateMachine.start();
-                        stateMachine.supplicantConnectpoint = inPacket.receivedFrom();
+                        stateMachine.setSupplicantConnectpoint(inPacket.receivedFrom());
 
                         //send an EAP Request/Identify to the supplicant
-                        EAP eapPayload = new EAP(EAP.REQUEST, stateMachine.getIdentifier(), EAP.ATTR_IDENTITY, null);
+                        EAP eapPayload = new EAP(EAP.REQUEST, stateMachine.identifier(), EAP.ATTR_IDENTITY, null);
                         Ethernet eth = buildEapolResponse(srcMAC, MacAddress.valueOf(1L),
                                                           ethPkt.getVlanID(), EAPOL.EAPOL_PACKET,
                                                           eapPayload);
-                        stateMachine.supplicantAddress = srcMAC;
-                        stateMachine.vlanId = ethPkt.getVlanID();
+                        stateMachine.setSupplicantAddress(srcMAC);
+                        stateMachine.setVlanId(ethPkt.getVlanID());
 
-                        this.sendPacketToSupplicant(eth, stateMachine.supplicantConnectpoint);
+                        this.sendPacketToSupplicant(eth, stateMachine.supplicantConnectpoint());
                     } catch (StateMachineException e) {
                         e.printStackTrace();
                     }
@@ -386,7 +366,7 @@ public class AAA {
                                 //request id access to RADIUS
                                 RADIUS radiusPayload = new RADIUS(RADIUS.RADIUS_CODE_ACCESS_REQUEST,
                                                                   eapPacket.getIdentifier());
-                                radiusPayload.setIdentifier(stateMachine.getIdentifier());
+                                radiusPayload.setIdentifier(stateMachine.identifier());
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_USERNAME,
                                                            eapPacket.getData());
                                 stateMachine.setUsername(eapPacket.getData());
@@ -409,20 +389,20 @@ public class AAA {
                         case EAP.ATTR_MD5:
                             //verify if the EAP identifier corresponds to the challenge identifier from the client state
                             //machine.
-                            if (eapPacket.getIdentifier() == stateMachine.getChallengeIdentifier()) {
+                            if (eapPacket.getIdentifier() == stateMachine.challengeIdentifier()) {
                                 //send the RADIUS challenge response
                                 RADIUS radiusPayload = new RADIUS(RADIUS.RADIUS_CODE_ACCESS_REQUEST,
                                                                   eapPacket.getIdentifier());
-                                radiusPayload.setIdentifier(stateMachine.getChallengeIdentifier());
+                                radiusPayload.setIdentifier(stateMachine.challengeIdentifier());
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_USERNAME,
-                                                           stateMachine.getUsername());
+                                                           stateMachine.username());
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP,
                                                            AAA.this.parsedNasIpAddress.getAddress());
 
                                 radiusPayload.encapsulateMessage(eapPacket);
 
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_STATE,
-                                                           stateMachine.getChallengeState());
+                                                           stateMachine.challengeState());
                                 radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
                                 sendRadiusMessage(radiusPayload);
                             }
@@ -432,16 +412,16 @@ public class AAA {
                                 //request id access to RADIUS
                                 RADIUS radiusPayload = new RADIUS(RADIUS.RADIUS_CODE_ACCESS_REQUEST,
                                                                   eapPacket.getIdentifier());
-                                radiusPayload.setIdentifier(stateMachine.getIdentifier());
+                                radiusPayload.setIdentifier(stateMachine.identifier());
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_USERNAME,
-                                                           stateMachine.getUsername());
+                                                           stateMachine.username());
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP,
                                                            AAA.this.parsedNasIpAddress.getAddress());
 
                                 radiusPayload.encapsulateMessage(eapPacket);
 
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_STATE,
-                                                           stateMachine.getChallengeState());
+                                                           stateMachine.challengeState());
                                 stateMachine.setRequestAuthenticator(radiusPayload.generateAuthCode());
 
                                 radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
@@ -468,7 +448,7 @@ public class AAA {
          * @param radiusPacket RADIUS packet coming from the RADIUS server.
          */
         private void handleRadiusPacket(RADIUS radiusPacket) {
-            StateMachine stateMachine = getStateMachineById(radiusPacket.getIdentifier());
+            StateMachine stateMachine = StateMachine.lookupStateMachineById(radiusPacket.getIdentifier());
             if (stateMachine == null) {
                 log.error("Invalid session identifier, exiting...");
                 return;
@@ -481,10 +461,10 @@ public class AAA {
                     byte[] challengeState = radiusPacket.getAttribute(RADIUSAttribute.RADIUS_ATTR_STATE).getValue();
                     eapPayload = radiusPacket.decapsulateMessage();
                     stateMachine.setChallengeInfo(eapPayload.getIdentifier(), challengeState);
-                    eth = buildEapolResponse(stateMachine.supplicantAddress,
-                                             MacAddress.valueOf(1L), stateMachine.vlanId, EAPOL.EAPOL_PACKET,
+                    eth = buildEapolResponse(stateMachine.supplicantAddress(),
+                                             MacAddress.valueOf(1L), stateMachine.vlanId(), EAPOL.EAPOL_PACKET,
                                              eapPayload);
-                    this.sendPacketToSupplicant(eth, stateMachine.supplicantConnectpoint);
+                    this.sendPacketToSupplicant(eth, stateMachine.supplicantConnectpoint());
                     break;
                 case RADIUS.RADIUS_CODE_ACCESS_ACCEPT:
                     try {
@@ -493,10 +473,10 @@ public class AAA {
                                 radiusPacket.getAttribute(RADIUSAttribute.RADIUS_ATTR_EAP_MESSAGE).getValue();
                         eapPayload = new EAP();
                         eapPayload = (EAP) eapPayload.deserialize(eapMessage, 0, eapMessage.length);
-                        eth = buildEapolResponse(stateMachine.supplicantAddress,
-                                                 MacAddress.valueOf(1L), stateMachine.vlanId, EAPOL.EAPOL_PACKET,
+                        eth = buildEapolResponse(stateMachine.supplicantAddress(),
+                                                 MacAddress.valueOf(1L), stateMachine.vlanId(), EAPOL.EAPOL_PACKET,
                                                  eapPayload);
-                        this.sendPacketToSupplicant(eth, stateMachine.supplicantConnectpoint);
+                        this.sendPacketToSupplicant(eth, stateMachine.supplicantConnectpoint());
 
                         stateMachine.authorizeAccess();
                     } catch (StateMachineException e) {
@@ -513,51 +493,6 @@ public class AAA {
                 default:
                     log.warn("Unknown RADIUS message received with code: {}", radiusPacket.getCode());
             }
-        }
-
-        private StateMachine getStateMachineById(byte identifier) {
-            StateMachine stateMachine = null;
-            Set stateMachineSet = stateMachineMap.entrySet();
-
-            synchronized (stateMachineMap) {
-                Iterator itr = stateMachineSet.iterator();
-                while (itr.hasNext()) {
-                    Map.Entry entry = (Map.Entry) itr.next();
-                    stateMachine = (StateMachine) entry.getValue();
-                    if (identifier == stateMachine.getIdentifier()) {
-                        //the state machine has already been created for this session session
-                        stateMachine = (StateMachine) entry.getValue();
-                        break;
-                    }
-                }
-            }
-
-            return stateMachine;
-        }
-
-        private StateMachine getStateMachine(String sessionId) {
-            StateMachine stateMachine = null;
-            Set stateMachineSet = stateMachineMap.entrySet();
-
-            synchronized (stateMachineMap) {
-                Iterator itr = stateMachineSet.iterator();
-                while (itr.hasNext()) {
-
-                    Map.Entry entry = (Map.Entry) itr.next();
-                    if (sessionId.equals(entry.getKey())) {
-                        //the state machine has already been created for this session session
-                        stateMachine = (StateMachine) entry.getValue();
-                        break;
-                    }
-                }
-            }
-
-            if (stateMachine == null) {
-                stateMachine = new StateMachine(sessionId, voltTenantService);
-                stateMachineMap.put(sessionId, stateMachine);
-            }
-
-            return stateMachine;
         }
 
         private void sendRadiusMessage(RADIUS radiusMessage) {
