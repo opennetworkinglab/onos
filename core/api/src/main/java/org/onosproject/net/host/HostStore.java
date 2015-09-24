@@ -55,6 +55,15 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
     HostEvent removeHost(HostId hostId);
 
     /**
+     * Removes the specified ip from the host entry.
+     *
+     * @param hostId host identification
+     * @param ipAddress ipAddress to be removed
+     * @return remove event or null if host was not found
+     */
+    HostEvent removeIp(HostId hostId, IpAddress ipAddress);
+
+    /**
      * Returns the number of hosts in the store.
      *
      * @return host count

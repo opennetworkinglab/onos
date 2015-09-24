@@ -65,7 +65,7 @@ public interface DhcpStore {
      *
      * @param hostId the host ID for which the mapping needs to be changed
      */
-    void releaseIP(HostId hostId);
+    Ip4Address releaseIP(HostId hostId);
 
     /**
      * Returns a collection of all the MacAddress to IPAddress mapping assigned to the hosts.

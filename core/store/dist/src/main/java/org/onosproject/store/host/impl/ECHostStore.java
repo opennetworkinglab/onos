@@ -27,6 +27,7 @@ import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.RE
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -194,6 +195,34 @@ public class ECHostStore
     public HostEvent removeHost(HostId hostId) {
         Host host = hosts.remove(hostId);
         return host != null ? new HostEvent(HOST_REMOVED, host) : null;
+    }
+
+    @Override
+    public HostEvent removeIp(HostId hostId, IpAddress ipAddress) {
+        DefaultHost host = hosts.compute(hostId, (id, existingHost) -> {
+            if (existingHost != null) {
+                checkState(Objects.equals(hostId.mac(), existingHost.mac()),
+                        "Existing and new MAC addresses differ.");
+                checkState(Objects.equals(hostId.vlanId(), existingHost.vlan()),
+                        "Existing and new VLANs differ.");
+
+                Set<IpAddress> addresses = new HashSet<>(existingHost.ipAddresses());
+                if (addresses != null && addresses.contains(ipAddress)) {
+                    addresses.remove(ipAddress);
+                    return new DefaultHost(existingHost.providerId(),
+                            hostId,
+                            existingHost.mac(),
+                            existingHost.vlan(),
+                            existingHost.location(),
+                            ImmutableSet.copyOf(addresses),
+                            existingHost.annotations());
+                } else {
+                    return existingHost;
+                }
+            }
+            return null;
+        });
+        return host != null ? new HostEvent(HOST_UPDATED, host) : null;
     }
 
     @Override

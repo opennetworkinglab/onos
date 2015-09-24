@@ -259,6 +259,10 @@ public class HostLocationProviderTest {
             removeCount++;
         }
 
+        @Override
+        public void removeIpFromHost(HostId hostId, IpAddress ipAddress) {
+        }
+
     }
 
     private class TestPacketService extends PacketServiceAdapter {

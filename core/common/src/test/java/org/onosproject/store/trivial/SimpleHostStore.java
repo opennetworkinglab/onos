@@ -160,6 +160,11 @@ public class SimpleHostStore
     }
 
     @Override
+    public HostEvent removeIp(HostId hostId, IpAddress ipAddress) {
+        return null;
+    }
+
+    @Override
     public int getHostCount() {
         return hosts.size();
     }

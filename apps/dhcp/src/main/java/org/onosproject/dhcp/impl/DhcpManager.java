@@ -481,7 +481,10 @@ public class DhcpManager implements DhcpService {
                         }
                     }
                 } else if (incomingPacketType.getValue() == DHCPPacketType.DHCPRELEASE.getValue()) {
-                    dhcpStore.releaseIP(hostId);
+                    Ip4Address ip4Address = dhcpStore.releaseIP(hostId);
+                    if (ip4Address != null) {
+                        hostProviderService.removeIpFromHost(hostId, ip4Address);
+                    }
                 }
             }
         }
@@ -666,9 +669,10 @@ public class DhcpManager implements DhcpService {
                 if ((ipAssignment.assignmentStatus() != IpAssignment.AssignmentStatus.Option_Expired) &&
                         (ipAssignment.leasePeriod() > 0) && (timeLapsed > (ipAssignment.leasePeriodMs()))) {
 
-                    dhcpStore.releaseIP(entry.getKey());
-                    // TODO remove only the IP from the host entry when the API is in place.
-                    hostProviderService.hostVanished(entry.getKey());
+                    Ip4Address ip4Address = dhcpStore.releaseIP(entry.getKey());
+                    if (ip4Address != null) {
+                        hostProviderService.removeIpFromHost(entry.getKey(), ipAssignment.ipAddress());
+                    }
                 }
             }
             timeout = Timer.getTimer().newTimeout(new PurgeListTask(), timerDelay, TimeUnit.MINUTES);

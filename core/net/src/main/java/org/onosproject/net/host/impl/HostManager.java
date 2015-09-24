@@ -236,6 +236,16 @@ public class HostManager
                 post(event);
             }
         }
+
+        @Override
+        public void removeIpFromHost(HostId hostId, IpAddress ipAddress) {
+            checkNotNull(hostId, HOST_ID_NULL);
+            checkValidity();
+            HostEvent event = store.removeIp(hostId, ipAddress);
+            if (event != null) {
+                post(event);
+            }
+        }
     }
 
     // Store delegate to re-post events emitted from the store.

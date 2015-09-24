@@ -24,6 +24,7 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
@@ -157,6 +158,11 @@ public class OvsdbHostProviderTest {
         @Override
         public void hostVanished(HostId hostId) {
             removeCount++;
+        }
+
+        @Override
+        public void removeIpFromHost(HostId hostId, IpAddress ipAddress) {
+
         }
 
     }

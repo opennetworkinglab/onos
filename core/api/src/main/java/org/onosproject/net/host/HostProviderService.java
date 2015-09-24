@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.host;
 
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.HostId;
 import org.onosproject.net.provider.ProviderService;
 
@@ -51,5 +52,12 @@ public interface HostProviderService extends ProviderService<HostProvider> {
      * @param hostId id of the host that vanished
      */
     void hostVanished(HostId hostId);
+
+    /**
+     * Notifies the core when a host is no longer detected on a network.
+     *
+     * @param hostId id of the host that vanished
+     */
+    void removeIpFromHost(HostId hostId, IpAddress ipAddress);
 
 }

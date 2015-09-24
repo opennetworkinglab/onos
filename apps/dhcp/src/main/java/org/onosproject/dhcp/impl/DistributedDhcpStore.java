@@ -212,7 +212,7 @@ public class DistributedDhcpStore implements DhcpStore {
     }
 
     @Override
-    public void releaseIP(HostId hostId) {
+    public Ip4Address releaseIP(HostId hostId) {
         if (allocationMap.containsKey(hostId)) {
             IpAssignment newAssignment = IpAssignment.builder(allocationMap.get(hostId).value())
                                                     .assignmentStatus(IpAssignment.AssignmentStatus.Option_Expired)
@@ -222,7 +222,9 @@ public class DistributedDhcpStore implements DhcpStore {
             if (ipWithinRange(freeIP)) {
                 freeIPPool.add(freeIP);
             }
+            return freeIP;
         }
+        return null;
     }
 
     @Override
