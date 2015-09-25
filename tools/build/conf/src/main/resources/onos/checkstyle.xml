@@ -229,7 +229,10 @@
             <!-- ONOS alows declarations inside of switch case blocks -->
             <property name="allowInSwitchCase" value="true"/>
         </module>
-        <module name="EmptyBlock"/>
+        <module name="EmptyBlock">
+            <!-- allow empty block, as long as there's some comment -->
+            <property name="option" value="text"/>
+        </module>
         <module name="LeftCurly"/>
         <module name="NeedBraces"/>
         <module name="RightCurly"/>
