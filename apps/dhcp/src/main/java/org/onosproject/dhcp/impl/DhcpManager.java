@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,6 +154,8 @@ public class DhcpManager implements DhcpService {
 
     private static Ip4Address domainServer = Ip4Address.valueOf("10.0.0.2");
 
+    private static final Ip4Address IP_BROADCAST = Ip4Address.valueOf("255.255.255.255");
+
     protected Timeout timeout;
 
     protected static int timerDelay = 2;
@@ -290,12 +292,18 @@ public class DhcpManager implements DhcpService {
             DHCP dhcpPacket = (DHCP) udpPacket.getPayload();
             DHCP dhcpReply = new DHCP();
             dhcpReply.setOpCode(DHCP.OPCODE_REPLY);
-
-            dhcpReply.setYourIPAddress(ipOffered.toInt());
-            dhcpReply.setServerIPAddress(myIP.toInt());
-
-            dhcpReply.setTransactionId(dhcpPacket.getTransactionId());
+            dhcpReply.setFlags(dhcpPacket.getFlags());
+            dhcpReply.setGatewayIPAddress(dhcpPacket.getGatewayIPAddress());
             dhcpReply.setClientHardwareAddress(dhcpPacket.getClientHardwareAddress());
+            dhcpReply.setTransactionId(dhcpPacket.getTransactionId());
+
+            if (outgoingMessageType != DHCPPacketType.DHCPNAK.getValue()) {
+                dhcpReply.setYourIPAddress(ipOffered.toInt());
+                dhcpReply.setServerIPAddress(myIP.toInt());
+                if (dhcpPacket.getGatewayIPAddress() == 0) {
+                    ipv4Reply.setDestinationAddress(IP_BROADCAST.toInt());
+                }
+            }
             dhcpReply.setHardwareType(DHCP.HWTYPE_ETHERNET);
             dhcpReply.setHardwareAddressLength((byte) 6);
 
@@ -317,54 +325,57 @@ public class DhcpManager implements DhcpService {
             option.setData(myIP.toOctets());
             optionList.add(option);
 
-            // IP Address Lease Time.
-            option = new DHCPOption();
-            option.setCode(DHCP.DHCPOptionCode.OptionCode_LeaseTime.getValue());
-            option.setLength((byte) 4);
-            option.setData(ByteBuffer.allocate(4).putInt(leaseTime).array());
-            optionList.add(option);
+            if (outgoingMessageType != DHCPPacketType.DHCPNAK.getValue()) {
 
-            // IP Address Renewal Time.
-            option = new DHCPOption();
-            option.setCode(DHCP.DHCPOptionCode.OptionCode_RenewalTime.getValue());
-            option.setLength((byte) 4);
-            option.setData(ByteBuffer.allocate(4).putInt(renewalTime).array());
-            optionList.add(option);
+                // IP Address Lease Time.
+                option = new DHCPOption();
+                option.setCode(DHCP.DHCPOptionCode.OptionCode_LeaseTime.getValue());
+                option.setLength((byte) 4);
+                option.setData(ByteBuffer.allocate(4).putInt(leaseTime).array());
+                optionList.add(option);
 
-            // IP Address Rebinding Time.
-            option = new DHCPOption();
-            option.setCode(DHCP.DHCPOptionCode.OPtionCode_RebindingTime.getValue());
-            option.setLength((byte) 4);
-            option.setData(ByteBuffer.allocate(4).putInt(rebindingTime).array());
-            optionList.add(option);
+                // IP Address Renewal Time.
+                option = new DHCPOption();
+                option.setCode(DHCP.DHCPOptionCode.OptionCode_RenewalTime.getValue());
+                option.setLength((byte) 4);
+                option.setData(ByteBuffer.allocate(4).putInt(renewalTime).array());
+                optionList.add(option);
 
-            // Subnet Mask.
-            option = new DHCPOption();
-            option.setCode(DHCP.DHCPOptionCode.OptionCode_SubnetMask.getValue());
-            option.setLength((byte) 4);
-            option.setData(subnetMask.toOctets());
-            optionList.add(option);
+                // IP Address Rebinding Time.
+                option = new DHCPOption();
+                option.setCode(DHCP.DHCPOptionCode.OPtionCode_RebindingTime.getValue());
+                option.setLength((byte) 4);
+                option.setData(ByteBuffer.allocate(4).putInt(rebindingTime).array());
+                optionList.add(option);
 
-            // Broadcast Address.
-            option = new DHCPOption();
-            option.setCode(DHCP.DHCPOptionCode.OptionCode_BroadcastAddress.getValue());
-            option.setLength((byte) 4);
-            option.setData(broadcastAddress.toOctets());
-            optionList.add(option);
+                // Subnet Mask.
+                option = new DHCPOption();
+                option.setCode(DHCP.DHCPOptionCode.OptionCode_SubnetMask.getValue());
+                option.setLength((byte) 4);
+                option.setData(subnetMask.toOctets());
+                optionList.add(option);
 
-            // Router Address.
-            option = new DHCPOption();
-            option.setCode(DHCP.DHCPOptionCode.OptionCode_RouterAddress.getValue());
-            option.setLength((byte) 4);
-            option.setData(routerAddress.toOctets());
-            optionList.add(option);
+                // Broadcast Address.
+                option = new DHCPOption();
+                option.setCode(DHCP.DHCPOptionCode.OptionCode_BroadcastAddress.getValue());
+                option.setLength((byte) 4);
+                option.setData(broadcastAddress.toOctets());
+                optionList.add(option);
 
-            // DNS Server Address.
-            option = new DHCPOption();
-            option.setCode(DHCP.DHCPOptionCode.OptionCode_DomainServer.getValue());
-            option.setLength((byte) 4);
-            option.setData(domainServer.toOctets());
-            optionList.add(option);
+                // Router Address.
+                option = new DHCPOption();
+                option.setCode(DHCP.DHCPOptionCode.OptionCode_RouterAddress.getValue());
+                option.setLength((byte) 4);
+                option.setData(routerAddress.toOctets());
+                optionList.add(option);
+
+                // DNS Server Address.
+                option = new DHCPOption();
+                option.setCode(DHCP.DHCPOptionCode.OptionCode_DomainServer.getValue());
+                option.setLength((byte) 4);
+                option.setData(domainServer.toOctets());
+                optionList.add(option);
+            }
 
             // End Option.
             option = new DHCPOption();
@@ -447,37 +458,44 @@ public class DhcpManager implements DhcpService {
 
                 } else if (incomingPacketType.getValue() == DHCPPacketType.DHCPREQUEST.getValue()) {
 
-                    outgoingPacketType = DHCPPacketType.DHCPACK;
-
                     if (flagIfServerIP && flagIfRequestedIP) {
                         // SELECTING state
-                        if (myIP.equals(serverIP) &&
-                                dhcpStore.assignIP(hostId, requestedIP, leaseTime)) {
+                        if (myIP.equals(serverIP)) {
 
-                            Ethernet ethReply = buildReply(packet, requestedIP,
-                                    (byte) outgoingPacketType.getValue());
+                            if (dhcpStore.assignIP(hostId, requestedIP, leaseTime)) {
+                                outgoingPacketType = DHCPPacketType.DHCPACK;
+                                discoverHost(context, requestedIP);
+                            } else {
+                                outgoingPacketType = DHCPPacketType.DHCPNAK;
+                            }
+                            Ethernet ethReply = buildReply(packet, requestedIP, (byte) outgoingPacketType.getValue());
                             sendReply(context, ethReply);
-                            discoverHost(context, requestedIP);
                         }
                     } else if (flagIfRequestedIP) {
                         // INIT-REBOOT state
                         if (dhcpStore.assignIP(hostId, requestedIP, leaseTime)) {
-                            Ethernet ethReply = buildReply(packet, requestedIP,
-                                    (byte) outgoingPacketType.getValue());
+                            outgoingPacketType = DHCPPacketType.DHCPACK;
+                            Ethernet ethReply = buildReply(packet, requestedIP, (byte) outgoingPacketType.getValue());
                             sendReply(context, ethReply);
                             discoverHost(context, requestedIP);
                         }
+
                     } else {
                         // RENEWING and REBINDING state
                         int ciaadr = dhcpPayload.getClientIPAddress();
                         if (ciaadr != 0) {
                             Ip4Address clientIaddr = Ip4Address.valueOf(ciaadr);
                             if (dhcpStore.assignIP(hostId, clientIaddr, leaseTime)) {
-                                Ethernet ethReply = buildReply(packet, clientIaddr,
-                                        (byte) outgoingPacketType.getValue());
-                                sendReply(context, ethReply);
+                                outgoingPacketType = DHCPPacketType.DHCPACK;
                                 discoverHost(context, clientIaddr);
+                            } else if (packet.getEtherType() == Ethernet.TYPE_IPV4 &&
+                                    ((IPv4) packet.getPayload()).getDestinationAddress() == myIP.toInt()) {
+                                outgoingPacketType = DHCPPacketType.DHCPNAK;
+                            } else {
+                                return;
                             }
+                            Ethernet ethReply = buildReply(packet, clientIaddr, (byte) outgoingPacketType.getValue());
+                            sendReply(context, ethReply);
                         }
                     }
                 } else if (incomingPacketType.getValue() == DHCPPacketType.DHCPRELEASE.getValue()) {
