@@ -3,6 +3,28 @@
 # Remotely configures & starts ONOS for the first time.
 # -----------------------------------------------------------------------------
 
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) [node]
+
+options:
+- [node] : The node to configure
+
+summary:
+ Remotely configures and starts ONOS for the first time.
+
+ The procedure for configruing a node include determining base features,
+ applications to load at startup, and clustering and logical network view
+ configurations, among others.
+
+ If [node] isn't specified, the defualt target becomes \$OCI.
+
+_EOF_
+}
+
+[ "$1" = "-h" ] && _usage && exit 0
+
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 

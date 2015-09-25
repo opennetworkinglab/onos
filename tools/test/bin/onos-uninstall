@@ -3,6 +3,24 @@
 # Remotely stops & uninstalls ONOS on the specified node.
 # -----------------------------------------------------------------------------
 
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) [node]
+
+options:
+- [node] : The remote instance to uninstall ONOS from.
+
+summary:
+ Remotely stops and uninstalls ONOS on the specified node.
+
+ If [node] isn't specified, \$OCI becomes the target.
+
+_EOF_
+}
+
+[ "$1" = "-h" ] && _usage && exit 0
+
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 

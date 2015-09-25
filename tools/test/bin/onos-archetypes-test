@@ -3,6 +3,19 @@
 # Builds a set of projects using ONOS archetypes.
 # -----------------------------------------------------------------------------
 
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0)
+
+summary:
+ Builds a set of projects using ONOS archetypes.
+
+_EOF_
+}
+
+[ "$1" = "-h" ] && _usage && exit 0
+
 set -e
 
 export AROOT=/tmp/foo

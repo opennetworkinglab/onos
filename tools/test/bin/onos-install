@@ -3,6 +3,32 @@
 # Remotely pushes bits to a remote node and installs ONOS on it.
 # -----------------------------------------------------------------------------
 
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) [-fn] [-m] <settings> [node]
+
+flags:
+- -f            : forces uninstall of currently installed ONOS
+- -n            : do not copy over onos.conf upstart configuration file.
+- -m <settings> : pass <settings> XML file to remote maven installation
+
+options:
+- [node] : remote node to install ONOS on.
+
+summary:
+ Remotely pushes bits to a remote node and installs ONOS on it.
+
+ The [-n] flag assumes that Upstart is used. The [-f] flag depends on
+ and 'onos-config'.
+
+ If [node] is not specified the default target is \$OCI.
+
+_EOF_
+}
+
+[ "$1" = "-h" ] && _usage && exit 0
+
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
