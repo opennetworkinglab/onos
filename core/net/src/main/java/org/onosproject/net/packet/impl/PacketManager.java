@@ -121,7 +121,6 @@ public class PacketManager
     public void deactivate() {
         store.unsetDelegate(delegate);
         deviceService.removeListener(deviceListener);
-        store.existingRequests().forEach(this::removeFromAllDevices);
         eventHandlingExecutor.shutdown();
         log.info("Stopped");
     }
