@@ -21,7 +21,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.TenantId;
@@ -31,6 +30,9 @@ import org.onosproject.incubator.net.virtual.VirtualNetwork;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkEvent;
 import org.onosproject.incubator.net.virtual.VirtualNetworkListener;
+import org.onosproject.incubator.net.virtual.VirtualNetworkProvider;
+import org.onosproject.incubator.net.virtual.VirtualNetworkProviderRegistry;
+import org.onosproject.incubator.net.virtual.VirtualNetworkProviderService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStore;
 import org.onosproject.incubator.net.virtual.VirtualNetworkStoreDelegate;
@@ -39,6 +41,8 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
+import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +56,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Component(immediate = true)
 @Service
 public class VirtualNetworkManager
-        extends AbstractListenerManager<VirtualNetworkEvent, VirtualNetworkListener>
-        implements VirtualNetworkService, VirtualNetworkAdminService {
+        extends AbstractListenerProviderRegistry<VirtualNetworkEvent, VirtualNetworkListener,
+                                                 VirtualNetworkProvider, VirtualNetworkProviderService>
+        implements VirtualNetworkService, VirtualNetworkAdminService, VirtualNetworkProviderRegistry {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -67,7 +72,7 @@ public class VirtualNetworkManager
 
     private VirtualNetworkStoreDelegate delegate = new InternalStoreDelegate();
 
-    // TODO: figure out how to coordinate "implementation" of a virtual network
+    // TODO: figure out how to coordinate "implementation" of a virtual network in a cluster
 
     @Activate
     protected void activate() {
@@ -189,6 +194,21 @@ public class VirtualNetworkManager
     public <T> T get(NetworkId networkId, Class<T> serviceClass) {
         checkNotNull(networkId, NETWORK_NULL);
         return null;
+    }
+
+    @Override
+    protected VirtualNetworkProviderService createProviderService(VirtualNetworkProvider provider) {
+        return new InternalVirtualNetworkProviderService(provider);
+    }
+
+    // Service issued to registered virtual network providers so that they
+    // can interact with the core.
+    private class InternalVirtualNetworkProviderService
+            extends AbstractProviderService<VirtualNetworkProvider>
+            implements VirtualNetworkProviderService {
+        InternalVirtualNetworkProviderService(VirtualNetworkProvider provider) {
+            super(provider);
+        }
     }
 
     // Auxiliary store delegate to receive notification about changes in
