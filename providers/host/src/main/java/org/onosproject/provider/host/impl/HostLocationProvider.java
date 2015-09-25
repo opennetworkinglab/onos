@@ -335,15 +335,15 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                                                  arp.getSenderProtocolAddress());
                 updateLocationIP(hid, srcMac, vlan, hloc, ip);
 
-                // IPv4: update location only
+            // IPv4: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV4) {
                 updateLocation(hid, srcMac, vlan, hloc);
 
-                //
-                // NeighborAdvertisement and NeighborSolicitation: possible
-                // new hosts, update both location and IP.
-                //
-                // IPv6: update location only
+            //
+            // NeighborAdvertisement and NeighborSolicitation: possible
+            // new hosts, update both location and IP.
+            //
+            // IPv6: update location only
             } else if (eth.getEtherType() == Ethernet.TYPE_IPV6) {
                 IPv6 ipv6 = (IPv6) eth.getPayload();
                 IpAddress ip = IpAddress.valueOf(IpAddress.Version.INET6,
