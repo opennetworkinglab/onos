@@ -206,8 +206,9 @@ public class ECHostStore
                 checkState(Objects.equals(hostId.vlanId(), existingHost.vlan()),
                         "Existing and new VLANs differ.");
 
-                Set<IpAddress> addresses = new HashSet<>(existingHost.ipAddresses());
+                Set<IpAddress> addresses = existingHost.ipAddresses();
                 if (addresses != null && addresses.contains(ipAddress)) {
+                    addresses = new HashSet<>(existingHost.ipAddresses());
                     addresses.remove(ipAddress);
                     return new DefaultHost(existingHost.providerId(),
                             hostId,
