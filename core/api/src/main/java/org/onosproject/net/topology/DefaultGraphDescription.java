@@ -50,23 +50,6 @@ public class DefaultGraphDescription extends AbstractDescription
      * and process the topology graph.
      *
      * @param nanos       time in nanos of when the topology description was created
-     * @param devices     collection of infrastructure devices
-     * @param links       collection of infrastructure links
-     * @param annotations optional key/value annotations map
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
-    public DefaultGraphDescription(long nanos, Iterable<Device> devices,
-                                   Iterable<Link> links,
-                                   SparseAnnotations... annotations) {
-        this(nanos, System.currentTimeMillis(), devices, links, annotations);
-    }
-
-    /**
-     * Creates a minimal topology graph description to allow core to construct
-     * and process the topology graph.
-     *
-     * @param nanos       time in nanos of when the topology description was created
      * @param millis      time in millis of when the topology description was created
      * @param devices     collection of infrastructure devices
      * @param links       collection of infrastructure links

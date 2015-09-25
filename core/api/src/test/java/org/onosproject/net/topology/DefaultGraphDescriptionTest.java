@@ -41,7 +41,7 @@ public class DefaultGraphDescriptionTest {
     @Test
     public void basics() {
         DefaultGraphDescription desc =
-                new DefaultGraphDescription(4321L, ImmutableSet.of(DEV1, DEV2, DEV3),
+                new DefaultGraphDescription(4321L, System.currentTimeMillis(), ImmutableSet.of(DEV1, DEV2, DEV3),
                                             ImmutableSet.of(L1, L2));
         assertEquals("incorrect time", 4321L, desc.timestamp());
         assertEquals("incorrect vertex count", 3, desc.vertexes().size());
@@ -50,7 +50,7 @@ public class DefaultGraphDescriptionTest {
 
     @Test
     public void missingVertex() {
-        GraphDescription desc = new DefaultGraphDescription(4321L,
+        GraphDescription desc = new DefaultGraphDescription(4321L, System.currentTimeMillis(),
                                                             ImmutableSet.of(DEV1, DEV3),
                                                             ImmutableSet.of(L1, L2));
         assertEquals("incorrect time", 4321L, desc.timestamp());
