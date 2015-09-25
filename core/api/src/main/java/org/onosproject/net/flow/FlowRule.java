@@ -29,43 +29,6 @@ public interface FlowRule {
     int MIN_PRIORITY = 0;
 
     /**
-     * The FlowRule type is used to determine in which table the flow rule needs
-     * to be put for multi-table support switch. For single table switch,
-     * Default is used.
-     *
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
-    enum Type {
-        /*
-         * Default type - used in flow rule for single table switch NOTE: this
-         * setting should not be used as Table 0 in a multi-table pipeline
-         */
-        DEFAULT,
-        /* Used in flow entry for IP table */
-        IP,
-        /* Used in flow entry for MPLS table */
-        MPLS,
-        /* Used in flow entry for ACL table */
-        ACL,
-
-        /* VLAN-to-MPLS table */
-        VLAN_MPLS,
-
-        /* VLAN table */
-        VLAN,
-
-        /* Ethtype table */
-        ETHER,
-
-        /* Class of Service table */
-        COS,
-
-        /* Table 0 in a multi-table pipeline */
-        FIRST,
-    }
-
-    /**
      * Returns the ID of this flow.
      *
      * @return the flow ID
