@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onos.acl;
+package org.onosproject.acl;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.FlowRule;
@@ -33,18 +33,21 @@ public interface AclStore extends Store {
 
     /**
      * Gets a list containing all ACL rules.
+     *
      * @return a list containing all ACL rules
      */
     List<AclRule> getAclRules();
 
     /**
      * Adds a new ACL rule.
+     *
      * @param rule new ACL rule
      */
     void addAclRule(AclRule rule);
 
     /**
      * Gets an existing ACL rule.
+     *
      * @param ruleId ACL rule id
      * @return ACL rule with the given id
      */
@@ -52,6 +55,7 @@ public interface AclStore extends Store {
 
     /**
      * Removes an existing ACL rule by rule id.
+     *
      * @param ruleId ACL rule id
      */
     void removeAclRule(RuleId ruleId);
@@ -63,6 +67,7 @@ public interface AclStore extends Store {
 
     /**
      * Gets the current priority for new ACL flow rule by device id.
+     *
      * @param deviceId device id
      * @return new ACL flow rule's priority in the given device
      */
@@ -70,6 +75,7 @@ public interface AclStore extends Store {
 
     /**
      * Gets a set containing all ACL flow rules belonging to a given ACL rule.
+     *
      * @param ruleId ACL rule id
      * @return a set containing all ACL flow rules belonging to the given ACL rule
      */
@@ -77,19 +83,22 @@ public interface AclStore extends Store {
 
     /**
      * Adds a new mapping from ACL rule to ACL flow rule.
-     * @param ruleId ACL rule id
+     *
+     * @param ruleId   ACL rule id
      * @param flowRule ACL flow rule
      */
     void addRuleToFlowMapping(RuleId ruleId, FlowRule flowRule);
 
     /**
      * Removes an existing mapping from ACL rule to ACL flow rule.
+     *
      * @param ruleId ACL rule id
      */
     void removeRuleToFlowMapping(RuleId ruleId);
 
     /**
      * Gets a list containing all allowing ACL rules matching a given denying ACL rule.
+     *
      * @param denyingRuleId denying ACL rule id
      * @return a list containing all allowing ACL rules matching the given denying ACL rule
      */
@@ -97,20 +106,23 @@ public interface AclStore extends Store {
 
     /**
      * Adds a new mapping from denying ACL rule to allowing ACL rule.
-     * @param denyingRuleId denying ACL rule id
+     *
+     * @param denyingRuleId  denying ACL rule id
      * @param allowingRuleId allowing ACL rule id
      */
     void addDenyToAllowMapping(RuleId denyingRuleId, RuleId allowingRuleId);
 
     /**
      * Removes an exsiting mapping from denying ACL rule to allowing ACL rule.
+     *
      * @param denyingRuleId denying ACL rule id
      */
     void removeDenyToAllowMapping(RuleId denyingRuleId);
 
     /**
      * Checks if an existing ACL rule already works in a given device.
-     * @param ruleId ACL rule id
+     *
+     * @param ruleId   ACL rule id
      * @param deviceId devide id
      * @return true if the given ACL rule works in the given device
      */
@@ -118,13 +130,15 @@ public interface AclStore extends Store {
 
     /**
      * Adds a new mapping from ACL rule to device.
-     * @param ruleId ACL rule id
+     *
+     * @param ruleId   ACL rule id
      * @param deviceId device id
      */
     void addRuleToDeviceMapping(RuleId ruleId, DeviceId deviceId);
 
     /**
      * Removes an existing mapping from ACL rule to device.
+     *
      * @param ruleId ACL rule id
      */
     void removeRuleToDeviceMapping(RuleId ruleId);

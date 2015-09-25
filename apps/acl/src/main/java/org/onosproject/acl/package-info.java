@@ -15,6 +15,6 @@
  */
 
 /**
- * ACL application implementation.
+ * ACL application.
  */
-package org.onos.acl.impl;
+package org.onosproject.acl;

@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onos.acl;
+package org.onosproject.acl;
 
 /**
  * ACL rule identifier suitable as an external key.

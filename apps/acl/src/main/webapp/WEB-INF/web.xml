@@ -33,7 +33,7 @@
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.config.property.classnames</param-name>
-            <param-value>org.onos.acl.AclWebResource</param-value>
+            <param-value>org.onosproject.acl.AclWebResource</param-value>
         </init-param>
         <load-on-startup>10</load-on-startup>
     </servlet>

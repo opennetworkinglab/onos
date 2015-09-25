@@ -17,11 +17,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onos.acl.impl;
+package org.onosproject.acl.impl;
 
 import com.google.common.collect.Collections2;
-import org.onos.acl.AclRule;
-import org.onos.acl.AclStore;
+import org.onosproject.acl.AclRule;
+import org.onosproject.acl.AclStore;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,7 +29,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
-import org.onos.acl.RuleId;
+import org.onosproject.acl.RuleId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;

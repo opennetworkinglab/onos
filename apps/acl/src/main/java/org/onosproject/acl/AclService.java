@@ -1,7 +1,7 @@
 /*
  * Copyright 2015 Open Networking Laboratory
  * Originally created by Pengfei Lu, Network and Cloud Computing Laboratory, Dalian University of Technology, China
- * Advisers: Keqiu Li and Heng Qi
+ * Advisers: Keqiu Li, Heng Qi and Haisheng Yu
  * This work is supported by the State Key Program of National Natural Science of China(Grant No. 61432002)
  * and Prospective Research Project on Future Networks in Jiangsu Future Networks Innovation Institute.
  *
@@ -17,35 +17,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onos.acl.web;
+package org.onosproject.acl;
 
-import com.google.common.collect.ClassToInstanceMap;
-import com.google.common.collect.MutableClassToInstanceMap;
-import org.onlab.osgi.ServiceDirectory;
+import java.util.List;
 
 /**
- * Service directory implementation suitable for testing.
+ * Service interface exported by ACL application.
  */
-public class TestServiceDirectory implements ServiceDirectory {
-
-
-    private ClassToInstanceMap<Object> services = MutableClassToInstanceMap.create();
-
-    @Override
-    public <T> T get(Class<T> serviceClass) {
-        return services.getInstance(serviceClass);
-    }
+public interface AclService {
 
     /**
-     * Adds a new service to the directory.
+     * Gets a list containing all ACL rules.
      *
-     * @param serviceClass service class
-     * @param service service instance
-     * @return self
+     * @return a list containing all ACL rules
      */
-    public TestServiceDirectory add(Class serviceClass, Object service) {
-        services.putInstance(serviceClass, service);
-        return this;
-    }
+    List<AclRule> getAclRules();
+
+    /**
+     * Adds a new ACL rule.
+     *
+     * @param rule ACL rule
+     * @return true if successfully added, otherwise false
+     */
+    boolean addAclRule(AclRule rule);
+
+    /**
+     * Removes an exsiting ACL rule by rule id.
+     *
+     * @param ruleId ACL rule identifier
+     */
+    void removeAclRule(RuleId ruleId);
+
+    /**
+     * Clears ACL and resets all.
+     */
+    void clearAcl();
 
 }

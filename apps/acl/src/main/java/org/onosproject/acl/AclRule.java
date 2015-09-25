@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onos.acl;
+package org.onosproject.acl;
 
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.IPv4;
@@ -66,17 +66,14 @@ public final class AclRule {
     /**
      * Create a new ACL rule.
      *
-     * @param srcIp source IP address
-     * @param dstIp destination IP address
-     * @param ipProto IP protocol
+     * @param srcIp     source IP address
+     * @param dstIp     destination IP address
+     * @param ipProto   IP protocol
      * @param dstTpPort destination transport layer port
-     * @param action ACL rule's action
+     * @param action    ACL rule's action
      */
-    private AclRule(Ip4Prefix srcIp,
-                   Ip4Prefix dstIp,
-                   byte ipProto,
-                   short dstTpPort,
-                   Action action) {
+    private AclRule(Ip4Prefix srcIp, Ip4Prefix dstIp, byte ipProto,
+                    short dstTpPort, Action action) {
         checkState(idGenerator != null, "Id generator is not bound.");
         this.id = RuleId.valueOf(idGenerator.getNewId());
         this.srcIp = srcIp;
@@ -112,6 +109,7 @@ public final class AclRule {
 
     /**
      * Check if this ACL rule match the given ACL rule.
+     *
      * @param r ACL rule to check against
      * @return true if this ACL rule matches the given ACL ruleule.
      */
@@ -152,8 +150,8 @@ public final class AclRule {
          * @param srcIp source IP address to use for built ACL rule
          * @return this builder
          */
-        public Builder srcIp(String srcIp) {
-            this.srcIp = Ip4Prefix.valueOf(srcIp);
+        public Builder srcIp(Ip4Prefix srcIp) {
+            this.srcIp = srcIp;
             return this;
         }
 
@@ -163,8 +161,8 @@ public final class AclRule {
          * @param dstIp destination IP address to use for built ACL rule
          * @return this builder
          */
-        public Builder dstIp(String dstIp) {
-            this.dstIp = Ip4Prefix.valueOf(dstIp);
+        public Builder dstIp(Ip4Prefix dstIp) {
+            this.dstIp = dstIp;
             return this;
         }
 
@@ -205,6 +203,7 @@ public final class AclRule {
 
         /**
          * Builds an ACL rule from the accumulated parameters.
+         *
          * @return ACL rule instance
          */
         public AclRule build() {
@@ -212,20 +211,14 @@ public final class AclRule {
             checkState(ipProto == 0 || ipProto == IPv4.PROTOCOL_ICMP
                                || ipProto == IPv4.PROTOCOL_TCP || ipProto == IPv4.PROTOCOL_UDP,
                        "ipProto must be assigned to TCP, UDP, or ICMP.");
-            return new AclRule(
-                    srcIp,
-                    dstIp,
-                    ipProto,
-                    dstTpPort,
-                    action
-            );
+            return new AclRule(srcIp, dstIp, ipProto, dstTpPort, action);
         }
 
     }
 
     /**
      * Binds an id generator for unique ACL rule id generation.
-     *
+     * <p>
      * Note: A generator cannot be bound if there is already a generator bound.
      *
      * @param newIdGenerator id generator
@@ -261,12 +254,7 @@ public final class AclRule {
 
     @Override
     public int hashCode() {
-        return Objects.hash(action,
-                            id.fingerprint(),
-                            ipProto,
-                            srcIp,
-                            dstIp,
-                            dstTpPort);
+        return Objects.hash(action, id.fingerprint(), ipProto, srcIp, dstIp, dstTpPort);
     }
 
     @Override

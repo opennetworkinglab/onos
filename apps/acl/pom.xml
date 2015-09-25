@@ -18,7 +18,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -36,10 +38,10 @@
     <url>http://onosproject.org</url>
 
     <properties>
-        <onos.version>1.4.0-SNAPSHOT</onos.version>
         <onos.app.name>org.onosproject.acl</onos.app.name>
         <onos.app.origin>DLUT</onos.app.origin>
-        <web.context>/onos/acl</web.context>
+
+        <web.context>/onos/v1/acl</web.context>
         <api.version>1.0.0</api.version>
         <api.title>ONOS ACL Application REST API</api.title>
         <api.description>
@@ -64,19 +66,34 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>
-            <version>${onos.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-rest</artifactId>
-            <version>${onos.version}</version>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onlab-osgi</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-rest</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-core-serializers</artifactId>
-            <version>${onos.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -100,7 +117,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-misc</artifactId>
-            <version>${onos.version}</version>
         </dependency>
     </dependencies>
 
