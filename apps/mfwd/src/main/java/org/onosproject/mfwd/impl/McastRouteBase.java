@@ -17,10 +17,9 @@ package org.onosproject.mfwd.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import org.apache.commons.collections.set.ListOrderedSet;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.intent.Key;
 
@@ -34,10 +33,12 @@ public class McastRouteBase implements McastRoute {
     protected final IpPrefix gaddr;
     protected final IpPrefix saddr;
 
-    protected ConnectPoint ingressPoint;
-    protected Set<ConnectPoint> egressPoints;
+    protected McastConnectPoint ingressPoint;
+    protected Set<McastConnectPoint> egressPoints;
 
     protected boolean isGroup = false;
+
+    protected boolean dirty = false;
 
     /**
      * How may times has this packet been punted.
@@ -160,58 +161,120 @@ public class McastRouteBase implements McastRoute {
     }
 
     /**
+     * Get the dirty state.
+     *
+     * @return whether this route is dirty or not.
+     */
+    public boolean getDirty() {
+        return this.dirty;
+    }
+
+    /**
+     * Set the dirty state to indicate that something changed.
+     * This may require an update to the flow tables (intents).
+     *
+     * @param dirty set the dirty bit
+     */
+    public void setDirty(boolean dirty) {
+        this.dirty = dirty;
+    }
+
+    /**
      * Add an ingress point to this route.
      *
      * @param ingress incoming connect point
+     * @return whether ingress has been added, only add if ingressPoint is null
      */
-    @Override
-    public void addIngressPoint(ConnectPoint ingress) {
-        ingressPoint = checkNotNull(ingress);
+    public boolean addIngressPoint(ConnectPoint ingress) {
+
+        // Do NOT add the ingressPoint if it is not null.
+        if (this.ingressPoint != null) {
+            // TODO: Log an warning.
+            return false;
+        }
+        this.ingressPoint = new McastConnectPoint(checkNotNull(ingress));
+        setDirty(true);
+        return true;
     }
 
     /**
      * Add or modify the ingress connect point.
      *
-     * @param deviceId the switch device Id
-     * @param portNum the ingress port number
+     * @param connectPoint string switch device Id
+     * @return whether ingress has been added, only add if ingressPoint is null
      */
-    @Override
-    public void addIngressPoint(String deviceId, long portNum) {
-        ingressPoint = new ConnectPoint(
-                DeviceId.deviceId(deviceId),
-                PortNumber.portNumber(portNum));
+    public boolean addIngressPoint(String connectPoint) {
+
+        if (this.ingressPoint != null) {
+            // TODO: log a warning.
+            return false;
+        }
+        ConnectPoint cp = ConnectPoint.deviceConnectPoint(checkNotNull(connectPoint));
+        return this.addIngressPoint(cp);
     }
 
     /**
-     * Get the ingress ConnectPoint.
+     * Get the ingress McastConnectPoint.
      *
-     * @return the ingress ConnectPoint
+     * @return the ingress McastConnectPoint
      */
-    @Override
-    public ConnectPoint getIngressPoint() {
+    public McastConnectPoint getIngressPoint() {
         return this.ingressPoint;
     }
 
     /**
-     * Add an egress ConnectPoint.
+     * Add an egress McastConnectPoint.
      *
-     * @param member member egress connect point
+     * @param cp egress connect point
+     * @return return the McastConnectPoint
      */
-    @Override
-    public void addEgressPoint(ConnectPoint member) {
-        egressPoints.add(checkNotNull(member));
+    public McastConnectPoint addEgressPoint(ConnectPoint cp) {
+        McastConnectPoint mcp = this.findEgressConnectPoint(cp);
+        if (mcp == null) {
+            mcp = new McastConnectPoint(checkNotNull(cp));
+            egressPoints.add(mcp);
+            setDirty(true);
+        }
+        return mcp;
     }
 
     /**
-     * Add an egress ConnectPoint.
+     * Add an egress connect point from a string.
      *
-     * @param deviceId deviceId of the connect point
-     * @param portNum portNum of the connect point
+     * @param connectPoint string representing a connect point
+     * @return the MulticastConnectPoint
      */
-    @Override
-    public void addEgressPoint(String deviceId, long portNum) {
-        ConnectPoint cp = new ConnectPoint(DeviceId.deviceId(deviceId), PortNumber.portNumber(portNum));
-        this.egressPoints.add(cp);
+    public McastConnectPoint addEgressPoint(String connectPoint) {
+        checkNotNull(connectPoint);
+        return this.addEgressPoint(ConnectPoint.deviceConnectPoint(connectPoint));
+    }
+
+    /**
+     * Add an egress McastConnectPoint.
+     *
+     * @param cp the egress connect point
+     * @param interest the source of interest for mcast traffic
+     */
+    public McastConnectPoint addEgressPoint(ConnectPoint cp, McastConnectPoint.JoinSource interest) {
+        checkNotNull(cp);
+        checkNotNull(interest);
+        McastConnectPoint mcp = this.addEgressPoint(cp);
+        if (mcp != null) {
+            mcp.interest.add(interest);
+            setDirty(true);
+        }
+        return mcp;
+    }
+
+    /**
+     * Add an egress McastConnectPoint.
+     *
+     * @param cpstr deviceId/port of the connect point
+     */
+    public McastConnectPoint addEgressPoint(String cpstr, McastConnectPoint.JoinSource interest) {
+        checkNotNull(cpstr);
+        checkNotNull(interest);
+        return this.addEgressPoint(ConnectPoint.deviceConnectPoint(cpstr), interest);
     }
 
     /**
@@ -219,9 +282,54 @@ public class McastRouteBase implements McastRoute {
      *
      * @return Set of egress connect points
      */
-    @Override
-    public Set<ConnectPoint> getEgressPoints() {
+    public Set<McastConnectPoint> getEgressPoints() {
         return egressPoints;
+    }
+
+    /**
+     * Get egress McastConnectPoints points as ConnectPoints for intent system.
+     *
+     * @return Set of egress ConnectPoints
+     */
+    public Set<ConnectPoint> getEgressConnectPoints() {
+        Set<ConnectPoint> cps = new ListOrderedSet();
+
+        for (McastConnectPoint mcp : egressPoints) {
+            cps.add(mcp.getConnectPoint());
+        }
+        return cps;
+    }
+
+    /**
+     * Find the Multicast Connect Point that contains the ConnectPoint.
+     *
+     * @param cp the regular ConnectPoint to match
+     * @return the McastConnectPoint that contains cp or null if not found.
+     */
+    public McastConnectPoint findEgressConnectPoint(ConnectPoint cp) {
+        for (McastConnectPoint mcp : this.egressPoints) {
+            if (mcp.getConnectPoint().equals(cp)) {
+                return mcp;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Remove specified interest from the given ConnectPoint.
+     *
+     * @param mcp connect point.
+     * @param interest the protocol interested in this multicast stream
+     * @return true if removed, false otherwise
+     */
+    public boolean removeInterest(McastConnectPoint mcp, McastConnectPoint.JoinSource interest) {
+        checkNotNull(mcp);
+        if (mcp.interest.contains(interest)) {
+            mcp.interest.remove(interest);
+            setDirty(true);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -264,7 +372,7 @@ public class McastRouteBase implements McastRoute {
     /**
      * Set the Intent key.
      *
-     * @param intent intent
+     * @param intent the multicast intent
      */
     @Override
     public void setIntent(SinglePointToMultiPointIntent intent) {
@@ -312,8 +420,8 @@ public class McastRouteBase implements McastRoute {
         out += (ingressPoint == null) ? "NULL" : ingressPoint.toString();
         out += "\n\tegress: {\n";
         if (egressPoints != null && !egressPoints.isEmpty()) {
-            for (ConnectPoint eg : egressPoints) {
-                out += "\t\t" + eg.toString() + "\n";
+            for (McastConnectPoint eg : egressPoints) {
+                out += "\t\t" + eg.getConnectPoint().toString() + "\n";
             }
         }
         out += ("\t}\n");

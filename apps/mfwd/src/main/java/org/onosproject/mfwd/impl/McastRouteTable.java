@@ -157,7 +157,7 @@ public final class McastRouteTable {
             if (gpfx.isIp4()) {
                 this.mrib4.put(gpfx, group);
             } else if (gpfx.isIp6() && ipv6Enabled) {
-                    this.mrib6.put(gpfx, group);
+                this.mrib6.put(gpfx, group);
             }
         }
 
@@ -259,7 +259,7 @@ public final class McastRouteTable {
         if (group.isIp4()) {
             g = mrib4.get(group);
         } else if (group.isIp6() && ipv6Enabled) {
-                g = mrib6.get(group);
+            g = mrib6.get(group);
         }
         return g;
     }

@@ -20,6 +20,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.cli.AbstractShellCommand;
 
+import org.onosproject.mfwd.impl.McastConnectPoint;
 import org.onosproject.mfwd.impl.McastRouteBase;
 import org.onosproject.mfwd.impl.McastRouteTable;
 
@@ -76,21 +77,13 @@ public class McastJoinCommand extends AbstractShellCommand {
         if (ingressPort != null) {
             String inCP = ingressPort;
             log.debug("Ingress port provided: " + inCP);
-            String [] cp = inCP.split("/");
-            mr.addIngressPoint(cp[0], Long.parseLong(cp[1]));
-        } else {
-            return;
-        }
-
-        if (ports == null) {
-            return;
+            mr.addIngressPoint(inCP);
         }
 
         for (int i = 0; i < ports.length; i++) {
             String egCP = ports[i];
             log.debug("Egress port provided: " + egCP);
-            String [] cp = egCP.split("/");
-            mr.addEgressPoint(cp[0], Long.parseLong(cp[1]));
+            mr.addEgressPoint(egCP, McastConnectPoint.JoinSource.STATIC);
         }
         print("Added the mcast route");
     }

@@ -222,7 +222,7 @@ public class McastForwarding {
     private void forwardPacketToDst(PacketContext context, McastRoute entry) {
 
         // Send the pack out each of the respective egress ports
-        for (ConnectPoint egress : entry.getEgressPoints()) {
+        for (ConnectPoint egress : entry.getEgressConnectPoints()) {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .setOutput(egress.port()).build();
 

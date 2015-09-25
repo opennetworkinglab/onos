@@ -72,7 +72,7 @@ public class McastShowCommand extends AbstractShellCommand {
                 inPort = mg.getIngressPoint().toString();
                 log.info("Multicast Ingress: " + inPort);
             }
-            Set<ConnectPoint> eps = mg.getEgressPoints();
+            Set<ConnectPoint> eps = mg.getEgressConnectPoints();
             if (eps != null && !eps.isEmpty()) {
                 outPorts = eps.toString();
             }

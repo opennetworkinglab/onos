@@ -101,8 +101,8 @@ public class McastIntentManager {
                         .appId(McastForwarding.getAppId())
                         .selector(selector.build())
                         .treatment(treatment)
-                        .ingressPoint(mroute.getIngressPoint())
-                        .egressPoints(mroute.getEgressPoints()).
+                        .ingressPoint(mroute.getIngressPoint().getConnectPoint())
+                        .egressPoints(mroute.getEgressConnectPoints()).
                         build();
 
         intentService.submit(intent);

@@ -57,48 +57,91 @@ interface McastRoute {
     public boolean isIp6();
 
     /**
-     * Add the ingress ConnectPoint with a ConnectPoint.
+     * Add the ingress ConnectPoint.
      *
-     * @param ingress ingress point
+     * @param cpstr string representing a ConnectPoint
+     * @return whether ingress has been added, only add if ingressPoint is null
      */
-    public void addIngressPoint(ConnectPoint ingress);
+    public boolean addIngressPoint(String cpstr);
 
     /**
-     * Add the ingress Connect Point using. ..
+     * Add the ingress ConnectPoint.
      *
-     * @param deviceId device ID
-     * @param portNum port number
+     * @param cp the ConnectPoint of incoming traffic.
+     * @return whether ingress has been added, only add if ingressPoint is null
      */
-    public void addIngressPoint(String deviceId, long portNum);
+    public boolean addIngressPoint(ConnectPoint cp);
 
     /**
      * Get the ingress connect point.
      *
      * @return the ingress connect point
      */
-    public ConnectPoint getIngressPoint();
+    public McastConnectPoint getIngressPoint();
 
     /**
      * Add an egress connect point.
      *
-     * @param member the egress ConnectPoint to be added
+     * @param cp the egress McastConnectPoint to be added
+     * @return return the McastConnectPoint
      */
-    public void addEgressPoint(ConnectPoint member);
+    public McastConnectPoint addEgressPoint(ConnectPoint cp);
 
     /**
      * Add an egress connect point.
      *
-     * @param deviceId the device ID of the connect point
-     * @param portNum the port number of the connect point
+     * @param connectPoint deviceId/portNum
+     * @return return the McastConnectPoint
      */
-    public void addEgressPoint(String deviceId, long portNum);
+    public McastConnectPoint addEgressPoint(String connectPoint);
+
+    /**
+     * Add an egress connect point.
+     *
+     * @param cp the egress McastConnectPoint to be added
+     * @param interest the protocol that has shown interest in this route
+     * @return return the McastConnectPoint
+     */
+    public McastConnectPoint addEgressPoint(ConnectPoint cp, McastConnectPoint.JoinSource interest);
+
+    /**
+     * Add an egress connect point.
+     *
+     * @param connectPoint deviceId/portNum
+     * @param interest the protocol that has shown interest in this route
+     * @return return the McastConnectPoint
+     */
+    public McastConnectPoint addEgressPoint(String connectPoint, McastConnectPoint.JoinSource interest);
 
     /**
      * Get the egress connect points.
      *
      * @return a set of egress connect points
      */
-    public Set<ConnectPoint> getEgressPoints();
+    public Set<McastConnectPoint> getEgressPoints();
+
+    /**
+     * Get the egress connect points.
+     *
+     * @return a set of egress connect points
+     */
+    public Set<ConnectPoint> getEgressConnectPoints();
+
+    /**
+     * Find the egress connect point if it exists.
+     *
+     * @return the connect point when found, null otherwise.
+     */
+    public McastConnectPoint findEgressConnectPoint(ConnectPoint cp);
+
+    /**
+     * remove Interest from a McastConnectPoint.
+     *
+     * @param mcp connect point.
+     * @param interest the protocol interested in this multicast stream
+     * @return whether or not interest was removed
+     */
+    public boolean removeInterest(McastConnectPoint mcp, McastConnectPoint.JoinSource interest);
 
     /**
      * Increment the punt count.
