@@ -941,7 +941,8 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
         void processOFHello(OFChannelHandler h, OFHello m)
                 throws IOException, SwitchStateException {
             // we only expect hello in the WAIT_HELLO state
-            illegalMessageReceived(h, m);
+            log.warn("Received Hello outside WAIT_HELLO state; switch {} is not complaint.",
+                     h.channel.getRemoteAddress());
         }
 
         void processOFBarrierReply(OFChannelHandler h, OFBarrierReply m)
