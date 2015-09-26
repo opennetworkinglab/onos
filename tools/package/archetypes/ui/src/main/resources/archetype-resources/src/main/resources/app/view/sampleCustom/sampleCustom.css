@@ -1,35 +1,48 @@
-/* css for sample app view */
+/* css for sample app custom view */
 
-#ov-sample h2 {
-    display: inline-block;
+#ov-sample-custom {
+    padding: 20px;
 }
-
-/* Panel Styling */
-#ov-sample-custom-item-details-panel.floatpanel {
-    position: absolute;
-    top: 115px;
+.light #ov-sample-custom {
+    color: navy;
 }
-
-.light #ov-sample-custom-item-details-panel.floatpanel {
-    background-color: rgb(229, 234, 237);
-}
-.dark #ov-sample-custom-item-details-panel.floatpanel {
-    background-color: #3A4042;
+.dark #ov-sample-custom {
+    color: #88f;
 }
 
-#ov-sample-custom-item-details-panel h3 {
-    margin: 0;
-    font-size: large;
+#ov-sample-custom .button-panel {
+    margin: 10px;
+    width: 200px;
 }
 
-#ov-sample-custom-item-details-panel h4 {
-    margin: 0;
+.light #ov-sample-custom .button-panel {
+    background-color: #ccf;
+}
+.dark #ov-sample-custom .button-panel {
+    background-color: #444;
 }
 
-#ov-sample-custom-item-details-panel td {
-    padding: 5px;
+#ov-sample-custom .my-button {
+    cursor: pointer;
+    padding: 4px;
+    text-align: center;
 }
-#ov-sample-custom-item-details-panel td.label {
+
+.light #ov-sample-custom .my-button {
+    color: white;
+    background-color: #99d;
+}
+.dark #ov-sample-custom .my-button {
+    color: black;
+    background-color: #aaa;
+}
+
+#ov-sample-custom .number {
+    font-size: 140%;
+    text-align: right;
+}
+
+#ov-sample-custom .quote {
+    margin: 10px 20px;
     font-style: italic;
-    opacity: 0.8;
 }

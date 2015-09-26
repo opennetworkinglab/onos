@@ -3,139 +3,67 @@
     'use strict';
 
     // injected refs
-    var $log, $scope, fs, wss;
+    var $log, $scope, wss, ks;
 
     // constants
-    var detailsReq = 'sampleCustomDetailsRequest',
-        detailsResp = 'sampleCustomDetailsResponse',
-        pName = 'ov-sample-custom-item-details-panel',
+    var dataReq = 'sampleCustomDataRequest',
+        dataResp = 'sampleCustomDataResponse';
 
-        propOrder = ['id', 'label', 'code'],
-        friendlyProps = ['Item ID', 'Item Label', 'Special Code'];
+    function addKeyBindings() {
+        var map = {
+            space: [getData, 'Fetch data from server'],
 
+            _helpFormat: [
+                ['space']
+            ]
+        };
 
-    function addProp(tbody, index, value) {
-        var tr = tbody.append('tr');
-
-        function addCell(cls, txt) {
-            tr.append('td').attr('class', cls).html(txt);
-        }
-        addCell('label', friendlyProps[index] + ' :');
-        addCell('value', value);
+        ks.keyBindings(map);
     }
 
-    function populatePanel(panel) {
-        var title = panel.append('h3'),
-            tbody = panel.append('table').append('tbody');
-
-        title.text('Item Details');
-
-        propOrder.forEach(function (prop, i) {
-            addProp(tbody, i, $scope.panelDetails[prop]);
-        });
-
-        panel.append('hr');
-        panel.append('h4').text('Comments');
-        panel.append('p').text($scope.panelDetails.comment);
+    function getData() {
+        wss.sendEvent(dataReq);
     }
 
-    function respDetailsCb(data) {
-        $scope.panelDetails = data.details;
+    function respDataCb(data) {
+        $scope.data = data;
         $scope.$apply();
     }
 
+
     angular.module('ovSampleCustom', [])
         .controller('OvSampleCustomCtrl',
-        ['$log', '$scope', 'TableBuilderService',
-            'FnService', 'WebSocketService',
+        ['$log', '$scope', 'WebSocketService', 'KeyService',
 
-            function (_$log_, _$scope_, tbs, _fs_, _wss_) {
+            function (_$log_, _$scope_, _wss_, _ks_) {
                 $log = _$log_;
                 $scope = _$scope_;
-                fs = _fs_;
                 wss = _wss_;
+                ks = _ks_;
 
                 var handlers = {};
-                $scope.panelDetails = {};
+                $scope.data = {};
 
-                // details response handler
-                handlers[detailsResp] = respDetailsCb;
+                // data response handler
+                handlers[dataResp] = respDataCb;
                 wss.bindHandlers(handlers);
 
-                // custom selection callback
-                function selCb($event, row) {
-                    if ($scope.selId) {
-                        wss.sendEvent(detailsReq, { id: row.id });
-                    } else {
-                        $scope.hidePanel();
-                    }
-                    $log.debug('Got a click on:', row);
-                }
+                addKeyBindings();
 
-                // TableBuilderService creating a table for us
-                tbs.buildTable({
-                    scope: $scope,
-                    tag: 'sampleCustom',
-                    selCb: selCb
-                });
+                // custom click handler
+                $scope.getData = getData;
+
+                // get data the first time...
+                getData();
 
                 // cleanup
                 $scope.$on('$destroy', function () {
                     wss.unbindHandlers(handlers);
+                    ks.unbindKeys();
                     $log.log('OvSampleCustomCtrl has been destroyed');
                 });
 
                 $log.log('OvSampleCustomCtrl has been created');
-            }])
+            }]);
 
-        .directive('ovSampleCustomItemDetailsPanel', ['PanelService', 'KeyService',
-            function (ps, ks) {
-            return {
-                restrict: 'E',
-                link: function (scope, element, attrs) {
-                    // insert details panel with PanelService
-                    // create the panel
-                    var panel = ps.createPanel(pName, {
-                        width: 200,
-                        margin: 20,
-                        hideMargin: 0
-                    });
-                    panel.hide();
-                    scope.hidePanel = function () { panel.hide(); };
-
-                    function closePanel() {
-                        if (panel.isVisible()) {
-                            $scope.selId = null;
-                            panel.hide();
-                            return true;
-                        }
-                        return false;
-                    }
-
-                    // create key bindings to handle panel
-                    ks.keyBindings({
-                        esc: [closePanel, 'Close the details panel'],
-                        _helpFormat: ['esc']
-                    });
-                    ks.gestureNotes([
-                        ['click', 'Select a row to show item details']
-                    ]);
-
-                    // update the panel's contents when the data is changed
-                    scope.$watch('panelDetails', function () {
-                        if (!fs.isEmptyObject(scope.panelDetails)) {
-                            panel.empty();
-                            populatePanel(panel);
-                            panel.show();
-                        }
-                    });
-
-                    // cleanup on destroyed scope
-                    scope.$on('$destroy', function () {
-                        ks.unbindKeys();
-                        ps.destroyPanel(pName);
-                    });
-                }
-            };
-        }]);
 }());
