@@ -39,9 +39,15 @@ import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.FileInputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetSocketAddress;
+import java.security.KeyStore;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
@@ -66,6 +72,8 @@ public class Controller {
 
     protected static final OFFactory FACTORY13 = OFFactories.getFactory(OFVersion.OF_13);
     protected static final OFFactory FACTORY10 = OFFactories.getFactory(OFVersion.OF_10);
+    private static final boolean TLS_DISABLED = false;
+    private static final short MIN_KS_LENGTH = 6;
 
     protected HashMap<String, String> controllerNodeIPsCache;
 
@@ -82,9 +90,16 @@ public class Controller {
 
     private NioServerSocketChannelFactory execFactory;
 
+    protected String ksLocation;
+    protected String tsLocation;
+    protected char[] ksPwd;
+    protected char[] tsPwd;
+    private SSLEngine serverSSLEngine;
+
     // Perf. related configuration
     protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
     private DriverService driverService;
+    private boolean enableOFTLS = TLS_DISABLED;
 
     // ***************
     // Getters/Setters
@@ -134,7 +149,7 @@ public class Controller {
             bootstrap.setOption("child.sendBufferSize", Controller.SEND_BUFFER_SIZE);
 
             ChannelPipelineFactory pfact =
-                    new OpenflowPipelineFactory(this, null);
+                    new OpenflowPipelineFactory(this, null, serverSSLEngine);
             bootstrap.setPipelineFactory(pfact);
             cg = new DefaultChannelGroup();
             openFlowPorts.forEach(port -> {
@@ -189,6 +204,68 @@ public class Controller {
         this.controllerNodeIPsCache = new HashMap<>();
 
         this.systemStartTime = System.currentTimeMillis();
+
+        try {
+            getTLSParameters();
+            if (enableOFTLS) {
+                initSSL();
+            }
+        } catch (Exception ex) {
+            log.error("SSL init failed: {}", ex.getMessage());
+        }
+
+    }
+
+    private void getTLSParameters() {
+        String tempString = System.getProperty("enableOFTLS");
+        enableOFTLS = Strings.isNullOrEmpty(tempString) ? TLS_DISABLED : Boolean.parseBoolean(tempString);
+        log.info("OpenFlow Security is {}", enableOFTLS ? "enabled" : "disabled");
+        if (enableOFTLS) {
+            ksLocation = System.getProperty("javax.net.ssl.keyStore");
+            if (Strings.isNullOrEmpty(ksLocation)) {
+                enableOFTLS = TLS_DISABLED;
+                return;
+            }
+            tsLocation = System.getProperty("javax.net.ssl.trustStore");
+            if (Strings.isNullOrEmpty(tsLocation)) {
+                enableOFTLS = TLS_DISABLED;
+                return;
+            }
+            ksPwd = System.getProperty("javax.net.ssl.keyStorePassword").toCharArray();
+            if (MIN_KS_LENGTH > ksPwd.length) {
+                enableOFTLS = TLS_DISABLED;
+                return;
+            }
+            tsPwd = System.getProperty("javax.net.ssl.trustStorePassword").toCharArray();
+            if (MIN_KS_LENGTH > tsPwd.length) {
+                enableOFTLS = TLS_DISABLED;
+                return;
+            }
+        }
+    }
+
+    private void initSSL() throws Exception {
+
+        TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        KeyStore ts = KeyStore.getInstance("JKS");
+        ts.load(new FileInputStream(tsLocation), tsPwd);
+        tmFactory.init(ts);
+
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(new FileInputStream(ksLocation), ksPwd);
+        kmf.init(ks, ksPwd);
+
+        SSLContext serverContext = SSLContext.getInstance("TLS");
+        serverContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
+
+        serverSSLEngine = serverContext.createSSLEngine();
+
+        serverSSLEngine.setNeedClientAuth(true);
+        serverSSLEngine.setUseClientMode(false);
+        serverSSLEngine.setEnabledProtocols(serverSSLEngine.getSupportedProtocols());
+        serverSSLEngine.setEnabledCipherSuites(serverSSLEngine.getSupportedCipherSuites());
+        serverSSLEngine.setEnableSessionCreation(true);
     }
 
     // **************
