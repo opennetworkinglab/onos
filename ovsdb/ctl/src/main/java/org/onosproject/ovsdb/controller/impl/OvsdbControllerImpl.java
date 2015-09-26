@@ -33,6 +33,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onosproject.ovsdb.controller.DefaultEventSubject;
 import org.onosproject.ovsdb.controller.EventSubject;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
@@ -140,6 +141,11 @@ public class OvsdbControllerImpl implements OvsdbController {
     @Override
     public OvsdbClientService getOvsdbClient(OvsdbNodeId nodeId) {
         return ovsdbClients.get(nodeId);
+    }
+
+    @Override
+    public void connect(IpAddress ip, TpPort port) {
+        controller.connect(ip, port);
     }
 
     /**

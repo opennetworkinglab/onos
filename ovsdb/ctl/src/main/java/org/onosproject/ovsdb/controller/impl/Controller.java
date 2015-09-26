@@ -15,25 +15,38 @@
  */
 package org.onosproject.ovsdb.controller.impl;
 
+import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.TpPort;
 import org.onosproject.ovsdb.controller.OvsdbConstant;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.driver.DefaultOvsdbClient;
@@ -62,6 +75,9 @@ public class Controller {
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private Class<? extends ServerChannel> serverChannelClass;
+
+    private static final int MAX_RETRY = 5;
+    private static final int IDLE_TIMEOUT_SEC = 10;
 
     /**
      * Initialization.
@@ -197,5 +213,87 @@ public class Controller {
     public void stop() {
         workerGroup.shutdownGracefully();
         bossGroup.shutdownGracefully();
+    }
+
+    /**
+     * Connect to the ovsdb server with given ip address and port number.
+     *
+     * @param ip ip address
+     * @param port port number
+     */
+    public void connect(IpAddress ip, TpPort port) {
+        ChannelFutureListener listener = new ConnectionListener(this, ip, port);
+        connectRetry(ip, port, listener);
+    }
+
+    private void connectRetry(IpAddress ip, TpPort port, ChannelFutureListener listener) {
+        try {
+            Bootstrap b = new Bootstrap();
+            b.group(workerGroup)
+                    .channel(NioSocketChannel.class)
+                    .option(ChannelOption.TCP_NODELAY, true)
+                    .handler(new ChannelInitializer<SocketChannel>() {
+
+                        @Override
+                        protected void initChannel(SocketChannel channel) throws Exception {
+                            ChannelPipeline p = channel.pipeline();
+                            p.addLast(new MessageDecoder(),
+                                      new StringEncoder(CharsetUtil.UTF_8),
+                                      new IdleStateHandler(IDLE_TIMEOUT_SEC, 0, 0),
+                                      new ConnectionHandler());
+                        }
+                    });
+            b.remoteAddress(ip.toString(), port.toInt());
+            b.connect().addListener(listener);
+        } catch (Exception e) {
+            log.warn("Connection to the ovsdb server {}:{} failed", ip.toString(), port.toString());
+        }
+    }
+
+    private class ConnectionListener implements ChannelFutureListener {
+        private Controller controller;
+        private IpAddress ip;
+        private TpPort port;
+        private AtomicInteger count = new AtomicInteger();
+
+        public ConnectionListener(Controller controller,
+                                  IpAddress ip,
+                                  TpPort port) {
+            this.controller = controller;
+            this.ip = ip;
+            this.port = port;
+        }
+
+        @Override
+        public void operationComplete(ChannelFuture channelFuture) throws Exception {
+            if (!channelFuture.isSuccess()) {
+                channelFuture.channel().close();
+
+                if (count.incrementAndGet() < MAX_RETRY) {
+                    final EventLoop loop = channelFuture.channel().eventLoop();
+
+                    loop.schedule(() -> {
+                        controller.connectRetry(this.ip, this.port, this);
+                    }, 1L, TimeUnit.SECONDS);
+                } else {
+                    log.info("Connection to the ovsdb {}:{} failed",
+                             this.ip.toString(), this.port.toString());
+                }
+            } else {
+                handleNewNodeConnection(channelFuture.channel());
+            }
+        }
+    }
+
+    private class ConnectionHandler extends ChannelDuplexHandler {
+
+        @Override
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+            IdleStateEvent e = (IdleStateEvent) evt;
+
+            if (e.state() == IdleState.READER_IDLE) {
+                ctx.close();
+            }
+        }
     }
 }

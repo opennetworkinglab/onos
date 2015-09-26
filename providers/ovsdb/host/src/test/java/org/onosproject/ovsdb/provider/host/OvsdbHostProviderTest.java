@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.host.HostDescription;
@@ -200,6 +201,11 @@ public class OvsdbHostProviderTest {
         @Override
         public OvsdbClientService getOvsdbClient(OvsdbNodeId nodeId) {
             return null;
+        }
+
+        @Override
+        public void connect(IpAddress ip, TpPort port) {
+
         }
     }
 }

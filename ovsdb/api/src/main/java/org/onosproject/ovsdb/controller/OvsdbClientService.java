@@ -228,4 +228,9 @@ public interface OvsdbClientService extends OvsdbRPC {
      * @return ovsdb ports
      */
     Set<OvsdbPort> getLocalPorts(Iterable<String> ifaceids);
+
+    /**
+     * Disconnects the ovsdb server.
+     */
+    void disconnect();
 }

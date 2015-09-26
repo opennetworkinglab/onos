@@ -821,7 +821,7 @@ public class DefaultOvsdbClient
             Function<JsonNode, DatabaseSchema> rowFunction = new Function<JsonNode, DatabaseSchema>() {
                 @Override
                 public DatabaseSchema apply(JsonNode input) {
-                    log.info("Get ovsdb database schema", dbName);
+                    log.info("Get ovsdb database schema {}", dbName);
                     DatabaseSchema dbSchema = FromJsonUtil
                             .jsonNodeToDbSchema(dbName, input);
                     if (dbSchema == null) {
@@ -1184,5 +1184,11 @@ public class DefaultOvsdbClient
             return null;
         }
         return ifaceid;
+    }
+
+    @Override
+    public void disconnect() {
+        channel.disconnect();
+        this.agent.removeConnectedNode(nodeId);
     }
 }

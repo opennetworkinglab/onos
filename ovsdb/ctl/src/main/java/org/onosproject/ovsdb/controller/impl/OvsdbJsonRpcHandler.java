@@ -89,7 +89,7 @@ public final class OvsdbJsonRpcHandler extends ChannelInboundHandlerAdapter {
      */
     private void processOvsdbMessage(JsonNode jsonNode) {
 
-        log.info("Handle ovsdb message");
+        log.debug("Handle ovsdb message");
 
         if (jsonNode.has("result")) {
 
