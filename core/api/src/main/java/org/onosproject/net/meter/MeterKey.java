@@ -18,6 +18,8 @@ package org.onosproject.net.meter;
 import com.google.common.base.Objects;
 import org.onosproject.net.DeviceId;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * A meter key represents a meter uniquely.
  */
@@ -55,6 +57,13 @@ public final class MeterKey {
     @Override
     public int hashCode() {
         return Objects.hashCode(deviceId, id);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("deviceId", deviceId)
+                .add("meterId", id).toString();
     }
 
     public static MeterKey key(DeviceId deviceId, MeterId id) {

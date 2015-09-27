@@ -80,9 +80,6 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
 
     @Activate
     public void activate() {
-        /*meterIdCounter = storageService.atomicCounterBuilder()
-                .withName(METERCOUNTERIDENTIFIER)
-                .build();*/
 
         store.setDelegate(delegate);
 
