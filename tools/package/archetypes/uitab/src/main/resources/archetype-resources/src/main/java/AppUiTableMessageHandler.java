@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Skeletal ONOS UI Table-View message handler.
  */
-public class AppUiMessageHandler extends UiMessageHandler {
+public class AppUiTableMessageHandler extends UiMessageHandler {
 
     private static final String SAMPLE_TABLE_DATA_REQ = "sampleTableDataRequest";
     private static final String SAMPLE_TABLE_DATA_RESP = "sampleTableDataResponse";

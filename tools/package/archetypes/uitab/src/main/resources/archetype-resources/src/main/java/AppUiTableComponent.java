@@ -37,7 +37,7 @@ import java.util.List;
  * Skeletal ONOS UI Table-View application component.
  */
 @Component(immediate = true)
-public class AppUiComponent {
+public class AppUiTableComponent {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -52,12 +52,13 @@ public class AppUiComponent {
     // Factory for UI message handlers
     private final UiMessageHandlerFactory messageHandlerFactory =
             () -> ImmutableList.of(
-                    new AppUiMessageHandler()
+                    new AppUiTableMessageHandler()
             );
 
     // Application UI extension
     protected UiExtension extension =
             new UiExtension.Builder(getClass().getClassLoader(), uiViews)
+                    .resourcePath("sampleTable")
                     .messageHandlerFactory(messageHandlerFactory)
                     .build();
 
