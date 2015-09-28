@@ -16,8 +16,8 @@
 package org.onosproject.net.intent.impl;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -61,7 +61,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -90,8 +89,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class ObjectiveTracker implements ObjectiveTrackerService {
 
     private final Logger log = getLogger(getClass());
-
-    private final ConcurrentMap<Key, Intent> intents = Maps.newConcurrentMap();
 
     private final SetMultimap<LinkKey, Key> intentsByLink =
             //TODO this could be slow as a point of synchronization
@@ -378,7 +375,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             }
 
             // TODO should we recompile on available==true?
-            delegate.triggerCompile(intentsByDevice.get(id), available);
+            delegate.triggerCompile(ImmutableSet.copyOf(intentsByDevice.get(id)), available);
         }
     }
 
@@ -415,7 +412,17 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         @Override
         public void event(HostEvent event) {
             HostId id = event.subject().id();
-            executorService.execute(new DeviceAvailabilityHandler(id, false));
+            switch (event.type()) {
+                case HOST_ADDED:
+                case HOST_MOVED:
+                case HOST_REMOVED:
+                    executorService.execute(new DeviceAvailabilityHandler(id, false));
+                    break;
+                case HOST_UPDATED:
+                default:
+                    // DO NOTHING
+                    break;
+            }
         }
     }
 
