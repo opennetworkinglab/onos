@@ -46,6 +46,9 @@ org.onosproject.pcep*
 org.onosproject.aaa
 org.onosproject.acl*
 org.onosproject.cip*
-org.onos.acl*
+org.onosproject.acl*
 org.onosproject.vtn*
+org.onosproject.cord*
+org.onosproject.mfwd*
+org.onosproject.mcast*
 org.onosproject.flowanalyzer

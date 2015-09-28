@@ -1,6 +1,5 @@
 org.onosproject.app.*
 
-org.onos.acl*
 org.onosproject.acl*
 org.onosproject.aaa
 org.onosproject.fwd
@@ -26,3 +25,6 @@ org.onosproject.xosintegration*
 org.onosproject.cip*
 org.onosproject.vtn*
 org.onosproject.cord*
+org.onosproject.mcast*
+org.onosproject.mfwd*
+org.onosproject.igmp.impl
