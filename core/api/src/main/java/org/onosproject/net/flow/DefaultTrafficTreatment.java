@@ -250,6 +250,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                     break;
                 case METER:
                     meter = (Instructions.MeterInstruction) instruction;
+                    break;
                 default:
                     throw new IllegalArgumentException("Unknown instruction type: " +
                                                                instruction.type());
