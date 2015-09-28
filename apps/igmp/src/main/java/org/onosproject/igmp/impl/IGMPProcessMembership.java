@@ -31,8 +31,9 @@ public final class IGMPProcessMembership {
      * Process the IGMP Membership report.
      *
      * @param igmp the deserialized IGMP message.
+     * @param receivedFrom the ConnectPoint this message came from.
      */
-    public static void processMembership(IGMP igmp, ConnectPoint recievedFrom) {
+    public static void processMembership(IGMP igmp, ConnectPoint receivedFrom) {
     }
 
 }

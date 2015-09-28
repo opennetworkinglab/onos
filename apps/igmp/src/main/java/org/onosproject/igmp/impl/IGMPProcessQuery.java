@@ -31,6 +31,7 @@ public final class IGMPProcessQuery {
      * Process the IGMP Membership Query message.
      *
      * @param igmp The deserialzed IGMP message
+     * @param receivedFrom the ConnectPoint this message came from.
      */
     public static void processQuery(IGMP igmp, ConnectPoint receivedFrom) {
     }

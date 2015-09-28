@@ -130,6 +130,7 @@ interface McastRoute {
     /**
      * Find the egress connect point if it exists.
      *
+     * @param cp ConnectPoint to search for
      * @return the connect point when found, null otherwise.
      */
     public McastConnectPoint findEgressConnectPoint(ConnectPoint cp);

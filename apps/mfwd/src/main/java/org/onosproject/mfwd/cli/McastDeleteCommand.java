@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@ package org.onosproject.mfwd.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-
 import org.onosproject.mfwd.impl.McastRouteTable;
 
 /**
- * Delete a multicast route.
+ * Deletes a multicast route.
  */
 @Command(scope = "onos", name = "mcast-delete",
         description = "Delete a multicast route flow")
@@ -44,4 +43,3 @@ public class McastDeleteCommand extends AbstractShellCommand {
         mrib.removeRoute(sAddr, gAddr);
     }
 }
-
