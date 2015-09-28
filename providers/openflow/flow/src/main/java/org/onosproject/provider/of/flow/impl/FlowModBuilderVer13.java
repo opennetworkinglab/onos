@@ -215,6 +215,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         for (Instruction i : treatments) {
             switch (i.type()) {
                 case DROP:
+                case NOACTION:
                     return Collections.emptyList();
                 case L0MODIFICATION:
                     actions.add(buildL0Modification(i));

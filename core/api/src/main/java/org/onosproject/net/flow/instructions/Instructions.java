@@ -68,8 +68,18 @@ public final class Instructions {
      *
      * @return drop instruction
      */
+    @Deprecated
     public static DropInstruction createDrop() {
         return new DropInstruction();
+    }
+
+    /**
+     * Creates a no action instruction.
+     *
+     * @return no action instruction
+     */
+    public static NoActionInstruction createNoAction() {
+        return new NoActionInstruction();
     }
 
     /**
@@ -450,6 +460,7 @@ public final class Instructions {
     /**
      *  Drop instruction.
      */
+    @Deprecated
     public static final class DropInstruction implements Instruction {
 
         private DropInstruction() {}
@@ -475,6 +486,40 @@ public final class Instructions {
                 return true;
             }
             if (obj instanceof DropInstruction) {
+                return true;
+            }
+            return false;
+        }
+    }
+
+    /**
+     *  No Action instruction.
+     */
+    public static final class NoActionInstruction implements Instruction {
+
+        private NoActionInstruction() {}
+
+        @Override
+        public Type type() {
+            return Type.NOACTION;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString()).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type().ordinal());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof NoActionInstruction) {
                 return true;
             }
             return false;

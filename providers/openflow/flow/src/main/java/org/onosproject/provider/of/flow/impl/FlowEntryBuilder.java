@@ -221,11 +221,6 @@ public class FlowEntryBuilder {
 
     private TrafficTreatment buildTreatment() {
         TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
-        // If this is a drop rule
-        if (instructions.size() == 0) {
-            builder.drop();
-            return builder.build();
-        }
         for (OFInstruction in : instructions) {
             switch (in.getType()) {
                 case GOTO_TABLE:
