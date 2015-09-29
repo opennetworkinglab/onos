@@ -82,24 +82,10 @@
                 tt: 'Uses the G key',
                 gid: 'crown'
             },
-            T: {
-                cb: buttonCallback,
-                tt: 'Uses the T key',
-                gid: 'switch'
-            },
-            R: {
-                cb: buttonCallback,
-                tt: 'Uses the R key',
-                gid: 'endstation'
-            },
 
             _keyOrder: [
-                '0', 'V', 'F', 'G', 'T', 'R'
+                '0', 'V', 'F', 'G'
             ]
-
-            // NOTE: T and R should be rejected (not installed)
-            //       T is reserved for 'toggle Theme'
-            //       R is reserved for 'Reset pan and zoom'
         },
 
         hooks: {
