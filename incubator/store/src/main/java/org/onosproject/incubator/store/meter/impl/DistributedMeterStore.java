@@ -82,7 +82,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     private ConsistentMap<MeterKey, MeterData> meters;
     private NodeId local;
 
-    private MapEventListener mapListener = new InternalMapEventListener();
+    private MapEventListener<MeterKey, MeterData> mapListener = new InternalMapEventListener();
 
     private Map<MeterKey, CompletableFuture<MeterStoreResult>> futures =
             Maps.newConcurrentMap();
@@ -216,9 +216,10 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         meters.remove(key);
     }
 
-    private class InternalMapEventListener implements MapEventListener<MeterId, MeterData> {
+    private class InternalMapEventListener implements MapEventListener<MeterKey, MeterData> {
         @Override
-        public void event(MapEvent<MeterId, MeterData> event) {
+        public void event(MapEvent<MeterKey, MeterData> event) {
+            MeterKey key = event.key();
             MeterData data = event.value().value();
             NodeId master = mastershipService.getMasterFor(data.meter().deviceId());
             switch (event.type()) {
@@ -235,17 +236,17 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                                 } else if (data.reason().isPresent() && local.equals(data.origin())) {
                                     MeterStoreResult msr = MeterStoreResult.fail(data.reason().get());
                                     //TODO: No future -> no friend
-                                    futures.get(data.meter().id()).complete(msr);
+                                    futures.get(key).complete(msr);
                                 }
                                 break;
                             case ADDED:
                                 if (local.equals(data.origin()) && data.meter().state() == MeterState.PENDING_ADD) {
-                                    futures.remove(data.meter().id()).complete(MeterStoreResult.success());
+                                    futures.remove(key).complete(MeterStoreResult.success());
                                 }
                                 break;
                             case REMOVED:
                                 if (local.equals(data.origin()) && data.meter().state() == MeterState.PENDING_REMOVE) {
-                                    futures.remove(data.meter().id()).complete(MeterStoreResult.success());
+                                    futures.remove(key).complete(MeterStoreResult.success());
                                 }
                                 break;
                             default:
