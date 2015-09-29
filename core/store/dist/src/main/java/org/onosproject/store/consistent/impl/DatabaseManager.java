@@ -443,7 +443,10 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         public void event(ApplicationEvent event) {
             if (event.type() == APP_UNINSTALLED || event.type() == APP_DEACTIVATED) {
                 ApplicationId appId = event.subject().id();
-                List<DefaultAsyncConsistentMap> mapsToRemove = ImmutableList.copyOf(mapsByApplication.get(appId));
+                List<DefaultAsyncConsistentMap> mapsToRemove;
+                synchronized (mapsByApplication) {
+                    mapsToRemove = ImmutableList.copyOf(mapsByApplication.get(appId));
+                }
                 mapsToRemove.forEach(DatabaseManager.this::unregisterMap);
                 if (event.type() == APP_UNINSTALLED) {
                     mapsToRemove.stream().filter(map -> map.purgeOnUninstall()).forEach(map -> map.clear());

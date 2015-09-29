@@ -375,7 +375,12 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             }
 
             // TODO should we recompile on available==true?
-            delegate.triggerCompile(ImmutableSet.copyOf(intentsByDevice.get(id)), available);
+
+            final ImmutableSet<Key> snapshot;
+            synchronized (intentsByDevice) {
+                snapshot = ImmutableSet.copyOf(intentsByDevice.get(id));
+            }
+            delegate.triggerCompile(snapshot, available);
         }
     }
 
