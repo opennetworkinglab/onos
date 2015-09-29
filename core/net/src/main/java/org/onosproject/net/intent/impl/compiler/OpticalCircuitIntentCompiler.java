@@ -209,11 +209,10 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
      * Checks if current allocations on given resource can satisfy request.
      * If the resource is null, return true.
      *
-     * @param request the intent making the request
      * @param resource the resource on which to map the intent
      * @return true if the resource can accept the request, false otherwise
      */
-    private boolean isAvailable(Intent request, IntentId resource) {
+    private boolean isAvailable(IntentId resource) {
         if (resource == null) {
             return true;
         }
@@ -271,7 +270,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                 continue;
             }
 
-            if (isAvailable(circuitIntent, connIntent.id())) {
+            if (isAvailable(connIntent.id())) {
                 return connIntent;
             }
         }
@@ -303,7 +302,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         if (ochCP != null) {
             OchPort ochPort = (OchPort) deviceService.getPort(ochCP.deviceId(), ochCP.port());
             IntentId intentId = deviceResourceService.getAllocations(ochPort);
-            if (isAvailable(circuitIntent, intentId)) {
+            if (isAvailable(intentId)) {
                 return ochPort;
             }
         }
@@ -317,7 +316,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             }
 
             IntentId intentId = deviceResourceService.getAllocations(port);
-            if (isAvailable(circuitIntent, intentId)) {
+            if (isAvailable(intentId)) {
                 return (OchPort) port;
             }
         }
