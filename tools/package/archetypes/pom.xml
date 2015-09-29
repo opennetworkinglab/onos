@@ -39,6 +39,7 @@
         <module>cli</module>
         <module>ui</module>
         <module>uitab</module>
+        <module>uitopo</module>
     </modules>
 
     <build>
