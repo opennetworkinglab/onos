@@ -16,7 +16,6 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -40,6 +39,8 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
+import org.onosproject.net.newresource.ResourcePath;
+import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.resource.device.DeviceResourceService;
 import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
@@ -78,6 +79,9 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ResourceService resourceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkResourceService linkResourceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -108,7 +112,11 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         log.debug("Compiling optical connectivity intent between {} and {}", src, dst);
 
         // Reserve OCh ports
-        if (!deviceResourceService.requestPorts(ImmutableSet.of(srcPort, dstPort), intent)) {
+        ResourcePath srcPortPath = new ResourcePath(src.deviceId(), src.port());
+        ResourcePath dstPortPath = new ResourcePath(dst.deviceId(), dst.port());
+        List<org.onosproject.net.newresource.ResourceAllocation> allocation =
+                resourceService.allocate(intent.id(), srcPortPath, dstPortPath);
+        if (allocation.isEmpty()) {
             throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
         }
 
@@ -161,7 +169,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         }
 
         // Release port allocations if unsuccessful
-        deviceResourceService.releasePorts(intent.id());
+        resourceService.release(intent.id());
 
         throw new IntentCompilationException("Unable to find suitable lightpath for intent " + intent);
     }

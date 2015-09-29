@@ -21,8 +21,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.net.Port;
-import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.resource.device.DeviceResourceService;
 import org.onosproject.net.resource.device.DeviceResourceStore;
@@ -30,7 +28,6 @@ import org.slf4j.Logger;
 
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -56,23 +53,6 @@ public class DeviceResourceManager implements DeviceResourceService {
     }
 
     @Override
-    public boolean requestPorts(Set<Port> ports, Intent intent) {
-        checkNotNull(intent);
-
-        return store.allocatePorts(ports, intent.id());
-    }
-
-    @Override
-    public Set<Port> getAllocations(IntentId intentId) {
-        return store.getAllocations(intentId);
-    }
-
-    @Override
-    public IntentId getAllocations(Port port) {
-        return store.getAllocations(port);
-    }
-
-    @Override
     public void releaseMapping(IntentId intentId) {
         store.releaseMapping(intentId);
     }
@@ -85,10 +65,5 @@ public class DeviceResourceManager implements DeviceResourceService {
     @Override
     public Set<IntentId> getMapping(IntentId intentId) {
         return store.getMapping(intentId);
-    }
-
-    @Override
-    public void releasePorts(IntentId intentId) {
-        store.releasePorts(intentId);
     }
 }

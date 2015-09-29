@@ -16,8 +16,6 @@
 package org.onosproject.net.resource.device;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.Port;
-import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentId;
 
 import java.util.Set;
@@ -27,30 +25,6 @@ import java.util.Set;
  */
 @Beta
 public interface DeviceResourceService {
-    /**
-     * Request a set of ports needed to satisfy the intent.
-     *
-     * @param ports set of ports to allocate
-     * @param intent the intent
-     * @return true if ports were successfully allocated, false otherwise
-     */
-    boolean requestPorts(Set<Port> ports, Intent intent);
-
-    /**
-     * Returns the set of ports allocated for an intent.
-     *
-     * @param intentId the intent ID
-     * @return set of allocated ports
-     */
-    Set<Port> getAllocations(IntentId intentId);
-
-    /**
-     * Returns the intent allocated to a port.
-     *
-     * @param port the port
-     * @return intent ID allocated to the port
-     */
-    IntentId getAllocations(Port port);
 
     /**
      * Request a mapping between the given intents.
@@ -75,11 +49,4 @@ public interface DeviceResourceService {
      * @param intentId intent ID
      */
     void releaseMapping(IntentId intentId);
-
-    /**
-     * Release ports associated with given intent ID.
-     *
-     * @param intentId intent ID
-     */
-    void releasePorts(IntentId intentId);
 }
