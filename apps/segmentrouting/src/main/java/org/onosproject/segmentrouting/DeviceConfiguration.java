@@ -80,7 +80,7 @@ public class DeviceConfiguration implements DeviceProperties {
             }
             SegmentRouterInfo info = new SegmentRouterInfo();
             info.nodeSid = ((SegmentRouterConfig) cfg).getNodeSid();
-            info.deviceId = ((SegmentRouterConfig) cfg).getDpid();
+            info.deviceId = cfg.getDpid();
             info.mac = MacAddress.valueOf(((
                     SegmentRouterConfig) cfg).getRouterMac());
             String routerIp = ((SegmentRouterConfig) cfg).getRouterIp();

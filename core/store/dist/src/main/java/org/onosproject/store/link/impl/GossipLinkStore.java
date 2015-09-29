@@ -826,7 +826,7 @@ public class GossipLinkStore
         public void handle(ClusterMessage message) {
 
             log.trace("Received link event from peer: {}", message.sender());
-            InternalLinkEvent event = (InternalLinkEvent) SERIALIZER.decode(message.payload());
+            InternalLinkEvent event = SERIALIZER.decode(message.payload());
 
             ProviderId providerId = event.providerId();
             Timestamped<LinkDescription> linkDescription = event.linkDescription();
@@ -845,7 +845,7 @@ public class GossipLinkStore
         public void handle(ClusterMessage message) {
 
             log.trace("Received link removed event from peer: {}", message.sender());
-            InternalLinkRemovedEvent event = (InternalLinkRemovedEvent) SERIALIZER.decode(message.payload());
+            InternalLinkRemovedEvent event = SERIALIZER.decode(message.payload());
 
             LinkKey linkKey = event.linkKey();
             Timestamp timestamp = event.timestamp();
