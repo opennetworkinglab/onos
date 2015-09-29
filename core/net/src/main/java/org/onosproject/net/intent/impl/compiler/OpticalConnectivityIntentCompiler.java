@@ -40,7 +40,6 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
-import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.resource.device.DeviceResourceService;
 import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
@@ -57,6 +56,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -174,15 +174,12 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
      * @return lambda allocated to the given path
      */
     private LambdaResourceAllocation getWavelength(Path path, LinkResourceAllocations linkAllocs) {
-        for (Link link : path.links()) {
-            for (ResourceAllocation alloc : linkAllocs.getResourceAllocation(link)) {
-                if (alloc.type() == ResourceType.LAMBDA) {
-                    return (LambdaResourceAllocation) alloc;
-                }
-            }
-        }
-
-        return null;
+        return path.links().stream()
+                .flatMap(x -> linkAllocs.getResourceAllocation(x).stream())
+                .filter(x -> x.type() == ResourceType.LAMBDA)
+                .findFirst()
+                .map(x -> (LambdaResourceAllocation) x)
+                .orElse(null);
     }
 
     /**
@@ -215,23 +212,23 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
             return false;
         }
 
-        LambdaResource lambda = null;
+        List<LambdaResource> lambdas = path.links().stream()
+                .flatMap(x -> allocations.getResourceAllocation(x).stream())
+                .filter(x -> x.type() == ResourceType.LAMBDA)
+                .map(x -> ((LambdaResourceAllocation) x).lambda())
+                .collect(Collectors.toList());
 
-        for (Link link : path.links()) {
-            for (ResourceAllocation alloc : allocations.getResourceAllocation(link)) {
-                if (alloc.type() == ResourceType.LAMBDA) {
-                    LambdaResource nextLambda = ((LambdaResourceAllocation) alloc).lambda();
-                    if (nextLambda == null) {
-                        return false;
-                    }
-                    if (lambda == null) {
-                        lambda = nextLambda;
-                        continue;
-                    }
-                    if (!lambda.equals(nextLambda)) {
-                        return false;
-                    }
-                }
+        LambdaResource lambda = null;
+        for (LambdaResource nextLambda: lambdas) {
+            if (nextLambda == null) {
+                return false;
+            }
+            if (lambda == null) {
+                lambda = nextLambda;
+                continue;
+            }
+            if (!lambda.equals(nextLambda)) {
+                return false;
             }
         }
 
