@@ -55,6 +55,7 @@ import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
 import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
 import org.projectfloodlight.openflow.protocol.action.OFActionGroup;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
+import org.projectfloodlight.openflow.protocol.action.OFActionSetQueue;
 import org.projectfloodlight.openflow.protocol.action.OFActionPopMpls;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlDst;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlSrc;
@@ -333,6 +334,10 @@ public class FlowEntryBuilder {
                     OFActionGroup group = (OFActionGroup) act;
                     builder.group(new DefaultGroupId(group.getGroup().getGroupNumber()));
                     break;
+                case SET_QUEUE:
+                    OFActionSetQueue setQueue = (OFActionSetQueue) act;
+                    builder.setQueue(setQueue.getQueueId());
+                    break;
                 case STRIP_VLAN:
                 case POP_VLAN:
                     builder.popVlan();
@@ -350,7 +355,6 @@ public class FlowEntryBuilder {
                 case SET_NW_ECN:
                 case SET_NW_TOS:
                 case SET_NW_TTL:
-                case SET_QUEUE:
 
                 case ENQUEUE:
                 default:

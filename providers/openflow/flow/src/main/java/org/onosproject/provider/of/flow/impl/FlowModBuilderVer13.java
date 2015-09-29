@@ -26,6 +26,7 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.GroupInstruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.flow.instructions.Instructions.SetQueueInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
@@ -50,6 +51,7 @@ import org.projectfloodlight.openflow.protocol.OFFlowModFlags;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionGroup;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
+import org.projectfloodlight.openflow.protocol.action.OFActionSetQueue;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
@@ -243,6 +245,12 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                     OFActionGroup.Builder groupBuilder = factory().actions().buildGroup()
                             .setGroup(OFGroup.of(group.groupId().id()));
                     actions.add(groupBuilder.build());
+                    break;
+                case QUEUE:
+                    SetQueueInstruction queue = (SetQueueInstruction) i;
+                    OFActionSetQueue.Builder queueBuilder = factory().actions().buildSetQueue()
+                            .setQueueId(queue.queueId());
+                    actions.add(queueBuilder.build());
                     break;
                 case TABLE:
                     //FIXME: should not occur here.

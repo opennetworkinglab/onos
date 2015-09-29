@@ -94,6 +94,17 @@ public final class Instructions {
         return new GroupInstruction(groupId);
     }
 
+    /**
+     * Creates a set-queue instruction.
+     *
+     * @param queueId Queue Id
+     * @return set-queue instruction
+     */
+    public static SetQueueInstruction setQueue(final long queueId) {
+        checkNotNull(queueId, "queue ID cannot be null");
+        return new SetQueueInstruction(queueId);
+    }
+
     public static MeterInstruction meterTraffic(final MeterId meterId) {
         checkNotNull(meterId, "meter id cannot be null");
         return new MeterInstruction(meterId);
@@ -618,6 +629,50 @@ public final class Instructions {
             if (obj instanceof GroupInstruction) {
                 GroupInstruction that = (GroupInstruction) obj;
                 return Objects.equals(groupId, that.groupId);
+
+            }
+            return false;
+        }
+    }
+
+    /**
+     *  Set-Queue Instruction.
+     */
+    public static final class SetQueueInstruction implements Instruction {
+        private final long queueId;
+
+        private SetQueueInstruction(long queueId) {
+            this.queueId = queueId;
+        }
+
+        public long queueId() {
+            return queueId;
+        }
+
+        @Override
+        public Type type() {
+            return Type.QUEUE;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("queueId", queueId).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type().ordinal(), queueId);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof SetQueueInstruction) {
+                SetQueueInstruction that = (SetQueueInstruction) obj;
+                return Objects.equals(queueId, that.queueId);
 
             }
             return false;

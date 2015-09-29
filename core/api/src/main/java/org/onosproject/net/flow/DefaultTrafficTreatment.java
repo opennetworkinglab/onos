@@ -237,6 +237,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 case NOACTION:
                 case OUTPUT:
                 case GROUP:
+                case QUEUE:
                 case L0MODIFICATION:
                 case L2MODIFICATION:
                 case L3MODIFICATION:
@@ -378,6 +379,11 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         @Override
         public Builder group(GroupId groupId) {
             return add(Instructions.createGroup(groupId));
+        }
+
+        @Override
+        public Builder setQueue(long queueId) {
+            return add(Instructions.setQueue(queueId));
         }
 
         @Override

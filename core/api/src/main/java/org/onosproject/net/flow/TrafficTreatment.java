@@ -261,6 +261,14 @@ public interface TrafficTreatment {
         Builder group(GroupId groupId);
 
         /**
+         * Sets the Queue ID.
+         *
+         * @param queueId a queue ID
+         * @return a treatment builder
+         */
+        Builder setQueue(long queueId);
+
+        /**
          * Sets a meter to be used by this flow.
          *
          * @param meterId a meter id

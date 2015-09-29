@@ -49,6 +49,12 @@ public interface Instruction {
         GROUP,
 
         /**
+         * Signifies that the traffic should be enqueued to an already-configured
+         queue on a port.
+         */
+        QUEUE,
+
+        /**
          * Signifies that traffic should be metered according to a meter.
          */
         METER,
