@@ -295,7 +295,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return null;
     }
 
-    private OchPort findAvailableOchPort(ConnectPoint oduPort, OpticalCircuitIntent circuitIntent) {
+    private OchPort findAvailableOchPort(ConnectPoint oduPort) {
         // First see if the port mappings are constrained
         ConnectPoint ochCP = staticPort(oduPort);
 
@@ -326,12 +326,12 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
     private Pair<OchPort, OchPort> findPorts(OpticalCircuitIntent intent) {
 
-        OchPort srcPort = findAvailableOchPort(intent.getSrc(), intent);
+        OchPort srcPort = findAvailableOchPort(intent.getSrc());
         if (srcPort == null) {
             return null;
         }
 
-        OchPort dstPort = findAvailableOchPort(intent.getDst(), intent);
+        OchPort dstPort = findAvailableOchPort(intent.getDst());
         if (dstPort == null) {
             return null;
         }
