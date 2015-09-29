@@ -173,6 +173,23 @@
         keyHandler.viewGestures = [];
     }
 
+    function checkNotGlobal(o) {
+        var oops = [];
+        if (fs.isO(o)) {
+            angular.forEach(o, function (val, key) {
+                if (keyHandler.globalKeys[key]) {
+                    oops.push(key);
+                }
+            });
+            if (oops.length) {
+                $log.warn('Ignoring reserved global key(s):', oops.join(','));
+                oops.forEach(function (key) {
+                    delete o[key];
+                });
+            }
+        }
+    }
+
     angular.module('onosUtil')
     .factory('KeyService',
         ['$log', 'FnService', 'ThemeService', 'NavService',
@@ -208,7 +225,8 @@
                 },
                 enableKeys: function (b) {
                     enabled = b;
-                }
+                },
+                checkNotGlobal: checkNotGlobal
             };
     }]);
 
