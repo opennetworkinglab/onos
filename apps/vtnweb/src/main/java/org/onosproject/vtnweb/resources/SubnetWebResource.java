@@ -70,7 +70,7 @@ import com.google.common.collect.Sets;
 public class SubnetWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(SubnetWebResource.class);
     public static final String SUBNET_NOT_CREATE = "Subnets is failed to create!";
-    public static final String SUBNET_NOT_FOUND = "Subnets is failed to update!";
+    public static final String SUBNET_NOT_FOUND = "Subnets is not found";
     public static final String JSON_NOT_NULL = "JsonNode can not be null";
 
     @GET
