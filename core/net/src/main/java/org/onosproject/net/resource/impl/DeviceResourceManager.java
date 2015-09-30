@@ -91,14 +91,4 @@ public class DeviceResourceManager implements DeviceResourceService {
     public void releasePorts(IntentId intentId) {
         store.releasePorts(intentId);
     }
-
-    private Port getTypedPort(Set<Port> ports, Port.Type type) {
-        for (Port port : ports) {
-            if (port.type() == type) {
-                return port;
-            }
-        }
-
-        return null;
-    }
 }
