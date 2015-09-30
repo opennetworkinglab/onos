@@ -92,7 +92,8 @@ public class CounterTestIncrementCommand extends AbstractShellCommand {
         } catch (InterruptedException e) {
             return;
         } catch (ExecutionException | TimeoutException e) {
-            e.printStackTrace();
+            print("Error executing command");
+            log.error("Error executing command counter-test-increment", e);
         }
     }
 }
