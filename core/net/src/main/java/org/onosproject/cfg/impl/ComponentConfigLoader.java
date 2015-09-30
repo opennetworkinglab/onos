@@ -41,8 +41,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class ComponentConfigLoader {
 
-    private static final File CFG_FILE = new File("../config/component-cfg.json");
     private static final int RETRY_DELAY = 5_000; // millis between retries
+    private static final String CFG_JSON = "../config/component-cfg.json";
+
+    static File cfgFile = new File(CFG_JSON);
 
     private final Logger log = getLogger(getClass());
 
@@ -78,15 +80,15 @@ public class ComponentConfigLoader {
     */
     private void loadConfigs() {
         try {
-            if (CFG_FILE.exists()) {
-                root = (ObjectNode) new ObjectMapper().readTree(CFG_FILE);
+            if (cfgFile.exists()) {
+                root = (ObjectNode) new ObjectMapper().readTree(cfgFile);
                 root.fieldNames().forEachRemaining(pendingComponents::add);
-                SharedExecutors.getTimer().schedule(loader, RETRY_DELAY, RETRY_DELAY);
-                log.info("Loaded initial component configuration from {}", CFG_FILE);
+                SharedExecutors.getTimer().schedule(loader, 0, RETRY_DELAY);
+                log.info("Loaded initial component configuration from {}", cfgFile);
             }
         } catch (Exception e) {
             log.warn("Unable to load initial component configuration from {}",
-                     CFG_FILE, e);
+                     cfgFile, e);
         }
     }
     /*
