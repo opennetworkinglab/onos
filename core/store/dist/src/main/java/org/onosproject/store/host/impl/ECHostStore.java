@@ -68,7 +68,6 @@ import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
@@ -258,17 +257,23 @@ public class ECHostStore
 
     @Override
     public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
-        return ImmutableSet.copyOf(locations.get(connectPoint));
+        synchronized (locations) {
+            return ImmutableSet.copyOf(locations.get(connectPoint));
+        }
     }
 
     @Override
     public Set<Host> getConnectedHosts(DeviceId deviceId) {
-        return ImmutableMultimap.copyOf(locations)
-                .entries()
-                .stream()
-                .filter(entry -> entry.getKey().deviceId().equals(deviceId))
-                .map(entry -> entry.getValue())
-                .collect(Collectors.toSet());
+        Set<Host> filtered;
+        synchronized (locations) {
+            filtered = locations
+                    .entries()
+                    .stream()
+                    .filter(entry -> entry.getKey().deviceId().equals(deviceId))
+                    .map(entry -> entry.getValue())
+                    .collect(Collectors.toSet());
+        }
+        return ImmutableSet.copyOf(filtered);
     }
 
     private Set<Host> filter(Collection<DefaultHost> collection, Predicate<DefaultHost> predicate) {
