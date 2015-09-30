@@ -1,0 +1,5 @@
+{
+  "org.onosproject.proxyarp.ProxyArp": {
+    "ipv6NeighborDiscovery": true
+  }
+}
