@@ -34,9 +34,12 @@ ssh $remote "
       [ -z \"\$(ps -ef | grep karaf.jar | grep -v grep)\" ] && break
       sleep 1
     done
-    [ -z \"\$(ps -ef | grep karaf.jar | grep -v grep)\" ] || echo 'ONOS failed to stop.'
+    [ -z \"\$(ps -ef | grep karaf.jar | grep -v grep)\" ] || \
+        (echo 'ONOS failed to stop.'; status=1)
 
     # Remove onos directory and init file
-    sudo rm -fr $ONOS_INSTALL_DIR
-    [ -f /etc/init/onos.conf ] && sudo rm /etc/init/onos.conf
+    [ -d $ONOS_INSTALL_DIR ] && sudo rm -fr $ONOS_INSTALL_DIR
+    [ -f /etc/init/onos.conf ] && sudo rm -f /etc/init/onos.conf
+
+    exit \${status:-0};
 "
