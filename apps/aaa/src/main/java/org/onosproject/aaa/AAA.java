@@ -136,23 +136,23 @@ public class AAA {
 
     @Property(name = "radiusIpAddress", value = DEFAULT_RADIUS_IP,
             label = "RADIUS IP Address")
-    private String radiusIpAddress = DEFAULT_RADIUS_IP;
+    protected String radiusIpAddress = DEFAULT_RADIUS_IP;
 
     @Property(name = "nasIpAddress", value = DEFAULT_NAS_IP,
             label = "NAS IP Address")
-    private String nasIpAddress = DEFAULT_NAS_IP;
+    protected String nasIpAddress = DEFAULT_NAS_IP;
 
     @Property(name = "radiusMacAddress", value = RADIUS_MAC_ADDRESS,
             label = "RADIUS MAC Address")
-    private String radiusMacAddress = RADIUS_MAC_ADDRESS;
+    protected String radiusMacAddress = RADIUS_MAC_ADDRESS;
 
     @Property(name = "nasMacAddress", value = NAS_MAC_ADDRESS,
             label = "NAS MAC Address")
-    private String nasMacAddress = NAS_MAC_ADDRESS;
+    protected String nasMacAddress = NAS_MAC_ADDRESS;
 
     @Property(name = "radiusSecret", value = DEFAULT_RADIUS_SECRET,
             label = "RADIUS shared secret")
-    private String radiusSecret = DEFAULT_RADIUS_SECRET;
+    protected String radiusSecret = DEFAULT_RADIUS_SECRET;
 
     @Property(name = "radiusSwitchId", value = DEFAULT_RADIUS_SWITCH,
             label = "Radius switch")

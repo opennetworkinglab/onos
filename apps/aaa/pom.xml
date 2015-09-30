@@ -44,25 +44,8 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-         <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-osgi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.scr.annotations</artifactId>
         </dependency>
 
         <dependency>
@@ -70,10 +53,32 @@
             <artifactId>onos-app-xos-integration</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onlab-junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onlab-osgi</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 
-        <build>
+    <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
