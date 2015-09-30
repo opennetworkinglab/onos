@@ -337,6 +337,29 @@ public class AAA {
             }
         }
 
+        /**
+         * Creates and initializes common fields of a RADIUS packet.
+         *
+         * @param identifier RADIUS identifier
+         * @param eapPacket EAP packet
+         * @return RADIUS packet
+         */
+        private RADIUS getRadiusPayload(byte identifier, EAP eapPacket) {
+            RADIUS radiusPayload =
+                    new RADIUS(RADIUS.RADIUS_CODE_ACCESS_REQUEST,
+                               eapPacket.getIdentifier());
+            radiusPayload.setIdentifier(identifier);
+            radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_USERNAME,
+                                       eapPacket.getData());
+
+            radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP,
+                                       AAA.this.parsedNasIpAddress.getAddress());
+
+            radiusPayload.encapsulateMessage(eapPacket);
+            radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
+
+            return radiusPayload;
+        }
 
         /**
          * Handles PAE packets (supplicant).
@@ -377,74 +400,45 @@ public class AAA {
                     break;
                 case EAPOL.EAPOL_PACKET:
                     RADIUS radiusPayload;
-                    //check if this is a Response/Identify or  a Response/TLS
+                    // check if this is a Response/Identify or  a Response/TLS
                     EAP eapPacket = (EAP) eapol.getPayload();
 
                     byte dataType = eapPacket.getDataType();
                     switch (dataType) {
 
-                    case EAP.ATTR_IDENTITY:
-                        //request id access to RADIUS
-                        stateMachine.setUsername(eapPacket.getData());
+                        case EAP.ATTR_IDENTITY:
+                            // request id access to RADIUS
+                            stateMachine.setUsername(eapPacket.getData());
 
-                        radiusPayload =
-                                new RADIUS(RADIUS.RADIUS_CODE_ACCESS_REQUEST,
-                                           eapPacket.getIdentifier());
-                        radiusPayload.setIdentifier(stateMachine.identifier());
-                        radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_USERNAME,
-                                                   eapPacket.getData());
+                            radiusPayload = getRadiusPayload(stateMachine.identifier(), eapPacket);
 
-                        radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP,
-                                                   AAA.this.parsedNasIpAddress.getAddress());
+                            // set Request Authenticator in StateMachine
+                            stateMachine.setRequestAuthenticator(radiusPayload.generateAuthCode());
+                            sendRadiusMessage(radiusPayload);
 
-                        radiusPayload.encapsulateMessage(eapPacket);
-
-                        // set Request Authenticator in StateMachine
-                        stateMachine.setRequestAuthenticator(radiusPayload.generateAuthCode());
-                        radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
-                        sendRadiusMessage(radiusPayload);
-
-                        //change the state to "PENDING"
-                        stateMachine.requestAccess();
-                        break;
+                            // change the state to "PENDING"
+                            stateMachine.requestAccess();
+                            break;
                         case EAP.ATTR_MD5:
-                            //verify if the EAP identifier corresponds to the challenge identifier from the client state
-                            //machine.
+                            // verify if the EAP identifier corresponds to the
+                            // challenge identifier from the client state
+                            // machine.
                             if (eapPacket.getIdentifier() == stateMachine.challengeIdentifier()) {
                                 //send the RADIUS challenge response
-                                radiusPayload = new RADIUS(RADIUS.RADIUS_CODE_ACCESS_REQUEST,
-                                                           eapPacket.getIdentifier());
-                                radiusPayload.setIdentifier(stateMachine.challengeIdentifier());
-                                radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_USERNAME,
-                                                           stateMachine.username());
-                                radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP,
-                                                           AAA.this.parsedNasIpAddress.getAddress());
-
-                                radiusPayload.encapsulateMessage(eapPacket);
+                                radiusPayload = getRadiusPayload(stateMachine.challengeIdentifier(), eapPacket);
 
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_STATE,
                                                            stateMachine.challengeState());
-                                radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
                                 sendRadiusMessage(radiusPayload);
                             }
                             break;
                         case EAP.ATTR_TLS:
-                            //request id access to RADIUS
-                            radiusPayload = new RADIUS(RADIUS.RADIUS_CODE_ACCESS_REQUEST,
-                                                       eapPacket.getIdentifier());
-                            radiusPayload.setIdentifier(stateMachine.identifier());
-                            radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_USERNAME,
-                                                       stateMachine.username());
-                            radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP,
-                                                       AAA.this.parsedNasIpAddress.getAddress());
-
-                            radiusPayload.encapsulateMessage(eapPacket);
+                            // request id access to RADIUS
+                            radiusPayload = getRadiusPayload(stateMachine.identifier(), eapPacket);
 
                             radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_STATE,
                                                        stateMachine.challengeState());
                             stateMachine.setRequestAuthenticator(radiusPayload.generateAuthCode());
-
-                            radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
 
                             sendRadiusMessage(radiusPayload);
                             // TODO: this gets called on every fragment, should only be called at TLS-Start
