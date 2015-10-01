@@ -24,12 +24,13 @@ import org.onosproject.cfg.ComponentConfigAdapter;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Set;
+import java.util.TimerTask;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.google.common.io.Files.write;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.onlab.junit.TestTools.assertAfter;
 
 /**
@@ -55,6 +56,8 @@ public class ComponentConfigLoaderTest {
         loader = new ComponentConfigLoader();
         service = new TestConfigService();
         loader.configService = service;
+        loader.retryDelay = 50;
+        loader.stopRetryTime = 200;
     }
 
     /*
@@ -70,13 +73,34 @@ public class ComponentConfigLoaderTest {
     /*
      * Tests that the component is null if the file has a bad configuration format
      * for which it yielded an exception. Can't test the exception because it happens
-     * in a different thread,
+     * in a different thread.
      */
     @Test
     public void badConfig() throws IOException {
         stageTestResource("badConfig.json");
         loader.activate();
-        assertAfter(1_000, () -> assertNull("incorrect component", service.component));
+        assertAfter(1_000, () -> assertNull("incorrect configuration", service.component));
+
+    }
+
+    /*
+     * Tests that tasks stops itself after the stopRetryTime if the component was
+     * not loaded.
+     */
+    @Test
+    public void noComponentForConfig() throws IOException {
+        stageTestResource("badComponent.json");
+        loader.activate();
+        assertAfter(loader.stopRetryTime + loader.retryDelay, () -> {
+            try {
+                Field state = TimerTask.class.getDeclaredField("state");
+                state.setAccessible(true);
+                assertEquals("incorrect component", state.getInt(loader.loader), 3);
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail();
+            }
+        });
 
     }
 

@@ -41,10 +41,11 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class ComponentConfigLoader {
 
-    private static final int RETRY_DELAY = 5_000; // millis between retries
     private static final String CFG_JSON = "../config/component-cfg.json";
-
     static File cfgFile = new File(CFG_JSON);
+
+    protected int retryDelay = 5_000; // millis between retries
+    protected int stopRetryTime = 60_000; // deadline in millis
 
     private final Logger log = getLogger(getClass());
 
@@ -53,17 +54,19 @@ public class ComponentConfigLoader {
 
     private ObjectNode root;
     private final Set<String> pendingComponents = Sets.newHashSet();
+    private long initialTimestamp;
 
+    // TimerTask object that calls the load configuration for each component
+    // in the pending components set and cancels itself if the set is empty or
+    // after a set period of time.
+    protected final TimerTask loader = new TimerTask() {
 
-    /* TimerTask object that calls the load configuration for each component in the
-    pending components set and cancels itself if the set is mpty.
-    */
-    private final TimerTask loader = new TimerTask() {
         @Override
         public void run() {
             ImmutableSet.copyOf(pendingComponents)
                     .forEach(k -> loadConfig(k, (ObjectNode) root.path(k)));
-            if (pendingComponents.isEmpty()) {
+            if (pendingComponents.isEmpty()
+                    || System.currentTimeMillis() - initialTimestamp >= stopRetryTime) {
                 this.cancel();
             }
         }
@@ -71,19 +74,20 @@ public class ComponentConfigLoader {
 
     @Activate
     protected void activate() {
+        initialTimestamp = System.currentTimeMillis();
         this.loadConfigs();
         log.info("Started");
     }
-    /* loads the configurations for each component from the file in
-    ../config/component-cfg.json, adds them to a set and schedules a task to try
-    and load them.
-    */
+
+    // Loads the configurations for each component from the file in
+    // ../config/component-cfg.json, adds them to a set and schedules a task
+    // to try and load them.
     private void loadConfigs() {
         try {
             if (cfgFile.exists()) {
                 root = (ObjectNode) new ObjectMapper().readTree(cfgFile);
                 root.fieldNames().forEachRemaining(pendingComponents::add);
-                SharedExecutors.getTimer().schedule(loader, 0, RETRY_DELAY);
+                SharedExecutors.getTimer().schedule(loader, 0, retryDelay);
                 log.info("Loaded initial component configuration from {}", cfgFile);
             }
         } catch (Exception e) {
@@ -91,10 +95,9 @@ public class ComponentConfigLoader {
                      cfgFile, e);
         }
     }
-    /*
-    * loads a configuration for a single component and removes it from the
-    * components set
-    */
+
+    // Loads a configuration for a single component and removes it from the
+    // components set.
     private void loadConfig(String component, ObjectNode config) {
         if (configService.getComponentNames().contains(component)) {
             config.fieldNames()

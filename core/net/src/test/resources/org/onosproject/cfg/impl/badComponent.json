@@ -1,0 +1,5 @@
+{
+  "org.onosproject.proxyarp.ProxyArp2": {
+    "testProperty": true
+  }
+}
