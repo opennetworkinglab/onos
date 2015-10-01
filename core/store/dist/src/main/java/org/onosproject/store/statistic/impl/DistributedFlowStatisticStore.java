@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -164,16 +165,16 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
         if (curr == null) {
             addFlowStatistic(rule);
         } else {
-            FlowEntry f = curr.stream().filter(c -> rule.equals(c)).
-                    findAny().orElse(null);
-            if (rule.bytes() < f.bytes()) {
+            Optional<FlowEntry> f = curr.stream().filter(c -> rule.equals(c)).
+                    findAny();
+            if (f.isPresent() && rule.bytes() < f.get().bytes()) {
                 log.debug("DistributedFlowStatisticStore:updateFlowStatistic():" +
                         " Invalid Flow Update! Will be removed!!" +
                         " curr flowId=" + Long.toHexString(rule.id().value()) +
-                        ", prev flowId=" + Long.toHexString(f.id().value()) +
-                        ", curr bytes=" + rule.bytes() + ", prev bytes=" + f.bytes() +
-                        ", curr life=" + rule.life() + ", prev life=" + f.life() +
-                        ", curr lastSeen=" + rule.lastSeen() + ", prev lastSeen=" + f.lastSeen());
+                        ", prev flowId=" + Long.toHexString(f.get().id().value()) +
+                        ", curr bytes=" + rule.bytes() + ", prev bytes=" + f.get().bytes() +
+                        ", curr life=" + rule.life() + ", prev life=" + f.get().life() +
+                        ", curr lastSeen=" + rule.lastSeen() + ", prev lastSeen=" + f.get().lastSeen());
                 // something is wrong! invalid flow entry, so delete it
                 removeFlowStatistic(rule);
                 return;
@@ -185,10 +186,10 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
             }
 
             // previous one is exist
-            if (f != null) {
+            if (f.isPresent()) {
                 // remove old one and add new one
                 prev.remove(rule);
-                if (!prev.add(f)) {
+                if (!prev.add(f.get())) {
                     log.debug("DistributedFlowStatisticStore:updateFlowStatistic():" +
                                     " flowId={}, add failed into previous.",
                             Long.toHexString(rule.id().value()));
