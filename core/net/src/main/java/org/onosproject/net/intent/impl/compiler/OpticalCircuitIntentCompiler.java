@@ -52,7 +52,7 @@ import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.newresource.ResourceService;
-import org.onosproject.net.resource.device.DeviceResourceStore;
+import org.onosproject.net.resource.device.IntentSetMultimap;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -98,7 +98,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     protected ResourceService resourceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceResourceStore deviceResourceStore;
+    protected IntentSetMultimap intentSetMultimap;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService intentService;
@@ -208,7 +208,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         circuitIntent = new FlowRuleIntent(appId, rules, intent.resources());
 
         // Save circuit to connectivity intent mapping
-        deviceResourceStore.allocateMapping(connIntent.id(), intent.id());
+        intentSetMultimap.allocateMapping(connIntent.id(), intent.id());
         intents.add(circuitIntent);
 
         return intents;
@@ -226,7 +226,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             return true;
         }
 
-        Set<IntentId> mapping = deviceResourceStore.getMapping(resource);
+        Set<IntentId> mapping = intentSetMultimap.getMapping(resource);
 
         if (mapping == null) {
             return true;

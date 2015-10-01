@@ -23,7 +23,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.resource.device.DeviceResourceStore;
+import org.onosproject.net.resource.device.IntentSetMultimap;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
@@ -37,11 +37,12 @@ import java.util.Set;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Store that manages device resources using Copycat-backed TransactionalMaps.
+ * A collection that maps Intent IDs as keys to values as Intent IDs,
+ * where each key may associated with multiple values without duplication.
  */
 @Component(immediate = true, enabled = true)
 @Service
-public class ConsistentDeviceResourceStore implements DeviceResourceStore {
+public class ConsistentIntentSetMultimap implements IntentSetMultimap {
     private final Logger log = getLogger(getClass());
 
     private static final String INTENT_MAPPING = "IntentMapping";

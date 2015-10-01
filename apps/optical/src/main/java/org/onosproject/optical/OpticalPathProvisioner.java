@@ -46,7 +46,7 @@ import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.newresource.ResourceService;
-import org.onosproject.net.resource.device.DeviceResourceStore;
+import org.onosproject.net.resource.device.IntentSetMultimap;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.topology.LinkWeight;
@@ -98,7 +98,7 @@ public class OpticalPathProvisioner {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceResourceStore deviceResourceStore;
+    protected IntentSetMultimap intentSetMultimap;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkResourceService linkResourceService;
@@ -385,7 +385,7 @@ public class OpticalPathProvisioner {
                 }
             } else if (intent instanceof OpticalCircuitIntent) {
                 resourceService.release(intent.id());
-                deviceResourceStore.releaseMapping(intent.id());
+                intentSetMultimap.releaseMapping(intent.id());
                 if (lra != null) {
                     linkResourceService.releaseResources(lra);
                 }

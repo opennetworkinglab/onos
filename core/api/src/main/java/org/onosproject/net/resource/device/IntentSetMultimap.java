@@ -19,7 +19,7 @@ import org.onosproject.net.intent.IntentId;
 
 import java.util.Set;
 
-public interface DeviceResourceStore {
+public interface IntentSetMultimap {
 
     /**
      * Allocates the mapping between the given intents.
