@@ -21,7 +21,6 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.resource.device.DeviceResourceStore;
@@ -45,14 +44,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class ConsistentDeviceResourceStore implements DeviceResourceStore {
     private final Logger log = getLogger(getClass());
 
-    private static final String PORT_ALLOCATIONS = "PortAllocations";
     private static final String INTENT_MAPPING = "IntentMapping";
-    private static final String INTENT_ALLOCATIONS = "PortIntentAllocations";
 
     private static final Serializer SERIALIZER = Serializer.using(KryoNamespaces.API);
 
-    private ConsistentMap<Port, IntentId> portAllocMap;
-    private ConsistentMap<IntentId, Set<Port>> intentAllocMap;
     private ConsistentMap<IntentId, Set<IntentId>> intentMapping;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -63,14 +58,6 @@ public class ConsistentDeviceResourceStore implements DeviceResourceStore {
 
     @Activate
     public void activate() {
-        portAllocMap = storageService.<Port, IntentId>consistentMapBuilder()
-                .withName(PORT_ALLOCATIONS)
-                .withSerializer(SERIALIZER)
-                .build();
-        intentAllocMap = storageService.<IntentId, Set<Port>>consistentMapBuilder()
-                .withName(INTENT_ALLOCATIONS)
-                .withSerializer(SERIALIZER)
-                .build();
         intentMapping = storageService.<IntentId, Set<IntentId>>consistentMapBuilder()
                 .withName(INTENT_MAPPING)
                 .withSerializer(SERIALIZER)

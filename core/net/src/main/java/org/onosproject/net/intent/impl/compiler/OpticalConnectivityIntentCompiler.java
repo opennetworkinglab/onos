@@ -42,7 +42,6 @@ import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.resource.ResourceType;
-import org.onosproject.net.resource.device.DeviceResourceService;
 import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
 import org.onosproject.net.resource.link.LambdaResource;
 import org.onosproject.net.resource.link.LambdaResourceAllocation;
@@ -83,9 +82,6 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkResourceService linkResourceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceResourceService deviceResourceService;
 
     @Activate
     public void activate() {
