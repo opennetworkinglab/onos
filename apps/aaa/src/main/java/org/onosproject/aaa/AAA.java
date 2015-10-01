@@ -16,17 +16,13 @@
 package org.onosproject.aaa;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.util.Dictionary;
 import java.util.Optional;
 import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.DeserializationException;
@@ -43,14 +39,16 @@ import org.onlab.packet.RADIUSAttribute;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
-import org.onlab.util.Tools;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -63,43 +61,17 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.xosintegration.VoltTenantService;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import com.google.common.base.Strings;
-
+import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.onosproject.net.packet.PacketPriority.CONTROL;
 import static org.slf4j.LoggerFactory.getLogger;
-
 
 /**
  * AAA application for ONOS.
  */
 @Component(immediate = true)
 public class AAA {
-    // RADIUS server IP address
-    private static final String DEFAULT_RADIUS_IP = "192.168.1.10";
-
-    // NAS IP address
-    private static final String DEFAULT_NAS_IP = "192.168.1.11";
-
-    // RADIUS uplink port
-    private static final int DEFAULT_RADIUS_UPLINK = 2;
-
-    // RADIUS server shared secret
-    private static final String DEFAULT_RADIUS_SECRET = "ONOSecret";
-
-    // RADIUS MAC address
-    private static final String RADIUS_MAC_ADDRESS = "00:00:00:00:01:10";
-
-    // NAS MAC address
-    private static final String NAS_MAC_ADDRESS = "00:00:00:00:10:01";
-
-    // Radius Switch Id
-    private static final String DEFAULT_RADIUS_SWITCH = "of:90e2ba82f97791e9";
-
-    // Radius Port Number
-    private static final String DEFAULT_RADIUS_PORT = "129";
 
     // for verbose output
     private final Logger log = getLogger(getClass());
@@ -121,12 +93,24 @@ public class AAA {
     protected VoltTenantService voltTenantService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService cfgService;
+    protected NetworkConfigRegistry netCfgService;
 
-    // Parsed RADIUS server IP address
-    protected InetAddress parsedRadiusIpAddress;
-    // Parsed NAS IP address
-    protected InetAddress parsedNasIpAddress;
+    // Parsed RADIUS server addresses
+    protected InetAddress radiusIpAddress;
+    protected String radiusMacAddress;
+
+    // NAS IP address
+    protected InetAddress nasIpAddress;
+    protected String nasMacAddress;
+
+    // RADIUS server secret
+    protected String radiusSecret;
+
+    // ID of RADIUS switch
+    protected String radiusSwitch;
+
+    // RADIUS port number
+    protected long radiusPort;
 
     // our application-specific event handler
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
@@ -134,33 +118,19 @@ public class AAA {
     // our unique identifier
     private ApplicationId appId;
 
-    @Property(name = "radiusIpAddress", value = DEFAULT_RADIUS_IP,
-            label = "RADIUS IP Address")
-    protected String radiusIpAddress = DEFAULT_RADIUS_IP;
+    // Configuration properties factory
+    private final ConfigFactory factory =
+            new ConfigFactory<ApplicationId, AAAConfig>(APP_SUBJECT_FACTORY,
+                                                         AAAConfig.class,
+                                                         "AAA") {
+                @Override
+                public AAAConfig createConfig() {
+                    return new AAAConfig();
+                }
+            };
 
-    @Property(name = "nasIpAddress", value = DEFAULT_NAS_IP,
-            label = "NAS IP Address")
-    protected String nasIpAddress = DEFAULT_NAS_IP;
-
-    @Property(name = "radiusMacAddress", value = RADIUS_MAC_ADDRESS,
-            label = "RADIUS MAC Address")
-    protected String radiusMacAddress = RADIUS_MAC_ADDRESS;
-
-    @Property(name = "nasMacAddress", value = NAS_MAC_ADDRESS,
-            label = "NAS MAC Address")
-    protected String nasMacAddress = NAS_MAC_ADDRESS;
-
-    @Property(name = "radiusSecret", value = DEFAULT_RADIUS_SECRET,
-            label = "RADIUS shared secret")
-    protected String radiusSecret = DEFAULT_RADIUS_SECRET;
-
-    @Property(name = "radiusSwitchId", value = DEFAULT_RADIUS_SWITCH,
-            label = "Radius switch")
-    private String radiusSwitch = DEFAULT_RADIUS_SWITCH;
-
-    @Property(name = "radiusPortNumber", value = DEFAULT_RADIUS_PORT,
-            label = "Radius port")
-    private String radiusPort = DEFAULT_RADIUS_PORT;
+    // Listener for config changes
+    private final InternalConfigListener cfgListener = new InternalConfigListener();
 
     /**
      * Builds an EAPOL packet based on the given parameters.
@@ -195,47 +165,16 @@ public class AAA {
         return eth;
     }
 
-    @Modified
-    public void modified(ComponentContext context) {
-        Dictionary<?, ?> properties = context.getProperties();
-
-        String s = Tools.get(properties, "radiusIpAddress");
-        try {
-            parsedRadiusIpAddress = InetAddress.getByName(s);
-            radiusIpAddress = Strings.isNullOrEmpty(s) ? DEFAULT_RADIUS_IP : s;
-        } catch (UnknownHostException e) {
-            log.error("Invalid RADIUS IP address specification: {}", s, e);
-        }
-        try {
-            s = Tools.get(properties, "nasIpAddress");
-            parsedNasIpAddress = InetAddress.getByName(s);
-            nasIpAddress = Strings.isNullOrEmpty(s) ? DEFAULT_NAS_IP : s;
-        } catch (UnknownHostException e) {
-            log.error("Invalid NAS IP address specification: {}", s, e);
-        }
-
-        s = Tools.get(properties, "radiusMacAddress");
-        radiusMacAddress = Strings.isNullOrEmpty(s) ? RADIUS_MAC_ADDRESS : s;
-
-        s = Tools.get(properties, "nasMacAddress");
-        nasMacAddress = Strings.isNullOrEmpty(s) ? NAS_MAC_ADDRESS : s;
-
-        s = Tools.get(properties, "radiusSecret");
-        radiusSecret = Strings.isNullOrEmpty(s) ? DEFAULT_RADIUS_SECRET : s;
-
-        s = Tools.get(properties, "radiusSwitchId");
-        radiusSwitch = Strings.isNullOrEmpty(s) ? DEFAULT_RADIUS_SWITCH : s;
-
-        s = Tools.get(properties, "radiusPortNumber");
-        radiusPort = Strings.isNullOrEmpty(s) ? DEFAULT_RADIUS_PORT : s;
-    }
-
     @Activate
-    public void activate(ComponentContext context) {
-        cfgService.registerProperties(getClass());
-        modified(context);
+    public void activate() {
+        netCfgService.addListener(cfgListener);
+        netCfgService.registerConfigFactory(factory);
+
         // "org.onosproject.aaa" is the FQDN of our app
         appId = coreService.registerApplication("org.onosproject.aaa");
+
+        cfgListener.reconfigureNetwork(netCfgService.getConfig(appId, AAAConfig.class));
+
         // register our event handler
         packetService.addProcessor(processor, PacketProcessor.director(2));
         requestIntercepts();
@@ -247,8 +186,6 @@ public class AAA {
 
     @Deactivate
     public void deactivate() {
-        cfgService.unregisterProperties(getClass(), false);
-
         appId = coreService.registerApplication("org.onosproject.aaa");
         withdrawIntercepts();
         // de-register and null our handler
@@ -316,7 +253,7 @@ public class AAA {
                     case IPV4:
                         IPv4 ipv4Packet = (IPv4) ethPkt.getPayload();
                         Ip4Address srcIp = Ip4Address.valueOf(ipv4Packet.getSourceAddress());
-                        Ip4Address radiusIp4Address = Ip4Address.valueOf(parsedRadiusIpAddress);
+                        Ip4Address radiusIp4Address = Ip4Address.valueOf(radiusIpAddress);
                         if (srcIp.equals(radiusIp4Address) && ipv4Packet.getProtocol() == IPv4.PROTOCOL_UDP) {
                             // TODO: check for port as well when it's configurable
                             UDP udpPacket = (UDP) ipv4Packet.getPayload();
@@ -341,7 +278,7 @@ public class AAA {
          * Creates and initializes common fields of a RADIUS packet.
          *
          * @param identifier RADIUS identifier
-         * @param eapPacket EAP packet
+         * @param eapPacket  EAP packet
          * @return RADIUS packet
          */
         private RADIUS getRadiusPayload(byte identifier, EAP eapPacket) {
@@ -353,7 +290,7 @@ public class AAA {
                                        eapPacket.getData());
 
             radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP,
-                                       AAA.this.parsedNasIpAddress.getAddress());
+                                       AAA.this.nasIpAddress.getAddress());
 
             radiusPayload.encapsulateMessage(eapPacket);
             radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
@@ -519,8 +456,8 @@ public class AAA {
             udp.setSourcePort((short) 1812); // TODO: make this configurable
             udp.setPayload(radiusMessage);
             udp.setParent(ip4Packet);
-            ip4Packet.setSourceAddress(AAA.this.nasIpAddress);
-            ip4Packet.setDestinationAddress(AAA.this.radiusIpAddress);
+            ip4Packet.setSourceAddress(AAA.this.nasIpAddress.getHostAddress());
+            ip4Packet.setDestinationAddress(AAA.this.radiusIpAddress.getHostAddress());
             ip4Packet.setProtocol(IPv4.PROTOCOL_UDP);
             ip4Packet.setPayload(udp);
             ip4Packet.setParent(ethPkt);
@@ -530,7 +467,7 @@ public class AAA {
             ethPkt.setPayload(ip4Packet);
 
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                    .setOutput(PortNumber.portNumber(Integer.parseInt(radiusPort))).build();
+                    .setOutput(PortNumber.portNumber(radiusPort)).build();
             OutboundPacket packet = new DefaultOutboundPacket(DeviceId.deviceId(radiusSwitch),
                                                               treatment, ByteBuffer.wrap(ethPkt.serialize()));
             packetService.emit(packet);
@@ -551,5 +488,66 @@ public class AAA {
         }
 
     }
+
+    private class InternalConfigListener implements NetworkConfigListener {
+
+        /**
+         * Reconfigures the DHCP Server according to the configuration parameters passed.
+         *
+         * @param cfg configuration object
+         */
+        private void reconfigureNetwork(AAAConfig cfg) {
+            AAAConfig newCfg;
+            if (cfg == null) {
+                newCfg = new AAAConfig();
+            } else {
+                newCfg = cfg;
+            }
+            if (newCfg.nasIp() != null) {
+                nasIpAddress = newCfg.nasIp();
+            }
+            if (newCfg.radiusIp() != null) {
+                radiusIpAddress = newCfg.radiusIp();
+            }
+            if (newCfg.radiusMac() != null) {
+                radiusMacAddress = newCfg.radiusMac();
+            }
+            if (newCfg.nasMac() != null) {
+                nasMacAddress = newCfg.nasMac();
+            }
+            if (newCfg.radiusSecret() != null) {
+                radiusSecret = newCfg.radiusSecret();
+            }
+            if (newCfg.radiusSwitch() != null) {
+                radiusSwitch = newCfg.radiusSwitch();
+            }
+            if (newCfg.radiusPort() != -1) {
+                radiusPort = newCfg.radiusPort();
+            }
+
+            log.info("AAA app configuration:");
+            log.info("NAS IP is {}", nasIpAddress);
+            log.info("RADIUS IP is {}", radiusIpAddress);
+            log.info("NAS MAC is {}", nasMacAddress);
+            log.info("RADIUS MAC is {}", radiusMacAddress);
+            log.info("RADIUS secret is {}", radiusSecret);
+            log.info("RADIUS switch is {}", radiusSwitch);
+            log.info("RADIUS port is {}", radiusPort);
+        }
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+
+            if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
+                    event.configClass().equals(AAAConfig.class)) {
+
+                AAAConfig cfg = netCfgService.getConfig(appId, AAAConfig.class);
+                reconfigureNetwork(cfg);
+                log.info("Reconfigured");
+            }
+        }
+    }
+
 
 }

@@ -23,7 +23,6 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.Data;
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.EAP;
@@ -37,12 +36,13 @@ import org.onlab.packet.RADIUS;
 import org.onlab.packet.RADIUSAttribute;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
-import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.host.HostServiceAdapter;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.DefaultPacketContext;
@@ -173,6 +173,18 @@ public class AAATest {
     }
 
     /**
+     * Mocks the network config registry.
+     */
+    @SuppressWarnings("unchecked")
+    private static final class TestNetworkConfigRegistry
+            extends NetworkConfigRegistryAdapter {
+        @Override
+        public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
+            return (C) new AAAConfig();
+        }
+    }
+
+    /**
      * Sends an Ethernet packet to the process method of the Packet Processor.
      *
      * @param reply Ethernet packet
@@ -261,7 +273,7 @@ public class AAATest {
 
         IPv4 ipv4 = new IPv4();
         ipv4.setProtocol(IPv4.PROTOCOL_UDP);
-        ipv4.setSourceAddress("127.0.0.1");
+        ipv4.setSourceAddress(aaa.radiusIpAddress.getHostAddress());
 
         String challenge = "1234";
 
@@ -294,11 +306,11 @@ public class AAATest {
     @Before
     public void setUp() {
         aaa = new AAA();
-        aaa.cfgService = new ComponentConfigAdapter();
+        aaa.netCfgService = new TestNetworkConfigRegistry();
         aaa.coreService = new CoreServiceAdapter();
         aaa.packetService = new MockPacketService();
         aaa.hostService = new MockHostService();
-        aaa.activate(new ComponentContextAdapter());
+        aaa.activate();
     }
 
     /**
@@ -328,9 +340,9 @@ public class AAATest {
         IPv4 ipv4 = (IPv4) supplicantPacket.getPayload();
         assertThat(ipv4, notNullValue());
         assertThat(IpAddress.valueOf(ipv4.getSourceAddress()).toString(),
-                   is(aaa.nasIpAddress));
+                   is(aaa.nasIpAddress.getHostAddress()));
         assertThat(IpAddress.valueOf(ipv4.getDestinationAddress()).toString(),
-                   is(aaa.radiusIpAddress));
+                   is(aaa.radiusIpAddress.getHostAddress()));
 
         assertThat(ipv4.getPayload(), instanceOf(UDP.class));
         UDP udp = (UDP) ipv4.getPayload();
@@ -418,7 +430,7 @@ public class AAATest {
                 IpAddress.valueOf(IpAddress.Version.INET,
                                   radiusAccessRequest.getAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP)
                                           .getValue());
-        assertThat(nasIp.toString(), is("127.0.0.1"));
+        assertThat(nasIp.toString(), is(aaa.nasIpAddress.getHostAddress()));
 
         //  State machine should have been created by now
 
@@ -481,5 +493,21 @@ public class AAATest {
 
         assertThat(stateMachine, notNullValue());
         assertThat(stateMachine.state(), is(StateMachine.STATE_AUTHORIZED));
+    }
+
+
+    private static final String RADIUS_SECRET = "radiusSecret";
+    private static final String RADIUS_SWITCH = "radiusSwitch";
+    private static final String RADIUS_PORT = "radiusPort";
+
+    /**
+     * Tests the default configuration.
+     */
+    @Test
+    public void testConfig() {
+        assertThat(aaa.nasIpAddress.getHostAddress(), is(AAAConfig.DEFAULT_NAS_IP));
+        assertThat(aaa.nasMacAddress, is(AAAConfig.DEFAULT_NAS_MAC));
+        assertThat(aaa.radiusIpAddress.getHostAddress(), is(AAAConfig.DEFAULT_RADIUS_IP));
+        assertThat(aaa.radiusMacAddress, is(AAAConfig.DEFAULT_RADIUS_MAC));
     }
 }
