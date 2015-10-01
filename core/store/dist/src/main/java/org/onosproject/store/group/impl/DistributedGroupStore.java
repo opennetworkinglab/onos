@@ -128,6 +128,8 @@ public class DistributedGroupStore
 
     private final AtomicLong sequenceNumber = new AtomicLong(0);
 
+    private KryoNamespace clusterMsgSerializer;
+
     @Activate
     public void activate() {
         kryoBuilder = new KryoNamespace.Builder()
@@ -150,13 +152,15 @@ public class DistributedGroupStore
                       GroupStoreMapKey.class
             );
 
+        clusterMsgSerializer = kryoBuilder.build();
+
         messageHandlingExecutor = Executors.
                 newFixedThreadPool(MESSAGE_HANDLER_THREAD_POOL_SIZE,
                                    groupedThreads("onos/store/group",
                                                   "message-handlers"));
 
         clusterCommunicator.addSubscriber(GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
-                kryoBuilder.build()::deserialize,
+                clusterMsgSerializer::deserialize,
                 this::process,
                 messageHandlingExecutor);
 
@@ -192,6 +196,7 @@ public class DistributedGroupStore
 
     @Deactivate
     public void deactivate() {
+        clusterCommunicator.removeSubscriber(GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST);
         groupStoreEntriesByKey.destroy();
         auditPendingReqQueue.destroy();
         log.info("Stopped");
@@ -366,7 +371,7 @@ public class DistributedGroupStore
 
             clusterCommunicator.unicast(groupOp,
                     GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
-                    m -> kryoBuilder.build().serialize(m),
+                    clusterMsgSerializer::serialize,
                     mastershipService.getMasterFor(groupDesc.deviceId())).whenComplete((result, error) -> {
                         if (error != null) {
                             log.warn("Failed to send request to master: {} to {}",
@@ -564,7 +569,7 @@ public class DistributedGroupStore
 
             clusterCommunicator.unicast(groupOp,
                     GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
-                    m -> kryoBuilder.build().serialize(m),
+                    clusterMsgSerializer::serialize,
                     mastershipService.getMasterFor(deviceId)).whenComplete((result, error) -> {
                         if (error !=  null) {
                             log.warn("Failed to send request to master: {} to {}",
@@ -696,7 +701,7 @@ public class DistributedGroupStore
 
             clusterCommunicator.unicast(groupOp,
                     GroupStoreMessageSubjects.REMOTE_GROUP_OP_REQUEST,
-                    m -> kryoBuilder.build().serialize(m),
+                    clusterMsgSerializer::serialize,
                     mastershipService.getMasterFor(deviceId)).whenComplete((result, error) -> {
                         if (error != null) {
                             log.warn("Failed to send request to master: {} to {}",
