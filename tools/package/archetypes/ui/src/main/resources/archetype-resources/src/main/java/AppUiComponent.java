@@ -39,6 +39,9 @@ import java.util.List;
 @Component(immediate = true)
 public class AppUiComponent {
 
+    private static final String VIEW_ID = "sampleCustom";
+    private static final String VIEW_TEXT = "Sample Custom";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -46,7 +49,7 @@ public class AppUiComponent {
 
     // List of application views
     private final List<UiView> uiViews = ImmutableList.of(
-            new UiView(UiView.Category.OTHER, "sampleCustom", "Sample Custom")
+            new UiView(UiView.Category.OTHER, VIEW_ID, VIEW_TEXT)
     );
 
     // Factory for UI message handlers

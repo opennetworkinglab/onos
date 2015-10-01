@@ -42,6 +42,7 @@ import java.util.List;
 public class AppUiTopovComponent {
 
     private static final ClassLoader CL = AppUiTopovComponent.class.getClassLoader();
+    private static final String VIEW_ID = "sampleTopov";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -50,7 +51,7 @@ public class AppUiTopovComponent {
 
     // List of application views
     private final List<UiView> uiViews = ImmutableList.of(
-            new UiViewHidden("sampleTopov")
+            new UiViewHidden(VIEW_ID)
     );
 
     // Factory for UI message handlers
@@ -68,7 +69,7 @@ public class AppUiTopovComponent {
     // Application UI extension
     protected UiExtension extension =
             new UiExtension.Builder(CL, uiViews)
-                    .resourcePath("sampleTopov")
+                    .resourcePath(VIEW_ID)
                     .messageHandlerFactory(messageHandlerFactory)
                     .topoOverlayFactory(topoOverlayFactory)
                     .build();

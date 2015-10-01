@@ -39,6 +39,9 @@ import java.util.List;
 @Component(immediate = true)
 public class AppUiTableComponent {
 
+    private static final String VIEW_ID = "sampleTable";
+    private static final String VIEW_TEXT = "Sample Table";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -46,7 +49,7 @@ public class AppUiTableComponent {
 
     // List of application views
     private final List<UiView> uiViews = ImmutableList.of(
-            new UiView(UiView.Category.OTHER, "sampleTable", "Sample Table")
+            new UiView(UiView.Category.OTHER, VIEW_ID, VIEW_TEXT)
     );
 
     // Factory for UI message handlers
@@ -58,7 +61,7 @@ public class AppUiTableComponent {
     // Application UI extension
     protected UiExtension extension =
             new UiExtension.Builder(getClass().getClassLoader(), uiViews)
-                    .resourcePath("sampleTable")
+                    .resourcePath(VIEW_ID)
                     .messageHandlerFactory(messageHandlerFactory)
                     .build();
 
