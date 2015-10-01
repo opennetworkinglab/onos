@@ -15,45 +15,11 @@
  */
 package org.onosproject.net.resource.device;
 
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.Port;
 import org.onosproject.net.intent.IntentId;
 
 import java.util.Set;
 
 public interface DeviceResourceStore {
-    /**
-     * Returns unallocated ports on the given device.
-     *
-     * @param deviceId device ID
-     * @return set of unallocated ports
-     */
-    Set<Port> getFreePorts(DeviceId deviceId);
-
-    /**
-     * Allocates the given ports to the given intent.
-     *
-     * @param ports set of ports to allocate
-     * @param intentId intent ID
-     * @return true if allocation was successful, false otherwise
-     */
-    boolean allocatePorts(Set<Port> ports, IntentId intentId);
-
-    /**
-     * Returns set of ports allocated for an intent.
-     *
-     * @param intentId the intent ID
-     * @return set of allocated ports
-     */
-    Set<Port> getAllocations(IntentId intentId);
-
-    /**
-     * Returns intent allocated to a port.
-     *
-     * @param port the port
-     * @return intent ID allocated to the port
-     */
-    IntentId getAllocations(Port port);
 
     /**
      * Allocates the mapping between the given intents.
@@ -78,12 +44,4 @@ public interface DeviceResourceStore {
      * @param intentId intent ID
      */
     void releaseMapping(IntentId intentId);
-
-    /**
-     * Releases the ports allocated to the given intent.
-     *
-     * @param intentId intent ID
-     * @return true if release was successful, false otherwise
-     */
-    boolean releasePorts(IntentId intentId);
 }
