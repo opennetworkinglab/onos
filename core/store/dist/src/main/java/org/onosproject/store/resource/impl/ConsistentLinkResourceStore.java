@@ -199,9 +199,7 @@ public class ConsistentLinkResourceStore extends
         Map<ResourceType, Set<? extends ResourceAllocation>> caps = new HashMap<>();
         for (ResourceType type : ResourceType.values()) {
             Set<? extends ResourceAllocation> cap = getResourceCapacity(type, link);
-            if (cap != null) {
-                caps.put(type, cap);
-            }
+            caps.put(type, cap);
         }
         return caps;
     }
