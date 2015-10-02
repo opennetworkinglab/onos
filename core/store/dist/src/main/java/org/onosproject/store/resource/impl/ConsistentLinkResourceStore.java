@@ -149,15 +149,16 @@ public class ConsistentLinkResourceStore extends
     }
 
     private Set<LambdaResourceAllocation> getLambdaResourceCapacity(Link link) {
-        Set<LambdaResourceAllocation> allocations = new HashSet<>();
         Port port = deviceService.getPort(link.src().deviceId(), link.src().port());
-        if (port instanceof OmsPort) {
-            OmsPort omsPort = (OmsPort) port;
+        if (!(port instanceof OmsPort)) {
+            return Collections.emptySet();
+        }
 
-            // Assume fixed grid for now
-            for (int i = 0; i < omsPort.totalChannels(); i++) {
-                allocations.add(new LambdaResourceAllocation(LambdaResource.valueOf(i)));
-            }
+        OmsPort omsPort = (OmsPort) port;
+        Set<LambdaResourceAllocation> allocations = new HashSet<>();
+        // Assume fixed grid for now
+        for (int i = 0; i < omsPort.totalChannels(); i++) {
+            allocations.add(new LambdaResourceAllocation(LambdaResource.valueOf(i)));
         }
         return allocations;
     }
@@ -168,15 +169,16 @@ public class ConsistentLinkResourceStore extends
         // if all fails, use DEFAULT_BANDWIDTH
         BandwidthResource bandwidth = DEFAULT_BANDWIDTH;
         String strBw = link.annotations().value(BANDWIDTH);
-        if (strBw != null) {
-            try {
-                bandwidth = new BandwidthResource(Bandwidth.mbps(Double.parseDouble(strBw)));
-            } catch (NumberFormatException e) {
-                // do nothings, use default bandwidth
-                bandwidth = DEFAULT_BANDWIDTH;
-            }
+        if (strBw == null) {
+            return new BandwidthResourceAllocation(bandwidth);
         }
 
+        try {
+            bandwidth = new BandwidthResource(Bandwidth.mbps(Double.parseDouble(strBw)));
+        } catch (NumberFormatException e) {
+            // do nothings, use default bandwidth
+            bandwidth = DEFAULT_BANDWIDTH;
+        }
         return new BandwidthResourceAllocation(bandwidth);
     }
 
