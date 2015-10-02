@@ -1,7 +1,11 @@
 /* css for sample app view */
 
-#ov-sample h2 {
+#ov-sample-table h2 {
     display: inline-block;
+}
+
+#ov-sample-table div.ctrl-btns {
+    width: 45px;
 }
 
 /* Panel Styling */

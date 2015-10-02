@@ -123,8 +123,8 @@ public class AppUiTableMessageHandler extends UiMessageHandler {
             // fake data for demonstration purposes...
             Item item = getItem(id);
 
-            ObjectNode rootNode = MAPPER.createObjectNode();
-            ObjectNode data = MAPPER.createObjectNode();
+            ObjectNode rootNode = objectNode();
+            ObjectNode data = objectNode();
             rootNode.set(DETAILS, data);
 
             if (item == null) {
