@@ -243,15 +243,13 @@ public class ConsistentLinkResourceStore extends
                     double freeBw = cap.bandwidth().toDouble();
 
                     // enumerate current allocations, subtracting resources
-                    for (LinkResourceAllocations alloc : allocations) {
-                        Set<ResourceAllocation> types = alloc.getResourceAllocation(link);
-                        for (ResourceAllocation a : types) {
-                            if (a instanceof BandwidthResourceAllocation) {
-                                BandwidthResourceAllocation bwA = (BandwidthResourceAllocation) a;
-                                freeBw -= bwA.bandwidth().toDouble();
-                            }
-                        }
-                    }
+                    double allocatedBw = ImmutableList.copyOf(allocations).stream()
+                            .flatMap(x -> x.getResourceAllocation(link).stream())
+                            .filter(x -> x instanceof BandwidthResourceAllocation)
+                            .map(x -> (BandwidthResourceAllocation) x)
+                            .mapToDouble(x -> x.bandwidth().toDouble())
+                            .sum();
+                    freeBw -= allocatedBw;
 
                     free.put(type, Sets.newHashSet(
                             new BandwidthResourceAllocation(new BandwidthResource(Bandwidth.bps(freeBw)))));
@@ -262,22 +260,18 @@ public class ConsistentLinkResourceStore extends
                         // nothing left
                         break;
                     }
-                    Set<LambdaResourceAllocation> freeL = new HashSet<>();
-                    for (ResourceAllocation r : lmd) {
-                        if (r instanceof LambdaResourceAllocation) {
-                            freeL.add((LambdaResourceAllocation) r);
-                        }
-                    }
+                    Set<LambdaResourceAllocation> freeL = lmd.stream()
+                            .filter(x -> x instanceof LambdaResourceAllocation)
+                            .map(x -> (LambdaResourceAllocation) x)
+                            .collect(Collectors.toSet());
 
                     // enumerate current allocations, removing resources
-                    for (LinkResourceAllocations alloc : allocations) {
-                        Set<ResourceAllocation> types = alloc.getResourceAllocation(link);
-                        for (ResourceAllocation a : types) {
-                            if (a instanceof LambdaResourceAllocation) {
-                                freeL.remove(a);
-                            }
-                        }
-                    }
+                    List<LambdaResourceAllocation> allocatedLambda = ImmutableList.copyOf(allocations).stream()
+                            .flatMap(x -> x.getResourceAllocation(link).stream())
+                            .filter(x -> x instanceof LambdaResourceAllocation)
+                            .map(x -> (LambdaResourceAllocation) x)
+                            .collect(Collectors.toList());
+                    freeL.removeAll(allocatedLambda);
 
                     free.put(type, freeL);
                     break;
@@ -287,22 +281,18 @@ public class ConsistentLinkResourceStore extends
                         // nothing left
                         break;
                     }
-                    Set<MplsLabelResourceAllocation> freeLabel = new HashSet<>();
-                    for (ResourceAllocation r : mpls) {
-                        if (r instanceof MplsLabelResourceAllocation) {
-                            freeLabel.add((MplsLabelResourceAllocation) r);
-                        }
-                    }
+                    Set<MplsLabelResourceAllocation> freeLabel = mpls.stream()
+                            .filter(x -> x instanceof MplsLabelResourceAllocation)
+                            .map(x -> (MplsLabelResourceAllocation) x)
+                            .collect(Collectors.toSet());
 
                     // enumerate current allocations, removing resources
-                    for (LinkResourceAllocations alloc : allocations) {
-                        Set<ResourceAllocation> types = alloc.getResourceAllocation(link);
-                        for (ResourceAllocation a : types) {
-                            if (a instanceof MplsLabelResourceAllocation) {
-                                freeLabel.remove(a);
-                            }
-                        }
-                    }
+                    List<MplsLabelResourceAllocation> allocatedLabel = ImmutableList.copyOf(allocations).stream()
+                            .flatMap(x -> x.getResourceAllocation(link).stream())
+                            .filter(x -> x instanceof MplsLabelResourceAllocation)
+                            .map(x -> (MplsLabelResourceAllocation) x)
+                            .collect(Collectors.toList());
+                    freeLabel.removeAll(allocatedLabel);
 
                     free.put(type, freeLabel);
                     break;
@@ -496,19 +486,18 @@ public class ConsistentLinkResourceStore extends
         checkNotNull(link);
         final LinkKey key = LinkKey.linkKey(link);
         TransactionalMap<LinkKey, List<LinkResourceAllocations>> linkAllocs = getLinkAllocs(tx);
-        List<LinkResourceAllocations> res = null;
 
-        res = linkAllocs.get(key);
-        if (res == null) {
-            res = linkAllocs.putIfAbsent(key, new ArrayList<>());
-
-            if (res == null) {
-                return Collections.emptyList();
-            } else {
-                return res;
-            }
+        List<LinkResourceAllocations> res = linkAllocs.get(key);
+        if (res != null) {
+            return res;
         }
-        return res;
+
+        res = linkAllocs.putIfAbsent(key, new ArrayList<>());
+        if (res == null) {
+            return Collections.emptyList();
+        } else {
+            return res;
+        }
     }
 
 }
