@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import org.onlab.packet.IpPrefix;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An entity representing a multicast route consisting of a source
@@ -50,6 +51,9 @@ public class McastRoute {
     private final Type type;
 
     public McastRoute(IpPrefix source, IpPrefix group, Type type) {
+        checkNotNull(source, "Multicast route must have a source");
+        checkNotNull(group, "Multicast route must specify a group address");
+        checkNotNull(type, "Must indicate what type of route");
         this.source = source;
         this.group = group;
         this.type = type;

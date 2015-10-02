@@ -24,7 +24,7 @@ import java.util.List;
  * A service interface for maintaining multicast information.
  */
 @Beta
-public interface MulticastRouteTable {
+public interface MulticastRouteService {
 
     /**
      * Adds a route to the information base.
@@ -57,14 +57,6 @@ public interface MulticastRouteTable {
      * @param connectPoint a sink connect point
      */
     void addSink(McastRoute route, ConnectPoint connectPoint);
-
-    /**
-     * Removes a source connection from the route.
-     *
-     * @param route the multicast route
-     * @param connectPoint a source connect point
-     */
-    void removeSource(McastRoute route, ConnectPoint connectPoint);
 
     /**
      * Removes a sink from the route.

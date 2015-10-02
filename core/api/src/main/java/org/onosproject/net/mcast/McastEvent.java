@@ -21,6 +21,8 @@ import org.onosproject.net.ConnectPoint;
 
 import java.util.Optional;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * An entity representing a multicast event. Event either add or remove
  * sinks or sources.
@@ -48,11 +50,6 @@ public class McastEvent extends AbstractEvent<McastEvent.Type, McastRoute> {
         SOURCE_ADDED,
 
         /**
-         * A source for a mcast route (ie. the subject) has been removed.
-         */
-        SOURCE_REMOVED,
-
-        /**
          * A sink for a mcast route (ie. the subject) has been added.
          */
         SINK_ADDED,
@@ -75,15 +72,15 @@ public class McastEvent extends AbstractEvent<McastEvent.Type, McastRoute> {
         source = Optional.empty();
     }
 
-    protected McastEvent(McastEvent.Type type, McastRoute subject,
-                       ConnectPoint sink,
-                       ConnectPoint source) {
+    public McastEvent(McastEvent.Type type, McastRoute subject,
+                      ConnectPoint sink,
+                      ConnectPoint source) {
         super(type, subject);
         this.sink = Optional.ofNullable(sink);
         this.source = Optional.ofNullable(source);
     }
 
-    protected McastEvent(McastEvent.Type type, McastRoute subject, long time,
+    public McastEvent(McastEvent.Type type, McastRoute subject, long time,
                        ConnectPoint sink,
                        ConnectPoint source) {
         super(type, subject, time);
@@ -102,12 +99,20 @@ public class McastEvent extends AbstractEvent<McastEvent.Type, McastRoute> {
     }
 
     /**
-     * The source which has been removed or added. The field may not be set
-     * if the source has not been detected yet or has been removed.
+     * The source which has been removed or added.
 
      * @return an optional connect point
      */
     public Optional<ConnectPoint> source() {
         return source;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("type", type())
+                .add("route", subject())
+                .add("source", source)
+                .add("sinks", sink).toString();
     }
 }
