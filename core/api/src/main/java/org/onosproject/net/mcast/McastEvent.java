@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mcast;
+package org.onosproject.net.mcast;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.ConnectPoint;
 
@@ -24,6 +25,7 @@ import java.util.Optional;
  * An entity representing a multicast event. Event either add or remove
  * sinks or sources.
  */
+@Beta
 public class McastEvent extends AbstractEvent<McastEvent.Type, McastRoute> {
 
     private final Optional<ConnectPoint> sink;

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mcast;
+package org.onosproject.net.mcast;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.ConnectPoint;
 
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
 /**
  * A service interface for maintaining multicast information.
  */
+@Beta
 public interface MulticastRouteTable {
 
     /**

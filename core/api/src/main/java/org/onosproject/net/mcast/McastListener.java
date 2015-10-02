@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.mcast;
+package org.onosproject.net.mcast;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.event.EventListener;
 
 /**
  * A listener interface for multicast events.
  */
+@Beta
 public interface McastListener extends EventListener<McastEvent> {
 }

@@ -61,7 +61,6 @@
         <module>mfwd</module>
         <module>igmp</module>
         <module>pim</module>
-        <module>mcast</module>
   </modules>
 
     <properties>
