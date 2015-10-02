@@ -35,7 +35,6 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentExtensionService;
-import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.provider.ProviderId;
@@ -103,7 +102,6 @@ public class OpticalPathIntentCompilerTest {
         intentExtensionService.registerCompiler(OpticalPathIntent.class, sut);
         intentExtensionService.unregisterCompiler(OpticalPathIntent.class);
         sut.intentManager = intentExtensionService;
-        sut.resourceService = new IntentTestsMocks.MockResourceService();
 
         replay(coreService, intentExtensionService);
     }
