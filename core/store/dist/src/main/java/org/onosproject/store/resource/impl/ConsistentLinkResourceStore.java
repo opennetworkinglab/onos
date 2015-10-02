@@ -166,21 +166,17 @@ public class ConsistentLinkResourceStore extends
 
         // if Link annotation exist, use them
         // if all fails, use DEFAULT_BANDWIDTH
-        BandwidthResource bandwidth = null;
+        BandwidthResource bandwidth = DEFAULT_BANDWIDTH;
         String strBw = link.annotations().value(BANDWIDTH);
         if (strBw != null) {
             try {
                 bandwidth = new BandwidthResource(Bandwidth.mbps(Double.parseDouble(strBw)));
             } catch (NumberFormatException e) {
-                // do nothings
-                bandwidth = null;
+                // do nothings, use default bandwidth
+                bandwidth = DEFAULT_BANDWIDTH;
             }
         }
 
-        if (bandwidth == null) {
-            // fall back, use fixed default
-            bandwidth = DEFAULT_BANDWIDTH;
-        }
         return new BandwidthResourceAllocation(bandwidth);
     }
 
