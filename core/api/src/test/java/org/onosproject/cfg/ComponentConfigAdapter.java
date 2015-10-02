@@ -50,6 +50,10 @@ public class ComponentConfigAdapter implements ComponentConfigService {
     }
 
     @Override
+    public void preSetProperty(String componentName, String name, String value) {
+    }
+
+    @Override
     public void unsetProperty(String componentName, String name) {
 
     }

@@ -18,19 +18,14 @@ package org.onosproject.cfg.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.util.SharedExecutors;
 import org.onosproject.cfg.ComponentConfigService;
 import org.slf4j.Logger;
 
 import java.io.File;
-import java.util.Set;
-import java.util.TimerTask;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -44,66 +39,36 @@ public class ComponentConfigLoader {
     private static final String CFG_JSON = "../config/component-cfg.json";
     static File cfgFile = new File(CFG_JSON);
 
-    protected int retryDelay = 5_000; // millis between retries
-    protected int stopRetryTime = 60_000; // deadline in millis
-
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService configService;
 
     private ObjectNode root;
-    private final Set<String> pendingComponents = Sets.newHashSet();
-    private long initialTimestamp;
-
-    // TimerTask object that calls the load configuration for each component
-    // in the pending components set and cancels itself if the set is empty or
-    // after a set period of time.
-    protected final TimerTask loader = new TimerTask() {
-
-        @Override
-        public void run() {
-            ImmutableSet.copyOf(pendingComponents)
-                    .forEach(k -> loadConfig(k, (ObjectNode) root.path(k)));
-            if (pendingComponents.isEmpty()
-                    || System.currentTimeMillis() - initialTimestamp >= stopRetryTime) {
-                this.cancel();
-            }
-        }
-    };
 
     @Activate
     protected void activate() {
-        initialTimestamp = System.currentTimeMillis();
         this.loadConfigs();
         log.info("Started");
     }
 
     // Loads the configurations for each component from the file in
-    // ../config/component-cfg.json, adds them to a set and schedules a task
-    // to try and load them.
+    // ../config/component-cfg.json, using the preSetProperty method.
     private void loadConfigs() {
         try {
             if (cfgFile.exists()) {
                 root = (ObjectNode) new ObjectMapper().readTree(cfgFile);
-                root.fieldNames().forEachRemaining(pendingComponents::add);
-                SharedExecutors.getTimer().schedule(loader, 0, retryDelay);
+                root.fieldNames().
+                        forEachRemaining(component -> root.path(component).fieldNames()
+                                .forEachRemaining(k -> configService
+                                        .preSetProperty(component, k,
+                                                        root.path(component).path(k)
+                                                                .asText())));
                 log.info("Loaded initial component configuration from {}", cfgFile);
             }
         } catch (Exception e) {
             log.warn("Unable to load initial component configuration from {}",
                      cfgFile, e);
-        }
-    }
-
-    // Loads a configuration for a single component and removes it from the
-    // components set.
-    private void loadConfig(String component, ObjectNode config) {
-        if (configService.getComponentNames().contains(component)) {
-            config.fieldNames()
-                    .forEachRemaining(k -> configService.setProperty(component, k,
-                                                                     config.path(k).asText()));
-            pendingComponents.remove(component);
         }
     }
 }

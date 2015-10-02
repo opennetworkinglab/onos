@@ -21,17 +21,17 @@ import com.google.common.io.Files;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.cfg.ComponentConfigAdapter;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Set;
-import java.util.TimerTask;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.google.common.io.Files.write;
-import static org.junit.Assert.*;
-import static org.onlab.junit.TestTools.assertAfter;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * UnitTest for ComponentLoader.
@@ -46,6 +46,8 @@ public class ComponentConfigLoaderTest {
 
     private TestConfigService service;
 
+    private final Logger log = getLogger(getClass());
+
     /*
      * Method to SetUp the test environment with test file, a config loader a service,
      * and assign it to the loader.configService for the test.
@@ -56,8 +58,6 @@ public class ComponentConfigLoaderTest {
         loader = new ComponentConfigLoader();
         service = new TestConfigService();
         loader.configService = service;
-        loader.retryDelay = 50;
-        loader.stopRetryTime = 200;
     }
 
     /*
@@ -67,7 +67,7 @@ public class ComponentConfigLoaderTest {
     public void basics() throws IOException {
         stageTestResource("basic.json");
         loader.activate();
-        assertAfter(1_000, () -> assertEquals("incorrect component", FOO_COMPONENT, service.component));
+        assertEquals("incorrect component", FOO_COMPONENT, service.component);
     }
 
     /*
@@ -79,28 +79,7 @@ public class ComponentConfigLoaderTest {
     public void badConfig() throws IOException {
         stageTestResource("badConfig.json");
         loader.activate();
-        assertAfter(1_000, () -> assertNull("incorrect configuration", service.component));
-
-    }
-
-    /*
-     * Tests that tasks stops itself after the stopRetryTime if the component was
-     * not loaded.
-     */
-    @Test
-    public void noComponentForConfig() throws IOException {
-        stageTestResource("badComponent.json");
-        loader.activate();
-        assertAfter(loader.stopRetryTime + loader.retryDelay, () -> {
-            try {
-                Field state = TimerTask.class.getDeclaredField("state");
-                state.setAccessible(true);
-                assertEquals("incorrect component", state.getInt(loader.loader), 3);
-            } catch (Exception e) {
-                e.printStackTrace();
-                fail();
-            }
-        });
+        assertNull("incorrect configuration", service.component);
 
     }
 
@@ -117,9 +96,9 @@ public class ComponentConfigLoaderTest {
      */
     private class TestConfigService extends ComponentConfigAdapter {
 
-        private String component;
-        private String name;
-        private String value;
+        protected String component;
+        protected String name;
+        protected String value;
 
         @Override
         public Set<String> getComponentNames() {
@@ -127,7 +106,17 @@ public class ComponentConfigLoaderTest {
         }
 
         @Override
+        public void preSetProperty(String componentName, String name, String value) {
+            log.info("preSet");
+            this.component = componentName;
+            this.name = name;
+            this.value = value;
+
+        }
+
+        @Override
         public void setProperty(String componentName, String name, String value) {
+            log.info("Set");
             this.component = componentName;
             this.name = name;
             this.value = value;
