@@ -51,6 +51,14 @@ public interface AtomicCounter {
     long addAndGet(long delta);
 
     /**
+     * Atomically sets the given value to the current value.
+     *
+     * @param value the value to set
+     */
+    void set(long value);
+
+
+    /**
      * Returns the current value of the counter without modifying it.
      *
      * @return current value

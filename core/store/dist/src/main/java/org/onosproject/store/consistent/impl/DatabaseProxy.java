@@ -45,6 +45,7 @@ public interface DatabaseProxy<K, V> {
 
     /**
      * Returns the number of entries in map.
+     *
      * @param mapName map name
      * @return A completable future to be completed with the result once complete.
      */
@@ -62,7 +63,7 @@ public interface DatabaseProxy<K, V> {
      * Checks whether the map contains a key.
      *
      * @param mapName map name
-     * @param key key to check.
+     * @param key     key to check.
      * @return A completable future to be completed with the result once complete.
      */
     CompletableFuture<Boolean> mapContainsKey(String mapName, K key);
@@ -71,7 +72,7 @@ public interface DatabaseProxy<K, V> {
      * Checks whether the map contains a value.
      *
      * @param mapName map name
-     * @param value The value to check.
+     * @param value   The value to check.
      * @return A completable future to be completed with the result once complete.
      */
     CompletableFuture<Boolean> mapContainsValue(String mapName, V value);
@@ -80,7 +81,7 @@ public interface DatabaseProxy<K, V> {
      * Gets a value from the map.
      *
      * @param mapName map name
-     * @param key The key to get.
+     * @param key     The key to get.
      * @return A completable future to be completed with the result once complete.
      */
     CompletableFuture<Versioned<V>> mapGet(String mapName, K key);
@@ -88,11 +89,11 @@ public interface DatabaseProxy<K, V> {
     /**
      * Updates the map.
      *
-     * @param mapName map name
-     * @param key           The key to set
-     * @param valueMatch    match for checking existing value
-     * @param versionMatch  match for checking existing version
-     * @param value         new value
+     * @param mapName      map name
+     * @param key          The key to set
+     * @param valueMatch   match for checking existing value
+     * @param versionMatch match for checking existing version
+     * @param value        new value
      * @return A completable future to be completed with the result once complete
      */
     CompletableFuture<Result<UpdateResult<K, V>>> mapUpdate(
@@ -130,11 +131,11 @@ public interface DatabaseProxy<K, V> {
      */
     CompletableFuture<Set<Map.Entry<K, Versioned<V>>>> mapEntrySet(String mapName);
 
-     /**
+    /**
      * Atomically add the given value to current value of the specified counter.
      *
      * @param counterName counter name
-     * @param delta value to add
+     * @param delta       value to add
      * @return updated value
      */
     CompletableFuture<Long> counterAddAndGet(String counterName, long delta);
@@ -143,10 +144,20 @@ public interface DatabaseProxy<K, V> {
      * Atomically add the given value to current value of the specified counter.
      *
      * @param counterName counter name
-     * @param delta value to add
+     * @param delta       value to add
      * @return previous value
      */
     CompletableFuture<Long> counterGetAndAdd(String counterName, long delta);
+
+
+    /**
+     * Atomically sets the given value to current value of the specified counter.
+     *
+     * @param counterName counter name
+     * @param value       value to set
+     * @return void future
+     */
+    CompletableFuture<Void> counterSet(String counterName, long value);
 
     /**
      * Returns the current value of the specified atomic counter.
@@ -158,6 +169,7 @@ public interface DatabaseProxy<K, V> {
 
     /**
      * Returns the size of queue.
+     *
      * @param queueName queue name
      * @return queue size
      */
@@ -165,14 +177,16 @@ public interface DatabaseProxy<K, V> {
 
     /**
      * Inserts an entry into the queue.
+     *
      * @param queueName queue name
-     * @param entry queue entry
+     * @param entry     queue entry
      * @return void future
      */
     CompletableFuture<Void> queuePush(String queueName, byte[] entry);
 
     /**
      * Removes an entry from the queue if the queue is non-empty.
+     *
      * @param queueName queue name
      * @return entry future. Can be completed with null if queue is empty
      */
@@ -180,6 +194,7 @@ public interface DatabaseProxy<K, V> {
 
     /**
      * Returns but does not remove an entry from the queue.
+     *
      * @param queueName queue name
      * @return entry. Can be null if queue is empty
      */
