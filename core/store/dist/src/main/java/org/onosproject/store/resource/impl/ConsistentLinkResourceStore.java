@@ -40,7 +40,6 @@ import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.Port;
 import org.onosproject.net.intent.IntentId;
-import org.onosproject.net.link.LinkService;
 import org.onosproject.net.resource.link.BandwidthResource;
 import org.onosproject.net.resource.link.BandwidthResourceAllocation;
 import org.onosproject.net.resource.link.LambdaResource;
@@ -106,9 +105,6 @@ public class ConsistentLinkResourceStore extends
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkService linkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
