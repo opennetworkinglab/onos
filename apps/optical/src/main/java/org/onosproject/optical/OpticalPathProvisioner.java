@@ -292,7 +292,6 @@ public class OpticalPathProvisioner {
                             .bidirectional(true)
                             .build();
                     intents.add(circuitIntent);
-                    continue;
                 } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
                     // Create lightpath
                     // FIXME: hardcoded ODU signal type
@@ -304,7 +303,6 @@ public class OpticalPathProvisioner {
                             .bidirectional(true)
                             .build();
                     intents.add(opticalIntent);
-                    continue;
                 } else {
                     log.warn("Unsupported cross connect point types {} {}", srcPort.type(), dstPort.type());
                     return Collections.emptyList();
