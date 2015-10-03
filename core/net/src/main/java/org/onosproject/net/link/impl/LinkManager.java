@@ -15,9 +15,9 @@
  */
 package org.onosproject.net.link.impl;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
@@ -54,7 +55,6 @@ import org.slf4j.Logger;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static org.onosproject.net.LinkKey.linkKey;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -125,13 +125,7 @@ public class LinkManager
     public Iterable<Link> getActiveLinks() {
         checkPermission(LINK_READ);
         return FluentIterable.from(getLinks())
-                .filter(new Predicate<Link>() {
-
-                    @Override
-                    public boolean apply(Link input) {
-                        return input.state() == State.ACTIVE;
-                    }
-                });
+                .filter(input -> input.state() == State.ACTIVE);
     }
 
     @Override
@@ -207,6 +201,10 @@ public class LinkManager
         post(store.removeLink(src, dst));
     }
 
+    private boolean isAllowed(BasicLinkConfig cfg) {
+        return (cfg == null || cfg.isAllowed());
+    }
+
     // Auxiliary interceptor for device remove events to prune links that
     // are associated with the removed device or its port.
     private class InternalDeviceListener implements DeviceListener {
@@ -240,11 +238,12 @@ public class LinkManager
             checkNotNull(linkDescription, LINK_DESC_NULL);
             checkValidity();
             linkDescription = validateLink(linkDescription);
-            LinkEvent event = store.createOrUpdateLink(provider().id(),
-                    linkDescription);
-            if (event != null) {
-                log.info("Link {} detected", linkDescription);
-                post(event);
+            if (linkDescription != null) {
+                LinkEvent event = store.createOrUpdateLink(provider().id(), linkDescription);
+                if (event != null) {
+                    log.info("Link {} detected", linkDescription);
+                    post(event);
+                }
             }
         }
 
@@ -258,11 +257,12 @@ public class LinkManager
             BasicLinkConfig cfgTwo = networkConfigService.getConfig(linkKey(linkDescription.dst(),
                                                                             linkDescription.src()),
                                                                     BasicLinkConfig.class);
-
-            checkState(cfg == null || cfg.isAllowed(), "Link " + linkDescription.toString() + " is not allowed");
-            checkState(cfgTwo == null || cfgTwo.isAllowed(), "Link " + linkDescription.toString() + " is not allowed");
-
-            return BasicLinkOperator.combine(cfg, linkDescription);
+            if (isAllowed(cfg) && isAllowed(cfgTwo)) {
+                return BasicLinkOperator.combine(cfg, linkDescription);
+            } else {
+                log.trace("Link " + linkDescription.toString() + " is not allowed");
+                return null;
+            }
         }
 
         @Override
@@ -324,20 +324,41 @@ public class LinkManager
     // listens for NetworkConfigEvents of type BasicLinkConfig and removes
     // links that the config does not allow
     private class InternalNetworkConfigListener implements NetworkConfigListener {
+
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            return event.configClass().equals(BasicLinkConfig.class)
+                    && (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED
+                        || event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED);
+        }
+
         @Override
         public void event(NetworkConfigEvent event) {
-            if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
-                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
-                    event.configClass().equals(BasicLinkConfig.class)) {
-                log.info("Detected Link network config event {}", event.type());
-                LinkKey lk = (LinkKey) event.subject();
-                BasicLinkConfig cfg = networkConfigService.getConfig(lk, BasicLinkConfig.class);
-                if (cfg != null && !cfg.isAllowed()) {
-                    log.info("Kicking out links between {} and {}", lk.src(), lk.dst());
-                    removeLink(lk.src(), lk.dst());
-                    removeLink(lk.dst(), lk.src());
-                }
+            LinkKey lk = (LinkKey) event.subject();
+            BasicLinkConfig cfg = networkConfigService.getConfig(lk, BasicLinkConfig.class);
+
+            if (!isAllowed(cfg)) {
+                log.info("Kicking out links between {} and {}", lk.src(), lk.dst());
+                removeLink(lk.src(), lk.dst());
+                removeLink(lk.dst(), lk.src());
+                return;
             }
+            Link link = getLink(lk.src(), lk.dst());
+            LinkDescription fldesc;
+            LinkDescription rldesc;
+            if (link == null) {
+                fldesc = BasicLinkOperator.descriptionOf(lk.src(), lk.dst(), cfg);
+                rldesc = BasicLinkOperator.descriptionOf(lk.dst(), lk.src(), cfg);
+            } else {
+                fldesc = BasicLinkOperator.combine(cfg,
+                            BasicLinkOperator.descriptionOf(lk.src(), lk.dst(), link));
+                rldesc = BasicLinkOperator.combine(cfg,
+                            BasicLinkOperator.descriptionOf(lk.dst(), lk.src(), link));
+            }
+            // XXX think of sane way to fetch the LinkProvider
+            store.createOrUpdateLink(ProviderId.NONE, fldesc);
+            store.createOrUpdateLink(ProviderId.NONE, rldesc);
         }
+
     }
 }

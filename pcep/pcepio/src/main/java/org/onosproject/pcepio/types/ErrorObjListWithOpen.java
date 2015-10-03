@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onosproject.pcepio.types;
 
 import java.util.LinkedList;
@@ -57,7 +72,7 @@ public class ErrorObjListWithOpen {
      * @return error types list
      */
     public LinkedList<Integer> getErrorType() {
-        LinkedList<Integer> errorType = new LinkedList<Integer>();
+        LinkedList<Integer> errorType = new LinkedList<>();
         if (llerrorObjList != null) {
             ListIterator<PcepErrorObject> errObjListIterator = llerrorObjList.listIterator();
             int error;
@@ -77,7 +92,7 @@ public class ErrorObjListWithOpen {
      * @return error values list
      */
     public LinkedList<Integer> getErrorValue() {
-        LinkedList<Integer> errorValue = new LinkedList<Integer>();
+        LinkedList<Integer> errorValue = new LinkedList<>();
         if (llerrorObjList != null) {
             ListIterator<PcepErrorObject> errObjListIterator = llerrorObjList.listIterator();
             int error;
@@ -99,7 +114,7 @@ public class ErrorObjListWithOpen {
     public boolean isErrorObjListWithOpenPresent() {
         // ( <error-obj-list> [<Open>]
         // At least in this case <error-obj-list> should be present.
-        return (!this.llerrorObjList.isEmpty()) ? true : false;
+        return !this.llerrorObjList.isEmpty();
     }
 
     /**

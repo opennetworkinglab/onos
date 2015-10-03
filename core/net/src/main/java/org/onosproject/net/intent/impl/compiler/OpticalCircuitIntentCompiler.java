@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -50,7 +49,10 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
-import org.onosproject.net.resource.device.DeviceResourceService;
+import org.onosproject.net.newresource.ResourceAllocation;
+import org.onosproject.net.newresource.ResourcePath;
+import org.onosproject.net.newresource.ResourceService;
+import org.onosproject.net.resource.device.IntentSetMultimap;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -60,6 +62,7 @@ import java.util.Collections;
 import java.util.Dictionary;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -92,7 +95,10 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceResourceService deviceResourceService;
+    protected ResourceService resourceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected IntentSetMultimap intentSetMultimap;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService intentService;
@@ -153,7 +159,10 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         log.debug("Compiling optical circuit intent between {} and {}", src, dst);
 
         // Reserve OduClt ports
-        if (!deviceResourceService.requestPorts(Sets.newHashSet(srcPort, dstPort), intent)) {
+        ResourcePath srcPortPath = new ResourcePath(src.deviceId(), src.port());
+        ResourcePath dstPortPath = new ResourcePath(dst.deviceId(), dst.port());
+        List<ResourceAllocation> allocation = resourceService.allocate(intent.id(), srcPortPath, dstPortPath);
+        if (allocation.isEmpty()) {
             throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
         }
 
@@ -199,7 +208,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         circuitIntent = new FlowRuleIntent(appId, rules, intent.resources());
 
         // Save circuit to connectivity intent mapping
-        deviceResourceService.requestMapping(connIntent.id(), intent.id());
+        intentSetMultimap.allocateMapping(connIntent.id(), intent.id());
         intents.add(circuitIntent);
 
         return intents;
@@ -209,16 +218,15 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
      * Checks if current allocations on given resource can satisfy request.
      * If the resource is null, return true.
      *
-     * @param request the intent making the request
      * @param resource the resource on which to map the intent
      * @return true if the resource can accept the request, false otherwise
      */
-    private boolean isAvailable(Intent request, IntentId resource) {
+    private boolean isAvailable(IntentId resource) {
         if (resource == null) {
             return true;
         }
 
-        Set<IntentId> mapping = deviceResourceService.getMapping(resource);
+        Set<IntentId> mapping = intentSetMultimap.getMapping(resource);
 
         if (mapping == null) {
             return true;
@@ -271,7 +279,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                 continue;
             }
 
-            if (isAvailable(circuitIntent, connIntent.id())) {
+            if (isAvailable(connIntent.id())) {
                 return connIntent;
             }
         }
@@ -296,14 +304,19 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         return null;
     }
 
-    private OchPort findAvailableOchPort(ConnectPoint oduPort, OpticalCircuitIntent circuitIntent) {
+    private OchPort findAvailableOchPort(ConnectPoint oduPort) {
         // First see if the port mappings are constrained
         ConnectPoint ochCP = staticPort(oduPort);
 
         if (ochCP != null) {
             OchPort ochPort = (OchPort) deviceService.getPort(ochCP.deviceId(), ochCP.port());
-            IntentId intentId = deviceResourceService.getAllocations(ochPort);
-            if (isAvailable(circuitIntent, intentId)) {
+            Optional<IntentId> intentId =
+                    resourceService.getResourceAllocation(new ResourcePath(ochCP.deviceId(), ochCP.port()))
+                            .map(ResourceAllocation::consumer)
+                            .filter(x -> x instanceof IntentId)
+                            .map(x -> (IntentId) x);
+
+            if (isAvailable(intentId.orElse(null))) {
                 return ochPort;
             }
         }
@@ -316,8 +329,12 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                 continue;
             }
 
-            IntentId intentId = deviceResourceService.getAllocations(port);
-            if (isAvailable(circuitIntent, intentId)) {
+            Optional<IntentId> intentId =
+                    resourceService.getResourceAllocation(new ResourcePath(oduPort.deviceId(), port.number()))
+                            .map(ResourceAllocation::consumer)
+                            .filter(x -> x instanceof IntentId)
+                            .map(x -> (IntentId) x);
+            if (isAvailable(intentId.orElse(null))) {
                 return (OchPort) port;
             }
         }
@@ -327,12 +344,12 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
     private Pair<OchPort, OchPort> findPorts(OpticalCircuitIntent intent) {
 
-        OchPort srcPort = findAvailableOchPort(intent.getSrc(), intent);
+        OchPort srcPort = findAvailableOchPort(intent.getSrc());
         if (srcPort == null) {
             return null;
         }
 
-        OchPort dstPort = findAvailableOchPort(intent.getDst(), intent);
+        OchPort dstPort = findAvailableOchPort(intent.getDst());
         if (dstPort == null) {
             return null;
         }

@@ -17,6 +17,7 @@ package org.onosproject.net.config.basics;
 
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.time.Duration;
 
@@ -28,6 +29,7 @@ public class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
     public static final String TYPE = "type";
     public static final String LATENCY = "latency";
     public static final String BANDWIDTH = "bandwidth";
+    public static final String IS_DURABLE = "durable";
 
     /**
      * Returns the link type.
@@ -87,4 +89,26 @@ public class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
         return (BasicLinkConfig) setOrClear(BANDWIDTH, bandwidth);
     }
 
+    /**
+     * Returns if link is durable in the network model or not.
+     *
+     * @return true for durable, false otherwise
+     */
+    public Boolean isDurable() {
+        JsonNode res = object.path(IS_DURABLE);
+        if (res.isMissingNode()) {
+            return null;
+        }
+        return res.asBoolean();
+    }
+
+    /**
+     * Sets durability for this link.
+     *
+     * @param isDurable true for durable, false otherwise
+     * @return this BasicLinkConfig
+     */
+    public BasicLinkConfig isDurable(Boolean isDurable) {
+        return (BasicLinkConfig) setOrClear(IS_DURABLE, isDurable);
+    }
 }

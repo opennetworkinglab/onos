@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos</artifactId>
-        <version>1.3.0-SNAPSHOT</version>
+        <version>1.4.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -37,7 +37,6 @@
         <module>fwd</module>
         <module>mobility</module>
         <module>proxyarp</module>
-        <module>config</module>
         <module>sdnip</module>
         <module>optical</module>
         <module>metrics</module>
@@ -58,7 +57,11 @@
         <module>vtn</module>
         <module>vtnweb</module>
         <module>dhcp</module>
-    </modules>
+        <module>cordvtn</module>
+        <module>mfwd</module>
+        <module>igmp</module>
+        <module>pim</module>
+  </modules>
 
     <properties>
         <web.context>default</web.context>

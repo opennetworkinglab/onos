@@ -16,6 +16,7 @@
 package org.onosproject.net.device.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.onosproject.net.config.ConfigOperator;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
@@ -26,6 +27,8 @@ import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.slf4j.Logger;
+
+import java.util.Objects;
 
 /**
  * Implementations of merge policies for various sources of device configuration
@@ -72,7 +75,7 @@ public final class BasicDeviceOperator implements ConfigOperator {
      */
     public static SparseAnnotations combine(BasicDeviceConfig bdc, SparseAnnotations an) {
         DefaultAnnotations.Builder newBuilder = DefaultAnnotations.builder();
-        if (bdc.driver() != an.value(AnnotationKeys.DRIVER)) {
+        if (!Objects.equals(bdc.driver(), an.value(AnnotationKeys.DRIVER))) {
             newBuilder.set(AnnotationKeys.DRIVER, bdc.driver());
         }
         if (bdc.name() != null) {
@@ -92,5 +95,13 @@ public final class BasicDeviceOperator implements ConfigOperator {
         }
         DefaultAnnotations newAnnotations = newBuilder.build();
         return DefaultAnnotations.union(an, newAnnotations);
+    }
+
+    public static DeviceDescription descriptionOf(Device device) {
+        checkNotNull(device, "Must supply non-null Device");
+        return new DefaultDeviceDescription(device.id().uri(), device.type(),
+                                            device.manufacturer(), device.hwVersion(),
+                                            device.swVersion(), device.serialNumber(),
+                                            device.chassisId(), (SparseAnnotations) device.annotations());
     }
 }

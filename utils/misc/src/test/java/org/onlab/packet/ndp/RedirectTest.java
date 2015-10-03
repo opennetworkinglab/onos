@@ -20,6 +20,9 @@ import org.junit.Test;
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Deserializer;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.PacketTestUtils;
+
+import java.nio.ByteBuffer;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertArrayEquals;
@@ -87,6 +90,20 @@ public class RedirectTest {
                      MAC_ADDRESS.toBytes());
 
         assertArrayEquals(rd.serialize(), bytePacket);
+    }
+
+    @Test
+    public void testDeserializeBadInput() throws Exception {
+        PacketTestUtils.testDeserializeBadInput(Redirect.deserializer());
+    }
+
+    @Test
+    public void testDeserializeTruncated() throws Exception {
+        // Run the truncation test only on the Redirect header
+        byte[] rdHeader = new byte[Redirect.HEADER_LENGTH];
+        ByteBuffer.wrap(bytePacket).get(rdHeader);
+
+        PacketTestUtils.testDeserializeTruncated(Redirect.deserializer(), rdHeader);
     }
 
     /**

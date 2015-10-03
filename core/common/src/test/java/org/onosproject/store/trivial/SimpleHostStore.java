@@ -15,23 +15,16 @@
  */
 package org.onosproject.store.trivial;
 
-import static org.onosproject.net.DefaultAnnotations.merge;
-import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onosproject.net.host.HostEvent.Type.HOST_MOVED;
-import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
-import static org.onosproject.net.host.HostEvent.Type.HOST_UPDATED;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -44,19 +37,21 @@ import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
-import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
 import org.slf4j.Logger;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.SetMultimap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.onosproject.net.DefaultAnnotations.merge;
+import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
+import static org.onosproject.net.host.HostEvent.Type.HOST_MOVED;
+import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
+import static org.onosproject.net.host.HostEvent.Type.HOST_UPDATED;
+import static org.slf4j.LoggerFactory.getLogger;
 
 // TODO: multi-provider, annotation not supported.
 /**
@@ -77,10 +72,6 @@ public class SimpleHostStore
     // Hosts tracked by their location
     private final Multimap<ConnectPoint, Host> locations = HashMultimap.create();
 
-    private final SetMultimap<ConnectPoint, PortAddresses> portAddresses =
-            Multimaps.synchronizedSetMultimap(
-                    HashMultimap.<ConnectPoint, PortAddresses>create());
-
     @Activate
     public void activate() {
         log.info("Started");
@@ -93,12 +84,14 @@ public class SimpleHostStore
 
     @Override
     public HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
-                                        HostDescription hostDescription) {
+                                        HostDescription hostDescription,
+                                        boolean replaceIps) {
+        //TODO We need a way to detect conflicting changes and abort update.
         StoredHost host = hosts.get(hostId);
         if (host == null) {
             return createHost(providerId, hostId, hostDescription);
         }
-        return updateHost(providerId, host, hostDescription);
+        return updateHost(providerId, host, hostDescription, replaceIps);
     }
 
     // creates a new host and sends HOST_ADDED
@@ -119,7 +112,7 @@ public class SimpleHostStore
 
     // checks for type of update to host, sends appropriate event
     private HostEvent updateHost(ProviderId providerId, StoredHost host,
-                                 HostDescription descr) {
+                                 HostDescription descr, boolean replaceIps) {
         HostEvent event;
         if (!host.location().equals(descr.location())) {
             host.setLocation(descr.location());
@@ -131,8 +124,14 @@ public class SimpleHostStore
             return null;
         }
 
-        Set<IpAddress> addresses = new HashSet<>(host.ipAddresses());
-        addresses.addAll(descr.ipAddress());
+        final Set<IpAddress> addresses;
+        if (replaceIps) {
+            addresses = ImmutableSet.copyOf(descr.ipAddress());
+        } else {
+            addresses = new HashSet<>(host.ipAddresses());
+            addresses.addAll(descr.ipAddress());
+        }
+
         Annotations annotations = merge((DefaultAnnotations) host.annotations(),
                                         descr.annotations());
         StoredHost updated = new StoredHost(providerId, host.id(),
@@ -158,6 +157,11 @@ public class SimpleHostStore
             }
             return null;
         }
+    }
+
+    @Override
+    public HostEvent removeIp(HostId hostId, IpAddress ipAddress) {
+        return null;
     }
 
     @Override
@@ -222,41 +226,6 @@ public class SimpleHostStore
             }
         }
         return hostset;
-    }
-
-    @Override
-    public void updateAddressBindings(PortAddresses addresses) {
-        portAddresses.put(addresses.connectPoint(), addresses);
-    }
-
-    @Override
-    public void removeAddressBindings(PortAddresses addresses) {
-        portAddresses.remove(addresses.connectPoint(), addresses);
-    }
-
-    @Override
-    public void clearAddressBindings(ConnectPoint connectPoint) {
-        portAddresses.removeAll(connectPoint);
-    }
-
-    @Override
-    public Set<PortAddresses> getAddressBindings() {
-        synchronized (portAddresses) {
-            return ImmutableSet.copyOf(portAddresses.values());
-        }
-    }
-
-    @Override
-    public Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint) {
-        synchronized (portAddresses) {
-            Set<PortAddresses> addresses = portAddresses.get(connectPoint);
-
-            if (addresses == null) {
-                return Collections.emptySet();
-            } else {
-                return ImmutableSet.copyOf(addresses);
-            }
-        }
     }
 
     // Auxiliary extension to allow location to mutate.

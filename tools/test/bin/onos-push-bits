@@ -2,6 +2,24 @@
 # -----------------------------------------------------------------------------
 # Remotely pushes bits to a remote node in preparation for install.
 # -----------------------------------------------------------------------------
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) [node]
+
+options:
+- [node] : the target node to prime for installation
+
+summary:
+ Remotely pushes bits to a remote node in preparation for install.
+
+ $(basename $0) is invoked as part of 'onos-install', and shouldn't be
+ directly invoked for the most part.
+
+_EOF_
+}
+
+[ "$1" = "-h" ] && _usage && exit 0
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults

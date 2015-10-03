@@ -114,7 +114,7 @@ public class TopologyManagerTest {
                              link("c", 2, "d", 1), link("d", 1, "c", 2),
                              link("d", 2, "a", 2), link("a", 2, "d", 2),
                              link("e", 1, "f", 1), link("f", 1, "e", 1));
-        GraphDescription data = new DefaultGraphDescription(4321L, devices, links);
+        GraphDescription data = new DefaultGraphDescription(4321L, System.currentTimeMillis(), devices, links);
         providerService.topologyChanged(data, null);
     }
 

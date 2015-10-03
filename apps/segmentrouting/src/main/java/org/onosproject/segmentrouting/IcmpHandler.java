@@ -111,10 +111,10 @@ public class IcmpHandler {
         icmpReplyIpv4.setChecksum((short) 0);
 
         ICMP icmpReply = new ICMP();
+        icmpReply.setPayload(((ICMP) icmpRequestIpv4.getPayload()).getPayload());
         icmpReply.setIcmpType(ICMP.TYPE_ECHO_REPLY);
         icmpReply.setIcmpCode(ICMP.SUBTYPE_ECHO_REPLY);
         icmpReply.setChecksum((short) 0);
-
         icmpReplyIpv4.setPayload(icmpReply);
 
         icmpReplyEth.setPayload(icmpReplyIpv4);

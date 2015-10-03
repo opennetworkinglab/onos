@@ -9,6 +9,7 @@ org.onosproject.provider*
 org.onosproject.rest
 org.onosproject.cli*
 org.onosproject.tvue
+org.onosproject.dhcp
 org.onosproject.foo
 org.onosproject.mobility
 org.onosproject.proxyarp
@@ -45,6 +46,9 @@ org.onosproject.pcep*
 org.onosproject.aaa
 org.onosproject.acl*
 org.onosproject.cip*
-org.onos.acl*
+org.onosproject.acl*
 org.onosproject.vtn*
+org.onosproject.cord*
+org.onosproject.mfwd*
+org.onosproject.mcast*
 org.onosproject.flowanalyzer

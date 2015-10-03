@@ -15,7 +15,7 @@
  */
 package org.onosproject.net.config;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.onosproject.store.Store;
 
 import java.util.Set;
@@ -115,7 +115,7 @@ public interface NetworkConfigStore extends Store<NetworkConfigEvent, NetworkCon
      * @return configuration object
      */
     <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass,
-                                           ObjectNode json);
+                                           JsonNode json);
 
     /**
      * Clears the configuration of the given class for the specified subject.

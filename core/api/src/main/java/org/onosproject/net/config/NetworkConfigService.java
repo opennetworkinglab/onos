@@ -15,7 +15,7 @@
  */
 package org.onosproject.net.config;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.Beta;
 import org.onosproject.event.ListenerService;
 
@@ -130,7 +130,7 @@ public interface NetworkConfigService
      * @return configuration or null if one is not available
      */
     <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass,
-                                           ObjectNode json);
+                                           JsonNode json);
 
     /**
      * Clears any configuration for the specified subject and configuration

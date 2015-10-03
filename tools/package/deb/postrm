@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# FIXME dpkg will remove /opt if it is empty after removing onos
+#       We should recreate /opt if it was deleted.
+sudo mkdir -p /opt

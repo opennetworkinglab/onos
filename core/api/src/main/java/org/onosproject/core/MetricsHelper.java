@@ -32,7 +32,7 @@ public interface MetricsHelper {
      *
      * @return MetricService instance
      */
-    abstract MetricsService metricsService();
+    MetricsService metricsService();
 
 
     /**

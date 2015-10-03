@@ -16,6 +16,9 @@
 
 package org.onosproject.security;
 
+import com.google.common.annotations.Beta;
+
+@Beta
 public class Permission {
 
     protected String classname;

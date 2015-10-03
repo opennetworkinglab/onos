@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onosproject.segmentrouting;
 
 import com.google.common.collect.Lists;
@@ -33,7 +48,7 @@ public class DeviceConfiguration implements DeviceProperties {
 
     private static final Logger log = LoggerFactory
             .getLogger(DeviceConfiguration.class);
-    private final List<Integer> allSegmentIds = new ArrayList<Integer>();
+    private final List<Integer> allSegmentIds = new ArrayList<>();
     private final HashMap<DeviceId, SegmentRouterInfo> deviceConfigMap = new HashMap<>();
     private final NetworkConfigManager configService;
 
@@ -65,7 +80,7 @@ public class DeviceConfiguration implements DeviceProperties {
             }
             SegmentRouterInfo info = new SegmentRouterInfo();
             info.nodeSid = ((SegmentRouterConfig) cfg).getNodeSid();
-            info.deviceId = ((SegmentRouterConfig) cfg).getDpid();
+            info.deviceId = cfg.getDpid();
             info.mac = MacAddress.valueOf(((
                     SegmentRouterConfig) cfg).getRouterMac());
             String routerIp = ((SegmentRouterConfig) cfg).getRouterIp();
@@ -73,7 +88,7 @@ public class DeviceConfiguration implements DeviceProperties {
             info.ip = prefix.address();
             info.isEdge = ((SegmentRouterConfig) cfg).isEdgeRouter();
             info.subnets = new HashMap<>();
-            info.gatewayIps = new HashMap<PortNumber, Ip4Address>();
+            info.gatewayIps = new HashMap<>();
             for (Subnet s: ((SegmentRouterConfig) cfg).getSubnets()) {
                 info.subnets.put(PortNumber.portNumber(s.getPortNo()),
                                  Ip4Prefix.valueOf(s.getSubnetIp()));
@@ -264,8 +279,7 @@ public class DeviceConfiguration implements DeviceProperties {
             log.debug("getSubnetGatewayIps for device{} is {}",
                     deviceId,
                     deviceConfigMap.get(deviceId).gatewayIps.values());
-            return new ArrayList<Ip4Address>(deviceConfigMap.
-                    get(deviceId).gatewayIps.values());
+            return new ArrayList<>(deviceConfigMap.get(deviceId).gatewayIps.values());
         } else {
             return null;
         }
@@ -282,8 +296,7 @@ public class DeviceConfiguration implements DeviceProperties {
             log.debug("getSubnets for device{} is {}",
                     deviceId,
                     deviceConfigMap.get(deviceId).subnets.values());
-            return new ArrayList<Ip4Prefix>(deviceConfigMap.
-                    get(deviceId).subnets.values());
+            return new ArrayList<>(deviceConfigMap.get(deviceId).subnets.values());
         } else {
             return null;
         }

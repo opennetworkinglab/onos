@@ -16,7 +16,6 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -40,9 +39,9 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
-import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.newresource.ResourcePath;
+import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.resource.ResourceType;
-import org.onosproject.net.resource.device.DeviceResourceService;
 import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
 import org.onosproject.net.resource.link.LambdaResource;
 import org.onosproject.net.resource.link.LambdaResourceAllocation;
@@ -51,13 +50,13 @@ import org.onosproject.net.resource.link.LinkResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
-import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -79,10 +78,10 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkResourceService linkResourceService;
+    protected ResourceService resourceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceResourceService deviceResourceService;
+    protected LinkResourceService linkResourceService;
 
     @Activate
     public void activate() {
@@ -109,7 +108,11 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         log.debug("Compiling optical connectivity intent between {} and {}", src, dst);
 
         // Reserve OCh ports
-        if (!deviceResourceService.requestPorts(ImmutableSet.of(srcPort, dstPort), intent)) {
+        ResourcePath srcPortPath = new ResourcePath(src.deviceId(), src.port());
+        ResourcePath dstPortPath = new ResourcePath(dst.deviceId(), dst.port());
+        List<org.onosproject.net.newresource.ResourceAllocation> allocation =
+                resourceService.allocate(intent.id(), srcPortPath, dstPortPath);
+        if (allocation.isEmpty()) {
             throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
         }
 
@@ -127,7 +130,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
             // FIXME: need to actually reserve the lambda for static lambda's
             if (staticLambda != null) {
-                ochSignal = new OchSignal(Frequency.ofHz(Long.valueOf(staticLambda)),
+                ochSignal = new OchSignal(Frequency.ofHz(Long.parseLong(staticLambda)),
                         srcOchPort.lambda().channelSpacing(),
                         srcOchPort.lambda().slotGranularity());
             } else if (!srcOchPort.isTunable() || !dstOchPort.isTunable()) {
@@ -162,7 +165,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         }
 
         // Release port allocations if unsuccessful
-        deviceResourceService.releasePorts(intent.id());
+        resourceService.release(intent.id());
 
         throw new IntentCompilationException("Unable to find suitable lightpath for intent " + intent);
     }
@@ -172,18 +175,15 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
      *
      * @param path the path
      * @param linkAllocs the link allocations
-     * @return
+     * @return lambda allocated to the given path
      */
     private LambdaResourceAllocation getWavelength(Path path, LinkResourceAllocations linkAllocs) {
-        for (Link link : path.links()) {
-            for (ResourceAllocation alloc : linkAllocs.getResourceAllocation(link)) {
-                if (alloc.type() == ResourceType.LAMBDA) {
-                    return (LambdaResourceAllocation) alloc;
-                }
-            }
-        }
-
-        return null;
+        return path.links().stream()
+                .flatMap(x -> linkAllocs.getResourceAllocation(x).stream())
+                .filter(x -> x.type() == ResourceType.LAMBDA)
+                .findFirst()
+                .map(x -> (LambdaResourceAllocation) x)
+                .orElse(null);
     }
 
     /**
@@ -216,23 +216,23 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
             return false;
         }
 
-        LambdaResource lambda = null;
+        List<LambdaResource> lambdas = path.links().stream()
+                .flatMap(x -> allocations.getResourceAllocation(x).stream())
+                .filter(x -> x.type() == ResourceType.LAMBDA)
+                .map(x -> ((LambdaResourceAllocation) x).lambda())
+                .collect(Collectors.toList());
 
-        for (Link link : path.links()) {
-            for (ResourceAllocation alloc : allocations.getResourceAllocation(link)) {
-                if (alloc.type() == ResourceType.LAMBDA) {
-                    LambdaResource nextLambda = ((LambdaResourceAllocation) alloc).lambda();
-                    if (nextLambda == null) {
-                        return false;
-                    }
-                    if (lambda == null) {
-                        lambda = nextLambda;
-                        continue;
-                    }
-                    if (!lambda.equals(nextLambda)) {
-                        return false;
-                    }
-                }
+        LambdaResource lambda = null;
+        for (LambdaResource nextLambda: lambdas) {
+            if (nextLambda == null) {
+                return false;
+            }
+            if (lambda == null) {
+                lambda = nextLambda;
+                continue;
+            }
+            if (!lambda.equals(nextLambda)) {
+                return false;
             }
         }
 
@@ -265,34 +265,31 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     private Set<Path> getOpticalPaths(OpticalConnectivityIntent intent) {
         // Route in WDM topology
         Topology topology = topologyService.currentTopology();
-        LinkWeight weight = new LinkWeight() {
-            @Override
-            public double weight(TopologyEdge edge) {
-                // Disregard inactive or non-optical links
-                if (edge.link().state() == Link.State.INACTIVE) {
-                    return -1;
-                }
-                if (edge.link().type() != Link.Type.OPTICAL) {
-                    return -1;
-                }
-                // Adhere to static port mappings
-                DeviceId srcDeviceId = edge.link().src().deviceId();
-                if (srcDeviceId.equals(intent.getSrc().deviceId())) {
-                    ConnectPoint srcStaticPort = staticPort(intent.getSrc());
-                    if (srcStaticPort != null) {
-                        return srcStaticPort.equals(edge.link().src()) ? 1 : -1;
-                    }
-                }
-                DeviceId dstDeviceId = edge.link().dst().deviceId();
-                if (dstDeviceId.equals(intent.getDst().deviceId())) {
-                    ConnectPoint dstStaticPort = staticPort(intent.getDst());
-                    if (dstStaticPort != null) {
-                        return dstStaticPort.equals(edge.link().dst()) ? 1 : -1;
-                    }
-                }
-
-                return 1;
+        LinkWeight weight = edge -> {
+            // Disregard inactive or non-optical links
+            if (edge.link().state() == Link.State.INACTIVE) {
+                return -1;
             }
+            if (edge.link().type() != Link.Type.OPTICAL) {
+                return -1;
+            }
+            // Adhere to static port mappings
+            DeviceId srcDeviceId = edge.link().src().deviceId();
+            if (srcDeviceId.equals(intent.getSrc().deviceId())) {
+                ConnectPoint srcStaticPort = staticPort(intent.getSrc());
+                if (srcStaticPort != null) {
+                    return srcStaticPort.equals(edge.link().src()) ? 1 : -1;
+                }
+            }
+            DeviceId dstDeviceId = edge.link().dst().deviceId();
+            if (dstDeviceId.equals(intent.getDst().deviceId())) {
+                ConnectPoint dstStaticPort = staticPort(intent.getDst());
+                if (dstStaticPort != null) {
+                    return dstStaticPort.equals(edge.link().dst()) ? 1 : -1;
+                }
+            }
+
+            return 1;
         };
 
         ConnectPoint start = intent.getSrc();

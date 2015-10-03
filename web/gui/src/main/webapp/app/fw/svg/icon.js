@@ -64,7 +64,8 @@
         nav_devs: 'switch',
         nav_links: 'ports',
         nav_hosts: 'endstation',
-        nav_intents: 'relatedIntents'
+        nav_intents: 'relatedIntents',
+        nav_processors: 'allTraffic'
     };
 
     function ensureIconLibDefs() {

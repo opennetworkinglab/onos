@@ -1,18 +1,36 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onosproject.store.host.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
+import static org.onosproject.net.host.HostEvent.Type.HOST_MOVED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_UPDATED;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.REMOVE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -33,11 +51,11 @@ import org.onosproject.net.DefaultHost;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
-import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.host.HostEvent.Type;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
@@ -50,7 +68,6 @@ import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
@@ -78,10 +95,6 @@ public class ECHostStore
             Multimaps.synchronizedSetMultimap(
                     HashMultimap.<ConnectPoint, Host>create());
 
-    private final SetMultimap<ConnectPoint, PortAddresses> portAddresses =
-            Multimaps.synchronizedSetMultimap(
-                    HashMultimap.<ConnectPoint, PortAddresses>create());
-
     private EventuallyConsistentMap<HostId, DefaultHost> hosts;
 
     private EventuallyConsistentMapListener<HostId, DefaultHost> hostLocationTracker =
@@ -108,35 +121,108 @@ public class ECHostStore
         hosts.removeListener(hostLocationTracker);
         hosts.destroy();
         locations.clear();
-        portAddresses.clear();
 
         log.info("Stopped");
     }
 
     @Override
     public HostEvent createOrUpdateHost(ProviderId providerId,
-            HostId hostId,
-            HostDescription hostDescription) {
-        DefaultHost currentHost = hosts.get(hostId);
-        if (currentHost == null) {
-            DefaultHost newhost = new DefaultHost(
-                        providerId,
-                        hostId,
-                        hostDescription.hwAddress(),
-                        hostDescription.vlan(),
-                        hostDescription.location(),
-                        ImmutableSet.copyOf(hostDescription.ipAddress()),
-                        hostDescription.annotations());
-            hosts.put(hostId, newhost);
-            return new HostEvent(HOST_ADDED, newhost);
+                                        HostId hostId,
+                                        HostDescription hostDescription,
+                                        boolean replaceIPs) {
+        // TODO: We need a way to detect conflicting changes and abort update.
+        //       (BOC) Compute might do this for us.
+
+        final AtomicReference<Type> eventType = new AtomicReference<>();
+        final AtomicReference<DefaultHost> oldHost = new AtomicReference<>();
+        DefaultHost host = hosts.compute(hostId, (id, existingHost) -> {
+            if (existingHost != null) {
+                oldHost.set(existingHost);
+                checkState(Objects.equals(hostDescription.hwAddress(), existingHost.mac()),
+                           "Existing and new MAC addresses differ.");
+                checkState(Objects.equals(hostDescription.vlan(), existingHost.vlan()),
+                           "Existing and new VLANs differ.");
+            }
+
+            // TODO do we ever want the existing location?
+            HostLocation location = hostDescription.location();
+
+            final Set<IpAddress> addresses;
+            if (existingHost == null || replaceIPs) {
+                addresses = ImmutableSet.copyOf(hostDescription.ipAddress());
+            } else {
+                addresses = Sets.newHashSet(existingHost.ipAddresses());
+                addresses.addAll(hostDescription.ipAddress());
+            }
+
+            final Annotations annotations;
+            if (existingHost != null) {
+                annotations = merge((DefaultAnnotations) existingHost.annotations(),
+                                    hostDescription.annotations());
+            } else {
+                annotations = hostDescription.annotations();
+            }
+
+            if (existingHost == null) {
+                eventType.set(HOST_ADDED);
+            } else if (!Objects.equals(existingHost.location(), hostDescription.location())) {
+                eventType.set(HOST_MOVED);
+            } else if (!existingHost.ipAddresses().containsAll(hostDescription.ipAddress()) ||
+                    !hostDescription.annotations().keys().isEmpty()) {
+                eventType.set(HOST_UPDATED);
+            } // else, eventType == null; this means we don't send an event
+
+            return new DefaultHost(providerId,
+                                   hostId,
+                                   hostDescription.hwAddress(),
+                                   hostDescription.vlan(),
+                                   location,
+                                   addresses,
+                                   annotations);
+        });
+
+        if (oldHost.get() != null) {
+            DefaultHost old = oldHost.get();
+            locations.remove(old.location(), old);
         }
-        return updateHost(providerId, hostId, hostDescription, currentHost);
+        locations.put(host.location(), host);
+
+        return eventType.get() != null ? new HostEvent(eventType.get(), host) : null;
     }
 
     @Override
     public HostEvent removeHost(HostId hostId) {
         Host host = hosts.remove(hostId);
         return host != null ? new HostEvent(HOST_REMOVED, host) : null;
+    }
+
+    @Override
+    public HostEvent removeIp(HostId hostId, IpAddress ipAddress) {
+        DefaultHost host = hosts.compute(hostId, (id, existingHost) -> {
+            if (existingHost != null) {
+                checkState(Objects.equals(hostId.mac(), existingHost.mac()),
+                        "Existing and new MAC addresses differ.");
+                checkState(Objects.equals(hostId.vlanId(), existingHost.vlan()),
+                        "Existing and new VLANs differ.");
+
+                Set<IpAddress> addresses = existingHost.ipAddresses();
+                if (addresses != null && addresses.contains(ipAddress)) {
+                    addresses = new HashSet<>(existingHost.ipAddresses());
+                    addresses.remove(ipAddress);
+                    return new DefaultHost(existingHost.providerId(),
+                            hostId,
+                            existingHost.mac(),
+                            existingHost.vlan(),
+                            existingHost.location(),
+                            ImmutableSet.copyOf(addresses),
+                            existingHost.annotations());
+                } else {
+                    return existingHost;
+                }
+            }
+            return null;
+        });
+        return host != null ? new HostEvent(HOST_UPDATED, host) : null;
     }
 
     @Override
@@ -171,82 +257,27 @@ public class ECHostStore
 
     @Override
     public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
-        return ImmutableSet.copyOf(locations.get(connectPoint));
+        synchronized (locations) {
+            return ImmutableSet.copyOf(locations.get(connectPoint));
+        }
     }
 
     @Override
     public Set<Host> getConnectedHosts(DeviceId deviceId) {
-        return ImmutableMultimap.copyOf(locations)
-                .entries()
-                .stream()
-                .filter(entry -> entry.getKey().deviceId().equals(deviceId))
-                .map(entry -> entry.getValue())
-                .collect(Collectors.toSet());
-    }
-
-    @Override
-    public void updateAddressBindings(PortAddresses addresses) {
-        portAddresses.put(addresses.connectPoint(), addresses);
-    }
-
-    @Override
-    public void removeAddressBindings(PortAddresses addresses) {
-        portAddresses.remove(addresses.connectPoint(), addresses);
-    }
-
-    @Override
-    public void clearAddressBindings(ConnectPoint connectPoint) {
-        portAddresses.removeAll(connectPoint);
-    }
-
-    @Override
-    public Set<PortAddresses> getAddressBindings() {
-        return ImmutableSet.copyOf(portAddresses.values());
-    }
-
-    @Override
-    public Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint) {
-        synchronized (portAddresses) {
-            Set<PortAddresses> addresses = portAddresses.get(connectPoint);
-            return addresses == null ? Collections.emptySet() : ImmutableSet.copyOf(addresses);
+        Set<Host> filtered;
+        synchronized (locations) {
+            filtered = locations
+                    .entries()
+                    .stream()
+                    .filter(entry -> entry.getKey().deviceId().equals(deviceId))
+                    .map(entry -> entry.getValue())
+                    .collect(Collectors.toSet());
         }
+        return ImmutableSet.copyOf(filtered);
     }
 
     private Set<Host> filter(Collection<DefaultHost> collection, Predicate<DefaultHost> predicate) {
         return collection.stream().filter(predicate).collect(Collectors.toSet());
-    }
-
-    // checks for type of update to host, sends appropriate event
-    private HostEvent updateHost(ProviderId providerId,
-                                 HostId hostId,
-                                 HostDescription descr,
-                                 DefaultHost currentHost) {
-
-        final boolean hostMoved = !currentHost.location().equals(descr.location());
-        if (hostMoved ||
-                !currentHost.ipAddresses().containsAll(descr.ipAddress()) ||
-                !descr.annotations().keys().isEmpty()) {
-
-            Set<IpAddress> addresses = Sets.newHashSet(currentHost.ipAddresses());
-            addresses.addAll(descr.ipAddress());
-            Annotations annotations = merge((DefaultAnnotations) currentHost.annotations(),
-                                            descr.annotations());
-
-            DefaultHost updatedHost = new DefaultHost(providerId, currentHost.id(),
-                                                currentHost.mac(), currentHost.vlan(),
-                                                descr.location(),
-                                                addresses,
-                                                annotations);
-
-            // TODO: We need a way to detect conflicting changes and abort update.
-            hosts.put(hostId, updatedHost);
-            locations.remove(currentHost.location(), currentHost);
-            locations.put(updatedHost.location(), updatedHost);
-
-            HostEvent.Type eventType = hostMoved ? Type.HOST_MOVED : Type.HOST_UPDATED;
-            return new HostEvent(eventType, updatedHost);
-        }
-        return null;
     }
 
     private class HostLocationTracker implements EventuallyConsistentMapListener<HostId, DefaultHost> {

@@ -123,6 +123,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         if (treatment.writeMetadata() != null) {
             instructions.add(buildMetadata(treatment.writeMetadata()));
         }
+        if (treatment.metered() != null) {
+            instructions.add(buildMeter(treatment.metered()));
+        }
 
         long cookie = flowRule().id().value();
 
@@ -212,6 +215,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         for (Instruction i : treatments) {
             switch (i.type()) {
                 case DROP:
+                case NOACTION:
                     return Collections.emptyList();
                 case L0MODIFICATION:
                     actions.add(buildL0Modification(i));

@@ -24,7 +24,6 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.DefaultTrafficSelector.Builder;
 import org.onosproject.net.flow.criteria.Criterion;
 
 /**
@@ -385,30 +384,6 @@ public interface TrafficSelector {
          * @return a selection builder
          */
         Builder matchIPv6ExthdrFlags(short exthdrFlags);
-
-        /**
-         * Matches an optical signal ID or lambda.
-         *
-         * @param lambda lambda
-         * @return a selection builder
-         * @deprecated in Cardinal Release.
-         * Use {@link #add(Criterion)} with an instance created
-         * by {@link org.onosproject.net.flow.criteria.Criteria#matchLambda(org.onosproject.net.Lambda)}.
-         */
-        @Deprecated
-        Builder matchLambda(short lambda);
-
-        /**
-         * Matches an optical Signal Type.
-         *
-         * @param signalType signalType
-         * @return a selection builder
-         * @deprecated in Cardinal Release.
-         * Use {@link #add(Criterion)}} with an instance created
-         * by {@link org.onosproject.net.flow.criteria.Criteria#matchOchSignalType(org.onosproject.net.OchSignalType)}.
-         */
-        @Deprecated
-        Builder matchOpticalSignalType(short signalType);
 
         /**
          * Builds an immutable traffic selector.

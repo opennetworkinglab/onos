@@ -41,7 +41,7 @@ public final class PortFragmentId {
     @Override
     public int hashCode() {
         return Objects.hash(providerId, deviceId, portNumber);
-    };
+    }
 
     @Override
     public boolean equals(Object obj) {

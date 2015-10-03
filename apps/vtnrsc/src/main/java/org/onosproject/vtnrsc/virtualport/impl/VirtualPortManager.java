@@ -15,6 +15,14 @@
  */
 package org.onosproject.vtnrsc.virtualport.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -30,6 +38,7 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.vtnrsc.AllowedAddressPair;
 import org.onosproject.vtnrsc.BindingHostId;
+import org.onosproject.vtnrsc.DefaultVirtualPort;
 import org.onosproject.vtnrsc.FixedIp;
 import org.onosproject.vtnrsc.SecurityGroup;
 import org.onosproject.vtnrsc.SubnetId;
@@ -41,13 +50,6 @@ import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Provides implementation of the VirtualPort APIs.
@@ -98,7 +100,8 @@ public class VirtualPortManager implements VirtualPortService {
                                                  BindingHostId.class,
                                                  SecurityGroup.class,
                                                  SubnetId.class,
-                                                 IpAddress.class))
+                                                 IpAddress.class,
+                                                 DefaultVirtualPort.class))
                 .build().asJavaMap();
         log.info("Started");
     }
@@ -129,37 +132,22 @@ public class VirtualPortManager implements VirtualPortService {
     @Override
     public Collection<VirtualPort> getPorts(TenantNetworkId networkId) {
         checkNotNull(networkId, NETWORKID_NOT_NULL);
-        Collection<VirtualPort> vPortWithNetworkIds = vPortStore.values();
-        for (VirtualPort vPort : vPortWithNetworkIds) {
-            if (!vPort.networkId().equals(networkId)) {
-                vPortWithNetworkIds.remove(vPort);
-            }
-        }
-        return vPortWithNetworkIds;
+        return vPortStore.values().stream().filter(d -> d.networkId().equals(networkId))
+                .collect(Collectors.toList());
     }
 
     @Override
     public Collection<VirtualPort> getPorts(TenantId tenantId) {
         checkNotNull(tenantId, TENANTID_NOT_NULL);
-        Collection<VirtualPort> vPortWithTenantIds = vPortStore.values();
-        for (VirtualPort vPort : vPortWithTenantIds) {
-            if (!vPort.tenantId().equals(tenantId)) {
-                vPortWithTenantIds.remove(vPort);
-            }
-        }
-        return vPortWithTenantIds;
+        return vPortStore.values().stream().filter(d -> d.tenantId().equals(tenantId))
+                .collect(Collectors.toList());
     }
 
     @Override
     public Collection<VirtualPort> getPorts(DeviceId deviceId) {
         checkNotNull(deviceId, DEVICEID_NOT_NULL);
-        Collection<VirtualPort> vPortWithDeviceIds = vPortStore.values();
-        for (VirtualPort vPort : vPortWithDeviceIds) {
-            if (!vPort.deviceId().equals(deviceId)) {
-                vPortWithDeviceIds.remove(vPort);
-            }
-        }
-        return vPortWithDeviceIds;
+        return vPortStore.values().stream().filter(d -> d.deviceId().equals(deviceId))
+                .collect(Collectors.toList());
     }
 
     @Override

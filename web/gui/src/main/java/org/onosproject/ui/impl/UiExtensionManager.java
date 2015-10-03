@@ -77,6 +77,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
                 new UiView(PLATFORM, "app", "Applications", "nav_apps"),
                 new UiView(PLATFORM, "settings", "Settings", "nav_settings"),
                 new UiView(PLATFORM, "cluster", "Cluster Nodes", "nav_cluster"),
+                new UiView(PLATFORM, "processor", "Packet Processors", "nav_processors"),
                 new UiView(NETWORK, "topo", "Topology", "nav_topo"),
                 new UiView(NETWORK, "device", "Devices", "nav_devs"),
                 new UiViewHidden("flow"),
@@ -102,6 +103,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
                         new ApplicationViewMessageHandler(),
                         new SettingsViewMessageHandler(),
                         new ClusterViewMessageHandler(),
+                        new ProcessorViewMessageHandler(),
                         new TunnelViewMessageHandler()
                 );
 

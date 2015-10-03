@@ -44,6 +44,24 @@
         <step name="Verify-UI" requires="^"
               exec="onos-check-views ${OCI} id=sample"/>
 
+        <step name="Create-App-UI-Table-Overlay" requires="Reinstall-App-With-UI"
+              exec="onos-create-app uitab org.test.app test-app 1.2.3 org.test.app -DinteractiveMode=false"/>
+        <step name="Build-App-With-UI-Table" requires="^"
+              exec="mvn clean install"/>
+        <step name="Reinstall-App-With-UI-Table" requires="^,~Verify-UI"
+              exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
+        <step name="Verify-UI-Table" requires="^"
+              exec="onos-check-views ${OCI} id=sample"/>
+
+        <step name="Create-App-UI-Topo-Overlay" requires="Reinstall-App-With-UI-Table"
+              exec="onos-create-app uitopo org.test.app test-app 1.2.3 org.test.app -DinteractiveMode=false"/>
+        <step name="Build-App-With-UI-Topo" requires="^"
+              exec="mvn clean install"/>
+        <step name="Reinstall-App-With-UI-Topo" requires="^,~Verify-UI-Table"
+              exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
+        <step name="Verify-UI-Topo" requires="^"
+              exec="onos-check-views ${OCI} id=sample"/>
+
         <step name="Uninstall-App" requires="^"
               exec="onos-app ${OCI} uninstall org.foo.app"/>
     </group>

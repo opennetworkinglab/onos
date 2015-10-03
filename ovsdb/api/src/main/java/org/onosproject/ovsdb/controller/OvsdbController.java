@@ -15,6 +15,9 @@
  */
 package org.onosproject.ovsdb.controller;
 
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.TpPort;
+
 import java.util.List;
 
 /**
@@ -65,4 +68,12 @@ public interface OvsdbController {
      * @return OvsdbClient ovsdb node information
      */
     OvsdbClientService getOvsdbClient(OvsdbNodeId nodeId);
+
+    /**
+     * Connect to the ovsdb server with given ip address and port number.
+     *
+     * @param ip ip address
+     * @param port port number
+     */
+    void connect(IpAddress ip, TpPort port);
 }

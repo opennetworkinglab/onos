@@ -16,8 +16,8 @@
 package org.onosproject.pcepio;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsSame.sameInstance;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -54,7 +54,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -86,7 +86,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -119,7 +119,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -152,7 +152,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -183,7 +183,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -219,7 +219,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -255,7 +255,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -294,7 +294,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -330,7 +330,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -368,7 +368,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -406,7 +406,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -443,7 +443,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -479,7 +479,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -514,7 +514,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);
         testOpenMsg = buf.array();
@@ -547,7 +547,7 @@ public class PcepOpenMsgTest {
 
         message = reader.readFrom(buffer);
 
-        assertThat(message, sameInstance((PcepOpenMsg) message));
+        assertThat(message, instanceOf(PcepOpenMsg.class));
 
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
         message.writeTo(buf);

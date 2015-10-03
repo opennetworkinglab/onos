@@ -211,8 +211,8 @@ public class PcepTEObjectVer1 implements PcepTEObject {
         tempCb.readShort();
 
         Integer iTemp = (int) tempCb.readByte(); //read 3rd byte Flag
-        bSFlag = ((iTemp & FLAG_SET_S_FLAG) == FLAG_SET_S_FLAG) ? true : false;
-        bRFlag = ((iTemp & FLAG_SET_R_FLAG) == FLAG_SET_R_FLAG) ? true : false;
+        bSFlag = (iTemp & FLAG_SET_S_FLAG) == FLAG_SET_S_FLAG;
+        bRFlag = (iTemp & FLAG_SET_R_FLAG) == FLAG_SET_R_FLAG;
 
         iTEId = tempCb.readInt();
 
@@ -277,7 +277,7 @@ public class PcepTEObjectVer1 implements PcepTEObject {
 
         LinkedList<PcepValueType> llOutOptionalTlv;
 
-        llOutOptionalTlv = new LinkedList<PcepValueType>();
+        llOutOptionalTlv = new LinkedList<>();
 
         while (MINIMUM_TLV_HEADER_LENGTH <= cb.readableBytes()) {
 
@@ -377,7 +377,7 @@ public class PcepTEObjectVer1 implements PcepTEObject {
         private boolean bRFlag;
         private boolean bSFlag;
         private int iTEId;
-        private LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        private LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         private boolean bIsPFlagSet = false;
         private boolean bPFlag;

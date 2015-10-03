@@ -21,7 +21,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.packet.PacketContext;
 
 /**
- * Service for processing arp requests on behalf of applications.
+ * Service for processing ARP or NDP requests on behalf of applications.
  */
 // TODO: move to the peer host package
 public interface ProxyArpService {

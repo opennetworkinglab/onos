@@ -388,6 +388,16 @@ public class FlowRuleManager
 
         @Override
         public void pushFlowMetrics(DeviceId deviceId, Iterable<FlowEntry> flowEntries) {
+            pushFlowMetricsInternal(deviceId, flowEntries, true);
+        }
+
+        @Override
+        public void pushFlowMetricsWithoutFlowMissing(DeviceId deviceId, Iterable<FlowEntry> flowEntries) {
+            pushFlowMetricsInternal(deviceId, flowEntries, false);
+        }
+
+        private void pushFlowMetricsInternal(DeviceId deviceId, Iterable<FlowEntry> flowEntries,
+                                             boolean useMissingFlow) {
             Map<FlowEntry, FlowEntry> storedRules = Maps.newHashMap();
             store.getFlowEntries(deviceId).forEach(f -> storedRules.put(f, f));
 
@@ -415,17 +425,20 @@ public class FlowRuleManager
                     continue;
                 }
             }
-            for (FlowEntry rule : storedRules.keySet()) {
-                try {
-                    // there are rules in the store that aren't on the switch
-                    log.debug("Adding rule in store, but not on switch {}", rule);
-                    flowMissing(rule);
-                } catch (Exception e) {
-                    log.debug("Can't add missing flow rule {}", e.getMessage());
-                    continue;
+
+            // DO NOT reinstall
+            if (useMissingFlow) {
+                for (FlowEntry rule : storedRules.keySet()) {
+                    try {
+                        // there are rules in the store that aren't on the switch
+                        log.debug("Adding rule in store, but not on switch {}", rule);
+                        flowMissing(rule);
+                    } catch (Exception e) {
+                        log.debug("Can't add missing flow rule {}", e.getMessage());
+                        continue;
+                    }
                 }
             }
-
         }
 
         @Override

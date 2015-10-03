@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2015 Open Networking Laboratory
  *
@@ -14,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.net.config;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.Set;
 
@@ -71,7 +69,7 @@ public class NetworkConfigServiceAdapter implements NetworkConfigService {
     }
 
     @Override
-    public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, ObjectNode json) {
+    public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, JsonNode json) {
         return null;
     }
 

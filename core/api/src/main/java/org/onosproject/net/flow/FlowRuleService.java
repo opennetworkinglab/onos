@@ -32,7 +32,7 @@ public interface FlowRuleService
     /**
      * The topic used for obtaining globally unique ids.
      */
-    static String FLOW_OP_TOPIC = "flow-ops-ids";
+    String FLOW_OP_TOPIC = "flow-ops-ids";
 
     /**
      * Returns the number of flow rules in the system.

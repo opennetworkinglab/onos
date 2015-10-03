@@ -28,7 +28,7 @@ public class MetricNameCompleter extends AbstractChoicesCompleter {
     @Override
     protected List<String> choices() {
         MetricsService metricsService = AbstractShellCommand.get(MetricsService.class);
-        return new ArrayList<String>(metricsService.getMetrics().keySet());
+        return new ArrayList<>(metricsService.getMetrics().keySet());
     }
 
 }

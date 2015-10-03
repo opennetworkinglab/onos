@@ -131,7 +131,7 @@ class PcepCloseMsgVer1 implements PcepCloseMsg {
      */
     public static LinkedList<PcepValueType> parseOptionalTlv(ChannelBuffer cb) throws PcepParseException {
 
-        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
         /*
          rfc 5440:
          Optional TLVs may be included within the CLOSE object body. The
@@ -164,7 +164,7 @@ class PcepCloseMsgVer1 implements PcepCloseMsg {
         private PcepObjectHeader closeObjHeader;
         private boolean bIsReasonSet = false;
         private byte yReason;
-        private LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        private LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         private boolean bIsPFlagSet = false;
         private boolean bPFlag;

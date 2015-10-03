@@ -130,7 +130,7 @@ public class MeterManagerTest {
         m2 = DefaultMeter.builder()
                 .forDevice(did("2"))
                 .fromApp(APP_ID)
-                .withId(MeterId.meterId(2))
+                .withId(MeterId.meterId(1))
                 .withUnit(Meter.Unit.KB_PER_SEC)
                 .withBands(Collections.singletonList(band))
                 .build();
@@ -167,7 +167,7 @@ public class MeterManagerTest {
 
         assertTrue("The meter was not added", manager.getAllMeters().size() == 1);
 
-        assertThat(manager.getMeter(MeterId.meterId(1)), is(m1));
+        assertThat(manager.getMeter(did("1"), MeterId.meterId(1)), is(m1));
     }
 
     @Test
@@ -175,7 +175,7 @@ public class MeterManagerTest {
         manager.submit(m1Request.add());
         manager.withdraw(m1Request.remove(), m1.id());
 
-        assertThat(manager.getMeter(MeterId.meterId(1)).state(),
+        assertThat(manager.getMeter(did("1"), MeterId.meterId(1)).state(),
                    is(MeterState.PENDING_REMOVE));
 
         providerService.pushMeterMetrics(m1.deviceId(), Collections.emptyList());
@@ -184,7 +184,16 @@ public class MeterManagerTest {
 
     }
 
+    @Test
+    public void testMultipleDevice() {
+        manager.submit(m1Request.add());
+        manager.submit(m2Request.add());
 
+        assertTrue("The meters were not added", manager.getAllMeters().size() == 2);
+
+        assertThat(manager.getMeter(did("1"), MeterId.meterId(1)), is(m1));
+        assertThat(manager.getMeter(did("2"), MeterId.meterId(1)), is(m2));
+    }
 
     public class TestApplicationId extends DefaultApplicationId {
         public TestApplicationId(int id, String name) {

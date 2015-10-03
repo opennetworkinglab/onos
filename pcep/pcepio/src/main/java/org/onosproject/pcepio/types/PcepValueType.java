@@ -36,14 +36,14 @@ public interface PcepValueType {
      *
      * @return value of type
      */
-    public short getType();
+    short getType();
 
     /**
      * Returns the Length of PCEP Message.
      *
      * @return value of Length
      */
-    public short getLength();
+    short getLength();
 
     /**
      * Writes the byte Stream of PCEP Message to channel buffer.
@@ -51,5 +51,5 @@ public interface PcepValueType {
      * @param bb of type channel buffer
      * @return length of bytes written to channel buffer
      */
-    public int write(ChannelBuffer bb);
+    int write(ChannelBuffer bb);
 }

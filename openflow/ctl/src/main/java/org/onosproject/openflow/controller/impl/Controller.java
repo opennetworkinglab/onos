@@ -16,6 +16,8 @@
 
 package org.onosproject.openflow.controller.impl;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
@@ -37,13 +39,24 @@ import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManagerFactory;
+import java.io.FileInputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetSocketAddress;
+import java.security.KeyStore;
+import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.openflow.controller.Dpid.uri;
@@ -59,14 +72,16 @@ public class Controller {
 
     protected static final OFFactory FACTORY13 = OFFactories.getFactory(OFVersion.OF_13);
     protected static final OFFactory FACTORY10 = OFFactories.getFactory(OFVersion.OF_10);
+    private static final boolean TLS_DISABLED = false;
+    private static final short MIN_KS_LENGTH = 6;
 
     protected HashMap<String, String> controllerNodeIPsCache;
 
     private ChannelGroup cg;
 
     // Configuration options
-    protected int openFlowPort = 6633;
-    protected int workerThreads = 0;
+    protected List<Integer> openFlowPorts = ImmutableList.of(6633, 6653);
+    protected int workerThreads = 16;
 
     // Start time of the controller
     protected long systemStartTime;
@@ -75,9 +90,16 @@ public class Controller {
 
     private NioServerSocketChannelFactory execFactory;
 
+    protected String ksLocation;
+    protected String tsLocation;
+    protected char[] ksPwd;
+    protected char[] tsPwd;
+    private SSLEngine serverSSLEngine;
+
     // Perf. related configuration
     protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
     private DriverService driverService;
+    private boolean enableOFTLS = TLS_DISABLED;
 
     // ***************
     // Getters/Setters
@@ -127,13 +149,15 @@ public class Controller {
             bootstrap.setOption("child.sendBufferSize", Controller.SEND_BUFFER_SIZE);
 
             ChannelPipelineFactory pfact =
-                    new OpenflowPipelineFactory(this, null);
+                    new OpenflowPipelineFactory(this, null, serverSSLEngine);
             bootstrap.setPipelineFactory(pfact);
-            InetSocketAddress sa = new InetSocketAddress(openFlowPort);
             cg = new DefaultChannelGroup();
-            cg.add(bootstrap.bind(sa));
+            openFlowPorts.forEach(port -> {
+                InetSocketAddress sa = new InetSocketAddress(port);
+                cg.add(bootstrap.bind(sa));
+                log.info("Listening for switch connections on {}", sa);
+            });
 
-            log.info("Listening for switch connections on {}", sa);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -155,18 +179,21 @@ public class Controller {
         }
     }
 
-    public void setConfigParams(Map<String, String> configParams) {
-        String ofPort = configParams.get("openflowport");
-        if (ofPort != null) {
-            this.openFlowPort = Integer.parseInt(ofPort);
+    public void setConfigParams(Dictionary<?, ?> properties) {
+        String ports = get(properties, "openflowPorts");
+        if (!Strings.isNullOrEmpty(ports)) {
+            this.openFlowPorts = Stream.of(ports.split(","))
+                                       .map(s -> Integer.parseInt(s))
+                                       .collect(Collectors.toList());
         }
+        log.debug("OpenFlow ports set to {}", this.openFlowPorts);
 
-        log.debug("OpenFlow port set to {}", this.openFlowPort);
-        String threads = configParams.get("workerthreads");
-        this.workerThreads = threads != null ? Integer.parseInt(threads) : 16;
+        String threads = get(properties, "workerThreads");
+        if (!Strings.isNullOrEmpty(threads)) {
+            this.workerThreads = Integer.parseInt(threads);
+        }
         log.debug("Number of worker threads set to {}", this.workerThreads);
     }
-
 
     /**
      * Initialize internal data structures.
@@ -177,6 +204,68 @@ public class Controller {
         this.controllerNodeIPsCache = new HashMap<>();
 
         this.systemStartTime = System.currentTimeMillis();
+
+        try {
+            getTLSParameters();
+            if (enableOFTLS) {
+                initSSL();
+            }
+        } catch (Exception ex) {
+            log.error("SSL init failed: {}", ex.getMessage());
+        }
+
+    }
+
+    private void getTLSParameters() {
+        String tempString = System.getProperty("enableOFTLS");
+        enableOFTLS = Strings.isNullOrEmpty(tempString) ? TLS_DISABLED : Boolean.parseBoolean(tempString);
+        log.info("OpenFlow Security is {}", enableOFTLS ? "enabled" : "disabled");
+        if (enableOFTLS) {
+            ksLocation = System.getProperty("javax.net.ssl.keyStore");
+            if (Strings.isNullOrEmpty(ksLocation)) {
+                enableOFTLS = TLS_DISABLED;
+                return;
+            }
+            tsLocation = System.getProperty("javax.net.ssl.trustStore");
+            if (Strings.isNullOrEmpty(tsLocation)) {
+                enableOFTLS = TLS_DISABLED;
+                return;
+            }
+            ksPwd = System.getProperty("javax.net.ssl.keyStorePassword").toCharArray();
+            if (MIN_KS_LENGTH > ksPwd.length) {
+                enableOFTLS = TLS_DISABLED;
+                return;
+            }
+            tsPwd = System.getProperty("javax.net.ssl.trustStorePassword").toCharArray();
+            if (MIN_KS_LENGTH > tsPwd.length) {
+                enableOFTLS = TLS_DISABLED;
+                return;
+            }
+        }
+    }
+
+    private void initSSL() throws Exception {
+
+        TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        KeyStore ts = KeyStore.getInstance("JKS");
+        ts.load(new FileInputStream(tsLocation), tsPwd);
+        tmFactory.init(ts);
+
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(new FileInputStream(ksLocation), ksPwd);
+        kmf.init(ks, ksPwd);
+
+        SSLContext serverContext = SSLContext.getInstance("TLS");
+        serverContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
+
+        serverSSLEngine = serverContext.createSSLEngine();
+
+        serverSSLEngine.setNeedClientAuth(true);
+        serverSSLEngine.setUseClientMode(false);
+        serverSSLEngine.setEnabledProtocols(serverSSLEngine.getSupportedProtocols());
+        serverSSLEngine.setEnabledCipherSuites(serverSSLEngine.getSupportedCipherSuites());
+        serverSSLEngine.setEnableSessionCreation(true);
     }
 
     // **************

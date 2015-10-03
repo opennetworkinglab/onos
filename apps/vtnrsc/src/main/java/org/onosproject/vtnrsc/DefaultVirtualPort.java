@@ -43,8 +43,8 @@ public final class DefaultVirtualPort implements VirtualPort {
     private final String bindingVnicType;
     private final String bindingVifType;
     private final String bindingVifDetails;
-    private final Collection<AllowedAddressPair> allowedAddressPairs;
-    private final Collection<SecurityGroup> securityGroups;
+    private final Set<AllowedAddressPair> allowedAddressPairs;
+    private final Set<SecurityGroup> securityGroups;
 
     /**
      * Creates a VirtualPort object.
@@ -72,8 +72,8 @@ public final class DefaultVirtualPort implements VirtualPort {
                               DeviceId deviceId,
                               Set<FixedIp> fixedIps,
                               BindingHostId bindingHostId,
-                              Collection<AllowedAddressPair> allowedAddressPairs,
-                              Collection<SecurityGroup> securityGroups) {
+                              Set<AllowedAddressPair> allowedAddressPairs,
+                              Set<SecurityGroup> securityGroups) {
         this.id = id;
         this.networkId = networkId;
         this.adminStateUp = adminStateUp;

@@ -19,52 +19,67 @@ package org.onlab.graph;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
-import static com.google.common.collect.ImmutableSet.of;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-
+/**
+ * Pair of disjoint paths.
+ *
+ * @param <V> type of vertex
+ * @param <E> type of edge
+ */
 public class DisjointPathPair<V extends Vertex, E extends Edge<V>> implements Path<V, E> {
-    public Path<V, E> path1, path2;
-    boolean usingPath1 = true;
+
+    private Path<V, E> primary, secondary;
+    boolean primaryActive = true;
 
     /**
-     * Creates a Disjoint Path Pair from two paths.
+     * Creates a disjoint path pair from two paths.
      *
-     * @param p1    first path
-     * @param p2    second path
+     * @param primary   primary path
+     * @param secondary secondary path
      */
-    public DisjointPathPair(Path<V, E> p1, Path<V, E> p2) {
-        path1 = p1;
-        path2 = p2;
+    public DisjointPathPair(Path<V, E> primary, Path<V, E> secondary) {
+        this.primary = primary;
+        this.secondary = secondary;
     }
 
     @Override
     public V src() {
-        return path1.src();
+        return primary.src();
     }
 
     @Override
     public V dst() {
-        return path1.dst();
+        return primary.dst();
+    }
+
+    /**
+     * Returns the primary path.
+     *
+     * @return primary path
+     */
+    public Path<V, E> primary() {
+        return primary;
+    }
+
+    /**
+     * Returns the secondary path.
+     *
+     * @return primary path
+     */
+    public Path<V, E> secondary() {
+        return secondary;
     }
 
     @Override
     public double cost() {
-        if (!hasBackup()) {
-            return path1.cost();
-        }
-        return path1.cost() + path2.cost();
+        return hasBackup() ? primary.cost() + secondary.cost() : primary.cost();
     }
 
     @Override
     public List<E> edges() {
-        if (usingPath1 || !hasBackup()) {
-            return path1.edges();
-        } else {
-            return path2.edges();
-        }
+        return primaryActive || !hasBackup() ? primary.edges() : secondary.edges();
     }
 
     /**
@@ -73,7 +88,7 @@ public class DisjointPathPair<V extends Vertex, E extends Edge<V>> implements Pa
      * @return boolean representing whether it has backup
      */
     public boolean hasBackup() {
-        return path2 != null && path2.edges() != null;
+        return secondary != null && secondary.edges() != null;
     }
 
     @Override
@@ -88,13 +103,8 @@ public class DisjointPathPair<V extends Vertex, E extends Edge<V>> implements Pa
 
     @Override
     public int hashCode() {
-        Set<Path<V, E>> paths;
-        if (!hasBackup()) {
-            paths = of(path1);
-        } else {
-            paths = of(path1, path2);
-        }
-        return Objects.hash(paths);
+        return hasBackup() ? Objects.hash(primary) + Objects.hash(secondary) :
+                Objects.hash(primary);
     }
 
     @Override
@@ -106,10 +116,10 @@ public class DisjointPathPair<V extends Vertex, E extends Edge<V>> implements Pa
             final DisjointPathPair other = (DisjointPathPair) obj;
             return Objects.equals(this.src(), other.src()) &&
                     Objects.equals(this.dst(), other.dst()) &&
-                    (Objects.equals(this.path1, other.path1) &&
-                            Objects.equals(this.path2, other.path2)) ||
-                    (Objects.equals(this.path1, other.path2) &&
-                            Objects.equals(this.path2, other.path1));
+                    (Objects.equals(this.primary, other.primary) &&
+                            Objects.equals(this.secondary, other.secondary)) ||
+                    (Objects.equals(this.primary, other.secondary) &&
+                            Objects.equals(this.secondary, other.primary));
         }
         return false;
     }
@@ -120,9 +130,6 @@ public class DisjointPathPair<V extends Vertex, E extends Edge<V>> implements Pa
      * @return number of paths
      */
     public int size() {
-        if (hasBackup()) {
-            return 2;
-        }
-        return 1;
+        return hasBackup() ? 2 : 1;
     }
 }

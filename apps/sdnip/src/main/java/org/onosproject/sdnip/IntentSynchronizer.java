@@ -102,6 +102,7 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
      * @param intentService the intent service
      * @param hostService the host service
      * @param configService the SDN-IP configuration service
+     * @param interfaceService the interface service
      */
     IntentSynchronizer(ApplicationId appId, IntentService intentService,
                        HostService hostService,
@@ -886,7 +887,7 @@ public class IntentSynchronizer implements FibListener, IntentRequestListener {
         checkNotNull(dstMacAddress);
         checkNotNull(srcConnectPoint);
 
-        Set<ConnectPoint> ingressPoints = new HashSet<ConnectPoint>();
+        Set<ConnectPoint> ingressPoints = new HashSet<>();
         ingressPoints.add(srcConnectPoint);
         IpPrefix dstIpPrefix = dstIpAddress.toIpPrefix();
 

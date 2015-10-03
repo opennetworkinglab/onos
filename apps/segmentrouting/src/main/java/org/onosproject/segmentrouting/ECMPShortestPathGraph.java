@@ -205,7 +205,7 @@ public class ECMPShortestPathGraph {
                 }
 
                 Integer distance = deviceSearched.get(reachedDevice);
-                if ((distance != null) && (distance.intValue() < (currDistance + 1))) {
+                if ((distance != null) && (distance < (currDistance + 1))) {
                     continue;
                 }
                 if (distance == null) {
@@ -217,7 +217,7 @@ public class ECMPShortestPathGraph {
                     ArrayList<DeviceId> distanceSwArray = distanceDeviceMap
                             .get(currDistance + 1);
                     if (distanceSwArray == null) {
-                        distanceSwArray = new ArrayList<DeviceId>();
+                        distanceSwArray = new ArrayList<>();
                         distanceSwArray.add(reachedDevice);
                         distanceDeviceMap.put(currDistance + 1, distanceSwArray);
                     } else {
@@ -228,7 +228,7 @@ public class ECMPShortestPathGraph {
                 ArrayList<Link> upstreamLinkArray =
                         upstreamLinks.get(reachedDevice);
                 if (upstreamLinkArray == null) {
-                    upstreamLinkArray = new ArrayList<Link>();
+                    upstreamLinkArray = new ArrayList<>();
                     upstreamLinkArray.add(copyDefaultLink(link));
                     //upstreamLinkArray.add(link);
                     upstreamLinks.put(reachedDevice, upstreamLinkArray);
@@ -279,7 +279,7 @@ public class ECMPShortestPathGraph {
                 }
 
                 Integer distance = deviceSearched.get(reachedDevice);
-                if ((distance != null) && (distance.intValue() < (currDistance + 1))) {
+                if ((distance != null) && (distance < (currDistance + 1))) {
                     continue;
                 }
                 if (distance == null) {
@@ -291,7 +291,7 @@ public class ECMPShortestPathGraph {
                     ArrayList<DeviceId> distanceSwArray = distanceDeviceMap
                             .get(currDistance + 1);
                     if (distanceSwArray == null) {
-                        distanceSwArray = new ArrayList<DeviceId>();
+                        distanceSwArray = new ArrayList<>();
                         distanceSwArray.add(reachedDevice);
                         distanceDeviceMap.put(currDistance + 1, distanceSwArray);
                     } else {
@@ -302,7 +302,7 @@ public class ECMPShortestPathGraph {
                 ArrayList<Link> upstreamLinkArray =
                         upstreamLinks.get(reachedDevice);
                 if (upstreamLinkArray == null) {
-                    upstreamLinkArray = new ArrayList<Link>();
+                    upstreamLinkArray = new ArrayList<>();
                     upstreamLinkArray.add(copyDefaultLink(link));
                     upstreamLinks.put(reachedDevice, upstreamLinkArray);
                 } else {
@@ -342,7 +342,7 @@ public class ECMPShortestPathGraph {
         for (Link upstreamLink : upstreamLinks.get(dstDeviceDeviceId)) {
             /* Deep clone the path object */
             Path sofarPath;
-            ArrayList<Link> sofarLinks = new ArrayList<Link>();
+            ArrayList<Link> sofarLinks = new ArrayList<>();
             if (path != null && !path.links().isEmpty()) {
                 sofarLinks.addAll(path.links());
             }
@@ -396,12 +396,10 @@ public class ECMPShortestPathGraph {
     public HashMap<Integer, HashMap<DeviceId,
             ArrayList<Path>>> getCompleteLearnedDeviceesAndPaths() {
 
-        HashMap<Integer, HashMap<DeviceId, ArrayList<Path>>> pathGraph = new
-                HashMap<Integer, HashMap<DeviceId, ArrayList<Path>>>();
+        HashMap<Integer, HashMap<DeviceId, ArrayList<Path>>> pathGraph = new HashMap<>();
 
         for (Integer itrIndx : distanceDeviceMap.keySet()) {
-            HashMap<DeviceId, ArrayList<Path>> swMap = new
-                    HashMap<DeviceId, ArrayList<Path>>();
+            HashMap<DeviceId, ArrayList<Path>> swMap = new HashMap<>();
             for (DeviceId sw : distanceDeviceMap.get(itrIndx)) {
                 swMap.put(sw, getECMPPaths(sw));
             }
@@ -422,12 +420,10 @@ public class ECMPShortestPathGraph {
     public HashMap<Integer, HashMap<DeviceId,
             ArrayList<ArrayList<DeviceId>>>> getAllLearnedSwitchesAndVia() {
 
-        HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> deviceViaMap =
-                new HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>>();
+        HashMap<Integer, HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>> deviceViaMap = new HashMap<>();
 
         for (Integer itrIndx : distanceDeviceMap.keySet()) {
-            HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swMap =
-                    new HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>>();
+            HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> swMap = new HashMap<>();
 
             for (DeviceId sw : distanceDeviceMap.get(itrIndx)) {
                 ArrayList<ArrayList<DeviceId>> swViaArray = new ArrayList<>();

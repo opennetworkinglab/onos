@@ -23,7 +23,7 @@ import org.onlab.packet.IpAddress;
 public interface ControllerNode {
 
     /** Represents the operational state of the instance. */
-    public enum State {
+    enum State {
         /**
          * Signifies that the instance is active and operating normally.
          */

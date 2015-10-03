@@ -17,7 +17,6 @@ package org.onosproject.net;
 
 import org.onlab.junit.TestUtils;
 import org.onlab.packet.ChassisId;
-import org.onlab.packet.IpAddress;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.event.EventDeliveryService;
@@ -67,7 +66,7 @@ public final class NetTestTools {
     public static Host host(String id, String did) {
         return new DefaultHost(PID, hid(id), valueOf(1234), vlanId((short) 2),
                                new HostLocation(did(did), portNumber(1), 321),
-                               new HashSet<IpAddress>());
+                               new HashSet<>());
     }
 
     // Short-hand for creating a connection point.

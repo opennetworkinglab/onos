@@ -17,8 +17,6 @@ package org.onosproject.event;
 
 import java.util.Set;
 
-import static org.junit.Assert.*;
-
 /**
  * Testing adapter for the event delivery service.
  */

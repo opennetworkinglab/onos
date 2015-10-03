@@ -3,6 +3,8 @@
 # Changes ONOS version in POM files, and other release artifacts.
 # -----------------------------------------------------------------------------
 
+set -e
+
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
@@ -17,7 +19,7 @@ cd $ONOS_ROOT
 mvn versions:set -DnewVersion=$NEW_VERSION versions:commit
 
 # Augment the version of the Java API pom files and the overview.html file.
-for pom in docs/pom.xml docs/external.xml; do
+for pom in docs/internal.xml docs/external.xml; do
     sed -i "" -E "1,/<version>/s/<version>[^<]*</<version>$NEW_VERSION</g" $pom
     sed -i "" -E "1,/<doctitle>/s/<doctitle>ONOS Java API[^<]*</<doctitle>ONOS Java API ($NEW_VERSION)</g" $pom
 done
@@ -43,4 +45,12 @@ for atype in api bundle cli ui; do
     pom="tools/package/archetypes/$atype/src/main/resources/archetype-resources/pom.xml"
     sed -i "" -E "1,/<onos.version>/s/<onos.version>[^<]*</<onos.version>$NEW_VERSION</g" $pom
 done
+sed -i "" -E "s/-DarchetypeVersion=[^\"]*/-DarchetypeVersion=$NEW_VERSION/g" $ONOS_ROOT/tools/test/bin/onos-archetypes-test
 
+# Augment the version cord-gui
+perl -i -0pe "s#<artifactId>cord-gui<.*\n.*version>#<artifactId>cord-gui</artifactId>\n    <version>$NEW_VERSION</version>#" $ONOS_ROOT/apps/demo/cord-gui/pom.xml
+sed -i "" -E "s#demo/cord-gui/target/cord-gui-.*\.war#demo/cord-gui/target/cord-gui-$NEW_VERSION.war#" $ONOS_ROOT/apps/demo/cord-gui/src/scripts/pullwar.sh
+sed -i "" -E "s#CORD=./cord-gui-.*\.war#CORD=./cord-gui-$NEW_VERSION.war#" $ONOS_ROOT/apps/demo/cord-gui/src/scripts/run.me
+
+# Augment the acl app
+sed -i "" -E "s/<onos.version>[^<]*</<onos.version>$NEW_VERSION</g" $ONOS_ROOT/apps/acl/pom.xml

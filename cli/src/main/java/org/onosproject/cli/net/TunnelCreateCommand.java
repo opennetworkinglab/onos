@@ -188,9 +188,7 @@ public class TunnelCreateCommand extends AbstractShellCommand {
                                                                 srcPoint,
                                                                 dstPoint,
                                                                 trueType,
-                                                                new DefaultGroupId(
-                                                                                   Integer.valueOf(groupId)
-                                                                                           .intValue()),
+                                                                new DefaultGroupId(Integer.parseInt(groupId)),
                                                                 producerName,
                                                                 TunnelName
                                                                         .tunnelName(tunnelName),

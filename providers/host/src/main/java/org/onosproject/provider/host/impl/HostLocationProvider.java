@@ -289,7 +289,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         private void updateLocationIP(HostId hid, MacAddress mac,
                                       VlanId vlan, HostLocation hloc,
                                       IpAddress ip) {
-            HostDescription desc = ip.isZero() ?
+            HostDescription desc = ip.isZero() || ip.isSelfAssigned() ?
                     new DefaultHostDescription(mac, vlan, hloc) :
                     new DefaultHostDescription(mac, vlan, hloc, ip);
             try {

@@ -84,7 +84,7 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
         }
         nextVersion = context.get("nextVersion");
         if (nextVersion == null) {
-            nextVersion = new Long(0);
+            nextVersion = 0L;
             context.put("nextVersion", nextVersion);
         }
     }

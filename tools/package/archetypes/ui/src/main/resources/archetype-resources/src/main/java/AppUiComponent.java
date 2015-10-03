@@ -34,10 +34,13 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * Skeletal ONOS UI application component.
+ * Skeletal ONOS UI Custom-View application component.
  */
 @Component(immediate = true)
 public class AppUiComponent {
+
+    private static final String VIEW_ID = "sampleCustom";
+    private static final String VIEW_TEXT = "Sample Custom";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -46,7 +49,7 @@ public class AppUiComponent {
 
     // List of application views
     private final List<UiView> uiViews = ImmutableList.of(
-            new UiView(UiView.Category.OTHER, "sample", "Sample")
+            new UiView(UiView.Category.OTHER, VIEW_ID, VIEW_TEXT)
     );
 
     // Factory for UI message handlers

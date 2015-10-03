@@ -21,12 +21,16 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.vtnrsc.AllocationPool;
+import org.onosproject.vtnrsc.DefaultAllocationPool;
+import org.onosproject.vtnrsc.DefaultHostRoute;
+import org.onosproject.vtnrsc.DefaultSubnet;
 import org.onosproject.vtnrsc.HostRoute;
 import org.onosproject.vtnrsc.Subnet;
 import org.onosproject.vtnrsc.SubnetId;
@@ -85,8 +89,12 @@ public class SubnetManager implements SubnetService {
                                                  TenantNetworkId.class,
                                                  TenantId.class,
                                                  HostRoute.class,
+                                                 DefaultHostRoute.class,
                                                  Subnet.Mode.class,
-                                                 AllocationPool.class))
+                                                 AllocationPool.class,
+                                                 DefaultAllocationPool.class,
+                                                 DefaultSubnet.class,
+                                                 IpAddress.Version.class))
                 .build().asJavaMap();
 
         log.info("Started");

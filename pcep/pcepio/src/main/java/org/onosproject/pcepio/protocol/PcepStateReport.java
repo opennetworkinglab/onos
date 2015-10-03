@@ -149,7 +149,7 @@ public interface PcepStateReport {
     /**
      * Builder interface with get and set functions to build PcepStateReport.
      */
-    public interface Builder {
+    interface Builder {
 
         /**
          * Builds PcepStateReport.

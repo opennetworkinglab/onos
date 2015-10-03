@@ -140,11 +140,13 @@ public class RouterSolicitation extends BasePacket {
 
             bb.getInt();
 
-            NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
-                    .deserialize(data, bb.position(), bb.limit() - bb.position());
+            if (bb.limit() - bb.position() > 0) {
+                NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
+                        .deserialize(data, bb.position(), bb.limit() - bb.position());
 
-            for (NeighborDiscoveryOptions.Option option : options.options()) {
-                routerSolicitation.addOption(option.type(), option.data());
+                for (NeighborDiscoveryOptions.Option option : options.options()) {
+                    routerSolicitation.addOption(option.type(), option.data());
+                }
             }
 
             return routerSolicitation;

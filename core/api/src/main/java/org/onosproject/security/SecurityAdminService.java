@@ -16,6 +16,7 @@
 
 package org.onosproject.security;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 
 import java.security.Permission;
@@ -25,6 +26,7 @@ import java.util.Map;
 /**
  * Security-Mode ONOS service.
  */
+@Beta
 public interface SecurityAdminService {
 
     /**

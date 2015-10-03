@@ -344,6 +344,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         /**
          * @deprecated in Drake Release.
+         * @return integer value of label
          */
         // Consider changing return value to MplsLabel
         // after deprecation process so that it'll be symmetric to

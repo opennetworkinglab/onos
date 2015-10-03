@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Check if onos is running; if it is, stop onos
+[ -z "$(status onos 2>/dev/null | grep start)" ] && echo "onos is not running." || (
+    stop onos
+
+    # Wait for onos to stop up to 5 seconds
+    for i in $(seq 1 5); do
+      [ -z "$(ps -ef | grep karaf.jar | grep -v grep)" ] && break
+      sleep 1
+    done
+    [ -z "$(ps -ef | grep karaf.jar | grep -v grep)" ] && echo 'Stopped onos service' || echo 'Failed to stop onos'
+)
+
+# Clean up onos runtime directories
+#      TODO don't hardcode karaf version
+rm -rf /opt/onos/apache-karaf-3.0.3/
+rm -rf /opt/onos/var/*
+rm -rf /opt/onos/config
+rm -rf /opt/onos/options
+rm -rf /opt/onos/log
+
+#TODO consider removing the sdn user if we created it

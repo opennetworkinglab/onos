@@ -159,8 +159,8 @@ public class GroupManagerTest {
         PortNumber[] ports2 = {PortNumber.portNumber(41),
                                PortNumber.portNumber(42)};
         GroupKey key = new DefaultGroupKey("group1BeforeAudit".getBytes());
-        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
-        List<PortNumber> outPorts = new ArrayList<PortNumber>();
+        List<GroupBucket> buckets = new ArrayList<>();
+        List<PortNumber> outPorts = new ArrayList<>();
         outPorts.addAll(Arrays.asList(ports1));
         outPorts.addAll(Arrays.asList(ports2));
         for (PortNumber portNumber: outPorts) {
@@ -270,14 +270,16 @@ public class GroupManagerTest {
 
         GroupKey prevKey = new DefaultGroupKey("group1BeforeAudit".getBytes());
         Group createdGroup = groupService.getGroup(DID, prevKey);
-        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
+        List<GroupBucket> buckets = new ArrayList<>();
         buckets.addAll(createdGroup.buckets().buckets());
 
         PortNumber[] addPorts = {PortNumber.portNumber(51),
                                  PortNumber.portNumber(52)};
-        List<PortNumber> outPorts = new ArrayList<PortNumber>();
+        List<PortNumber> outPorts;
+        outPorts = new ArrayList<>();
         outPorts.addAll(Arrays.asList(addPorts));
-        List<GroupBucket> addBuckets = new ArrayList<GroupBucket>();
+        List<GroupBucket> addBuckets;
+        addBuckets = new ArrayList<>();
         for (PortNumber portNumber: outPorts) {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
             tBuilder.setOutput(portNumber)
@@ -314,14 +316,14 @@ public class GroupManagerTest {
 
         GroupKey prevKey = new DefaultGroupKey("group1AddBuckets".getBytes());
         Group createdGroup = groupService.getGroup(DID, prevKey);
-        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
+        List<GroupBucket> buckets = new ArrayList<>();
         buckets.addAll(createdGroup.buckets().buckets());
 
         PortNumber[] removePorts = {PortNumber.portNumber(31),
                                  PortNumber.portNumber(32)};
-        List<PortNumber> outPorts = new ArrayList<PortNumber>();
+        List<PortNumber> outPorts = new ArrayList<>();
         outPorts.addAll(Arrays.asList(removePorts));
-        List<GroupBucket> removeBuckets = new ArrayList<GroupBucket>();
+        List<GroupBucket> removeBuckets = new ArrayList<>();
         for (PortNumber portNumber: outPorts) {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
             tBuilder.setOutput(portNumber)
@@ -380,8 +382,8 @@ public class GroupManagerTest {
                 PortNumber.portNumber(42)};
         // Test Group creation before AUDIT process
         GroupKey key = new DefaultGroupKey("group1BeforeAudit".getBytes());
-        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
-        List<PortNumber> outPorts = new ArrayList<PortNumber>();
+        List<GroupBucket> buckets = new ArrayList<>();
+        List<PortNumber> outPorts = new ArrayList<>();
         outPorts.addAll(Arrays.asList(ports1));
         outPorts.addAll(Arrays.asList(ports2));
         for (PortNumber portNumber: outPorts) {
@@ -454,10 +456,10 @@ public class GroupManagerTest {
     private Group createSouthboundGroupEntry(GroupId gId,
                                              List<PortNumber> ports,
                                              long referenceCount) {
-        List<PortNumber> outPorts = new ArrayList<PortNumber>();
+        List<PortNumber> outPorts = new ArrayList<>();
         outPorts.addAll(ports);
 
-        List<GroupBucket> buckets = new ArrayList<GroupBucket>();
+        List<GroupBucket> buckets = new ArrayList<>();
         for (PortNumber portNumber: outPorts) {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
             tBuilder.setOutput(portNumber)
@@ -499,7 +501,7 @@ public class GroupManagerTest {
     private class TestGroupProvider
                 extends AbstractProvider implements GroupProvider {
         DeviceId lastDeviceId;
-        List<GroupOperation> groupOperations = new ArrayList<GroupOperation>();
+        List<GroupOperation> groupOperations = new ArrayList<>();
 
         protected TestGroupProvider(ProviderId id) {
             super(id);

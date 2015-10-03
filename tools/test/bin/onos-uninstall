@@ -3,6 +3,24 @@
 # Remotely stops & uninstalls ONOS on the specified node.
 # -----------------------------------------------------------------------------
 
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) [node]
+
+options:
+- [node] : The remote instance to uninstall ONOS from.
+
+summary:
+ Remotely stops and uninstalls ONOS on the specified node.
+
+ If [node] isn't specified, \$OCI becomes the target.
+
+_EOF_
+}
+
+[ "$1" = "-h" ] && _usage && exit 0
+
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
@@ -10,5 +28,18 @@ remote=$ONOS_USER@${1:-$OCI}
 
 ssh $remote "
     sudo stop onos 1>/dev/null 2>/dev/null
-    sudo rm -fr $ONOS_INSTALL_DIR
+
+    # Wait for onos to stop up to 5 seconds
+    for i in \$(seq 1 5); do
+      [ -z \"\$(ps -ef | grep karaf.jar | grep -v grep)\" ] && break
+      sleep 1
+    done
+    [ -z \"\$(ps -ef | grep karaf.jar | grep -v grep)\" ] || \
+        (echo 'ONOS failed to stop.'; status=1)
+
+    # Remove onos directory and init file
+    [ -d $ONOS_INSTALL_DIR ] && sudo rm -fr $ONOS_INSTALL_DIR
+    [ -f /etc/init/onos.conf ] && sudo rm -f /etc/init/onos.conf
+
+    exit \${status:-0};
 "

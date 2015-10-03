@@ -196,7 +196,7 @@ public class IntentCleanup implements Runnable, IntentListener {
                 service.withdraw(intentData.intent());
                 break;
             default:
-                log.warn("Trying to resubmit pending intent {} in state {} with request {}",
+                log.warn("Failed to resubmit pending intent {} in state {} with request {}",
                          intentData.key(), intentData.state(), intentData.request());
                 break;
         }

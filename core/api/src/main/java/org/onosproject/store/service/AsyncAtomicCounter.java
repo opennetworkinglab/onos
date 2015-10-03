@@ -58,4 +58,12 @@ public interface AsyncAtomicCounter {
      * @return current value
      */
     CompletableFuture<Long> get();
+
+
+    /**
+     * Atomically sets the given value to the current value.
+     *
+     * @return future void
+     */
+    CompletableFuture<Void> set(long value);
 }

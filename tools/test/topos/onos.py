@@ -31,7 +31,7 @@ class ONOS( Controller ):
         Controller.__init__( self, name, **kwargs )
         # the following have been done for us:
         #self.ip = ip ('127.0.0.1')
-        #self.port = port (6633)
+        #self.port = port (6653)
         #self.protocol = protocol ('tcp')
         #self.checkListening()
 
@@ -62,7 +62,7 @@ class ONOS( Controller ):
    
     def start( self ):
         if self.inNamespace:
-            instanceOpts = ( '-furl mvn:org.onosproject/onos-features/1.3.0-SNAPSHOT/xml/features '
+            instanceOpts = ( '-furl mvn:org.onosproject/onos-features/1.4.0-SNAPSHOT/xml/features '
                              '-s 8101' )
             if self.ip is not None:
                 instanceOpts += (' -a %s' % self.IP() )

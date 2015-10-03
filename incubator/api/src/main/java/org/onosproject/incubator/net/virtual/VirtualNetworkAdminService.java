@@ -16,14 +16,11 @@
 package org.onosproject.incubator.net.virtual;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.device.DeviceDescription;
-import org.onosproject.net.device.PortDescription;
-import org.onosproject.net.link.LinkDescription;
 
 import java.util.Set;
 
@@ -76,12 +73,12 @@ public interface VirtualNetworkAdminService extends VirtualNetworkService {
      * Creates a new virtual device within the specified network. The device id
      * must be unique within the bounds of the network.
      *
-     * @param networkId   network identifier
-     * @param description device description
+     * @param networkId network identifier
+     * @param deviceId  device identifier
      * @return newly created device
      * @throws org.onlab.util.ItemNotFoundException if no such network found
      */
-    VirtualDevice createVirtualDevice(NetworkId networkId, DeviceDescription description);
+    VirtualDevice createVirtualDevice(NetworkId networkId, DeviceId deviceId);
 
     /**
      * Removes the specified virtual device and all its ports and affiliated links.
@@ -96,14 +93,16 @@ public interface VirtualNetworkAdminService extends VirtualNetworkService {
     /**
      * Creates a new virtual link within the specified network.
      *
-     * @param networkId   network identifier
-     * @param description link description
-     * @param realizedBy  tunnel using which this link is realized
+     * @param networkId  network identifier
+     * @param src        source connection point
+     * @param dst        destination connection point
+     * @param realizedBy identifier of the tunnel using which this link is realized
      * @return newly created virtual link
      * @throws org.onlab.util.ItemNotFoundException if no such network found
      */
-    VirtualLink createVirtualLink(NetworkId networkId, LinkDescription description,
-                                  Tunnel realizedBy);
+    VirtualLink createVirtualLink(NetworkId networkId,
+                                  ConnectPoint src, ConnectPoint dst,
+                                  TunnelId realizedBy);
 
     // TODO: Discuss whether we should provide an alternate createVirtualLink
     // which is backed by a Path instead; I'm leaning towards not doing that.
@@ -119,20 +118,17 @@ public interface VirtualNetworkAdminService extends VirtualNetworkService {
     void removeVirtualLink(NetworkId networkId, ConnectPoint src, ConnectPoint dst);
 
     /**
-     * Creates a new virtual port on the specified device. Note that the port
-     * description can only request the resources which the underlying port
-     * port is capable of providing. It is, however, permissible to request
-     * only portion of those resources.
+     * Creates a new virtual port on the specified device.
      *
-     * @param networkId   network identifier
-     * @param deviceId    device identifier
-     * @param description port description
-     * @param realizedBy  underlying port using which this virtual port is realized
+     * @param networkId  network identifier
+     * @param deviceId   device identifier
+     * @param portNumber port number
+     * @param realizedBy underlying port using which this virtual port is realized
      * @return newly created port
      * @throws org.onlab.util.ItemNotFoundException if no such network or device found
      */
     VirtualPort createVirtualPort(NetworkId networkId, DeviceId deviceId,
-                                  PortDescription description, Port realizedBy);
+                                  PortNumber portNumber, Port realizedBy);
 
     /**
      * Removes the specified virtual port.

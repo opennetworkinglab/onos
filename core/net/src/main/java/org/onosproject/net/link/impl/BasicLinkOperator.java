@@ -16,12 +16,14 @@
 package org.onosproject.net.link.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.time.Duration;
 
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.config.ConfigOperator;
 import org.onosproject.net.config.basics.BasicLinkConfig;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Link;
 import org.onosproject.net.SparseAnnotations;
@@ -81,6 +83,46 @@ public final class BasicLinkOperator implements ConfigOperator {
         if (cfg.bandwidth() != DEF_BANDWIDTH) {
             b.set(AnnotationKeys.BANDWIDTH, String.valueOf(cfg.bandwidth()));
         }
+        if (cfg.isDurable() != null) {
+            b.set(AnnotationKeys.DURABLE, String.valueOf(cfg.isDurable()));
+        }
         return DefaultAnnotations.union(an, b.build());
+    }
+
+    /**
+     * Generates a link description from a link description entity. The endpoints
+     * must be specified to indicate directionality.
+     *
+     * @param src the source ConnectPoint
+     * @param dst the destination ConnectPoint
+     * @param link the link config entity
+     * @return a linkDescription based on the config
+     */
+    public static LinkDescription descriptionOf(
+                ConnectPoint src, ConnectPoint dst, Link link) {
+        checkNotNull(src, "Must supply a source endpoint");
+        checkNotNull(dst, "Must supply a destination endpoint");
+        checkNotNull(link, "Must supply a link");
+        return new DefaultLinkDescription(
+                src, dst, link.type(), (SparseAnnotations) link.annotations());
+    }
+
+    /**
+     * Generates a link description from a link config entity. This is for
+     * links that cannot be discovered and has to be injected. The endpoints
+     * must be specified to indicate directionality.
+     *
+     * @param src the source ConnectPoint
+     * @param dst the destination ConnectPoint
+     * @param link the link config entity
+     * @return a linkDescription based on the config
+     */
+    public static LinkDescription descriptionOf(
+                ConnectPoint src, ConnectPoint dst, BasicLinkConfig link) {
+        checkNotNull(src, "Must supply a source endpoint");
+        checkNotNull(dst, "Must supply a destination endpoint");
+        checkNotNull(link, "Must supply a link config");
+        return new DefaultLinkDescription(
+                src, dst, link.type(), combine(link, DefaultAnnotations.EMPTY));
     }
 }

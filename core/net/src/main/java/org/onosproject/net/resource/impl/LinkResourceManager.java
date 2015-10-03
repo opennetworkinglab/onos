@@ -176,8 +176,7 @@ public class LinkResourceManager
             case MPLS_LABEL:
                 for (Link link : req.links()) {
                     if (allocsPerLink.get(link) == null) {
-                        allocsPerLink.put(link,
-                                          new HashSet<ResourceAllocation>());
+                        allocsPerLink.put(link, new HashSet<>());
                     }
                     Iterator<MplsLabel> mplsIter = getAvailableMplsLabels(link)
                             .iterator();
@@ -198,7 +197,7 @@ public class LinkResourceManager
 
         Map<Link, Set<ResourceAllocation>> allocations = new HashMap<>();
         for (Link link : req.links()) {
-            allocations.put(link, new HashSet<ResourceAllocation>(allocs));
+            allocations.put(link, new HashSet<>(allocs));
             Set<ResourceAllocation> linkAllocs = allocsPerLink.get(link);
             if (linkAllocs != null) {
                 allocations.get(link).addAll(linkAllocs);

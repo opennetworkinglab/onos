@@ -47,7 +47,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
-
 import org.onosproject.app.ApplicationEvent;
 import org.onosproject.app.ApplicationListener;
 import org.onosproject.app.ApplicationService;
@@ -252,7 +251,7 @@ public class DatabaseManager implements StorageService, StorageAdminService {
                     log.info("Successfully closed databases.");
                 }
             });
-        maps.values().forEach(this::unregisterMap);
+        ImmutableList.copyOf(maps.values()).forEach(this::unregisterMap);
         if (applicationService != null) {
             applicationService.removeListener(appListener);
         }
@@ -444,7 +443,10 @@ public class DatabaseManager implements StorageService, StorageAdminService {
         public void event(ApplicationEvent event) {
             if (event.type() == APP_UNINSTALLED || event.type() == APP_DEACTIVATED) {
                 ApplicationId appId = event.subject().id();
-                List<DefaultAsyncConsistentMap> mapsToRemove = ImmutableList.copyOf(mapsByApplication.get(appId));
+                List<DefaultAsyncConsistentMap> mapsToRemove;
+                synchronized (mapsByApplication) {
+                    mapsToRemove = ImmutableList.copyOf(mapsByApplication.get(appId));
+                }
                 mapsToRemove.forEach(DatabaseManager.this::unregisterMap);
                 if (event.type() == APP_UNINSTALLED) {
                     mapsToRemove.stream().filter(map -> map.purgeOnUninstall()).forEach(map -> map.clear());

@@ -18,6 +18,7 @@ package org.onosproject.vtnweb.resources;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,12 +64,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 @Path("subnets")
 public class SubnetWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(SubnetWebResource.class);
     public static final String SUBNET_NOT_CREATE = "Subnets is failed to create!";
-    public static final String SUBNET_NOT_FOUND = "Subnets is failed to update!";
+    public static final String SUBNET_NOT_FOUND = "Subnets is not found";
     public static final String JSON_NOT_NULL = "JsonNode can not be null";
 
     @GET
@@ -86,7 +88,8 @@ public class SubnetWebResource extends AbstractWebResource {
     public Response getSubnet(@PathParam("subnetUUID") String id) {
 
         if (!get(SubnetService.class).exists(SubnetId.subnetId(id))) {
-            return ok("The subnet does not exists").build();
+            return Response.status(NOT_FOUND)
+                    .entity(SUBNET_NOT_FOUND).build();
         }
         Subnet sub = nullIsNotFound(get(SubnetService.class)
                                             .getSubnet(SubnetId.subnetId(id)),
@@ -111,7 +114,8 @@ public class SubnetWebResource extends AbstractWebResource {
                                             SUBNET_NOT_CREATE);
 
             if (!result) {
-                return Response.status(204).entity(SUBNET_NOT_CREATE).build();
+                return Response.status(INTERNAL_SERVER_ERROR)
+                        .entity(SUBNET_NOT_CREATE).build();
             }
             return Response.status(202).entity(result.toString()).build();
         } catch (Exception e) {
@@ -133,7 +137,8 @@ public class SubnetWebResource extends AbstractWebResource {
             Boolean result = nullIsNotFound(get(SubnetService.class)
                     .updateSubnets(subnets), SUBNET_NOT_FOUND);
             if (!result) {
-                return Response.status(204).entity(SUBNET_NOT_FOUND).build();
+                return Response.status(INTERNAL_SERVER_ERROR)
+                        .entity(SUBNET_NOT_FOUND).build();
             }
             return Response.status(203).entity(result.toString()).build();
         } catch (Exception e) {
@@ -148,7 +153,7 @@ public class SubnetWebResource extends AbstractWebResource {
             throws IOException {
         try {
             SubnetId subId = SubnetId.subnetId(id);
-            Set<SubnetId> subIds = new HashSet<SubnetId>();
+            Set<SubnetId> subIds = new HashSet<>();
             subIds.add(subId);
             get(SubnetService.class).removeSubnets(subIds);
             return Response.status(201).entity("SUCCESS").build();
@@ -182,7 +187,7 @@ public class SubnetWebResource extends AbstractWebResource {
      */
     public Iterable<Subnet> changeJsonToSubs(JsonNode subnetNodes) {
         checkNotNull(subnetNodes, JSON_NOT_NULL);
-        Map<SubnetId, Subnet> subMap = new HashMap<SubnetId, Subnet>();
+        Map<SubnetId, Subnet> subMap = new HashMap<>();
         for (JsonNode subnetNode : subnetNodes) {
             if (!subnetNode.hasNonNull("id")) {
                 return null;
@@ -193,8 +198,18 @@ public class SubnetWebResource extends AbstractWebResource {
                     .tenantId(subnetNode.get("tenant_id").asText());
             TenantNetworkId networkId = TenantNetworkId
                     .networkId(subnetNode.get("network_id").asText());
-            Version ipVersion = Version
-                    .valueOf(subnetNode.get("ip_version").asText());
+            String version = subnetNode.get("ip_version").asText();
+            Version ipVersion;
+            switch (version) {
+            case "4":
+                ipVersion = Version.INET;
+                break;
+            case "6":
+                ipVersion = Version.INET;
+                break;
+            default:
+                throw new IllegalArgumentException("ipVersion should be 4 or 6.");
+            }
             IpPrefix cidr = IpPrefix.valueOf(subnetNode.get("cidr").asText());
             IpAddress gatewayIp = IpAddress
                     .valueOf(subnetNode.get("gateway_ip").asText());
@@ -211,8 +226,8 @@ public class SubnetWebResource extends AbstractWebResource {
             Subnet subnet = new DefaultSubnet(id, subnetName, networkId,
                                               tenantId, ipVersion, cidr,
                                               gatewayIp, dhcpEnabled, shared,
-                                              hostRoutesIt, ipV6AddressMode,
-                                              ipV6RaMode, allocationPoolsIt);
+                                              Sets.newHashSet(hostRoutesIt), ipV6AddressMode,
+                                              ipV6RaMode, Sets.newHashSet(allocationPoolsIt));
             subMap.put(id, subnet);
         }
         return Collections.unmodifiableCollection(subMap.values());
@@ -228,7 +243,7 @@ public class SubnetWebResource extends AbstractWebResource {
         checkNotNull(subnetNodes, JSON_NOT_NULL);
         checkArgument(subnetNodes.get("enable_dhcp").isBoolean(), "enable_dhcp should be boolean");
         checkArgument(subnetNodes.get("shared").isBoolean(), "shared should be boolean");
-        Map<SubnetId, Subnet> subMap = new HashMap<SubnetId, Subnet>();
+        Map<SubnetId, Subnet> subMap = new HashMap<>();
         if (!subnetNodes.hasNonNull("id")) {
             return null;
         }
@@ -267,9 +282,9 @@ public class SubnetWebResource extends AbstractWebResource {
 
         Subnet subnet = new DefaultSubnet(id, subnetName, networkId, tenantId,
                                           ipVersion, cidr, gatewayIp,
-                                          dhcpEnabled, shared, hostRoutesIt,
+                                          dhcpEnabled, shared, Sets.newHashSet(hostRoutesIt),
                                           ipV6AddressMode, ipV6RaMode,
-                                          allocationPoolsIt);
+                                          Sets.newHashSet(allocationPoolsIt));
         subMap.put(id, subnet);
         return Collections.unmodifiableCollection(subMap.values());
     }

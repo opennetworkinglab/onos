@@ -393,13 +393,8 @@ public class DemoInstaller implements DemoAPI {
         }
 
         private Predicate<? super Host> hasLocalMaster() {
-            return new Predicate<Host>() {
-                @Override
-                public boolean apply(Host host) {
-                    return mastershipService.getLocalRole(
-                            host.location().deviceId()).equals(MastershipRole.MASTER);
-                }
-            };
+            return host -> mastershipService.getLocalRole(
+                    host.location().deviceId()).equals(MastershipRole.MASTER);
         }
 
 

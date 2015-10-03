@@ -1,0 +1,76 @@
+<!--
+  ~ Copyright 2015 Open Networking Laboratory
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="net-topo"
+          description="Network topology test">
+    <!-- TODO: parametrize this via recipes -->
+    <group name="Net-topo">
+
+        <!-- Verify the overall topology using the REST API -->
+        <step name="Net-topo.Query-Topo"
+              exec="query-topo.py ${OC1} topo"/>
+        <step name="Net-topo.Verify-Topo-Devices" requires="Net-topo.Query-Topo"
+              exec="test ${topoDevices} == 25"/>
+        <step name="Net-topo.Verify-Topo-Links" requires="Net-topo.Query-Topo"
+              exec="test ${topoLinks} == 140"/>
+        <step name="Net-topo.Verify-Topo-Clusters" requires="Net-topo.Query-Topo"
+              exec="test ${topoClusters} == 1"/>
+
+        <!-- Verify the cluster topology using the REST API -->
+        <step name="Net-topo.Query-Cluster0"
+              exec="query-cluster.py ${OC1} clusterTopo0 0"/>
+        <step name="Net-topo.Verify-Cluster0-Id" requires="Net-topo.Query-Cluster0"
+              exec="test ${clusterTopo0Id} == 0"/>
+        <step name="Net-topo.Verify-Cluster0-DeviceCount" requires="Net-topo.Query-Cluster0"
+              exec="test ${clusterTopo0DeviceCount} == 25"/>
+        <step name="Net-topo.Verify-Cluster0-LinkCount" requires="Net-topo.Query-Cluster0"
+              exec="test ${clusterTopo0LinkCount} == 140"/>
+        <step name="Net-topo.Verify-Cluster0-Root" requires="Net-topo.Query-Cluster0"
+              exec="test '${clusterTopo0Root}' == 'of:000000000000000a'"/>
+
+        <!-- Verify the list of devices for the cluster -->
+        <step name="Net-topo.Verify-Cluster0-Devices"
+              exec="verify-topo-devices.py ${OC1} 0 0 24"/>
+
+        <!-- Spot check some known links in the topology -->
+        <step name="Net-topo.Verify-Cluster0-Link1"
+              exec="find-link-in-cluster.py ${OC1} link1 0 140 of:000000000000000f 8 of:0000000000000015 3"/>
+        <step name="Net-topo.Verify-Cluster0-Link2"
+              exec="find-link-in-cluster.py ${OC1} link2 0 140 of:0000000000000008 3 of:0000000000000005 4"/>
+        <step name="Net-topo.Verify-Cluster0-Link3"
+              exec="find-link-in-cluster.py ${OC1} link3 0 140 of:0000000000000011 2 of:0000000000000002 9"/>
+        <step name="Net-topo.Verify-Cluster0-Link4"
+              exec="find-link-in-cluster.py ${OC1} link4 0 140 of:000000000000000f 3 of:000000000000000d 10"/>
+        <step name="Net-topo.Verify-Cluster0-Link5"
+              exec="find-link-in-cluster.py ${OC1} link5 0 140 of:000000000000000d 13 of:0000000000000010 6"/>
+
+        <!--  Verify the topology infrastructure query -->
+        <step name="Net-topo.Query-Cluster0-Infra1"
+              exec="find-topo-infrastructure.py ${OC1} infra1 of:000000000000000f:8"/>
+        <step name="Net-topo.Verify-Cluster0-Infra1" requires="Net-topo.Query-Cluster0-Infra1"
+              exec="test '${infra1Infrastructure}' == 'True'"/>
+
+        <step name="Net-topo.Query-Cluster0-Infra2"
+              exec="find-topo-infrastructure.py ${OC1} infra2 of:000000000000000d:8"/>
+        <step name="Net-topo.Verify-Cluster0-Infra2" requires="Net-topo.Query-Cluster0-Infra2"
+              exec="test '${infra2Infrastructure}' == 'True'"/>
+
+        <step name="Net-topo.Query-Cluster0-Infra3"
+              exec="find-topo-infrastructure.py ${OC1} infra3 of:0000000000000012:8"/>
+        <step name="Net-topo.Verify-Cluster0-Infra3" requires="Net-topo.Query-Cluster0-Infra3"
+              exec="test '${infra3Infrastructure}' == 'False'"/>
+
+    </group>
+</scenario>

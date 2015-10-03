@@ -39,12 +39,13 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * @param providerId      provider identification
      * @param hostId          host identification
      * @param hostDescription host description data
+     * @param replaceIps      replace IP set if true, merge IP set otherwise
      * @return appropriate event or null if no change resulted
      */
     HostEvent createOrUpdateHost(ProviderId providerId, HostId hostId,
-                                 HostDescription hostDescription);
+                                 HostDescription hostDescription,
+                                 boolean replaceIps);
 
-    // FIXME: API to remove only IpAddress is missing
     /**
      * Removes the specified host from the inventory.
      *
@@ -52,6 +53,15 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * @return remove event or null if host was not found
      */
     HostEvent removeHost(HostId hostId);
+
+    /**
+     * Removes the specified ip from the host entry.
+     *
+     * @param hostId host identification
+     * @param ipAddress ipAddress to be removed
+     * @return remove event or null if host was not found
+     */
+    HostEvent removeIp(HostId hostId, IpAddress ipAddress);
 
     /**
      * Returns the number of hosts in the store.
@@ -115,53 +125,4 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      */
     Set<Host> getConnectedHosts(DeviceId deviceId);
 
-    /**
-     * Updates the address information for a given port. The given address
-     * information is added to any previously held information for the port.
-     *
-     * @param addresses the port and address information
-     * @deprecated in Drake release: address info now stored in InterfaceService
-     */
-    @Deprecated
-    void updateAddressBindings(PortAddresses addresses);
-
-    /**
-     * Removes the given addresses from the set of address information held for
-     * a port.
-     *
-     * @param addresses the port and address information
-     * @deprecated in Drake release: address info now stored in InterfaceService
-     */
-    @Deprecated
-    void removeAddressBindings(PortAddresses addresses);
-
-    /**
-     * Removes any previously stored address information for a given connection
-     * point.
-     *
-     * @param connectPoint the connection point
-     * @deprecated in Drake release: address info now stored in InterfaceService
-     */
-    @Deprecated
-    void clearAddressBindings(ConnectPoint connectPoint);
-
-    /**
-     * Returns the address bindings stored for all connection points.
-     *
-     * @return the set of address bindings
-     * @deprecated in Drake release: address info now stored in InterfaceService
-     */
-    @Deprecated
-    Set<PortAddresses> getAddressBindings();
-
-    /**
-     * Returns the address bindings for a particular connection point.
-     *
-     * @param connectPoint the connection point to return address information
-     *                     for
-     * @return address information for the connection point
-     * @deprecated in Drake release: address info now stored in InterfaceService
-     */
-    @Deprecated
-    Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint);
 }

@@ -271,7 +271,8 @@ public class IGMP extends BasePacket {
                     break;
 
                 default:
-                    msg = "IGMP message type: " + igmp.igmpType + " is not recodnized";
+                    msg = "IGMP message type: " + igmp.igmpType + " is not recognized";
+                    igmp.unsupportTypeData = bb.array();
                     igmp.log.debug(msg);
                     break;
             }

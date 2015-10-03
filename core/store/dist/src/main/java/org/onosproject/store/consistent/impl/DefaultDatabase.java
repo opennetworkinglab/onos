@@ -44,13 +44,13 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     private final Set<Consumer<StateMachineUpdate>> consumers = Sets.newCopyOnWriteArraySet();
     private final TriConsumer<String, Object, Object> watcher = new InternalStateMachineWatcher();
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public DefaultDatabase(ResourceManager context) {
         super(context);
         this.stateMachine = new DefaultStateMachine(context,
-                DatabaseState.class,
-                DefaultDatabaseState.class,
-                DefaultDatabase.class.getClassLoader());
+                                                    DatabaseState.class,
+                                                    DefaultDatabaseState.class,
+                                                    DefaultDatabase.class.getClassLoader());
         this.stateMachine.addStartupTask(() -> {
             stateMachine.registerWatcher(watcher);
             return CompletableFuture.completedFuture(null);
@@ -66,7 +66,7 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
      * return the completed future result.
      *
      * @param supplier The supplier to call if the database is open.
-     * @param <T> The future result type.
+     * @param <T>      The future result type.
      * @return A completable future that if this database is closed is immediately failed.
      */
     protected <T> CompletableFuture<T> checkOpen(Supplier<CompletableFuture<T>> supplier) {
@@ -150,6 +150,11 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     @Override
     public CompletableFuture<Long> counterGetAndAdd(String counterName, long delta) {
         return checkOpen(() -> proxy.counterGetAndAdd(counterName, delta));
+    }
+
+    @Override
+    public CompletableFuture<Void> counterSet(String counterName, long value) {
+        return checkOpen(() -> proxy.counterSet(counterName, value));
     }
 
     @Override

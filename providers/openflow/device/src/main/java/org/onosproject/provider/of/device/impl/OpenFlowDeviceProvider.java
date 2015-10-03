@@ -15,10 +15,24 @@
  */
 package org.onosproject.provider.of.device.impl;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.Port.Type.COPPER;
+import static org.onosproject.net.Port.Type.FIBER;
+import static org.onosproject.openflow.controller.Dpid.dpid;
+import static org.onosproject.openflow.controller.Dpid.uri;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,15 +42,17 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.Frequency;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onlab.util.Spectrum;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -49,6 +65,7 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.OchPortDescription;
+import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
@@ -64,13 +81,19 @@ import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.RoleState;
 import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFCalientPortDescStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFExpPort;
+import org.projectfloodlight.openflow.protocol.OFExpPortDescPropOpticalTransport;
+import org.projectfloodlight.openflow.protocol.OFExpPortOpticalTransportLayerEntry;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFObject;
 import org.projectfloodlight.openflow.protocol.OFPortConfig;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFPortDescPropOpticalTransport;
 import org.projectfloodlight.openflow.protocol.OFPortFeatures;
 import org.projectfloodlight.openflow.protocol.OFPortOptical;
+import org.projectfloodlight.openflow.protocol.OFPortOpticalTransportLayerClass;
+import org.projectfloodlight.openflow.protocol.OFPortOpticalTransportSignalType;
 import org.projectfloodlight.openflow.protocol.OFPortReason;
 import org.projectfloodlight.openflow.protocol.OFPortState;
 import org.projectfloodlight.openflow.protocol.OFPortStatsEntry;
@@ -83,23 +106,10 @@ import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.types.PortSpeed;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onlab.util.Tools.get;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.Port.Type.COPPER;
-import static org.onosproject.net.Port.Type.FIBER;
-import static org.onosproject.openflow.controller.Dpid.dpid;
-import static org.onosproject.openflow.controller.Dpid.uri;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
@@ -110,6 +120,9 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private static final Logger LOG = getLogger(OpenFlowDeviceProvider.class);
     private static final long MBPS = 1_000 * 1_000;
+    private static final Frequency FREQ100 = Frequency.ofGHz(100);
+    private static final Frequency FREQ193_1 = Frequency.ofTHz(193.1);
+    private static final Frequency FREQ4_4 = Frequency.ofTHz(4.4);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;
@@ -386,18 +399,27 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
          */
         private List<PortDescription> buildPortDescriptions(OpenFlowSwitch sw) {
             final List<PortDescription> portDescs = new ArrayList<>(sw.getPorts().size());
-            sw.getPorts().forEach(port -> portDescs.add(buildPortDescription(port)));
+            if (!(Device.Type.ROADM.equals(sw.deviceType()))) {
+                  sw.getPorts().forEach(port -> portDescs.add(buildPortDescription(port)));
+            }
 
             OpenFlowOpticalSwitch opsw;
             switch (sw.deviceType()) {
                 case ROADM:
                     opsw = (OpenFlowOpticalSwitch) sw;
+                    List<OFPortDesc> ports = opsw.getPorts();
+                    LOG.debug("SW ID {} , ETH- ODU CLT Ports {}", opsw.getId(), ports);
+                    // ODU client ports are reported as ETH
+                    ports.forEach(port -> portDescs.add(buildOduCltPortDescription(port)));
+
                     opsw.getPortTypes().forEach(type -> {
-                        opsw.getPortsOf(type).forEach(
-                                op -> {
-                                    portDescs.add(buildPortDescription(type, (OFPortOptical) op));
-                                }
-                        );
+                    List<? extends OFObject> portsOf = opsw.getPortsOf(type);
+                    LOG.debug("Ports Of{}", portsOf);
+                    portsOf.forEach(
+                        op -> {
+                            portDescs.add(buildPortDescription(type, (OFObject) op));
+                        }
+                     );
                     });
                     break;
                 case FIBER_SWITCH:
@@ -415,6 +437,105 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             }
 
             return portDescs;
+        }
+
+        private PortDescription buildOduCltPortDescription(OFPortDesc port) {
+            PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
+            boolean enabled = !port.getState().contains(OFPortState.LINK_DOWN) &&
+                              !port.getConfig().contains(OFPortConfig.PORT_DOWN);
+            Long portSpeed = portSpeed(port);
+            OduCltPort.SignalType sigType = null;
+
+            switch (portSpeed.toString()) {
+                case "1":
+                    sigType = OduCltPort.SignalType.CLT_1GBE;
+                    break;
+                case "10":
+                    sigType = OduCltPort.SignalType.CLT_10GBE;
+                    break;
+                case "40":
+                    sigType = OduCltPort.SignalType.CLT_40GBE;
+                    break;
+                case "100":
+                    sigType = OduCltPort.SignalType.CLT_100GBE;
+                    break;
+                default:
+                    throw new RuntimeException("Un recognize OduClt speed: " + portSpeed.toString());
+            }
+
+            SparseAnnotations annotations = buildOduCltAnnotation(port);
+            return new OduCltPortDescription(portNo, enabled, sigType, annotations);
+        }
+
+        private SparseAnnotations buildOduCltAnnotation(OFPortDesc port) {
+            SparseAnnotations annotations = null;
+            String portName = Strings.emptyToNull(port.getName());
+            if (portName != null) {
+                 annotations = DefaultAnnotations.builder()
+                        .set(AnnotationKeys.PORT_NAME, portName)
+                        .set(AnnotationKeys.STATIC_PORT, Boolean.TRUE.toString()).build();
+            }
+            return annotations;
+        }
+
+        private PortDescription buildPortDescription(PortDescPropertyType ptype, OFObject port) {
+            if (port instanceof  OFPortOptical) {
+               return buildPortDescription(ptype, (OFPortOptical) port);
+            }
+            return buildPortDescription(ptype, (OFExpPort) port);
+        }
+
+        /**
+         * Build a portDescription from a given a port description describing some
+         * Optical port.
+         *
+         * @param ptype description property type.
+         * @param port the port to build from.
+         * @return portDescription for the port.
+         */
+        private PortDescription buildPortDescription(PortDescPropertyType ptype, OFExpPort port) {
+            PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
+            boolean enabled = !port.getState().contains(OFPortState.LINK_DOWN)
+                    && !port.getConfig().contains(OFPortConfig.PORT_DOWN);
+            SparseAnnotations annotations = makePortNameAnnotation(port.getName());
+
+            OFExpPortDescPropOpticalTransport firstProp = port.getProperties().get(0);
+            OFPortOpticalTransportSignalType sigType = firstProp.getPortSignalType();
+
+            DefaultPortDescription portDes = null;
+            switch (sigType) {
+            case OMSN:
+                portDes =  new OmsPortDescription(portNo, enabled, FREQ193_1, FREQ193_1.add(FREQ4_4),
+                       FREQ100, annotations);
+                break;
+            case OCH:
+                OFExpPortOpticalTransportLayerEntry entry = firstProp.getFeatures().get(0).getValue().get(0);
+                OFPortOpticalTransportLayerClass layerClass =  entry.getLayerClass();
+                if (!OFPortOpticalTransportLayerClass.ODU.equals(layerClass)) {
+                    LOG.error("Unsupported layer Class {} ", layerClass);
+                    return null;
+                }
+
+                // convert to ONOS OduSignalType
+                OduSignalType oduSignalType = OpenFlowDeviceValueMapper.
+                        lookupOduSignalType((byte) entry.getSignalType());
+                //OchSignal is needed for OchPortDescription constructor,
+                //yet not relevant for tunable OCH port, creating with default parameters
+                OchSignal signalId = new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, 1, 1);
+
+                portDes = new OchPortDescription(portNo, enabled,
+                        oduSignalType, true, signalId, annotations);
+
+                break;
+            case OTU2:
+            case OTU4:
+                  LOG.error("Signal tpye OTU2/4 not supported yet ", port.toString());
+                  break;
+            default:
+                break;
+            }
+
+            return portDes;
         }
 
         /**
@@ -565,5 +686,4 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             }
         }
     }
-
 }

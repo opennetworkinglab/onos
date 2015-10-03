@@ -17,10 +17,13 @@ package org.onosproject.cfg;
 
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
+
 /**
  * Adapter for testing against component configuration service.
  */
 public class ComponentConfigAdapter implements ComponentConfigService {
+
     @Override
     public Set<String> getComponentNames() {
         return null;
@@ -38,12 +41,16 @@ public class ComponentConfigAdapter implements ComponentConfigService {
 
     @Override
     public Set<ConfigProperty> getProperties(String componentName) {
-        return null;
+        return ImmutableSet.of();
     }
 
     @Override
     public void setProperty(String componentName, String name, String value) {
 
+    }
+
+    @Override
+    public void preSetProperty(String componentName, String name, String value) {
     }
 
     @Override

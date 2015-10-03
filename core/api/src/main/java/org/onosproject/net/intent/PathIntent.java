@@ -25,7 +25,6 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -159,12 +158,8 @@ public class PathIntent extends ConnectivityIntent {
      * @param links links to be validated
      */
     public static void validate(List<Link> links) {
-        checkArgument(Iterables.all(links, new Predicate<Link>() {
-            @Override
-            public boolean apply(Link link) {
-                return !link.src().elementId().equals(link.dst().elementId());
-            }
-        }), "element of src and dst in a link must be different: {}", links);
+        checkArgument(Iterables.all(links, link -> !link.src().elementId().equals(link.dst().elementId())),
+                "element of src and dst in a link must be different: {}", links);
 
         boolean adjacentSame = true;
         for (int i = 0; i < links.size() - 1; i++) {

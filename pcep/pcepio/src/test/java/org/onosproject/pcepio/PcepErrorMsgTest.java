@@ -26,8 +26,8 @@ import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepMessageReader;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsSame.sameInstance;
 
 /**
  * Test cases for PCEP ERROR Message.
@@ -64,7 +64,7 @@ public class PcepErrorMsgTest {
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
 
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -103,7 +103,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -141,7 +141,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -177,7 +177,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -212,7 +212,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -246,7 +246,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -279,7 +279,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -312,7 +312,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -344,7 +344,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -376,7 +376,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -409,7 +409,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -442,7 +442,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -475,7 +475,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -510,7 +510,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -544,7 +544,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -578,7 +578,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -614,7 +614,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -650,7 +650,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -688,7 +688,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();
         testErrorMsg = new byte[iReadLen];
@@ -727,7 +727,7 @@ public class PcepErrorMsgTest {
 
         byte[] testErrorMsg = {0};
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
-        assertThat(message, sameInstance((PcepErrorMsg) message));
+        assertThat(message, instanceOf(PcepErrorMsg.class));
 
         message.writeTo(buf);
         int iReadLen = buf.writerIndex();

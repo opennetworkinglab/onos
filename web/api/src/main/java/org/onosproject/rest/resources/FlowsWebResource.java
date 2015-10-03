@@ -66,9 +66,9 @@ public class FlowsWebResource extends AbstractWebResource {
     public Response getFlows() {
         final Iterable<Device> devices = get(DeviceService.class).getDevices();
         for (final Device device : devices) {
-            final Iterable<FlowEntry> deviceEntries = service.getFlowEntries(device.id());
-            if (deviceEntries != null) {
-                for (final FlowEntry entry : deviceEntries) {
+            final Iterable<FlowEntry> flowEntries = service.getFlowEntries(device.id());
+            if (flowEntries != null) {
+                for (final FlowEntry entry : flowEntries) {
                     flowsNode.add(codec(FlowEntry.class).encode(entry, this));
                 }
             }
@@ -88,13 +88,13 @@ public class FlowsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}")
     public Response getFlowByDeviceId(@PathParam("deviceId") String deviceId) {
-        final Iterable<FlowEntry> deviceEntries =
+        final Iterable<FlowEntry> flowEntries =
                 service.getFlowEntries(DeviceId.deviceId(deviceId));
 
-        if (!deviceEntries.iterator().hasNext()) {
+        if (!flowEntries.iterator().hasNext()) {
             throw new ItemNotFoundException(DEVICE_NOT_FOUND);
         }
-        for (final FlowEntry entry : deviceEntries) {
+        for (final FlowEntry entry : flowEntries) {
             flowsNode.add(codec(FlowEntry.class).encode(entry, this));
         }
         return ok(root).build();
@@ -113,13 +113,13 @@ public class FlowsWebResource extends AbstractWebResource {
     @Path("{deviceId}/{flowId}")
     public Response getFlowByDeviceIdAndFlowId(@PathParam("deviceId") String deviceId,
                                                @PathParam("flowId") long flowId) {
-        final Iterable<FlowEntry> deviceEntries =
+        final Iterable<FlowEntry> flowEntries =
                 service.getFlowEntries(DeviceId.deviceId(deviceId));
 
-        if (!deviceEntries.iterator().hasNext()) {
+        if (!flowEntries.iterator().hasNext()) {
             throw new ItemNotFoundException(DEVICE_NOT_FOUND);
         }
-        for (final FlowEntry entry : deviceEntries) {
+        for (final FlowEntry entry : flowEntries) {
             if (entry.id().value() == flowId) {
                 flowsNode.add(codec(FlowEntry.class).encode(entry, this));
             }
@@ -175,14 +175,14 @@ public class FlowsWebResource extends AbstractWebResource {
     @Path("{deviceId}/{flowId}")
     public void deleteFlowByDeviceIdAndFlowId(@PathParam("deviceId") String deviceId,
                                               @PathParam("flowId") long flowId) {
-        final Iterable<FlowEntry> deviceEntries =
+        final Iterable<FlowEntry> flowEntries =
                 service.getFlowEntries(DeviceId.deviceId(deviceId));
 
-        if (!deviceEntries.iterator().hasNext()) {
+        if (!flowEntries.iterator().hasNext()) {
             throw new ItemNotFoundException(DEVICE_NOT_FOUND);
         }
 
-        StreamSupport.stream(deviceEntries.spliterator(), false)
+        StreamSupport.stream(flowEntries.spliterator(), false)
                 .filter(entry -> entry.id().value() == flowId)
                 .forEach(service::removeFlowRules);
     }

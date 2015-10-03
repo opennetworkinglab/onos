@@ -79,13 +79,8 @@ public class IntentServiceTest {
         service.submit(intent);
 
         // Allow a small window of time until the intent is in the expected state
-        TestTools.assertAfter(GRACE_MS, new Runnable() {
-            @Override
-            public void run() {
-                assertEquals("incorrect intent state", IntentState.INSTALLED,
-                             service.getIntentState(intent.key()));
-            }
-        });
+        TestTools.assertAfter(GRACE_MS, () ->
+                assertEquals("incorrect intent state", IntentState.INSTALLED, service.getIntentState(intent.key())));
 
         // Make sure that all expected events have been emitted
         validateEvents(intent, INSTALL_REQ, INSTALLED);
@@ -100,13 +95,8 @@ public class IntentServiceTest {
         service.withdraw(intent);
 
         // Allow a small window of time until the event is in the expected state
-        TestTools.assertAfter(GRACE_MS, new Runnable() {
-            @Override
-            public void run() {
-                assertEquals("incorrect intent state", IntentState.WITHDRAWN,
-                             service.getIntentState(intent.key()));
-            }
-        });
+        TestTools.assertAfter(GRACE_MS, () ->
+                assertEquals("incorrect intent state", IntentState.WITHDRAWN, service.getIntentState(intent.key())));
 
         // Make sure that all expected events have been emitted
         validateEvents(intent, WITHDRAWN);
@@ -128,13 +118,8 @@ public class IntentServiceTest {
         service.submit(intent);
 
         // Allow a small window of time until the intent is in the expected state
-        TestTools.assertAfter(GRACE_MS, new Runnable() {
-            @Override
-            public void run() {
-                assertEquals("incorrect intent state", IntentState.FAILED,
-                             service.getIntentState(intent.key()));
-            }
-        });
+        TestTools.assertAfter(GRACE_MS, () ->
+                assertEquals("incorrect intent state", IntentState.FAILED, service.getIntentState(intent.key())));
 
         // Make sure that all expected events have been emitted
         validateEvents(intent, INSTALL_REQ, FAILED);
@@ -196,13 +181,8 @@ public class IntentServiceTest {
         service.submit(intent);
 
         // Allow some time for the intent to be compiled and installed
-        TestTools.assertAfter(GRACE_MS, new Runnable() {
-            @Override
-            public void run() {
-                assertEquals("incorrect intent state", IntentState.INSTALLED,
-                             service.getIntentState(intent.key()));
-            }
-        });
+        TestTools.assertAfter(GRACE_MS, () ->
+                assertEquals("incorrect intent state", IntentState.INSTALLED, service.getIntentState(intent.key())));
 
         // Make sure that now we have an implicit registration of the compiler
         // under the intent subclass

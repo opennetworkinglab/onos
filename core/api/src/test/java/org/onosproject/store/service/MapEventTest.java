@@ -16,7 +16,6 @@
 package org.onosproject.store.service;
 
 import com.google.common.testing.EqualsTester;
-import junit.framework.TestCase;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,7 +24,7 @@ import static org.hamcrest.Matchers.is;
 /**
  * MapEvent unit tests.
  */
-public class MapEventTest extends TestCase {
+public class MapEventTest {
 
     private final Versioned<Integer> vStats = new Versioned<>(2, 1);
 

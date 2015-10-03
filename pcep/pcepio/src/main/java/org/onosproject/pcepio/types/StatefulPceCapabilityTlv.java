@@ -70,11 +70,11 @@ public class StatefulPceCapabilityTlv implements PcepValueType {
     public StatefulPceCapabilityTlv(int rawValue) {
         this.rawValue = rawValue;
         isRawValueSet = true;
-        this.bUFlag = (rawValue & UFLAG_SET) == UFLAG_SET ? true : false;
-        this.bSFlag = (rawValue & SFLAG_SET) == SFLAG_SET ? true : false;
-        this.bIFlag = (rawValue & IFLAG_SET) == IFLAG_SET ? true : false;
-        this.bTFlag = (rawValue & TFLAG_SET) == TFLAG_SET ? true : false;
-        this.bDFlag = (rawValue & DFLAG_SET) == DFLAG_SET ? true : false;
+        this.bUFlag = (rawValue & UFLAG_SET) == UFLAG_SET;
+        this.bSFlag = (rawValue & SFLAG_SET) == SFLAG_SET;
+        this.bIFlag = (rawValue & IFLAG_SET) == IFLAG_SET;
+        this.bTFlag = (rawValue & TFLAG_SET) == TFLAG_SET;
+        this.bDFlag = (rawValue & DFLAG_SET) == DFLAG_SET;
     }
 
     /**
@@ -245,11 +245,11 @@ public class StatefulPceCapabilityTlv implements PcepValueType {
         boolean bSFlag;
         boolean bUFlag;
 
-        bUFlag = (temp & UFLAG_SET) == UFLAG_SET ? true : false;
-        bSFlag = (temp & SFLAG_SET) == SFLAG_SET ? true : false;
-        bIFlag = (temp & IFLAG_SET) == IFLAG_SET ? true : false;
-        bTFlag = (temp & TFLAG_SET) == TFLAG_SET ? true : false;
-        bDFlag = (temp & DFLAG_SET) == DFLAG_SET ? true : false;
+        bUFlag = (temp & UFLAG_SET) == UFLAG_SET;
+        bSFlag = (temp & SFLAG_SET) == SFLAG_SET;
+        bIFlag = (temp & IFLAG_SET) == IFLAG_SET;
+        bTFlag = (temp & TFLAG_SET) == TFLAG_SET;
+        bDFlag = (temp & DFLAG_SET) == DFLAG_SET;
 
         return new StatefulPceCapabilityTlv(bDFlag, bTFlag, bIFlag, bSFlag, bUFlag);
     }

@@ -48,6 +48,11 @@ public final class TestAtomicCounter implements AtomicCounter {
     }
 
     @Override
+    public void set(long value) {
+        this.value.set(value);
+    }
+
+    @Override
     public long get() {
         return value.get();
     }

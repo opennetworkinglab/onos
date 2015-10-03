@@ -24,7 +24,9 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.host.HostDescription;
@@ -143,7 +145,7 @@ public class OvsdbHostProviderTest {
         }
 
         @Override
-        public void hostDetected(HostId hostId, HostDescription hostDescription) {
+        public void hostDetected(HostId hostId, HostDescription hostDescription, boolean replaceIps) {
             DeviceId descr = hostDescription.location().deviceId();
             if (added == null) {
                 added = descr;
@@ -157,6 +159,11 @@ public class OvsdbHostProviderTest {
         @Override
         public void hostVanished(HostId hostId) {
             removeCount++;
+        }
+
+        @Override
+        public void removeIpFromHost(HostId hostId, IpAddress ipAddress) {
+
         }
 
     }
@@ -194,6 +201,11 @@ public class OvsdbHostProviderTest {
         @Override
         public OvsdbClientService getOvsdbClient(OvsdbNodeId nodeId) {
             return null;
+        }
+
+        @Override
+        public void connect(IpAddress ip, TpPort port) {
+
         }
     }
 }

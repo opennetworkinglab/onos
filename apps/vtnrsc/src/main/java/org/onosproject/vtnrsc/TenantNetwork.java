@@ -23,7 +23,7 @@ public interface TenantNetwork {
     /**
      * Coarse classification of the state of the tenantNetwork.
      */
-    public enum State {
+    enum State {
         /**
          * Signifies that a tenantNetwork is currently active.This state means
          * that this network is available.
@@ -46,7 +46,7 @@ public interface TenantNetwork {
     /**
      * Coarse classification of the type of the tenantNetwork.
      */
-    public enum Type {
+    enum Type {
         /**
          * Signifies that a tenantNetwork is local.
          */

@@ -91,6 +91,14 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
     }
 
     @Override
+    public Optional<ResourceAllocation> getResourceAllocation(ResourcePath resource) {
+        checkNotNull(resource);
+
+        Optional<ResourceConsumer> consumer = store.getConsumer(resource);
+        return consumer.map(x -> new ResourceAllocation(resource, x));
+    }
+
+    @Override
     public <T> Collection<ResourceAllocation> getResourceAllocations(ResourcePath parent, Class<T> cls) {
         checkNotNull(parent);
         checkNotNull(cls);

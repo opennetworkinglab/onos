@@ -15,12 +15,14 @@
  */
 package org.onosproject.incubator.net.config.basics;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.net.config.SubjectFactory;
 
 /**
  * Set of subject factories for potential configuration subjects.
  */
+@Beta
 public final class ExtraSubjectFactories {
 
     // Construction forbidden

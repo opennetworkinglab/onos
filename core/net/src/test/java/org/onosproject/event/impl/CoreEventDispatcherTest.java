@@ -84,7 +84,7 @@ public class CoreEventDispatcherTest {
         }
     }
 
-    private enum Type { FOO };
+    private enum Type { FOO }
 
     private static class Thing extends AbstractEvent<Type, String> {
         protected Thing(String subject) {

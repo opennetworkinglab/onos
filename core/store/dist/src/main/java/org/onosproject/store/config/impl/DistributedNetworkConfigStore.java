@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.config.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
@@ -77,12 +78,12 @@ public class DistributedNetworkConfigStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
-    private ConsistentMap<ConfigKey, ObjectNode> configs;
+    private ConsistentMap<ConfigKey, JsonNode> configs;
 
     private final Map<String, ConfigFactory> factoriesByConfig = Maps.newConcurrentMap();
     private final ObjectMapper mapper = new ObjectMapper();
     private final ConfigApplyDelegate applyDelegate = new InternalApplyDelegate();
-    private final MapEventListener<ConfigKey, ObjectNode> listener = new InternalMapListener();
+    private final MapEventListener<ConfigKey, JsonNode> listener = new InternalMapListener();
 
     @Activate
     public void activate() {
@@ -93,7 +94,7 @@ public class DistributedNetworkConfigStore
                           TextNode.class, BooleanNode.class,
                           LongNode.class, DoubleNode.class, ShortNode.class, IntNode.class);
 
-        configs = storageService.<ConfigKey, ObjectNode>consistentMapBuilder()
+        configs = storageService.<ConfigKey, JsonNode>consistentMapBuilder()
                 .withSerializer(Serializer.using(kryoBuilder.build()))
                 .withName("onos-network-configs")
                 .withRelaxedReadConsistency()
@@ -168,21 +169,24 @@ public class DistributedNetworkConfigStore
     @Override
     public <S, T extends Config<S>> T getConfig(S subject, Class<T> configClass) {
         // TODO: need to identify and address the root cause for timeouts.
-        Versioned<ObjectNode> json = Tools.retryable(configs::get, ConsistentMapException.class, 1, MAX_BACKOFF)
-                                          .apply(key(subject, configClass));
+        Versioned<JsonNode> json = Tools.retryable(configs::get, ConsistentMapException.class, 1, MAX_BACKOFF)
+                .apply(key(subject, configClass));
         return json != null ? createConfig(subject, configClass, json.value()) : null;
     }
 
 
     @Override
     public <S, C extends Config<S>> C createConfig(S subject, Class<C> configClass) {
-        Versioned<ObjectNode> json = configs.computeIfAbsent(key(subject, configClass),
-                                                             k -> mapper.createObjectNode());
+        ConfigFactory<S, C> factory = getConfigFactory(configClass);
+        Versioned<JsonNode> json = configs.computeIfAbsent(key(subject, configClass),
+                                                             k -> factory.isList() ?
+                                                                     mapper.createArrayNode() :
+                                                                     mapper.createObjectNode());
         return createConfig(subject, configClass, json.value());
     }
 
     @Override
-    public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, ObjectNode json) {
+    public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, JsonNode json) {
         return createConfig(subject, configClass,
                             configs.putAndGet(key(subject, configClass), json).value());
     }
@@ -203,7 +207,7 @@ public class DistributedNetworkConfigStore
      */
     @SuppressWarnings("unchecked")
     private <S, C extends Config<S>> C createConfig(S subject, Class<C> configClass,
-                                                    ObjectNode json) {
+                                                    JsonNode json) {
         if (json != null) {
             ConfigFactory<S, C> factory = factoriesByConfig.get(configClass.getName());
             if (factory != null) {
@@ -259,9 +263,9 @@ public class DistributedNetworkConfigStore
         }
     }
 
-    private class InternalMapListener implements MapEventListener<ConfigKey, ObjectNode> {
+    private class InternalMapListener implements MapEventListener<ConfigKey, JsonNode> {
         @Override
-        public void event(MapEvent<ConfigKey, ObjectNode> event) {
+        public void event(MapEvent<ConfigKey, JsonNode> event) {
             NetworkConfigEvent.Type type;
             switch (event.type()) {
                 case INSERT:

@@ -1,0 +1,17 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Sets controllers on all OVS bridges on the mininet machine.
+# -----------------------------------------------------------------------------
+
+controllers=""
+
+for node in $ONOS_INSTANCES; do
+    controllers="$controllers tcp:$node:${OF_PORT:-6653}"
+done
+
+ssh ${ONOS_USER:-sdn}@$OCN "
+    sudo ovs-vsctl list-br | while read br; do
+        echo \$br: $controllers
+        sudo ovs-vsctl set-controller \$br $controllers
+    done
+"

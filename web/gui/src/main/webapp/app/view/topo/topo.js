@@ -95,6 +95,9 @@
     // and include them in the quick-help panel
     function mergeKeys(extra) {
         var _hf = actionMap._helpFormat[2];
+
+        ks.checkNotGlobal(extra);
+
         extra._keyOrder.forEach(function (k) {
             var d = extra[k],
                 cb = d && d.cb,

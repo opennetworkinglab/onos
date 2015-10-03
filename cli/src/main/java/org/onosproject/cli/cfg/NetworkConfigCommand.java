@@ -15,6 +15,8 @@
  */
 package org.onosproject.cli.cfg;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Argument;
@@ -51,30 +53,35 @@ public class NetworkConfigCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         service = get(NetworkConfigService.class);
-        ObjectNode root = new ObjectMapper().createObjectNode();
+        JsonNode root = mapper.createObjectNode();
         if (isNullOrEmpty(subjectKey)) {
-            addAll(root);
+            addAll((ObjectNode) root);
         } else {
             SubjectFactory subjectFactory = service.getSubjectFactory(subjectKey);
             if (isNullOrEmpty(subject)) {
-                addSubjectClass(root, subjectFactory);
+                addSubjectClass((ObjectNode) root, subjectFactory);
             } else {
                 Object s = subjectFactory.createSubject(subject);
                 if (isNullOrEmpty(configKey)) {
-                    addSubject(root, s);
+                    addSubject((ObjectNode) root, s);
                 } else {
                     root = getSubjectConfig(getConfig(s, subjectKey, configKey));
                 }
             }
         }
-        print("%s", root.toString());
+
+        try {
+            print("%s", mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error writing JSON to string", e);
+        }
     }
 
     @SuppressWarnings("unchecked")
     private void addAll(ObjectNode root) {
         service.getSubjectClasses()
                 .forEach(sc -> {
-                    SubjectFactory sf = service.getSubjectFactory((Class) sc);
+                    SubjectFactory sf = service.getSubjectFactory(sc);
                     addSubjectClass(newObject(root, sf.subjectKey()), sf);
                 });
     }
@@ -89,7 +96,7 @@ public class NetworkConfigCommand extends AbstractShellCommand {
         service.getConfigs(s).forEach(c -> root.set(c.key(), c.node()));
     }
 
-    private ObjectNode getSubjectConfig(Config config) {
+    private JsonNode getSubjectConfig(Config config) {
         return config != null ? config.node() : null;
     }
 

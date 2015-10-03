@@ -36,11 +36,11 @@ public class RemoteTENodeDescriptorsTlvTest {
     private final AutonomousSystemTlv autonomousSystemTlv2 = new AutonomousSystemTlv(20);
     private final BGPLSidentifierTlv bGPLSidentifierTlv2 = new BGPLSidentifierTlv(30);
 
-    private final LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLV1 = new LinkedList<PcepValueType>();
+    private final LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLV1 = new LinkedList<>();
     private final boolean a = llRemoteTENodeDescriptorSubTLV1.add(autonomousSystemTlv1);
     private final boolean b = llRemoteTENodeDescriptorSubTLV1.add(bGPLSidentifierTlv1);
 
-    private final LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLV2 = new LinkedList<PcepValueType>();
+    private final LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLV2 = new LinkedList<>();
     private final boolean c = llRemoteTENodeDescriptorSubTLV2.add(autonomousSystemTlv2);
     private final boolean d = llRemoteTENodeDescriptorSubTLV2.add(bGPLSidentifierTlv2);
 

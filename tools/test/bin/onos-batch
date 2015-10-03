@@ -3,6 +3,28 @@
 # Executes selected set of ONOS commands using the batch mode.
 # -----------------------------------------------------------------------------
 
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) [node] <commands>
+
+options:
+- [node] <commands>  : node to run <commands>
+
+summary:
+ Executes selected set of ONOS commands using the batch mode.
+
+ <commands> is a comma-separated list of ONOS CLI commands.
+
+ If [node] isn't specified, the defualt target becomes \$OCI. When no commands
+ are specified, the commands 'summary','intents','flows', and 'hosts' are
+ executed against \$OCI.
+
+_EOF_
+}
+
+[ "$1" = "-h" ] && _usage && exit 0
+
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 

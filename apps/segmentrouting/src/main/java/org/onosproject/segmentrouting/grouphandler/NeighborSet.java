@@ -44,7 +44,7 @@ public class NeighborSet {
     public NeighborSet(Set<DeviceId> neighbors) {
         checkNotNull(neighbors);
         this.edgeLabel = NO_EDGE_LABEL;
-        this.neighbors = new HashSet<DeviceId>();
+        this.neighbors = new HashSet<>();
         this.neighbors.addAll(neighbors);
     }
 
@@ -57,7 +57,7 @@ public class NeighborSet {
     public NeighborSet(Set<DeviceId> neighbors, int edgeLabel) {
         checkNotNull(neighbors);
         this.edgeLabel = edgeLabel;
-        this.neighbors = new HashSet<DeviceId>();
+        this.neighbors = new HashSet<>();
         this.neighbors.addAll(neighbors);
     }
 
@@ -66,7 +66,7 @@ public class NeighborSet {
      */
     public NeighborSet() {
         this.edgeLabel = NO_EDGE_LABEL;
-        this.neighbors = new HashSet<DeviceId>();
+        this.neighbors = new HashSet<>();
     }
 
     /**

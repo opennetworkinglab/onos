@@ -1,0 +1,8 @@
+Package: onos
+Architecture: all
+Maintainer: ONOS Project
+Depends: debconf (>= 0.5.00), default-jre-headless (>= 1.8) | openjdk-8-jre | oracle-java8-installer
+Priority: optional
+Version: @ONOS_POM_VERSION
+Description: Open Network Operating System (ONOS)
+  Open Network Operating System (ONOS) is an opensource SDN controller.

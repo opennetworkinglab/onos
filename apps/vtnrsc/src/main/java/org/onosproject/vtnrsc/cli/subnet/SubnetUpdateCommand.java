@@ -88,11 +88,11 @@ public class SubnetUpdateCommand extends AbstractShellCommand {
 
     @Option(name = "-h", aliases = "--hostRoutes", description = "Subnet jsonnode hostRoutes",
             required = false, multiValued = false)
-    Iterable<HostRoute> hostRoutes = null;
+    Set<HostRoute> hostRoutes = Sets.newHashSet();
 
     @Option(name = "-a", aliases = "--allocationPools",
             description = "Subnet jsonnode allocationPools", required = false, multiValued = false)
-    Iterable<AllocationPool> allocationPools = Sets.newHashSet();;
+    Set<AllocationPool> allocationPools = Sets.newHashSet();
 
     @Override
     protected void execute() {

@@ -104,7 +104,7 @@ public class PcepLabelRangeVer1 implements PcepLabelRange {
             throw new PcepParseException("Exception while parsing srp object");
         }
 
-        LinkedList<PcepLabelRangeObject> llLabelRangeList = new LinkedList<PcepLabelRangeObject>();
+        LinkedList<PcepLabelRangeObject> llLabelRangeList = new LinkedList<>();
         boolean bFoundLabelRangeObj = false;
         while (0 < cb.readableBytes()) {
             //parse and store <labelrange-list>

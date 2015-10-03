@@ -313,13 +313,13 @@ public class DefaultGroupHandler {
                 return -1;
             } else {
                 log.debug("getNextObjectiveId in device{}: Next objective id {} "
-                    + "created for {}", deviceId, nextId.intValue(), ns);
+                    + "created for {}", deviceId, nextId, ns);
             }
         } else {
             log.trace("getNextObjectiveId in device{}: Next objective id {} "
-                    + "found for {}", deviceId, nextId.intValue(), ns);
+                    + "found for {}", deviceId, nextId, ns);
         }
-        return nextId.intValue();
+        return nextId;
     }
 
     /**
@@ -371,7 +371,7 @@ public class DefaultGroupHandler {
         if (devicePortMap.get(neighborId) != null) {
             devicePortMap.get(neighborId).add(portToNeighbor);
         } else {
-            Set<PortNumber> ports = new HashSet<PortNumber>();
+            Set<PortNumber> ports = new HashSet<>();
             ports.add(portToNeighbor);
             devicePortMap.put(neighborId, ports);
         }
@@ -383,8 +383,8 @@ public class DefaultGroupHandler {
     }
 
     protected Set<Set<DeviceId>> getPowerSetOfNeighbors(Set<DeviceId> neighbors) {
-        List<DeviceId> list = new ArrayList<DeviceId>(neighbors);
-        Set<Set<DeviceId>> sets = new HashSet<Set<DeviceId>>();
+        List<DeviceId> list = new ArrayList<>(neighbors);
+        Set<Set<DeviceId>> sets = new HashSet<>();
         // get the number of elements in the neighbors
         int elements = list.size();
         // the number of members of a power set is 2^n
@@ -394,7 +394,7 @@ public class DefaultGroupHandler {
         // run a binary counter for the number of power elements
         // NOTE: Exclude empty set
         for (long i = 1; i < powerElements; i++) {
-            Set<DeviceId> neighborSubSet = new HashSet<DeviceId>();
+            Set<DeviceId> neighborSubSet = new HashSet<>();
             for (int j = 0; j < elements; j++) {
                 if ((i >> j) % 2 == 1) {
                     neighborSubSet.add(list.get(j));
@@ -411,7 +411,7 @@ public class DefaultGroupHandler {
 
     protected List<Integer> getSegmentIdsTobePairedWithNeighborSet(Set<DeviceId> neighbors) {
 
-        List<Integer> nsSegmentIds = new ArrayList<Integer>();
+        List<Integer> nsSegmentIds = new ArrayList<>();
 
         // Always pair up with no edge label
         // If (neighbors.size() == 1) {

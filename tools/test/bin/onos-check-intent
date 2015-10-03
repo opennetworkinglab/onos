@@ -13,7 +13,7 @@ target=${1:-$OCI}
 echo onos-check-intent: $*
 
 set -x
-for i in {1..10}; do
+for i in {1..15}; do
     onos $target "onos:intents" | tee $aux
     ( cat $aux | grep "key=$2" | grep "state=$3" ) && cat $aux && exit 0
     sleep 1

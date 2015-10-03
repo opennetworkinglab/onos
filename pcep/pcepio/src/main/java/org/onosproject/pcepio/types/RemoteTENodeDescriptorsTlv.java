@@ -181,13 +181,14 @@ public class RemoteTENodeDescriptorsTlv implements PcepValueType {
      * Reads channel buffer and returns object of Remote TE Node Descriptors TLV.
      *
      * @param c input channel buffer
+     * @param length length of buffer
      * @return object of RemoteTENodeDescriptorsTLV
      * @throws PcepParseException if mandatory fields are missing
      */
     public static PcepValueType read(ChannelBuffer c , short length) throws PcepParseException {
 
         // Node Descriptor Sub-TLVs (variable)
-        LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs = new LinkedList<>();
 
         ChannelBuffer tempCb = c.readBytes(length);
 

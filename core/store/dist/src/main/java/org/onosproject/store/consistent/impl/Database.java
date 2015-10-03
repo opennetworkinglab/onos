@@ -38,7 +38,7 @@ public interface Database extends DatabaseProxy<String, byte[]>, Resource<Databa
    * options specified in {@code cluster.conf} will override those in {cluster-defaults.conf}.<p>
    *
    * Additionally, the database will be constructed with an database configuration that searches the classpath for
-   * three configuration files - {@code {name}}, {@code database}, {@code database-defaults}, {@code resource}, and
+   * three configuration files - {@code name}, {@code database}, {@code database-defaults}, {@code resource}, and
    * {@code resource-defaults} - in that order. The first resource is a configuration resource with the same name
    * as the map resource. If the resource is namespaced - e.g. `databases.my-database.conf` - then resource
    * configurations will be loaded according to namespaces as well; for example, `databases.conf`.
@@ -54,7 +54,7 @@ public interface Database extends DatabaseProxy<String, byte[]>, Resource<Databa
    * Creates a new database.<p>
    *
    * The database will be constructed with an database configuration that searches the classpath for
-   * three configuration files - {@code {name}}, {@code database}, {@code database-defaults}, {@code resource}, and
+   * three configuration files - {@code name}, {@code database}, {@code database-defaults}, {@code resource}, and
    * {@code resource-defaults} - in that order. The first resource is a configuration resource with the same name
    * as the database resource. If the resource is namespaced - e.g. `databases.my-database.conf` - then resource
    * configurations will be loaded according to namespaces as well; for example, `databases.conf`.

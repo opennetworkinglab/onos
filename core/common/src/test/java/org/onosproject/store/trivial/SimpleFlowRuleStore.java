@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.trivial;
 
-import com.google.common.base.Function;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
@@ -162,15 +161,7 @@ public class SimpleFlowRuleStore
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
         // flatten and make iterator unmodifiable
         return FluentIterable.from(getFlowTable(deviceId).values())
-                .transformAndConcat(
-                        new Function<List<StoredFlowEntry>, Iterable<? extends FlowEntry>>() {
-
-                            @Override
-                            public Iterable<? extends FlowEntry> apply(
-                                    List<StoredFlowEntry> input) {
-                                return Collections.unmodifiableList(input);
-                            }
-                        });
+                .transformAndConcat(Collections::unmodifiableList);
     }
 
     @Override

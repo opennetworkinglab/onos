@@ -138,7 +138,7 @@ public class TopologyMetrics implements TopologyMetricsService {
     @Override
     public List<Event> getEvents() {
         synchronized (lastEvents) {
-            return ImmutableList.<Event>copyOf(lastEvents);
+            return ImmutableList.copyOf(lastEvents);
         }
     }
 

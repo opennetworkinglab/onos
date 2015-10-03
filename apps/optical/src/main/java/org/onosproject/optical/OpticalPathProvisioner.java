@@ -45,7 +45,8 @@ import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.resource.device.DeviceResourceService;
+import org.onosproject.net.newresource.ResourceService;
+import org.onosproject.net.resource.device.IntentSetMultimap;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.topology.LinkWeight;
@@ -97,10 +98,13 @@ public class OpticalPathProvisioner {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceResourceService deviceResourceService;
+    protected IntentSetMultimap intentSetMultimap;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkResourceService linkResourceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ResourceService resourceService;
 
     private ApplicationId appId;
 
@@ -292,7 +296,6 @@ public class OpticalPathProvisioner {
                             .bidirectional(true)
                             .build();
                     intents.add(circuitIntent);
-                    continue;
                 } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
                     // Create lightpath
                     // FIXME: hardcoded ODU signal type
@@ -304,7 +307,6 @@ public class OpticalPathProvisioner {
                             .bidirectional(true)
                             .build();
                     intents.add(opticalIntent);
-                    continue;
                 } else {
                     log.warn("Unsupported cross connect point types {} {}", srcPort.type(), dstPort.type());
                     return Collections.emptyList();
@@ -377,13 +379,13 @@ public class OpticalPathProvisioner {
         private void releaseResources(Intent intent) {
             LinkResourceAllocations lra = linkResourceService.getAllocations(intent.id());
             if (intent instanceof OpticalConnectivityIntent) {
-                deviceResourceService.releasePorts(intent.id());
+                resourceService.release(intent.id());
                 if (lra != null) {
                     linkResourceService.releaseResources(lra);
                 }
             } else if (intent instanceof OpticalCircuitIntent) {
-                deviceResourceService.releasePorts(intent.id());
-                deviceResourceService.releaseMapping(intent.id());
+                resourceService.release(intent.id());
+                intentSetMultimap.releaseMapping(intent.id());
                 if (lra != null) {
                     linkResourceService.releaseResources(lra);
                 }

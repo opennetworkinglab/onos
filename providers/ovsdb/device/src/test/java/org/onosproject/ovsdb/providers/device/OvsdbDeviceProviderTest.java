@@ -27,6 +27,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.TpPort;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceDescription;
@@ -193,6 +194,10 @@ public class OvsdbDeviceProviderTest {
             return null;
         }
 
+        @Override
+        public void connect(IpAddress ip, TpPort port) {
+
+        }
     }
 
 }

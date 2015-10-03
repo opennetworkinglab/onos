@@ -69,7 +69,7 @@ class PcepTEReportMsgVer1 implements PcepTEReportMsg {
                 return null;
             }
 
-            teReportList = new LinkedList<PcepTEObject>();
+            teReportList = new LinkedList<>();
 
             byte version = cb.readByte();
             version = (byte) (version >> PcepMessageVer1.SHIFT_FLAG);

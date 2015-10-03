@@ -16,6 +16,7 @@
 package org.onosproject.net.meter;
 
 import org.onosproject.event.ListenerService;
+import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
 
@@ -46,10 +47,11 @@ public interface MeterService
     /**
      * Fetch the meter by the meter id.
      *
+     * @param deviceId a device id
      * @param id a meter id
      * @return a meter
      */
-    Meter getMeter(MeterId id);
+    Meter getMeter(DeviceId deviceId, MeterId id);
 
     /**
      * Fetches all the meters.

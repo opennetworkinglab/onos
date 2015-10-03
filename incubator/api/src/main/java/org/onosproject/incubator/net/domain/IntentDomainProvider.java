@@ -34,51 +34,51 @@ public interface IntentDomainProvider {
      *
      * @param domain intent domain for the request
      * @param primitive intent primitive
-     * @return request contexts that contain resources to satisfy the intent
+     * @return intent resources that specify paths that satisfy the request.
      */
     //TODO Consider an iterable and/or holds (only hold one or two reservation(s) at a time)
-    List<RequestContext> request(IntentDomain domain, IntentPrimitive primitive);
+    List<DomainIntentResource> request(IntentDomain domain, IntentPrimitive primitive);
 
     /**
      * Request that the provider attempt to modify an existing resource to satisfy
      * a new intent primitive. The application must apply the context before
      * the intent resource can be used.
      *
-     * @param resource existing resource
-     * @param newPrimitive intent primitive
+     * @param oldResource the resource to be replaced
+     * @param newResource the resource to be applied
      * @return request contexts that contain resources to satisfy the intent
      */
-    List<RequestContext> modify(IntentResource resource, IntentPrimitive newPrimitive);
+    DomainIntentResource modify(DomainIntentResource oldResource, DomainIntentResource newResource);
 
     /**
      * Requests that the provider release an intent resource.
      *
      * @param resource intent resource
      */
-    void release(IntentResource resource);
+    void release(DomainIntentResource resource);
 
     /**
-     * Requests that the provider apply the intent resource in the request context.
+     * Requests that the provider apply the path from the intent resource.
      *
-     * @param context request context
+     * @param domainIntentResource request context
      * @return intent resource that satisfies the intent
      */
-    IntentResource apply(RequestContext context);
+    DomainIntentResource apply(DomainIntentResource domainIntentResource);
 
     /**
-     * Requests that the provider cancel the request. Requests that are not applied
+     * Requests that the provider cancel the path. Requests that are not applied
      * will be eventually timed out by the provider.
      *
-     * @param context request context
+     * @param domainIntentResource the intent resource whose path should be cancelled.
      */
-    void cancel(RequestContext context);
+    void cancel(DomainIntentResource domainIntentResource);
 
     /**
      * Returns all intent resources held by the provider.
      *
      * @return set of intent resources
      */
-    Set<IntentResource> getResources();
+    Set<DomainIntentResource> getResources();
 }
 
 

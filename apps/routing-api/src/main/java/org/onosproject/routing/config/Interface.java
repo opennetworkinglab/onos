@@ -21,7 +21,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.host.InterfaceIpAddress;
-import org.onosproject.net.host.PortAddresses;
 
 import java.util.Objects;
 import java.util.Set;
@@ -52,18 +51,6 @@ public class Interface {
         this.ipAddresses = Sets.newHashSet(ipAddresses);
         this.macAddress = macAddress;
         this.vlan = vlan;
-    }
-
-    /**
-     * Creates an Interface based on a PortAddresses object.
-     *
-     * @param portAddresses the PortAddresses object to turn into an Interface
-     */
-    public Interface(PortAddresses portAddresses) {
-        connectPoint = portAddresses.connectPoint();
-        ipAddresses = Sets.newHashSet(portAddresses.ipAddresses());
-        macAddress = portAddresses.mac();
-        vlan = portAddresses.vlan();
     }
 
     /**

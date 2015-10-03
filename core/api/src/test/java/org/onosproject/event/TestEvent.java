@@ -20,7 +20,7 @@ package org.onosproject.event;
  */
 public class TestEvent extends AbstractEvent<TestEvent.Type, String> {
 
-    public enum Type { FOO, BAR };
+    public enum Type { FOO, BAR }
 
     public TestEvent(Type type, String subject) {
         super(type, subject);

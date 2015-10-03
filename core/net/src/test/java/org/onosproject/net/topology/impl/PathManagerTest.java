@@ -23,13 +23,11 @@ import org.onosproject.net.ElementId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Path;
-import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.Topology;
-import org.onosproject.net.topology.TopologyService;
 import org.onosproject.net.topology.TopologyServiceAdapter;
 
 import java.util.HashMap;
@@ -137,7 +135,7 @@ public class PathManagerTest {
     }
 
     // Fake entity to give out paths.
-    private class FakeTopoMgr extends TopologyServiceAdapter implements TopologyService {
+    private class FakeTopoMgr extends TopologyServiceAdapter {
         Set<Path> paths = new HashSet<>();
 
         @Override
@@ -152,7 +150,7 @@ public class PathManagerTest {
     }
 
     // Fake entity to give out hosts.
-    private class FakeHostMgr extends HostServiceAdapter implements HostService {
+    private class FakeHostMgr extends HostServiceAdapter  {
         private Map<HostId, Host> hosts = new HashMap<>();
 
         @Override

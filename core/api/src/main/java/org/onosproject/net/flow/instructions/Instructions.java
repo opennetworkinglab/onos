@@ -68,8 +68,18 @@ public final class Instructions {
      *
      * @return drop instruction
      */
+    @Deprecated
     public static DropInstruction createDrop() {
         return new DropInstruction();
+    }
+
+    /**
+     * Creates a no action instruction.
+     *
+     * @return no action instruction
+     */
+    public static NoActionInstruction createNoAction() {
+        return new NoActionInstruction();
     }
 
     /**
@@ -86,19 +96,6 @@ public final class Instructions {
     public static MeterInstruction meterTraffic(final MeterId meterId) {
         checkNotNull(meterId, "meter id cannot be null");
         return new MeterInstruction(meterId);
-    }
-
-    /**
-     * Creates a l0 modification.
-     *
-     * @param lambda the lambda to modify to
-     * @return a l0 modification
-     * @deprecated in Cardinal Release. Use {@link #modL0Lambda(Lambda)} instead.
-     */
-    @Deprecated
-    public static L0ModificationInstruction modL0Lambda(short lambda) {
-        checkNotNull(lambda, "L0 lambda cannot be null");
-        return new ModLambdaInstruction(L0SubType.LAMBDA, lambda);
     }
 
     /**
@@ -303,21 +300,6 @@ public final class Instructions {
      *
      * @param etherType Ethernet type to set
      * @return a L2 modification.
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
-    public static Instruction popMpls(int etherType) {
-        checkNotNull(etherType, "Ethernet type cannot be null");
-        return new L2ModificationInstruction.PushHeaderInstructions(
-                L2ModificationInstruction.L2SubType.MPLS_POP, new EthType(etherType));
-    }
-
-
-    /**
-     * Creates a pop MPLS header instruction with a particular ethertype.
-     *
-     * @param etherType Ethernet type to set
-     * @return a L2 modification.
      */
     public static Instruction popMpls(EthType etherType) {
         checkNotNull(etherType, "Ethernet type cannot be null");
@@ -478,6 +460,7 @@ public final class Instructions {
     /**
      *  Drop instruction.
      */
+    @Deprecated
     public static final class DropInstruction implements Instruction {
 
         private DropInstruction() {}
@@ -503,6 +486,40 @@ public final class Instructions {
                 return true;
             }
             if (obj instanceof DropInstruction) {
+                return true;
+            }
+            return false;
+        }
+    }
+
+    /**
+     *  No Action instruction.
+     */
+    public static final class NoActionInstruction implements Instruction {
+
+        private NoActionInstruction() {}
+
+        @Override
+        public Type type() {
+            return Type.NOACTION;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString()).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type().ordinal());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof NoActionInstruction) {
                 return true;
             }
             return false;

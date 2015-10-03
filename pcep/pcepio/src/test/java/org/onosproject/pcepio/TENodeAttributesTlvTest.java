@@ -38,11 +38,11 @@ public class TENodeAttributesTlvTest {
     private final IPv4TERouterIdOfLocalNodeTlv iPv4TERouterIdOfLocalNodeTlv2 = new
             IPv4TERouterIdOfLocalNodeTlv(0x02020202);
 
-    private final LinkedList<PcepValueType> llNodeAttributesSubTLV1 = new LinkedList<PcepValueType>();
+    private final LinkedList<PcepValueType> llNodeAttributesSubTLV1 = new LinkedList<>();
     private final boolean a = llNodeAttributesSubTLV1.add(nodeFlagBitsTlv1);
     private final boolean b = llNodeAttributesSubTLV1.add(iPv4TERouterIdOfLocalNodeTlv1);
 
-    private final LinkedList<PcepValueType> llNodeAttributesSubTLV2 = new LinkedList<PcepValueType>();
+    private final LinkedList<PcepValueType> llNodeAttributesSubTLV2 = new LinkedList<>();
 
     private final boolean c = llNodeAttributesSubTLV2.add(nodeFlagBitsTlv2);
     private final boolean d = llNodeAttributesSubTLV2.add(iPv4TERouterIdOfLocalNodeTlv2);

@@ -1,0 +1,47 @@
+<!-- DHCP Server partial HTML -->
+<div id="ov-dhcp">
+  <div class="tabular-header">
+    <h2>DHCP Mappings ({{tableData.length}} total)</h2>
+    <div class="ctrl-btns">
+      <div class="refresh" ng-class="{active: autoRefresh}"
+           icon icon-size="36" icon-id="refresh"
+           tooltip tt-msg="autoRefreshTip"
+           ng-click="toggleRefresh()"></div>
+    </div>
+  </div>
+
+  <div class="summary-list" onos-table-resize>
+    <div ng-show="loading" class="loading-wheel"
+         icon icon-id="loading" icon-size="75"></div>
+
+    <div class="table-header" onos-sortable-header>
+      <table>
+        <tr>
+          <td colId="host" sortable>Host ID</td>
+          <td colId="ip" sortable>IP Address</td>
+          <td colId="lease" sortable>Lease Expiry</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="table-body">
+      <table onos-flash-changes id-prop="host">
+        <tr ng-if="!tableData.length" class="no-data">
+          <td colspan="2">
+            No mappings found
+          </td>
+        </tr>
+
+        <tr ng-repeat="dhcp in tableData track by $index"
+            ng-click="selectCallback($event, dhcp)"
+            ng-repeat-complete row-id="{{dhcp.host}}">
+          <td>{{dhcp.host}}</td>
+          <td>{{dhcp.ip}}</td>
+          <td>{{dhcp.lease}}</td>
+        </tr>
+      </table>
+    </div>
+
+  </div>
+
+</div>

@@ -62,7 +62,6 @@ import org.onosproject.store.serializers.custom.DistributedStoreSerializers;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -551,7 +550,7 @@ public class GossipLinkStore
      */
     private static <K, V> SetMultimap<K, V> createSynchronizedHashMultiMap() {
         return synchronizedSetMultimap(
-               Multimaps.newSetMultimap(new ConcurrentHashMap<K, Collection<V>>(),
+               Multimaps.newSetMultimap(new ConcurrentHashMap<>(),
                                        () -> Sets.newConcurrentHashSet()));
     }
 
@@ -827,7 +826,7 @@ public class GossipLinkStore
         public void handle(ClusterMessage message) {
 
             log.trace("Received link event from peer: {}", message.sender());
-            InternalLinkEvent event = (InternalLinkEvent) SERIALIZER.decode(message.payload());
+            InternalLinkEvent event = SERIALIZER.decode(message.payload());
 
             ProviderId providerId = event.providerId();
             Timestamped<LinkDescription> linkDescription = event.linkDescription();
@@ -846,7 +845,7 @@ public class GossipLinkStore
         public void handle(ClusterMessage message) {
 
             log.trace("Received link removed event from peer: {}", message.sender());
-            InternalLinkRemovedEvent event = (InternalLinkRemovedEvent) SERIALIZER.decode(message.payload());
+            InternalLinkRemovedEvent event = SERIALIZER.decode(message.payload());
 
             LinkKey linkKey = event.linkKey();
             Timestamp timestamp = event.timestamp();

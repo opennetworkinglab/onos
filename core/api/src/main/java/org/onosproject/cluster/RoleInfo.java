@@ -52,20 +52,17 @@ public class RoleInfo {
 
     @Override
     public boolean equals(Object other) {
-        if (other == null) {
-            return false;
+        if (this == other) {
+            return true;
         }
+
         if (!(other instanceof RoleInfo)) {
             return false;
         }
         RoleInfo that = (RoleInfo) other;
-        if (!Objects.equals(this.master, that.master)) {
-            return false;
-        }
-        if (!Objects.equals(this.backups, that.backups)) {
-            return false;
-        }
-        return true;
+
+        return Objects.equals(this.master, that.master)
+                && Objects.equals(this.backups, that.backups);
     }
 
     @Override

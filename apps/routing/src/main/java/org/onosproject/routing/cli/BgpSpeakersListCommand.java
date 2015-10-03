@@ -16,13 +16,19 @@
 
 package org.onosproject.routing.cli;
 
+import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.Comparators;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.BgpConfig;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Lists the BGP speakers configured in the system.
@@ -31,7 +37,11 @@ import org.onosproject.routing.config.BgpConfig;
         description = "Lists all BGP speakers")
 public class BgpSpeakersListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%s : %s";
+    private static final String FORMAT = "port=%s/%s, peers=%s";
+    private static final String NAME_FORMAT = "%s: " + FORMAT;
+
+    private static final Comparator<BgpConfig.BgpSpeakerConfig> SPEAKERS_COMPARATOR = (s1, s2) ->
+            Comparators.CONNECT_POINT_COMPARATOR.compare(s1.connectPoint(), s2.connectPoint());
 
     @Override
     protected void execute() {
@@ -39,15 +49,26 @@ public class BgpSpeakersListCommand extends AbstractShellCommand {
         CoreService coreService = get(CoreService.class);
         ApplicationId appId = coreService.getAppId(RoutingService.ROUTER_APP_ID);
 
-        print(appId.toString());
-
         BgpConfig config = configService.getConfig(appId, BgpConfig.class);
+
+        List<BgpConfig.BgpSpeakerConfig> bgpSpeakers =
+                Lists.newArrayList(config.bgpSpeakers());
+
+        Collections.sort(bgpSpeakers, SPEAKERS_COMPARATOR);
 
         if (config == null || config.bgpSpeakers().isEmpty()) {
             print("No speakers configured");
         } else {
-            config.bgpSpeakers().forEach(
-                    s -> print(FORMAT, s.connectPoint(), s.peers()));
+            bgpSpeakers.forEach(
+                s -> {
+                    if (s.name().isPresent()) {
+                        print(NAME_FORMAT, s.name().get(), s.connectPoint().deviceId(),
+                                s.connectPoint().port(), s.peers());
+                    } else {
+                        print(FORMAT, s.connectPoint().deviceId(),
+                                s.connectPoint().port(), s.peers());
+                    }
+                });
         }
     }
 }

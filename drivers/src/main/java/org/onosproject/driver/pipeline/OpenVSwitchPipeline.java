@@ -26,7 +26,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
@@ -48,9 +47,10 @@ import org.slf4j.Logger;
 /**
  * Driver for standard OpenVSwitch.
  */
-public class OpenVSwitchPipeline extends AbstractHandlerBehaviour
+public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
         implements Pipeliner {
 
+    private static final String VTN_APP_ID = "org.onosproject.app.vtn";
     private final Logger log = getLogger(getClass());
     private CoreService coreService;
     private ServiceDirectory serviceDirectory;
@@ -58,14 +58,13 @@ public class OpenVSwitchPipeline extends AbstractHandlerBehaviour
     protected DeviceId deviceId;
     protected FlowRuleService flowRuleService;
     protected DeviceService deviceService;
-    private static final int MAC_TABLE_PRIORITY = 0xffff;
-    private static final int PORT_TABLE_PRIORITY = 0xffff;
     private static final int TIME_OUT = 0;
     private static final int MAC_TABLE = 40;
     private static final int PORT_TABLE = 0;
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
+        super.init(deviceId, context);
         this.serviceDirectory = context.directory();
         this.deviceId = deviceId;
 
@@ -79,11 +78,15 @@ public class OpenVSwitchPipeline extends AbstractHandlerBehaviour
 
     @Override
     public void filter(FilteringObjective filteringObjective) {
-        // TODO Auto-generated method stub
+        super.filter(filteringObjective);
     }
 
     @Override
     public void forward(ForwardingObjective fwd) {
+        if (!VTN_APP_ID.equals(fwd.appId().name())) {
+            super.forward(fwd);
+            return;
+        }
         Collection<FlowRule> rules;
         FlowRuleOperations.Builder flowOpsBuilder = FlowRuleOperations
                 .builder();
@@ -119,8 +122,7 @@ public class OpenVSwitchPipeline extends AbstractHandlerBehaviour
 
     @Override
     public void next(NextObjective nextObjective) {
-        // TODO Auto-generated method stub
-
+        super.next(nextObjective);
     }
 
     private Collection<FlowRule> processForward(ForwardingObjective fwd) {
@@ -148,18 +150,16 @@ public class OpenVSwitchPipeline extends AbstractHandlerBehaviour
         FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
                 .fromApp(fwd.appId()).withPriority(fwd.priority())
                 .forDevice(deviceId).withSelector(selector)
-                .makeTemporary(TIME_OUT);
-
+                .withTreatment(tb).makeTemporary(TIME_OUT);
+        ruleBuilder.withPriority(fwd.priority());
         if (fwd.permanent()) {
             ruleBuilder.makePermanent();
         }
         if (selector.getCriterion(Type.ETH_DST) != null
                 || tb.allInstructions().contains(Instructions.createDrop())) {
-            ruleBuilder.withPriority(MAC_TABLE_PRIORITY);
             ruleBuilder.withTreatment(tb);
             ruleBuilder.forTable(MAC_TABLE);
         } else {
-            ruleBuilder.withPriority(PORT_TABLE_PRIORITY);
             TrafficTreatment.Builder newTraffic = DefaultTrafficTreatment.builder();
             tb.allInstructions().forEach(t -> newTraffic.add(t));
             newTraffic.transition(MAC_TABLE);

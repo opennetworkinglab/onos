@@ -15,8 +15,26 @@
  */
 package org.onosproject.net.device.impl;
 
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.Futures;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.net.MastershipRole.NONE;
+import static org.onosproject.net.MastershipRole.STANDBY;
+import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.DEVICE_READ;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -26,22 +44,23 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.net.provider.AbstractListenerProviderRegistry;
-import org.onosproject.net.config.NetworkConfigEvent;
-import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.mastership.MastershipTermService;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Device.Type;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
+import org.onosproject.net.config.basics.OpticalPortConfig;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceAdminService;
@@ -56,28 +75,11 @@ import org.onosproject.net.device.DeviceStore;
 import org.onosproject.net.device.DeviceStoreDelegate;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.MastershipRole.*;
-import static org.onosproject.security.AppGuard.checkPermission;
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppPermission.Type.*;
-
+import com.google.common.util.concurrent.Futures;
 
 /**
  * Provides implementation of the device SB &amp; NB APIs.
@@ -92,6 +94,7 @@ public class DeviceManager
     private static final String PORT_NUMBER_NULL = "Port number cannot be null";
     private static final String DEVICE_DESCRIPTION_NULL = "Device description cannot be null";
     private static final String PORT_DESCRIPTION_NULL = "Port description cannot be null";
+    private static final String PORT_DESC_LIST_NULL = "Port description list cannot be null";
 
     private final Logger log = getLogger(getClass());
 
@@ -265,8 +268,7 @@ public class DeviceManager
                 continue;
             }
 
-            log.info("{} is reachable but did not have a valid role, reasserting",
-                     deviceId);
+            log.info("{} is reachable but did not have a valid role, reasserting", deviceId);
 
             // isReachable but was not MASTER or STANDBY, get a role and apply
             // Note: NONE triggers request to MastershipService
@@ -309,16 +311,20 @@ public class DeviceManager
             return true;
         }
 
-
         @Override
         public void deviceConnected(DeviceId deviceId,
                                     DeviceDescription deviceDescription) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
             checkNotNull(deviceDescription, DEVICE_DESCRIPTION_NULL);
             checkValidity();
-            deviceDescription = validateDevice(deviceDescription, deviceId);
 
-            // Establish my Role
+            BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
+            if (!isAllowed(cfg)) {
+                log.warn("Device {} is not allowed", deviceId);
+                return;
+            }
+            // Generate updated description and establish my Role
+            deviceDescription = BasicDeviceOperator.combine(cfg, deviceDescription);
             Futures.getUnchecked(mastershipService.requestRoleFor(deviceId)
                     .thenAccept(role -> {
                         log.info("Local role is {} for {}", role, deviceId);
@@ -327,20 +333,11 @@ public class DeviceManager
 
             DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
                                                            deviceDescription);
+            log.info("Device {} connected", deviceId);
             if (event != null) {
                 log.trace("event: {} {}", event.type(), event);
                 post(event);
             }
-        }
-
-        // returns a DeviceDescription made from the union of the BasicDeviceConfig
-        // annotations if it exists
-        private DeviceDescription validateDevice(DeviceDescription deviceDescription, DeviceId deviceId) {
-            BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
-            checkState(cfg == null || cfg.isAllowed(), "Device " + deviceId + " is not allowed");
-            log.info("Device {} connected", deviceId);
-
-            return BasicDeviceOperator.combine(cfg, deviceDescription);
         }
 
         @Override
@@ -351,11 +348,15 @@ public class DeviceManager
             log.info("Device {} disconnected from this node", deviceId);
 
             List<Port> ports = store.getPorts(deviceId);
-            List<PortDescription> descs = Lists.newArrayList();
-            ports.forEach(port ->
-                                  descs.add(new DefaultPortDescription(port.number(),
-                                                                       false, port.type(),
-                                                                       port.portSpeed())));
+            final Device device = getDevice(deviceId);
+
+            List<PortDescription> descs = ports.stream().map(
+              port -> (!(Device.Type.ROADM.equals(device.type()))) ?
+                  new DefaultPortDescription(port.number(), false,
+                          port.type(), port.portSpeed()) :
+                      OpticalPortOperator.descriptionOf(port, false)
+                 ).collect(Collectors.toList());
+
             store.updatePorts(this.provider().id(), deviceId, descs);
             try {
                 if (mastershipService.isLocalMaster(deviceId)) {
@@ -402,8 +403,7 @@ public class DeviceManager
         public void updatePorts(DeviceId deviceId,
                                 List<PortDescription> portDescriptions) {
             checkNotNull(deviceId, DEVICE_ID_NULL);
-            checkNotNull(portDescriptions,
-                         "Port descriptions list cannot be null");
+            checkNotNull(portDescriptions, PORT_DESC_LIST_NULL);
             checkValidity();
             if (!mastershipService.isLocalMaster(deviceId)) {
                 // Never been a master for this device
@@ -411,7 +411,9 @@ public class DeviceManager
                 log.trace("Ignoring {} port updates on standby node. {}", deviceId, portDescriptions);
                 return;
             }
-
+            portDescriptions = portDescriptions.stream()
+                    .map(e -> consolidate(deviceId, e))
+                    .collect(Collectors.toList());
             List<DeviceEvent> events = store.updatePorts(this.provider().id(),
                                                          deviceId, portDescriptions);
             for (DeviceEvent event : events) {
@@ -433,13 +435,31 @@ public class DeviceManager
                           portDescription);
                 return;
             }
+            final Device device = getDevice(deviceId);
+            if ((Device.Type.ROADM.equals(device.type()))) {
+                Port port = getPort(deviceId, portDescription.portNumber());
+                portDescription = OpticalPortOperator.descriptionOf(port, portDescription.isEnabled());
+            }
 
+            portDescription = consolidate(deviceId, portDescription);
             final DeviceEvent event = store.updatePortStatus(this.provider().id(),
                                                              deviceId, portDescription);
             if (event != null) {
-                log.info("Device {} port {} status changed", deviceId, event
-                        .port().number());
+                log.info("Device {} port {} status changed", deviceId, event.port().number());
                 post(event);
+            }
+        }
+
+        // merges the appropriate PortConfig with the description.
+        private PortDescription consolidate(DeviceId did, PortDescription desc) {
+            switch (desc.type()) {
+                case COPPER:
+                case VIRTUAL:
+                    return desc;
+                default:
+                    OpticalPortConfig opc = networkConfigService.getConfig(
+                            new ConnectPoint(did, desc.portNumber()), OpticalPortConfig.class);
+                    return OpticalPortOperator.combine(opc, desc);
             }
         }
 
@@ -496,6 +516,11 @@ public class DeviceManager
                                                            deviceId, portStatistics);
             post(event);
         }
+    }
+
+    // by default allowed, otherwise check flag
+    private boolean isAllowed(BasicDeviceConfig cfg) {
+        return (cfg == null || cfg.isAllowed());
     }
 
     // Applies the specified role to the device; ignores NONE
@@ -617,7 +642,6 @@ public class DeviceManager
             myNextRole = NONE;
         }
 
-
         final boolean isReachable = isReachable(did);
         if (!isReachable) {
             // device is not connected to this node
@@ -695,23 +719,54 @@ public class DeviceManager
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
         public boolean isRelevant(NetworkConfigEvent event) {
-            return (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
-                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)
-                    && event.configClass().equals(BasicDeviceConfig.class);
+            return (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED
+                    || event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)
+                    && (event.configClass().equals(BasicDeviceConfig.class)
+                        || event.configClass().equals(OpticalPortConfig.class));
         }
 
         @Override
         public void event(NetworkConfigEvent event) {
-            log.info("Detected Device network config event {}", event.type());
-            kickOutBadDevice(((DeviceId) event.subject()));
-        }
-    }
+            DeviceEvent de = null;
+            if (event.configClass().equals(BasicDeviceConfig.class)) {
+                log.info("Detected Device network config event {}", event.type());
+                DeviceId did = (DeviceId) event.subject();
+                BasicDeviceConfig cfg = networkConfigService.getConfig(did, BasicDeviceConfig.class);
 
-    // checks if the specified device is allowed by the BasicDeviceConfig
-    // and if not, removes it
-    private void kickOutBadDevice(DeviceId deviceId) {
-        BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
-        if (!cfg.isAllowed()) {
+                if (!isAllowed(cfg)) {
+                    kickOutBadDevice(did);
+                } else {
+                    Device dev = getDevice(did);
+                    DeviceDescription desc = (dev == null) ? null : BasicDeviceOperator.descriptionOf(dev);
+                    desc = BasicDeviceOperator.combine(cfg, desc);
+                    if (getProvider(did) != null) {
+                        de = store.createOrUpdateDevice(getProvider(did).id(), did, desc);
+                    }
+                }
+            }
+            if (event.configClass().equals(OpticalPortConfig.class)) {
+                ConnectPoint cpt = (ConnectPoint) event.subject();
+                DeviceId did = cpt.deviceId();
+                Port dpt = getPort(did, cpt.port());
+
+                if (dpt != null) {
+                    OpticalPortConfig opc = networkConfigService.getConfig(cpt, OpticalPortConfig.class);
+                    PortDescription desc = OpticalPortOperator.descriptionOf(dpt);
+                    desc = OpticalPortOperator.combine(opc, desc);
+                    if (getProvider(did) != null) {
+                        de = store.updatePortStatus(getProvider(did).id(), did, desc);
+                    }
+                }
+            }
+
+            if (de != null) {
+                post(de);
+            }
+        }
+
+        // checks if the specified device is allowed by the BasicDeviceConfig
+        // and if not, removes it
+        private void kickOutBadDevice(DeviceId deviceId) {
             Device badDevice = getDevice(deviceId);
             if (badDevice != null) {
                 removeDevice(deviceId);

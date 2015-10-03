@@ -47,7 +47,6 @@ public class PcepInterLayerObjectVer1 implements PcepInterLayerObject {
     public static final int OBJECT_HEADER_LENGTH = 4;
     public static final int NFLAG_SHIFT_VALUE = 0x02;
     public static final int IFLAG_SHIFT_VALUE = 0x01;
-    public static final int FLAGS_SET_VALUE = 1;
 
     static final PcepObjectHeader DEFAULT_INTER_LAYER_OBJECT_HEADER = new PcepObjectHeader(INTER_LAYER_OBJ_CLASS,
             INTER_LAYER_OBJ_TYPE, PcepObjectHeader.REQ_OBJ_OPTIONAL_PROCESS, PcepObjectHeader.RSP_OBJ_PROCESSED,
@@ -128,8 +127,8 @@ public class PcepInterLayerObjectVer1 implements PcepInterLayerObject {
         ChannelBuffer tempCb = cb.readBytes(interLayerObjHeader.getObjLen() - OBJECT_HEADER_LENGTH);
 
         int iTemp = tempCb.readInt();
-        bIFlag = ((iTemp & (byte) IFLAG_SHIFT_VALUE) == FLAGS_SET_VALUE) ? true : false;
-        bNFlag = ((iTemp & (byte) NFLAG_SHIFT_VALUE) == FLAGS_SET_VALUE) ? true : false;
+        bIFlag = ((iTemp & (byte) IFLAG_SHIFT_VALUE) == IFLAG_SHIFT_VALUE);
+        bNFlag = ((iTemp & (byte) NFLAG_SHIFT_VALUE) == NFLAG_SHIFT_VALUE);
 
         return new PcepInterLayerObjectVer1(interLayerObjHeader, bNFlag, bIFlag);
     }

@@ -24,13 +24,6 @@ import com.google.common.annotations.Beta;
 public interface VirtualElement {
 
     /**
-     * Returns the identifier of the tenant to which this virtual element belongs.
-     *
-     * @return tenant identifier
-     */
-    TenantId tenantId();
-
-    /**
      * Returns the network identifier to which this virtual element belongs.
      *
      * @return network identifier

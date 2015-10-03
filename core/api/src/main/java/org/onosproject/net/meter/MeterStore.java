@@ -57,12 +57,12 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
     void updateMeterState(Meter meter);
 
     /**
-     * Obtains a meter matching the given meter id.
+     * Obtains a meter matching the given meter key.
      *
-     * @param meterId a meter id
+     * @param key a meter key
      * @return a meter
      */
-    Meter getMeter(MeterId meterId);
+    Meter getMeter(MeterKey key);
 
     /**
      * Returns all meters stored in the store.

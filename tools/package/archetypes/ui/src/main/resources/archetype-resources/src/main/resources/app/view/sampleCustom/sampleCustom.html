@@ -1,0 +1,32 @@
+<!-- partial HTML -->
+<div id="ov-sample-custom">
+    <div class="button-panel">
+        <div class="my-button" ng-click="getData()">
+            Fetch Data
+        </div>
+    </div>
+
+    <div class="data-panel">
+        <table>
+            <tr>
+                <td> Number </td>
+                <td class="number"> {{data.number}} </td>
+            </tr>
+            <tr>
+                <td> Square </td>
+                <td class="number"> {{data.square}} </td>
+            </tr>
+            <tr>
+                <td> Cube </td>
+                <td class="number"> {{data.cube}} </td>
+            </tr>
+        </table>
+
+        <p>
+            A message from our sponsors:
+        </p>
+        <p>
+            <span class="quote"> {{data.message}} </span>
+        </p>
+    </div>
+</div>

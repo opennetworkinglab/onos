@@ -37,11 +37,11 @@ public class TELinkDescriptorsTlvTest {
             LinkLocalRemoteIdentifiersTlv(20, 20);
     private final IPv4InterfaceAddressTlv iPv4InterfaceAddressTlv2 = new IPv4InterfaceAddressTlv(0x02020202);
 
-    private final LinkedList<PcepValueType> llLinkDescriptorsSubTLVs1 = new LinkedList<PcepValueType>();
+    private final LinkedList<PcepValueType> llLinkDescriptorsSubTLVs1 = new LinkedList<>();
     private final boolean a = llLinkDescriptorsSubTLVs1.add(linkLocalRemoteIdentifiersTlv1);
     private final boolean b = llLinkDescriptorsSubTLVs1.add(iPv4InterfaceAddressTlv1);
 
-    private final LinkedList<PcepValueType> llLinkDescriptorsSubTLVs2 = new LinkedList<PcepValueType>();
+    private final LinkedList<PcepValueType> llLinkDescriptorsSubTLVs2 = new LinkedList<>();
     private final boolean c = llLinkDescriptorsSubTLVs2.add(linkLocalRemoteIdentifiersTlv2);
     private final boolean d = llLinkDescriptorsSubTLVs2.add(iPv4InterfaceAddressTlv2);
 

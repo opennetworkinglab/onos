@@ -498,31 +498,22 @@ public class SimpleLinkStoreTest {
         final LinkKey linkId1 = LinkKey.linkKey(d1P1, d2P2);
 
         final CountDownLatch addLatch = new CountDownLatch(1);
-        LinkStoreDelegate checkAdd = new LinkStoreDelegate() {
-            @Override
-            public void notify(LinkEvent event) {
-                assertEquals(LINK_ADDED, event.type());
-                assertLink(linkId1, INDIRECT, event.subject());
-                addLatch.countDown();
-            }
+        LinkStoreDelegate checkAdd = event -> {
+            assertEquals(LINK_ADDED, event.type());
+            assertLink(linkId1, INDIRECT, event.subject());
+            addLatch.countDown();
         };
         final CountDownLatch updateLatch = new CountDownLatch(1);
-        LinkStoreDelegate checkUpdate = new LinkStoreDelegate() {
-            @Override
-            public void notify(LinkEvent event) {
-                assertEquals(LINK_UPDATED, event.type());
-                assertLink(linkId1, DIRECT, event.subject());
-                updateLatch.countDown();
-            }
+        LinkStoreDelegate checkUpdate = event -> {
+            assertEquals(LINK_UPDATED, event.type());
+            assertLink(linkId1, DIRECT, event.subject());
+            updateLatch.countDown();
         };
         final CountDownLatch removeLatch = new CountDownLatch(1);
-        LinkStoreDelegate checkRemove = new LinkStoreDelegate() {
-            @Override
-            public void notify(LinkEvent event) {
-                assertEquals(LINK_REMOVED, event.type());
-                assertLink(linkId1, DIRECT, event.subject());
-                removeLatch.countDown();
-            }
+        LinkStoreDelegate checkRemove = event -> {
+            assertEquals(LINK_REMOVED, event.type());
+            assertLink(linkId1, DIRECT, event.subject());
+            removeLatch.countDown();
         };
 
         linkStore.setDelegate(checkAdd);

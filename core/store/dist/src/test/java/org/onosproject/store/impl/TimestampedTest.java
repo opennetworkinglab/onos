@@ -65,7 +65,7 @@ public class TimestampedTest {
 
     @Test
     public final void testValue() {
-       final Integer n = Integer.valueOf(42);
+       final Integer n = 42;
        Timestamped<Integer> tsv = new Timestamped<>(n, TS_1_1);
        assertSame(n, tsv.value());
 

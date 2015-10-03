@@ -17,7 +17,6 @@ package org.onosproject.net.intent;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
-
 import org.onlab.util.Bandwidth;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
@@ -37,6 +36,9 @@ import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.MetadataInstruction;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceRequest;
+import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.resource.link.BandwidthResource;
 import org.onosproject.net.resource.link.BandwidthResourceRequest;
 import org.onosproject.net.resource.link.LambdaResource;
@@ -48,13 +50,10 @@ import org.onosproject.net.resource.link.LinkResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.resource.link.MplsLabel;
 import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
-import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceRequest;
-import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.topology.DefaultTopologyEdge;
 import org.onosproject.net.topology.DefaultTopologyVertex;
 import org.onosproject.net.topology.LinkWeight;
-import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.PathServiceAdapter;
 import org.onosproject.net.topology.TopologyVertex;
 import org.onosproject.store.Timestamp;
 
@@ -68,9 +67,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.onosproject.net.NetTestTools.createPath;
-import static org.onosproject.net.NetTestTools.did;
-import static org.onosproject.net.NetTestTools.link;
+import static org.onosproject.net.NetTestTools.*;
 
 /**
  * Common mocks used by the intent framework tests.
@@ -134,7 +131,7 @@ public class IntentTestsMocks {
     /**
      * Mock path service for creating paths within the test.
      */
-    public static class MockPathService implements PathService {
+    public static class MockPathService extends PathServiceAdapter {
 
         final String[] pathHops;
         final String[] reversePathHops;
@@ -424,7 +421,7 @@ public class IntentTestsMocks {
             }
             final MockFlowRule other = (MockFlowRule) obj;
             return Objects.equals(this.timestamp, other.timestamp) &&
-                   this.id == other.id;
+                    this.id == other.id;
         }
 
         @Override
@@ -450,7 +447,7 @@ public class IntentTestsMocks {
 
         public MockIntent(Long number) {
             super(NetTestTools.APP_ID, null, Collections.emptyList(),
-                    Intent.DEFAULT_INTENT_PRIORITY);
+                  Intent.DEFAULT_INTENT_PRIORITY);
             this.number = number;
         }
 

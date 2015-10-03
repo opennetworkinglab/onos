@@ -97,7 +97,7 @@ public class DistributedStatisticStore implements StatisticStore {
                     // register this store specific classes here
                     .build();
         }
-    };;
+    };
 
     private ExecutorService messageHandlingExecutor;
 

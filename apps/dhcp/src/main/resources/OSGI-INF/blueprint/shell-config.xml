@@ -17,20 +17,20 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
-            <action class="org.onosproject.dhcp.cli.DHCPListAllMappings"/>
+            <action class="org.onosproject.dhcp.cli.DhcpListAllMappings"/>
         </command>
         <command>
-            <action class="org.onosproject.dhcp.cli.DHCPLeaseDetails"/>
+            <action class="org.onosproject.dhcp.cli.DhcpLeaseDetails"/>
         </command>
         <command>
-            <action class="org.onosproject.dhcp.cli.DHCPSetStaticMapping"/>
+            <action class="org.onosproject.dhcp.cli.DhcpSetStaticMapping"/>
             <completers>
                 <ref component-id="macIDCompleter"/>
                 <ref component-id="freeIPCompleter"/>
             </completers>
         </command>
         <command>
-            <action class="org.onosproject.dhcp.cli.DHCPRemoveStaticMapping"/>
+            <action class="org.onosproject.dhcp.cli.DhcpRemoveStaticMapping"/>
             <completers>
                 <ref component-id="macIDCompleter"/>
             </completers>
@@ -38,6 +38,6 @@
     </command-bundle>
 
     <bean id="macIDCompleter" class="org.onosproject.dhcp.cli.MacIdCompleter"/>
-    <bean id="freeIPCompleter" class="org.onosproject.dhcp.cli.FreeIPCompleter"/>
+    <bean id="freeIPCompleter" class="org.onosproject.dhcp.cli.FreeIpCompleter"/>
 
 </blueprint>

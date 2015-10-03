@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.event.Event;
 import org.onosproject.net.ConnectPoint;
@@ -46,6 +47,7 @@ import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
@@ -60,7 +62,7 @@ import static org.onosproject.security.AppPermission.Type.*;
 @Service
 public class TopologyManager
         extends AbstractListenerProviderRegistry<TopologyEvent, TopologyListener,
-                                                 TopologyProvider, TopologyProviderService>
+        TopologyProvider, TopologyProviderService>
         implements TopologyService, TopologyProviderRegistry {
 
     public static final String TOPOLOGY_NULL = "Topology cannot be null";
@@ -68,6 +70,7 @@ public class TopologyManager
     private static final String CLUSTER_ID_NULL = "Cluster ID cannot be null";
     private static final String CLUSTER_NULL = "Topology cluster cannot be null";
     public static final String CONNECTION_POINT_NULL = "Connection point cannot be null";
+    public static final String LINK_WEIGHT_NULL = "Link weight cannot be null";
 
     private final Logger log = getLogger(getClass());
 
@@ -159,6 +162,44 @@ public class TopologyManager
         checkNotNull(dst, DEVICE_ID_NULL);
         checkNotNull(weight, "Link weight cannot be null");
         return store.getPaths(topology, src, dst, weight);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(src, DEVICE_ID_NULL);
+        checkNotNull(dst, DEVICE_ID_NULL);
+        return store.getDisjointPaths(topology, src, dst);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
+                                              DeviceId dst, LinkWeight weight) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(src, DEVICE_ID_NULL);
+        checkNotNull(dst, DEVICE_ID_NULL);
+        checkNotNull(weight, LINK_WEIGHT_NULL);
+        return store.getDisjointPaths(topology, src, dst, weight);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src, DeviceId dst,
+                                              Map<Link, Object> riskProfile) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(src, DEVICE_ID_NULL);
+        checkNotNull(dst, DEVICE_ID_NULL);
+        return store.getDisjointPaths(topology, src, dst, riskProfile);
+    }
+
+    @Override
+    public Set<DisjointPath> getDisjointPaths(Topology topology, DeviceId src,
+                                              DeviceId dst, LinkWeight weight,
+                                              Map<Link, Object> riskProfile) {
+        checkNotNull(topology, TOPOLOGY_NULL);
+        checkNotNull(src, DEVICE_ID_NULL);
+        checkNotNull(dst, DEVICE_ID_NULL);
+        checkNotNull(weight, LINK_WEIGHT_NULL);
+        return store.getDisjointPaths(topology, src, dst, weight, riskProfile);
     }
 
     @Override

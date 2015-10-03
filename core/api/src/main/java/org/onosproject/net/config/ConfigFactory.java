@@ -30,6 +30,7 @@ public abstract class ConfigFactory<S, C extends Config<S>> {
     private final SubjectFactory<S> subjectFactory;
     private final Class<C> configClass;
     private final String configKey;
+    private final boolean isList;
 
     /**
      * Creates a new configuration factory for the specified class of subjects
@@ -38,14 +39,37 @@ public abstract class ConfigFactory<S, C extends Config<S>> {
      * composite JSON trees.
      *
      * @param subjectFactory subject factory
-     * @param configClass  configuration class
-     * @param configKey    configuration class key
+     * @param configClass    configuration class
+     * @param configKey      configuration class key
      */
     protected ConfigFactory(SubjectFactory<S> subjectFactory,
                             Class<C> configClass, String configKey) {
+        this(subjectFactory, configClass, configKey, false);
+    }
+
+    /**
+     * Creates a new configuration factory for the specified class of subjects
+     * capable of generating the configurations of the specified class. The
+     * subject and configuration class keys are used merely as keys for use in
+     * composite JSON trees.
+     * <p>
+     * Note that configurations backed by JSON array are not easily extensible
+     * at the top-level as they are inherently limited to holding an ordered
+     * list of items.
+     * </p>
+     *
+     * @param subjectFactory subject factory
+     * @param configClass    configuration class
+     * @param configKey      configuration class key
+     * @param isList         true to indicate backing by JSON array
+     */
+    protected ConfigFactory(SubjectFactory<S> subjectFactory,
+                            Class<C> configClass, String configKey,
+                            boolean isList) {
         this.subjectFactory = subjectFactory;
         this.configClass = configClass;
         this.configKey = configKey;
+        this.isList = isList;
     }
 
     /**
@@ -84,5 +108,15 @@ public abstract class ConfigFactory<S, C extends Config<S>> {
      * @return new uninitialized configuration
      */
     public abstract C createConfig();
+
+    /**
+     * Indicates whether the configuration is a list and should be backed by
+     * a JSON array rather than JSON object.
+     *
+     * @return true if backed by JSON array
+     */
+    public boolean isList() {
+        return isList;
+    }
 
 }

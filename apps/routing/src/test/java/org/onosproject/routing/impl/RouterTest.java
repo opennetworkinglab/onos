@@ -22,6 +22,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -81,6 +83,13 @@ public class RouterTest {
             DeviceId.deviceId("of:0000000000000004"),
             PortNumber.portNumber(1));
 
+    private static final ConnectPoint SW5_ETH1 = new ConnectPoint(
+            DeviceId.deviceId("of:0000000000000005"),
+            PortNumber.portNumber(1));
+
+    private static final ConnectPoint SW6_ETH1 = new ConnectPoint(
+            DeviceId.deviceId("of:0000000000000006"),
+            PortNumber.portNumber(1));
     private Router router;
 
     @Before
@@ -132,7 +141,6 @@ public class RouterTest {
         hostService.startMonitoringIp(host1Address);
         expectLastCall().anyTimes();
 
-
         IpAddress host2Address = IpAddress.valueOf("192.168.20.1");
         Host host2 = new DefaultHost(ProviderId.NONE, HostId.NONE,
                 MacAddress.valueOf("00:00:00:00:00:02"), VlanId.NONE,
@@ -148,13 +156,48 @@ public class RouterTest {
         IpAddress host3Address = IpAddress.valueOf("192.168.40.1");
         Host host3 = new DefaultHost(ProviderId.NONE, HostId.NONE,
                 MacAddress.valueOf("00:00:00:00:00:03"), VlanId.vlanId((short) 1),
-                new HostLocation(SW4_ETH1, 1),
+                new HostLocation(SW3_ETH1, 1),
                 Sets.newHashSet(host3Address));
 
         expect(hostService.getHostsByIp(host3Address))
                 .andReturn(Sets.newHashSet(host3)).anyTimes();
         hostService.startMonitoringIp(host3Address);
         expectLastCall().anyTimes();
+
+        IpAddress host4Address = IpAddress.valueOf("1000::1");
+        Host host4 = new DefaultHost(ProviderId.NONE, HostId.NONE,
+                 MacAddress.valueOf("00:00:00:00:00:04"), VlanId.NONE,
+                 new HostLocation(SW4_ETH1, 1),
+                 Sets.newHashSet(host4Address));
+
+        expect(hostService.getHostsByIp(host4Address))
+                .andReturn(Sets.newHashSet(host4)).anyTimes();
+        hostService.startMonitoringIp(host4Address);
+        expectLastCall().anyTimes();
+
+        IpAddress host5Address = IpAddress.valueOf("2000::1");
+        Host host5 = new DefaultHost(ProviderId.NONE, HostId.NONE,
+                 MacAddress.valueOf("00:00:00:00:00:05"), VlanId.NONE,
+                 new HostLocation(SW5_ETH1, 1),
+                 Sets.newHashSet(host5Address));
+
+        expect(hostService.getHostsByIp(host5Address))
+                .andReturn(Sets.newHashSet(host5)).anyTimes();
+        hostService.startMonitoringIp(host5Address);
+        expectLastCall().anyTimes();
+
+        // Next hop on a VLAN
+        IpAddress host6Address = IpAddress.valueOf("3000::1");
+        Host host6 = new DefaultHost(ProviderId.NONE, HostId.NONE,
+                 MacAddress.valueOf("00:00:00:00:00:06"), VlanId.vlanId((short) 1),
+                 new HostLocation(SW6_ETH1, 1),
+                 Sets.newHashSet(host6Address));
+
+        expect(hostService.getHostsByIp(host6Address))
+                .andReturn(Sets.newHashSet(host6)).anyTimes();
+        hostService.startMonitoringIp(host6Address);
+        expectLastCall().anyTimes();
+
 
         // Called during shutdown
         hostService.removeListener(anyObject(HostListener.class));
@@ -163,10 +206,10 @@ public class RouterTest {
     }
 
     /**
-     * Tests adding a route entry.
+     * Tests adding a IPv4 route entry.
      */
     @Test
-    public void testRouteAdd() {
+    public void testIpv4RouteAdd() {
         // Construct a route entry
         IpPrefix prefix = Ip4Prefix.valueOf("1.1.1.0/24");
         IpAddress nextHopIp = Ip4Address.valueOf("192.168.10.1");
@@ -175,7 +218,7 @@ public class RouterTest {
 
         // Expected FIB entry
         FibEntry fibEntry = new FibEntry(prefix, nextHopIp,
-                                         MacAddress.valueOf("00:00:00:00:00:01"));
+                MacAddress.valueOf("00:00:00:00:00:01"));
 
         fibListener.update(Collections.singletonList(new FibUpdate(
                 FibUpdate.Type.UPDATE, fibEntry)), Collections.emptyList());
@@ -188,13 +231,41 @@ public class RouterTest {
         verify(fibListener);
     }
 
+
     /**
-     * Tests updating a route entry.
+     * Tests adding a IPv6 route entry.
+     */
+    @Test
+    public void testIpv6RouteAdd() {
+        // Construct a route entry
+        IpPrefix prefix = Ip6Prefix.valueOf("4000::/64");
+        IpAddress nextHopIp = Ip6Address.valueOf("1000::1");
+
+        RouteEntry routeEntry = new RouteEntry(prefix, nextHopIp);
+
+        // Expected FIB entry
+        FibEntry fibEntry = new FibEntry(prefix, nextHopIp,
+                MacAddress.valueOf("00:00:00:00:00:04"));
+
+        fibListener.update(Collections.singletonList(new FibUpdate(
+                FibUpdate.Type.UPDATE, fibEntry)), Collections.emptyList());
+
+        replay(fibListener);
+
+        router.processRouteUpdates(Collections.singletonList(
+                new RouteUpdate(RouteUpdate.Type.UPDATE, routeEntry)));
+
+        verify(fibListener);
+    }
+
+
+    /**
+     * Tests updating a IPv4 route entry.
      */
     @Test
     public void testRouteUpdate() {
         // Firstly add a route
-        testRouteAdd();
+        testIpv4RouteAdd();
 
         // Route entry with updated next hop for the original prefix
         RouteEntry routeEntryUpdate = new RouteEntry(
@@ -230,12 +301,53 @@ public class RouterTest {
     }
 
     /**
-     * Tests deleting a route entry.
+     * Tests updating a IPv6 route entry.
      */
     @Test
-    public void testRouteDelete() {
+    public void testIpv6RouteUpdate() {
         // Firstly add a route
-        testRouteAdd();
+        testIpv6RouteAdd();
+
+        // Route entry with updated next hop for the original prefix
+        RouteEntry routeEntryUpdate = new RouteEntry(
+                Ip6Prefix.valueOf("4000::/64"),
+                Ip6Address.valueOf("2000::1"));
+
+        // The old FIB entry will be withdrawn
+        FibEntry withdrawFibEntry = new FibEntry(
+                Ip6Prefix.valueOf("4000::/64"), null, null);
+
+        // A new FIB entry will be added
+        FibEntry updateFibEntry = new FibEntry(
+                Ip6Prefix.valueOf("4000::/64"),
+                Ip6Address.valueOf("2000::1"),
+                MacAddress.valueOf("00:00:00:00:00:05"));
+
+        reset(fibListener);
+        fibListener.update(Collections.singletonList(new FibUpdate(
+                                   FibUpdate.Type.UPDATE, updateFibEntry)),
+                           Collections.singletonList(new FibUpdate(
+                                   FibUpdate.Type.DELETE, withdrawFibEntry)));
+        replay(fibListener);
+
+        reset(routingConfigurationService);
+        expect(routingConfigurationService.isIpPrefixLocal(
+                anyObject(IpPrefix.class))).andReturn(false);
+        replay(routingConfigurationService);
+
+        router.processRouteUpdates(Collections.singletonList(new RouteUpdate(
+                RouteUpdate.Type.UPDATE, routeEntryUpdate)));
+
+        verify(fibListener);
+    }
+
+    /**
+     * Tests deleting a IPv4 route entry.
+     */
+    @Test
+    public void testIpv4RouteDelete() {
+        // Firstly add a route
+        testIpv4RouteAdd();
 
         RouteEntry deleteRouteEntry = new RouteEntry(
                 Ip4Prefix.valueOf("1.1.1.0/24"),
@@ -257,10 +369,37 @@ public class RouterTest {
     }
 
     /**
-     * Tests adding a route whose next hop is the local BGP speaker.
+     * Tests deleting a IPv6 route entry.
      */
     @Test
-    public void testLocalRouteAdd() {
+    public void testIpv6RouteDelete() {
+        // Firstly add a route
+        testIpv6RouteAdd();
+
+        RouteEntry deleteRouteEntry = new RouteEntry(
+                Ip6Prefix.valueOf("4000::/64"),
+                Ip6Address.valueOf("1000::1"));
+
+        FibEntry deleteFibEntry = new FibEntry(
+                Ip6Prefix.valueOf("4000::/64"), null, null);
+
+        reset(fibListener);
+        fibListener.update(Collections.emptyList(), Collections.singletonList(
+                new FibUpdate(FibUpdate.Type.DELETE, deleteFibEntry)));
+
+        replay(fibListener);
+
+        router.processRouteUpdates(Collections.singletonList(
+                new RouteUpdate(RouteUpdate.Type.DELETE, deleteRouteEntry)));
+
+        verify(fibListener);
+    }
+
+    /**
+     * Tests adding a IPv4 route whose next hop is the local BGP speaker.
+     */
+    @Test
+    public void testIpv4LocalRouteAdd() {
         // Construct a route entry, the next hop is the local BGP speaker
         RouteEntry routeEntry = new RouteEntry(
                 Ip4Prefix.valueOf("1.1.1.0/24"),
@@ -282,6 +421,35 @@ public class RouterTest {
         // Verify
         assertEquals(1, router.getRoutes4().size());
         assertTrue(router.getRoutes4().contains(routeEntry));
+        verify(fibListener);
+    }
+
+    /**
+     * Tests adding a IPv6 route whose next hop is the local BGP speaker.
+     */
+    @Test
+    public void testIpv6LocalRouteAdd() {
+        // Construct a route entry, the next hop is the local BGP speaker
+        RouteEntry routeEntry = new RouteEntry(
+                Ip6Prefix.valueOf("4000::/64"),
+                Ip6Address.valueOf("::"));
+
+        // No methods on the FIB listener should be called
+        replay(fibListener);
+
+        reset(routingConfigurationService);
+        expect(routingConfigurationService.isIpPrefixLocal(
+                anyObject(IpPrefix.class))).andReturn(true);
+        replay(routingConfigurationService);
+
+        // Call the processRouteUpdates() method in Router class
+        RouteUpdate routeUpdate = new RouteUpdate(RouteUpdate.Type.UPDATE,
+                                                  routeEntry);
+        router.processRouteUpdates(Collections.singletonList(routeUpdate));
+
+        // Verify
+        assertEquals(1, router.getRoutes6().size());
+        assertTrue(router.getRoutes6().contains(routeEntry));
         verify(fibListener);
     }
 }

@@ -24,7 +24,6 @@ import java.net.URI;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.ChassisId;
-import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.AnnotationKeys;
@@ -55,11 +54,7 @@ public class BasicDeviceOperatorTest {
     private static final DeviceDescription DEV1 = new DefaultDeviceDescription(
             DURI, SWITCH, MFR, HW, SW, SN, CID, SA);
 
-    private final ConfigApplyDelegate delegate = new ConfigApplyDelegate() {
-        @Override
-        public void onApply(Config config) {
-        }
-    };
+    private final ConfigApplyDelegate delegate = config -> { };
     private final ObjectMapper mapper = new ObjectMapper();
 
     private static final BasicDeviceConfig SW_BDC = new BasicDeviceConfig();

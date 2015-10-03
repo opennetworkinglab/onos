@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onosproject.segmentrouting.config;
 
 import java.io.IOException;
@@ -52,9 +67,9 @@ public class SegmentRouterConfig extends SwitchConfig {
         this.setLongitude(swc.getLongitude());
         this.setParams(swc.getParams());
         this.setAllowed(swc.isAllowed());
-        publishAttributes = new ConcurrentHashMap<String, String>();
-        adjacencySids = new ArrayList<AdjacencySid>();
-        subnets = new ArrayList<Subnet>();
+        publishAttributes = new ConcurrentHashMap<>();
+        adjacencySids = new ArrayList<>();
+        subnets = new ArrayList<>();
         parseParams();
         validateParams();
         setPublishAttributes();
@@ -267,7 +282,7 @@ public class SegmentRouterConfig extends SwitchConfig {
                 } else if (fe.getKey().equals("ports")) {
                     if (fe.getValue().isArray()) {
                         Iterator<JsonNode> i = fe.getValue().elements();
-                        ports = new ArrayList<Integer>();
+                        ports = new ArrayList<>();
                         while (i.hasNext()) {
                             ports.add(i.next().asInt());
                         }

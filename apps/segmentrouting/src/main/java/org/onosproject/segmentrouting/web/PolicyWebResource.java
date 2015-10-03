@@ -65,7 +65,7 @@ public class PolicyWebResource extends AbstractWebResource {
      * @param input JSON stream for policy to create
      * @return status of the request - OK if the policy is created,
      * INTERNAL_SERVER_ERROR if the JSON is invalid or the policy cannot be created
-     * @throws IOException
+     * @throws IOException if JSON processing fails
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)

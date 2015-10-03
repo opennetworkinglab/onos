@@ -24,12 +24,10 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleServiceAdapter;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
-import static org.onosproject.net.flow.FlowRuleOperation.Type.REMOVE;
-
 
 public class MockFlowRuleService extends FlowRuleServiceAdapter {
 
@@ -87,9 +85,7 @@ public class MockFlowRuleService extends FlowRuleServiceAdapter {
 
     @Override
     public void applyFlowRules(FlowRule... flowRules) {
-        for (FlowRule flow : flowRules) {
-            flows.add(flow);
-        }
+        Collections.addAll(flows, flowRules);
     }
 
     @Override

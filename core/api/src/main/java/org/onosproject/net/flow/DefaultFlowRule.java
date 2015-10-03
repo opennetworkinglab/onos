@@ -291,6 +291,7 @@ public class DefaultFlowRule implements FlowRule {
     public static final class Builder implements FlowRule.Builder {
 
         private FlowId flowId;
+        private ApplicationId appId;
         private Integer priority;
         private DeviceId deviceId;
         private Integer tableId = 0;
@@ -307,7 +308,7 @@ public class DefaultFlowRule implements FlowRule {
 
         @Override
         public FlowRule.Builder fromApp(ApplicationId appId) {
-            this.flowId = computeFlowId(appId);
+            this.appId = appId;
             return this;
         }
 
@@ -357,15 +358,21 @@ public class DefaultFlowRule implements FlowRule {
 
         @Override
         public FlowRule build() {
-            checkNotNull(flowId != null, "Either an application" +
+            checkArgument(flowId != null || appId != null, "Either an application" +
                     " id or a cookie must be supplied");
-            checkNotNull(selector != null, "Traffic selector cannot be null");
-            checkNotNull(timeout != null || permanent != null, "Must either have " +
+            checkNotNull(selector, "Traffic selector cannot be null");
+            checkArgument(timeout != null || permanent != null, "Must either have " +
                     "a timeout or be permanent");
-            checkNotNull(deviceId != null, "Must refer to a device");
-            checkNotNull(priority != null, "Priority cannot be null");
+            checkNotNull(deviceId, "Must refer to a device");
+            checkNotNull(priority, "Priority cannot be null");
             checkArgument(priority >= MIN_PRIORITY, "Priority cannot be less than " +
                     MIN_PRIORITY);
+
+            // Computing a flow ID based on appId takes precedence over setting
+            // the flow ID directly
+            if (appId != null) {
+                flowId = computeFlowId(appId);
+            }
 
             return new DefaultFlowRule(deviceId, selector, treatment, priority,
                                        flowId, permanent, timeout, tableId);

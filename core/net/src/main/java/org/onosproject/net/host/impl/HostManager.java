@@ -25,6 +25,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -45,7 +46,6 @@ import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
-import org.onosproject.net.host.PortAddresses;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.slf4j.Logger;
@@ -90,6 +90,9 @@ public class HostManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EdgePortService edgePortService;
+
     private HostMonitor monitor;
 
     @Activate
@@ -97,7 +100,7 @@ public class HostManager
         store.setDelegate(delegate);
         eventDispatcher.addSink(HostEvent.class, listenerRegistry);
         networkConfigService.addListener(networkConfigListener);
-        monitor = new HostMonitor(packetService, this, interfaceService);
+        monitor = new HostMonitor(packetService, this, interfaceService, edgePortService);
         monitor.start();
         log.info("Started");
     }
@@ -195,33 +198,6 @@ public class HostManager
         }
     }
 
-    @Override
-    public void bindAddressesToPort(PortAddresses addresses) {
-        store.updateAddressBindings(addresses);
-    }
-
-    @Override
-    public void unbindAddressesFromPort(PortAddresses portAddresses) {
-        store.removeAddressBindings(portAddresses);
-    }
-
-    @Override
-    public void clearAddresses(ConnectPoint connectPoint) {
-        store.clearAddressBindings(connectPoint);
-    }
-
-    @Override
-    public Set<PortAddresses> getAddressBindings() {
-        checkPermission(HOST_READ);
-        return store.getAddressBindings();
-    }
-
-    @Override
-    public Set<PortAddresses> getAddressBindingsForPort(ConnectPoint connectPoint) {
-        checkPermission(HOST_READ);
-        return store.getAddressBindingsForPort(connectPoint);
-    }
-
     // Personalized host provider service issued to the supplied provider.
     private class InternalHostProviderService
             extends AbstractProviderService<HostProvider>
@@ -231,12 +207,12 @@ public class HostManager
         }
 
         @Override
-        public void hostDetected(HostId hostId, HostDescription hostDescription) {
+        public void hostDetected(HostId hostId, HostDescription hostDescription, boolean replaceIps) {
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
             hostDescription = validateHost(hostDescription, hostId);
             HostEvent event = store.createOrUpdateHost(provider().id(), hostId,
-                                                       hostDescription);
+                                                       hostDescription, replaceIps);
             if (event != null) {
                 post(event);
             }
@@ -256,6 +232,16 @@ public class HostManager
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
             HostEvent event = store.removeHost(hostId);
+            if (event != null) {
+                post(event);
+            }
+        }
+
+        @Override
+        public void removeIpFromHost(HostId hostId, IpAddress ipAddress) {
+            checkNotNull(hostId, HOST_ID_NULL);
+            checkValidity();
+            HostEvent event = store.removeIp(hostId, ipAddress);
             if (event != null) {
                 post(event);
             }

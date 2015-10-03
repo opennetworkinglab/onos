@@ -16,7 +16,7 @@ bitsPath = '/tmp'
 
 prefix = 'onos-(\d+\.\d+\.\d+)'
 buildNum = '\.?([\w-]*)'
-ext = '\.(?:tar\.gz|zip)'
+ext = '\.(?:tar\.gz|zip|deb|noarch\.rpm)'
 
 def findBits( path ):
     for file in listdir( path ):

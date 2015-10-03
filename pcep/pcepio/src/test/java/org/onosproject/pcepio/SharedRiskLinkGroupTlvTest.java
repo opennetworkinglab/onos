@@ -26,13 +26,13 @@ import com.google.common.testing.EqualsTester;
 public class SharedRiskLinkGroupTlvTest {
 
     private final int[] raw = {1 };
-    private final Short hLength = new Short((short) 2);
+    private final Short hLength = 2;
     private final SharedRiskLinkGroupTlv tlv1 = SharedRiskLinkGroupTlv.of(raw, hLength);
 
     private final SharedRiskLinkGroupTlv sameAsTlv1 = SharedRiskLinkGroupTlv.of(raw, hLength);
 
     private final int[] raw2 = {2 };
-    private final Short hLength2 = new Short((short) 3);
+    private final Short hLength2 = 3;
     private final SharedRiskLinkGroupTlv tlv2 = SharedRiskLinkGroupTlv.of(raw2, hLength2);
 
     @Test

@@ -63,7 +63,7 @@ public class IGMPQuery extends IGMPGroup {
     /**
      * Get the Querier Robustness Variable.
      *
-     * @return
+     * @return querier robustness value
      */
     public byte getQrv() {
         return qrv;
@@ -72,7 +72,7 @@ public class IGMPQuery extends IGMPGroup {
     /**
      * Set the Querier Robustness Variable. Default is 2.
      *
-     * @param qrv
+     * @param qrv new querier robustness value
      */
     public void setQrv(byte qrv) {
         this.qrv = qrv;

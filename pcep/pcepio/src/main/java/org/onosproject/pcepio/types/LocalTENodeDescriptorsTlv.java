@@ -184,7 +184,7 @@ public class LocalTENodeDescriptorsTlv implements PcepValueType {
     public static PcepValueType read(ChannelBuffer c, short hLength) throws PcepParseException {
 
         // Node Descriptor Sub-TLVs (variable)
-        LinkedList<PcepValueType> llNodeDescriptorSubTLVs = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llNodeDescriptorSubTLVs = new LinkedList<>();
 
         ChannelBuffer tempCb = c.readBytes(hLength);
 

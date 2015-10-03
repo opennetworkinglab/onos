@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onosproject.pcepio.protocol.ver1;
 
 import java.util.LinkedList;
@@ -142,7 +157,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
             }
 
             //parse PCEP-ERROR list
-            llErrObjList = new LinkedList<PcepErrorObject>();
+            llErrObjList = new LinkedList<>();
             tempObjHeader = parseErrorObjectList(llErrObjList, cb);
 
             //check whether OPEN-OBJECT is present.
@@ -323,7 +338,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
      * @return error types list
      */
     public LinkedList<Integer> getErrorType() {
-        LinkedList<Integer> llErrorType = new LinkedList<Integer>();
+        LinkedList<Integer> llErrorType = new LinkedList<>();
         if ((errObjListWithOpen != null)
                 && (errObjListWithOpen.isErrorObjListWithOpenPresent())) {
             llErrorType = errObjListWithOpen.getErrorType();
@@ -340,7 +355,7 @@ public class PcepErrorMsgVer1 implements PcepErrorMsg {
      * @return error value list
      */
     public LinkedList<Integer> getErrorValue() {
-        LinkedList<Integer> llErrorValue = new LinkedList<Integer>();
+        LinkedList<Integer> llErrorValue = new LinkedList<>();
         if ((errObjListWithOpen != null)
                 && (errObjListWithOpen.isErrorObjListWithOpenPresent())) {
             llErrorValue = errObjListWithOpen.getErrorValue();

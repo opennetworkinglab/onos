@@ -63,11 +63,10 @@ public class NodeFlagBitsTlv implements PcepValueType {
     public NodeFlagBitsTlv(byte rawValue) {
         this.rawValue = rawValue;
         isRawValueSet = true;
-        byte temp = rawValue;
-        this.bOFlag = (temp & OFLAG_SET) == OFLAG_SET ? true : false;
-        this.bTFlag = (temp & TFLAG_SET) == TFLAG_SET ? true : false;
-        this.bEFlag = (temp & EFLAG_SET) == EFLAG_SET ? true : false;
-        this.bBFlag = (temp & BFLAG_SET) == BFLAG_SET ? true : false;
+        this.bOFlag = (rawValue & OFLAG_SET) == OFLAG_SET;
+        this.bTFlag = (rawValue & TFLAG_SET) == TFLAG_SET;
+        this.bEFlag = (rawValue & EFLAG_SET) == EFLAG_SET;
+        this.bBFlag = (rawValue & BFLAG_SET) == BFLAG_SET;
     }
 
     /**

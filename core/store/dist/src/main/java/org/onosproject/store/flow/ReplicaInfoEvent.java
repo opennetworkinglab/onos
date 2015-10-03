@@ -60,5 +60,5 @@ public class ReplicaInfoEvent extends AbstractEvent<ReplicaInfoEvent.Type, Devic
      */
     public ReplicaInfo replicaInfo() {
         return replicaInfo;
-    };
+    }
 }

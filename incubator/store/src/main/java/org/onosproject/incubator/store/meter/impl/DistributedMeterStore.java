@@ -33,6 +33,7 @@ import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
 import org.onosproject.net.meter.MeterId;
+import org.onosproject.net.meter.MeterKey;
 import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.meter.MeterStore;
@@ -78,12 +79,12 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private ClusterService clusterService;
 
-    private ConsistentMap<MeterId, MeterData> meters;
+    private ConsistentMap<MeterKey, MeterData> meters;
     private NodeId local;
 
-    private MapEventListener mapListener = new InternalMapEventListener();
+    private MapEventListener<MeterKey, MeterData> mapListener = new InternalMapEventListener();
 
-    private Map<MeterId, CompletableFuture<MeterStoreResult>> futures =
+    private Map<MeterKey, CompletableFuture<MeterStoreResult>> futures =
             Maps.newConcurrentMap();
 
     @Activate
@@ -92,9 +93,10 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         local = clusterService.getLocalNode().id();
 
 
-        meters = storageService.<MeterId, MeterData>consistentMapBuilder()
+        meters = storageService.<MeterKey, MeterData>consistentMapBuilder()
                     .withName(METERSTORE)
                     .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API),
+                                                     MeterKey.class,
                                                      MeterData.class,
                                                      DefaultMeter.class,
                                                      DefaultBand.class,
@@ -120,11 +122,12 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     @Override
     public CompletableFuture<MeterStoreResult> storeMeter(Meter meter) {
         CompletableFuture<MeterStoreResult> future = new CompletableFuture<>();
-        futures.put(meter.id(), future);
+        MeterKey key = MeterKey.key(meter.deviceId(), meter.id());
+        futures.put(key, future);
         MeterData data = new MeterData(meter, null, local);
 
         try {
-            meters.put(meter.id(), data);
+            meters.put(key, data);
         } catch (StorageException e) {
             future.completeExceptionally(e);
         }
@@ -136,14 +139,15 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     @Override
     public CompletableFuture<MeterStoreResult> deleteMeter(Meter meter) {
         CompletableFuture<MeterStoreResult> future = new CompletableFuture<>();
-        futures.put(meter.id(), future);
+        MeterKey key = MeterKey.key(meter.deviceId(), meter.id());
+        futures.put(key, future);
 
         MeterData data = new MeterData(meter, null, local);
 
         // update the state of the meter. It will be pruned by observing
         // that it has been removed from the dataplane.
         try {
-            if (meters.computeIfPresent(meter.id(), (k, v) -> data) == null) {
+            if (meters.computeIfPresent(key, (k, v) -> data) == null) {
                 future.complete(MeterStoreResult.success());
             }
         } catch (StorageException e) {
@@ -157,11 +161,12 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     @Override
     public CompletableFuture<MeterStoreResult> updateMeter(Meter meter) {
         CompletableFuture<MeterStoreResult> future = new CompletableFuture<>();
-        futures.put(meter.id(), future);
+        MeterKey key = MeterKey.key(meter.deviceId(), meter.id());
+        futures.put(key, future);
 
         MeterData data = new MeterData(meter, null, local);
         try {
-            if (meters.computeIfPresent(meter.id(), (k, v) -> data) == null) {
+            if (meters.computeIfPresent(key, (k, v) -> data) == null) {
                 future.complete(MeterStoreResult.fail(MeterFailReason.INVALID_METER));
             }
         } catch (StorageException e) {
@@ -172,7 +177,8 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     @Override
     public void updateMeterState(Meter meter) {
-        meters.computeIfPresent(meter.id(), (id, v) -> {
+        MeterKey key = MeterKey.key(meter.deviceId(), meter.id());
+        meters.computeIfPresent(key, (k, v) -> {
             DefaultMeter m = (DefaultMeter) v.meter();
             m.setState(meter.state());
             m.setProcessedPackets(meter.packetsSeen());
@@ -185,8 +191,8 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     }
 
     @Override
-    public Meter getMeter(MeterId meterId) {
-        MeterData data = Versioned.valueOrElse(meters.get(meterId), null);
+    public Meter getMeter(MeterKey key) {
+        MeterData data = Versioned.valueOrElse(meters.get(key), null);
         return data == null ? null : data.meter();
     }
 
@@ -198,19 +204,22 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     @Override
     public void failedMeter(MeterOperation op, MeterFailReason reason) {
-        meters.computeIfPresent(op.meter().id(), (k, v) ->
+        MeterKey key = MeterKey.key(op.meter().deviceId(), op.meter().id());
+        meters.computeIfPresent(key, (k, v) ->
                 new MeterData(v.meter(), reason, v.origin()));
     }
 
     @Override
     public void deleteMeterNow(Meter m) {
-        futures.remove(m.id());
-        meters.remove(m.id());
+        MeterKey key = MeterKey.key(m.deviceId(), m.id());
+        futures.remove(key);
+        meters.remove(key);
     }
 
-    private class InternalMapEventListener implements MapEventListener<MeterId, MeterData> {
+    private class InternalMapEventListener implements MapEventListener<MeterKey, MeterData> {
         @Override
-        public void event(MapEvent<MeterId, MeterData> event) {
+        public void event(MapEvent<MeterKey, MeterData> event) {
+            MeterKey key = event.key();
             MeterData data = event.value().value();
             NodeId master = mastershipService.getMasterFor(data.meter().deviceId());
             switch (event.type()) {
@@ -227,17 +236,17 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                                 } else if (data.reason().isPresent() && local.equals(data.origin())) {
                                     MeterStoreResult msr = MeterStoreResult.fail(data.reason().get());
                                     //TODO: No future -> no friend
-                                    futures.get(data.meter().id()).complete(msr);
+                                    futures.get(key).complete(msr);
                                 }
                                 break;
                             case ADDED:
                                 if (local.equals(data.origin()) && data.meter().state() == MeterState.PENDING_ADD) {
-                                    futures.remove(data.meter().id()).complete(MeterStoreResult.success());
+                                    futures.remove(key).complete(MeterStoreResult.success());
                                 }
                                 break;
                             case REMOVED:
                                 if (local.equals(data.origin()) && data.meter().state() == MeterState.PENDING_REMOVE) {
-                                    futures.remove(data.meter().id()).complete(MeterStoreResult.success());
+                                    futures.remove(key).complete(MeterStoreResult.success());
                                 }
                                 break;
                             default:

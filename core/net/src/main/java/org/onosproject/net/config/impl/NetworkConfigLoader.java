@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.config.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Maps;
@@ -50,7 +51,7 @@ public class NetworkConfigLoader {
 
     // FIXME: Add mutual exclusion to make sure this happens only once per startup.
 
-    private final Map<InnerConfigPosition, ObjectNode> jsons = Maps.newConcurrentMap();
+    private final Map<InnerConfigPosition, JsonNode> jsons = Maps.newConcurrentMap();
 
     private final NetworkConfigListener configListener = new InnerConfigListener();
 
@@ -163,7 +164,7 @@ public class NetworkConfigLoader {
     private void saveSubjectJson(String sk,
                                  String s, ObjectNode node) {
         node.fieldNames().forEachRemaining(c ->
-                this.jsons.put(new InnerConfigPosition(sk, s, c), (ObjectNode) node.path(c)));
+                this.jsons.put(new InnerConfigPosition(sk, s, c), node.path(c)));
     }
 
     /**
@@ -180,11 +181,11 @@ public class NetworkConfigLoader {
      * are imported and have not yet been applied.
      */
     private void applyConfigurations() {
-        Iterator<Map.Entry<InnerConfigPosition, ObjectNode>> iter = jsons.entrySet().iterator();
+        Iterator<Map.Entry<InnerConfigPosition, JsonNode>> iter = jsons.entrySet().iterator();
 
-        Map.Entry<InnerConfigPosition, ObjectNode> entry;
+        Map.Entry<InnerConfigPosition, JsonNode> entry;
         InnerConfigPosition key;
-        ObjectNode node;
+        JsonNode node;
         String subjectKey;
         String subjectString;
         String configKey;

@@ -222,6 +222,12 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.GetFlowStatistics"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.AddMultiPointToSinglePointIntentCommand"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>
@@ -331,12 +337,8 @@
             </completers>
         </command>
         <command>
-            <action class="org.onosproject.cli.net.AddressBindingsListCommand"/>
-        </command>
-        <command>
             <action class="org.onosproject.cli.net.InterfacesListCommand"/>
         </command>
-
         <command>
             <action class="org.onosproject.cli.net.GroupsListCommand"/>
         </command>
@@ -351,6 +353,13 @@
                 <ref component-id="flowRuleStatusCompleter"/>
                 <ref component-id="deviceIdCompleter"/>
             </completers>
+        </command>
+
+        <command>
+            <action class="org.onosproject.cli.net.PacketRequestsListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.PacketProcessorsListCommand"/>
         </command>
 
         <command>

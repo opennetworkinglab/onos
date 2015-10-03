@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onosproject.net.config.basics;
 
 import java.util.Optional;
@@ -33,7 +48,7 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
      * @return the port type, or null if invalid or unset
      */
     public Port.Type type() {
-        JsonNode type = node.path(TYPE);
+        JsonNode type = object.path(TYPE);
         if (type.isMissingNode()) {
             return null;
         }
@@ -72,7 +87,7 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
     }
 
     private String getStringValue(String field) {
-        JsonNode name = node.path(field);
+        JsonNode name = object.path(field);
         return name.isMissingNode() ? "" : name.asText();
     }
 
@@ -84,7 +99,7 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
      * @return an Optional that may contain a frequency value.
      */
     public Optional<Long> staticLambda() {
-        JsonNode sl = node.path(STATIC_LAMBDA);
+        JsonNode sl = object.path(STATIC_LAMBDA);
         if (sl.isMissingNode()) {
             return Optional.empty();
         }
@@ -98,7 +113,7 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
      * @return a port speed value whose default is 0.
      */
     public Optional<Integer> speed() {
-        JsonNode s = node.path(SPEED);
+        JsonNode s = object.path(SPEED);
         if (s.isMissingNode()) {
             return Optional.empty();
         }

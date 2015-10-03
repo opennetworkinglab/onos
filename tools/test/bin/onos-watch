@@ -2,6 +2,30 @@
 # -----------------------------------------------------------------------------
 # Monitors selected set of ONOS commands using the system watch command.
 # -----------------------------------------------------------------------------
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) [node] <commands> [watchflags]
+
+options:
+- [node] <commands> : the node to run the commands against
+- [watchflags]      : flags to be passed to the watch command.
+
+summary:
+ Monitors selected set of ONOS commands using the system watch command.
+
+ <commands> is a comma-sepatarted list of ONOS CLI commands. If no commands
+ are supplied, the commands run are 'summary', 'intents', 'flows', and
+ 'hosts' against \$OCI.
+
+ Note that [watchflags] only applies to platforms with the Linux-like watch
+ command. For other platforms, the default behavior of watch (refresh every 2
+ s) is emulated.
+
+_EOF_
+}
+
+[ "$1" = "-h" ] && _usage && exit 0
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
@@ -14,4 +38,10 @@ aux=/tmp/onos-watch.$$
 trap "rm -f $aux" EXIT
 
 echo "$commands" | tr ',' '\n' > $aux
-watch $3 "onos $node -b <$aux 2>/dev/null"
+
+# emulate watch if not Linux.
+if [ "$(uname)" != "Linux" ]; then
+    while clear; "onos $node -b <$aux 2>/dev/null" ; do sleep 2; done
+else
+    watch $3 "onos $node -b <$aux 2>/dev/null"
+fi

@@ -34,7 +34,7 @@ public enum PacketPriority {
 
     private final int priorityValue;
 
-    private PacketPriority(int priorityValue) {
+    PacketPriority(int priorityValue) {
         this.priorityValue = priorityValue;
     }
 

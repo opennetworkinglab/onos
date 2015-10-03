@@ -19,10 +19,15 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.Ip6Prefix;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Unit tests for the RouteEntry class.
@@ -35,19 +40,35 @@ public class RouteEntryTest {
     public void testConstructor() {
         Ip4Prefix prefix = Ip4Prefix.valueOf("1.2.3.0/24");
         Ip4Address nextHop = Ip4Address.valueOf("5.6.7.8");
-
         RouteEntry routeEntry = new RouteEntry(prefix, nextHop);
         assertThat(routeEntry.toString(),
                    is("RouteEntry{prefix=1.2.3.0/24, nextHop=5.6.7.8}"));
+
+        Ip6Prefix prefix6 = Ip6Prefix.valueOf("1000::/64");
+        Ip6Address nextHop6 = Ip6Address.valueOf("2000::1");
+        RouteEntry routeEntry6 = new RouteEntry(prefix6, nextHop6);
+        assertThat(routeEntry6.toString(),
+                   is("RouteEntry{prefix=1000::/64, nextHop=2000::1}"));
     }
 
     /**
      * Tests invalid class constructor for null IPv4 prefix.
      */
     @Test(expected = NullPointerException.class)
-    public void testInvalidConstructorNullPrefix() {
+    public void testInvalidConstructorNullIpv4Prefix() {
         Ip4Prefix prefix = null;
         Ip4Address nextHop = Ip4Address.valueOf("5.6.7.8");
+
+        new RouteEntry(prefix, nextHop);
+    }
+
+    /**
+     * Tests invalid class constructor for null IPv6 prefix.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testInvalidConstructorNullIpv6Prefix() {
+        Ip6Prefix prefix = null;
+        Ip6Address nextHop = Ip6Address.valueOf("2000::1");
 
         new RouteEntry(prefix, nextHop);
     }
@@ -56,9 +77,20 @@ public class RouteEntryTest {
      * Tests invalid class constructor for null IPv4 next-hop.
      */
     @Test(expected = NullPointerException.class)
-    public void testInvalidConstructorNullNextHop() {
+    public void testInvalidConstructorNullIpv4NextHop() {
         Ip4Prefix prefix = Ip4Prefix.valueOf("1.2.3.0/24");
         Ip4Address nextHop = null;
+
+        new RouteEntry(prefix, nextHop);
+    }
+
+    /**
+     * Tests invalid class constructor for null IPv6 next-hop.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testInvalidConstructorNullIpv6NextHop() {
+        Ip6Prefix prefix = Ip6Prefix.valueOf("1000::/64");
+        Ip6Address nextHop = null;
 
         new RouteEntry(prefix, nextHop);
     }
@@ -70,10 +102,15 @@ public class RouteEntryTest {
     public void testGetFields() {
         Ip4Prefix prefix = Ip4Prefix.valueOf("1.2.3.0/24");
         Ip4Address nextHop = Ip4Address.valueOf("5.6.7.8");
-
         RouteEntry routeEntry = new RouteEntry(prefix, nextHop);
         assertThat(routeEntry.prefix(), is(prefix));
         assertThat(routeEntry.nextHop(), is(nextHop));
+
+        Ip6Prefix prefix6 = Ip6Prefix.valueOf("1000::/64");
+        Ip6Address nextHop6 = Ip6Address.valueOf("2000::1");
+        RouteEntry routeEntry6 = new RouteEntry(prefix6, nextHop6);
+        assertThat(routeEntry6.prefix(), is(prefix6));
+        assertThat(routeEntry6.nextHop(), is(nextHop6));
     }
 
     /**
@@ -105,6 +142,33 @@ public class RouteEntryTest {
         prefix = Ip4Prefix.valueOf("255.255.255.255/32");
         assertThat(RouteEntry.createBinaryString(prefix),
                    is("11111111111111111111111111111111"));
+
+        Ip6Prefix prefix6;
+        Pattern pattern;
+        Matcher matcher;
+
+        prefix6 = Ip6Prefix.valueOf("::/0");
+        assertThat(RouteEntry.createBinaryString(prefix6), is(""));
+
+        prefix6 = Ip6Prefix.valueOf("2000::1000/112");
+        pattern = Pattern.compile("00100{108}");
+        matcher = pattern.matcher(RouteEntry.createBinaryString(prefix6));
+        assertTrue(matcher.matches());
+
+        prefix6 = Ip6Prefix.valueOf("2000::1000/116");
+        pattern = Pattern.compile("00100{108}0001");
+        matcher = pattern.matcher(RouteEntry.createBinaryString(prefix6));
+        assertTrue(matcher.matches());
+
+        prefix6 = Ip6Prefix.valueOf("2000::2000/116");
+        pattern = Pattern.compile("00100{108}0010");
+        matcher = pattern.matcher(RouteEntry.createBinaryString(prefix6));
+        assertTrue(matcher.matches());
+
+        prefix6 = Ip6Prefix.valueOf("2000::1234/128");
+        pattern = Pattern.compile("00100{108}0001001000110100");
+        matcher = pattern.matcher(RouteEntry.createBinaryString(prefix6));
+        assertTrue(matcher.matches());
     }
 
     /**
@@ -121,6 +185,16 @@ public class RouteEntryTest {
         RouteEntry routeEntry2 = new RouteEntry(prefix2, nextHop2);
 
         assertThat(routeEntry1, is(routeEntry2));
+
+        Ip6Prefix prefix3 = Ip6Prefix.valueOf("1000::/64");
+        Ip6Address nextHop3 = Ip6Address.valueOf("2000::2");
+        RouteEntry routeEntry3 = new RouteEntry(prefix3, nextHop3);
+
+        Ip6Prefix prefix4 = Ip6Prefix.valueOf("1000::/64");
+        Ip6Address nextHop4 = Ip6Address.valueOf("2000::2");
+        RouteEntry routeEntry4 = new RouteEntry(prefix4, nextHop4);
+
+        assertThat(routeEntry3, is(routeEntry4));
     }
 
     /**
@@ -142,6 +216,21 @@ public class RouteEntryTest {
 
         assertThat(routeEntry1, Matchers.is(not(routeEntry2)));
         assertThat(routeEntry1, Matchers.is(not(routeEntry3)));
+
+        Ip6Prefix prefix4 = Ip6Prefix.valueOf("1000::/64");
+        Ip6Address nextHop4 = Ip6Address.valueOf("2000::1");
+        RouteEntry routeEntry4 = new RouteEntry(prefix4, nextHop4);
+
+        Ip6Prefix prefix5 = Ip6Prefix.valueOf("1000::/65");
+        Ip6Address nextHop5 = Ip6Address.valueOf("2000::1");
+        RouteEntry routeEntry5 = new RouteEntry(prefix5, nextHop5);
+
+        Ip6Prefix prefix6 = Ip6Prefix.valueOf("1000::/64");
+        Ip6Address nextHop6 = Ip6Address.valueOf("2000::2");
+        RouteEntry routeEntry6 = new RouteEntry(prefix6, nextHop6);
+
+        assertThat(routeEntry4, Matchers.is(not(routeEntry5)));
+        assertThat(routeEntry4, Matchers.is(not(routeEntry6)));
     }
 
     /**
@@ -155,5 +244,12 @@ public class RouteEntryTest {
 
         assertThat(routeEntry.toString(),
                    is("RouteEntry{prefix=1.2.3.0/24, nextHop=5.6.7.8}"));
+
+        Ip6Prefix prefix6 = Ip6Prefix.valueOf("1000::/64");
+        Ip6Address nextHop6 = Ip6Address.valueOf("2000::1");
+        RouteEntry routeEntry6 = new RouteEntry(prefix6, nextHop6);
+
+        assertThat(routeEntry6.toString(),
+                   is("RouteEntry{prefix=1000::/64, nextHop=2000::1}"));
     }
 }

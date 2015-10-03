@@ -17,8 +17,6 @@ package org.onosproject.net.intent;
 
 import org.onosproject.cluster.NodeId;
 
-import static org.junit.Assert.*;
-
 /**
  * Testing adapter for the partition service.
  */

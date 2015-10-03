@@ -142,7 +142,7 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
         for (Instruction i : treatment.immediate()) {
             switch (i.type()) {
             case DROP:
-                log.warn("Saw drop action; assigning drop action");
+            case NOACTION:
                 return Collections.emptyList();
             case L2MODIFICATION:
                 act = buildL2Modification(i);

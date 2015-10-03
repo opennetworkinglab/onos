@@ -18,13 +18,16 @@
 
 package org.onosproject.aaa;
 
+import java.util.BitSet;
+import java.util.Map;
+
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.xosintegration.VoltTenant;
 import org.onosproject.xosintegration.VoltTenantService;
 import org.slf4j.Logger;
 
-import java.util.BitSet;
+import com.google.common.collect.Maps;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -58,9 +61,9 @@ class StateMachine {
     private byte[] requestAuthenticator;
 
     // Supplicant connectivity info
-    protected ConnectPoint supplicantConnectpoint;
-    protected MacAddress supplicantAddress;
-    protected short vlanId;
+    private ConnectPoint supplicantConnectpoint;
+    private MacAddress supplicantAddress;
+    private short vlanId;
 
     private String sessionId = null;
 
@@ -109,8 +112,28 @@ class StateMachine {
 
     private int currentState = STATE_IDLE;
 
+    // Maps of state machines. Each state machine is represented by an
+    // unique identifier on the switch: dpid + port number
+    private static Map<String, StateMachine> sessionIdMap;
+    private static Map<Integer, StateMachine> identifierMap;
 
-    /**
+    public static void initializeMaps() {
+        sessionIdMap = Maps.newConcurrentMap();
+        identifierMap = Maps.newConcurrentMap();
+    }
+
+    public static void destroyMaps() {
+        sessionIdMap = null;
+        identifierMap = null;
+    }
+
+    public static StateMachine lookupStateMachineById(byte identifier) {
+        return identifierMap.get((int) identifier);
+    }
+
+    public static StateMachine lookupStateMachineBySessionId(String sessionId) {
+        return sessionIdMap.get(sessionId);
+    }    /**
      * State Machine Constructor.
      *
      * @param sessionId   session Id represented by the switch dpid +  port number
@@ -120,15 +143,69 @@ class StateMachine {
         log.info("Creating a new state machine for {}", sessionId);
         this.sessionId = sessionId;
         this.voltService = voltService;
-
+        sessionIdMap.put(sessionId, this);
     }
 
     /**
-     * Get the client id that is requesting for access.
+     * Gets the connect point for the supplicant side.
+     *
+     * @return supplicant connect point
+     */
+    public ConnectPoint supplicantConnectpoint() {
+        return supplicantConnectpoint;
+    }
+
+    /**
+     * Sets the supplicant side connect point.
+     *
+     * @param supplicantConnectpoint supplicant select point.
+     */
+    public void setSupplicantConnectpoint(ConnectPoint supplicantConnectpoint) {
+        this.supplicantConnectpoint = supplicantConnectpoint;
+    }
+
+    /**
+     * Gets the MAC address of the supplicant.
+     *
+     * @return supplicant MAC address
+     */
+    public MacAddress supplicantAddress() {
+        return supplicantAddress;
+    }
+
+    /**
+     * Sets the supplicant MAC address.
+     *
+     * @param supplicantAddress new supplicant MAC address
+     */
+    public void setSupplicantAddress(MacAddress supplicantAddress) {
+        this.supplicantAddress = supplicantAddress;
+    }
+
+    /**
+     * Gets the client's Vlan ID.
+     *
+     * @return client vlan ID
+     */
+    public short vlanId() {
+        return vlanId;
+    }
+
+    /**
+     * Sets the client's vlan ID.
+     *
+     * @param vlanId new client vlan ID
+     */
+    public void setVlanId(short vlanId) {
+        this.vlanId = vlanId;
+    }
+
+    /**
+     * Gets the client id that is requesting for access.
      *
      * @return The client id.
      */
-    public String getSessionId() {
+    public String sessionId() {
         return this.sessionId;
     }
 
@@ -137,7 +214,7 @@ class StateMachine {
      */
     private void createIdentifier() throws StateMachineException {
         log.debug("Creating Identifier.");
-        int index = -1;
+        int index;
 
         try {
             //find the first available spot for identifier assignment
@@ -178,11 +255,11 @@ class StateMachine {
     }
 
     /**
-     * Get the challenge EAP identifier set by the RADIUS.
+     * Gets the challenge EAP identifier set by the RADIUS.
      *
      * @return The challenge EAP identifier.
      */
-    protected byte getChallengeIdentifier() {
+    protected byte challengeIdentifier() {
         return this.challengeIdentifier;
     }
 
@@ -198,11 +275,11 @@ class StateMachine {
     }
 
     /**
-     * Get the challenge state set by the RADIUS.
+     * Gets the challenge state set by the RADIUS.
      *
      * @return The challenge state.
      */
-    protected byte[] getChallengeState() {
+    protected byte[] challengeState() {
         return this.challengeState;
     }
 
@@ -217,16 +294,16 @@ class StateMachine {
 
 
     /**
-     * Get the username.
+     * Gets the username.
      *
      * @return The requestAuthenticator.
      */
-    protected byte[] getReqeustAuthenticator() {
+    protected byte[] requestAuthenticator() {
         return this.requestAuthenticator;
     }
 
     /**
-     * Set the username.
+     * Sets the authenticator.
      *
      * @param authenticator The username sent to the RADIUS upon access request.
      */
@@ -236,11 +313,11 @@ class StateMachine {
 
 
     /**
-     * Get the username.
+     * Gets the username.
      *
      * @return The username.
      */
-    protected byte[] getUsername() {
+    protected byte[] username() {
         return this.username;
     }
 
@@ -249,7 +326,7 @@ class StateMachine {
      *
      * @return The state machine identifier.
      */
-    public byte getIdentifier() {
+    public byte identifier() {
         return (byte) this.identifier;
     }
 
@@ -267,7 +344,7 @@ class StateMachine {
     /**
      * Move to the next state.
      *
-     * @param msg
+     * @param msg message
      */
     private void next(int msg) {
         currentState = transition[currentState][msg];
@@ -280,14 +357,11 @@ class StateMachine {
      * @throws StateMachineException if authentication protocol is violated
      */
     public void start() throws StateMachineException {
-        try {
-            states[currentState].start();
-            //move to the next state
-            next(TRANSITION_START);
-            createIdentifier();
-        } catch (StateMachineInvalidTransitionException e) {
-            e.printStackTrace();
-        }
+        states[currentState].start();
+        //move to the next state
+        next(TRANSITION_START);
+        createIdentifier();
+        identifierMap.put(identifier, this);
     }
 
     /**
@@ -297,13 +371,9 @@ class StateMachine {
      * @throws StateMachineException if authentication protocol is violated
      */
     public void requestAccess() throws StateMachineException {
-        try {
-            states[currentState].requestAccess();
-            //move to the next state
-            next(TRANSITION_REQUEST_ACCESS);
-        } catch (StateMachineInvalidTransitionException e) {
-            e.printStackTrace();
-        }
+        states[currentState].requestAccess();
+        //move to the next state
+        next(TRANSITION_REQUEST_ACCESS);
     }
 
     /**
@@ -313,27 +383,22 @@ class StateMachine {
      * @throws StateMachineException if authentication protocol is violated
      */
     public void authorizeAccess() throws StateMachineException {
-        try {
-            states[currentState].radiusAccepted();
-            //move to the next state
-            next(TRANSITION_AUTHORIZE_ACCESS);
+        states[currentState].radiusAccepted();
+        //move to the next state
+        next(TRANSITION_AUTHORIZE_ACCESS);
 
-            if (voltService != null) {
-                voltService.addTenant(
-                        VoltTenant.builder()
-                                .withHumanReadableName("VCPE-" + this.identifier)
-                                .withId(this.identifier)
-                                .withProviderService(1)
-                                .withServiceSpecificId(String.valueOf(this.identifier))
-                                .withPort(this.supplicantConnectpoint)
-                                .withVlanId(String.valueOf(this.vlanId)).build());
-            }
-
-            deleteIdentifier();
-        } catch (StateMachineInvalidTransitionException e) {
-            e.printStackTrace();
+        if (voltService != null) {
+            voltService.addTenant(
+                    VoltTenant.builder()
+                            .withHumanReadableName("VCPE-" + this.identifier)
+                            .withId(this.identifier)
+                            .withProviderService(1)
+                            .withServiceSpecificId(String.valueOf(this.identifier))
+                            .withPort(this.supplicantConnectpoint)
+                            .withVlanId(String.valueOf(this.vlanId)).build());
         }
 
+        deleteIdentifier();
     }
 
     /**
@@ -343,14 +408,10 @@ class StateMachine {
      * @throws StateMachineException if authentication protocol is violated
      */
     public void denyAccess() throws StateMachineException {
-        try {
-            states[currentState].radiusDenied();
-            //move to the next state
-            next(TRANSITION_DENY_ACCESS);
-            deleteIdentifier();
-        } catch (StateMachineInvalidTransitionException e) {
-            e.printStackTrace();
-        }
+        states[currentState].radiusDenied();
+        //move to the next state
+        next(TRANSITION_DENY_ACCESS);
+        deleteIdentifier();
     }
 
     /**
@@ -360,141 +421,117 @@ class StateMachine {
      * @throws StateMachineException if authentication protocol is violated
      */
     public void logoff() throws StateMachineException {
-        try {
-            states[currentState].logoff();
-            //move to the next state
-            next(TRANSITION_LOGOFF);
-        } catch (StateMachineInvalidTransitionException e) {
-            e.printStackTrace();
-        }
+        states[currentState].logoff();
+        //move to the next state
+        next(TRANSITION_LOGOFF);
     }
 
     /**
-     * Get the current state.
+     * Gets the current state.
      *
      * @return The current state. Could be STATE_IDLE, STATE_STARTED, STATE_PENDING, STATE_AUTHORIZED,
      * STATE_UNAUTHORIZED.
      */
-    public int getState() {
+    public int state() {
         return currentState;
     }
 
-
+    @Override
     public String toString() {
         return ("sessionId: " + this.sessionId) + "\t" + ("identifier: " + this.identifier) + "\t" +
                 ("state: " + this.currentState);
     }
-}
 
-// FIXME: A source file should contain no more than one top-level entity!
+    abstract class State {
+        private final Logger log = getLogger(getClass());
 
-abstract class State {
-    private final Logger log = getLogger(getClass());
+        private String name = "State";
 
-    private String name = "State";
+        public void start() throws StateMachineInvalidTransitionException {
+            log.warn("START transition from this state is not allowed.");
+        }
 
-    public void start() throws StateMachineInvalidTransitionException {
-        log.warn("START transition from this state is not allowed.");
+        public void requestAccess() throws StateMachineInvalidTransitionException {
+            log.warn("REQUEST ACCESS transition from this state is not allowed.");
+        }
+
+        public void radiusAccepted() throws StateMachineInvalidTransitionException {
+            log.warn("AUTHORIZE ACCESS transition from this state is not allowed.");
+        }
+
+        public void radiusDenied() throws StateMachineInvalidTransitionException {
+            log.warn("DENY ACCESS transition from this state is not allowed.");
+        }
+
+        public void logoff() throws StateMachineInvalidTransitionException {
+            log.warn("LOGOFF transition from this state is not allowed.");
+        }
     }
 
-    public void requestAccess() throws StateMachineInvalidTransitionException {
-        log.warn("REQUEST ACCESS transition from this state is not allowed.");
+    /**
+     * Idle state: supplicant is logged of from the network.
+     */
+    class Idle extends State {
+        private final Logger log = getLogger(getClass());
+        private String name = "IDLE_STATE";
+
+        public void start() {
+            log.info("Moving from IDLE state to STARTED state.");
+        }
     }
 
-    public void radiusAccepted() throws StateMachineInvalidTransitionException {
-        log.warn("AUTHORIZE ACCESS transition from this state is not allowed.");
+    /**
+     * Started state: supplicant has entered the network and informed the authenticator.
+     */
+    class Started extends State {
+        private final Logger log = getLogger(getClass());
+        private String name = "STARTED_STATE";
+
+        public void requestAccess() {
+            log.info("Moving from STARTED state to PENDING state.");
+        }
     }
 
-    public void radiusDenied() throws StateMachineInvalidTransitionException {
-        log.warn("DENY ACCESS transition from this state is not allowed.");
+    /**
+     * Pending state: supplicant has been identified by the authenticator but has not access yet.
+     */
+    class Pending extends State {
+        private final Logger log = getLogger(getClass());
+        private String name = "PENDING_STATE";
+
+        public void radiusAccepted() {
+            log.info("Moving from PENDING state to AUTHORIZED state.");
+        }
+
+        public void radiusDenied() {
+            log.info("Moving from PENDING state to UNAUTHORIZED state.");
+        }
     }
 
-    public void logoff() throws StateMachineInvalidTransitionException {
-        log.warn("LOGOFF transition from this state is not allowed.");
-    }
-}
+    /**
+     * Authorized state: supplicant port has been accepted, access is granted.
+     */
+    class Authorized extends State {
+        private final Logger log = getLogger(getClass());
+        private String name = "AUTHORIZED_STATE";
 
-/**
- * Idle state: supplicant is logged of from the network.
- */
-class Idle extends State {
-    private final Logger log = getLogger(getClass());
-    private String name = "IDLE_STATE";
+        public void logoff() {
 
-    public void start() {
-        log.info("Moving from IDLE state to STARTED state.");
-    }
-}
-
-/**
- * Started state: supplicant has entered the network and informed the authenticator.
- */
-class Started extends State {
-    private final Logger log = getLogger(getClass());
-    private String name = "STARTED_STATE";
-
-    public void requestAccess() {
-        log.info("Moving from STARTED state to PENDING state.");
-    }
-}
-
-/**
- * Pending state: supplicant has been identified by the authenticator but has not access yet.
- */
-class Pending extends State {
-    private final Logger log = getLogger(getClass());
-    private String name = "PENDING_STATE";
-
-    public void radiusAccepted() {
-        log.info("Moving from PENDING state to AUTHORIZED state.");
+            log.info("Moving from AUTHORIZED state to IDLE state.");
+        }
     }
 
-    public void radiusDenied() {
-        log.info("Moving from PENDING state to UNAUTHORIZED state.");
+    /**
+     * Unauthorized state: supplicant port has been rejected, access is denied.
+     */
+    class Unauthorized extends State {
+        private final Logger log = getLogger(getClass());
+        private String name = "UNAUTHORIZED_STATE";
+
+        public void logoff() {
+            log.info("Moving from UNAUTHORIZED state to IDLE state.");
+        }
     }
-}
-
-/**
- * Authorized state: supplicant port has been accepted, access is granted.
- */
-class Authorized extends State {
-    private final Logger log = getLogger(getClass());
-    private String name = "AUTHORIZED_STATE";
-
-    public void logoff() {
-
-        log.info("Moving from AUTHORIZED state to IDLE state.");
-    }
-}
-
-/**
- * Unauthorized state: supplicant port has been rejected, access is denied.
- */
-class Unauthorized extends State {
-    private final Logger log = getLogger(getClass());
-    private String name = "UNAUTHORIZED_STATE";
-
-    public void logoff() {
-        log.info("Moving from UNAUTHORIZED state to IDLE state.");
-    }
-}
 
 
-/**
- * Exception for the State Machine.
- */
-class StateMachineException extends Exception {
-    public StateMachineException(String message) {
-        super(message);
-
-    }
-}
-
-/**
- * Exception raised when the transition from one state to another is invalid.
- */
-class StateMachineInvalidTransitionException extends StateMachineException {
-    public StateMachineInvalidTransitionException(String message) {
-        super(message);
-    }
 }

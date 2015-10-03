@@ -177,11 +177,13 @@ public class NeighborSolicitation extends BasePacket {
             bb.getInt();
             bb.get(neighborSolicitation.targetAddress, 0, Ip6Address.BYTE_LENGTH);
 
-            NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
-                    .deserialize(data, bb.position(), bb.limit() - bb.position());
+            if (bb.limit() - bb.position() > 0) {
+                NeighborDiscoveryOptions options = NeighborDiscoveryOptions.deserializer()
+                        .deserialize(data, bb.position(), bb.limit() - bb.position());
 
-            for (NeighborDiscoveryOptions.Option option : options.options()) {
-                neighborSolicitation.addOption(option.type(), option.data());
+                for (NeighborDiscoveryOptions.Option option : options.options()) {
+                    neighborSolicitation.addOption(option.type(), option.data());
+                }
             }
 
             return neighborSolicitation;

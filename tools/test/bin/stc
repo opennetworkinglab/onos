@@ -3,7 +3,7 @@
 #   System Test Coordinator
 #-------------------------------------------------------------------------------
 
-VER=1.3.0-SNAPSHOT
+VER=1.4.0-SNAPSHOT
 JAR=~/.m2/repository/org/onosproject/onlab-stc/$VER/onlab-stc-$VER.jar
 SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 
@@ -15,9 +15,19 @@ scenario=${1:-smoke}
 [ ! -f $scenario ] && scenario=$scenario.xml
 [ ! -f $scenario ] && echo "Scenario $scenario file not found" && exit 1
 
+# Remove the test name from the list of parameters, if one is specified
 [ $# -ge 1 ] && shift
 
-[ -t 1 ] && stcColor=true || unset stcColor
+# If stcColor is not set, we will enable color if this is an interactive session
+[ -t 1 ] && interactive=true || interactive=false
 
+# stc requires that ONOS_USE_SSH=true, but we will store the old value and reset it after
+sshSet=$([ -z ${ONOS_USE_SSH+x} ]) && oldSSH=$ONOS_USE_SSH
+export ONOS_USE_SSH=true
+
+# Run stc
 [ -z "$stcDebug" ] && DEBUG_OPTS=""
-java $DEBUG_OPTS -jar $JAR $scenario "$@"
+stcColor=${stcColor:-$interactive} java $DEBUG_OPTS -jar $JAR $scenario "$@"
+
+# Reset the old value of ONOS_USE_SSH
+[ $sshSet ] && export ONOS_USE_SSH=oldSSH || unset ONOS_USE_SSH

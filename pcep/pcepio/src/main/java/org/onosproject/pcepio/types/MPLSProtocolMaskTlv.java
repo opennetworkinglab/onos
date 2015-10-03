@@ -42,7 +42,6 @@ public class MPLSProtocolMaskTlv implements PcepValueType {
 
     public static final short TYPE = 1094; //TDB39
     public static final short LENGTH = 1;
-    public static final int SET = 1;
     public static final byte LFLAG_SET = (byte) 0x80;
     public static final byte RFLAG_SET = 0x40;
 
@@ -58,19 +57,9 @@ public class MPLSProtocolMaskTlv implements PcepValueType {
      */
     public MPLSProtocolMaskTlv(byte rawValue) {
         this.rawValue = rawValue;
-        isRawValueSet = true;
-        byte temp = rawValue;
-        if ((temp & LFLAG_SET) == SET) {
-            this.bLFlag = true;
-
-        } else {
-            this.bLFlag = false;
-        }
-        if ((temp & RFLAG_SET) == SET) {
-            this.bRFlag = true;
-        } else {
-            this.bRFlag = false;
-        }
+        this.isRawValueSet = true;
+        this.bLFlag = (rawValue & LFLAG_SET) == LFLAG_SET;
+        this.bRFlag = (rawValue & RFLAG_SET) == RFLAG_SET;
     }
 
     /**
@@ -194,16 +183,9 @@ public class MPLSProtocolMaskTlv implements PcepValueType {
         boolean bLFlag;
         boolean bRFlag;
 
-        if ((temp & LFLAG_SET) == SET) {
-            bLFlag = true;
-        } else {
-            bLFlag = false;
-        }
-        if ((temp & RFLAG_SET) == SET) {
-            bRFlag = true;
-        } else {
-            bRFlag = false;
-        }
+        bLFlag = (temp & LFLAG_SET) == LFLAG_SET;
+        bRFlag = (temp & RFLAG_SET) == RFLAG_SET;
+
         return new MPLSProtocolMaskTlv(bLFlag, bRFlag);
     }
 

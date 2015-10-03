@@ -3,6 +3,25 @@
 # Checks the logs of the remote ONOS instance and makes sure they are clean.
 # -----------------------------------------------------------------------------
 
+function __usage() {
+cat << _EOM_
+
+usage:
+ $(basename $0) [node] ['old']
+
+options:
+ - [node]  : The node whose logs to inspect. The default is \$OCI.
+ - ['old'] : If 'old' is specified, the logs are simply searched for errors
+             and exceptions, and they are displayed.
+
+summary:
+ Checks the logs of the remote ONOS instance and makes sure they are clean.
+
+_EOM_
+}
+
+[ "$1" = "-h" ] && __usage && exit 0
+
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
@@ -17,6 +36,7 @@ if [ "$2" = "old" ]; then
 
 else
     ssh $remote "
+        [ "'`uname`'" != "'"Linux"'" ] && alias tac='tail -r'
         tac $LOG | awk '
             BEGIN { off = 0; fail = 0; }
             / org.apache.karaf.main.lock.SimpleFileLock lock/ {

@@ -30,9 +30,10 @@
         <relativePath>tools/build/pom.xml</relativePath>
     </parent>
 
+    <groupId>org.onosproject</groupId>
     <artifactId>onos</artifactId>
     <packaging>pom</packaging>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
 
     <name>${project.artifactId}</name>
     <description>Open Network Operating System root project</description>
@@ -76,8 +77,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <onos-build-conf.version>1.0</onos-build-conf.version>
         <netty4.version>4.0.23.Final</netty4.version>
-        <copycat.version>0.5.0.onos12-SNAPSHOT</copycat.version>
+        <copycat.version>0.5.0.onos</copycat.version>
         <openflowj.version>0.9.0.onos</openflowj.version>
         <karaf.version>3.0.3</karaf.version>
         <jersey.version>1.19</jersey.version>
@@ -89,14 +91,6 @@
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
-
-    <!--- Needed for copycat. Remove before official release -->
-    <repositories>
-        <repository>
-            <id>snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </repository>
-    </repositories>
 
     <dependencyManagement>
         <dependencies>
@@ -598,12 +592,12 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>findbugs-maven-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>3.0.1</version>
                     <dependencies>
                         <dependency>
                             <groupId>org.onosproject</groupId>
                             <artifactId>onos-build-conf</artifactId>
-                            <version>1.0</version>
+                            <version>${onos-build-conf.version}</version>
                         </dependency>
                     </dependencies>
                     <configuration>
@@ -659,7 +653,7 @@
                     <dependency>
                         <groupId>org.onosproject</groupId>
                         <artifactId>onos-build-conf</artifactId>
-                        <version>1.0</version>
+                        <version>${onos-build-conf.version}</version>
                     </dependency>
                     <!-- For Java 8 lambda support-->
                     <dependency>

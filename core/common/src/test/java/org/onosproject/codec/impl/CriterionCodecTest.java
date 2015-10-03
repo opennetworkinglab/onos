@@ -38,10 +38,8 @@ import org.onosproject.net.flow.criteria.Criterion;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.TestUtils.getField;
-import static org.onlab.junit.TestUtils.setField;
 import static org.onosproject.codec.impl.CriterionJsonMatcher.matchesCriterion;
 
 /**
@@ -428,18 +426,5 @@ public class CriterionCodecTest {
         Criterion criterion = Criteria.matchOchSignalType(OchSignalType.FIXED_GRID);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
-    }
-
-    /**
-     * Tests that an unimplemented criterion type only returns the type and
-     * no other data.
-     */
-    @Test
-    public void matchUnknownTypeTest() throws Exception {
-        Criterion criterion = Criteria.matchOpticalSignalType((byte) 250);
-        setField(criterion, "type", Criterion.Type.UNASSIGNED_40);
-        ObjectNode result = criterionCodec.encode(criterion, context);
-        assertThat(result.get("type").textValue(), is(criterion.type().toString()));
-        assertThat(result.size(), is(1));
     }
 }

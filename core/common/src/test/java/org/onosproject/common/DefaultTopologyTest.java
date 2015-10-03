@@ -73,7 +73,7 @@ public class DefaultTopologyTest {
                              link("1", 3, "4", 3), link("4", 3, "1", 3),
                              link("3", 4, "4", 4), link("4", 4, "3", 4));
         GraphDescription graphDescription =
-                new DefaultGraphDescription(now, devices, links);
+                new DefaultGraphDescription(now, System.currentTimeMillis(), devices, links);
 
         dt = new DefaultTopology(PID, graphDescription);
         assertEquals("incorrect supplier", PID, dt.providerId());

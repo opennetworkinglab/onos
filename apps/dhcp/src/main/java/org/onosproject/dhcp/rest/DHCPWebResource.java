@@ -20,7 +20,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
-import org.onosproject.dhcp.DHCPService;
+import org.onosproject.dhcp.DhcpService;
+import org.onosproject.dhcp.IpAssignment;
+import org.onosproject.net.HostId;
 import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
@@ -41,7 +43,7 @@ import java.util.Map;
 @Path("dhcp")
 public class DHCPWebResource extends AbstractWebResource {
 
-    final DHCPService service = get(DHCPService.class);
+    final DhcpService service = get(DhcpService.class);
 
     /**
      * Get DHCP server configuration data.
@@ -52,7 +54,7 @@ public class DHCPWebResource extends AbstractWebResource {
     @GET
     @Path("config")
     public Response getConfigs() {
-        DHCPService service = get(DHCPService.class);
+        DhcpService service = get(DhcpService.class);
         ObjectNode node = mapper().createObjectNode()
                 .put("leaseTime", service.getLeaseTime())
                 .put("renewalTime", service.getRenewalTime())
@@ -71,11 +73,11 @@ public class DHCPWebResource extends AbstractWebResource {
     public Response listMappings() {
         ObjectNode root = mapper().createObjectNode();
 
-        final Map<MacAddress, Ip4Address> intents = service.listMapping();
+        final Map<HostId, IpAssignment> intents = service.listMapping();
         ArrayNode arrayNode = root.putArray("mappings");
         intents.entrySet().forEach(i -> arrayNode.add(mapper().createObjectNode()
-                .put("mac", i.getKey().toString())
-                .put("ip", i.getValue().toString())));
+                .put("host", i.getKey().toString())
+                .put("ip", i.getValue().ipAddress().toString())));
 
         return ok(root.toString()).build();
     }
@@ -103,6 +105,7 @@ public class DHCPWebResource extends AbstractWebResource {
      * Post a new static MAC/IP binding.
      * Registers a static binding to the DHCP server, and displays the current set of bindings.
      *
+     * @param stream JSON stream
      * @return 200 OK
      */
     @POST
@@ -123,11 +126,11 @@ public class DHCPWebResource extends AbstractWebResource {
                 }
             }
 
-            final Map<MacAddress, Ip4Address> intents = service.listMapping();
+            final Map<HostId, IpAssignment> intents = service.listMapping();
             ArrayNode arrayNode = root.putArray("mappings");
             intents.entrySet().forEach(i -> arrayNode.add(mapper().createObjectNode()
-                    .put("mac", i.getKey().toString())
-                    .put("ip", i.getValue().toString())));
+                    .put("host", i.getKey().toString())
+                    .put("ip", i.getValue().ipAddress().toString())));
         } catch (IOException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -138,6 +141,7 @@ public class DHCPWebResource extends AbstractWebResource {
      * Delete a static MAC/IP binding.
      * Removes a static binding from the DHCP Server, and displays the current set of bindings.
      *
+     * @param macID mac address identifier
      * @return 200 OK
      */
     @DELETE
@@ -149,11 +153,11 @@ public class DHCPWebResource extends AbstractWebResource {
         if (!service.removeStaticMapping(MacAddress.valueOf(macID))) {
             throw new IllegalArgumentException("Static Mapping Removal Failed.");
         }
-        final Map<MacAddress, Ip4Address> intents = service.listMapping();
+        final Map<HostId, IpAssignment> intents = service.listMapping();
         ArrayNode arrayNode = root.putArray("mappings");
         intents.entrySet().forEach(i -> arrayNode.add(mapper().createObjectNode()
-                .put("mac", i.getKey().toString())
-                .put("ip", i.getValue().toString())));
+                .put("host", i.getKey().toString())
+                .put("ip", i.getValue().ipAddress().toString())));
 
         return ok(root.toString()).build();
     }

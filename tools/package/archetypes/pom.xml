@@ -28,7 +28,7 @@
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos-archetypes</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <description>ONOS archetypes project</description>
@@ -38,6 +38,8 @@
         <module>bundle</module>
         <module>cli</module>
         <module>ui</module>
+        <module>uitab</module>
+        <module>uitopo</module>
     </modules>
 
     <build>

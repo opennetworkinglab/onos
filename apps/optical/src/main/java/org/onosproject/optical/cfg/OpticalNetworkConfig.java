@@ -34,8 +34,8 @@ public class OpticalNetworkConfig {
     private List<OpticalLinkDescription> opticalLinks;
 
     public OpticalNetworkConfig() {
-        opticalSwitches = new ArrayList<OpticalSwitchDescription>();
-        opticalLinks = new ArrayList<OpticalLinkDescription>();
+        opticalSwitches = new ArrayList<>();
+        opticalLinks = new ArrayList<>();
     }
 
     public List<OpticalSwitchDescription> getOpticalSwitches() {

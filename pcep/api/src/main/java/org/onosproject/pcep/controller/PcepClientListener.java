@@ -25,12 +25,12 @@ public interface PcepClientListener {
      *
      * @param pccId the id of the client that connected
      */
-    public void clientConnected(PccId pccId);
+    void clientConnected(PccId pccId);
 
     /**
      * Notify that the PCC was disconnected.
      *
      * @param pccId the id of the client that disconnected.
      */
-    public void clientDisconnected(PccId pccId);
+    void clientDisconnected(PccId pccId);
 }

@@ -60,7 +60,7 @@ public final class OvsdbConstant {
     public static final String EXTERNAL_ID_VM_MAC = "attached-mac";
 
     /** Openflow port. */
-    public static final int OFPORT = 6633;
+    public static final int OFPORT = 6653;
 
     /** Ovsdb port. */
     public static final int OVSDBPORT = 6640;

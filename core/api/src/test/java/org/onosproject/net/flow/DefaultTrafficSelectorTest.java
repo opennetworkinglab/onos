@@ -267,29 +267,5 @@ public class DefaultTrafficSelectorTest {
         selector = DefaultTrafficSelector.builder()
                 .add(Criteria.matchLambda(new IndexedLambda(shortValue))).build();
         assertThat(selector, hasCriterionWithType(Type.OCH_SIGID));
-
-        selector = DefaultTrafficSelector.builder()
-                .add(Criteria.matchOpticalSignalType(shortValue)).build();
-        assertThat(selector, hasCriterionWithType(Type.OCH_SIGTYPE));
-    }
-
-    /**
-     * Tests the traffic selector builder.
-     */
-    @Test
-    public void testTrafficSelectorBuilder() {
-        TrafficSelector selector;
-        final short shortValue = 33;
-
-        final TrafficSelector baseSelector = DefaultTrafficSelector.builder()
-                .add(Criteria.matchLambda(new IndexedLambda(shortValue))).build();
-        selector = DefaultTrafficSelector.builder(baseSelector)
-                .build();
-        assertThat(selector, hasCriterionWithType(Type.OCH_SIGID));
-
-        final Criterion criterion = Criteria.matchLambda(shortValue);
-        selector = DefaultTrafficSelector.builder()
-                .add(criterion).build();
-        assertThat(selector, hasCriterionWithType(Type.OCH_SIGID));
     }
 }

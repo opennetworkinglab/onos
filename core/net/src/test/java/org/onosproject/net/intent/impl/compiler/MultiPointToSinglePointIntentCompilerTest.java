@@ -31,8 +31,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.net.topology.LinkWeight;
-import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.PathServiceAdapter;
 
 import java.util.HashSet;
 import java.util.List;
@@ -60,7 +59,7 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
     /**
      * Mock path service for creating paths within the test.
      */
-    private static class MockPathService implements PathService {
+    private static class MockPathService extends PathServiceAdapter {
 
         final String[] pathHops;
 
@@ -85,11 +84,6 @@ public class MultiPointToSinglePointIntentCompilerTest extends AbstractIntentTes
             result.add(createPath(allHops));
 
             return result;
-        }
-
-        @Override
-        public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeight weight) {
-            return null;
         }
     }
 

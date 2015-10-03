@@ -118,7 +118,7 @@ class PcepLabelUpdateMsgVer1 implements PcepLabelUpdateMsg {
         public LinkedList<PcepLabelUpdate> parsePcLabelUpdateList(ChannelBuffer cb) throws PcepParseException {
 
             LinkedList<PcepLabelUpdate> llPcLabelUpdateList;
-            llPcLabelUpdateList = new LinkedList<PcepLabelUpdate>();
+            llPcLabelUpdateList = new LinkedList<>();
 
             while (0 < cb.readableBytes()) {
                 llPcLabelUpdateList.add(PcepLabelUpdateVer1.read(cb));

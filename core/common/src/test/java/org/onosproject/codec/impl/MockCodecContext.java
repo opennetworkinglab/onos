@@ -30,7 +30,7 @@ public class MockCodecContext implements CodecContext {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final CodecManager manager = new CodecManager();
-    private final Map<Class<? extends Object>, Object> services = new HashMap<>();
+    private final Map<Class<?>, Object> services = new HashMap<>();
 
     /**
      * Constructs a new mock codec context.

@@ -202,8 +202,8 @@ public class PcepMetricObjectVer1 implements PcepMetricObject {
         tempCb.readShort();
         yFlag = tempCb.readByte();
         bType = tempCb.readByte();
-        bCFlag = (yFlag & CFLAG_CHECK) == CFLAG_CHECK ? true : false;
-        bBFlag = (yFlag & BFLAG_SET) == BFLAG_SET ? true : false;
+        bCFlag = (yFlag & CFLAG_CHECK) == CFLAG_CHECK;
+        bBFlag = (yFlag & BFLAG_SET) == BFLAG_SET;
         iMetricVal = tempCb.readInt();
 
         return new PcepMetricObjectVer1(metricObjHeader, iMetricVal, yFlag, bCFlag, bBFlag, bType);

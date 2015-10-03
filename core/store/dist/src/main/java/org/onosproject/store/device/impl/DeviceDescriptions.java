@@ -82,7 +82,7 @@ class DeviceDescriptions {
         if (oldOne != null) {
             SparseAnnotations merged = union(oldOne.value().annotations(),
                                              newDesc.value().annotations());
-            newOne = new Timestamped<DeviceDescription>(
+            newOne = new Timestamped<>(
                     new DefaultDeviceDescription(newDesc.value(), merged),
                     newDesc.timestamp());
         }
@@ -104,27 +104,27 @@ class DeviceDescriptions {
             switch (newDesc.value().type()) {
                 case OMS:
                     OmsPortDescription omsDesc = (OmsPortDescription) (newDesc.value());
-                    newOne = new Timestamped<PortDescription>(
+                    newOne = new Timestamped<>(
                             new OmsPortDescription(
                                     omsDesc, omsDesc.minFrequency(), omsDesc.maxFrequency(), omsDesc.grid(), merged),
                             newDesc.timestamp());
                     break;
                 case OCH:
                     OchPortDescription ochDesc = (OchPortDescription) (newDesc.value());
-                    newOne = new Timestamped<PortDescription>(
+                    newOne = new Timestamped<>(
                             new OchPortDescription(
                                     ochDesc, ochDesc.signalType(), ochDesc.isTunable(), ochDesc.lambda(), merged),
                             newDesc.timestamp());
                     break;
                 case ODUCLT:
                     OduCltPortDescription ocDesc = (OduCltPortDescription) (newDesc.value());
-                    newOne = new Timestamped<PortDescription>(
+                    newOne = new Timestamped<>(
                             new OduCltPortDescription(
                                     ocDesc, ocDesc.signalType(), merged),
                             newDesc.timestamp());
                     break;
                 default:
-                    newOne = new Timestamped<PortDescription>(
+                    newOne = new Timestamped<>(
                             new DefaultPortDescription(newDesc.value(), merged),
                             newDesc.timestamp());
             }

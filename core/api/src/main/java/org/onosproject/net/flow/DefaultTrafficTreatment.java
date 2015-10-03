@@ -234,6 +234,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
             switch (instruction.type()) {
                 case DROP:
+                case NOACTION:
                 case OUTPUT:
                 case GROUP:
                 case L0MODIFICATION:
@@ -250,6 +251,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                     break;
                 case METER:
                     meter = (Instructions.MeterInstruction) instruction;
+                    break;
                 default:
                     throw new IllegalArgumentException("Unknown instruction type: " +
                                                                instruction.type());
@@ -258,9 +260,23 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             return this;
         }
 
+        /**
+         * Add a NOACTION when DROP instruction is explicitly specified.
+         *
+         * @return the traffic treatment builder
+         */
         @Override
         public Builder drop() {
-            return add(Instructions.createDrop());
+            return add(Instructions.createNoAction());
+        }
+
+        /**
+         * Add a NOACTION when no instruction is specified.
+         *
+         * @return the traffic treatment builder
+         */
+        private Builder noAction() {
+            return add(Instructions.createNoAction());
         }
 
         @Override
@@ -380,11 +396,6 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
-        public Builder transition(FlowRule.Type type) {
-            return add(Instructions.transition(type.ordinal()));
-        }
-
-        @Override
         public Builder transition(Integer tableId) {
             return add(Instructions.transition(tableId));
         }
@@ -463,14 +474,10 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         @Override
         public TrafficTreatment build() {
-            //Don't add DROP instruction by default when instruction
-            //set is empty. This will be handled in DefaultSingleTablePipeline
-            //driver.
-
-            //if (deferred.size() == 0 && immediate.size() == 0
-            //        && table == null && !clear) {
-            //    drop();
-            //}
+            if (deferred.size() == 0 && immediate.size() == 0
+                    && table == null && !clear) {
+                noAction();
+            }
             return new DefaultTrafficTreatment(deferred, immediate, table, clear, meta, meter);
         }
 

@@ -17,7 +17,7 @@ package org.onosproject.net.packet;
 
 import org.onosproject.store.Store;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * Manages routing of outbound packets.
@@ -52,8 +52,8 @@ public interface PacketStore extends Store<PacketEvent, PacketStoreDelegate> {
     /**
      * Obtains all existing requests in the system.
      *
-     * @return a set of packet requests
+     * @return list of packet requests in order of priority
      */
-    Set<PacketRequest> existingRequests();
+    List<PacketRequest> existingRequests();
 
 }

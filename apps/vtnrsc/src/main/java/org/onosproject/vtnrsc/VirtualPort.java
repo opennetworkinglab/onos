@@ -28,7 +28,7 @@ public interface VirtualPort {
     /**
      * Coarse classification of the type of the virtual port.
      */
-    public enum State {
+    enum State {
         /**
          * Signifies that a virtualPort is currently active,This state mean that
          * this virtualPort is available.

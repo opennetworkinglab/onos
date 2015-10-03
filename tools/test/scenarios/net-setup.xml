@@ -17,9 +17,9 @@
     <!-- TODO: parametrize this via recipes -->
     <group name="Net-Setup">
         <step name="Push-Topos" exec="onos-push-topos ${OCN}"/>
-        <step name="Stop-Mininet-If-Needed" env="~" exec="onos-mininet stop"/>
 
-        <step name="Wipe-Out-Data-Before" exec="onos-wipe-out"/>
+        <step name="Stop-Mininet-If-Needed" env="~" exec="onos-mininet stop"/>
+        <step name="Wipe-Out-Data-Before" exec="onos-wipe-out" requires="^"/>
 
         <step name="Initial-Summary-Check" requires="~Wipe-Out-Data-Before"
               exec="onos-check-summary ${OC1} [0-9]* 0 0 0"/>

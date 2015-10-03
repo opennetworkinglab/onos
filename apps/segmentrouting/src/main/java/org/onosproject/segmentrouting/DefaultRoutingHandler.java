@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -47,6 +49,8 @@ public class DefaultRoutingHandler {
     private DeviceConfiguration config;
     private Status populationStatus;
     private boolean linkHasWeight;
+    private final Lock statusLock = new ReentrantLock();
+    private volatile Status populationStatus;
 
     /**
      * Represents the default routing population status.
@@ -88,18 +92,19 @@ public class DefaultRoutingHandler {
      */
     public boolean populateAllRoutingRules() {
 
-        populationStatus = Status.STARTED;
-        rulePopulator.resetCounter();
-        log.info("Starts to populate routing rules");
-        log.debug("populateAllRoutingRules: populationStatus is STARTED");
+        statusLock.lock();
+        try {
+            populationStatus = Status.STARTED;
+            rulePopulator.resetCounter();
+            log.info("Starts to populate routing rules");
+            log.debug("populateAllRoutingRules: populationStatus is STARTED");
 
-        for (Device sw : srManager.deviceService.getDevices()) {
-            log.debug("DEVICE -- {}", sw.id());
-            if (srManager.mastershipService.getLocalRole(sw.id()) != MastershipRole.MASTER) {
-                log.debug("populateAllRoutingRules: skipping device {}...we are not master",
-                          sw.id());
-                continue;
-            }
+            for (Device sw : srManager.deviceService.getDevices()) {
+                if (srManager.mastershipService.getLocalRole(sw.id()) != MastershipRole.MASTER) {
+                    log.debug("populateAllRoutingRules: skipping device {}...we are not master",
+                              sw.id());
+                    continue;
+                }
 
             ECMPShortestPathGraph ecmpSpg = new ECMPShortestPathGraph(sw.id(), srManager, linkHasWeight);
             if (!populateEcmpRoutingRules(sw.id(), ecmpSpg)) {
@@ -107,17 +112,18 @@ public class DefaultRoutingHandler {
                 populationStatus = Status.ABORTED;
                 log.debug("Abort routing rule population");
                 return false;
+                currentEcmpSpgMap.put(sw.id(), ecmpSpg);
+
             }
-            currentEcmpSpgMap.put(sw.id(), ecmpSpg);
 
-            // TODO: Set adjacency routing rule for all switches
+            log.debug("populateAllRoutingRules: populationStatus is SUCCEEDED");
+            populationStatus = Status.SUCCEEDED;
+            log.info("Completes routing rule population. Total # of rules pushed : {}",
+                    rulePopulator.getCounter());
+            return true;
+        } finally {
+            statusLock.unlock();
         }
-
-        log.debug("populateAllRoutingRules: populationStatus is SUCCEEDED");
-        populationStatus = Status.SUCCEEDED;
-        log.info("Completes routing rule population. Total # of rules pushed : {}",
-                rulePopulator.getCounter());
-        return true;
     }
 
     /**
@@ -130,7 +136,8 @@ public class DefaultRoutingHandler {
      */
     public boolean populateRoutingRulesForLinkStatusChange(Link linkFail) {
 
-        synchronized (populationStatus) {
+        statusLock.lock();
+        try {
 
             if (populationStatus == Status.STARTED) {
                 log.warn("Previous rule population is not finished.");
@@ -182,6 +189,8 @@ public class DefaultRoutingHandler {
                 log.warn("Failed to repopulate the rules.");
                 return false;
             }
+        } finally {
+            statusLock.unlock();
         }
     }
 
@@ -507,7 +516,8 @@ public class DefaultRoutingHandler {
      * ABORTED status when any groups required for flows is not set yet.
      */
     public void startPopulationProcess() {
-        synchronized (populationStatus) {
+        statusLock.lock();
+        try {
             if (populationStatus == Status.IDLE
                     || populationStatus == Status.SUCCEEDED
                     || populationStatus == Status.ABORTED) {
@@ -517,6 +527,8 @@ public class DefaultRoutingHandler {
                 log.warn("Not initiating startPopulationProcess as populationStatus is {}",
                          populationStatus);
             }
+        } finally {
+            statusLock.unlock();
         }
     }
 
@@ -525,13 +537,16 @@ public class DefaultRoutingHandler {
      * Mostly the process is aborted when the groups required are not set yet.
      */
     public void resumePopulationProcess() {
-        synchronized (populationStatus) {
+        statusLock.lock();
+        try {
             if (populationStatus == Status.ABORTED) {
                 populationStatus = Status.STARTED;
                 // TODO: we need to restart from the point aborted instead of
                 // restarting.
                 populateAllRoutingRules();
             }
+        } finally {
+            statusLock.unlock();
         }
     }
 }

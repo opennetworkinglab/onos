@@ -44,7 +44,7 @@ function _cell-opts () {
   fi
 }
 
-complete -F _cell-opts cell
+complete -F _cell-opts cell vicell
 
 
 # Tab completion settings for onos-create-app.

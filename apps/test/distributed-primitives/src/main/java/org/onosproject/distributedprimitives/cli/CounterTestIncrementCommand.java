@@ -91,10 +91,9 @@ public class CounterTestIncrementCommand extends AbstractShellCommand {
             print("%s was updated to %d", counter, result.get(3, TimeUnit.SECONDS));
         } catch (InterruptedException e) {
             return;
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
+        } catch (ExecutionException | TimeoutException e) {
+            print("Error executing command");
+            log.error("Error executing command counter-test-increment", e);
         }
     }
 }

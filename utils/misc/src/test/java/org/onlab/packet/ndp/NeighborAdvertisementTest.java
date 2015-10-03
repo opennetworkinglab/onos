@@ -20,6 +20,9 @@ import org.junit.Test;
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Deserializer;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.PacketTestUtils;
+
+import java.nio.ByteBuffer;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertArrayEquals;
@@ -74,6 +77,20 @@ public class NeighborAdvertisementTest {
                      MAC_ADDRESS.toBytes());
 
         assertArrayEquals(na.serialize(), bytePacket);
+    }
+
+    @Test
+    public void testDeserializeBadInput() throws Exception {
+        PacketTestUtils.testDeserializeBadInput(NeighborAdvertisement.deserializer());
+    }
+
+    @Test
+    public void testDeserializeTruncated() throws Exception {
+        // Run the truncation test only on the NeighborAdvertisement header
+        byte[] naHeader = new byte[NeighborAdvertisement.HEADER_LENGTH];
+        ByteBuffer.wrap(bytePacket).get(naHeader);
+
+        PacketTestUtils.testDeserializeTruncated(NeighborAdvertisement.deserializer(), naHeader);
     }
 
     /**

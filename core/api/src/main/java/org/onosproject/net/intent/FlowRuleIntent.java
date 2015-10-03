@@ -23,7 +23,6 @@ import org.onosproject.net.NetworkResource;
 import org.onosproject.net.flow.FlowRule;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -36,18 +35,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class FlowRuleIntent extends Intent {
 
     private final Collection<FlowRule> flowRules;
-
-    /**
-     * Creates an flow rule intent with the specified flow rules to be set.
-     *
-     * @param appId     application id
-     * @param flowRules flow rules to be set.
-     * @deprecated in Cardinal Release
-     */
-    @Deprecated
-    public FlowRuleIntent(ApplicationId appId, List<FlowRule> flowRules) {
-        this(appId, null, flowRules, Collections.emptyList());
-    }
 
     /**
      * Creates a flow rule intent with the specified flow rules and resources.

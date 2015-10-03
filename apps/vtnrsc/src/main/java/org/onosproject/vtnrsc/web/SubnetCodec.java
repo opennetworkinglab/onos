@@ -34,7 +34,7 @@ public final class SubnetCodec extends JsonCodec<Subnet> {
                 .put("id", subnet.id().toString())
                 .put("gateway_ip", subnet.gatewayIp().toString())
                 .put("network_id", subnet.networkId().toString())
-                .put("name", subnet.subnetName().toString())
+                .put("name", subnet.subnetName())
                 .put("ip_version", subnet.ipVersion().toString())
                 .put("cidr", subnet.cidr().toString())
                 .put("shared", subnet.shared())

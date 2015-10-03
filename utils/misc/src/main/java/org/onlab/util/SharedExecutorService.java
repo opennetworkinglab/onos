@@ -127,7 +127,7 @@ class SharedExecutorService implements ExecutorService {
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks,
                            long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
-        return invokeAny(tasks, timeout, unit);
+        return executor.invokeAny(tasks, timeout, unit);
     }
 
     @Override

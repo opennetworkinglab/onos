@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.device;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 
 import org.onosproject.net.Device;
@@ -45,13 +44,7 @@ public class DeviceServiceAdapter implements DeviceService {
     @Override
     public Iterable<Device> getAvailableDevices() {
         return FluentIterable.from(getDevices())
-                .filter(new Predicate<Device>() {
-
-                    @Override
-                    public boolean apply(Device input) {
-                        return isAvailable(input.id());
-                    }
-                });
+                .filter(input -> isAvailable(input.id()));
     }
 
     @Override

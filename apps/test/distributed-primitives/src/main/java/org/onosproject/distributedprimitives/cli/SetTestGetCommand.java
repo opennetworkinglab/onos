@@ -49,8 +49,8 @@ public class SetTestGetCommand extends AbstractShellCommand {
     String[] values = null;
 
     Set<String> set;
-    Set<String> toCheck = new HashSet<String>();
-    String output = new String();
+    Set<String> toCheck = new HashSet<>();
+    String output = "";
 
     Serializer serializer = Serializer.using(
             new KryoNamespace.Builder().register(KryoNamespaces.BASIC).build());

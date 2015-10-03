@@ -213,7 +213,7 @@ public class PcepOpenObjectVer1 implements PcepOpenObject {
 
         LinkedList<PcepValueType> llOptionalTlv;
 
-        llOptionalTlv = new LinkedList<PcepValueType>();
+        llOptionalTlv = new LinkedList<>();
 
         while (4 <= cb.readableBytes()) {
             PcepValueType tlv;
@@ -360,7 +360,7 @@ public class PcepOpenObjectVer1 implements PcepOpenObject {
         private boolean bIsSessionIDSet = false;
         private byte sessionID;
         private boolean bIsOptionalTlvSet = false;
-        private LinkedList<PcepValueType> llOptionalTlv = new LinkedList<PcepValueType>();
+        private LinkedList<PcepValueType> llOptionalTlv = new LinkedList<>();
 
         private boolean bIsPFlagSet = false;
         private boolean bPFlag;

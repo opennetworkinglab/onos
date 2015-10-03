@@ -87,7 +87,7 @@ class PcepInitiateMsgVer1 implements PcepInitiateMsg {
                 return null;
             }
 
-            llPcInitiatedLspRequestList = new LinkedList<PcInitiatedLspRequest>();
+            llPcInitiatedLspRequestList = new LinkedList<>();
 
             byte version = cb.readByte();
             version = (byte) (version >> PcepMessageVer1.SHIFT_FLAG);

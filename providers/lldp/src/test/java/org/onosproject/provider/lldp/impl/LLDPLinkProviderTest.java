@@ -48,6 +48,7 @@ import org.onosproject.net.link.LinkDescription;
 import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.link.LinkServiceAdapter;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
@@ -79,7 +80,8 @@ public class LLDPLinkProviderTest {
     private static Port pd4;
 
     private final LLDPLinkProvider provider = new LLDPLinkProvider();
-    private final TestLinkRegistry linkService = new TestLinkRegistry();
+    private final TestLinkRegistry linkRegistry = new TestLinkRegistry();
+    private final TestLinkService linkService = new TestLinkService();
     private final TestPacketService packetService = new TestPacketService();
     private final TestDeviceService deviceService = new TestDeviceService();
     private final TestMasterShipService masterService = new TestMasterShipService();
@@ -104,10 +106,10 @@ public class LLDPLinkProviderTest {
         provider.coreService = coreService;
 
         provider.deviceService = deviceService;
+        provider.linkService = linkService;
         provider.packetService = packetService;
-        provider.providerRegistry = linkService;
+        provider.providerRegistry = linkRegistry;
         provider.masterService = masterService;
-
 
         provider.activate(null);
     }
@@ -499,4 +501,6 @@ public class LLDPLinkProviderTest {
     }
 
 
+    private class TestLinkService extends LinkServiceAdapter {
+    }
 }

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+ONOS_USER=sdn
+
+# Check to see if user exists, and if not, create a service account
+getent passwd $ONOS_USER >/dev/null 2&>1 || ( useradd -M $ONOS_USER && usermod -L $ONOS_USER )
+
+# Create ONOS options file
+[ ! -f /opt/onos/options ] && cat << EOF > /opt/onos/options
+export ONOS_OPTS=server
+export ONOS_USER="$ONOS_USER"
+EOF
+
+# Change permissions for onos directory
+[ -d /opt/onos ] && chown -R $ONOS_USER.$ONOS_USER /opt/onos
+

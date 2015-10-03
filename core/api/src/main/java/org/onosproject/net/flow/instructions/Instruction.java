@@ -27,7 +27,16 @@ public interface Instruction {
         /**
          * Signifies that the traffic should be dropped.
          */
+        @Deprecated
         DROP,
+
+        /**
+         * Signifies that the traffic requires no action.
+         *
+         * In OF10, the behavior of NOACTION is DROP.
+         * In OF13, the behavior depends on current Action Set.
+         */
+        NOACTION,
 
         /**
          * Signifies that the traffic should be output to a port.

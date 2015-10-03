@@ -15,8 +15,11 @@
  */
 package org.onosproject.net.packet;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.TrafficSelector;
+
+import java.util.List;
 
 /**
  * Service for intercepting data plane packets and for emitting synthetic
@@ -48,6 +51,14 @@ public interface PacketService {
     void removeProcessor(PacketProcessor processor);
 
     /**
+     * Returns priority bindings of all registered packet processor entries.
+     *
+     * @return list of existing packet processor entries
+     */
+    @Beta
+    List<PacketProcessorEntry> getProcessors();
+
+    /**
      * Requests that packets matching the given selector are punted from the
      * dataplane to the controller.
      *
@@ -68,6 +79,13 @@ public interface PacketService {
      */
     void cancelPackets(TrafficSelector selector, PacketPriority priority,
                        ApplicationId appId);
+
+    /**
+     * Returns list of all existing requests ordered by priority.
+     *
+     * @return list of existing packet requests
+     */
+    List<PacketRequest> getRequests();
 
     /**
      * Emits the specified outbound packet onto the network.

@@ -55,7 +55,6 @@ import org.onosproject.net.group.StoredGroupEntry;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
-import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 
@@ -83,8 +82,7 @@ public class SimpleGroupStore
     private final ConcurrentMap<DeviceId, ConcurrentMap<GroupId, Group>>
         extraneousGroupEntriesById = new ConcurrentHashMap<>();
 
-    private final HashMap<DeviceId, Boolean> deviceAuditStatus =
-            new HashMap<DeviceId, Boolean>();
+    private final HashMap<DeviceId, Boolean> deviceAuditStatus = new HashMap<>();
 
     private final AtomicInteger groupIdGen = new AtomicInteger();
 
@@ -189,15 +187,7 @@ public class SimpleGroupStore
     public Iterable<Group> getGroups(DeviceId deviceId) {
         // flatten and make iterator unmodifiable
         return FluentIterable.from(getGroupKeyTable(deviceId).values())
-            .transform(
-                    new Function<StoredGroupEntry, Group>() {
-
-                        @Override
-                        public Group apply(
-                                StoredGroupEntry input) {
-                            return input;
-                        }
-                    });
+            .transform(input -> input);
     }
 
     /**
@@ -358,8 +348,7 @@ public class SimpleGroupStore
                                    UpdateType type,
                                    GroupBuckets buckets) {
         GroupBuckets oldBuckets = oldGroup.buckets();
-        List<GroupBucket> newBucketList = new ArrayList<GroupBucket>(
-                oldBuckets.buckets());
+        List<GroupBucket> newBucketList = new ArrayList<>(oldBuckets.buckets());
         boolean groupDescUpdated = false;
 
         if (type == UpdateType.ADD) {

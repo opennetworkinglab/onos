@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ip4Address;
@@ -89,7 +88,6 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowId;
-import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleBatchEntry;
 import org.onosproject.net.flow.FlowRuleBatchEvent;
 import org.onosproject.net.flow.FlowRuleBatchOperation;
@@ -118,7 +116,6 @@ import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
-import org.onosproject.net.flow.criteria.OpticalSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -302,7 +299,6 @@ public final class KryoNamespaces {
                     DefaultHostDescription.class,
                     DefaultFlowEntry.class,
                     StoredFlowEntry.class,
-                    FlowRule.Type.class,
                     DefaultFlowRule.class,
                     DefaultFlowEntry.class,
                     DefaultPacketRequest.class,
@@ -339,11 +335,11 @@ public final class KryoNamespaces {
                     IndexedLambdaCriterion.class,
                     OchSignalCriterion.class,
                     OchSignalTypeCriterion.class,
-                    OpticalSignalTypeCriterion.class,
                     Criterion.class,
                     Criterion.Type.class,
                     DefaultTrafficTreatment.class,
                     Instructions.DropInstruction.class,
+                    Instructions.NoActionInstruction.class,
                     Instructions.OutputInstruction.class,
                     Instructions.GroupInstruction.class,
                     Instructions.TableTypeTransition.class,

@@ -73,7 +73,7 @@ public class PcepIroObjectVer1 implements PcepIroObject {
     private byte yPrefixLength;
     private byte yResvd;
     private PcepObjectHeader iroObjHeader;
-    private LinkedList<PcepValueType> llSubObjects = new LinkedList<PcepValueType>();
+    private LinkedList<PcepValueType> llSubObjects = new LinkedList<>();
 
     /**
      * Default constructor.
@@ -152,7 +152,7 @@ public class PcepIroObjectVer1 implements PcepIroObject {
      */
     protected static LinkedList<PcepValueType> parseSubObjects(ChannelBuffer cb) throws PcepParseException {
 
-        LinkedList<PcepValueType> llSubObjects = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llSubObjects = new LinkedList<>();
 
         while (0 < cb.readableBytes()) {
 
@@ -228,7 +228,7 @@ public class PcepIroObjectVer1 implements PcepIroObject {
         private boolean bIsHeaderSet = false;
 
         private PcepObjectHeader iroObjHeader;
-        LinkedList<PcepValueType> llSubObjects = new LinkedList<PcepValueType>();
+        LinkedList<PcepValueType> llSubObjects = new LinkedList<>();
 
         private boolean bIsPFlagSet = false;
         private boolean bPFlag;

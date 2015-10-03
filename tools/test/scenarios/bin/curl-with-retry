@@ -1,0 +1,23 @@
+#!/bin/bash
+
+aux=/tmp/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+
+url=$1
+
+
+echo curl-with-retry: $*
+
+set -x
+for i in {1..3}; do
+    curl -f -uonos:rocks ${url} >$aux
+    if [ $? = 0 ]; then
+        cat $aux
+        exit 0
+    fi
+    sleep 1
+done
+
+cat $aux
+exit 1
+

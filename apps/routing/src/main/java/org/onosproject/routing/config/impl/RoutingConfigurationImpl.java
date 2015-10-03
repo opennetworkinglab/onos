@@ -38,7 +38,6 @@ import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
-import org.onosproject.net.host.HostService;
 import org.onosproject.routing.config.BgpConfig;
 import org.onosproject.routing.config.BgpPeer;
 import org.onosproject.routing.config.BgpSpeaker;
@@ -76,9 +75,6 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     private String configFileName = DEFAULT_CONFIG_FILE;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostService hostService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry registry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -103,7 +99,6 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
                     new DefaultByteArrayNodeFactory());
 
     private MacAddress virtualGatewayMacAddress;
-    private HostToInterfaceAdaptor hostAdaptor;
 
     private ConfigFactory configFactory =
             new ConfigFactory(SubjectFactories.APP_SUBJECT_FACTORY, BgpConfig.class, "bgp") {
@@ -117,7 +112,6 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
     public void activate() {
         registry.registerConfigFactory(configFactory);
         readConfiguration();
-        hostAdaptor = new HostToInterfaceAdaptor(hostService);
         log.info("Routing configuration service started");
     }
 
@@ -189,7 +183,7 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
 
     @Override
     public Set<Interface> getInterfaces() {
-        return hostAdaptor.getInterfaces();
+        return Collections.emptySet();
     }
 
     @Override
@@ -212,17 +206,17 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
 
     @Override
     public Interface getInterface(ConnectPoint connectPoint) {
-        return hostAdaptor.getInterface(connectPoint);
+        return null;
     }
 
     @Override
     public Interface getInterface(IpAddress ip) {
-        return hostAdaptor.getInterface(ip);
+        return null;
     }
 
     @Override
     public Interface getMatchingInterface(IpAddress ipAddress) {
-        return hostAdaptor.getMatchingInterface(ipAddress);
+        return null;
     }
 
     @Override

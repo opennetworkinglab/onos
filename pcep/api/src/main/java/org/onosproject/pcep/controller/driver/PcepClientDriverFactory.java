@@ -33,6 +33,6 @@ public interface PcepClientDriverFactory {
      * @param pcepVersion the Pcep version in use
      * @return the Pcep client representation.
      */
-    public PcepClientDriver getPcepClientImpl(IpAddress pccIpAddress,
+    PcepClientDriver getPcepClientImpl(IpAddress pccIpAddress,
             PcepVersion pcepVersion);
 }

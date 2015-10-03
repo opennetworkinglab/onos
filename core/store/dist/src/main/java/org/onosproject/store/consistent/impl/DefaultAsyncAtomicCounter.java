@@ -18,6 +18,7 @@ package org.onosproject.store.consistent.impl;
 import org.onosproject.store.service.AsyncAtomicCounter;
 
 import java.util.concurrent.CompletableFuture;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -38,6 +39,7 @@ public class DefaultAsyncAtomicCounter implements AsyncAtomicCounter {
     private static final String GET_AND_ADD = "getAndAdd";
     private static final String ADD_AND_GET = "addAndGet";
     private static final String GET = "get";
+    private static final String SET = "set";
 
     public DefaultAsyncAtomicCounter(String name,
                                      Database database,
@@ -72,13 +74,20 @@ public class DefaultAsyncAtomicCounter implements AsyncAtomicCounter {
     public CompletableFuture<Long> getAndAdd(long delta) {
         final MeteringAgent.Context timer = monitor.startTimer(GET_AND_ADD);
         return database.counterGetAndAdd(name, delta)
-                       .whenComplete((r, e) -> timer.stop(e));
+                .whenComplete((r, e) -> timer.stop(e));
     }
 
     @Override
     public CompletableFuture<Long> addAndGet(long delta) {
         final MeteringAgent.Context timer = monitor.startTimer(ADD_AND_GET);
         return database.counterAddAndGet(name, delta)
-                       .whenComplete((r, e) -> timer.stop(e));
+                .whenComplete((r, e) -> timer.stop(e));
+    }
+
+    @Override
+    public CompletableFuture<Void> set(long value) {
+        final MeteringAgent.Context timer = monitor.startTimer(SET);
+        return database.counterSet(name, value)
+                .whenComplete((r, e) -> timer.stop(e));
     }
 }

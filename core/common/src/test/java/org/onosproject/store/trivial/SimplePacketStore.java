@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.trivial;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
@@ -26,8 +27,7 @@ import org.onosproject.net.packet.PacketStore;
 import org.onosproject.net.packet.PacketStoreDelegate;
 import org.onosproject.store.AbstractStore;
 
-
-import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -57,8 +57,8 @@ public class SimplePacketStore
     }
 
     @Override
-    public Set<PacketRequest> existingRequests() {
-        return Collections.unmodifiableSet(requests);
+    public List<PacketRequest> existingRequests() {
+        return ImmutableList.copyOf(requests);
     }
 
 }

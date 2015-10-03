@@ -22,14 +22,53 @@ import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.ComponentInstance;
 
 import java.util.Dictionary;
+import java.util.Enumeration;
 
 /**
  * Adapter implementation of OSGI component context.
  */
 public class ComponentContextAdapter implements ComponentContext {
+    private static class MockDictionary extends Dictionary {
+
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public Enumeration keys() {
+            return null;
+        }
+
+        @Override
+        public Enumeration elements() {
+            return null;
+        }
+
+        @Override
+        public Object get(Object key) {
+            return null;
+        }
+
+        @Override
+        public Object put(Object key, Object value) {
+            return null;
+        }
+
+        @Override
+        public Object remove(Object key) {
+            return null;
+        }
+    }
+
     @Override
     public Dictionary getProperties() {
-        return null;
+        return new MockDictionary();
     }
 
     @Override
