@@ -104,7 +104,7 @@ public final class DefaultOpenFlowPacketContext implements OpenFlowPacketContext
         } catch (BufferUnderflowException | NullPointerException |
                 DeserializationException e) {
             Logger log = LoggerFactory.getLogger(getClass());
-            log.warn("packet deserialization problem : {}", e.getMessage());
+            log.error("packet deserialization problem : {}", e.getMessage());
             return null;
         }
     }
