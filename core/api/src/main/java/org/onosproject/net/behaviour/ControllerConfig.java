@@ -15,23 +15,27 @@
  */
 package org.onosproject.net.behaviour;
 
+import org.onosproject.net.driver.HandlerBehaviour;
+
 import java.util.List;
 
 /**
  * Device behaviour to obtain and set controllers at the device.
  */
-public interface ControllerConfig {
+public interface ControllerConfig extends HandlerBehaviour {
 
     //TODO: add other controller parameters as needed.
 
     /**
      * Obtain the list of controller which are currently configured.
+     *
      * @return a list for controller descriptions
      */
     List<ControllerInfo> getControllers();
 
     /**
      * Set a list of controllers on a device.
+     *
      * @param controllers a list of controller descriptions
      */
     void setControllers(List<ControllerInfo> controllers);

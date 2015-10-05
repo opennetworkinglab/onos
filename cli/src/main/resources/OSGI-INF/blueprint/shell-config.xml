@@ -105,6 +105,18 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.DeviceControllersCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.DeviceSetControllersCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.DeviceRemoveCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>

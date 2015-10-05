@@ -15,15 +15,16 @@
  */
 package org.onosproject.ovsdb.rfc.table;
 
-import java.util.Map;
-import java.util.Set;
-
 import org.onosproject.ovsdb.rfc.notation.Column;
+import org.onosproject.ovsdb.rfc.notation.OvsdbSet;
 import org.onosproject.ovsdb.rfc.notation.Row;
 import org.onosproject.ovsdb.rfc.notation.UUID;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 import org.onosproject.ovsdb.rfc.tableservice.AbstractOvsdbTableService;
 import org.onosproject.ovsdb.rfc.tableservice.ColumnDescription;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This class provides operations of Bridge Table.
@@ -351,7 +352,7 @@ public class Bridge extends AbstractOvsdbTableService {
      * of attributes.
      * @param controller the column data which column name is "controller"
      */
-    public void setController(Set<UUID> controller) {
+    public void setController(OvsdbSet controller) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              BridgeColumn.CONTROLLER
                                                                      .columnName(),

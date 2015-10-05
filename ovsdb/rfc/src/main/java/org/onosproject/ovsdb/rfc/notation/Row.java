@@ -15,20 +15,21 @@
  */
 package org.onosproject.ovsdb.rfc.notation;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Maps;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 
-import com.google.common.collect.Maps;
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Row is the basic element of the OpenVswitch's table.
  */
 public final class Row {
     private String tableName;
+    private UUID uuid;
     private Map<String, Column> columns;
 
     /**
@@ -40,9 +41,11 @@ public final class Row {
 
     /**
      * Row constructor.
+     *
      * @param tableName table name
      */
-    public Row(String tableName) {
+    @Deprecated
+    private Row(String tableName) {
         checkNotNull(tableName, "tableName cannot be null");
         this.tableName = tableName;
         this.columns = Maps.newHashMap();
@@ -50,18 +53,22 @@ public final class Row {
 
     /**
      * Row constructor.
+     *
      * @param tableName table name
-     * @param columns Map of Column entity
+     * @param columns   Map of Column entity
      */
-    public Row(String tableName, Map<String, Column> columns) {
+    public Row(String tableName, UUID uuid, Map<String, Column> columns) {
         checkNotNull(tableName, "table name cannot be null");
+        checkNotNull(uuid, "uuid cannot be null");
         checkNotNull(columns, "columns cannot be null");
         this.tableName = tableName;
+        this.uuid = uuid;
         this.columns = columns;
     }
 
     /**
      * Returns tableName.
+     *
      * @return tableName
      */
     public String tableName() {
@@ -70,6 +77,7 @@ public final class Row {
 
     /**
      * Set tableName value.
+     *
      * @param tableName table name
      */
     public void setTableName(String tableName) {
@@ -77,7 +85,26 @@ public final class Row {
     }
 
     /**
+     * Returns uuid.
+     *
+     * @return uuid
+     */
+    public UUID uuid() {
+        return uuid;
+    }
+
+    /**
+     * Sets uuid value.
+     *
+     * @param uuid new uuid
+     */
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    /**
      * Returns Column by ColumnSchema.
+     *
      * @param columnName column name
      * @return Column
      */
@@ -87,6 +114,7 @@ public final class Row {
 
     /**
      * Returns Collection of Column.
+     *
      * @return Collection of Column
      */
     public Collection<Column> getColumns() {
@@ -95,8 +123,9 @@ public final class Row {
 
     /**
      * add Column.
+     *
      * @param columnName column name
-     * @param data Column entity
+     * @param data       Column entity
      */
     public void addColumn(String columnName, Column data) {
         this.columns.put(columnName, data);

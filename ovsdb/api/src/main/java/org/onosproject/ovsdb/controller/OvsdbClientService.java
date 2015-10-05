@@ -15,19 +15,20 @@
  */
 package org.onosproject.ovsdb.controller;
 
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.util.concurrent.ListenableFuture;
 import org.onlab.packet.IpAddress;
-
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.ovsdb.rfc.jsonrpc.OvsdbRPC;
 import org.onosproject.ovsdb.rfc.message.OperationResult;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.notation.Row;
+import org.onosproject.ovsdb.rfc.notation.UUID;
 import org.onosproject.ovsdb.rfc.operations.Operation;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Represents to provider facing side of a node.
@@ -85,10 +86,33 @@ public interface OvsdbClientService extends OvsdbRPC {
     Set<OvsdbBridge> getBridges();
 
     /**
+     * Gets controllers of the node.
+     *
+     * @return set of controllers; empty if no controller is find
+     */
+    Set<ControllerInfo> getControllers(DeviceId openflowDeviceId);
+
+    /**
+     * sets the controllers of the node to the ones passed in the list.
+     *
+     * @param bridgeUuid  UUid for the bridge we are settings the controls on
+     * @param controllers of controllers; empty if no controller is find
+     */
+    void setControllersWithUUID(UUID bridgeUuid, List<ControllerInfo> controllers);
+
+    /**
+     * sets the controllers of the node to the ones passed in the list.
+     *
+     * @param deviceId  deviceId for the bridge we are settings the controls on
+     * @param controllers of controllers; empty if no controller is find
+     */
+    void setControllersWithDeviceId(DeviceId deviceId, List<ControllerInfo> controllers);
+
+    /**
      * Creates a port.
      *
      * @param bridgeName bridge name
-     * @param portName port name
+     * @param portName   port name
      */
     void createPort(String bridgeName, String portName);
 
@@ -96,7 +120,7 @@ public interface OvsdbClientService extends OvsdbRPC {
      * Drops a port.
      *
      * @param bridgeName bridge name
-     * @param portName port name
+     * @param portName   port name
      */
     void dropPort(String bridgeName, String portName);
 
@@ -125,7 +149,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     /**
      * Gets the Port uuid.
      *
-     * @param portName port name
+     * @param portName   port name
      * @param bridgeUuid bridge uuid
      * @return port uuid, empty if no uuid is find
      */
@@ -143,7 +167,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     /**
      * Gets the Controller uuid.
      *
-     * @param controllerName controller name
+     * @param controllerName   controller name
      * @param controllerTarget controller target
      * @return controller uuid, empty if no uuid is find
      */
@@ -169,7 +193,7 @@ public interface OvsdbClientService extends OvsdbRPC {
      * Gets the ovsdb table updates.
      *
      * @param dbName database name
-     * @param id random uuid
+     * @param id     random uuid
      * @return table updates
      */
     ListenableFuture<TableUpdates> monitorTables(String dbName, String id);
@@ -177,7 +201,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     /**
      * Gets the ovsdb config operation result.
      *
-     * @param dbName database name
+     * @param dbName     database name
      * @param operations the list of operations
      * @return operation results
      */
@@ -187,7 +211,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     /**
      * Gets the ovsdb database schema from local.
      *
-     * @param  dbName database name
+     * @param dbName database name
      * @return database schema
      */
     DatabaseSchema getDatabaseSchema(String dbName);
@@ -195,9 +219,9 @@ public interface OvsdbClientService extends OvsdbRPC {
     /**
      * Gets the ovsdb row from the local ovsdb store.
      *
-     * @param dbName database name
+     * @param dbName    database name
      * @param tableName table name
-     * @param uuid row uuid
+     * @param uuid      row uuid
      * @return row ovsdb row
      */
     Row getRow(String dbName, String tableName, String uuid);
@@ -205,19 +229,19 @@ public interface OvsdbClientService extends OvsdbRPC {
     /**
      * Removes the ovsdb row from the local ovsdb store.
      *
-     * @param dbName database name
+     * @param dbName    database name
      * @param tableName table name
-     * @param uuid row uuid
+     * @param uuid      row uuid
      */
     void removeRow(String dbName, String tableName, String uuid);
 
     /**
      * Updates the local ovsdb store.
      *
-     * @param dbName database name
+     * @param dbName    database name
      * @param tableName table name
-     * @param uuid row uuid
-     * @param row ovsdb row
+     * @param uuid      row uuid
+     * @param row       ovsdb row
      */
     void updateOvsdbStore(String dbName, String tableName, String uuid, Row row);
 

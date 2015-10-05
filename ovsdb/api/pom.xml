@@ -48,6 +48,10 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-ovsdb-rfc</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -15,12 +15,11 @@
  */
 package org.onosproject.ovsdb.rfc.utils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.onosproject.ovsdb.rfc.exception.AbnormalJsonNodeException;
 import org.onosproject.ovsdb.rfc.exception.UnsupportedException;
 import org.onosproject.ovsdb.rfc.jsonrpc.Callback;
@@ -41,11 +40,11 @@ import org.onosproject.ovsdb.rfc.schema.type.ColumnTypeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * JsonNode utility class. convert JsonNode into Object.
@@ -247,7 +246,7 @@ public final class FromJsonUtil {
         validateJsonNode(rowsNode, "rows");
         ArrayList<Row> rows = Lists.newArrayList();
         for (JsonNode rowNode : rowsNode.get("rows")) {
-            rows.add(createRow(tableSchema, rowNode));
+            rows.add(createRow(tableSchema, null, rowNode)); //FIXME null will throw exception
         }
         return rows;
     }
@@ -285,8 +284,8 @@ public final class FromJsonUtil {
             UUID uuid = UUID.uuid(uuidStr);
             JsonNode newR = oldNewRow.getValue().get("new");
             JsonNode oldR = oldNewRow.getValue().get("old");
-            Row newRow = newR != null ? createRow(tableSchema, newR) : null;
-            Row oldRow = oldR != null ? createRow(tableSchema, oldR) : null;
+            Row newRow = newR != null ? createRow(tableSchema, uuid, newR) : null;
+            Row oldRow = oldR != null ? createRow(tableSchema, uuid, oldR) : null;
             RowUpdate rowUpdate = new RowUpdate(uuid, oldRow, newRow);
             rows.put(uuid, rowUpdate);
         }
@@ -299,7 +298,7 @@ public final class FromJsonUtil {
      * @param rowNode JsonNode
      * @return Row
      */
-    private static Row createRow(TableSchema tableSchema, JsonNode rowNode) {
+    private static Row createRow(TableSchema tableSchema, UUID uuid, JsonNode rowNode) {
         if (tableSchema == null) {
             return null;
         }
@@ -314,7 +313,7 @@ public final class FromJsonUtil {
                 columns.put(columnName, new Column(columnName, obj));
             }
         }
-        return new Row(tableSchema.name(), columns);
+        return new Row(tableSchema.name(), uuid, columns);
     }
 
 }

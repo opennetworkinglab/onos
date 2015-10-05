@@ -37,6 +37,7 @@ public final class TableGenerator {
      * @param tableName table name
      * @return Object table entity
      */
+    //FIXME change the name, it creates a row object, such as a controller.
     public static Object createTable(DatabaseSchema dbSchema,
                                      OvsdbTable tableName) {
         Row row = new Row();

@@ -8,4 +8,4 @@ export OCN="10.128.12.4"
 
 export OCT=$OC1
 export ONOS_USE_SSH=true
-export ONOS_APPS=drivers,openflow,proxyarp,mobility
+export ONOS_APPS=drivers,openflow,proxyarp,ovsdb

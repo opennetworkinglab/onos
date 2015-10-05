@@ -55,8 +55,8 @@
          <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-core-serializers</artifactId>
-            <version>1.4.0-SNAPSHOT</version>
-        </dependency>
+             <version>${project.version}</version>
+         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-ovsdb-api</artifactId>
@@ -71,6 +71,25 @@
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onlab-junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-ovsdb-api</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
