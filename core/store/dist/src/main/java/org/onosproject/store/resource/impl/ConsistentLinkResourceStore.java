@@ -136,16 +136,16 @@ public class ConsistentLinkResourceStore extends
     }
 
     private Set<ResourceAllocation> getResourceCapacity(ResourceType type, Link link) {
-        if (type == ResourceType.BANDWIDTH) {
-            return ImmutableSet.of(getBandwidthResourceCapacity(link));
+        switch (type) {
+            case BANDWIDTH:
+                return ImmutableSet.of(getBandwidthResourceCapacity(link));
+            case LAMBDA:
+                return getLambdaResourceCapacity(link);
+            case MPLS_LABEL:
+                return getMplsResourceCapacity();
+            default:
+                return ImmutableSet.of();
         }
-        if (type == ResourceType.LAMBDA) {
-            return getLambdaResourceCapacity(link);
-        }
-        if (type == ResourceType.MPLS_LABEL) {
-            return getMplsResourceCapacity();
-        }
-        return ImmutableSet.of();
     }
 
     private Set<ResourceAllocation> getLambdaResourceCapacity(Link link) {
