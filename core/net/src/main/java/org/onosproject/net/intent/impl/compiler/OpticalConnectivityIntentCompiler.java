@@ -17,7 +17,6 @@ package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -63,7 +62,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * An intent compiler for {@link org.onosproject.net.intent.OpticalConnectivityIntent}.
  */
-@Component(immediate = true)
+// For now, remove component designation until dependency on the new resource manager is available.
+// @Component(immediate = true)
 public class OpticalConnectivityIntentCompiler implements IntentCompiler<OpticalConnectivityIntent> {
 
     protected static final Logger log = LoggerFactory.getLogger(OpticalConnectivityIntentCompiler.class);
