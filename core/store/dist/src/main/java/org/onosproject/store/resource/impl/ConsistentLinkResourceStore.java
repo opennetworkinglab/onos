@@ -209,9 +209,9 @@ public class ConsistentLinkResourceStore extends
         tx.begin();
         try {
             Map<ResourceType, Set<ResourceAllocation>> freeResources = getFreeResourcesEx(tx, link);
-            Set<ResourceAllocation> allFree = new HashSet<>();
-            freeResources.values().forEach(allFree::addAll);
-            return allFree;
+            return freeResources.values().stream()
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toSet());
         } finally {
             tx.abort();
         }
