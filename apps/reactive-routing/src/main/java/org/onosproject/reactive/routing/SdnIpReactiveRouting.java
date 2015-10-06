@@ -305,16 +305,19 @@ public class SdnIpReactiveRouting {
         LocationType dstIpLocationType = getLocationType(dstIp);
         Optional<Interface> srcInterface =
                 interfaceService.getInterfacesByPort(srcConnectPoint).stream().findFirst();
+        Set<ConnectPoint> ingressPoints = config.getBgpPeerConnectPoints();
 
         switch (dstIpLocationType) {
         case INTERNET:
-            if (!srcInterface.isPresent()) {
+            if (srcInterface.isPresent() &&
+                    (!ingressPoints.contains(srcConnectPoint))) {
                 return TrafficType.HOST_TO_INTERNET;
             } else {
                 return TrafficType.INTERNET_TO_INTERNET;
             }
         case LOCAL:
-            if (!srcInterface.isPresent()) {
+            if (srcInterface.isPresent() &&
+                    (!ingressPoints.contains(srcConnectPoint))) {
                 return TrafficType.HOST_TO_HOST;
             } else {
                 // TODO Currently we only consider local public prefixes.

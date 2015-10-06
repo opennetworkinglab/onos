@@ -32,8 +32,8 @@ import java.util.List;
 public class Configuration {
     // We call the BGP routers in our SDN network the BGP speakers, and call
     // the BGP routers outside our SDN network the BGP peers.
-    private List<BgpSpeaker> bgpSpeakers;
-    private List<BgpPeer> peers;
+    private List<BgpSpeaker> bgpSpeakers = Collections.emptyList();
+    private List<BgpPeer> peers = Collections.emptyList();
     private MacAddress virtualGatewayMacAddress;
 
     // All IP prefixes from the configuration are local

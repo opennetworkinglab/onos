@@ -195,13 +195,16 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
         }
 
         BgpConfig bgpConfig = configService.getConfig(routerAppId, BgpConfig.class);
-
-        return bgpConfig.bgpSpeakers().stream()
-                .flatMap(speaker -> speaker.peers().stream())
-                .map(peer -> interfaceService.getMatchingInterface(peer))
-                .filter(intf -> intf != null)
-                .map(intf -> intf.connectPoint())
-                .collect(Collectors.toSet());
+        if (bgpConfig == null) {
+            return Collections.emptySet();
+        } else {
+            return bgpConfig.bgpSpeakers().stream()
+                    .flatMap(speaker -> speaker.peers().stream())
+                    .map(peer -> interfaceService.getMatchingInterface(peer))
+                    .filter(intf -> intf != null)
+                    .map(intf -> intf.connectPoint())
+                    .collect(Collectors.toSet());
+        }
     }
 
     @Override
