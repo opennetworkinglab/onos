@@ -24,7 +24,7 @@ import org.onosproject.pim.impl.PIMNeighborsCodec;
 
 import java.util.HashMap;
 
-@Command(scope = "onos", name = "pim-show", description = "Displays the pim neighbors")
+@Command(scope = "onos", name = "pim-neighbors", description = "Displays the pim neighbors")
 public class PIMShowCommand extends AbstractShellCommand {
 
     // prints either the json or cli version of the hash map connect point

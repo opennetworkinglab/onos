@@ -96,6 +96,8 @@
                             org.osgi.framework,
                             org.apache.commons.lang.math.*,
                             com.google.common.*,
+                            org.apache.karaf.shell.commands,
+                            org.apache.karaf.shell.console,
                             org.onlab.packet.*,
                             org.onlab.rest.*,
                             org.onosproject.*,

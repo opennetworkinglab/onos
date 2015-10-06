@@ -122,6 +122,8 @@
                             com.fasterxml.jackson.databind,
                             com.fasterxml.jackson.databind.node,
                             org.apache.commons.lang.math.*,
+                            org.apache.karaf.shell.commands,
+                            org.apache.karaf.shell.console,
                             com.google.common.*,
                             org.onlab.packet.*,
                             org.onlab.rest.*,
