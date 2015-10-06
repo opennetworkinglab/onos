@@ -153,6 +153,10 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             ObjectNode data = MAPPER.createObjectNode();
 
             data.put(ID, deviceId.toString());
+
+            // TODO: get friendly name from the device
+            data.put(NAME, deviceId.toString());
+
             data.put(TYPE, capitalizeFully(device.type().toString()));
             data.put(TYPE_IID, getTypeIconId(device));
             data.put(MFR, device.manufacturer());

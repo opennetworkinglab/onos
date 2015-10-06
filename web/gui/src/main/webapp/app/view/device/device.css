@@ -75,6 +75,30 @@
     margin: 8px 0;
 }
 
+#device-details-panel .name-div {
+    height: 20px;
+    padding: 8px 0 0 8px;
+}
+
+#device-details-panel .name-div span {
+    display: inline-block;
+}
+
+#device-details-panel .name-div .label {
+    font-style: italic;
+    padding-right: 12px;
+    /* works for both light and dark themes ... */
+    color: #777;
+}
+
+#device-details-panel .name-div .value {
+}
+
+#device-details-panel .editable {
+    cursor: pointer;
+    border-bottom: 1px dashed darkgreen;
+}
+
 #device-details-panel .top div.left {
     float: left;
     padding: 0 18px 0 0;

@@ -26,9 +26,13 @@
 
     // internal state
     var detailsPanel,
-        pStartY, pHeight,
-        top, bottom, iconDiv,
-        wSize;
+        pStartY,
+        pHeight,
+        top,
+        bottom,
+        iconDiv,
+        wSize,
+        editingName = false;
 
     // constants
     var topPdg = 13,
@@ -59,13 +63,81 @@
         if (detailsPanel.isVisible()) {
             $scope.selId = null;
             detailsPanel.hide();
+            return true;
         }
+        return false;
     }
 
     function addCloseBtn(div) {
         is.loadEmbeddedIcon(div, 'plus', 30);
         div.select('g').attr('transform', 'translate(25, 0) rotate(45)');
         div.on('click', closePanel);
+    }
+
+    function getNameSpan() {
+        return top.select('.name-div').select('.value');
+    }
+
+    function nameValid(name) {
+        // TODO: guard against empty strings etc.
+        return true;
+    }
+
+    function editNameSave() {
+        var span = getNameSpan(),
+            newVal;
+        if (editingName) {
+            newVal = span.select('input').property('value');
+
+            $log.debug("TODO: Saving name change... to '" + newVal + "'");
+            if (!nameValid(newVal)) {
+                return editNameCancel();
+            }
+
+            // TODO: send event to server to set friendly name for device
+            $scope.panelData.name = newVal;
+
+            span.html(newVal);
+            span.classed('editable', true);
+            editingName = false;
+        }
+    }
+
+    function editNameCancel() {
+        var span = getNameSpan();
+        if (editingName) {
+            $log.debug("Canceling name change...");
+            span.html($scope.panelData.name);
+            span.classed('editable', true);
+            editingName = false;
+            return true;
+        }
+        return false;
+    }
+
+    function editName() {
+        $log.log('editName() .. editing=' + editingName);
+        var span = getNameSpan();
+        if (!editingName) {
+            editingName = true;
+            span.classed('editable', false);
+            span.html('');
+            span.append('input').classed('name-input', true)
+                .attr('type', 'text')
+                .attr('value', $scope.panelData.name);
+        }
+    }
+
+    function handleEscape() {
+        return editNameCancel() || closePanel();
+    }
+
+    function setUpEditableName(top) {
+        var div = top.append('div').classed('name-div', true);
+
+        div.append('span').classed('label', true);
+        div.append('span').classed('value editable', true)
+            .on('click', editName);
     }
 
     function setUpPanel() {
@@ -79,6 +151,8 @@
         addCloseBtn(closeBtn);
         iconDiv = top.append('div').classed('dev-icon', true);
         top.append('h2');
+
+        setUpEditableName(top);
 
         tblDiv = top.append('div').classed('top-tables', true);
         tblDiv.append('div').classed('left', true).append('table');
@@ -156,14 +230,23 @@
         detailsPanel.width(tbWidth + ctnrPdg);
     }
 
+    function populateName(div, name) {
+        var lab = div.select('.label'),
+            val = div.select('.value');
+        lab.html('Friendly Name:');
+        val.html(name);
+    }
+
     function populateDetails(details) {
-        var topTbs, btmTbl, ports;
+        var nameDiv, topTbs, btmTbl, ports;
         setUpPanel();
 
+        nameDiv = top.select('.name-div');
         topTbs = top.select('.top-tables');
         btmTbl = bottom.select('table');
         ports = details.ports;
 
+        populateName(nameDiv, details.name);
         populateTop(topTbs, details);
         populateBottom(btmTbl, ports);
 
@@ -278,7 +361,8 @@
             }
             // create key bindings to handle panel
             ks.keyBindings({
-                esc: [closePanel, 'Close the details panel'],
+                enter: editNameSave,
+                esc: [handleEscape, 'Close the details panel'],
                 _helpFormat: ['esc']
             });
             ks.gestureNotes([
