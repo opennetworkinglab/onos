@@ -16,13 +16,13 @@
 
 package org.onosproject.store.consistent.impl;
 
+import org.onosproject.store.service.Transaction;
+import org.onosproject.store.service.Versioned;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-
-import org.onosproject.store.service.Transaction;
-import org.onosproject.store.service.Versioned;
 
 /**
  * Database proxy.
@@ -158,6 +158,16 @@ public interface DatabaseProxy<K, V> {
      * @return void future
      */
     CompletableFuture<Void> counterSet(String counterName, long value);
+
+    /**
+     * Atomically sets the given counter to the specified update value if and only if the current value is equal to the
+     * expected value.
+     * @param counterName counter name
+     * @param expectedValue value to use for equivalence check
+     * @param update value to set if expected value is current value
+     * @return true if an update occurred, false otherwise
+     */
+    CompletableFuture<Boolean> counterCompareAndSet(String counterName, long expectedValue, long update);
 
     /**
      * Returns the current value of the specified atomic counter.

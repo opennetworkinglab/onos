@@ -16,12 +16,15 @@
 
 package org.onosproject.store.consistent.impl;
 
-import net.kuujo.copycat.state.StateMachine;
+import com.google.common.collect.Sets;
 import net.kuujo.copycat.resource.internal.AbstractResource;
 import net.kuujo.copycat.resource.internal.ResourceManager;
+import net.kuujo.copycat.state.StateMachine;
 import net.kuujo.copycat.state.internal.DefaultStateMachine;
 import net.kuujo.copycat.util.concurrent.Futures;
 import net.kuujo.copycat.util.function.TriConsumer;
+import org.onosproject.store.service.Transaction;
+import org.onosproject.store.service.Versioned;
 
 import java.util.Collection;
 import java.util.Map;
@@ -29,11 +32,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import org.onosproject.store.service.Transaction;
-import org.onosproject.store.service.Versioned;
-
-import com.google.common.collect.Sets;
 
 /**
  * Default database.
@@ -48,9 +46,9 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     public DefaultDatabase(ResourceManager context) {
         super(context);
         this.stateMachine = new DefaultStateMachine(context,
-                                                    DatabaseState.class,
-                                                    DefaultDatabaseState.class,
-                                                    DefaultDatabase.class.getClassLoader());
+                DatabaseState.class,
+                DefaultDatabaseState.class,
+                DefaultDatabase.class.getClassLoader());
         this.stateMachine.addStartupTask(() -> {
             stateMachine.registerWatcher(watcher);
             return CompletableFuture.completedFuture(null);
@@ -155,6 +153,11 @@ public class DefaultDatabase extends AbstractResource<Database> implements Datab
     @Override
     public CompletableFuture<Void> counterSet(String counterName, long value) {
         return checkOpen(() -> proxy.counterSet(counterName, value));
+    }
+
+    @Override
+    public CompletableFuture<Boolean> counterCompareAndSet(String counterName, long expectedValue, long update) {
+        return checkOpen(() -> proxy.counterCompareAndSet(counterName, expectedValue, update));
     }
 
     @Override

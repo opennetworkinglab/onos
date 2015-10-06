@@ -16,18 +16,17 @@
 
 package org.onosproject.store.consistent.impl;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.onosproject.store.service.Transaction;
-import org.onosproject.store.service.Versioned;
-
 import net.kuujo.copycat.state.Command;
 import net.kuujo.copycat.state.Initializer;
 import net.kuujo.copycat.state.Query;
 import net.kuujo.copycat.state.StateContext;
+import org.onosproject.store.service.Transaction;
+import org.onosproject.store.service.Versioned;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Database state.
@@ -81,6 +80,9 @@ public interface DatabaseState<K, V> {
 
   @Command
   Long counterAddAndGet(String counterName, long delta);
+
+  @Command
+  Boolean counterCompareAndSet(String counterName, long expectedValue, long updateValue);
 
   @Command
   Long counterGetAndAdd(String counterName, long delta);

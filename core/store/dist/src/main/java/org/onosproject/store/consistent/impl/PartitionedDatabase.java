@@ -16,6 +16,17 @@
 
 package org.onosproject.store.consistent.impl;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import net.kuujo.copycat.Task;
+import net.kuujo.copycat.cluster.Cluster;
+import net.kuujo.copycat.resource.ResourceState;
+import org.onosproject.store.service.DatabaseUpdate;
+import org.onosproject.store.service.Transaction;
+import org.onosproject.store.service.Versioned;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -28,18 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.onosproject.store.service.DatabaseUpdate;
-import org.onosproject.store.service.Transaction;
-import org.onosproject.store.service.Versioned;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-
-import net.kuujo.copycat.Task;
-import net.kuujo.copycat.cluster.Cluster;
-import net.kuujo.copycat.resource.ResourceState;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -224,6 +223,14 @@ public class PartitionedDatabase implements Database {
     public CompletableFuture<Void> counterSet(String counterName, long value) {
         checkState(isOpen.get(), DB_NOT_OPEN);
         return partitioner.getPartition(counterName, counterName).counterSet(counterName, value);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> counterCompareAndSet(String counterName, long expectedValue, long updateValue) {
+        checkState(isOpen.get(), DB_NOT_OPEN);
+        return partitioner.getPartition(counterName, counterName).
+                counterCompareAndSet(counterName, expectedValue, updateValue);
+
     }
 
     @Override

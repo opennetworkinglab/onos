@@ -40,6 +40,7 @@ public class DefaultAsyncAtomicCounter implements AsyncAtomicCounter {
     private static final String ADD_AND_GET = "addAndGet";
     private static final String GET = "get";
     private static final String SET = "set";
+    private static final String COMPARE_AND_SET = "compareAndSet";
 
     public DefaultAsyncAtomicCounter(String name,
                                      Database database,
@@ -88,6 +89,13 @@ public class DefaultAsyncAtomicCounter implements AsyncAtomicCounter {
     public CompletableFuture<Void> set(long value) {
         final MeteringAgent.Context timer = monitor.startTimer(SET);
         return database.counterSet(name, value)
+                .whenComplete((r, e) -> timer.stop(e));
+    }
+
+    @Override
+    public CompletableFuture<Boolean> compareAndSet(long expectedValue, long updateValue) {
+        final MeteringAgent.Context timer = monitor.startTimer(COMPARE_AND_SET);
+        return database.counterCompareAndSet(name, expectedValue, updateValue)
                 .whenComplete((r, e) -> timer.stop(e));
     }
 }

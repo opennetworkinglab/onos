@@ -66,4 +66,13 @@ public interface AsyncAtomicCounter {
      * @return future void
      */
     CompletableFuture<Void> set(long value);
+
+    /**
+     * Atomically sets the given counter to the updated value if the current value is the expected value, otherwise
+     * no change occurs.
+     * @param expectedValue the expected current value of the counter
+     * @param updateValue the new value to be set
+     * @return true if the update occurred and the expected value was equal to the current value, false otherwise
+     */
+    CompletableFuture<Boolean> compareAndSet(long expectedValue, long updateValue);
 }

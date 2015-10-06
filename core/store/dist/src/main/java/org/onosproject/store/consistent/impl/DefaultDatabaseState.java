@@ -16,27 +16,26 @@
 
 package org.onosproject.store.consistent.impl;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import net.kuujo.copycat.state.Initializer;
+import net.kuujo.copycat.state.StateContext;
+import org.onosproject.store.service.DatabaseUpdate;
+import org.onosproject.store.service.Transaction;
+import org.onosproject.store.service.Versioned;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import java.util.Set;
-
-import org.onosproject.store.service.DatabaseUpdate;
-import org.onosproject.store.service.Transaction;
-import org.onosproject.store.service.Versioned;
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
-import net.kuujo.copycat.state.Initializer;
-import net.kuujo.copycat.state.StateContext;
 
 /**
  * Default database state.
@@ -192,6 +191,11 @@ public class DefaultDatabaseState implements DatabaseState<String, byte[]> {
     @Override
     public Long counterGetAndAdd(String counterName, long delta) {
         return getCounter(counterName).getAndAdd(delta);
+    }
+
+    @Override
+    public Boolean counterCompareAndSet(String counterName, long expectedValue, long updateValue) {
+        return getCounter(counterName).compareAndSet(expectedValue, updateValue);
     }
 
     @Override

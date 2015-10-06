@@ -53,6 +53,11 @@ public final class TestAtomicCounter implements AtomicCounter {
     }
 
     @Override
+    public boolean compareAndSet(long expectedValue, long updateValue) {
+        return value.compareAndSet(expectedValue, updateValue);
+    }
+
+    @Override
     public long get() {
         return value.get();
     }
