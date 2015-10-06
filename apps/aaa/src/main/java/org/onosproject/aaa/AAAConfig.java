@@ -28,6 +28,7 @@ import org.onosproject.net.config.basics.BasicElementConfig;
 public class AAAConfig extends Config<ApplicationId> {
 
     private static final String RADIUS_IP = "radiusIp";
+    private static final String RADIUS_SERVER_PORT = "1812";
     private static final String RADIUS_MAC = "radiusMac";
     private static final String NAS_IP = "nasIp";
     private static final String NAS_MAC = "nasMac";
@@ -47,9 +48,6 @@ public class AAAConfig extends Config<ApplicationId> {
     // NAS MAC address
     protected static final String DEFAULT_NAS_MAC = "00:00:00:00:10:01";
 
-    // RADIUS uplink port
-    protected static final int DEFAULT_RADIUS_UPLINK = 2;
-
     // RADIUS server shared secret
     protected static final String DEFAULT_RADIUS_SECRET = "ONOSecret";
 
@@ -59,6 +57,24 @@ public class AAAConfig extends Config<ApplicationId> {
     // Radius Port Number
     protected static final String DEFAULT_RADIUS_PORT = "129";
 
+    // Radius Server UDP Port Number
+    protected static final String DEFAULT_RADIUS_SERVER_PORT = "1812";
+
+    /**
+     * Gets the value of a string property, protecting for an empty
+     * JSON object.
+     *
+     * @param name name of the property
+     * @param defaultValue default value if none has been specified
+     * @return String value if one os found, default value otherwise
+     */
+    private String getStringProperty(String name, String defaultValue) {
+        if (object == null) {
+            return defaultValue;
+        }
+        return get(name, defaultValue);
+    }
+
     /**
      * Returns the NAS ip.
      *
@@ -66,10 +82,7 @@ public class AAAConfig extends Config<ApplicationId> {
      */
     public InetAddress nasIp() {
         try {
-            if (object == null) {
-                return InetAddress.getByName(DEFAULT_NAS_IP);
-            }
-            return InetAddress.getByName(get(NAS_IP, DEFAULT_NAS_IP));
+            return InetAddress.getByName(getStringProperty(NAS_IP, DEFAULT_NAS_IP));
         } catch (UnknownHostException e) {
             return null;
         }
@@ -92,10 +105,7 @@ public class AAAConfig extends Config<ApplicationId> {
      */
     public InetAddress radiusIp() {
         try {
-            if (object == null) {
-                return InetAddress.getByName(DEFAULT_RADIUS_IP);
-            }
-            return InetAddress.getByName(get(RADIUS_IP, DEFAULT_RADIUS_IP));
+            return InetAddress.getByName(getStringProperty(RADIUS_IP, DEFAULT_RADIUS_IP));
         } catch (UnknownHostException e) {
             return null;
         }
@@ -117,10 +127,7 @@ public class AAAConfig extends Config<ApplicationId> {
      * @return mac address or null if not set
      */
     public String radiusMac() {
-        if (object == null) {
-            return DEFAULT_RADIUS_MAC;
-        }
-        return get(RADIUS_MAC, DEFAULT_RADIUS_MAC);
+        return getStringProperty(RADIUS_MAC, DEFAULT_RADIUS_MAC);
     }
 
     /**
@@ -139,10 +146,7 @@ public class AAAConfig extends Config<ApplicationId> {
      * @return mac address or null if not set
      */
     public String nasMac() {
-        if (object == null) {
-            return DEFAULT_NAS_MAC;
-        }
-        return get(NAS_MAC, DEFAULT_NAS_MAC);
+        return getStringProperty(NAS_MAC, DEFAULT_NAS_MAC);
     }
 
     /**
@@ -161,10 +165,7 @@ public class AAAConfig extends Config<ApplicationId> {
      * @return radius secret or null if not set
      */
     public String radiusSecret() {
-        if (object == null) {
-            return DEFAULT_RADIUS_SECRET;
-        }
-        return get(RADIUS_SECRET, DEFAULT_RADIUS_SECRET);
+        return getStringProperty(RADIUS_SECRET, DEFAULT_RADIUS_SECRET);
     }
 
     /**
@@ -183,10 +184,7 @@ public class AAAConfig extends Config<ApplicationId> {
      * @return radius switch ID or null if not set
      */
     public String radiusSwitch() {
-        if (object == null) {
-            return DEFAULT_RADIUS_SWITCH;
-        }
-        return get(RADIUS_SWITCH, DEFAULT_RADIUS_SWITCH);
+        return getStringProperty(RADIUS_SWITCH, DEFAULT_RADIUS_SWITCH);
     }
 
     /**
@@ -205,10 +203,7 @@ public class AAAConfig extends Config<ApplicationId> {
      * @return radius port or null if not set
      */
     public long radiusPort() {
-        if (object == null) {
-            return Integer.parseInt(DEFAULT_RADIUS_PORT);
-        }
-        return Integer.parseInt(get(RADIUS_PORT, "-1"));
+        return Integer.parseInt(getStringProperty(RADIUS_PORT, DEFAULT_RADIUS_PORT));
     }
 
     /**
@@ -219,6 +214,26 @@ public class AAAConfig extends Config<ApplicationId> {
      */
     public BasicElementConfig radiusPort(long port) {
         return (BasicElementConfig) setOrClear(RADIUS_PORT, port);
+    }
+
+    /**
+     * Returns the RADIUS server UDP port.
+     *
+     * @return radius server UDP port.
+     */
+    public short radiusServerUDPPort() {
+        return Short.parseShort(getStringProperty(RADIUS_SERVER_PORT,
+                                                  DEFAULT_RADIUS_SERVER_PORT));
+    }
+
+    /**
+     * Sets the RADIUS port.
+     *
+     * @param port new RADIUS UDP port; -1 to clear
+     * @return self
+     */
+    public BasicElementConfig radiusServerUDPPort(short port) {
+        return (BasicElementConfig) setOrClear(RADIUS_SERVER_PORT, (long) port);
     }
 
 }

@@ -495,11 +495,6 @@ public class AAATest {
         assertThat(stateMachine.state(), is(StateMachine.STATE_AUTHORIZED));
     }
 
-
-    private static final String RADIUS_SECRET = "radiusSecret";
-    private static final String RADIUS_SWITCH = "radiusSwitch";
-    private static final String RADIUS_PORT = "radiusPort";
-
     /**
      * Tests the default configuration.
      */

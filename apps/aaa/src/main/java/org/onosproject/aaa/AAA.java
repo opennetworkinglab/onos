@@ -112,6 +112,9 @@ public class AAA {
     // RADIUS port number
     protected long radiusPort;
 
+    // RADIUS server TCP port number
+    protected short radiusServerPort;
+
     // our application-specific event handler
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
 
@@ -206,8 +209,8 @@ public class AAA {
         TrafficSelector radSelector = DefaultTrafficSelector.builder()
                 .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpDst(TpPort.tpPort(1812))
-                .matchUdpSrc(TpPort.tpPort(1812))
+                .matchUdpDst(TpPort.tpPort(radiusServerPort))
+                .matchUdpSrc(TpPort.tpPort(radiusServerPort))
                 .build();
         packetService.requestPackets(radSelector, CONTROL, appId);
     }
@@ -223,8 +226,8 @@ public class AAA {
         TrafficSelector radSelector = DefaultTrafficSelector.builder()
                 .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpDst(TpPort.tpPort(1812))
-                .matchUdpSrc(TpPort.tpPort(1812))
+                .matchUdpDst(TpPort.tpPort(radiusServerPort))
+                .matchUdpSrc(TpPort.tpPort(radiusServerPort))
                 .build();
         packetService.cancelPackets(radSelector, CONTROL, appId);
     }
@@ -452,8 +455,8 @@ public class AAA {
             IPv4 ip4Packet = new IPv4();
             Ethernet ethPkt = new Ethernet();
             radiusMessage.setParent(udp);
-            udp.setDestinationPort((short) 1812);
-            udp.setSourcePort((short) 1812); // TODO: make this configurable
+            udp.setDestinationPort(radiusServerPort);
+            udp.setSourcePort(radiusServerPort);
             udp.setPayload(radiusMessage);
             udp.setParent(ip4Packet);
             ip4Packet.setSourceAddress(AAA.this.nasIpAddress.getHostAddress());
@@ -524,15 +527,9 @@ public class AAA {
             if (newCfg.radiusPort() != -1) {
                 radiusPort = newCfg.radiusPort();
             }
-
-            log.info("AAA app configuration:");
-            log.info("NAS IP is {}", nasIpAddress);
-            log.info("RADIUS IP is {}", radiusIpAddress);
-            log.info("NAS MAC is {}", nasMacAddress);
-            log.info("RADIUS MAC is {}", radiusMacAddress);
-            log.info("RADIUS secret is {}", radiusSecret);
-            log.info("RADIUS switch is {}", radiusSwitch);
-            log.info("RADIUS port is {}", radiusPort);
+            if (newCfg.radiusServerUDPPort() != -1) {
+                radiusServerPort = newCfg.radiusServerUDPPort();
+            }
         }
 
         @Override
