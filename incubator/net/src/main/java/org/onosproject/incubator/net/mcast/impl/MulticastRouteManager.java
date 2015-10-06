@@ -38,6 +38,7 @@ import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -123,28 +124,38 @@ public class MulticastRouteManager
 
     @Override
     public void addSink(McastRoute route, ConnectPoint connectPoint) {
-         mcastRoutes.compute(route, (k, v) -> {
+        AtomicReference<ConnectPoint> source = new AtomicReference<>();
+        mcastRoutes.compute(route, (k, v) -> {
             if (!v.isEmpty()) {
                 v.appendSink(connectPoint);
-                post(new McastEvent(McastEvent.Type.SINK_ADDED, route,
-                                    connectPoint, v.source()));
+                source.set(v.source());
             } else {
                 log.warn("Route {} does not exist");
             }
             return v;
         });
+
+        if (source.get() != null) {
+            post(new McastEvent(McastEvent.Type.SINK_ADDED, route,
+                                connectPoint, source.get()));
+        }
     }
 
 
     @Override
     public void removeSink(McastRoute route, ConnectPoint connectPoint) {
+        AtomicReference<ConnectPoint> source = new AtomicReference<>();
         mcastRoutes.compute(route, (k, v) -> {
             if (v.removeSink(connectPoint)) {
-                post(new McastEvent(McastEvent.Type.SINK_REMOVED, route,
-                                    connectPoint, v.source()));
+                source.set(v.source());
             }
             return v;
         });
+
+        if (source.get() != null) {
+            post(new McastEvent(McastEvent.Type.SINK_REMOVED, route,
+                                connectPoint, source.get()));
+        }
     }
 
     @Override

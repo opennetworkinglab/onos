@@ -22,6 +22,8 @@ import org.onosproject.net.ConnectPoint;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Simple entity maintaining a mapping between a source and a collection of sink
  * connect points.
@@ -30,25 +32,30 @@ public final class MulticastData {
 
     private final ConnectPoint source;
     private final List<ConnectPoint> sinks;
+    private final boolean isEmpty;
 
     private MulticastData() {
         this.source = null;
         this.sinks = Collections.EMPTY_LIST;
+        isEmpty = true;
     }
 
     public MulticastData(ConnectPoint source, List<ConnectPoint> sinks) {
-        this.source = source;
-        this.sinks = sinks;
+        this.source = checkNotNull(source, "Multicast source cannot be null.");
+        this.sinks = checkNotNull(sinks, "List of sinks cannot be null.");
+        isEmpty = false;
     }
 
     public MulticastData(ConnectPoint source, ConnectPoint sink) {
-        this.source = source;
-        this.sinks = Lists.newArrayList(sink);
+        this.source = checkNotNull(source, "Multicast source cannot be null.");
+        this.sinks = Lists.newArrayList(checkNotNull(sink, "Sink cannot be null."));
+        isEmpty = false;
     }
 
     public MulticastData(ConnectPoint source) {
-        this.source = source;
+        this.source = checkNotNull(source, "Multicast source cannot be null.");
         this.sinks = Lists.newArrayList();
+        isEmpty = false;
     }
 
     public ConnectPoint source() {
@@ -68,7 +75,7 @@ public final class MulticastData {
     }
 
     public boolean isEmpty() {
-        return source == null && sinks.size() == 0;
+        return isEmpty;
     }
 
     public static MulticastData empty() {
