@@ -25,6 +25,8 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.ui.RequestHandler;
@@ -38,7 +40,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.apache.commons.lang.WordUtils.capitalizeFully;
+import static org.onosproject.net.DeviceId.deviceId;
 
 /**
  * Message handler for device view related messages.
@@ -52,6 +57,9 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
     private static final String DEV_DETAILS_REQ = "deviceDetailsRequest";
     private static final String DEV_DETAILS_RESP = "deviceDetailsResponse";
     private static final String DETAILS = "details";
+
+    private static final String DEV_NAME_CHANGE_REQ = "deviceNameChangeRequest";
+    private static final String DEV_NAME_CHANGE_RESP = "deviceNameChangeResponse";
 
     private static final String ID = "id";
     private static final String TYPE = "type";
@@ -87,6 +95,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new DataRequestHandler(),
+                new NameChangeHandler(),
                 new DetailRequestHandler()
         );
     }
@@ -146,7 +155,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
         public void process(long sid, ObjectNode payload) {
             String id = string(payload, "id", "of:0000000000000000");
 
-            DeviceId deviceId = DeviceId.deviceId(id);
+            DeviceId deviceId = deviceId(id);
             DeviceService service = get(DeviceService.class);
             MastershipService ms = get(MastershipService.class);
             Device device = service.getDevice(deviceId);
@@ -154,8 +163,9 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
 
             data.put(ID, deviceId.toString());
 
-            // TODO: get friendly name from the device
-            data.put(NAME, deviceId.toString());
+            // Get friendly name of the device from the annotations
+            String name = device.annotations().value(AnnotationKeys.NAME);
+            data.put(NAME, isNullOrEmpty(name) ? deviceId.toString() : name);
 
             data.put(TYPE, capitalizeFully(device.type().toString()));
             data.put(TYPE_IID, getTypeIconId(device));
@@ -208,6 +218,26 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             }
 
             return port;
+        }
+    }
+
+    // handler for changing device friendly name
+    private final class NameChangeHandler extends RequestHandler {
+        private NameChangeHandler() {
+            super(DEV_NAME_CHANGE_REQ);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            DeviceId deviceId = deviceId(string(payload, "id", "of:0000000000000000"));
+            NetworkConfigService service = get(NetworkConfigService.class);
+            BasicDeviceConfig cfg = service.getConfig(deviceId, BasicDeviceConfig.class);
+
+            // Name attribute missing (or being empty) from the payload means
+            // that the friendly name should be unset.
+            cfg.name(emptyToNull(string(payload, "name", null)));
+            cfg.apply();
+            sendMessage(DEV_NAME_CHANGE_RESP, 0, payload);
         }
     }
 }
