@@ -27,6 +27,12 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.segmentrouting.config.SegmentRoutingConfig;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.segmentrouting.grouphandler.NeighborSetNextObjectiveStoreKey;
@@ -50,7 +56,6 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.TopologyService;
-import org.onosproject.segmentrouting.config.NetworkConfigManager;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.StorageService;
@@ -133,7 +138,19 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
-    private NetworkConfigManager networkConfigService = new NetworkConfigManager();;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry cfgService;
+
+    private final InternalConfigListener cfgListener = new InternalConfigListener();
+    private final ConfigFactory cfgFactory =
+            new ConfigFactory(SubjectFactories.DEVICE_SUBJECT_FACTORY,
+                              SegmentRoutingConfig.class,
+                              "segmentrouting") {
+                @Override
+                public SegmentRoutingConfig createConfig() {
+                    return new SegmentRoutingConfig();
+                }
+            };
 
     private Object threadSchedulerLock = new Object();
     private static int numOfEventsQueued = 0;
@@ -192,8 +209,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
-        networkConfigService.init();
-        deviceConfiguration = new DeviceConfiguration(networkConfigService);
+        cfgService.addListener(cfgListener);
+        cfgService.registerConfigFactory(cfgFactory);
+        deviceConfiguration = new DeviceConfiguration(cfgService);
+
         arpHandler = new ArpHandler(this);
         icmpHandler = new IcmpHandler(this);
         ipHandler = new IpHandler(this);
@@ -230,6 +249,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     @Deactivate
     protected void deactivate() {
+        cfgService.removeListener(cfgListener);
+        cfgService.unregisterConfigFactory(cfgFactory);
+
         packetService.removeProcessor(processor);
         processor = null;
         log.info("Stopped");
@@ -512,6 +534,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
     }
 
-
-
+    private class InternalConfigListener implements NetworkConfigListener {
+        @Override
+        public void event(NetworkConfigEvent event) {
+            if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
+                    event.configClass().equals(SegmentRoutingConfig.class)) {
+                // TODO Support dynamic configuration in the future
+                return;
+            }
+        }
+    }
 }
