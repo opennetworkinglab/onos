@@ -230,11 +230,13 @@ public class ConsistentLinkResourceStore extends
         free.put(ResourceType.BANDWIDTH, value);
 
         Set<ResourceAllocation> lmd = caps.get(ResourceType.LAMBDA);
-        Set<ResourceAllocation> freeL = getFreeLambdaResources(link, lmd, allocations);
+        Set<ResourceAllocation> freeL = getFreeResources(link, lmd, allocations,
+                LambdaResourceAllocation.class);
         free.put(ResourceType.LAMBDA, freeL);
 
         Set<ResourceAllocation> mpls = caps.get(ResourceType.MPLS_LABEL);
-        Set<ResourceAllocation> freeLabel = getFreeLabelResources(link, mpls, allocations);
+        Set<ResourceAllocation> freeLabel = getFreeResources(link, mpls, allocations,
+                MplsLabelResourceAllocation.class);
         free.put(ResourceType.MPLS_LABEL, freeLabel);
 
         return free;
@@ -261,42 +263,25 @@ public class ConsistentLinkResourceStore extends
                 new BandwidthResourceAllocation(new BandwidthResource(Bandwidth.bps(freeBw))));
     }
 
-    private Set<ResourceAllocation> getFreeLambdaResources(Link link, Set<ResourceAllocation> lmd,
-                                                           List<LinkResourceAllocations> allocations) {
-        if (lmd == null || lmd.isEmpty()) {
+    private Set<ResourceAllocation> getFreeResources(Link link,
+                                                     Set<ResourceAllocation> resources,
+                                                     List<LinkResourceAllocations> allocations,
+                                                     Class<? extends ResourceAllocation> cls) {
+        if (resources == null || resources.isEmpty()) {
             // nothing left
             return Collections.emptySet();
         }
-        Set<ResourceAllocation> freeL = lmd.stream()
-                .filter(x -> x instanceof LambdaResourceAllocation)
+        Set<ResourceAllocation> freeL = resources.stream()
+                .filter(cls::isInstance)
                 .collect(Collectors.toSet());
 
         // enumerate current allocations, removing resources
-        List<ResourceAllocation> allocatedLambda = allocations.stream()
+        List<ResourceAllocation> allocated = allocations.stream()
                 .flatMap(x -> x.getResourceAllocation(link).stream())
-                .filter(x -> x instanceof LambdaResourceAllocation)
+                .filter(cls::isInstance)
                 .collect(Collectors.toList());
-        freeL.removeAll(allocatedLambda);
+        freeL.removeAll(allocated);
         return freeL;
-    }
-
-    private Set<ResourceAllocation> getFreeLabelResources(Link link, Set<ResourceAllocation> mpls,
-                                                          List<LinkResourceAllocations> allocations) {
-        if (mpls == null || mpls.isEmpty()) {
-            // nothing left
-            return Collections.emptySet();
-        }
-        Set<ResourceAllocation> freeLabel = mpls.stream()
-                .filter(x -> x instanceof MplsLabelResourceAllocation)
-                .collect(Collectors.toSet());
-
-        // enumerate current allocations, removing resources
-        List<ResourceAllocation> allocatedLabel = allocations.stream()
-                .flatMap(x -> x.getResourceAllocation(link).stream())
-                .filter(x -> x instanceof MplsLabelResourceAllocation)
-                .collect(Collectors.toList());
-        freeLabel.removeAll(allocatedLabel);
-        return freeLabel;
     }
 
     @Override
