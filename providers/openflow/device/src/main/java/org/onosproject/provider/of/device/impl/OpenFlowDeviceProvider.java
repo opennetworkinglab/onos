@@ -119,6 +119,7 @@ import com.google.common.collect.Sets;
 public class OpenFlowDeviceProvider extends AbstractProvider implements DeviceProvider {
 
     private static final Logger LOG = getLogger(OpenFlowDeviceProvider.class);
+
     private static final long MBPS = 1_000 * 1_000;
     private static final Frequency FREQ100 = Frequency.ofGHz(100);
     private static final Frequency FREQ193_1 = Frequency.ofTHz(193.1);
@@ -158,27 +159,16 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         providerService = providerRegistry.register(this);
         controller.addListener(listener);
         controller.addEventListener(listener);
-        for (OpenFlowSwitch sw : controller.getSwitches()) {
-            try {
-                listener.switchAdded(new Dpid(sw.getId()));
-            } catch (Exception e) {
-                LOG.warn("Failed initially adding {} : {}", sw.getStringId(), e.getMessage());
-                LOG.debug("Error details:", e);
-                // disconnect to trigger switch-add later
-                sw.disconnectSwitch();
-            }
-            PortStatsCollector psc = new PortStatsCollector(sw, portStatsPollFrequency);
-            psc.start();
-            collectors.put(new Dpid(sw.getId()), psc);
-        }
+        connectInitialDevices();
         LOG.info("Started");
     }
 
     @Deactivate
     public void deactivate(ComponentContext context) {
         cfgService.unregisterProperties(getClass(), false);
-        providerRegistry.unregister(this);
         controller.removeListener(listener);
+        disconnectDevices();
+        providerRegistry.unregister(this);
         collectors.values().forEach(PortStatsCollector::stop);
         providerService = null;
         LOG.info("Stopped");
@@ -204,13 +194,31 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         LOG.info("Settings: portStatsPollFrequency={}", portStatsPollFrequency);
     }
 
+    private void connectInitialDevices() {
+        for (OpenFlowSwitch sw : controller.getSwitches()) {
+            try {
+                listener.switchAdded(new Dpid(sw.getId()));
+            } catch (Exception e) {
+                LOG.warn("Failed initially adding {} : {}", sw.getStringId(), e.getMessage());
+                LOG.debug("Error details:", e);
+                // disconnect to trigger switch-add later
+                sw.disconnectSwitch();
+            }
+            PortStatsCollector psc = new PortStatsCollector(sw, portStatsPollFrequency);
+            psc.start();
+            collectors.put(new Dpid(sw.getId()), psc);
+        }
+    }
+
+    private void disconnectDevices() {
+        // Only disconnect the devices for which we are currently master.
+        controller.getMasterSwitches().forEach(sw -> listener.switchRemoved(new Dpid(sw.getId())));
+    }
+
     @Override
     public boolean isReachable(DeviceId deviceId) {
         OpenFlowSwitch sw = controller.getSwitch(dpid(deviceId.uri()));
-        if (sw == null || !sw.isConnected()) {
-            return false;
-        }
-        return true;
+        return sw != null && sw.isConnected();
     }
 
     @Override

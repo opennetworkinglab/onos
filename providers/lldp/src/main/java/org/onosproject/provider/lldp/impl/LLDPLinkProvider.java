@@ -396,7 +396,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                     synchronized (discoverers) {
                         ld = discoverers.get(deviceId);
                         if (ld == null) {
-                            if (rules.isSuppressed(device)) {
+                            if (rules != null && rules.isSuppressed(device)) {
                                 log.debug("LinkDiscovery from {} disabled by configuration", device.id());
                                 return;
                             }

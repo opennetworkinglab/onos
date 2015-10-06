@@ -273,7 +273,10 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
         if (adaptiveFlowSampling) {
             // Add TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
-            afsCollectors.get(dpid).addWithFlowRule(flowRule);
+            NewAdaptiveFlowStatsCollector collector = afsCollectors.get(dpid);
+            if (collector != null) {
+                collector.addWithFlowRule(flowRule);
+            }
         }
     }
 
@@ -299,7 +302,10 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
         if (adaptiveFlowSampling) {
             // Remove TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
-            afsCollectors.get(dpid).removeFlows(flowRule);
+            NewAdaptiveFlowStatsCollector collector = afsCollectors.get(dpid);
+            if (collector != null) {
+                collector.removeFlows(flowRule);
+            }
         }
     }
 
@@ -327,32 +333,30 @@ public class OpenFlowRuleProvider extends AbstractProvider
                 sw.sendMsg(msg);
                 continue;
             }
-            FlowModBuilder builder = FlowModBuilder.builder(fbe.target(), sw
-                    .factory(), Optional.of(batch.id()));
+            FlowModBuilder builder =
+                    FlowModBuilder.builder(fbe.target(), sw.factory(), Optional.of(batch.id()));
+            NewAdaptiveFlowStatsCollector collector = afsCollectors.get(dpid);
             switch (fbe.operator()) {
                 case ADD:
                     mod = builder.buildFlowAdd();
-
-                    if (adaptiveFlowSampling) {
+                    if (adaptiveFlowSampling && collector != null) {
                         // Add TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
-                        afsCollectors.get(dpid).addWithFlowRule(fbe.target());
+                        collector.addWithFlowRule(fbe.target());
                     }
                     break;
                 case REMOVE:
                     mod = builder.buildFlowDel();
-
-                    if (adaptiveFlowSampling) {
+                    if (adaptiveFlowSampling && collector != null) {
                         // Remove TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
-                        afsCollectors.get(dpid).removeFlows(fbe.target());
+                        collector.removeFlows(fbe.target());
                     }
                     break;
                 case MODIFY:
                     mod = builder.buildFlowMod();
-
-                    if (adaptiveFlowSampling) {
+                    if (adaptiveFlowSampling && collector != null) {
                         // Add or Update TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
                         // afsCollectors.get(dpid).addWithFlowRule(fbe.target()); //check if add is good or not
-                        afsCollectors.get(dpid).addOrUpdateFlows((FlowEntry) fbe.target());
+                        collector.addOrUpdateFlows((FlowEntry) fbe.target());
                     }
                     break;
                 default:
@@ -424,7 +428,10 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
                     if (adaptiveFlowSampling) {
                         // Removed TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
-                        afsCollectors.get(dpid).flowRemoved(fr);
+                        NewAdaptiveFlowStatsCollector collector = afsCollectors.get(dpid);
+                        if (collector != null) {
+                            collector.flowRemoved(fr);
+                        }
                     }
                     break;
                 case STATS_REPLY:

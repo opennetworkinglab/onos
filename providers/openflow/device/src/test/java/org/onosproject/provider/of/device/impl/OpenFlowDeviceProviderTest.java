@@ -16,6 +16,7 @@
 package org.onosproject.provider.of.device.impl;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
@@ -236,7 +237,7 @@ public class OpenFlowDeviceProviderTest {
 
         @Override
         public Iterable<OpenFlowSwitch> getMasterSwitches() {
-            return null;
+            return ImmutableSet.of();
         }
 
         @Override
