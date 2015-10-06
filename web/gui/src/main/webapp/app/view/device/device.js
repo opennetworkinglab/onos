@@ -22,7 +22,7 @@
     'use strict';
 
     // injected refs
-    var $log, $scope, $location, fs, mast, ps, wss, is, ns;
+    var $log, $scope, $loc, fs, mast, ps, wss, is, ns, ks;
 
     // internal state
     var detailsPanel,
@@ -43,13 +43,15 @@
         pName = 'device-details-panel',
         detailsReq = 'deviceDetailsRequest',
         detailsResp = 'deviceDetailsResponse',
+        nameChangeReq = 'deviceNameChangeRequest',
+        nameChangeResp = 'deviceNameChangeResponse',
 
         propOrder = [
-            'type', 'masterid', 'chassisid',
+            'id', 'type', 'masterid', 'chassisid',
             'mfr', 'hw', 'sw', 'protocol', 'serial'
         ],
         friendlyProps = [
-            'Type', 'Master ID', 'Chassis ID',
+            'URI', 'Type', 'Master ID', 'Chassis ID',
             'Vendor', 'H/W Version', 'S/W Version', 'Protocol', 'Serial #'
         ],
         portCols = [
@@ -74,70 +76,57 @@
         div.on('click', closePanel);
     }
 
-    function getNameSpan() {
-        return top.select('.name-div').select('.value');
-    }
-
-    function nameValid(name) {
-        // TODO: guard against empty strings etc.
-        return true;
+    function exitEditMode(nameH2, name) {
+        nameH2.html(name);
+        nameH2.classed('editable', true);
+        editingName = false;
+        ks.enableGlobalKeys(true);
     }
 
     function editNameSave() {
-        var span = getNameSpan(),
+        var nameH2 = top.select('h2'),
+            id = $scope.panelData.id,
+            val,
             newVal;
+
         if (editingName) {
-            newVal = span.select('input').property('value');
+            val = nameH2.select('input').property('value').trim();
+            newVal = val || id;
 
-            $log.debug("TODO: Saving name change... to '" + newVal + "'");
-            if (!nameValid(newVal)) {
-                return editNameCancel();
-            }
-
-            // TODO: send event to server to set friendly name for device
+            exitEditMode(nameH2, newVal);
             $scope.panelData.name = newVal;
-
-            span.html(newVal);
-            span.classed('editable', true);
-            editingName = false;
+            wss.sendEvent(nameChangeReq, { id: id, name: val });
         }
     }
 
     function editNameCancel() {
-        var span = getNameSpan();
         if (editingName) {
-            $log.debug("Canceling name change...");
-            span.html($scope.panelData.name);
-            span.classed('editable', true);
-            editingName = false;
+            exitEditMode(top.select('h2'), $scope.panelData.name);
             return true;
         }
         return false;
     }
 
     function editName() {
-        $log.log('editName() .. editing=' + editingName);
-        var span = getNameSpan();
+        var nameH2 = top.select('h2'),
+            tf, el;
+
         if (!editingName) {
-            editingName = true;
-            span.classed('editable', false);
-            span.html('');
-            span.append('input').classed('name-input', true)
+            nameH2.classed('editable', false);
+            nameH2.html('');
+            tf = nameH2.append('input').classed('name-input', true)
                 .attr('type', 'text')
                 .attr('value', $scope.panelData.name);
+            el = tf[0][0];
+            el.focus();
+            el.select();
+            editingName = true;
+            ks.enableGlobalKeys(false);
         }
     }
 
     function handleEscape() {
         return editNameCancel() || closePanel();
-    }
-
-    function setUpEditableName(top) {
-        var div = top.append('div').classed('name-div', true);
-
-        div.append('span').classed('label', true);
-        div.append('span').classed('value editable', true)
-            .on('click', editName);
     }
 
     function setUpPanel() {
@@ -150,9 +139,7 @@
         closeBtn = top.append('div').classed('close-btn', true);
         addCloseBtn(closeBtn);
         iconDiv = top.append('div').classed('dev-icon', true);
-        top.append('h2');
-
-        setUpEditableName(top);
+        top.append('h2').classed('editable', true).on('click', editName);
 
         tblDiv = top.append('div').classed('top-tables', true);
         tblDiv.append('div').classed('left', true).append('table');
@@ -184,11 +171,11 @@
                         .append('tbody');
 
         is.loadEmbeddedIcon(iconDiv, details._iconid_type, 40);
-        top.select('h2').html(details.id);
+        top.select('h2').html(details.name);
 
         propOrder.forEach(function (prop, i) {
             // properties are split into two tables
-            addProp(i < 3 ? leftTbl : rightTbl, i, details[prop]);
+            addProp(i < 4 ? leftTbl : rightTbl, i, details[prop]);
         });
     }
 
@@ -258,6 +245,13 @@
         $scope.$apply();
     }
 
+    function respNameCb(data) {
+        if (data.warn) {
+            $log.warn(data.warn, data.id);
+            top.select('h2').html(data.id);
+        }
+    }
+
     function createDetailsPane() {
         detailsPanel = ps.createPanel(pName, {
             width: wSize.width,
@@ -276,21 +270,26 @@
     .controller('OvDeviceCtrl',
         ['$log', '$scope', '$location', 'TableBuilderService', 'FnService',
             'MastService', 'PanelService', 'WebSocketService', 'IconService',
-            'NavService',
+            'NavService', 'KeyService',
 
         function (_$log_, _$scope_, _$location_,
-                  tbs, _fs_, _mast_, _ps_, _wss_, _is_, _ns_) {
+                  tbs, _fs_, _mast_, _ps_, _wss_, _is_, _ns_, _ks_) {
+            var params,
+                handlers = {};
+
             $log = _$log_;
             $scope = _$scope_;
-            $location = _$location_;
+            $loc = _$location_;
             fs = _fs_;
             mast = _mast_;
             ps = _ps_;
             wss = _wss_;
             is = _is_;
             ns = _ns_;
-            var params = $location.search(),
-                handlers = {};
+            ks = _ks_;
+
+            params = $loc.search();
+
             $scope.panelData = {};
             $scope.flowTip = 'Show flow view for selected device';
             $scope.portTip = 'Show port view for selected device';
@@ -298,6 +297,7 @@
 
             // details panel handlers
             handlers[detailsResp] = respDetailsCb;
+            handlers[nameChangeResp] = respNameCb;
             wss.bindHandlers(handlers);
 
             // query for if a certain device needs to be highlighted

@@ -25,6 +25,7 @@
 
     // internal state
     var enabled = true,
+        globalEnabled = true,
         keyHandler = {
             globalKeys: {},
             maskedKeys: {},
@@ -116,6 +117,9 @@
     }
 
     function quickHelp(view, key, code, ev) {
+        if (!globalEnabled) {
+            return false;
+        }
         qhs.showQuickHelp(keyHandler);
         return true;
     }
@@ -126,6 +130,9 @@
     }
 
     function toggleTheme(view, key, code, ev) {
+        if (!globalEnabled) {
+            return false;
+        }
         ts.toggleTheme();
         return true;
     }
@@ -225,6 +232,9 @@
                 },
                 enableKeys: function (b) {
                     enabled = b;
+                },
+                enableGlobalKeys: function (b) {
+                    globalEnabled = b;
                 },
                 checkNotGlobal: checkNotGlobal
             };

@@ -35,13 +35,14 @@
                 <tr>
                     <td colId="available" class="table-icon" sortable></td>
                     <td colId="type" class="table-icon" sortable></td>
+                    <td colId="name" sortable>Friendly Name </td>
                     <td colId="id" sortable>Device ID </td>
                     <td colId="masterid" sortable>Master Instance </td>
-                    <td colId="num_ports" sortable>Ports </td>
+                    <td colId="num_ports" col-width="60px" sortable>Ports </td>
                     <td colId="mfr" sortable>Vendor </td>
                     <td colId="hw" sortable>H/W Version </td>
                     <td colId="sw" sortable>S/W Version </td>
-                    <td colId="protocol" sortable>Protocol </td>
+                    <td colId="protocol" col-width="80px" sortable>Protocol </td>
                 </tr>
             </table>
         </div>
@@ -64,6 +65,7 @@
                     <td class="table-icon">
                         <div icon icon-id="{{dev._iconid_type}}"></div>
                     </td>
+                    <td>{{dev.name}}</td>
                     <td>{{dev.id}}</td>
                     <td>{{dev.masterid}}</td>
                     <td>{{dev.num_ports}}</td>

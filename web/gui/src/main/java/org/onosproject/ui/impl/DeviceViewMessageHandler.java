@@ -33,6 +33,8 @@ import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,6 +63,8 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
     private static final String DEV_NAME_CHANGE_REQ = "deviceNameChangeRequest";
     private static final String DEV_NAME_CHANGE_RESP = "deviceNameChangeResponse";
 
+    private static final String ZERO_URI = "of:0000000000000000";
+
     private static final String ID = "id";
     private static final String TYPE = "type";
     private static final String AVAILABLE = "available";
@@ -80,16 +84,20 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
     private static final String ENABLED = "enabled";
     private static final String SPEED = "speed";
     private static final String NAME = "name";
+    private static final String WARN = "warn";
 
 
     private static final String[] COL_IDS = {
-            AVAILABLE, AVAILABLE_IID, TYPE_IID, ID,
-            NUM_PORTS, MASTER_ID, MFR, HW, SW,
+            AVAILABLE, AVAILABLE_IID, TYPE_IID,
+            NAME, ID, MASTER_ID, NUM_PORTS, MFR, HW, SW,
             PROTOCOL, CHASSIS_ID, SERIAL
     };
 
     private static final String ICON_ID_ONLINE = "active";
     private static final String ICON_ID_OFFLINE = "inactive";
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
 
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
@@ -98,6 +106,17 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
                 new NameChangeHandler(),
                 new DetailRequestHandler()
         );
+    }
+
+    // Get friendly name of the device from the annotations
+    private static String deviceName(Device device) {
+        String name = device.annotations().value(AnnotationKeys.NAME);
+        return isNullOrEmpty(name) ? device.id().toString() : name;
+    }
+
+    private static String deviceProtocol(Device device) {
+        String protocol = device.annotations().value(PROTOCOL);
+        return protocol != null ? protocol : "";
     }
 
     private static String getTypeIconId(Device d) {
@@ -130,16 +149,15 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             boolean available = ds.isAvailable(id);
             String iconId = available ? ICON_ID_ONLINE : ICON_ID_OFFLINE;
 
-            String protocol = dev.annotations().value(PROTOCOL);
-
             row.cell(ID, id)
+                .cell(NAME, deviceName(dev))
                 .cell(AVAILABLE, available)
                 .cell(AVAILABLE_IID, iconId)
                 .cell(TYPE_IID, getTypeIconId(dev))
                 .cell(MFR, dev.manufacturer())
                 .cell(HW, dev.hwVersion())
                 .cell(SW, dev.swVersion())
-                .cell(PROTOCOL, protocol != null ? protocol : "")
+                .cell(PROTOCOL, deviceProtocol(dev))
                 .cell(NUM_PORTS, ds.getPorts(id).size())
                 .cell(MASTER_ID, ms.getMasterFor(id));
         }
@@ -153,20 +171,16 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            String id = string(payload, "id", "of:0000000000000000");
+            String id = string(payload, ID, ZERO_URI);
 
             DeviceId deviceId = deviceId(id);
             DeviceService service = get(DeviceService.class);
             MastershipService ms = get(MastershipService.class);
             Device device = service.getDevice(deviceId);
-            ObjectNode data = MAPPER.createObjectNode();
+            ObjectNode data = objectNode();
 
             data.put(ID, deviceId.toString());
-
-            // Get friendly name of the device from the annotations
-            String name = device.annotations().value(AnnotationKeys.NAME);
-            data.put(NAME, isNullOrEmpty(name) ? deviceId.toString() : name);
-
+            data.put(NAME, deviceName(device));
             data.put(TYPE, capitalizeFully(device.type().toString()));
             data.put(TYPE_IID, getTypeIconId(device));
             data.put(MFR, device.manufacturer());
@@ -175,9 +189,9 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             data.put(SERIAL, device.serialNumber());
             data.put(CHASSIS_ID, device.chassisId().toString());
             data.put(MASTER_ID, ms.getMasterFor(deviceId).toString());
-            data.put(PROTOCOL, device.annotations().value(PROTOCOL));
+            data.put(PROTOCOL, deviceProtocol(device));
 
-            ArrayNode ports = MAPPER.createArrayNode();
+            ArrayNode ports = arrayNode();
 
             List<Port> portList = new ArrayList<>(service.getPorts(deviceId));
             Collections.sort(portList, (p1, p2) -> {
@@ -190,13 +204,13 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             }
             data.set(PORTS, ports);
 
-            ObjectNode rootNode = MAPPER.createObjectNode();
+            ObjectNode rootNode = objectNode();
             rootNode.set(DETAILS, data);
             sendMessage(DEV_DETAILS_RESP, 0, rootNode);
         }
 
         private ObjectNode portData(Port p, DeviceId id) {
-            ObjectNode port = MAPPER.createObjectNode();
+            ObjectNode port = objectNode();
             LinkService ls = get(LinkService.class);
             String name = p.annotations().value(AnnotationKeys.PORT_NAME);
 
@@ -221,6 +235,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
         }
     }
 
+
     // handler for changing device friendly name
     private final class NameChangeHandler extends RequestHandler {
         private NameChangeHandler() {
@@ -229,13 +244,17 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
 
         @Override
         public void process(long sid, ObjectNode payload) {
-            DeviceId deviceId = deviceId(string(payload, "id", "of:0000000000000000"));
-            NetworkConfigService service = get(NetworkConfigService.class);
-            BasicDeviceConfig cfg = service.getConfig(deviceId, BasicDeviceConfig.class);
+            DeviceId deviceId = deviceId(string(payload, ID, ZERO_URI));
+            String name = emptyToNull(string(payload, NAME, null));
+            log.debug("Name change request: {} -- '{}'", deviceId, name);
 
-            // Name attribute missing (or being empty) from the payload means
-            // that the friendly name should be unset.
-            cfg.name(emptyToNull(string(payload, "name", null)));
+            NetworkConfigService service = get(NetworkConfigService.class);
+            BasicDeviceConfig cfg =
+                    service.addConfig(deviceId, BasicDeviceConfig.class);
+
+            // Name attribute missing from the payload (or empty string)
+            // means that the friendly name should be unset.
+            cfg.name(name);
             cfg.apply();
             sendMessage(DEV_NAME_CHANGE_RESP, 0, payload);
         }
