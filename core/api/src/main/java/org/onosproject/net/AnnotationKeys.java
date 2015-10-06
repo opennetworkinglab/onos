@@ -25,8 +25,10 @@ package org.onosproject.net;
  */
 public final class AnnotationKeys {
 
+
     // Prohibit instantiation
-    private AnnotationKeys() {}
+    private AnnotationKeys() {
+    }
 
     /**
      * Annotation key for instance name.
@@ -125,12 +127,22 @@ public final class AnnotationKeys {
     public static final String OWNER = "owner";
 
     /**
+     * Annotation key for the channel id.
+     */
+    public static final String CHANNEL_ID = "channelId";
+
+    /**
+     * Annotation key for the management address.
+     */
+    public static final String MANAGEMENT_ADDRESS = "managementAddress";
+
+    /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
      * If parsing fails, the returned value will be 1.0.
      *
      * @param annotated annotated object whose annotated value is obtained
-     * @param key key of annotation
+     * @param key       key of annotation
      * @return double value of annotated object for the specified key
      */
     public static double getAnnotatedValue(Annotated annotated, String key) {

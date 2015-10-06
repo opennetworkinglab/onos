@@ -323,8 +323,9 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             ChassisId cId = new ChassisId(dpid.value());
 
             SparseAnnotations annotations = DefaultAnnotations.builder()
-                    .set("protocol", sw.factory().getVersion().toString())
-                    .set("channelId", sw.channelId())
+                    .set(AnnotationKeys.PROTOCOL, sw.factory().getVersion().toString())
+                    .set(AnnotationKeys.CHANNEL_ID, sw.channelId())
+                    .set(AnnotationKeys.MANAGEMENT_ADDRESS, sw.channelId().split(":")[0])
                     .build();
 
             DeviceDescription description =

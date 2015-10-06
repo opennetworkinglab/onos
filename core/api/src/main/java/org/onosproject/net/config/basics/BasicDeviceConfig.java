@@ -25,6 +25,7 @@ public class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
 
     public static final String TYPE = "type";
     public static final String DRIVER = "driver";
+    public static final String MANAGEMENT_ADDRESS = "managementAddress";
 
     /**
      * Returns the device type.
@@ -62,6 +63,25 @@ public class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
      */
     public BasicElementConfig driver(String driverName) {
         return (BasicElementConfig) setOrClear(DRIVER, driverName);
+    }
+
+    /**
+     * Returns the device management ip (ip:port).
+     *
+     * @return device management address (ip:port) or null if not set
+     */
+    public String managementAddress() {
+        return get(MANAGEMENT_ADDRESS, null);
+    }
+
+    /**
+     * Sets the driver name.
+     *
+     * @param managementAddress new device management address (ip:port); null to clear
+     * @return self
+     */
+    public BasicElementConfig managementAddress(String managementAddress) {
+        return (BasicElementConfig) setOrClear(MANAGEMENT_ADDRESS, managementAddress);
     }
 
     // TODO: device port meta-data to be configured via BasicPortsConfig
