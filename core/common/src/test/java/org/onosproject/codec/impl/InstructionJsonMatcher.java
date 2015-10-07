@@ -416,6 +416,8 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
                                                     description);
         } else if (instruction instanceof ModMplsLabelInstruction) {
             return matchModMplsLabelInstruction(jsonInstruction, description);
+        } else if (instruction instanceof NoActionInstruction) {
+            return true;
         }
 
         return false;

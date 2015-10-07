@@ -31,7 +31,6 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.meter.MeterId;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,7 +50,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
     private final boolean hasClear;
 
     private static final DefaultTrafficTreatment EMPTY
-            = new DefaultTrafficTreatment(Collections.emptyList());
+            = new DefaultTrafficTreatment(ImmutableList.of(Instructions.createNoAction()));
     private final Instructions.MeterInstruction meter;
 
     /**
@@ -224,7 +223,10 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
             treatment.deferred().forEach(i -> add(i));
 
             immediate();
-            treatment.immediate().forEach(i -> add(i));
+            treatment.immediate().stream()
+                    // NOACTION will get re-added if there are no other actions
+                    .filter(i -> i.type() != Instruction.Type.NOACTION)
+                    .forEach(i -> add(i));
 
             clear = treatment.clearedDeferred();
         }
@@ -476,6 +478,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         public TrafficTreatment build() {
             if (deferred.size() == 0 && immediate.size() == 0
                     && table == null && !clear) {
+                immediate();
                 noAction();
             }
             return new DefaultTrafficTreatment(deferred, immediate, table, clear, meta, meter);
