@@ -16,6 +16,7 @@
 
 package org.onosproject.segmentrouting.config;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
@@ -35,6 +36,7 @@ public class SegmentRoutingConfig extends Config<DeviceId> {
     private static final String MAC = "routerMac";
     private static final String SID = "nodeSid";
     private static final String EDGE = "isEdgeRouter";
+    private static final String ADJSID = "adjacencySids";
 
     public Optional<String> getName() {
         String name = get(NAME, null);
@@ -79,22 +81,44 @@ public class SegmentRoutingConfig extends Config<DeviceId> {
         return (BasicElementConfig) setOrClear(EDGE, isEdgeRouter);
     }
 
-    // TODO extract array from JsonNode
     public List<AdjacencySid> getAdjacencySids() {
-        return new ArrayList<AdjacencySid>();
+        ArrayList<AdjacencySid> adjacencySids = new ArrayList<>();
+
+        if (!object.has(ADJSID)) {
+            return adjacencySids;
+        }
+
+        ArrayNode adjacencySidNodes = (ArrayNode) object.path(ADJSID);
+        adjacencySidNodes.forEach(adjacencySidNode -> {
+            int asid = adjacencySidNode.path(AdjacencySid.ASID).asInt();
+
+            ArrayList<Integer> ports = new ArrayList<Integer>();
+            ArrayNode portsNodes = (ArrayNode) adjacencySidNode.path(AdjacencySid.PORTS);
+            portsNodes.forEach(portNode -> {
+                ports.add(portNode.asInt());
+            });
+
+            AdjacencySid adjacencySid = new AdjacencySid(asid, ports);
+            adjacencySids.add(adjacencySid);
+        });
+
+        return adjacencySids;
     }
 
     public class AdjacencySid {
-        int sid;
+        private static final String ASID = "adjSid";
+        private static final String PORTS = "ports";
+
+        int asid;
         List<Integer> ports;
 
-        public AdjacencySid(int sid, List<Integer> ports) {
-            this.sid = sid;
+        public AdjacencySid(int asid, List<Integer> ports) {
+            this.asid = asid;
             this.ports = ports;
         }
 
-        public int getSid() {
-            return sid;
+        public int getAsid() {
+            return asid;
         }
 
         public List<Integer> getPorts() {

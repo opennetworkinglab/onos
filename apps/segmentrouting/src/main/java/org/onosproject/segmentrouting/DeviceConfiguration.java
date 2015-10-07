@@ -19,7 +19,12 @@ import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
+import org.onosproject.incubator.net.config.basics.ConfigException;
+import org.onosproject.incubator.net.config.basics.InterfaceConfig;
+import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.segmentrouting.config.SegmentRoutingConfig;
 import org.onosproject.segmentrouting.config.SegmentRoutingConfig.AdjacencySid;
 import org.onosproject.segmentrouting.grouphandler.DeviceProperties;
@@ -27,8 +32,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,7 +52,6 @@ public class DeviceConfiguration implements DeviceProperties {
             .getLogger(DeviceConfiguration.class);
     private final List<Integer> allSegmentIds = new ArrayList<>();
     private final HashMap<DeviceId, SegmentRouterInfo> deviceConfigMap = new HashMap<>();
-    private final NetworkConfigRegistry configService;
 
     private class SegmentRouterInfo {
         int nodeSid;
@@ -65,32 +67,53 @@ public class DeviceConfiguration implements DeviceProperties {
     /**
      * Constructor. Reads all the configuration for all devices of type
      * Segment Router and organizes into various maps for easier access.
-     *
-     * @param cfgService handle to network configuration manager
-     * component from where the relevant configuration is retrieved.
      */
     public DeviceConfiguration(NetworkConfigRegistry cfgService) {
-        this.configService = checkNotNull(cfgService);
-
-        Set<DeviceId> subjectSet =
+        // Read config from device subject, excluding gatewayIps and subnets.
+        Set<DeviceId> deviceSubjects =
                 cfgService.getSubjects(DeviceId.class, SegmentRoutingConfig.class);
-
-        subjectSet.forEach(subject -> {
+        deviceSubjects.forEach(subject -> {
             SegmentRoutingConfig config =
                 cfgService.getConfig(subject, SegmentRoutingConfig.class);
             SegmentRouterInfo info = new SegmentRouterInfo();
-            info.nodeSid = config.getSid();
             info.deviceId = subject;
+            info.nodeSid = config.getSid();
             info.ip = config.getIp();
             info.mac = config.getMac();
             info.isEdge = config.isEdgeRouter();
-            // TODO fecth subnet and gateway information via port subject
+            info.adjacencySids = config.getAdjacencySids();
             info.gatewayIps = new HashMap<>();
             info.subnets = new HashMap<>();
-            info.adjacencySids = config.getAdjacencySids();
 
             this.deviceConfigMap.put(info.deviceId, info);
             this.allSegmentIds.add(info.nodeSid);
+        });
+
+        // Read gatewayIps and subnets from port subject.
+        Set<ConnectPoint> portSubjects =
+            cfgService.getSubjects(ConnectPoint.class, InterfaceConfig.class);
+        portSubjects.forEach(subject -> {
+            InterfaceConfig config =
+                    cfgService.getConfig(subject, InterfaceConfig.class);
+            Set<Interface> networkInterfaces;
+            try {
+                networkInterfaces = config.getInterfaces();
+            } catch (ConfigException e) {
+                log.error("Error loading port configuration");
+                return;
+            }
+            networkInterfaces.forEach(networkInterface -> {
+                DeviceId dpid = networkInterface.connectPoint().deviceId();
+                PortNumber port = networkInterface.connectPoint().port();
+                SegmentRouterInfo info = this.deviceConfigMap.get(dpid);
+
+                Set<InterfaceIpAddress> interfaceAddresses = networkInterface.ipAddresses();
+                interfaceAddresses.forEach(interfaceAddress -> {
+                    info.gatewayIps.put(port, interfaceAddress.ipAddress().getIp4Address());
+                    info.subnets.put(port, interfaceAddress.subnetAddress().getIp4Prefix());
+                });
+            });
+
         });
     }
 
@@ -370,7 +393,7 @@ public class DeviceConfiguration implements DeviceProperties {
     public List<Integer> getPortsForAdjacencySid(DeviceId deviceId, int sid) {
         if (deviceConfigMap.get(deviceId) != null) {
             for (AdjacencySid asid : deviceConfigMap.get(deviceId).adjacencySids) {
-                if (asid.getSid() == sid) {
+                if (asid.getAsid() == sid) {
                     return asid.getPorts();
                 }
             }
@@ -394,7 +417,7 @@ public class DeviceConfiguration implements DeviceProperties {
             } else {
                 for (AdjacencySid asid:
                         deviceConfigMap.get(deviceId).adjacencySids) {
-                    if (asid.getSid() == sid) {
+                    if (asid.getAsid() == sid) {
                         return true;
                     }
                 }

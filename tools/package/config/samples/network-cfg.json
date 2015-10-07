@@ -19,6 +19,30 @@
 	    ]
 	}
     },
+    "devices" : {
+    	"of:0000000000000002" : {
+    		"segmentrouting" : {
+                "name" : "Leaf-R1",
+                "nodeSid" : 101,
+                "routerIp" : "10.0.1.254",
+                "routerMac" : "00:00:00:00:01:80",
+                "isEdgeRouter" : true,
+                "adjacencySids" : [
+                    { "sid" : 100, "port" : [2, 3] },
+                    { "sid" : 200, "port" : [4, 5] }
+                ]
+            }
+    	},
+    	"of:0000000000000191" : {
+    		"segmentrouting" : {
+                "name" : "Spine-R1",
+                "nodeSid" : 105,
+                "routerIp" : "192.168.0.11",
+                "routerMac" : "00:00:01:00:11:80",
+                "isEdgeRouter" : false
+            }
+    	}
+    },
     "apps" : {
 	"org.onosproject.router" : {
 	    "bgp" : {
