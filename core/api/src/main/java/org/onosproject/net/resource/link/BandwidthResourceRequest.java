@@ -64,7 +64,7 @@ public class BandwidthResourceRequest implements ResourceRequest {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final BandwidthResourceAllocation other = (BandwidthResourceAllocation) obj;
+        final BandwidthResourceRequest other = (BandwidthResourceRequest) obj;
         return Objects.equals(this.bandwidth, other.bandwidth());
     }
 
