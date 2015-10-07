@@ -363,6 +363,15 @@ public class ConsistentLinkResourceStore extends
             after.add(allocations);
             linkAllocs.putIfAbsent(linkKey, after);
         } else {
+            boolean overlapped = before.stream()
+                    .flatMap(x -> x.getResourceAllocation(link).stream())
+                    .anyMatch(x -> allocations.getResourceAllocation(link).contains(x));
+            if (overlapped) {
+                throw new ResourceAllocationException(
+                        String.format("Resource allocations are overlapped between %s and %s",
+                        before, allocations)
+                );
+            }
             List<LinkResourceAllocations> after = new ArrayList<>(before.size() + 1);
             after.addAll(before);
             after.add(allocations);
