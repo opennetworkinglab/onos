@@ -38,6 +38,8 @@ import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.OduSignalIdCriterion;
+import org.onosproject.net.flow.criteria.OduSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -108,7 +110,8 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.OCH_SIGTYPE, new FormatOchSigType());
         formatMap.put(Criterion.Type.TUNNEL_ID, new FormatTunnelId());
         formatMap.put(Criterion.Type.DUMMY, new FormatDummyType());
-
+        formatMap.put(Criterion.Type.ODU_SIGID, new FormatOduSignalId());
+        formatMap.put(Criterion.Type.ODU_SIGTYPE, new FormatOduSignalType());
         // Currently unimplemented
         formatMap.put(Criterion.Type.ARP_OP, new FormatUnknown());
         formatMap.put(Criterion.Type.ARP_SPA, new FormatUnknown());
@@ -351,7 +354,7 @@ public final class EncodeCriterionCodecHelper {
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
             final OchSignalTypeCriterion ochSignalTypeCriterion =
                     (OchSignalTypeCriterion) criterion;
-            return root.put("ochSignalType", ochSignalTypeCriterion.signalType().name());
+            return root.put(CriterionCodec.OCH_SIGNAL_TYPE, ochSignalTypeCriterion.signalType().name());
         }
     }
 
@@ -361,6 +364,24 @@ public final class EncodeCriterionCodecHelper {
             final TunnelIdCriterion tunnelIdCriterion =
                     (TunnelIdCriterion) criterion;
             return root.put(CriterionCodec.TUNNEL_ID, tunnelIdCriterion.tunnelId());
+        }
+    }
+
+    private static class FormatOduSignalId implements CriterionTypeFormatter {
+        @Override
+        public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
+            final OduSignalIdCriterion oduSignalIdCriterion =
+                    (OduSignalIdCriterion) criterion;
+            return root.put(CriterionCodec.ODU_SIGNAL_ID, oduSignalIdCriterion.oduSignalId().toString());
+        }
+    }
+
+    private static class FormatOduSignalType implements CriterionTypeFormatter {
+        @Override
+        public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
+            final OduSignalTypeCriterion oduSignalTypeCriterion =
+                    (OduSignalTypeCriterion) criterion;
+            return root.put(CriterionCodec.ODU_SIGNAL_TYPE, oduSignalTypeCriterion.signalType().name());
         }
     }
 

@@ -15,6 +15,16 @@
  */
 package org.onosproject.net.flow.criteria;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+import static org.onlab.junit.UtilityClassChecker.assertThatClassIsUtility;
+import static org.onosproject.net.OduSignalId.oduSignalId;
+import static org.onosproject.net.PortNumber.portNumber;
+
 import org.junit.Test;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ip6Address;
@@ -26,20 +36,12 @@ import org.onlab.packet.VlanId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Lambda;
+import org.onosproject.net.OchSignalType;
+import org.onosproject.net.OduSignalId;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 
 import com.google.common.testing.EqualsTester;
-import org.onosproject.net.OchSignalType;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-import static org.onlab.junit.UtilityClassChecker.assertThatClassIsUtility;
-import static org.onosproject.net.PortNumber.portNumber;
-
 /**
  * Unit tests for the Criteria class and its subclasses.
  */
@@ -240,6 +242,18 @@ public class CriteriaTest {
     Criterion matchOchSignal2 =
             Criteria.matchLambda(Lambda.ochSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, 4, 8));
 
+    final OduSignalId odu1 = oduSignalId(1, 80, new byte [] {1, 1, 2, 2, 1, 2, 2, 1, 2, 2});
+    final OduSignalId odu2 = oduSignalId(3, 8, new byte [] {1, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+    Criterion matchOduSignalId1 = Criteria.matchOduSignalId(odu1);
+    Criterion sameAsMatchOduSignalId1 = Criteria.matchOduSignalId(odu1);
+    Criterion matchOduSignalId2 = Criteria.matchOduSignalId(odu2);
+
+    final OduSignalType oduSigType1 = OduSignalType.ODU2;
+    final OduSignalType oduSigType2 = OduSignalType.ODU4;
+    Criterion matchOduSignalType1 = Criteria.matchOduSignalType(oduSigType1);
+    Criterion sameAsMatchOduSignalType1 = Criteria.matchOduSignalType(oduSigType1);
+    Criterion matchOduSignalType2 = Criteria.matchOduSignalType(oduSigType2);
+
     /**
      * Checks that a Criterion object has the proper type, and then converts
      * it to the proper type.
@@ -294,6 +308,8 @@ public class CriteriaTest {
         assertThatClassIsImmutable(MplsCriterion.class);
         assertThatClassIsImmutable(IPv6ExthdrFlagsCriterion.class);
         assertThatClassIsImmutable(LambdaCriterion.class);
+        assertThatClassIsImmutable(OduSignalIdCriterion.class);
+        assertThatClassIsImmutable(OduSignalTypeCriterion.class);
     }
 
     // PortCriterion class
@@ -1068,6 +1084,59 @@ public class CriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchOchSignalType1, sameAsMatchOchSignalType1)
                 .addEqualityGroup(matchOchSignalType2)
+                .testEquals();
+    }
+
+    /**
+     * Test the OduSignalId method.
+     */
+    @Test
+    public void testMatchOduSignalIdMethod() {
+        OduSignalId odu = oduSignalId(1, 80, new byte[]{2, 1, 1, 3, 1, 1, 3, 1, 1, 3});
+
+        Criterion matchoduSignalId = Criteria.matchOduSignalId(odu);
+        OduSignalIdCriterion oduSignalIdCriterion =
+                checkAndConvert(matchoduSignalId,
+                                Criterion.Type.ODU_SIGID,
+                                OduSignalIdCriterion.class);
+        assertThat(oduSignalIdCriterion.oduSignalId(), is(equalTo(odu)));
+    }
+
+    /**
+     * Test the equals() method of the OduSignalIdCriterion class.
+     */
+    @Test
+    public void testOduSignalIdCriterionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(matchOduSignalId1, sameAsMatchOduSignalId1)
+                .addEqualityGroup(matchOduSignalId2)
+                .testEquals();
+    }
+
+    // OduSignalTypeCriterion class
+
+    /**
+     * Test the OduSignalType method.
+     */
+    @Test
+    public void testMatchOduSignalTypeMethod() {
+        OduSignalType oduSigType = OduSignalType.ODU2;
+        Criterion matchoduSignalType = Criteria.matchOduSignalType(oduSigType);
+        OduSignalTypeCriterion oduSignalTypeCriterion =
+                checkAndConvert(matchoduSignalType,
+                                Criterion.Type.ODU_SIGTYPE,
+                                OduSignalTypeCriterion.class);
+        assertThat(oduSignalTypeCriterion.signalType(), is(equalTo(oduSigType)));
+    }
+
+    /**
+     * Test the equals() method of the OduSignalTypeCriterion class.
+     */
+    @Test
+    public void testOduSignalTypeCriterionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(matchOduSignalType1, sameAsMatchOduSignalType1)
+                .addEqualityGroup(matchOduSignalType2)
                 .testEquals();
     }
 }

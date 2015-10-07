@@ -59,6 +59,11 @@ public interface Instruction {
         L0MODIFICATION,
 
         /**
+         * Signifies that the traffic should be modified in L1 way.
+         */
+        L1MODIFICATION,
+
+        /**
          * Signifies that the traffic should be modified in L2 way.
          */
         L2MODIFICATION,
@@ -86,6 +91,7 @@ public interface Instruction {
 
     /**
      * Returns the type of instruction.
+     *
      * @return type of instruction
      */
     Type type();

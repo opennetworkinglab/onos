@@ -25,6 +25,8 @@ import org.onlab.packet.VlanId;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalId;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onosproject.net.OchSignalType;
@@ -484,6 +486,26 @@ public final class Criteria {
      */
     public static Criterion matchOchSignalType(OchSignalType signalType) {
         return new OchSignalTypeCriterion(signalType);
+    }
+
+    /**
+     * Creates a match on ODU (Optical channel Data Unit) signal ID using the specified value.
+     *
+     * @param oduSignalId ODU Signal Id
+     * @return match criterion
+     */
+    public static Criterion matchOduSignalId(OduSignalId oduSignalId) {
+        return new OduSignalIdCriterion(oduSignalId);
+    }
+
+    /**
+     * Creates a match on ODU (Optical channel Data Unit) signal Type using the specified value.
+     *
+     * @param signalType ODU Signal Type
+     * @return match criterion
+     */
+    public static Criterion matchOduSignalType(OduSignalType signalType) {
+        return new OduSignalTypeCriterion(signalType);
     }
 
     public static Criterion dummy() {

@@ -61,6 +61,12 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     protected static final String SLOT_GRANULARITY = "slotGranularity";
     protected static final String OCH_SIGNAL_ID = "ochSignalId";
     protected static final String TUNNEL_ID = "tunnelId";
+    protected static final String OCH_SIGNAL_TYPE = "ochSignalType";
+    protected static final String ODU_SIGNAL_ID = "oduSignalId";
+    protected static final String TRIBUTARY_PORT_NUMBER = "tributaryPortNumber";
+    protected static final String TRIBUTARY_SLOT_LEN = "tributarySlotLen";
+    protected static final String TRIBUTARY_SLOT_BITMAP = "tributarySlotBitmap";
+    protected static final String ODU_SIGNAL_TYPE = "oduSignalType";
 
     @Override
     public ObjectNode encode(Criterion criterion, CodecContext context) {
@@ -73,6 +79,4 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
         DecodeCriterionCodecHelper decoder = new DecodeCriterionCodecHelper(json);
         return decoder.decode();
     }
-
-
 }

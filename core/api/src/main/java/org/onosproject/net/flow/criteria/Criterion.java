@@ -125,6 +125,10 @@ public interface Criterion {
         OCH_SIGID,
         /** Optical channel signal type (fixed or flexible). */
         OCH_SIGTYPE,
+        /** ODU (Optical channel Data Unit) signal ID. */
+        ODU_SIGID,
+        /** ODU (Optical channel Data Unit) signal type. */
+        ODU_SIGTYPE,
 
         /**
          * An empty criterion.

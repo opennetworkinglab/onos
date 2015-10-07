@@ -25,6 +25,7 @@ import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
 
 import com.google.common.testing.EqualsTester;
@@ -38,6 +39,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.junit.UtilityClassChecker.assertThatClassIsUtility;
 import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.net.OduSignalId.oduSignalId;
 
 /**
  * Unit tests for the Instructions class.
@@ -96,6 +98,7 @@ public class InstructionsTest {
         assertThatClassIsImmutable(Instructions.OutputInstruction.class);
         assertThatClassIsImmutable(L0ModificationInstruction.ModLambdaInstruction.class);
         assertThatClassIsImmutable(L0ModificationInstruction.ModOchSignalInstruction.class);
+        assertThatClassIsImmutable(L1ModificationInstruction.ModOduSignalIdInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModEtherInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModVlanIdInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModVlanPcpInstruction.class);
@@ -258,6 +261,44 @@ public class InstructionsTest {
         assertThat(ochInstruction1.hashCode(), is(sameAsOchInstruction1.hashCode()));
         assertThat(ochInstruction1.hashCode(), is(not(ochInstruction2.hashCode())));
     }
+
+    //  ModOduSignalIdInstruction
+
+    private final OduSignalId odu1 = oduSignalId(1, 80, new byte[] {8, 7, 6, 5, 7, 6, 5, 7, 6, 5});
+    private final OduSignalId odu2 = oduSignalId(2, 80, new byte[] {1, 1, 2, 2, 1, 2, 2, 1, 2, 2});
+    private final Instruction oduInstruction1 = Instructions.modL1OduSignalId(odu1);
+    private final Instruction sameAsOduInstruction1 = Instructions.modL1OduSignalId(odu1);
+    private final Instruction oduInstruction2 = Instructions.modL1OduSignalId(odu2);
+
+    /**
+     * Test the modL1OduSignalId().
+     */
+    @Test
+    public void testModL1OduSignalIdMethod() {
+        Instruction instruction = Instructions.modL1OduSignalId(odu1);
+        L1ModificationInstruction.ModOduSignalIdInstruction oduInstruction =
+                checkAndConvert(instruction, Instruction.Type.L1MODIFICATION,
+                        L1ModificationInstruction.ModOduSignalIdInstruction.class);
+        assertThat(oduInstruction.oduSignalId(), is(odu1));
+    }
+
+    /**
+     * Test the equals() method of the ModOduSignalInstruction class.
+     */
+    @Test
+    public void testModOduSignalIdInstructionEquals() {
+        checkEqualsAndToString(oduInstruction1, sameAsOduInstruction1, oduInstruction2);
+    }
+
+    /**
+     * Test the hashCode() method of the ModOduSignalInstruction class.
+     */
+    @Test
+    public void testModOduSignalIdInstructionHashCode() {
+        assertThat(oduInstruction1.hashCode(), is(sameAsOduInstruction1.hashCode()));
+        assertThat(oduInstruction1.hashCode(), is(not(oduInstruction2.hashCode())));
+    }
+
 
     //  ModEtherInstruction
 

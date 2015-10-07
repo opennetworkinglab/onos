@@ -25,10 +25,12 @@ import org.onosproject.core.GroupId;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.L0SubType;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction.ModOduSignalIdInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
@@ -46,7 +48,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Factory class for creating various traffic treatment instructions.
  */
 public final class Instructions {
-
 
     // Ban construction
     private Instructions() {}
@@ -116,6 +117,16 @@ public final class Instructions {
         }
     }
 
+    /**
+     * Creates an L1 modification with the specified ODU signal Id.
+     *
+     * @param oduSignalId ODU Signal Id
+     * @return a L1 modification
+     */
+    public static L1ModificationInstruction modL1OduSignalId(OduSignalId oduSignalId) {
+        checkNotNull(oduSignalId, "L1 ODU signal ID cannot be null");
+        return new ModOduSignalIdInstruction(oduSignalId);
+    }
     /**
      * Creates a l2 src modification.
      *
