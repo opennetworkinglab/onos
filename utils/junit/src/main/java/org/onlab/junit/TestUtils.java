@@ -64,27 +64,40 @@ public final class TestUtils {
     /**
      * Gets the field, bypassing scope restriction.
      *
-     * @param subject Object where the field belongs
+     * @param subject   Object where the field belongs
      * @param fieldName name of the field to get
+     * @param <T>       subject type
+     * @param <U>       fieldO value type
      * @return value of the field.
-     * @param <T> subject type
-     * @param <U> field value type
      * @throws TestUtilsException if there are reflection errors while getting
-     * the field
+     *                            the field
      */
     public static <T, U> U getField(T subject, String fieldName)
             throws TestUtilsException {
         try {
+            NoSuchFieldException exception = null;
             @SuppressWarnings("unchecked")
-            Class<T> clazz = (Class<T>) subject.getClass();
-            Field field = clazz.getDeclaredField(fieldName);
-            field.setAccessible(true);
+            Class clazz = subject.getClass();
+            while (clazz != null) {
+                try {
+                    Field field = clazz.getDeclaredField(fieldName);
+                    field.setAccessible(true);
 
-            @SuppressWarnings("unchecked")
-            U result = (U) field.get(subject);
-            return result;
-        } catch (NoSuchFieldException | SecurityException |
-                 IllegalArgumentException | IllegalAccessException e) {
+                    @SuppressWarnings("unchecked")
+                    U result = (U) field.get(subject);
+                    return result;
+                } catch (NoSuchFieldException e) {
+                    exception = e;
+                    if (clazz == clazz.getSuperclass()) {
+                        break;
+                    }
+                    clazz = clazz.getSuperclass();
+                }
+            }
+            throw new TestUtilsException("Field not found. " + fieldName, exception);
+
+        } catch (SecurityException |
+                IllegalArgumentException | IllegalAccessException e) {
             throw new TestUtilsException("getField failed", e);
         }
     }
