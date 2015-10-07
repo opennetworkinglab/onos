@@ -96,7 +96,7 @@ public class NetworkConfigManager
         configClasses.put(identifier(configFactory), configFactory.configClass());
 
         SubjectFactory subjectFactory = configFactory.subjectFactory();
-        subjectClasses.putIfAbsent(subjectFactory.subjectKey(), subjectFactory);
+        subjectClasses.putIfAbsent(subjectFactory.subjectClassKey(), subjectFactory);
         subjectClassKeys.putIfAbsent(subjectFactory.subjectClass(), subjectFactory);
 
         store.addConfigFactory(configFactory);
@@ -145,8 +145,8 @@ public class NetworkConfigManager
     }
 
     @Override
-    public SubjectFactory getSubjectFactory(String subjectKey) {
-        return subjectClasses.get(subjectKey);
+    public SubjectFactory getSubjectFactory(String subjectClassKey) {
+        return subjectClasses.get(subjectClassKey);
     }
 
     @Override
@@ -155,8 +155,8 @@ public class NetworkConfigManager
     }
 
     @Override
-    public Class<? extends Config> getConfigClass(String subjectKey, String configKey) {
-        return configClasses.get(new ConfigIdentifier(subjectKey, configKey));
+    public Class<? extends Config> getConfigClass(String subjectClassKey, String configKey) {
+        return configClasses.get(new ConfigIdentifier(subjectClassKey, configKey));
     }
 
     @Override
@@ -255,7 +255,7 @@ public class NetworkConfigManager
     }
 
     private static ConfigIdentifier identifier(ConfigFactory factory) {
-        return new ConfigIdentifier(factory.subjectFactory().subjectKey(), factory.configKey());
+        return new ConfigIdentifier(factory.subjectFactory().subjectClassKey(), factory.configKey());
     }
 
     static final class ConfigIdentifier {

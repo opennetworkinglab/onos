@@ -28,7 +28,7 @@ import com.google.common.annotations.Beta;
 public abstract class SubjectFactory<S> {
 
     private final Class<S> subjectClass;
-    private final String subjectKey;
+    private final String subjectClassKey;
 
     /**
      * Creates a new configuration factory for the specified class of subjects
@@ -36,12 +36,12 @@ public abstract class SubjectFactory<S> {
      * subject and configuration class keys are used merely as keys for use in
      * composite JSON trees.
      *
-     * @param subjectClass subject class
-     * @param subjectKey   subject class key
+     * @param subjectClass    subject class
+     * @param subjectClassKey subject class key
      */
-    protected SubjectFactory(Class<S> subjectClass, String subjectKey) {
+    protected SubjectFactory(Class<S> subjectClass, String subjectClassKey) {
         this.subjectClass = subjectClass;
-        this.subjectKey = subjectKey;
+        this.subjectClassKey = subjectClassKey;
     }
 
     /**
@@ -60,8 +60,20 @@ public abstract class SubjectFactory<S> {
      *
      * @return configuration key
      */
-    public String subjectKey() {
-        return subjectKey;
+    public String subjectClassKey() {
+        return subjectClassKey;
+    }
+
+    /**
+     * Returns the unique key of the specified configuration subject.
+     * This is primarily aimed for use in composite JSON trees in external
+     * representations and has no bearing on the internal behaviours.
+     *
+     * @param subject specific subject
+     * @return subject key
+     */
+    public String subjectKey(S subject) {
+        return subject.toString();
     }
 
     /**

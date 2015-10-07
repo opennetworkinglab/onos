@@ -41,27 +41,27 @@ public interface NetworkConfigService
     /**
      * Returns the subject factory with the specified key.
      *
-     * @param subjectKey subject class key
+     * @param subjectClassKey subject class key
      * @return subject class
      */
-    SubjectFactory getSubjectFactory(String subjectKey);
+    SubjectFactory getSubjectFactory(String subjectClassKey);
 
     /**
      * Returns the subject factory for the specified class.
      *
      * @param subjectClass subject class
-     * @return subject class key
+     * @return subject class factory
      */
     SubjectFactory getSubjectFactory(Class subjectClass);
 
     /**
      * Returns the configuration class with the specified key.
      *
-     * @param subjectKey subject class key
-     * @param configKey  subject class name
+     * @param subjectClassKey subject class key
+     * @param configKey       subject class name
      * @return subject class
      */
-    Class<? extends Config> getConfigClass(String subjectKey, String configKey);
+    Class<? extends Config> getConfigClass(String subjectClassKey, String configKey);
 
     /**
      * Returns the set of subjects for which some configuration is available.

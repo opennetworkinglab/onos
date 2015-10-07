@@ -29,7 +29,7 @@ public class NetworkConfigServiceAdapter implements NetworkConfigService {
     }
 
     @Override
-    public SubjectFactory getSubjectFactory(String subjectKey) {
+    public SubjectFactory getSubjectFactory(String subjectClassKey) {
         return null;
     }
 
@@ -39,7 +39,7 @@ public class NetworkConfigServiceAdapter implements NetworkConfigService {
     }
 
     @Override
-    public Class<? extends Config> getConfigClass(String subjectKey, String configKey) {
+    public Class<? extends Config> getConfigClass(String subjectClassKey, String configKey) {
         return null;
     }
 
