@@ -37,13 +37,13 @@ public class AAAConfig extends Config<ApplicationId> {
     private static final String RADIUS_PORT = "radiusPort";
 
     // RADIUS server IP address
-    protected static final String DEFAULT_RADIUS_IP = "192.168.1.10";
+    protected static final String DEFAULT_RADIUS_IP = "10.128.10.4";
 
     // RADIUS MAC address
     protected static final String DEFAULT_RADIUS_MAC = "00:00:00:00:01:10";
 
     // NAS IP address
-    protected static final String DEFAULT_NAS_IP = "192.168.1.11";
+    protected static final String DEFAULT_NAS_IP = "10.128.9.244";
 
     // NAS MAC address
     protected static final String DEFAULT_NAS_MAC = "00:00:00:00:10:01";
