@@ -53,9 +53,7 @@
         <module>olt</module>
         <module>cip</module>
         <module>flowanalyzer</module>
-        <module>vtnrsc</module>
         <module>vtn</module>
-        <module>vtnweb</module>
         <module>dhcp</module>
         <module>cordvtn</module>
         <module>mfwd</module>

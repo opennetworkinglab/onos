@@ -20,8 +20,8 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <feature>onos-drivers</feature>
-        <feature>onos-app-vtnrsc</feature>
-        <feature>onos-app-vtnweb</feature>
-        <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-app-vtn-mgr/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-app-vtn-web/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-app-vtn-rsc/${project.version}</bundle>
     </feature>
 </features>
