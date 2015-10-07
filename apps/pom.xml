@@ -59,6 +59,7 @@
         <module>mfwd</module>
         <module>igmp</module>
         <module>pim</module>
+        <module>mlb</module>
   </modules>
 
     <properties>
