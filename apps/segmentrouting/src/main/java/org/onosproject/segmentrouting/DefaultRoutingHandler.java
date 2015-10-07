@@ -47,7 +47,7 @@ public class DefaultRoutingHandler {
     private HashMap<DeviceId, ECMPShortestPathGraph> currentEcmpSpgMap;
     private HashMap<DeviceId, ECMPShortestPathGraph> updatedEcmpSpgMap;
     private DeviceConfiguration config;
-    private Status populationStatus;
+    // private Status populationStatus;
     private boolean linkHasWeight;
     private final Lock statusLock = new ReentrantLock();
     private volatile Status populationStatus;
@@ -106,21 +106,21 @@ public class DefaultRoutingHandler {
                     continue;
                 }
 
-            ECMPShortestPathGraph ecmpSpg = new ECMPShortestPathGraph(sw.id(), srManager, linkHasWeight);
-            if (!populateEcmpRoutingRules(sw.id(), ecmpSpg)) {
-                log.debug("populateAllRoutingRules: populationStatus is ABORTED");
-                populationStatus = Status.ABORTED;
-                log.debug("Abort routing rule population");
-                return false;
-                currentEcmpSpgMap.put(sw.id(), ecmpSpg);
+                ECMPShortestPathGraph ecmpSpg = new ECMPShortestPathGraph(sw.id(), srManager, linkHasWeight);
+                if (!populateEcmpRoutingRules(sw.id(), ecmpSpg)) {
+                    log.debug("populateAllRoutingRules: populationStatus is ABORTED");
+                    populationStatus = Status.ABORTED;
+                    log.debug("Abort routing rule population");
+                    return false;
+                    currentEcmpSpgMap.put(sw.id(), ecmpSpg);
+                }
 
+                log.debug("populateAllRoutingRules: populationStatus is SUCCEEDED");
+                populationStatus = Status.SUCCEEDED;
+                log.info("Completes routing rule population. Total # of rules pushed : {}",
+                        rulePopulator.getCounter());
+                return true;
             }
-
-            log.debug("populateAllRoutingRules: populationStatus is SUCCEEDED");
-            populationStatus = Status.SUCCEEDED;
-            log.info("Completes routing rule population. Total # of rules pushed : {}",
-                    rulePopulator.getCounter());
-            return true;
         } finally {
             statusLock.unlock();
         }
