@@ -68,7 +68,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.net.AnnotationKeys.BANDWIDTH;
 
@@ -295,6 +294,9 @@ public class ConsistentLinkResourceStore extends
             intentAllocs.put(allocations.intentId(), allocations);
             allocations.links().forEach(link -> allocateLinkResource(tx, link, allocations));
             tx.commit();
+        } catch (TransactionException | ResourceAllocationException e) {
+            log.error("Exception thrown, rolling back", e);
+            tx.abort();
         } catch (Exception e) {
             log.error("Exception thrown, rolling back", e);
             tx.abort();
@@ -312,9 +314,7 @@ public class ConsistentLinkResourceStore extends
             if (req instanceof BandwidthResourceAllocation) {
                 // check if allocation should be accepted
                 if (avail.isEmpty()) {
-                    checkState(!avail.isEmpty(),
-                               "There's no Bandwidth resource on %s?",
-                               link);
+                    throw new ResourceAllocationException(String.format("There's no Bandwidth resource on %s?", link));
                 }
                 BandwidthResourceAllocation bw = (BandwidthResourceAllocation) avail.iterator().next();
                 double bwLeft = bw.bandwidth().toDouble();
