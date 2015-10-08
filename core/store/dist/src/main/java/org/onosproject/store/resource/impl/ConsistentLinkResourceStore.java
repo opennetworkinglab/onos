@@ -361,12 +361,7 @@ public class ConsistentLinkResourceStore extends
         if (before == null) {
             List<LinkResourceAllocations> after = new ArrayList<>();
             after.add(allocations);
-            before = linkAllocs.putIfAbsent(linkKey, after);
-            if (before != null) {
-                // concurrent allocation detected, retry transaction : is this needed?
-                log.warn("Concurrent Allocation, retrying");
-                throw new TransactionException();
-            }
+            linkAllocs.putIfAbsent(linkKey, after);
         } else {
             List<LinkResourceAllocations> after = new ArrayList<>(before.size() + 1);
             after.addAll(before);
