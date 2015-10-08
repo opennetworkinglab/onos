@@ -163,6 +163,7 @@
     // Returns the D3 selection of the icon.
     function addDeviceIcon(elem, glyphId) {
         var cfg = config.device,
+            gid = gs.glyphDefined(glyphId) ? glyphId : 'query',
             g = elem.append('g')
                 .attr('class', 'svgIcon deviceIcon');
 
@@ -175,7 +176,7 @@
         });
 
         g.append('use').attr({
-            'xlink:href': '#' + glyphId,
+            'xlink:href': '#' + gid,
             width: cfg.dim,
             height: cfg.dim
         });

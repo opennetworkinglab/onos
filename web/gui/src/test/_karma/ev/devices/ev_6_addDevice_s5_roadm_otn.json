@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000000000000005",
+    "type": "roadm_otn",
+    "online": true,
+    "master": "ONOS",
+    "labels": [
+      "",
+      "roadm_otn",
+      "of:0000000000000005"
+    ],
+    "metaUi": {
+      "x": 300,
+      "y": 300
+    }
+  }
+}

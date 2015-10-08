@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000000000000008",
+    "type": "ips",
+    "online": true,
+    "master": "ONOS",
+    "labels": [
+      "",
+      "ips",
+      "of:0000000000000008"
+    ],
+    "metaUi": {
+      "x": 750,
+      "y": 300
+    }
+  }
+}

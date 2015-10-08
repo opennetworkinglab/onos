@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:00000000000000012",
+    "type": "fiber_switch",
+    "online": true,
+    "master": "ONOS",
+    "labels": [
+      "",
+      "fiber_switch",
+      "of:0000000000000012"
+    ],
+    "metaUi": {
+      "x": 650,
+      "y": 400
+    }
+  }
+}

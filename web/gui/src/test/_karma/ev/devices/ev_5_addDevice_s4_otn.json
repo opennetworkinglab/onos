@@ -1,0 +1,18 @@
+{
+  "event": "addDevice",
+  "payload": {
+    "id": "of:0000000000000004",
+    "type": "otn",
+    "online": true,
+    "master": "ONOS",
+    "labels": [
+      "",
+      "otn",
+      "of:0000000000000004"
+    ],
+    "metaUi": {
+      "x": 650,
+      "y": 200
+    }
+  }
+}

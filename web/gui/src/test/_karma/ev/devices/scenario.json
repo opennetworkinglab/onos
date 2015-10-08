@@ -1,0 +1,12 @@
+{
+  "comments": [
+    "Showing all device types"
+  ],
+  "title": "Show Device Types",
+  "params": {
+    "lastAuto": 16
+  },
+  "description": [
+    "Show all device types."
+  ]
+}
