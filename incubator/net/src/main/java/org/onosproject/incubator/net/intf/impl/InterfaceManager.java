@@ -29,6 +29,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.config.basics.ConfigException;
 import org.onosproject.incubator.net.config.basics.InterfaceConfig;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.incubator.net.intf.InterfaceAdminService;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -50,7 +51,8 @@ import static java.util.stream.Collectors.toSet;
  */
 @Service
 @Component(immediate = true)
-public class InterfaceManager implements InterfaceService {
+public class InterfaceManager implements InterfaceService,
+        InterfaceAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -151,6 +153,54 @@ public class InterfaceManager implements InterfaceService {
 
     private void removeInterfaces(ConnectPoint port) {
         interfaces.remove(port);
+    }
+
+    @Override
+    public void add(Interface intf) {
+        if (interfaces.containsKey(intf.connectPoint())) {
+            boolean conflict = interfaces.get(intf.connectPoint()).stream()
+                    .filter(i -> i.connectPoint().equals(intf.connectPoint()))
+                    .filter(i -> i.mac().equals(intf.mac()))
+                    .filter(i -> i.vlan().equals(intf.vlan()))
+                    .findAny().isPresent();
+
+            if (conflict) {
+                log.error("Can't add interface because it conflicts with existing config");
+                return;
+            }
+        }
+
+        InterfaceConfig config =
+                configService.addConfig(intf.connectPoint(), CONFIG_CLASS);
+
+        config.addInterface(intf);
+
+        configService.applyConfig(intf.connectPoint(), CONFIG_CLASS, config.node());
+    }
+
+    @Override
+    public void remove(ConnectPoint connectPoint, VlanId vlanId) {
+        Optional<Interface> intf = interfaces.get(connectPoint).stream()
+                .filter(i -> i.vlan().equals(vlanId))
+                .findAny();
+
+        if (!intf.isPresent()) {
+            log.error("Can't find interface {}/{} to remove", connectPoint, vlanId);
+            return;
+        }
+
+        InterfaceConfig config = configService.addConfig(intf.get().connectPoint(), CONFIG_CLASS);
+        config.removeInterface(intf.get());
+
+        try {
+            if (config.getInterfaces().isEmpty()) {
+                configService.removeConfig(connectPoint, CONFIG_CLASS);
+            } else {
+                configService.applyConfig(intf.get().connectPoint(), CONFIG_CLASS, config.node());
+            }
+        } catch (ConfigException e) {
+            log.error("Error reading interfaces JSON", e);
+        }
     }
 
     /**

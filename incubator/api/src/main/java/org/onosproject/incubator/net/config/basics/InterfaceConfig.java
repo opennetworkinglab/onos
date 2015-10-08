@@ -17,13 +17,15 @@
 package org.onosproject.incubator.net.config.basics;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Sets;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.net.config.Config;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.config.Config;
 import org.onosproject.net.host.InterfaceIpAddress;
 
 import java.util.Set;
@@ -37,7 +39,6 @@ public class InterfaceConfig extends Config<ConnectPoint> {
     public static final String MAC = "mac";
     public static final String VLAN = "vlan";
 
-    public static final String IP_MISSING_ERROR = "Must have at least one IP address";
     public static final String MAC_MISSING_ERROR = "Must have a MAC address for each interface";
     public static final String CONFIG_VALUE_ERROR = "Error parsing config value";
 
@@ -53,9 +54,6 @@ public class InterfaceConfig extends Config<ConnectPoint> {
         try {
             for (JsonNode intfNode : array) {
                 Set<InterfaceIpAddress> ips = getIps(intfNode);
-                if (ips.isEmpty()) {
-                    throw new ConfigException(IP_MISSING_ERROR);
-                }
 
                 if (intfNode.path(MAC).isMissingNode()) {
                     throw new ConfigException(MAC_MISSING_ERROR);
@@ -63,10 +61,7 @@ public class InterfaceConfig extends Config<ConnectPoint> {
 
                 MacAddress mac = MacAddress.valueOf(intfNode.path(MAC).asText());
 
-                VlanId vlan = VlanId.NONE;
-                if (!intfNode.path(VLAN).isMissingNode()) {
-                    vlan = VlanId.vlanId(Short.valueOf(intfNode.path(VLAN).asText()));
-                }
+                VlanId vlan = getVlan(intfNode);
 
                 interfaces.add(new Interface(subject, ips, mac, vlan));
             }
@@ -77,13 +72,64 @@ public class InterfaceConfig extends Config<ConnectPoint> {
         return interfaces;
     }
 
+    /**
+     * Adds an interface to the config.
+     *
+     * @param intf interface to add
+     */
+    public void addInterface(Interface intf) {
+        ObjectNode intfNode = array.addObject();
+        intfNode.put(MAC, intf.mac().toString());
+
+        if (!intf.ipAddresses().isEmpty()) {
+            intfNode.set(IPS, putIps(intf.ipAddresses()));
+        }
+
+        if (!intf.vlan().equals(VlanId.NONE)) {
+            intfNode.put(VLAN, intf.vlan().toString());
+        }
+    }
+
+    /**
+     * Removes an interface from the config.
+     *
+     * @param intf interface to remove
+     */
+    public void removeInterface(Interface intf) {
+        for (int i = 0; i < array.size(); i++) {
+            if (intf.vlan().equals(getVlan(node))) {
+                array.remove(i);
+                break;
+            }
+        }
+    }
+
+    private VlanId getVlan(JsonNode node) {
+        VlanId vlan = VlanId.NONE;
+        if (!node.path(VLAN).isMissingNode()) {
+            vlan = VlanId.vlanId(Short.valueOf(node.path(VLAN).asText()));
+        }
+        return vlan;
+    }
+
     private Set<InterfaceIpAddress> getIps(JsonNode node) {
         Set<InterfaceIpAddress> ips = Sets.newHashSet();
 
         JsonNode ipsNode = node.get(IPS);
-        ipsNode.forEach(jsonNode -> ips.add(InterfaceIpAddress.valueOf(jsonNode.asText())));
+        if (ipsNode != null) {
+            ipsNode.forEach(jsonNode ->
+                    ips.add(InterfaceIpAddress.valueOf(jsonNode.asText())));
+        }
 
         return ips;
+    }
+
+    private ArrayNode putIps(Set<InterfaceIpAddress> intfIpAddresses) {
+        ArrayNode ipArray = mapper.createArrayNode();
+
+        intfIpAddresses.forEach(i -> ipArray.add(i.toString()));
+
+        return ipArray;
     }
 
 }

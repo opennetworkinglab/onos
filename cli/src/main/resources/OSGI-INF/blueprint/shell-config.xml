@@ -352,6 +352,19 @@
             <action class="org.onosproject.cli.net.InterfacesListCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.InterfaceAddCommand"/>
+            <optional-completers>
+                <entry key="-c" value-ref="connectPointCompleter"/>
+                <entry key="--connectPoint" value-ref="connectPointCompleter"/>
+            </optional-completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.InterfaceRemoveCommand"/>
+            <completers>
+                <ref component-id="connectPointCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.GroupsListCommand"/>
         </command>
 
