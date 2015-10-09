@@ -215,6 +215,7 @@ public final class EncodeInstructionCodecHelper {
                 break;
 
             case DROP:
+            case NOACTION:
                 break;
 
             case L0MODIFICATION:
