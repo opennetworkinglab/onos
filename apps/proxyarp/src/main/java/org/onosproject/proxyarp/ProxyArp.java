@@ -231,6 +231,10 @@ public class ProxyArp {
                 }
             }
 
+            if (ethPkt.getEtherType() != TYPE_ARP && ethPkt.getEtherType() != TYPE_IPV6) {
+                return;
+            }
+
             //handle the arp packet.
             proxyArpService.handlePacket(context);
         }
