@@ -211,8 +211,6 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         List<Instruction> current = immediate;
 
-
-
         // Creates a new builder
         private Builder() {
         }
