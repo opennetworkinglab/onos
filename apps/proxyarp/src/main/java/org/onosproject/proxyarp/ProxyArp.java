@@ -23,6 +23,8 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.ICMP6;
+import org.onlab.packet.IPv6;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -214,31 +216,35 @@ public class ProxyArp {
             if (context.isHandled()) {
                 return;
             }
-            // If IPv6 NDP is disabled, don't handle IPv6 frames.
+
             InboundPacket pkt = context.inPacket();
             Ethernet ethPkt = pkt.parsed();
             if (ethPkt == null) {
                 return;
             }
-            if (!ipv6NeighborDiscovery && (ethPkt.getEtherType() == TYPE_IPV6)) {
-                return;
+
+            if (ethPkt.getEtherType() == TYPE_ARP) {
+                //handle the arp packet.
+                proxyArpService.handlePacket(context);
+            } else if (ipv6NeighborDiscovery && ethPkt.getEtherType() == TYPE_IPV6) {
+                IPv6 ipv6Pkt = (IPv6) ethPkt.getPayload();
+                if (ipv6Pkt.getNextHeader() == IPv6.PROTOCOL_ICMP6) {
+                    ICMP6 icmp6Pkt = (ICMP6) ipv6Pkt.getPayload();
+                    if (icmp6Pkt.getIcmpType() == NEIGHBOR_SOLICITATION ||
+                        icmp6Pkt.getIcmpType() == NEIGHBOR_ADVERTISEMENT) {
+                        // handle ICMPv6 solicitations and advertisements
+                        proxyArpService.handlePacket(context);
+                    }
+                }
             }
 
+            // FIXME why were we listening to IPv4 frames at all?
             // Do not ARP for multicast packets.  Let mfwd handle them.
             if (ethPkt.getEtherType() == Ethernet.TYPE_IPV4) {
                 if (ethPkt.getDestinationMAC().isMulticast()) {
                     return;
                 }
             }
-
-            if (ethPkt.getEtherType() != TYPE_ARP && ethPkt.getEtherType() != TYPE_IPV6) {
-                return;
-            }
-
-            //handle the arp packet.
-            proxyArpService.handlePacket(context);
         }
     }
 }
-
-
