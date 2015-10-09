@@ -37,17 +37,15 @@ public interface PacketStore extends Store<PacketEvent, PacketStoreDelegate> {
      * Requests intercept of packets that match the given selector.
      *
      * @param request a packet request
-     * @return true if the first time the given selector was requested
      */
-    boolean requestPackets(PacketRequest request);
+    void requestPackets(PacketRequest request);
 
     /**
      * Cancels intercept of packets that match the given selector.
      *
      * @param request a packet request
-     * @return true if there is no other application requesting the given selector
      */
-    boolean cancelPackets(PacketRequest request);
+    void cancelPackets(PacketRequest request);
 
     /**
      * Obtains all existing requests in the system.

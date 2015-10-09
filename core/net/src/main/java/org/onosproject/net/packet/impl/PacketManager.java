@@ -168,9 +168,7 @@ public class PacketManager
         checkNotNull(appId, "Application ID cannot be null");
 
         PacketRequest request = new DefaultPacketRequest(selector, priority, appId);
-        if (store.requestPackets(request)) {
-            pushToAllDevices(request);
-        }
+        store.requestPackets(request);
     }
 
     @Override
@@ -181,9 +179,7 @@ public class PacketManager
         checkNotNull(appId, "Application ID cannot be null");
 
         PacketRequest request = new DefaultPacketRequest(selector, priority, appId);
-        if (store.cancelPackets(request)) {
-            removeFromAllDevices(request);
-        }
+        store.cancelPackets(request);
     }
 
     @Override
@@ -331,6 +327,16 @@ public class PacketManager
         @Override
         public void notify(PacketEvent event) {
             localEmit(event.subject());
+        }
+
+        @Override
+        public void requestPackets(PacketRequest request) {
+            pushToAllDevices(request);
+        }
+
+        @Override
+        public void cancelPackets(PacketRequest request) {
+            removeFromAllDevices(request);
         }
     }
 

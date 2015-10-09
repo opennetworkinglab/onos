@@ -21,4 +21,20 @@ import org.onosproject.store.StoreDelegate;
  * Packet store delegate abstraction.
  */
 public interface PacketStoreDelegate extends StoreDelegate<PacketEvent> {
+
+    /**
+     * Requests that packets matching to following request be collected
+     * from all switches.
+     *
+     * @param request packet request
+     */
+    void requestPackets(PacketRequest request);
+
+    /**
+     * Requests that packets matching to following request no longer be
+     * collected from any switches.
+     *
+     * @param request packet request
+     */
+    void cancelPackets(PacketRequest request);
 }
