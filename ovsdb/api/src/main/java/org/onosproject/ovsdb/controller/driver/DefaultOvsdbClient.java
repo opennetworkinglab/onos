@@ -603,6 +603,7 @@ public class DefaultOvsdbClient
         Controller controller = (Controller) TableGenerator
                 .createTable(dbSchema, OvsdbTable.CONTROLLER);
         if (controller != null) {
+            controller.setTarget(target);
             if (controllerUuid == null) {
 
                 insertConfig(OvsdbConstant.CONTROLLER, "_uuid",
