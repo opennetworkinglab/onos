@@ -23,12 +23,6 @@ import org.onosproject.net.DeviceId;
  * Representation of a node with ovsdb server.
  */
 public interface OvsdbNode {
-    /**
-     * Ovsdb connection state.
-     */
-    enum State {
-        INIT, READY, CONNECTED, DISCONNECT, DISCONNECTED
-    }
 
     /**
      * Returns the IP address of the ovsdb server.
@@ -51,13 +45,6 @@ public interface OvsdbNode {
      * @return host
      */
     String host();
-
-    /**
-     * Returns the connection state of the ovsdb server.
-     *
-     * @return connection state
-     */
-    State state();
 
     /**
      * Returns the device id of the ovsdb server.

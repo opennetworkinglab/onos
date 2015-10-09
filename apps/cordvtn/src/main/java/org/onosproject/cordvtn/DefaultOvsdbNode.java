@@ -30,13 +30,13 @@ public class DefaultOvsdbNode implements OvsdbNode {
     private final String host;
     private final IpAddress ip;
     private final TpPort port;
-    private final State state;
+    private final DeviceId brId;
 
-    public DefaultOvsdbNode(String host, IpAddress ip, TpPort port, State state) {
+    public DefaultOvsdbNode(String host, IpAddress ip, TpPort port, DeviceId brId) {
         this.host = host;
         this.ip = ip;
         this.port = port;
-        this.state = state;
+        this.brId = brId;
     }
 
     @Override
@@ -55,18 +55,13 @@ public class DefaultOvsdbNode implements OvsdbNode {
     }
 
     @Override
-    public State state() {
-        return this.state;
+    public DeviceId intBrId() {
+        return this.brId;
     }
 
     @Override
     public DeviceId deviceId() {
         return DeviceId.deviceId("ovsdb:" + this.ip.toString() + ":" + this.port.toString());
-    }
-
-    @Override
-    public DeviceId intBrId() {
-        return DeviceId.deviceId("of:" + this.host);
     }
 
     @Override
@@ -79,7 +74,8 @@ public class DefaultOvsdbNode implements OvsdbNode {
             DefaultOvsdbNode that = (DefaultOvsdbNode) o;
             if (this.host.equals(that.host) &&
                     this.ip.equals(that.ip) &&
-                    this.port.equals(that.port)) {
+                    this.port.equals(that.port) &&
+                    this.brId.equals(that.brId)) {
                 return true;
             }
         }
@@ -97,7 +93,7 @@ public class DefaultOvsdbNode implements OvsdbNode {
                 .add("host", host)
                 .add("ip", ip)
                 .add("port", port)
-                .add("state", state)
+                .add("bridgeId", brId)
                 .toString();
     }
 }

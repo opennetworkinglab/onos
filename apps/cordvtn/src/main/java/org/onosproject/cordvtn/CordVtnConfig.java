@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 
 import java.util.Set;
@@ -35,6 +36,7 @@ public class CordVtnConfig extends Config<ApplicationId> {
     public static final String HOST = "host";
     public static final String IP = "ip";
     public static final String PORT = "port";
+    public static final String BRIDGE_ID = "bridgeId";
 
     /**
      * Returns the set of ovsdb nodes read from network config.
@@ -51,7 +53,8 @@ public class CordVtnConfig extends Config<ApplicationId> {
         nodes.forEach(jsonNode -> ovsdbNodes.add(new OvsdbNodeConfig(
             jsonNode.path(HOST).asText(),
             IpAddress.valueOf(jsonNode.path(IP).asText()),
-            TpPort.tpPort(jsonNode.path(PORT).asInt()))));
+            TpPort.tpPort(jsonNode.path(PORT).asInt()),
+            DeviceId.deviceId(jsonNode.path(BRIDGE_ID).asText()))));
 
         return ovsdbNodes;
     }
@@ -64,11 +67,13 @@ public class CordVtnConfig extends Config<ApplicationId> {
         private final String host;
         private final IpAddress ip;
         private final TpPort port;
+        private final DeviceId bridgeId;
 
-        public OvsdbNodeConfig(String host, IpAddress ip, TpPort port) {
+        public OvsdbNodeConfig(String host, IpAddress ip, TpPort port, DeviceId bridgeId) {
             this.host = checkNotNull(host);
             this.ip = checkNotNull(ip);
             this.port = checkNotNull(port);
+            this.bridgeId = checkNotNull(bridgeId);
         }
 
         /**
@@ -96,6 +101,10 @@ public class CordVtnConfig extends Config<ApplicationId> {
          */
         public TpPort port() {
             return this.port;
+        }
+
+        public DeviceId bridgeId() {
+            return this.bridgeId;
         }
     }
 }

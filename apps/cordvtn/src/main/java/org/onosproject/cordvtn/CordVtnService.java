@@ -15,7 +15,6 @@
  */
 package org.onosproject.cordvtn;
 
-import org.onosproject.cordvtn.OvsdbNode.State;
 import org.onosproject.net.DeviceId;
 
 import java.util.List;
@@ -29,25 +28,30 @@ public interface CordVtnService {
     /**
      * Adds a new node to the service.
      *
-     * @param ovsdbNode ovsdb node
+     * @param ovsdb ovsdb node
      */
-    void addNode(OvsdbNode ovsdbNode);
+    void addNode(OvsdbNode ovsdb);
 
     /**
      * Deletes a node from the service.
      *
-     * @param ovsdbNode ovsdb node
+     * @param ovsdb ovsdb node
      */
-    void deleteNode(OvsdbNode ovsdbNode);
+    void deleteNode(OvsdbNode ovsdb);
 
     /**
-     * Updates ovsdb node.
-     * It only used for updating node's connection state.
+     * Connect to a node.
      *
-     * @param ovsdbNode ovsdb node
-     * @param state ovsdb connection state
+     * @param ovsdb ovsdb node
      */
-    void updateNode(OvsdbNode ovsdbNode, State state);
+    void connect(OvsdbNode ovsdb);
+
+    /**
+     * Disconnect a node.
+     *
+     * @param ovsdb ovsdb node
+     */
+    void disconnect(OvsdbNode ovsdb);
 
     /**
      * Returns the number of the nodes known to the service.
@@ -63,6 +67,14 @@ public interface CordVtnService {
      * @return ovsdb node
      */
     OvsdbNode getNode(DeviceId deviceId);
+
+    /**
+     * Returns connection state of the node.
+     *
+     * @param ovsdb ovsdb node
+     * @return true if the node is connected, false otherwise
+     */
+    boolean isNodeConnected(OvsdbNode ovsdb);
 
     /**
      * Returns all nodes known to the service.

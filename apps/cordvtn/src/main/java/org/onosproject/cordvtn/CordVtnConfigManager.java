@@ -20,11 +20,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.LeadershipEvent;
-import org.onosproject.cluster.LeadershipEventListener;
-import org.onosproject.cluster.LeadershipService;
-import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.config.ConfigFactory;
@@ -35,7 +30,6 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.slf4j.Logger;
 
-import static org.onosproject.cordvtn.OvsdbNode.State.INIT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -58,12 +52,6 @@ public class CordVtnConfigManager {
     protected NetworkConfigService configService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LeadershipService leadershipService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CordVtnService cordVtnService;
 
     private final ConfigFactory configFactory =
@@ -74,29 +62,22 @@ public class CordVtnConfigManager {
                 }
             };
 
-    private final LeadershipEventListener leadershipListener = new InternalLeadershipListener();
     private final NetworkConfigListener configListener = new InternalConfigListener();
 
-    private NodeId local;
     private ApplicationId appId;
 
     @Activate
     protected void active() {
-        local = clusterService.getLocalNode().id();
         appId = coreService.getAppId(CordVtnService.CORDVTN_APP_ID);
 
         configService.addListener(configListener);
         configRegistry.registerConfigFactory(configFactory);
 
-        leadershipService.addListener(leadershipListener);
-        leadershipService.runForLeadership(CordVtnService.CORDVTN_APP_ID);
+        readConfiguration();
     }
 
     @Deactivate
     protected void deactivate() {
-        leadershipService.removeListener(leadershipListener);
-        leadershipService.withdraw(appId.name());
-
         configRegistry.unregisterConfigFactory(configFactory);
         configService.removeListener(configListener);
     }
@@ -110,28 +91,11 @@ public class CordVtnConfigManager {
         }
 
         config.ovsdbNodes().forEach(node -> {
-            DefaultOvsdbNode ovsdbNode =
-                    new DefaultOvsdbNode(node.host(), node.ip(), node.port(), INIT);
-            cordVtnService.addNode(ovsdbNode);
-            log.info("Add new node {}", node.host());
+            DefaultOvsdbNode ovsdb = new DefaultOvsdbNode(
+                    node.host(), node.ip(), node.port(), node.bridgeId());
+            cordVtnService.addNode(ovsdb);
+            cordVtnService.connect(ovsdb);
         });
-    }
-
-    private synchronized void processLeadershipChange(NodeId leader) {
-        if (leader == null || !leader.equals(local)) {
-            return;
-        }
-        readConfiguration();
-    }
-
-    private class InternalLeadershipListener implements LeadershipEventListener {
-
-        @Override
-        public void event(LeadershipEvent event) {
-            if (event.subject().topic().equals(appId.name())) {
-                processLeadershipChange(event.subject().leader());
-            }
-        }
     }
 
     private class InternalConfigListener implements NetworkConfigListener {

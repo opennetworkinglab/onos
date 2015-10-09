@@ -49,6 +49,11 @@
             <artifactId>onos-core-serializers</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-ovsdb-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
