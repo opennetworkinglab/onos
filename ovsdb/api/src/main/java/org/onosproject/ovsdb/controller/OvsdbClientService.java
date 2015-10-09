@@ -28,6 +28,7 @@ import org.onosproject.ovsdb.rfc.operations.Operation;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -50,6 +51,17 @@ public interface OvsdbClientService extends OvsdbRPC {
     void createTunnel(IpAddress srcIp, IpAddress dstIp);
 
     /**
+     * Creates a tunnel port with given options.
+     *
+     * @param bridgeName bridge name
+     * @param portName port name
+     * @param tunnelType tunnel type
+     * @param options tunnel options
+     * @return true if tunnel creation is successful, false otherwise
+     */
+    boolean createTunnel(String bridgeName, String portName, String tunnelType, Map<String, String> options);
+
+    /**
      * Drops the configuration for the tunnel.
      *
      * @param srcIp source IP address
@@ -70,6 +82,17 @@ public interface OvsdbClientService extends OvsdbRPC {
      * @param bridgeName bridge name
      */
     void createBridge(String bridgeName);
+
+    /**
+     * Creates a bridge with given name and dpid.
+     * Sets the bridge's controller with given controllers.
+     *
+     * @param bridgeName bridge name
+     * @param dpid data path id
+     * @param controllers controllers
+     * @return true if bridge creation is successful, false otherwise
+     */
+    boolean createBridge(String bridgeName, String dpid, List<ControllerInfo> controllers);
 
     /**
      * Drops a bridge.

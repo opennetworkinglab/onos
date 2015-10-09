@@ -34,6 +34,7 @@ import org.onosproject.ovsdb.rfc.operations.Operation;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -52,6 +53,11 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     }
 
     @Override
+    public boolean createTunnel(String bridgeName, String portName, String tunnelType, Map<String, String> options) {
+        return true;
+    }
+
+    @Override
     public void dropTunnel(IpAddress srcIp, IpAddress dstIp) {
 
     }
@@ -64,6 +70,11 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     @Override
     public void createBridge(String bridgeName) {
 
+    }
+
+    @Override
+    public boolean createBridge(String bridgeName, String dpid, List<ControllerInfo> controllers) {
+        return true;
     }
 
     @Override

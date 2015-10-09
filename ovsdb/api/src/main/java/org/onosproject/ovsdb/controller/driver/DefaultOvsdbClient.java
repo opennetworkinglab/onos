@@ -73,6 +73,8 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -481,6 +483,52 @@ public class DefaultOvsdbClient
         log.info("Create bridge success");
     }
 
+    @Override
+    public boolean createBridge(String bridgeName, String dpid, List<ControllerInfo> controllers) {
+
+        DatabaseSchema dbSchema = schema.get(OvsdbConstant.DATABASENAME);
+        String ovsUuid = getOvsUuid(OvsdbConstant.DATABASENAME);
+
+        if (dbSchema == null || ovsUuid == null) {
+            log.warn("Couldn't find database Open_vSwitch");
+            return false;
+        }
+
+        String bridgeUuid = getBridgeUuid(bridgeName);
+        if (bridgeUuid != null) {
+            log.warn("Bridge {} is already exist", bridgeName);
+            // remove existing one and re-create?
+            return false;
+        }
+
+        Bridge bridge = (Bridge) TableGenerator.createTable(dbSchema, OvsdbTable.BRIDGE);
+        bridge.setName(bridgeName);
+
+        Set<String> failMode = new HashSet<>(Arrays.asList("secure"));
+        bridge.setFailMode(failMode);
+
+        Set<String> protocols = new HashSet<>(Arrays.asList(OvsdbConstant.OPENFLOW13));
+        bridge.setProtocols(protocols);
+
+        Map<String, String> options = new HashMap<>();
+        options.put("datapath-id", dpid);
+        bridge.setOtherConfig(options);
+
+        bridgeUuid = insertConfig(OvsdbConstant.BRIDGE, "_uuid",
+                                  OvsdbConstant.DATABASENAME, "bridges",
+                                  ovsUuid, bridge.getRow());
+
+        if (bridgeUuid != null) {
+            createPort(bridgeName, bridgeName);
+        } else {
+            log.warn("Failed to create bridge {} on {}", bridgeName, nodeId.toString());
+            return false;
+        }
+
+        setControllersWithUUID(UUID.uuid(bridgeUuid), controllers);
+        return true;
+    }
+
     /**
      * Sets the bridge's controller automatically.
      * <p/>
@@ -645,6 +693,50 @@ public class DefaultOvsdbClient
         }
 
         return;
+    }
+
+    @Override
+    public boolean createTunnel(String bridgeName, String portName, String tunnelType, Map<String, String> options) {
+
+        String bridgeUuid  = getBridgeUuid(bridgeName);
+        if (bridgeUuid == null) {
+            log.warn("Couldn't find bridge {} in {}", bridgeName, nodeId.getIpAddress());
+            return false;
+        }
+
+        if (getPortUuid(portName, bridgeUuid) != null) {
+            log.warn("Port {} already exists", portName);
+            // remove existing one and re-create?
+            return false;
+        }
+
+        ArrayList<Operation> operations = Lists.newArrayList();
+        DatabaseSchema dbSchema = schema.get(OvsdbConstant.DATABASENAME);
+
+        // insert a new port to the port table
+        Port port = (Port) TableGenerator.createTable(dbSchema, OvsdbTable.PORT);
+        port.setName(portName);
+        Insert portInsert = new Insert(dbSchema.getTableSchema("Port"), "Port", port.getRow());
+        portInsert.getRow().put("interfaces", UUID.uuid("Interface"));
+        operations.add(portInsert);
+
+        // update the bridge table
+        Condition condition = ConditionUtil.equals("_uuid", UUID.uuid(bridgeUuid));
+        Mutation mutation = MutationUtil.insert("ports", UUID.uuid("Port"));
+        List<Condition> conditions = new ArrayList<>(Arrays.asList(condition));
+        List<Mutation> mutations = new ArrayList<>(Arrays.asList(mutation));
+        operations.add(new Mutate(dbSchema.getTableSchema("Bridge"), conditions, mutations));
+
+        // insert a tunnel interface
+        Interface intf = (Interface) TableGenerator.createTable(dbSchema, OvsdbTable.INTERFACE);
+        intf.setName(portName);
+        intf.setType(tunnelType);
+        intf.setOptions(options);
+        Insert intfInsert = new Insert(dbSchema.getTableSchema("Interface"), "Interface", intf.getRow());
+        operations.add(intfInsert);
+
+        transactConfig(OvsdbConstant.DATABASENAME, operations);
+        return true;
     }
 
     @Override
