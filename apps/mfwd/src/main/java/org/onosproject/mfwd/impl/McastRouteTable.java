@@ -17,6 +17,7 @@ package org.onosproject.mfwd.impl;
 
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpPrefix;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -188,6 +189,30 @@ public final class McastRouteTable {
         group.addSource(source);
 
         return source;
+    }
+
+    /**
+     * Delete a specific egress from the MRIB.
+     *
+     * @param saddr source address * or x.x.x.x or x.x.x.x/y
+     * @param gaddr group address x.x.x.x or x.x.x.x/y
+     * @param egress group address x.x.x.x or x.x.x.x/y
+     * @return boolean if egress was deleted
+     */
+    public boolean removeEgress(String saddr, String gaddr, String egress) {
+
+        IpPrefix gpfx = IpPrefix.valueOf(gaddr);
+        IpPrefix spfx = IpPrefix.valueOf(0, 0);
+        if (saddr != null && !saddr.equals("*")) {
+            spfx = IpPrefix.valueOf(saddr);
+        }
+
+        McastRouteSource src = (McastRouteSource) findBestMatch(spfx, gpfx);
+        boolean removed = src.removeEgressPoint(egress);
+        if (removed) {
+            src.setIntent();
+        }
+        return removed;
     }
 
     /**

@@ -37,9 +37,32 @@ public class McastDeleteCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     String gAddr = null;
 
+    @Argument(index = 2, name = "egressList",
+            description = "Egress id/port",
+            required = false, multiValued = true)
+    String[] egressList = null;
+
+
     @Override
     protected void execute() {
+
+        boolean deleted = false;
         McastRouteTable mrib = McastRouteTable.getInstance();
-        mrib.removeRoute(sAddr, gAddr);
+
+        if (egressList == null) {
+            mrib.removeRoute(sAddr, gAddr);
+            deleted = true;
+        } else {
+            // check list for validity before we begin to delete.
+            for (String egress : egressList) {
+                deleted = mrib.removeEgress(sAddr, gAddr, egress);
+            }
+        }
+
+        if (deleted) {
+            print("Successful delete");
+        } else {
+            print("Failed to delete");
+        }
     }
 }

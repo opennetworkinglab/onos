@@ -79,8 +79,7 @@ public class McastIntentManager {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
 
-        if (mroute.getIngressPoint() == null ||
-                mroute.getEgressPoints().isEmpty()) {
+        if (mroute.getIngressPoint() == null) {
             return null;
         }
 
@@ -96,16 +95,22 @@ public class McastIntentManager {
                 .matchIPDst(mroute.getGaddr())
                 .matchIPSrc(mroute.getSaddr());
 
-        SinglePointToMultiPointIntent intent =
-                SinglePointToMultiPointIntent.builder()
+
+        SinglePointToMultiPointIntent.Builder builder =  SinglePointToMultiPointIntent.builder()
                         .appId(McastForwarding.getAppId())
                         .selector(selector.build())
                         .treatment(treatment)
-                        .ingressPoint(mroute.getIngressPoint().getConnectPoint())
-                        .egressPoints(mroute.getEgressConnectPoints()).
-                        build();
+                        .ingressPoint(mroute.getIngressPoint().getConnectPoint());
 
+        // allowing intent to be pushed without egress points means we can drop packets.
+        if (!mroute.getEgressPoints().isEmpty()) {
+            builder.egressPoints(mroute.getEgressConnectPoints());
+        }
+
+        SinglePointToMultiPointIntent intent = builder.build();
         intentService.submit(intent);
+        mroute.setDirty(false);
+
         return intent;
     }
 
@@ -114,9 +119,10 @@ public class McastIntentManager {
      *
      * @param mroute the mcast route whose intent we want to remove
      */
-    public void withdrawIntent(McastRouteBase mroute) {
+    public void withdrawIntent(McastRoute mroute) {
         Intent intent = intentService.getIntent(mroute.getIntentKey());
         intentService.withdraw(intent);
+        mroute.setDirty(false);
     }
 
     /**

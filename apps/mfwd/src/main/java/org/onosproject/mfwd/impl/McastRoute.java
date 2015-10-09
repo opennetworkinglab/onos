@@ -57,6 +57,21 @@ interface McastRoute {
     public boolean isIp6();
 
     /**
+     * Get the dirty state.
+     *
+     * @return whether this route is dirty or not.
+     */
+    public boolean getDirty();
+
+    /**
+     * Set the dirty state to indicate that something changed.
+     * This may require an update to the flow tables (intents).
+     *
+     * @param dirty set the dirty bit
+     */
+    public void setDirty(boolean dirty);
+
+    /**
      * Add the ingress ConnectPoint.
      *
      * @param cpstr string representing a ConnectPoint

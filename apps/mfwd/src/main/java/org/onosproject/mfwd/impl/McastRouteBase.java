@@ -17,7 +17,6 @@ package org.onosproject.mfwd.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.apache.commons.collections.set.ListOrderedSet;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
@@ -267,6 +266,33 @@ public class McastRouteBase implements McastRoute {
     }
 
     /**
+     * Remove an egress from McastConnectPoint.
+     *
+     * @param connectPoint the egress connect point
+     * @return boolean result of removal
+     */
+    public boolean removeEgressPoint(String connectPoint) {
+        checkNotNull(connectPoint);
+        return this.removeEgressPoint(ConnectPoint.deviceConnectPoint(connectPoint));
+    }
+
+    /**
+     * Remove an egress from McastConnectPoint.
+     *
+     * @param cp the egress connect point
+     * @return boolean result of removal
+     */
+    public boolean removeEgressPoint(ConnectPoint cp) {
+        boolean removed = false;
+        McastConnectPoint mcp = this.findEgressConnectPoint(checkNotNull(cp));
+        if (mcp != null) {
+            removed = egressPoints.remove(mcp);
+            setDirty(true);
+        }
+        return removed;
+    }
+
+    /**
      * Add an egress McastConnectPoint.
      *
      * @param cpstr deviceId/port of the connect point
@@ -292,7 +318,7 @@ public class McastRouteBase implements McastRoute {
      * @return Set of egress ConnectPoints
      */
     public Set<ConnectPoint> getEgressConnectPoints() {
-        Set<ConnectPoint> cps = new ListOrderedSet();
+        Set<ConnectPoint> cps = new HashSet<ConnectPoint>();
 
         for (McastConnectPoint mcp : egressPoints) {
             cps.add(mcp.getConnectPoint());
@@ -417,7 +443,7 @@ public class McastRouteBase implements McastRoute {
         out += "intent: ";
         out += (intentKey == null) ? "not installed" : this.intentKey.toString();
         out += "\n\tingress: ";
-        out += (ingressPoint == null) ? "NULL" : ingressPoint.toString();
+        out += (ingressPoint == null) ? "NULL" : ingressPoint.getConnectPoint().toString();
         out += "\n\tegress: {\n";
         if (egressPoints != null && !egressPoints.isEmpty()) {
             for (McastConnectPoint eg : egressPoints) {
