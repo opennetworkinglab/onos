@@ -43,8 +43,7 @@ public class BGPPacketStatsImpl implements BGPPacketStats {
     /**
      * Get the outgoing packet count number.
      *
-     * @return
-     *          packet count
+     * @return packet count
      */
     public int outPacketCount() {
         return outPacketCount;
@@ -53,8 +52,7 @@ public class BGPPacketStatsImpl implements BGPPacketStats {
     /**
      * Get the incoming packet count number.
      *
-     * @return
-     *          packet count
+     * @return packet count
      */
     public int inPacketCount() {
         return inPacketCount;
@@ -63,8 +61,7 @@ public class BGPPacketStatsImpl implements BGPPacketStats {
     /**
      * Get the wrong packet count number.
      *
-     * @return
-     *          packet count
+     * @return packet count
      */
     public int wrongPacketCount() {
         return wrongPacketCount;
@@ -110,8 +107,7 @@ public class BGPPacketStatsImpl implements BGPPacketStats {
     /**
      * Get the time.
      *
-     * @return
-     *          time
+     * @return time
      */
     public long getTime() {
         return this.time;

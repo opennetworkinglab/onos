@@ -25,6 +25,21 @@ import org.onosproject.bgpio.protocol.BGPMessage;
 public interface BGPController {
 
     /**
+     * Returns list of bgp peers connected to this BGP controller.
+     *
+     * @return Iterable of BGPPeer elements
+     */
+    Iterable<BGPPeer> getPeers();
+
+    /**
+     * Returns the actual bgp peer for the given ip address.
+     *
+     * @param bgpId the id of the bgp peer to fetch
+     * @return the interface to this bgp peer
+     */
+    BGPPeer getPeer(BGPId bgpId);
+
+    /**
      * Send a message to a particular bgp peer.
      *
      * @param bgpId the id of the peer to send message.
@@ -41,9 +56,22 @@ public interface BGPController {
     void processBGPPacket(BGPId bgpId, BGPMessage msg);
 
     /**
+     * Close all connected BGP peers.
+     *
+     */
+    void closeConnectedPeers();
+
+    /**
      * Get the BGPConfig class to the caller.
      *
      * @return configuration object
      */
     BGPCfg getConfig();
+
+    /**
+     * Get the BGP connected peers to this controller.
+     *
+     * @return the integer number
+     */
+    int getBGPConnNumber();
 }

@@ -61,27 +61,6 @@ public interface BGPMessage extends Writeable {
         BGPMessage build() throws BGPParseException;
 
         /**
-         * Returns BGP Version of BGP Message.
-         *
-         * @return BGP Version of BGP Message
-         */
-        BGPVersion getVersion();
-
-        /**
-         * Returns BGP Type of BGP Message.
-         *
-         * @return BGP Type of BGP Message
-         */
-        BGPType getType();
-
-        /**
-         * Returns BGP Header of BGP Message.
-         *
-         * @return BGP Header of BGP Message
-         */
-        BGPHeader getHeader();
-
-        /**
          * Sets BgpHeader and return its builder.
          *
          * @param bgpMsgHeader BGP Message Header
