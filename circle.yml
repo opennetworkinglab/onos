@@ -7,3 +7,7 @@ machine:
 dependencies:
   override:
     - mvn clean install
+
+test:
+  override:
+    - echo "There is no need to test."
