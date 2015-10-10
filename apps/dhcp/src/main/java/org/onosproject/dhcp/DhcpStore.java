@@ -64,6 +64,7 @@ public interface DhcpStore {
      * Releases the IP assigned to a Mac ID into the free pool.
      *
      * @param hostId the host ID for which the mapping needs to be changed
+     * @return released ip
      */
     Ip4Address releaseIP(HostId hostId);
 

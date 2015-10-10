@@ -158,8 +158,8 @@ public final class OpticalPortOperator implements ConfigOperator {
     /**
      * Returns a description built from an existing port and reported status.
      *
-     * @param port
-     * @param isEnabled
+     * @param port port
+     * @param isEnabled true if enabled
      * @return a PortDescription based on the port
      */
     static PortDescription descriptionOf(Port port, boolean isEnabled) {

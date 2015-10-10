@@ -67,6 +67,8 @@ public class DeviceConfiguration implements DeviceProperties {
     /**
      * Constructor. Reads all the configuration for all devices of type
      * Segment Router and organizes into various maps for easier access.
+     *
+     * @param cfgService config service
      */
     public DeviceConfiguration(NetworkConfigRegistry cfgService) {
         // Read config from device subject, excluding gatewayIps and subnets.

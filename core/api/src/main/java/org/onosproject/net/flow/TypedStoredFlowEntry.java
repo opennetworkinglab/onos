@@ -54,6 +54,8 @@ public interface TypedStoredFlowEntry extends StoredFlowEntry {
 
     /**
      * Gets the flow live type for this entry.
+     *
+     * @return flow live type
      */
     FlowLiveType flowLiveType();
 

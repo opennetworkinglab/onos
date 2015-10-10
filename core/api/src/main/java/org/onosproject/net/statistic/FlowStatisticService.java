@@ -94,6 +94,7 @@ public interface FlowStatisticService {
      * @param pNumber the port number of the Device to query
      * @param liveType the FlowLiveType  to filter, null means no filtering .
      * @param instType the InstructionType to filter, null means no filtering.
+     * @param topn topn //FIXME what?
      * @return list of flow entry load
      */
     List<TypedFlowEntryWithLoad> loadTopnByType(Device device, PortNumber pNumber,

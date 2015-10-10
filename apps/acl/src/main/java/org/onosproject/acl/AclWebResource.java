@@ -98,6 +98,7 @@ public class AclWebResource extends AbstractWebResource {
      *
      * @param stream JSON data describing the rule
      * @return 200 OK
+     * @throws URISyntaxException uri syntax exception
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)

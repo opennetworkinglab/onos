@@ -85,6 +85,8 @@ public class FlowAnalyzer {
      * the network. The possible states are: Cleared (implying that the entry leads to
      * a host), Cycle (implying that it is part of cycle), and Black Hole (implying
      * that the entry does not lead to a single host).
+     *
+     * @return result string
      */
     public String analyze() {
         graph = topologyService.getGraph(topologyService.currentTopology());

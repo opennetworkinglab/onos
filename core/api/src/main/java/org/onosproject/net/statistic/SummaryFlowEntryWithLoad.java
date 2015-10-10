@@ -94,6 +94,8 @@ public class SummaryFlowEntryWithLoad {
 
     /**
      * Returns connect point.
+     *
+     * @return connect point
      */
     public ConnectPoint connectPoint() {
         return cp;
@@ -101,6 +103,8 @@ public class SummaryFlowEntryWithLoad {
 
     /**
      * Returns total load of connect point.
+     *
+     * @return total load
      */
     public Load totalLoad() {
         return totalLoad;
@@ -108,6 +112,8 @@ public class SummaryFlowEntryWithLoad {
 
     /**
      * Returns immediate load of connect point.
+     *
+     * @return immediate load
      */
     public Load immediateLoad() {
         return immediateLoad;
@@ -115,6 +121,8 @@ public class SummaryFlowEntryWithLoad {
 
     /**
      * Returns short load of connect point.
+     *
+     * @return short load
      */
     public Load shortLoad() {
         return shortLoad;
@@ -122,6 +130,8 @@ public class SummaryFlowEntryWithLoad {
 
     /**
      * Returns mid load of connect point.
+     *
+     * @return mid load
      */
     public Load midLoad() {
         return midLoad;
@@ -129,6 +139,8 @@ public class SummaryFlowEntryWithLoad {
 
     /**
      * Returns long load of connect point.
+     *
+     * @return long load
      */
     public Load longLoad() {
         return longLoad;
@@ -136,6 +148,8 @@ public class SummaryFlowEntryWithLoad {
 
     /**
      * Returns unknown load of connect point.
+     *
+     * @return unknown load
      */
     public Load unknownLoad() {
         return unknownLoad;
