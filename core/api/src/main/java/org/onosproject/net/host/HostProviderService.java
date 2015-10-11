@@ -55,9 +55,10 @@ public interface HostProviderService extends ProviderService<HostProvider> {
     void hostVanished(HostId hostId);
 
     /**
-     * Notifies the core when a host is no longer detected on a network.
+     * Notifies the core when an IP is no longer associated with a host.
      *
-     * @param hostId id of the host that vanished
+     * @param hostId id of the host
+     * @param ipAddress ip address of host that vanished
      */
     void removeIpFromHost(HostId hostId, IpAddress ipAddress);
 

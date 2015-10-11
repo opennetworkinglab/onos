@@ -88,23 +88,30 @@ public interface OvsdbClientService extends OvsdbRPC {
     /**
      * Gets controllers of the node.
      *
+     * @param openflowDeviceId target device id
      * @return set of controllers; empty if no controller is find
      */
     Set<ControllerInfo> getControllers(DeviceId openflowDeviceId);
 
     /**
-     * sets the controllers of the node to the ones passed in the list.
+     * Sets the Controllers for the specified bridge.
+     * <p>
+     * This method will replace the existing controller list with the new controller
+     * list.
      *
-     * @param bridgeUuid  UUid for the bridge we are settings the controls on
-     * @param controllers of controllers; empty if no controller is find
+     * @param bridgeUuid bridge uuid
+     * @param controllers list of controllers
      */
     void setControllersWithUUID(UUID bridgeUuid, List<ControllerInfo> controllers);
 
     /**
-     * sets the controllers of the node to the ones passed in the list.
+     * Sets the Controllers for the specified device.
+     * <p>
+     * This method will replace the existing controller list with the new controller
+     * list.
      *
-     * @param deviceId  deviceId for the bridge we are settings the controls on
-     * @param controllers of controllers; empty if no controller is find
+     * @param deviceId device id (likely Openflow device)
+     * @param controllers list of controllers
      */
     void setControllersWithDeviceId(DeviceId deviceId, List<ControllerInfo> controllers);
 

@@ -492,6 +492,7 @@ public class NewAdaptiveFlowStatsCollector {
     /**
      * returns flowMissingXid that indicates the execution of flowMissing process or not(NO_FLOW_MISSING_XID(-1)).
      *
+     * @return xid of missing flow
      */
     public long getFlowMissingXid() {
         return flowMissingXid;

@@ -36,19 +36,37 @@ public class TypedFlowEntryWithLoad {
     private static final int MID_POLL_INTERVAL = 10;
     private static final int LONG_POLL_INTERVAL = 15;
 
-
+    /**
+     * Creates a new typed flow entry with load.
+     *
+     * @param cp connect point
+     * @param tfe typed flow entry
+     * @param load load
+     */
     public TypedFlowEntryWithLoad(ConnectPoint cp, TypedStoredFlowEntry tfe, Load load) {
         this.cp = cp;
         this.tfe = tfe;
         this.load = load;
     }
 
+    /**
+     * Creates a new typed flow entry with load.
+     *
+     * @param cp connect point
+     * @param tfe typed flow entry
+     */
     public TypedFlowEntryWithLoad(ConnectPoint cp, TypedStoredFlowEntry tfe) {
         this.cp = cp;
         this.tfe = tfe;
         this.load = new DefaultLoad(tfe.bytes(), 0, typedPollInterval(tfe));
     }
 
+    /**
+     * Creates a new typed flow entry with load.
+     *
+     * @param cp connect point
+     * @param fe flow entry
+     */
     public TypedFlowEntryWithLoad(ConnectPoint cp, FlowEntry fe) {
         this.cp = cp;
         this.tfe = newTypedStoredFlowEntry(fe);
@@ -70,6 +88,8 @@ public class TypedFlowEntryWithLoad {
 
     /**
      * Returns short polling interval.
+     *
+     * @return short poll interval
      */
     public static int shortPollInterval() {
         return CAL_AND_POLL_INTERVAL;
@@ -77,6 +97,8 @@ public class TypedFlowEntryWithLoad {
 
     /**
      * Returns mid polling interval.
+     *
+     * @return mid poll interval
      */
     public static int midPollInterval() {
         return MID_POLL_INTERVAL;
@@ -84,6 +106,8 @@ public class TypedFlowEntryWithLoad {
 
     /**
      * Returns long polling interval.
+     *
+     * @return long poll interval
      */
     public static int longPollInterval() {
         return LONG_POLL_INTERVAL;
@@ -91,6 +115,8 @@ public class TypedFlowEntryWithLoad {
 
     /**
      * Returns average polling interval.
+     *
+     * @return average poll interval
      */
     public static int avgPollInterval() {
         return (CAL_AND_POLL_INTERVAL + MID_POLL_INTERVAL + LONG_POLL_INTERVAL) / 3;
@@ -100,6 +126,7 @@ public class TypedFlowEntryWithLoad {
      * Returns current typed flow entry's polling interval.
      *
      * @param tfe typed flow entry
+     * @return typed poll interval
      */
     public static long typedPollInterval(TypedStoredFlowEntry tfe) {
         checkNotNull(tfe, "TypedStoredFlowEntry cannot be null");
@@ -120,6 +147,7 @@ public class TypedFlowEntryWithLoad {
      * Creates a new typed flow entry with the given flow entry fe.
      *
      * @param fe flow entry
+     * @return new typed flow entry
      */
     public static TypedStoredFlowEntry newTypedStoredFlowEntry(FlowEntry fe) {
         if (fe == null) {

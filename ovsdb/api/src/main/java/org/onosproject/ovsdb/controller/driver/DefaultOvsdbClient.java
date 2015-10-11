@@ -17,6 +17,7 @@ package org.onosproject.ovsdb.controller.driver;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -481,30 +482,21 @@ public class DefaultOvsdbClient
     }
 
     /**
-     * Sets the Controller.
+     * Sets the bridge's controller automatically.
+     * <p/>
+     * The connection is a TCP connection to the local ONOS instance's IP
+     * and the default OpenFlow port.
      *
      * @param bridgeUuid bridge uuid
      */
     private void setControllerAuto(String bridgeUuid) {
-        String controllerUuid = null;
-        String iPAddress = IpAddress.valueOf(((InetSocketAddress) channel
-                .localAddress())
-                                                     .getAddress()
-                                                     .getHostAddress())
-                .toString();
-
-        String target = "tcp:" + iPAddress + ":" + OvsdbConstant.OFPORT;
-        log.debug("controller IP {}: port {}", iPAddress, OvsdbConstant.OFPORT);
-
-        setController(bridgeUuid, target);
-
+        IpAddress ipAddress = IpAddress.valueOf(((InetSocketAddress) channel.localAddress()).getAddress());
+        ControllerInfo controllerInfo = new ControllerInfo(ipAddress, OvsdbConstant.OFPORT, "tcp");
+        log.debug("Automatically setting controller for bridge {} to {}",
+                  bridgeUuid, controllerInfo.target());
+        setControllersWithUUID(UUID.uuid(bridgeUuid), ImmutableList.of(controllerInfo));
     }
 
-    /**
-     * Sets the Controllers.
-     *
-     * @param bridgeUuid bridge uuid
-     */
     @Override
     public void setControllersWithUUID(UUID bridgeUuid, List<ControllerInfo> controllers) {
 
@@ -539,7 +531,6 @@ public class DefaultOvsdbClient
             return;
         }
 
-//        removeControllers.forEach(c -> controllerRowStore.deleteRow(c.getRow().uuid().value()));
         removeControllers.forEach(c -> deleteConfig(OvsdbConstant.CONTROLLER, "_uuid", c.getRow().uuid().value(),
                                                     OvsdbConstant.BRIDGE, "controller"));
 
@@ -549,16 +540,9 @@ public class DefaultOvsdbClient
             controller.setTarget(c.target());
             return controller;
         }).forEach(c -> {
-//            UUID uuid = c.getRow().uuid();
-//            controllerRowStore.insertRow(uuid.value(), c.getRow());
-//            newControllerUuids.add(uuid);
-
             String uuid = insertConfig(OvsdbConstant.CONTROLLER, "_uuid",
                                        OvsdbConstant.BRIDGE, "controller", bridgeUuid.value(),
                                        c.getRow());
-            log.warn("insertConfig uuid {}", uuid);
-            log.warn("row uuid {}", c.getRow().uuid());
-            //log.warn("rowStore uuid {}", controllerRowStore.getRowStore());
             newControllerUuids.add(UUID.uuid(uuid));
 
         });
@@ -574,52 +558,11 @@ public class DefaultOvsdbClient
         Bridge bridge = (Bridge) TableGenerator.getTable(dbSchema, bridgeRow, OvsdbTable.BRIDGE);
         bridge.setController(OvsdbSet.ovsdbSet(newControllerUuids));
         updateConfig(OvsdbConstant.BRIDGE, "_uuid", bridgeUuid.value(), bridge.getRow());
-
-        //rowStore.insertRow(bridgeUuid.value(), bridge.getRow()); //TODO do we need to do this?
     }
 
-    /**
-     * Sets the Controllers.
-     *
-     * @param deviceId bridge uuid
-     */
     @Override
     public void setControllersWithDeviceId(DeviceId deviceId, List<ControllerInfo> controllers) {
         setControllersWithUUID(getBridgeUUID(deviceId), controllers);
-    }
-
-    private void setController(String bridgeUuid, String target) {
-        String controllerUuid;
-        DatabaseSchema dbSchema = schema.get(OvsdbConstant.DATABASENAME);
-
-        // 1. get the bridge row
-        // 2. delete different controllers and save the same controller.
-        // 3. add new controllers
-        // 4. update bridge row
-
-
-        controllerUuid = getControllerUuid(OvsdbConstant.CONTROLLER, target);
-
-        Controller controller = (Controller) TableGenerator
-                .createTable(dbSchema, OvsdbTable.CONTROLLER);
-        if (controller != null) {
-            if (controllerUuid == null) {
-
-                insertConfig(OvsdbConstant.CONTROLLER, "_uuid",
-                             OvsdbConstant.BRIDGE, "controller", bridgeUuid,
-                             controller.getRow());
-
-            } else {
-
-                Bridge bridge = (Bridge) TableGenerator
-                        .createTable(dbSchema, OvsdbTable.BRIDGE);
-                Set<UUID> controllerUuids = new HashSet<>();
-                controllerUuids.add(UUID.uuid(controllerUuid));
-                bridge.setController(OvsdbSet.ovsdbSet(controllerUuids));
-                updateConfig(OvsdbConstant.CONTROLLER, "_uuid", bridgeUuid, bridge.getRow());
-
-            }
-        }
     }
 
     @Override

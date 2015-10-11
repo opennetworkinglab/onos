@@ -56,6 +56,7 @@ public final class Row {
      *
      * @param tableName table name
      * @param columns   Map of Column entity
+     * @param uuid UUID of the row
      */
     public Row(String tableName, UUID uuid, Map<String, Column> columns) {
         checkNotNull(tableName, "table name cannot be null");

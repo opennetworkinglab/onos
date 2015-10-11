@@ -17,6 +17,7 @@ public interface VirtualNetworkProvider extends Provider {
      * @param networkId virtual network identifier
      * @param src       source connection point
      * @param dst       destination connection point
+     * @return new tunnel's id
      */
     TunnelId createTunnel(NetworkId networkId, ConnectPoint src, ConnectPoint dst);
 

@@ -34,6 +34,7 @@ public class ControllerInfo {
      *
      * @param ip   the ip address
      * @param port the tcp port
+     * @param type the connection type
      */
     public ControllerInfo(IpAddress ip, int port, String type) {
         this.ip = ip;
