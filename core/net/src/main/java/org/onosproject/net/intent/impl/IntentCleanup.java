@@ -235,8 +235,10 @@ public class IntentCleanup implements Runnable, IntentListener {
             stuckCount++;
         }
 
-        log.debug("Intent cleanup ran and resubmitted {} corrupt, {} failed, {} stuck, and {} pending intents",
-                  corruptCount, failedCount, stuckCount, pendingCount);
+        if (corruptCount + failedCount + stuckCount + pendingCount > 0) {
+            log.debug("Intent cleanup ran and resubmitted {} corrupt, {} failed, {} stuck, and {} pending intents",
+                    corruptCount, failedCount, stuckCount, pendingCount);
+        }
     }
 
     @Override
