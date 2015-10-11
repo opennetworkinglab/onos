@@ -13,13 +13,9 @@ dependencies:
 test:
     override:
         - echo "skipped" #mvn test
-
-deployment:
-    staging:
-        branch: master
-        commands:
-            - mkdir -p ~/Downloads
-            - ONOS_ROOT=~/onos ./tools/build/onos-package
-            - echo $GITHUB_TOKEN
-            - GITHUB_TOKEN=$GITHUB_TOKEN github-release release --user waltznetworks --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM --pre-release
-            - GITHUB_TOKEN=$GITHUB_TOKEN github-release upload --user waltznetworks --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM --file /tmp/onos*.tar.gz
+    post:
+        - mkdir -p ~/Downloads
+        - ONOS_ROOT=~/onos ./tools/build/onos-package
+        - echo $GITHUB_TOKEN
+        - GITHUB_TOKEN=$GITHUB_TOKEN github-release release --user waltznetworks --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM --pre-release
+        - GITHUB_TOKEN=$GITHUB_TOKEN github-release upload --user waltznetworks --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM --file /tmp/onos*.tar.gz
