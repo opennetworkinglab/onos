@@ -1,13 +1,23 @@
 machine:
-  timezone:
-    America/Los_Angeles
-  java:
-    version: oraclejdk8
+    java:
+        version: oraclejdk8
 
 dependencies:
-  override:
-    - mvn clean install
+    pre:
+        - go get github.com/aktau/github-release
+    override:
+        - mvn clean install -DskipTests -Dcheckstyle.skip -U -T 1C
 
 test:
-  override:
-    - echo "There is no need to test."
+    override:
+        - echo "skipped" #mvn test
+
+deployment:
+    staging:
+        branch: master
+        commands:
+            - mkdir -p ~/Downloads
+            - ONOS_ROOT=~/onos tools/build/onos-package
+            - github-release release --user hanw --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM --pre-release
+            - github-release upload --user hanw --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM --file /tmp/onos*.tar.gz
+
