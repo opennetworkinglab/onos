@@ -18,4 +18,10 @@ test:
         - ONOS_ROOT=~/onos ./tools/build/onos-package
         - echo $GITHUB_TOKEN
         - GITHUB_TOKEN=$GITHUB_TOKEN github-release release --user waltznetworks --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM --pre-release
-        - GITHUB_TOKEN=$GITHUB_TOKEN github-release upload --user waltznetworks --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM --file /tmp/onos*.tar.gz
+        - GITHUB_TOKEN=$GITHUB_TOKEN github-release upload --user waltznetworks --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM.tar.gz --file /tmp/onos*.tar.gz
+
+deployment:
+    staging:
+        branch: master
+        commands:
+            - echo "staging"
