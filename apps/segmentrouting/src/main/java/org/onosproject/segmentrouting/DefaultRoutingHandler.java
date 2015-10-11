@@ -78,13 +78,13 @@ public class DefaultRoutingHandler {
      *
      * @param srManager SegmentRoutingManager object
      */
-    public DefaultRoutingHandler(SegmentRoutingManager srManager, boolean linkHasWeight) {
+    public DefaultRoutingHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
         this.rulePopulator = checkNotNull(srManager.routingRulePopulator);
         this.config = checkNotNull(srManager.deviceConfiguration);
         this.populationStatus = Status.IDLE;
         this.currentEcmpSpgMap = Maps.newHashMap();
-        this.linkHasWeight = linkHasWeight;
+        this.linkHasWeight = false;
     }
 
     /**
@@ -129,6 +129,7 @@ public class DefaultRoutingHandler {
             return true;
         } finally {
             statusLock.unlock();
+            return false;
         }
     }
 

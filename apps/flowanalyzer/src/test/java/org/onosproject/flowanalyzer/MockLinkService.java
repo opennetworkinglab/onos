@@ -117,7 +117,7 @@ public class MockLinkService extends LinkServiceAdapter {
         ConnectPoint src = new ConnectPoint(d1, PortNumber.portNumber(port));
         ConnectPoint dst = new ConnectPoint(d2, PortNumber.portNumber(port2));
         Link curLink;
-        curLink = DefaultLink.builder().src(src).dst(dst).state(ACTIVE).build();
+        curLink = DefaultLink.builder().src(src).dst(dst).state(ACTIVE).weight(1).build();
         links.add(curLink);
         if (d1 instanceof DeviceId && d2 instanceof DeviceId) {
             TopologyVertex v1 = () -> (DeviceId) d1, v2 = () -> (DeviceId) d2;

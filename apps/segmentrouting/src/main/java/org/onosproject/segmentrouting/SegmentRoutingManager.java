@@ -832,14 +832,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             icmpHandler = new IcmpHandler(segmentRoutingManager);
             ipHandler = new IpHandler(segmentRoutingManager);
             routingRulePopulator = new RoutingRulePopulator(segmentRoutingManager);
-            defaultRoutingHandler = new DefaultRoutingHandler(this, false); // 'true' if links have weight
+            defaultRoutingHandler = new DefaultRoutingHandler(segmentRoutingManager);
 
             tunnelHandler = new TunnelHandler(linkService, deviceConfiguration,
                                               groupHandlerMap, tunnelStore);
             policyHandler = new PolicyHandler(appId, deviceConfiguration,
                                               flowObjectiveService,
                                               tunnelHandler, policyStore);
-            linkStatsService = new LinkStatsService(this);
+            linkStatsService = new LinkStatsService(segmentRoutingManager);
 
             for (Device device : deviceService.getDevices()) {
                 // Irrespective of whether the local is a MASTER or not for this device,

@@ -170,6 +170,7 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
         private Type type;
         private State state = ACTIVE;
         private boolean isExpected = false;
+        private int weight = 1;
 
         private Builder() {
             // Hide constructor
@@ -253,6 +254,17 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
         }
 
         /**
+         * Sets the weight to be used by the builder.
+         *
+         * @param weight the weight
+         * @return self
+         */
+         public Builder weight(int weight) {
+             this.weight = weight;
+             return this;
+         }
+
+        /**
          * Builds a default link object from the accumulated parameters.
          *
          * @return default link object
@@ -263,9 +275,11 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
             checkNotNull(type, "Type cannot be null");
             checkNotNull(providerId, "Provider Id cannot be null");
 
-            return new DefaultLink(providerId, src, dst,
-                                   type, state,
-                                   isExpected, annotations);
+            DefaultLink link = new DefaultLink(providerId, src, dst,
+                                               type, state,
+                                               isExpected, annotations);
+            link.setWeight(weight);
+            return link;
         }
 
     }
