@@ -34,6 +34,7 @@ import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -60,8 +61,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
@@ -119,6 +122,8 @@ public class PeerConnectivityManagerTest extends AbstractIntentTest {
         routingConfig = createMock(RoutingConfigurationService.class);
         interfaceService = createMock(InterfaceService.class);
         networkConfigService = createMock(NetworkConfigService.class);
+        networkConfigService.addListener(anyObject(NetworkConfigListener.class));
+        expectLastCall().anyTimes();
         bgpConfig = createMock(BgpConfig.class);
 
         // These will set expectations on routingConfig and interfaceService

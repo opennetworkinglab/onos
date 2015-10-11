@@ -15,8 +15,6 @@
  */
 package org.onosproject.sdnip;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
@@ -27,6 +25,8 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -43,7 +43,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -69,9 +71,10 @@ public class PeerConnectivityManager {
     private final ApplicationId appId;
     private final ApplicationId routerAppId;
 
-    // Just putting something random here for now. Figure out exactly what
-    // indexes we need when we start making use of them.
-    private final Multimap<BgpConfig.BgpSpeakerConfig, PointToPointIntent> peerIntents;
+    private final Map<Key, PointToPointIntent> peerIntents;
+
+    private final InternalNetworkConfigListener configListener
+            = new InternalNetworkConfigListener();
 
     /**
      * Creates a new PeerConnectivityManager.
@@ -93,13 +96,14 @@ public class PeerConnectivityManager {
         this.routerAppId = routerAppId;
         this.interfaceService = interfaceService;
 
-        peerIntents = HashMultimap.create();
+        peerIntents = new HashMap<>();
     }
 
     /**
      * Starts the peer connectivity manager.
      */
     public void start() {
+        configService.addListener(configListener);
         setUpConnectivity();
     }
 
@@ -107,6 +111,7 @@ public class PeerConnectivityManager {
      * Stops the peer connectivity manager.
      */
     public void stop() {
+        configService.removeListener(configListener);
     }
 
     /**
@@ -121,16 +126,27 @@ public class PeerConnectivityManager {
             return;
         }
 
+        Map<Key, PointToPointIntent> existingIntents = new HashMap<>(peerIntents);
+
         for (BgpConfig.BgpSpeakerConfig bgpSpeaker : config.bgpSpeakers()) {
             log.debug("Start to set up BGP paths for BGP speaker: {}",
                     bgpSpeaker);
 
             buildSpeakerIntents(bgpSpeaker).forEach(i -> {
-                peerIntents.put(bgpSpeaker, i);
-                intentSynchronizer.submit(i);
+                PointToPointIntent intent = existingIntents.remove(i.key());
+                if (intent == null || !IntentUtils.equals(i, intent)) {
+                    peerIntents.put(i.key(), i);
+                    intentSynchronizer.submit(i);
+                }
             });
-
         }
+
+        // Remove any remaining intents that we used to have that we don't need
+        // anymore
+        existingIntents.values().forEach(i -> {
+            peerIntents.remove(i.key());
+            intentSynchronizer.withdraw(i);
+        });
     }
 
     private Collection<PointToPointIntent> buildSpeakerIntents(BgpConfig.BgpSpeakerConfig speaker) {
@@ -356,7 +372,7 @@ public class PeerConnectivityManager {
      * @param srcIp source IP address
      * @param dstIp destination IP address
      * @param suffix suffix string
-     * @return
+     * @return intent key
      */
     private Key buildKey(IpAddress srcIp, IpAddress dstIp, String suffix) {
         String keyString = new StringBuilder()
@@ -368,6 +384,28 @@ public class PeerConnectivityManager {
                 .toString();
 
         return Key.of(keyString, appId);
+    }
+
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            switch (event.type()) {
+            case CONFIG_REGISTERED:
+                break;
+            case CONFIG_UNREGISTERED:
+                break;
+            case CONFIG_ADDED:
+            case CONFIG_UPDATED:
+            case CONFIG_REMOVED:
+                if (event.configClass() == RoutingService.CONFIG_CLASS) {
+                    setUpConnectivity();
+                }
+                break;
+            default:
+                break;
+            }
+        }
     }
 
 }
