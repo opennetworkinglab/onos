@@ -18,6 +18,6 @@ deployment:
         commands:
             - mkdir -p ~/Downloads
             - ONOS_ROOT=~/onos tools/build/onos-package
-            - github-release release --user hanw --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM --pre-release
-            - github-release upload --user hanw --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM --file /tmp/onos*.tar.gz
+            - github-release release --user waltznetworks --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM --pre-release
+            - github-release upload --user waltznetworks --repo onos --tag build-$CIRCLE_BUILD_NUM --name build-$CIRCLE_BUILD_NUM --file /tmp/onos*.tar.gz
 
