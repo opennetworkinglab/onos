@@ -113,7 +113,11 @@
     }
 
     // add a radio button for each registered overlay
+    // return an overlay id to index map
     function augmentRbset(rset, switchFn) {
+        var map = {},
+            idx = 1;
+
         angular.forEach(overlays, function (ov) {
             rset.push({
                 gid: ov._glyphId,
@@ -122,7 +126,9 @@
                     tbSelection(ov.overlayId, switchFn);
                 }
             });
+            map[ov.overlayId] = idx++;
         });
+        return map;
     }
 
     // an overlay was selected via toolbar radio button press from user

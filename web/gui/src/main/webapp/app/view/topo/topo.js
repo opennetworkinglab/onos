@@ -525,6 +525,7 @@
 
             // temporary solution for persisting user settings
             restoreConfigFromPrefs();
+            ttbs.setDefaultOverlay();
 
             $log.debug('registered overlays...', tov.list());
             $log.log('OvTopoCtrl has been created');

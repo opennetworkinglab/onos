@@ -30,13 +30,14 @@
     //  setUpKeys
 
     // internal state
-    var toolbar, keyData, cachedState, thirdRow;
+    var toolbar, keyData, cachedState, thirdRow, ovRset, ovIndex;
 
     // constants
     var name = 'topo-tbar',
         cooktag = 'topo_prefs',
         soa = 'switchOverlayActions: ',
-        selOver = 'Select overlay here &#x21e7;';
+        selOver = 'Select overlay here &#x21e7;',
+        defaultOverlay = 'traffic';
 
 
     // key to button mapping data
@@ -172,8 +173,8 @@
                     tov.tbSelection(null, switchOverlayActions);
                 }
             }];
-        tov.augmentRbset(rset, switchOverlayActions);
-        toolbar.addRadioSet('topo-overlays', rset);
+        ovIndex = tov.augmentRbset(rset, switchOverlayActions);
+        ovRset = toolbar.addRadioSet('topo-overlays', rset);
     }
 
     // invoked by overlay service to switch out old buttons and switch in new
@@ -261,6 +262,11 @@
         toolbar.toggle();
     }
 
+    function setDefaultOverlay() {
+        var idx = ovIndex[defaultOverlay] || 0;
+        ovRset.selectedIndex(idx);
+    }
+
     angular.module('ovTopo')
         .factory('TopoToolbarService',
         ['$log', 'FnService', 'ToolbarService', 'PrefsService',
@@ -278,7 +284,8 @@
                 createToolbar: createToolbar,
                 destroyToolbar: destroyToolbar,
                 keyListener: keyListener,
-                toggleToolbar: toggleToolbar
+                toggleToolbar: toggleToolbar,
+                setDefaultOverlay: setDefaultOverlay
             };
         }]);
 }());

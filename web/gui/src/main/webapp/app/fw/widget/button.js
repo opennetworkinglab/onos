@@ -224,7 +224,9 @@
             } else {
                 if (x >= 0 && x < rads.length) {
                     if (currIdx !== x) {
+                        rads[currIdx].el.classed('selected', false);
                         currIdx = x;
+                        rads[currIdx].el.classed('selected', true);
                         invokeCurrent();
                     } else {
                         $log.warn('current index already selected:', x);
