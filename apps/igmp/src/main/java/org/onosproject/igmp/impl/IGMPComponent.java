@@ -111,18 +111,18 @@ public class IGMPComponent {
                     "\tingress port: " + context.inPacket().receivedFrom().toString());
 
             if (ip.getProtocol() != IPv4.PROTOCOL_IGMP) {
-                log.error("IGMP Picked up a non IGMP packet.");
+                log.debug("IGMP Picked up a non IGMP packet.");
                 return;
             }
 
             IpPrefix mcast = IpPrefix.valueOf("224.0.0.0/4");
             if (!mcast.contains(gaddr)) {
-                log.error("IGMP Picked up a non multicast packet.");
+                log.debug("IGMP Picked up a non multicast packet.");
                 return;
             }
 
             if (mcast.contains(saddr)) {
-                log.error("IGMP Picked up a packet with a multicast source address.");
+                log.debug("IGMP Picked up a packet with a multicast source address.");
                 return;
             }
             IpPrefix spfx = IpPrefix.valueOf(saddr, 32);

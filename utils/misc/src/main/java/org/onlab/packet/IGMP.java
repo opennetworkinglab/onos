@@ -231,7 +231,7 @@ public class IGMP extends BasePacket {
 
             IGMP igmp = new IGMP();
 
-            ByteBuffer bb = ByteBuffer.wrap(data);
+            final ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
             igmp.igmpType = bb.get();
             igmp.resField = bb.get();
             igmp.checksum = bb.getShort();
