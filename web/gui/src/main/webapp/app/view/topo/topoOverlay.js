@@ -107,27 +107,6 @@
         $log.debug(tos + 'registered overlay: ' + id, overlay);
     }
 
-    // TODO: remove this redundant code.......
-    // NOTE: unregister needs to be called if an app is ever
-    //       deactivated/uninstalled via the applications view
-/*
-    function unregister(overlay) {
-        var u = 'unregister',
-            over = fs.isO(overlay),
-            id = over ? over.overlayId : '';
-
-        if (!id) {
-            return error(u, 'not a recognized overlay');
-        }
-        if (!overlays[id]) {
-            return warn(u, 'not registered: "' + id + "'")
-        }
-        delete overlays[id];
-        $log.debug(tos + 'unregistered overlay: ' + id);
-    }
-*/
-
-
     // returns the list of overlay identifiers
     function list() {
         return d3.map(overlays).keys();
@@ -394,7 +373,6 @@
 
             return {
                 register: register,
-                //unregister: unregister,
                 setApi: setApi,
                 list: list,
                 augmentRbset: augmentRbset,
