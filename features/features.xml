@@ -96,6 +96,7 @@
         <bundle>mvn:org.onosproject/onos-core-net/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-core-common/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-core-dist/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-core-persistence/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-core-serializers/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onlab-netty/@ONOS-VERSION</bundle>
     </feature>
