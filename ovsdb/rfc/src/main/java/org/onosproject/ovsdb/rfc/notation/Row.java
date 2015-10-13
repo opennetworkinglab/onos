@@ -43,6 +43,7 @@ public final class Row {
      * Row constructor.
      *
      * @param tableName table name
+     * @deprecated in Emu Release
      */
     @Deprecated
     private Row(String tableName) {
