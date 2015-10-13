@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.bgpio.protocol;
 
 import java.util.LinkedList;
@@ -91,8 +90,7 @@ public interface BGPOpenMsg extends BGPMessage {
         /**
          * Sets hold time in Open Message and return its builder.
          *
-         * @param holdtime
-         *           hold timer value in open message
+         * @param holdtime hold timer value in open message
          * @return builder by setting hold time
          */
         Builder setHoldTime(short holdtime);
@@ -107,8 +105,7 @@ public interface BGPOpenMsg extends BGPMessage {
         /**
          * Sets AS number in Open Message and return its builder.
          *
-         * @param asNumber
-         *           as number in open message
+         * @param asNumber as number in open message
          * @return builder by setting asNumber
          */
         Builder setAsNumber(short asNumber);
@@ -123,8 +120,7 @@ public interface BGPOpenMsg extends BGPMessage {
         /**
          * Sets BGP Identifier in Open Message and return its builder.
          *
-         * @param bgpId
-         *           BGP Identifier in open message
+         * @param bgpId BGP Identifier in open message
          * @return builder by setting BGP Identifier
          */
         Builder setBgpId(int bgpId);
@@ -139,11 +135,28 @@ public interface BGPOpenMsg extends BGPMessage {
         /**
          * Sets capabilities in Open Message and return its builder.
          *
-         * @param capabilityTlv
-         *           capabilities in open message
+         * @param capabilityTlv capabilities in open message
          * @return builder by setting capabilities
          */
         Builder setCapabilityTlv(LinkedList<BGPValueType> capabilityTlv);
+
+        /**
+         * Sets isLargeAsCapabilityTlvSet and return its builder.
+         *
+         * @param isLargeAsCapabilitySet
+         *           boolean value to know whether large AS capability is set or not
+         * @return builder by setting capabilities
+         */
+        Builder setLargeAsCapabilityTlv(boolean isLargeAsCapabilitySet);
+
+        /**
+         * Sets isLsCapabilityTlvSet and return its builder.
+         *
+         * @param isLsCapabilitySet
+         *           boolean value to know whether LS capability is set or not
+         * @return builder by setting capabilities
+         */
+        Builder setLsCapabilityTlv(boolean isLsCapabilitySet);
 
         @Override
         Builder setHeader(BGPHeader bgpMsgHeader);

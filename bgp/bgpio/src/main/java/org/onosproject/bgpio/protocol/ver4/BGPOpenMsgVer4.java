@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.bgpio.protocol.ver4;
 
 import java.util.LinkedList;
@@ -29,6 +28,8 @@ import org.onosproject.bgpio.protocol.BGPVersion;
 import org.onosproject.bgpio.types.BGPErrorType;
 import org.onosproject.bgpio.types.BGPHeader;
 import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.types.FourOctetAsNumCapabilityTlv;
+import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +68,13 @@ public class BGPOpenMsgVer4 implements BGPOpenMsg {
     public static final int MSG_HEADER_LENGTH = 19;
     public static final int MARKER_LENGTH  = 16;
     public static final int DEFAULT_HOLD_TIME = 120;
+    public static final short AS_TRANS = 23456;
     public static final int OPT_PARA_TYPE_CAPABILITY = 2;
     public static final BGPType MSG_TYPE = BGPType.OPEN;
+    public static final short AFI = 16388;
+    public static final byte SAFI = 71;
+    public static final byte RES = 0;
+    public static final int FOUR_OCTET_AS_NUM_CAPA_TYPE = 65;
     public static final byte[] MARKER = new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
         (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
         (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
@@ -79,6 +85,7 @@ public class BGPOpenMsgVer4 implements BGPOpenMsg {
     private short asNumber;
     private short holdTime;
     private int bgpId;
+    private boolean isLargeAsCapabilitySet;
     private LinkedList<BGPValueType> capabilityTlv;
 
     public static final BGPOpenMsgVer4.Reader READER = new Reader();
@@ -98,18 +105,12 @@ public class BGPOpenMsgVer4 implements BGPOpenMsg {
     /**
      * Constructor to initialize all variables of BGP Open message.
      *
-     * @param bgpMsgHeader
-     *           BGP Header in open message
-     * @param version
-     *           BGP version in open message
-     * @param holdTime
-     *           hold time in open message
-     * @param asNumber
-     *           AS number in open message
-     * @param bgpId
-     *           BGP identifier in open message
-     * @param capabilityTlv
-     *           capabilities in open message
+     * @param bgpMsgHeader BGP Header in open message
+     * @param version BGP version in open message
+     * @param holdTime hold time in open message
+     * @param asNumber AS number in open message
+     * @param bgpId BGP identifier in open message
+     * @param capabilityTlv capabilities in open message
      */
     public BGPOpenMsgVer4(BGPHeader bgpMsgHeader, byte version, short asNumber, short holdTime,
              int bgpId, LinkedList<BGPValueType> capabilityTlv) {
@@ -236,7 +237,44 @@ public class BGPOpenMsgVer4 implements BGPOpenMsg {
 
         LinkedList<BGPValueType> capabilityTlv = new LinkedList<>();
 
-        // TODO: Capability parsing
+        while (cb.readableBytes() > 0) {
+            BGPValueType tlv;
+            short type = cb.readByte();
+            short length = cb.readByte();
+
+            switch (type) {
+            case FourOctetAsNumCapabilityTlv.TYPE:
+                log.debug("FourOctetAsNumCapabilityTlv");
+                if (FourOctetAsNumCapabilityTlv.LENGTH != length) {
+                    throw new BGPParseException("Invalid length received for FourOctetAsNumCapabilityTlv.");
+                }
+                if (length > cb.readableBytes()) {
+                    throw new BGPParseException("Four octet as num tlv length"
+                            + " is more than readableBytes.");
+                }
+                int as4Num = cb.readInt();
+                tlv = new FourOctetAsNumCapabilityTlv(as4Num);
+                break;
+            case MultiProtocolExtnCapabilityTlv.TYPE:
+                log.debug("MultiProtocolExtnCapabilityTlv");
+                if (MultiProtocolExtnCapabilityTlv.LENGTH != length) {
+                    throw new BGPParseException("Invalid length received for MultiProtocolExtnCapabilityTlv.");
+                }
+                if (length > cb.readableBytes()) {
+                    throw new BGPParseException("BGP LS tlv length is more than readableBytes.");
+                }
+                short afi = cb.readShort();
+                byte res = cb.readByte();
+                byte safi = cb.readByte();
+                tlv = new MultiProtocolExtnCapabilityTlv(afi, res, safi);
+                break;
+            default:
+                log.debug("Warning: Unsupported TLV: " + type);
+                cb.skipBytes(length);
+                continue;
+            }
+            capabilityTlv.add(tlv);
+        }
         return capabilityTlv;
     }
 
@@ -248,11 +286,13 @@ public class BGPOpenMsgVer4 implements BGPOpenMsg {
         private boolean isHeaderSet = false;
         private BGPHeader bgpMsgHeader;
         private boolean isHoldTimeSet = false;
-        private short  holdTime;
+        private short holdTime;
         private boolean isAsNumSet = false;
         private short asNumber;
         private boolean isBgpIdSet = false;
         private int bgpId;
+        private boolean isLargeAsCapabilityTlvSet = false;
+        private boolean isLsCapabilityTlvSet = false;
 
         LinkedList<BGPValueType> capabilityTlv = new LinkedList<>();
 
@@ -269,7 +309,18 @@ public class BGPOpenMsgVer4 implements BGPOpenMsg {
                 throw new BGPParseException("BGPID  is not set (mandatory)");
             }
 
-            // TODO: capabilities build
+            if (this.isLargeAsCapabilityTlvSet) {
+                BGPValueType tlv;
+                int iValue = this.getAsNumber();
+                tlv = new FourOctetAsNumCapabilityTlv(iValue);
+                this.capabilityTlv.add(tlv);
+            }
+
+            if (this.isLsCapabilityTlvSet) {
+                BGPValueType tlv;
+                tlv = new MultiProtocolExtnCapabilityTlv(AFI, RES, SAFI);
+                this.capabilityTlv.add(tlv);
+            }
 
             return new BGPOpenMsgVer4(bgpMsgHeader, PACKET_VERSION, this.asNumber, holdTime, this.bgpId,
                        this.capabilityTlv);
@@ -342,6 +393,18 @@ public class BGPOpenMsgVer4 implements BGPOpenMsg {
             this.capabilityTlv = capabilityTlv;
             return this;
         }
+
+        @Override
+        public Builder setLargeAsCapabilityTlv(boolean isLargeAsCapabilitySet) {
+            this.isLargeAsCapabilityTlvSet = isLargeAsCapabilitySet;
+            return this;
+        }
+
+        @Override
+        public Builder setLsCapabilityTlv(boolean isLsCapabilitySet) {
+            this.isLsCapabilityTlvSet = isLsCapabilitySet;
+            return this;
+        }
     }
 
     @Override
@@ -364,6 +427,7 @@ public class BGPOpenMsgVer4 implements BGPOpenMsg {
         public void write(ChannelBuffer cb, BGPOpenMsgVer4 message) throws BGPParseException {
 
             int optParaLen = 0;
+            int as4num = 0;
 
             int startIndex = cb.writerIndex();
 
@@ -377,8 +441,29 @@ public class BGPOpenMsgVer4 implements BGPOpenMsg {
             // write version in 1-octet
             cb.writeByte(message.version);
 
-            // TODO : Write AS number based on capabilities
-            cb.writeShort(message.asNumber);
+            // get as4num if LS Capability is set
+            if (message.isLargeAsCapabilitySet) {
+                LinkedList<BGPValueType> capabilityTlv = message
+                        .getCapabilityTlv();
+                ListIterator<BGPValueType> listIterator = capabilityTlv
+                        .listIterator();
+
+                while (listIterator.hasNext()) {
+                    BGPValueType tlv = listIterator.next();
+                    if (tlv.getType() == FOUR_OCTET_AS_NUM_CAPA_TYPE) {
+                        as4num = ((FourOctetAsNumCapabilityTlv) tlv).getInt();
+                        break;
+                    }
+                }
+            }
+
+            if ((message.isLargeAsCapabilitySet) && (as4num > 65535)) {
+                // write As number as AS_TRANS
+                cb.writeShort(AS_TRANS);
+            } else {
+                // write AS number in next 2-octet
+                cb.writeShort(message.asNumber);
+            }
 
             // write HoldTime in next 2-octet
             cb.writeShort(message.holdTime);
