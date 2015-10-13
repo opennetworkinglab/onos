@@ -18,6 +18,7 @@ package org.onosproject.net.device.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.MastershipRole.MASTER;
 import static org.onosproject.net.MastershipRole.NONE;
 import static org.onosproject.net.MastershipRole.STANDBY;
@@ -435,7 +436,7 @@ public class DeviceManager
                           portDescription);
                 return;
             }
-            final Device device = getDevice(deviceId);
+            Device device = nullIsNotFound(getDevice(deviceId), "Device not found");
             if ((Device.Type.ROADM.equals(device.type()))) {
                 Port port = getPort(deviceId, portDescription.portNumber());
                 portDescription = OpticalPortOperator.descriptionOf(port, portDescription.isEnabled());

@@ -377,7 +377,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         public void receivedRoleReply(Dpid dpid, RoleState requested, RoleState response) {
             MastershipRole request = roleOf(requested);
             MastershipRole reply = roleOf(response);
-
             providerService.receivedRoleReply(deviceId(uri(dpid)), request, reply);
         }
 
