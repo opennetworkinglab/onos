@@ -27,10 +27,13 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.event.ListenerRegistry;
 import org.onosproject.incubator.net.config.basics.ConfigException;
 import org.onosproject.incubator.net.config.basics.InterfaceConfig;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceAdminService;
+import org.onosproject.incubator.net.intf.InterfaceEvent;
+import org.onosproject.incubator.net.intf.InterfaceListener;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -40,11 +43,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toSet;
@@ -54,8 +55,8 @@ import static java.util.stream.Collectors.toSet;
  */
 @Service
 @Component(immediate = true)
-public class InterfaceManager implements InterfaceService,
-        InterfaceAdminService {
+public class InterfaceManager extends ListenerRegistry<InterfaceEvent, InterfaceListener>
+        implements InterfaceService, InterfaceAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -148,20 +149,53 @@ public class InterfaceManager implements InterfaceService,
 
     private void updateInterfaces(InterfaceConfig intfConfig) {
         try {
-            interfaces.put(intfConfig.subject(), Sets.newHashSet(intfConfig.getInterfaces()));
+            Set<Interface> old = interfaces.put(intfConfig.subject(),
+                    Sets.newHashSet(intfConfig.getInterfaces()));
+
+            if (old == null) {
+                old = Collections.emptySet();
+            }
+
+            for (Interface intf : intfConfig.getInterfaces()) {
+                if (intf.name().equals(Interface.NO_INTERFACE_NAME)) {
+                    process(new InterfaceEvent(InterfaceEvent.Type.INTERFACE_ADDED, intf));
+                } else {
+                    Optional<Interface> oldIntf = findInterface(intf, old);
+                    if (oldIntf.isPresent()) {
+                        old.remove(oldIntf.get());
+                        if (!oldIntf.get().equals(intf)) {
+                            process(new InterfaceEvent(InterfaceEvent.Type.INTERFACE_UPDATED, intf));
+                        }
+                    } else {
+                        process(new InterfaceEvent(InterfaceEvent.Type.INTERFACE_ADDED, intf));
+                    }
+                }
+            }
+
+            for (Interface intf : old) {
+                if (!intf.name().equals(Interface.NO_INTERFACE_NAME)) {
+                    process(new InterfaceEvent(InterfaceEvent.Type.INTERFACE_REMOVED, intf));
+                }
+            }
         } catch (ConfigException e) {
             log.error("Error in interface config", e);
         }
     }
 
+    private Optional<Interface> findInterface(Interface intf, Set<Interface> set) {
+        return set.stream().filter(i -> i.name().equals(intf.name())).findAny();
+    }
+
     private void removeInterfaces(ConnectPoint port) {
-        interfaces.remove(port);
+        Set<Interface> old = interfaces.remove(port);
+
+        old.stream()
+                .filter(i -> !i.name().equals(Interface.NO_INTERFACE_NAME))
+                .forEach(i -> process(new InterfaceEvent(InterfaceEvent.Type.INTERFACE_REMOVED, i)));
     }
 
     @Override
     public void add(Interface intf) {
-        addInternal(intf);
-
         InterfaceConfig config =
                 configService.addConfig(intf.connectPoint(), CONFIG_CLASS);
 
@@ -170,30 +204,8 @@ public class InterfaceManager implements InterfaceService,
         configService.applyConfig(intf.connectPoint(), CONFIG_CLASS, config.node());
     }
 
-    private void addInternal(Interface intf) {
-        interfaces.compute(intf.connectPoint(), (cp, current) -> {
-            if (current == null) {
-                return Sets.newHashSet(intf);
-            }
-
-            Iterator<Interface> it = current.iterator();
-            while (it.hasNext()) {
-                Interface i = it.next();
-                if (i.name().equals(intf.name())) {
-                    it.remove();
-                    break;
-                }
-            }
-
-            current.add(intf);
-            return current;
-        });
-    }
-
     @Override
     public boolean remove(ConnectPoint connectPoint, String name) {
-        boolean success = removeInternal(name, connectPoint);
-
         InterfaceConfig config = configService.addConfig(connectPoint, CONFIG_CLASS);
         config.removeInterface(name);
 
@@ -205,37 +217,10 @@ public class InterfaceManager implements InterfaceService,
             }
         } catch (ConfigException e) {
             log.error("Error reading interfaces JSON", e);
+            return false;
         }
 
-        return success;
-    }
-
-    public boolean removeInternal(String name, ConnectPoint connectPoint) {
-        AtomicBoolean removed = new AtomicBoolean(false);
-
-        interfaces.compute(connectPoint, (cp, current) -> {
-            if (current == null) {
-                return null;
-            }
-
-            Iterator<Interface> it = current.iterator();
-            while (it.hasNext()) {
-                Interface i = it.next();
-                if (i.name().equals(name)) {
-                    it.remove();
-                    removed.set(true);
-                    break;
-                }
-            }
-
-            if (current.isEmpty()) {
-                return null;
-            } else {
-                return current;
-            }
-        });
-
-        return removed.get();
+        return true;
     }
 
     /**
@@ -245,24 +230,22 @@ public class InterfaceManager implements InterfaceService,
 
         @Override
         public void event(NetworkConfigEvent event) {
-            switch (event.type()) {
-            case CONFIG_ADDED:
-            case CONFIG_UPDATED:
-                if (event.configClass() == InterfaceConfig.class) {
+            if (event.configClass() == CONFIG_CLASS) {
+                switch (event.type()) {
+                case CONFIG_ADDED:
+                case CONFIG_UPDATED:
                     InterfaceConfig config =
                             configService.getConfig((ConnectPoint) event.subject(), InterfaceConfig.class);
                     updateInterfaces(config);
-                }
-                break;
-            case CONFIG_REMOVED:
-                if (event.configClass() == InterfaceConfig.class) {
+                    break;
+                case CONFIG_REMOVED:
                     removeInterfaces((ConnectPoint) event.subject());
+                    break;
+                case CONFIG_REGISTERED:
+                case CONFIG_UNREGISTERED:
+                default:
+                    break;
                 }
-                break;
-            case CONFIG_REGISTERED:
-            case CONFIG_UNREGISTERED:
-            default:
-                break;
             }
         }
     }

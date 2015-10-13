@@ -31,6 +31,9 @@ import org.onosproject.net.host.InterfaceIpAddress;
 import java.util.Iterator;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Configuration for interfaces.
  */
@@ -41,7 +44,9 @@ public class InterfaceConfig extends Config<ConnectPoint> {
     public static final String MAC = "mac";
     public static final String VLAN = "vlan";
 
-    public static final String CONFIG_VALUE_ERROR = "Error parsing config value";
+    private static final String CONFIG_VALUE_ERROR = "Error parsing config value";
+    private static final String INTF_NULL_ERROR = "Interface cannot be null";
+    private static final String INTF_NAME_ERROR = "Interface must have a valid name";
 
     /**
      * Retrieves all interfaces configured on this port.
@@ -78,6 +83,12 @@ public class InterfaceConfig extends Config<ConnectPoint> {
      * @param intf interface to add
      */
     public void addInterface(Interface intf) {
+        checkNotNull(intf, INTF_NULL_ERROR);
+        checkArgument(!intf.name().equals(Interface.NO_INTERFACE_NAME), INTF_NAME_ERROR);
+
+        // Remove old interface with this name if it exists
+        removeInterface(intf.name());
+
         ObjectNode intfNode = array.addObject();
 
         intfNode.put(NAME, intf.name());
@@ -101,6 +112,9 @@ public class InterfaceConfig extends Config<ConnectPoint> {
      * @param name name of the interface to remove
      */
     public void removeInterface(String name) {
+        checkNotNull(name, INTF_NULL_ERROR);
+        checkArgument(!name.equals(Interface.NO_INTERFACE_NAME), INTF_NAME_ERROR);
+
         Iterator<JsonNode> it = array.iterator();
         while (it.hasNext()) {
             JsonNode node = it.next();
