@@ -15,10 +15,12 @@
  */
 package org.onosproject.net.resource.device;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.intent.IntentId;
 
 import java.util.Set;
 
+@Beta
 public interface IntentSetMultimap {
 
     /**

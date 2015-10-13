@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.resource.impl;
 
+import com.google.common.annotations.Beta;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -42,6 +43,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true, enabled = true)
 @Service
+@Beta
 public class ConsistentIntentSetMultimap implements IntentSetMultimap {
     private final Logger log = getLogger(getClass());
 
