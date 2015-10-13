@@ -127,6 +127,17 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
     }
 
     @Override
+    public Collection<ResourcePath> getAvailableResources(ResourcePath parent) {
+        checkNotNull(parent);
+
+        Collection<ResourcePath> children = store.getChildResources(parent);
+        return children.stream()
+                // We access store twice in this method, then the store may be updated by others
+                .filter(x -> !store.getConsumer(x).isPresent())
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public boolean isAvailable(ResourcePath resource) {
         checkNotNull(resource);
 

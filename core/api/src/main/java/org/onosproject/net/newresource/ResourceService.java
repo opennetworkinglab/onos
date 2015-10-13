@@ -153,6 +153,14 @@ public interface ResourceService {
     Collection<ResourceAllocation> getResourceAllocations(ResourceConsumer consumer);
 
     /**
+     * Returns resource paths that point available child resources under the specified resource path.
+     *
+     * @param parent parent resource path
+     * @return available resource paths under the specified resource path
+     */
+    Collection<ResourcePath> getAvailableResources(ResourcePath parent);
+
+    /**
      * Returns the availability of the specified resource.
      *
      * @param resource resource to check the availability

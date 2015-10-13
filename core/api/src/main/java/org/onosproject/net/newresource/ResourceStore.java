@@ -92,6 +92,14 @@ public interface ResourceStore {
     Collection<ResourcePath> getResources(ResourceConsumer consumer);
 
     /**
+     * Returns a collection of the child resources of the specified parent.
+     *
+     * @param parent parent of the resource to be returned
+     * @return a collection of the child resources of the specified resource
+     */
+    Collection<ResourcePath> getChildResources(ResourcePath parent);
+
+    /**
      * Returns a collection of the resources which are children of the specified parent and
      * whose type is the specified class.
      *

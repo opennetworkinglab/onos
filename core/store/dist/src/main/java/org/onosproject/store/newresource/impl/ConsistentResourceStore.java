@@ -239,6 +239,18 @@ public class ConsistentResourceStore implements ResourceStore {
     }
 
     @Override
+    public Collection<ResourcePath> getChildResources(ResourcePath parent) {
+        checkNotNull(parent);
+
+        Versioned<List<ResourcePath>> children = childMap.get(parent);
+        if (children == null) {
+            return Collections.emptyList();
+        }
+
+        return children.value();
+    }
+
+    @Override
     public <T> Collection<ResourcePath> getAllocatedResources(ResourcePath parent, Class<T> cls) {
         checkNotNull(parent);
         checkNotNull(cls);
