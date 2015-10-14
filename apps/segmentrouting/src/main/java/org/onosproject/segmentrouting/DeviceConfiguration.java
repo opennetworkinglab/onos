@@ -62,6 +62,11 @@ public class DeviceConfiguration implements DeviceProperties {
         HashMap<PortNumber, Ip4Address> gatewayIps;
         HashMap<PortNumber, Ip4Prefix> subnets;
         List<AdjacencySid> adjacencySids;
+
+        public SegmentRouterInfo() {
+            this.gatewayIps = new HashMap<>();
+            this.subnets = new HashMap<>();
+        }
     }
 
     /**
@@ -84,8 +89,6 @@ public class DeviceConfiguration implements DeviceProperties {
             info.mac = config.getMac();
             info.isEdge = config.isEdgeRouter();
             info.adjacencySids = config.getAdjacencySids();
-            info.gatewayIps = new HashMap<>();
-            info.subnets = new HashMap<>();
 
             this.deviceConfigMap.put(info.deviceId, info);
             this.allSegmentIds.add(info.nodeSid);
@@ -109,11 +112,14 @@ public class DeviceConfiguration implements DeviceProperties {
                 PortNumber port = networkInterface.connectPoint().port();
                 SegmentRouterInfo info = this.deviceConfigMap.get(dpid);
 
-                Set<InterfaceIpAddress> interfaceAddresses = networkInterface.ipAddresses();
-                interfaceAddresses.forEach(interfaceAddress -> {
-                    info.gatewayIps.put(port, interfaceAddress.ipAddress().getIp4Address());
-                    info.subnets.put(port, interfaceAddress.subnetAddress().getIp4Prefix());
-                });
+                // skip if there is no corresponding device for this ConenctPoint
+                if (info != null) {
+                    Set<InterfaceIpAddress> interfaceAddresses = networkInterface.ipAddresses();
+                    interfaceAddresses.forEach(interfaceAddress -> {
+                        info.gatewayIps.put(port, interfaceAddress.ipAddress().getIp4Address());
+                        info.subnets.put(port, interfaceAddress.subnetAddress().getIp4Prefix());
+                    });
+                }
             });
 
         });

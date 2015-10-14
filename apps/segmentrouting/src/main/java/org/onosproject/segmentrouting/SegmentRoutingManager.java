@@ -116,11 +116,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     protected ApplicationId appId;
     protected DeviceConfiguration deviceConfiguration = null;
 
-
     private DefaultRoutingHandler defaultRoutingHandler = null;
     private TunnelHandler tunnelHandler = null;
     private PolicyHandler policyHandler = null;
-    private InternalPacketProcessor processor = new InternalPacketProcessor();
+    private InternalPacketProcessor processor = null;
+    private InternalLinkListener linkListener = null;
+    private InternalDeviceListener deviceListener = null;
     private InternalEventHandler eventHandler = new InternalEventHandler();
 
     private ScheduledExecutorService executorService = Executors
@@ -214,6 +215,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.addListener(cfgListener);
         cfgService.registerConfigFactory(cfgFactory);
 
+        processor = new InternalPacketProcessor();
+        linkListener = new InternalLinkListener();
+        deviceListener = new InternalDeviceListener();
+
+        packetService.addProcessor(processor, PacketProcessor.director(2));
+        linkService.addListener(linkListener);
+        deviceService.addListener(deviceListener);
+
+        cfgListener.configureNetwork();
+
         log.info("Started");
     }
 
@@ -223,7 +234,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.unregisterConfigFactory(cfgFactory);
 
         packetService.removeProcessor(processor);
+        linkService.removeListener(linkListener);
+        deviceService.removeListener(deviceListener);
         processor = null;
+        linkListener = null;
+        deviceService = null;
+
+        groupHandlerMap.clear();
+
         log.info("Stopped");
     }
 
@@ -284,7 +302,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @return GroupKey object for the NeighborSet
      */
     public GroupKey getGroupKey(NeighborSet ns) {
-
         for (DefaultGroupHandler groupHandler : groupHandlerMap.values()) {
             return groupHandler.getGroupKey(ns);
         }
@@ -301,7 +318,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @return next objective ID
      */
     public int getNextObjectiveId(DeviceId deviceId, NeighborSet ns) {
-
         if (groupHandlerMap.get(deviceId) != null) {
             log.trace("getNextObjectiveId query in device {}", deviceId);
             return groupHandlerMap
@@ -313,7 +329,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     private class InternalPacketProcessor implements PacketProcessor {
-
         @Override
         public void process(PacketContext context) {
 
@@ -350,16 +365,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     private class InternalDeviceListener implements DeviceListener {
-
         @Override
         public void event(DeviceEvent event) {
-            /*if (mastershipService.getLocalRole(event.subject().id()) != MastershipRole.MASTER) {
-                log.debug("Local role {} is not MASTER for device {}",
-                          mastershipService.getLocalRole(event.subject().id()),
-                          event.subject().id());
-                return;
-            }*/
-
             switch (event.type()) {
             case DEVICE_ADDED:
             case PORT_REMOVED:
@@ -374,7 +381,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     private void scheduleEventHandlerIfNotScheduled(Event event) {
-
         synchronized (threadSchedulerLock) {
             eventQueue.add(event);
             numOfEventsQueued++;
@@ -392,7 +398,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     private class InternalEventHandler implements Runnable {
-
         @Override
         public void run() {
             try {
@@ -413,8 +418,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                         processLinkAdded((Link) event.subject());
                     } else if (event.type() == LinkEvent.Type.LINK_REMOVED) {
                         processLinkRemoved((Link) event.subject());
-                    //} else if (event.type() == GroupEvent.Type.GROUP_ADDED) {
-                    //    processGroupAdded((Group) event.subject());
                     } else if (event.type() == DeviceEvent.Type.DEVICE_ADDED ||
                             event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
                             event.type() == DeviceEvent.Type.DEVICE_UPDATED) {
@@ -526,10 +529,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                               flowObjectiveService,
                                               tunnelHandler, policyStore);
 
-            packetService.addProcessor(processor, PacketProcessor.director(2));
-            linkService.addListener(new InternalLinkListener());
-            deviceService.addListener(new InternalDeviceListener());
-
             for (Device device : deviceService.getDevices()) {
                 //Irrespective whether the local is a MASTER or not for this device,
                 //create group handler instance and push default TTP flow rules.
@@ -550,12 +549,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         @Override
         public void event(NetworkConfigEvent event) {
-            if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
-                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
-                    event.configClass().equals(SegmentRoutingConfig.class)) {
-                log.info("Network configuration change detected. (Re)Configuring...");
-                configureNetwork();
-                return;
+            if (event.configClass().equals(SegmentRoutingConfig.class)) {
+                if (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED) {
+                    log.info("Network configuration added.");
+                    configureNetwork();
+                }
+                if (event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) {
+                    log.info("Network configuration updated.");
+                    // TODO support dynamic configuration
+                }
             }
         }
     }
