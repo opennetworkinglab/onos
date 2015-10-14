@@ -13,7 +13,7 @@
 
     // our overlay definition
     var overlay = {
-        // NOTE: this must match the ID defined in AppUiTopoOverlay
+        // NOTE: this must match the ID defined in AppUiTopovOverlay
         overlayId: 'meowster-overlay',
         glyphId: '*star4',
         tooltip: 'Sample Meowster Topo Overlay',

@@ -49,9 +49,9 @@ import java.util.TimerTask;
  */
 public class AppUiTopovMessageHandler extends UiMessageHandler {
 
-    private static final String SAMPLE_DISPLAY_START = "sampleDisplayStart";
-    private static final String SAMPLE_DISPLAY_UPDATE = "sampleDisplayUpdate";
-    private static final String SAMPLE_DISPLAY_STOP = "sampleDisplayStop";
+    private static final String SAMPLE_TOPOV_DISPLAY_START = "sampleTopovDisplayStart";
+    private static final String SAMPLE_TOPOV_DISPLAY_UPDATE = "sampleTopovDisplayUpdate";
+    private static final String SAMPLE_TOPOV_DISPLAY_STOP = "sampleTopovDisplayStop";
 
     private static final String ID = "id";
     private static final String MODE = "mode";

@@ -26,9 +26,9 @@
     var $log, fs, flash, wss;
 
     // constants
-    var displayStart = 'sampleDisplayStart',
-        displayUpdate = 'sampleDisplayUpdate',
-        displayStop = 'sampleDisplayStop';
+    var displayStart = 'sampleTopovDisplayStart',
+        displayUpdate = 'sampleTopovDisplayUpdate',
+        displayStop = 'sampleTopovDisplayStop';
 
     // internal state
     var currentMode = null;
