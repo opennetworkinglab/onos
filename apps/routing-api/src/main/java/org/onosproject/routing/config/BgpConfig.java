@@ -17,12 +17,16 @@
 package org.onosproject.routing.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.Config;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -49,6 +53,11 @@ public class BgpConfig extends Config<ApplicationId> {
         Set<BgpSpeakerConfig> speakers = Sets.newHashSet();
 
         JsonNode speakersNode = object.get(SPEAKERS);
+
+        if (speakersNode == null) {
+            return speakers;
+        }
+
         speakersNode.forEach(jsonNode -> {
             Set<IpAddress> listenAddresses = Sets.newHashSet();
             jsonNode.path(PEERS).forEach(addressNode ->
@@ -69,6 +78,130 @@ public class BgpConfig extends Config<ApplicationId> {
 
         return speakers;
     }
+
+    /**
+     * Examines whether a name of BGP speaker exists in configuration.
+     *
+     * @param name name of BGP speaker being search
+     * @return speaker
+     */
+    public BgpSpeakerConfig getSpeakerWithName(String name) {
+        for (BgpConfig.BgpSpeakerConfig speaker : bgpSpeakers()) {
+            if (speaker.name().isPresent() && speaker.name().get().equals(name)) {
+                return speaker;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Adds BGP speaker to configuration.
+     *
+     * @param speaker BGP speaker configuration entry
+     */
+    public void addSpeaker(BgpSpeakerConfig speaker) {
+        ObjectNode speakerNode = JsonNodeFactory.instance.objectNode();
+
+        speakerNode.put(NAME, speaker.name().get());
+
+        speakerNode.put(CONNECT_POINT, speaker.connectPoint().elementId().toString()
+                + "/" + speaker.connectPoint().port().toString());
+
+        ArrayNode peersNode = speakerNode.putArray(PEERS);
+        for (IpAddress peerAddress: speaker.peers()) {
+            peersNode.add(peerAddress.toString());
+        }
+
+        ArrayNode speakersArray = bgpSpeakers().isEmpty() ?
+                initBgpConfiguration() : (ArrayNode) object.get(SPEAKERS);
+        speakersArray.add(speakerNode);
+    }
+
+    /**
+     * Removes BGP speaker from configuration.
+     *
+     * @param speakerName BGP speaker name
+     */
+    public void removeSpeaker(String speakerName) {
+        ArrayNode speakersArray = (ArrayNode) object.get(SPEAKERS);
+
+        for (int i = 0; i < speakersArray.size(); i++) {
+            if (speakersArray.get(i).hasNonNull(NAME) &&
+                    speakersArray.get(i).get(NAME).asText().equals(speakerName)) {
+                speakersArray.remove(i);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Adds peering address to BGP speaker.
+     *
+     * @param speakerName name of BGP speaker
+     * @param peerAddress peering address to be added
+     */
+    public void addPeerToSpeaker(String speakerName, IpAddress peerAddress) {
+        JsonNode speakersNode = object.get(SPEAKERS);
+        speakersNode.forEach(jsonNode -> {
+            if (jsonNode.hasNonNull(NAME) &&
+                    jsonNode.get(NAME).asText().equals(speakerName)) {
+                ArrayNode peersNode = (ArrayNode) jsonNode.get(PEERS);
+                for (int i = 0; i < peersNode.size(); i++) {
+                    if (peersNode.get(i).asText().equals(peerAddress.toString())) {
+                        return; // Peer already exists.
+                    }
+                }
+                peersNode.add(peerAddress.toString());
+            }
+        });
+    }
+
+    /**
+     * Finds BGP speaker peering with a given external peer.
+     *
+     * @param peerAddress peering address to be removed
+     * @return speaker
+     */
+    public BgpSpeakerConfig getSpeakerFromPeer(IpAddress peerAddress) {
+        for (BgpConfig.BgpSpeakerConfig speaker : bgpSpeakers()) {
+            if (speaker.peers().contains(peerAddress)) {
+                return speaker;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Removes peering address from BGP speaker.
+     *
+     * @param speaker BGP speaker configuration entries
+     * @param peerAddress peering address to be removed
+     */
+    public void removePeerFromSpeaker(BgpSpeakerConfig speaker, IpAddress peerAddress) {
+        JsonNode speakersNode = object.get(SPEAKERS);
+        speakersNode.forEach(jsonNode -> {
+            if (jsonNode.hasNonNull(NAME) &&
+                    jsonNode.get(NAME).asText().equals(speaker.name().get())) {
+                ArrayNode peersNode = (ArrayNode) jsonNode.get(PEERS);
+                for (int i = 0; i < peersNode.size(); i++) {
+                    if (peersNode.get(i).asText().equals(peerAddress.toString())) {
+                        peersNode.remove(i);
+                        return;
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Creates empty configuration for BGP speakers.
+     *
+     * @return empty array of BGP speakers
+     */
+    private ArrayNode initBgpConfiguration() {
+        return object.putArray(SPEAKERS);
+    }
+
 
     /**
      * Configuration for a BGP speaker.
@@ -96,6 +229,40 @@ public class BgpConfig extends Config<ApplicationId> {
 
         public Set<IpAddress> peers() {
             return peers;
+        }
+
+        /**
+         * Examines if BGP peer is connected.
+         *
+         * @param peer IP address of peer
+         * @return result of search
+         */
+        public boolean isConnectedToPeer(IpAddress peer) {
+            for (final IpAddress entry : peers()) {
+                if (entry.equals(peer)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof BgpSpeakerConfig) {
+                final BgpSpeakerConfig that = (BgpSpeakerConfig) obj;
+                return Objects.equals(this.name, that.name) &&
+                        Objects.equals(this.connectPoint, that.connectPoint) &&
+                        Objects.equals(this.peers, that.peers);
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, connectPoint, peers);
         }
     }
 }

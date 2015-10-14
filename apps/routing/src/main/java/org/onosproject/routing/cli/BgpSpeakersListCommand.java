@@ -50,13 +50,17 @@ public class BgpSpeakersListCommand extends AbstractShellCommand {
         ApplicationId appId = coreService.getAppId(RoutingService.ROUTER_APP_ID);
 
         BgpConfig config = configService.getConfig(appId, BgpConfig.class);
+        if (config == null) {
+            print("No speakers configured");
+            return;
+        }
 
         List<BgpConfig.BgpSpeakerConfig> bgpSpeakers =
                 Lists.newArrayList(config.bgpSpeakers());
 
         Collections.sort(bgpSpeakers, SPEAKERS_COMPARATOR);
 
-        if (config == null || config.bgpSpeakers().isEmpty()) {
+        if (config.bgpSpeakers().isEmpty()) {
             print("No speakers configured");
         } else {
             bgpSpeakers.forEach(

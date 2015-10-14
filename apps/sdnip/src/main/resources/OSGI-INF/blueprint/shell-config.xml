@@ -19,5 +19,17 @@
     <command>
       <action class="org.onosproject.sdnip.cli.PrimaryChangeCommand"/>
     </command>
+    <command>
+      <action class="org.onosproject.sdnip.cli.AddSpeakerCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.sdnip.cli.RemoveSpeakerCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.sdnip.cli.AddPeerCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.sdnip.cli.RemovePeerCommand"/>
+    </command>
   </command-bundle>
 </blueprint>
