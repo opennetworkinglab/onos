@@ -30,9 +30,8 @@ public interface ClusterAdminService {
      * instance.
      *
      * @param nodes    set of nodes that form the cluster
-     * @param ipPrefix IP address prefix, e.g. 10.0.1.*
      */
-    void formCluster(Set<ControllerNode> nodes, String ipPrefix);
+    void formCluster(Set<ControllerNode> nodes);
 
     /**
      * Adds a new controller node to the cluster.

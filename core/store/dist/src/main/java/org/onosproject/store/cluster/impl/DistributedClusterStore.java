@@ -27,8 +27,8 @@ import org.apache.felix.scr.annotations.Service;
 import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
-import org.onosproject.cluster.ClusterDefinitionService;
 import org.onosproject.cluster.ClusterEvent;
+import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterStore;
 import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
@@ -99,14 +99,14 @@ public class DistributedClusterStore
     private ControllerNode localNode;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterDefinitionService clusterDefinitionService;
+    protected ClusterMetadataService clusterMetadataService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MessagingService messagingService;
 
     @Activate
     public void activate() {
-        localNode = clusterDefinitionService.localNode();
+        localNode = clusterMetadataService.getLocalNode();
 
         messagingService.registerHandler(HEARTBEAT_MESSAGE,
                                          new HeartbeatMessageHandler(), heartBeatMessageHandler);
@@ -115,9 +115,6 @@ public class DistributedClusterStore
 
         heartBeatSender.scheduleWithFixedDelay(this::heartbeat, 0,
                                                HEARTBEAT_INTERVAL_MS, TimeUnit.MILLISECONDS);
-
-        addNode(localNode);
-        updateState(localNode.id(), State.ACTIVE);
 
         log.info("Started");
     }
@@ -188,7 +185,7 @@ public class DistributedClusterStore
 
     private void addNode(ControllerNode node) {
         allNodes.put(node.id(), node);
-        updateState(node.id(), State.INACTIVE);
+        updateState(node.id(), node.equals(localNode) ? State.ACTIVE : State.INACTIVE);
         notifyDelegate(new ClusterEvent(ClusterEvent.Type.INSTANCE_ADDED, node));
     }
 

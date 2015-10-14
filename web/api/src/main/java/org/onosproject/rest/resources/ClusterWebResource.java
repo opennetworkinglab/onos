@@ -84,10 +84,9 @@ public class ClusterWebResource extends AbstractWebResource {
     public Response formCluster(InputStream config) throws IOException {
         JsonCodec<ControllerNode> codec = codec(ControllerNode.class);
         ObjectNode root = (ObjectNode) mapper().readTree(config);
-        String ipPrefix = root.path("ipPrefix").asText();
 
         List<ControllerNode> nodes = codec.decode((ArrayNode) root.path("nodes"), this);
-        get(ClusterAdminService.class).formCluster(new HashSet<>(nodes), ipPrefix);
+        get(ClusterAdminService.class).formCluster(new HashSet<>(nodes));
 
         return Response.ok().build();
     }

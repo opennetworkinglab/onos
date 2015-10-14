@@ -16,6 +16,7 @@
 package org.onosproject.store.cluster.messaging.impl;
 
 import com.google.common.base.Strings;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -23,7 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.netty.NettyMessaging;
-import org.onosproject.cluster.ClusterDefinitionService;
+import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.store.cluster.messaging.Endpoint;
 import org.slf4j.Logger;
@@ -41,11 +42,11 @@ public class NettyMessagingManager extends NettyMessaging {
     private static final short MIN_KS_LENGTH = 6;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterDefinitionService clusterDefinitionService;
+    protected ClusterMetadataService clusterMetadataService;
 
     @Activate
     public void activate() throws Exception {
-        ControllerNode localNode = clusterDefinitionService.localNode();
+        ControllerNode localNode = clusterMetadataService.getLocalNode();
         getTLSParameters();
         super.start(new Endpoint(localNode.ip(), localNode.tcpPort()));
         log.info("Started");

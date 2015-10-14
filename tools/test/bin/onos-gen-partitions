@@ -23,22 +23,27 @@ def get_OC_vars():
   return sorted(vars, key=alphanum_key)
 
 def get_nodes(vars, port=9876):
-  node = lambda k: { 'id': k, 'ip': k, 'tcpPort': port }
+  node = lambda k: { 'id': k, 'ip': k, 'port': port }
   return [ node(environ[v]) for v in vars ]
 
 def generate_permutations(nodes, k):
   l = deque(nodes)
-  perms = {}
+  perms = []
   for i in range(1, len(nodes)+1):
-    perms['p%d' % i] = list(l)[:k]
+    part = {
+             'name': 'p%d' % i,
+             'members': list(l)[:k]
+           }
+    perms.append(part)
     l.rotate(-1)
-  return OrderedDict(sorted(perms.iteritems(), key=lambda (k, v): alphanum_key(k)))
+  return perms
 
 if __name__ == '__main__':
   vars = get_OC_vars()
   nodes = get_nodes(vars)
-  partitions = generate_permutations(nodes, 3)
-  data = { 
+  partitions = generate_permutations([v.get('id') for v in nodes], 3)
+  data = {
+           'name': 'default',
            'nodes': nodes,
            'partitions': partitions 
          }

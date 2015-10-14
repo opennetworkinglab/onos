@@ -25,17 +25,26 @@ import org.apache.karaf.system.SystemService;
 import org.joda.time.DateTime;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterAdminService;
-import org.onosproject.cluster.ClusterDefinitionService;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
+import org.onosproject.cluster.ClusterMetadata;
+import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ClusterStore;
 import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.Partition;
 import org.onosproject.event.AbstractListenerManager;
 import org.slf4j.Logger;
 
+import com.google.common.collect.Lists;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -43,8 +52,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppPermission.Type.*;
-
-
 
 /**
  * Implementation of the cluster service.
@@ -61,7 +68,7 @@ public class ClusterManager
     private ClusterStoreDelegate delegate = new InternalStoreDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterDefinitionService clusterDefinitionService;
+    protected ClusterMetadataService clusterMetadataService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterStore store;
@@ -73,8 +80,9 @@ public class ClusterManager
     public void activate() {
         store.setDelegate(delegate);
         eventDispatcher.addSink(ClusterEvent.class, listenerRegistry);
-        clusterDefinitionService.seedNodes()
-                                .forEach(node -> store.addNode(node.id(), node.ip(), node.tcpPort()));
+        clusterMetadataService.getClusterMetadata()
+                              .getNodes()
+                              .forEach(node -> store.addNode(node.id(), node.ip(), node.tcpPort()));
         log.info("Started");
     }
 
@@ -119,11 +127,16 @@ public class ClusterManager
     }
 
     @Override
-    public void formCluster(Set<ControllerNode> nodes, String ipPrefix) {
+    public void formCluster(Set<ControllerNode> nodes) {
         checkNotNull(nodes, "Nodes cannot be null");
         checkArgument(!nodes.isEmpty(), "Nodes cannot be empty");
-        checkNotNull(ipPrefix, "IP prefix cannot be null");
-        clusterDefinitionService.formCluster(nodes, ipPrefix);
+
+        ClusterMetadata metadata = ClusterMetadata.builder()
+                                                  .withName("default")
+                                                  .withControllerNodes(nodes)
+                                                  .withPartitions(buildDefaultPartitions(nodes))
+                                                  .build();
+        clusterMetadataService.setClusterMetadata(metadata);
         try {
             log.warn("Shutting down container for cluster reconfiguration!");
             systemService.reboot("now", SystemService.Swipe.NONE);
@@ -152,5 +165,22 @@ public class ClusterManager
         public void notify(ClusterEvent event) {
             post(event);
         }
+    }
+
+    private static Collection<Partition> buildDefaultPartitions(Collection<ControllerNode> nodes) {
+        List<ControllerNode> sorted = new ArrayList<>(nodes);
+        Collections.sort(sorted, (o1, o2) -> o1.id().toString().compareTo(o2.id().toString()));
+        Collection<Partition> partitions = Lists.newArrayList();
+
+        int length = nodes.size();
+        int count = 3;
+        for (int i = 0; i < length; i++) {
+            Set<NodeId> set = new HashSet<>(count);
+            for (int j = 0; j < count; j++) {
+                set.add(sorted.get((i + j) % length).id());
+            }
+            partitions.add(new Partition("p" + (i + 1), set));
+        }
+        return partitions;
     }
 }
