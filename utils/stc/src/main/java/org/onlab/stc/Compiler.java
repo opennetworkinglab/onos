@@ -42,7 +42,7 @@ import static org.onlab.stc.Scenario.loadScenario;
  */
 public class Compiler {
 
-    private static final String DEFAULT_LOG_DIR = "${env.WORKSPACE}/tmp/stc/";
+    private static final String DEFAULT_LOG_DIR = "${WORKSPACE}/tmp/stc/";
 
     private static final String IMPORT = "import";
     private static final String GROUP = "group";
