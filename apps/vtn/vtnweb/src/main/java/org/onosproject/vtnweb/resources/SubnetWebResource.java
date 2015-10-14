@@ -69,8 +69,8 @@ import com.google.common.collect.Sets;
 @Path("subnets")
 public class SubnetWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(SubnetWebResource.class);
-    public static final String SUBNET_NOT_CREATE = "Subnets is failed to create!";
-    public static final String SUBNET_NOT_FOUND = "Subnets is not found";
+    public static final String SUBNET_NOT_CREATED = "Subnet failed to create!";
+    public static final String SUBNET_NOT_FOUND = "Subnet is not found";
     public static final String JSON_NOT_NULL = "JsonNode can not be null";
 
     @GET
@@ -111,11 +111,11 @@ public class SubnetWebResource extends AbstractWebResource {
             Iterable<Subnet> subnets = createOrUpdateByInputStream(subnode);
             Boolean result = nullIsNotFound((get(SubnetService.class)
                                                     .createSubnets(subnets)),
-                                            SUBNET_NOT_CREATE);
+                                            SUBNET_NOT_CREATED);
 
             if (!result) {
                 return Response.status(INTERNAL_SERVER_ERROR)
-                        .entity(SUBNET_NOT_CREATE).build();
+                        .entity(SUBNET_NOT_CREATED).build();
             }
             return Response.status(202).entity(result.toString()).build();
         } catch (Exception e) {
