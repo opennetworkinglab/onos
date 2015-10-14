@@ -20,7 +20,7 @@
 
         <parallel var="${OC#}">
             <step name="Check-Passwordless-Login-${#}"
-                  exec="ssh -n -o ConnectTimeout=3 -o PasswordAuthentication=no sdn@${OC#} date"/>
+                  exec="ssh -n -o ConnectTimeout=3 -o PasswordAuthentication=no ${ONOS_USER}@${OC#} date"/>
         </parallel>
     </group>
 </scenario>
