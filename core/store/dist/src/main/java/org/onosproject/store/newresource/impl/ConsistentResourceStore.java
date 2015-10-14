@@ -304,7 +304,7 @@ public class ConsistentResourceStore implements ResourceStore {
     }
 
     /**
-     * Removes teh values from the existing values associated with the specified key.
+     * Removes the values from the existing values associated with the specified key.
      * If the map doesn't contain the given values, removal will not happen.
      *
      * @param map map holding multiple values for a key
