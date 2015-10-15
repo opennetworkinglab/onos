@@ -175,14 +175,19 @@ public class DefaultOvsdbClient
      *
      * @param dbName    the ovsdb database name
      * @param tableName the ovsdb table name
-     * @return ovsRowStore, empty if row store is find
+     * @return ovsRowStore, empty store if no rows exist in the table
      */
     private OvsdbRowStore getRowStore(String dbName, String tableName) {
         OvsdbTableStore tableStore = getTableStore(dbName);
         if (tableStore == null) {
             return null;
         }
-        return tableStore.getRows(tableName);
+
+        OvsdbRowStore rowStore = tableStore.getRows(tableName);
+        if (rowStore == null) {
+            rowStore = new OvsdbRowStore();
+        }
+        return rowStore;
     }
 
     /**
