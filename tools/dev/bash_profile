@@ -112,6 +112,7 @@ function cell {
         unset ONOS_CELL ONOS_NIC ONOS_IP ONOS_APPS ONOS_BOOT_FEATURES
         unset OCI OCN OCT ONOS_INSTANCES ONOS_USER ONOS_GROUP ONOS_FEATURES
         unset $(env | sed -n 's:\(^OC[0-9]\{1,\}\)=.*:\1 :g p')
+        export ONOS_USER=${ONOS_USER:-sdn}
         export ONOS_WEB_USER=onos
         export ONOS_WEB_PASS=rocks
         export ONOS_CELL=$1
