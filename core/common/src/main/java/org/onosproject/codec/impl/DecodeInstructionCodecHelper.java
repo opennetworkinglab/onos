@@ -15,26 +15,29 @@
  */
 package org.onosproject.codec.impl;
 
+import static org.onlab.util.Tools.nullIsIllegal;
+
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
+import org.onlab.util.HexString;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 
-import static org.onlab.util.Tools.nullIsIllegal;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Decoding portion of the instruction codec.
@@ -174,6 +177,30 @@ public final class DecodeInstructionCodecHelper {
     }
 
     /**
+     * Decodes a Layer 1 instruction.
+     *
+     * @return instruction object decoded from the JSON
+     * @throws IllegalArgumentException if the JSON is invalid
+     */
+    private Instruction decodeL1() {
+        String subType = json.get(InstructionCodec.SUBTYPE).asText();
+        if (subType.equals(L1ModificationInstruction.L1SubType.ODU_SIGID.name())) {
+            int tributaryPortNumber = nullIsIllegal(json.get(InstructionCodec.TRIBUTARY_PORT_NUMBER),
+                    InstructionCodec.TRIBUTARY_PORT_NUMBER + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt();
+            int tributarySlotLen = nullIsIllegal(json.get(InstructionCodec.TRIBUTARY_SLOT_LEN),
+                    InstructionCodec.TRIBUTARY_SLOT_LEN + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt();
+            byte[] tributarySlotBitmap = null;
+            tributarySlotBitmap = HexString.fromHexString(
+                    nullIsIllegal(json.get(InstructionCodec.TRIBUTARY_SLOT_BITMAP),
+                    InstructionCodec.TRIBUTARY_SLOT_BITMAP + InstructionCodec.MISSING_MEMBER_MESSAGE).asText());
+            return Instructions.modL1OduSignalId(OduSignalId.oduSignalId(tributaryPortNumber, tributarySlotLen,
+                    tributarySlotBitmap));
+        }
+        throw new IllegalArgumentException("L1 Instruction subtype "
+                + subType + " is not supported");
+    }
+
+    /**
      * Decodes a Layer 4 instruction.
      *
      * @return instruction object decoded from the JSON
@@ -221,6 +248,8 @@ public final class DecodeInstructionCodecHelper {
             return Instructions.createDrop();
         } else if (type.equals(Instruction.Type.L0MODIFICATION.name())) {
             return decodeL0();
+        } else if (type.equals(Instruction.Type.L1MODIFICATION.name())) {
+            return decodeL1();
         } else if (type.equals(Instruction.Type.L2MODIFICATION.name())) {
             return decodeL2();
         } else if (type.equals(Instruction.Type.L3MODIFICATION.name())) {

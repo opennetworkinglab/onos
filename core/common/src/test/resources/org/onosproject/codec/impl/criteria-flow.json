@@ -38,7 +38,10 @@
             {"type":"MPLS_LABEL", "label":123},
             {"type":"IPV6_EXTHDR", "exthdrFlags":99},
             {"type":"OCH_SIGID", "lambda":122},
-            {"type":"TUNNEL_ID", "tunnelId":100}
+            {"type":"TUNNEL_ID", "tunnelId":100},
+            {"type":"OCH_SIGTYPE", "ochSignalType":"FIXED_GRID"},
+            {"type":"ODU_SIGTYPE", "oduSignalType":"ODU4"},
+            {"type":"ODU_SIGID", "oduSignalId" : {"tributaryPortNumber":1, "tributarySlotLen":80, "tributarySlotBitmap":"01:01:01:01:01:01:01:01:01:01"}}
           ]
       }
 }

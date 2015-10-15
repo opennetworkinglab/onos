@@ -29,9 +29,11 @@ import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.IPv6FlowLabelCriterion;
+import org.onosproject.net.flow.criteria.OduSignalIdCriterion;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
@@ -155,6 +157,7 @@ public final class FlowObjectiveCompositionUtil {
         return treatmentBuilder.build();
     }
 
+    //CHECKSTYLE:OFF
     public static TrafficSelector revertTreatmentSelector(TrafficTreatment trafficTreatment,
                                                           TrafficSelector trafficSelector) {
 
@@ -195,9 +198,25 @@ public final class FlowObjectiveCompositionUtil {
                                 } else {
                                     return null;
                                 }
-                            } else {
-                                break;
                             }
+                        default:
+                            break;
+                    }
+                    break;
+                }
+                case L1MODIFICATION: {
+                    L1ModificationInstruction l1 = (L1ModificationInstruction) instruction;
+                    switch (l1.subtype()) {
+                        case ODU_SIGID:
+                            if (criterionMap.containsKey(Criterion.Type.ODU_SIGID)) {
+                                if (((OduSignalIdCriterion) criterionMap.get((Criterion.Type.ODU_SIGID))).oduSignalId()
+                                        .equals(((L1ModificationInstruction.ModOduSignalIdInstruction) l1)
+                                                .oduSignalId())) {
+                                    criterionMap.remove(Criterion.Type.ODU_SIGID);
+                                } else {
+                                    return null;
+                                }
+                            } 
                         default:
                             break;
                     }
@@ -344,6 +363,7 @@ public final class FlowObjectiveCompositionUtil {
 
         return selectorBuilder.build();
     }
+   //CHECKSTYLE:ON
 
     public static Set<Criterion.Type> getTypeSet(TrafficSelector trafficSelector) {
         Set<Criterion.Type> typeSet = new HashSet<>();

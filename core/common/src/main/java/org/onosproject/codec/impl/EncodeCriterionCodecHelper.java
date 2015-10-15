@@ -17,8 +17,10 @@ package org.onosproject.codec.impl;
 
 import java.util.EnumMap;
 
+import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
@@ -370,11 +372,17 @@ public final class EncodeCriterionCodecHelper {
     private static class FormatOduSignalId implements CriterionTypeFormatter {
         @Override
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
-            final OduSignalIdCriterion oduSignalIdCriterion =
-                    (OduSignalIdCriterion) criterion;
-            return root.put(CriterionCodec.ODU_SIGNAL_ID, oduSignalIdCriterion.oduSignalId().toString());
+            OduSignalId oduSignalId = ((OduSignalIdCriterion) criterion).oduSignalId();
+            ObjectNode child = root.putObject(CriterionCodec.ODU_SIGNAL_ID);
+
+            child.put(CriterionCodec.TRIBUTARY_PORT_NUMBER, oduSignalId.tributaryPortNumber());
+            child.put(CriterionCodec.TRIBUTARY_SLOT_LEN, oduSignalId.tributarySlotLength());
+            child.put(CriterionCodec.TRIBUTARY_SLOT_BITMAP, HexString.toHexString(oduSignalId.tributarySlotBitmap()));
+
+            return root;
         }
     }
+
 
     private static class FormatOduSignalType implements CriterionTypeFormatter {
         @Override

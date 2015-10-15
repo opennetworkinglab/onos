@@ -70,6 +70,7 @@ import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OchSignalType;
 import org.onosproject.net.OduCltPort;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.OmsPort;
 import org.onosproject.net.Port;
@@ -118,6 +119,8 @@ import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.OduSignalIdCriterion;
+import org.onosproject.net.flow.criteria.OduSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -127,6 +130,7 @@ import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
@@ -337,6 +341,8 @@ public final class KryoNamespaces {
                     IndexedLambdaCriterion.class,
                     OchSignalCriterion.class,
                     OchSignalTypeCriterion.class,
+                    OduSignalIdCriterion.class,
+                    OduSignalTypeCriterion.class,
                     Criterion.class,
                     Criterion.Type.class,
                     DefaultTrafficTreatment.class,
@@ -349,6 +355,9 @@ public final class KryoNamespaces {
                     L0ModificationInstruction.L0SubType.class,
                     L0ModificationInstruction.ModLambdaInstruction.class,
                     L0ModificationInstruction.ModOchSignalInstruction.class,
+                    L1ModificationInstruction.class,
+                    L1ModificationInstruction.L1SubType.class,
+                    L1ModificationInstruction.ModOduSignalIdInstruction.class,
                     L2ModificationInstruction.class,
                     L2ModificationInstruction.L2SubType.class,
                     L2ModificationInstruction.ModEtherInstruction.class,
@@ -458,6 +467,7 @@ public final class KryoNamespaces {
             .register(OduCltPort.SignalType.class)
             .register(IndexedLambda.class)
             .register(OchSignal.class)
+            .register(OduSignalId.class)
             .register(OduCltPortDescription.class)
             .register(OchPortDescription.class)
             .register(OmsPortDescription.class)

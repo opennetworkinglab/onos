@@ -15,11 +15,14 @@
  */
 package org.onosproject.codec.impl;
 
+import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
@@ -77,6 +80,36 @@ public final class EncodeInstructionCodecHelper {
 
             default:
                 log.info("Cannot convert L0 subtype of {}", instruction.subtype());
+        }
+    }
+
+    /**
+     * Encode an L1 modification instruction.
+     *
+     * @param result json node that the instruction attributes are added to
+     * @param instruction The L1 instruction
+     * @param context context of the request
+     */
+    private void encodeL1(ObjectNode result) {
+        L1ModificationInstruction instruction =
+                (L1ModificationInstruction) this.instruction;
+        result.put(InstructionCodec.SUBTYPE, instruction.subtype().name());
+
+        switch (instruction.subtype()) {
+        case ODU_SIGID:
+            final L1ModificationInstruction.ModOduSignalIdInstruction oduSignalIdInstruction =
+                    (L1ModificationInstruction.ModOduSignalIdInstruction) instruction;
+            OduSignalId oduSignalId = oduSignalIdInstruction.oduSignalId();
+
+            ObjectNode child = result.putObject("oduSignalId");
+
+            child.put(InstructionCodec.TRIBUTARY_PORT_NUMBER, oduSignalId.tributaryPortNumber());
+            child.put(InstructionCodec.TRIBUTARY_SLOT_LEN, oduSignalId.tributarySlotLength());
+            child.put(InstructionCodec.TRIBUTARY_SLOT_BITMAP, HexString.toHexString(oduSignalId.tributarySlotBitmap()));
+            break;
+        default:
+            log.info("Cannot convert L1 subtype of {}", instruction.subtype());
+            break;
         }
     }
 
@@ -220,6 +253,10 @@ public final class EncodeInstructionCodecHelper {
 
             case L0MODIFICATION:
                 encodeL0(result);
+                break;
+
+            case L1MODIFICATION:
+                encodeL1(result);
                 break;
 
             case L2MODIFICATION:

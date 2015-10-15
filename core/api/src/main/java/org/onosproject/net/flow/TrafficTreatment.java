@@ -15,6 +15,8 @@
  */
 package org.onosproject.net.flow;
 
+import java.util.List;
+
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -26,8 +28,6 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.meter.MeterId;
-
-import java.util.List;
 
 /**
  * Abstraction of network traffic treatment.

@@ -15,6 +15,15 @@
  */
 package org.onosproject.codec.impl;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.onosproject.net.NetTestTools.APP_ID;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.SortedMap;
@@ -35,6 +44,8 @@ import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OchSignalType;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -55,6 +66,9 @@ import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
 import org.onosproject.net.flow.criteria.IndexedLambdaCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
+import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.OduSignalIdCriterion;
+import org.onosproject.net.flow.criteria.OduSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -62,9 +76,6 @@ import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
@@ -72,14 +83,8 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.onosproject.net.NetTestTools.APP_ID;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Flow rule codec unit tests.
@@ -382,7 +387,7 @@ public class FlowRuleCodecTest {
 
         checkCommonData(rule);
 
-        assertThat(rule.selector().criteria().size(), is(33));
+        assertThat(rule.selector().criteria().size(), is(36));
 
         rule.selector().criteria()
                 .stream()
@@ -518,6 +523,25 @@ public class FlowRuleCodecTest {
         criterion = getCriterion(Criterion.Type.TUNNEL_ID);
         assertThat(((TunnelIdCriterion) criterion).tunnelId(),
                 is(100L));
+
+        criterion = getCriterion(Criterion.Type.OCH_SIGTYPE);
+        assertThat(((OchSignalTypeCriterion) criterion).signalType(),
+                is(OchSignalType.FIXED_GRID));
+
+        criterion = getCriterion(Criterion.Type.ODU_SIGTYPE);
+        assertThat(((OduSignalTypeCriterion) criterion).signalType(),
+                is(OduSignalType.ODU4));
+
+
+        criterion = getCriterion(Criterion.Type.ODU_SIGID);
+        assertThat(((OduSignalIdCriterion) criterion).oduSignalId().tributaryPortNumber(),
+                is(1));
+
+       assertThat(((OduSignalIdCriterion) criterion).oduSignalId().tributarySlotLength(),
+                is(80));
+
+       assertThat(((OduSignalIdCriterion) criterion).oduSignalId().tributarySlotBitmap(),
+                is(new byte [] {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}));
     }
 
     /**

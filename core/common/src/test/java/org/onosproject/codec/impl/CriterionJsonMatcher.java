@@ -15,13 +15,14 @@
  */
 package org.onosproject.codec.impl;
 
-import com.google.common.base.Joiner;
+import java.util.Objects;
+
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.onlab.util.HexString;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.flow.criteria.Criterion;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
@@ -40,6 +41,8 @@ import org.onosproject.net.flow.criteria.MetadataCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.OduSignalIdCriterion;
+import org.onosproject.net.flow.criteria.OduSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -47,7 +50,8 @@ import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 
-import java.util.Objects;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Joiner;
 
 /**
  * Hamcrest matcher for criterion objects.
@@ -496,6 +500,44 @@ public final class CriterionJsonMatcher extends
         return true;
     }
 
+   /**
+     * Matches an ODU signal ID criterion object.
+     *
+     * @param criterion criterion to match
+     * @return true if the JSON matches the criterion, false otherwise.
+     */
+    private boolean matchCriterion(OduSignalIdCriterion criterion) {
+        final OduSignalId oduSignal = criterion.oduSignalId();
+        final JsonNode jsonOduSignal = jsonCriterion.get(CriterionCodec.ODU_SIGNAL_ID);
+        int jsonTpn = jsonOduSignal.get(CriterionCodec.TRIBUTARY_PORT_NUMBER).intValue();
+        int jsonTsLen = jsonOduSignal.get(CriterionCodec.TRIBUTARY_SLOT_LEN).intValue();
+        byte[] jsonTributaryBitMap = HexString.fromHexString(
+                jsonOduSignal.get(CriterionCodec.TRIBUTARY_SLOT_BITMAP).asText());
+        OduSignalId jsonOduSignalId = OduSignalId.oduSignalId(jsonTpn, jsonTsLen, jsonTributaryBitMap);
+        if (!oduSignal.equals(jsonOduSignalId)) {
+            description.appendText("oduSignalId was " + criterion);
+            return false;
+        }
+       return true;
+    }
+
+    /**
+     * Matches an ODU signal Type criterion object.
+     *
+     * @param criterion criterion to match
+     * @return true if the JSON matches the criterion, false otherwise.
+     */
+    private boolean matchCriterion(OduSignalTypeCriterion criterion) {
+        final String signalType = criterion.signalType().name();
+        final String jsonOduSignalType = jsonCriterion.get("oduSignalType").textValue();
+        if (!signalType.equals(jsonOduSignalType)) {
+            description.appendText("signalType was " + signalType);
+            return false;
+        }
+        return true;
+    }
+
+
     @Override
     public boolean matchesSafely(JsonNode jsonCriterion,
                                  Description description) {
@@ -593,6 +635,12 @@ public final class CriterionJsonMatcher extends
 
             case OCH_SIGTYPE:
                 return matchCriterion((OchSignalTypeCriterion) criterion);
+
+            case ODU_SIGID:
+                return matchCriterion((OduSignalIdCriterion) criterion);
+
+            case ODU_SIGTYPE:
+                return matchCriterion((OduSignalTypeCriterion) criterion);
 
             default:
                 // Don't know how to format this type

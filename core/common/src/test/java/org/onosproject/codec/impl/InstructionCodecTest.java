@@ -15,6 +15,10 @@
  */
 package org.onosproject.codec.impl;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.onosproject.codec.impl.InstructionJsonMatcher.matchesInstruction;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
@@ -28,18 +32,16 @@ import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.onosproject.codec.impl.InstructionJsonMatcher.matchesInstruction;
 
 /**
  * Unit tests for Instruction codec.
@@ -47,7 +49,6 @@ import static org.onosproject.codec.impl.InstructionJsonMatcher.matchesInstructi
 public class InstructionCodecTest {
     CodecContext context;
     JsonCodec<Instruction> instructionCodec;
-
     /**
      * Sets up for each test.  Creates a context and fetches the instruction
      * codec.
@@ -116,6 +117,20 @@ public class InstructionCodecTest {
         L0ModificationInstruction.ModOchSignalInstruction instruction =
                 (L0ModificationInstruction.ModOchSignalInstruction)
                         Instructions.modL0Lambda(Lambda.ochSignal(GridType.DWDM, ChannelSpacing.CHL_100GHZ, 4, 8));
+        ObjectNode instructionJson =
+                instructionCodec.encode(instruction, context);
+        assertThat(instructionJson, matchesInstruction(instruction));
+    }
+
+    /**
+     * Tests the encoding of mod ODU signal ID instructions.
+     */
+    @Test
+    public void modOduSignalIdInstructionTest() {
+        OduSignalId oduSignalId = OduSignalId.oduSignalId(1, 8, new byte [] {8, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        L1ModificationInstruction.ModOduSignalIdInstruction instruction =
+                (L1ModificationInstruction.ModOduSignalIdInstruction)
+                    Instructions.modL1OduSignalId(oduSignalId);
         ObjectNode instructionJson =
                 instructionCodec.encode(instruction, context);
         assertThat(instructionJson, matchesInstruction(instruction));

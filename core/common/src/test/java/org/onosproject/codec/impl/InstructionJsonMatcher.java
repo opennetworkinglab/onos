@@ -17,14 +17,24 @@ package org.onosproject.codec.impl;
 
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.onlab.util.HexString;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions.DropInstruction;
+import org.onosproject.net.flow.instructions.Instructions.NoActionInstruction;
+import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
+import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction.ModOduSignalIdInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
-import static org.onosproject.net.flow.instructions.Instructions.*;
-import static org.onosproject.net.flow.instructions.L0ModificationInstruction.*;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.*;
-import static org.onosproject.net.flow.instructions.L3ModificationInstruction.*;
 
 /**
  * Hamcrest matcher for instructions.
@@ -133,7 +143,7 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
     }
 
     /**
-     * Matches teh contents of a mod OCh singal instruction.
+     * Matches the contents of a mod OCh singal instruction.
      *
      * @param instructionJson JSON instruction to match
      * @param description Description object used for recording errors
@@ -182,6 +192,40 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
 
         return true;
     }
+
+    /**
+     * Matches the contents of a mod ODU singal Id instruction.
+     *
+     * @param instructionJson JSON instruction to match
+     * @param description Description object used for recording errors
+     * @return true if contents matches, false otherwise
+     */
+    private boolean matchModOduSingalIdInstruction(JsonNode instructionJson,
+                                                   Description description) {
+        ModOduSignalIdInstruction instructionToMatch =
+                (ModOduSignalIdInstruction) instruction;
+        String jsonSubType = instructionJson.get("subtype").textValue();
+        if (!instructionToMatch.subtype().name().equals(jsonSubType)) {
+            description.appendText("subtype was " + jsonSubType);
+            return false;
+        }
+        String jsonType = instructionJson.get("type").textValue();
+        if (!instructionToMatch.type().name().equals(jsonType)) {
+            description.appendText("type was " + jsonType);
+            return false;
+        }
+        final JsonNode jsonOduSignal = instructionJson.get("oduSignalId");
+        int jsonTpn = jsonOduSignal.get("tributaryPortNumber").intValue();
+        int jsonTsLen = jsonOduSignal.get("tributarySlotLength").intValue();
+        byte [] tributaryBitMap = HexString.fromHexString(jsonOduSignal.get("tributarySlotBitmap").asText());
+        OduSignalId  jsonOduSignalId = OduSignalId.oduSignalId(jsonTpn, jsonTsLen, tributaryBitMap);
+        if (!instructionToMatch.oduSignalId().equals(jsonOduSignalId)) {
+            description.appendText("oduSignalId was " + instructionToMatch);
+            return false;
+        }
+        return true;
+    }
+
 
     /**
      * Matches the contents of a mod Ethernet instruction.
@@ -416,6 +460,8 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
                                                     description);
         } else if (instruction instanceof ModMplsLabelInstruction) {
             return matchModMplsLabelInstruction(jsonInstruction, description);
+        } else if (instruction instanceof ModOduSignalIdInstruction) {
+            return matchModOduSingalIdInstruction(jsonInstruction, description);
         } else if (instruction instanceof NoActionInstruction) {
             return true;
         }

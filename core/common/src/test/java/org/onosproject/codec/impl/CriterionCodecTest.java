@@ -31,6 +31,8 @@ import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignalType;
+import org.onosproject.net.OduSignalId;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -54,6 +56,10 @@ public class CriterionCodecTest {
     final IpPrefix ipPrefix6 = IpPrefix.valueOf("fe80::/64");
     final MacAddress mac1 = MacAddress.valueOf("00:00:11:00:00:01");
     final TpPort tpPort = TpPort.tpPort(40000);
+    final int tributaryPortNumber = 11;
+    final int tributarySlotLen = 80;
+    final byte[] tributarySlotBitmap = new byte[] {1, 2, 3, 4, 2, 3, 4, 2, 3, 4};
+
 
     /**
      * Sets up for each test.  Creates a context and fetches the criterion
@@ -427,4 +433,31 @@ public class CriterionCodecTest {
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
     }
+
+   /**
+     * Tests Odu Signal ID criterion.
+     */
+    @Test
+    public void matchOduSignalIdTest() {
+
+        OduSignalId oduSignalId = OduSignalId.oduSignalId(tributaryPortNumber, tributarySlotLen, tributarySlotBitmap);
+
+        Criterion criterion = Criteria.matchOduSignalId(oduSignalId);
+        ObjectNode result = criterionCodec.encode(criterion, context);
+        assertThat(result, matchesCriterion(criterion));
+    }
+
+    /**
+     * Tests Odu Signal Type criterion.
+     */
+    @Test
+    public void matchOduSignalTypeTest() {
+
+        OduSignalType signalType = OduSignalType.ODU2;
+
+        Criterion criterion = Criteria.matchOduSignalType(signalType);
+        ObjectNode result = criterionCodec.encode(criterion, context);
+        assertThat(result, matchesCriterion(criterion));
+    }
+
 }

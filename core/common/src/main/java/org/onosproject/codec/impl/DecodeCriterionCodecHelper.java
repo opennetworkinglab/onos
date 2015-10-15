@@ -15,6 +15,8 @@
  */
 package org.onosproject.codec.impl;
 
+import static org.onlab.util.Tools.nullIsIllegal;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,17 +26,19 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
+import org.onlab.util.HexString;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.Lambda;
+import org.onosproject.net.OchSignalType;
+import org.onosproject.net.OduSignalId;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import static org.onlab.util.Tools.nullIsIllegal;
 
 /**
  * Decode portion of the criterion codec.
@@ -95,6 +99,8 @@ public final class DecodeCriterionCodecHelper {
         decoderMap.put(Criterion.Type.OCH_SIGID.name(), new OchSigIdDecoder());
         decoderMap.put(Criterion.Type.OCH_SIGTYPE.name(), new OchSigTypeDecoder());
         decoderMap.put(Criterion.Type.TUNNEL_ID.name(), new TunnelIdDecoder());
+        decoderMap.put(Criterion.Type.ODU_SIGID.name(), new OduSigIdDecoder());
+        decoderMap.put(Criterion.Type.ODU_SIGTYPE.name(), new OduSigTypeDecoder());
     }
 
     private class EthTypeDecoder implements CriterionDecoder {
@@ -415,7 +421,9 @@ public final class DecodeCriterionCodecHelper {
     private class OchSigTypeDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
-            return null;
+            OchSignalType ochSignalType = OchSignalType.valueOf(nullIsIllegal(json.get(CriterionCodec.OCH_SIGNAL_TYPE),
+                    CriterionCodec.OCH_SIGNAL_TYPE + MISSING_MEMBER_MESSAGE).asText());
+            return Criteria.matchOchSignalType(ochSignalType);
         }
     }
 
@@ -425,6 +433,34 @@ public final class DecodeCriterionCodecHelper {
             long tunnelId = nullIsIllegal(json.get(CriterionCodec.TUNNEL_ID),
                     CriterionCodec.TUNNEL_ID + MISSING_MEMBER_MESSAGE).asLong();
             return Criteria.matchTunnelId(tunnelId);
+        }
+    }
+
+    private class OduSigIdDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            JsonNode oduSignalId = nullIsIllegal(json.get(CriterionCodec.ODU_SIGNAL_ID),
+                    CriterionCodec.TRIBUTARY_PORT_NUMBER + MISSING_MEMBER_MESSAGE);
+
+            int tributaryPortNumber = nullIsIllegal(oduSignalId.get(CriterionCodec.TRIBUTARY_PORT_NUMBER),
+                    CriterionCodec.TRIBUTARY_PORT_NUMBER + MISSING_MEMBER_MESSAGE).asInt();
+            int tributarySlotLen = nullIsIllegal(oduSignalId.get(CriterionCodec.TRIBUTARY_SLOT_LEN),
+                    CriterionCodec.TRIBUTARY_SLOT_LEN + MISSING_MEMBER_MESSAGE).asInt();
+            byte[] tributarySlotBitmap = HexString.fromHexString(
+                    nullIsIllegal(oduSignalId.get(CriterionCodec.TRIBUTARY_SLOT_BITMAP),
+                    CriterionCodec.TRIBUTARY_SLOT_BITMAP + MISSING_MEMBER_MESSAGE).asText());
+
+            return Criteria.matchOduSignalId(
+                    OduSignalId.oduSignalId(tributaryPortNumber, tributarySlotLen, tributarySlotBitmap));
+        }
+    }
+
+    private class OduSigTypeDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            OduSignalType oduSignalType = OduSignalType.valueOf(nullIsIllegal(json.get(CriterionCodec.ODU_SIGNAL_TYPE),
+                    CriterionCodec.ODU_SIGNAL_TYPE + MISSING_MEMBER_MESSAGE).asText());
+            return Criteria.matchOduSignalType(oduSignalType);
         }
     }
 
