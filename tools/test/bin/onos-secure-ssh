@@ -9,9 +9,6 @@
 nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
 
 for node in $nodes; do
-    # Setup passwordless login for the remote user on the local bench host
-    onos-user-key $node
-
     # Prune the node entry from the known hosts file since server key changes
     ssh-keygen -f "$HOME/.ssh/known_hosts" -R [$node]:8101
 
@@ -27,5 +24,10 @@ for node in $nodes; do
             sleep 1
         done
     "
+
+    # Setup passwordless login for the remote user on the local bench host
+    # For now, we let the local public key override the remote one
+    # TODO: fix username collision between workbench and the remote hosts
+    onos-user-key $node
 done
 
