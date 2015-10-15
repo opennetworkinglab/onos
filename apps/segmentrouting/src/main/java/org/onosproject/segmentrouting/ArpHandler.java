@@ -88,7 +88,6 @@ public class ArpHandler {
     }
 
     private void handleArpRequest(DeviceId deviceId, ConnectPoint inPort, Ethernet payload) {
-
         ARP arpRequest = (ARP) payload.getPayload();
         HostId targetHostId = HostId.hostId(MacAddress.valueOf(
                 arpRequest.getTargetHardwareAddress()));
@@ -98,14 +97,16 @@ public class ArpHandler {
             Ip4Address targetAddress = Ip4Address.valueOf(arpRequest.getTargetProtocolAddress());
 
             sendArpResponse(arpRequest, config.getRouterMacForAGatewayIp(targetAddress));
-        // ARP request for known hosts
-        } else if (srManager.hostService.getHost(targetHostId) != null) {
-            MacAddress targetMac = srManager.hostService.getHost(targetHostId).mac();
-            sendArpResponse(arpRequest, targetMac);
+        } else {
+            Host targetHost = srManager.hostService.getHost(targetHostId);
+            // ARP request for known hosts
+            if (targetHost != null) {
+                sendArpResponse(arpRequest, targetHost.mac());
 
-        // ARP request for unknown host in the subnet
-        } else if (isArpReqForSubnet(deviceId, arpRequest)) {
-            flood(payload, inPort);
+            // ARP request for unknown host in the subnet
+            } else if (isArpReqForSubnet(deviceId, arpRequest)) {
+                flood(payload, inPort);
+            }
         }
     }
 
