@@ -196,10 +196,10 @@ public class TopologyMetrics implements TopologyMetricsService {
             // Ignore PORT_STATS_UPDATED probe event from interfering with
             // other device event timestamps
             if (event.type() == DeviceEvent.Type.PORT_STATS_UPDATED) {
-                log.info("PORT_STATS_UPDATED event ignored from metrics");
+                log.debug("PORT_STATS_UPDATED event ignored from metrics");
             } else {
                 recordEvent(event, topologyDeviceEventMetric);
-                log.info("Device Event: time = {} type = {} event = {}",
+                log.debug("Device Event: time = {} type = {} event = {}",
                       event.time(), event.type(), event);
             }
         }
