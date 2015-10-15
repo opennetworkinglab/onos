@@ -71,15 +71,6 @@ public interface BGPOpenMsg extends BGPMessage {
         @Override
         BGPOpenMsg build() throws BGPParseException;
 
-        @Override
-        BGPHeader getHeader();
-
-        @Override
-        BGPVersion getVersion();
-
-        @Override
-        BGPType getType();
-
         /**
          * Returns hold time of Open Message.
          *

@@ -123,16 +123,6 @@ class BGPNotificationMsgVer4 implements BGPNotificationMsg {
         private boolean isBGPHeaderSet = false;
 
         @Override
-        public BGPVersion getVersion() {
-            return BGPVersion.BGP_4;
-        }
-
-        @Override
-        public BGPType getType() {
-            return BGPType.NOTIFICATION;
-        }
-
-        @Override
         public BGPNotificationMsg build() throws BGPParseException {
             BGPHeader bgpHeader = this.isBGPHeaderSet ? this.bgpHeader : DEFAULT_MESSAGE_HEADER;
             if (!this.isErrorCodeSet) {
@@ -168,11 +158,6 @@ class BGPNotificationMsgVer4 implements BGPNotificationMsg {
             this.bgpHeader = header;
             this.isBGPHeaderSet = true;
             return this;
-        }
-
-        @Override
-        public BGPHeader getHeader() {
-            return this.bgpHeader;
         }
 
         @Override

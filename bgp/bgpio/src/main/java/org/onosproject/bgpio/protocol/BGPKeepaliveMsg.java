@@ -39,20 +39,10 @@ public interface BGPKeepaliveMsg extends BGPMessage {
      * Builder interface with get and set functions to build Keepalive message.
      */
     interface Builder extends BGPMessage.Builder {
-
         @Override
         BGPKeepaliveMsg build();
 
         @Override
-        BGPVersion getVersion();
-
-        @Override
-        BGPType getType();
-
-        @Override
         Builder setHeader(BGPHeader bgpMsgHeader);
-
-        @Override
-        BGPHeader getHeader();
     }
 }

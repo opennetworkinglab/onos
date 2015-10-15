@@ -98,21 +98,6 @@ class BGPKeepaliveMsgVer4 implements BGPKeepaliveMsg {
         BGPHeader bgpMsgHeader;
 
         @Override
-        public BGPVersion getVersion() {
-            return BGPVersion.BGP_4;
-        }
-
-        @Override
-        public BGPType getType() {
-            return BGPType.KEEP_ALIVE;
-        }
-
-        @Override
-        public BGPHeader getHeader() {
-            return this.bgpMsgHeader;
-        }
-
-        @Override
         public Builder setHeader(BGPHeader bgpMsgHeader) {
             this.bgpMsgHeader = bgpMsgHeader;
             return this;
