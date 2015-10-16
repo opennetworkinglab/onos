@@ -39,7 +39,6 @@ public class InterfaceConfig extends Config<ConnectPoint> {
     public static final String MAC = "mac";
     public static final String VLAN = "vlan";
 
-    public static final String MAC_MISSING_ERROR = "Must have a MAC address for each interface";
     public static final String CONFIG_VALUE_ERROR = "Error parsing config value";
 
     /**
@@ -55,15 +54,12 @@ public class InterfaceConfig extends Config<ConnectPoint> {
             for (JsonNode intfNode : array) {
                 Set<InterfaceIpAddress> ips = getIps(intfNode);
 
-                if (intfNode.path(MAC).isMissingNode()) {
-                    throw new ConfigException(MAC_MISSING_ERROR);
-                }
-
-                MacAddress mac = MacAddress.valueOf(intfNode.path(MAC).asText());
+                String mac = intfNode.path(MAC).asText();
+                MacAddress macAddr = mac.isEmpty() ? null : MacAddress.valueOf(mac);
 
                 VlanId vlan = getVlan(intfNode);
 
-                interfaces.add(new Interface(subject, ips, mac, vlan));
+                interfaces.add(new Interface(subject, ips, macAddr, vlan));
             }
         } catch (IllegalArgumentException e) {
             throw new ConfigException(CONFIG_VALUE_ERROR, e);
@@ -79,7 +75,10 @@ public class InterfaceConfig extends Config<ConnectPoint> {
      */
     public void addInterface(Interface intf) {
         ObjectNode intfNode = array.addObject();
-        intfNode.put(MAC, intf.mac().toString());
+
+        if (intf.mac() != null) {
+            intfNode.put(MAC, intf.mac().toString());
+        }
 
         if (!intf.ipAddresses().isEmpty()) {
             intfNode.set(IPS, putIps(intf.ipAddresses()));

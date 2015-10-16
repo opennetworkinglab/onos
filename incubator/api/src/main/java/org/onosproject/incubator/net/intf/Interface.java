@@ -30,7 +30,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An Interface maps network configuration information (such as addresses and
- * vlans) to a port in the network.
+ * vlans) to a port in the network. This is considered a L2/L3 network
+ * interface.
  */
 @Beta
 public class Interface {
@@ -51,9 +52,9 @@ public class Interface {
                      Set<InterfaceIpAddress> ipAddresses,
                      MacAddress macAddress, VlanId vlan) {
         this.connectPoint = checkNotNull(connectPoint);
-        this.ipAddresses = Sets.newHashSet(checkNotNull(ipAddresses));
-        this.macAddress = checkNotNull(macAddress);
-        this.vlan = checkNotNull(vlan);
+        this.ipAddresses = ipAddresses == null ? Sets.newHashSet() : ipAddresses;
+        this.macAddress = macAddress == null ? MacAddress.NONE : macAddress;
+        this.vlan = vlan == null ? VlanId.NONE : vlan;
     }
 
     /**

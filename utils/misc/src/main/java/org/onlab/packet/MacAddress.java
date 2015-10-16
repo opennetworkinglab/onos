@@ -22,6 +22,7 @@ import java.util.Arrays;
  */
 public class MacAddress {
 
+    public static final MacAddress NONE = valueOf("a4:23:05:00:00:00");
     public static final MacAddress ZERO = valueOf("00:00:00:00:00:00");
     public static final MacAddress BROADCAST = valueOf("ff:ff:ff:ff:ff:ff");
 

@@ -43,7 +43,7 @@ public class InterfaceAddCommand extends AbstractShellCommand {
 
     @Option(name = "-m", aliases = "--mac",
             description = "MAC address of the interface",
-            required = true, multiValued = false)
+            required = false, multiValued = false)
     private String mac = null;
 
     @Option(name = "-i", aliases = "--ip",
@@ -68,10 +68,12 @@ public class InterfaceAddCommand extends AbstractShellCommand {
             }
         }
 
+        MacAddress macAddr = mac == null ? null : MacAddress.valueOf(mac);
+
         VlanId vlanId = vlan == null ? VlanId.NONE : VlanId.vlanId(Short.parseShort(vlan));
 
         Interface intf = new Interface(ConnectPoint.deviceConnectPoint(connectPoint),
-                ipAddresses, MacAddress.valueOf(mac), vlanId);
+                ipAddresses, macAddr, vlanId);
 
         interfaceService.add(intf);
     }
