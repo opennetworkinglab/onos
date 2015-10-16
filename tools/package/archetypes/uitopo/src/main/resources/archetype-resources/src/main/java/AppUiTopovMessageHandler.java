@@ -101,7 +101,7 @@ public class AppUiTopovMessageHandler extends UiMessageHandler {
 
     private final class DisplayStartHandler extends RequestHandler {
         public DisplayStartHandler() {
-            super(SAMPLE_DISPLAY_START);
+            super(SAMPLE_TOPOV_DISPLAY_START);
         }
 
         @Override
@@ -136,7 +136,7 @@ public class AppUiTopovMessageHandler extends UiMessageHandler {
 
     private final class DisplayUpdateHandler extends RequestHandler {
         public DisplayUpdateHandler() {
-            super(SAMPLE_DISPLAY_UPDATE);
+            super(SAMPLE_TOPOV_DISPLAY_UPDATE);
         }
 
         @Override
@@ -153,7 +153,7 @@ public class AppUiTopovMessageHandler extends UiMessageHandler {
 
     private final class DisplayStopHandler extends RequestHandler {
         public DisplayStopHandler() {
-            super(SAMPLE_DISPLAY_STOP);
+            super(SAMPLE_TOPOV_DISPLAY_STOP);
         }
 
         @Override
