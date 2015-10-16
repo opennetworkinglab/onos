@@ -334,11 +334,19 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
         @Override
         public void switchAdded(Dpid dpid) {
             OpenFlowSwitch sw = controller.getSwitch(dpid);
+            if (sw == null) {
+                return;
+            }
             if (isGroupSupported(sw)) {
                 GroupStatsCollector gsc = new GroupStatsCollector(
                         controller.getSwitch(dpid), POLL_INTERVAL);
                 gsc.start();
                 collectors.put(dpid, gsc);
+            }
+
+            //figure out race condition
+            if (controller.getSwitch(dpid) == null) {
+                switchRemoved(dpid);
             }
         }
 

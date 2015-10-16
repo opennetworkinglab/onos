@@ -319,6 +319,9 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             }
             DeviceId did = deviceId(uri(dpid));
             OpenFlowSwitch sw = controller.getSwitch(dpid);
+            if (sw == null) {
+                return;
+            }
 
             ChassisId cId = new ChassisId(dpid.value());
 
@@ -339,9 +342,14 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             providerService.updatePorts(did, buildPortDescriptions(sw));
 
             PortStatsCollector psc =
-                    new PortStatsCollector(controller.getSwitch(dpid), portStatsPollFrequency);
+                    new PortStatsCollector(sw, portStatsPollFrequency);
             psc.start();
             collectors.put(dpid, psc);
+
+            //figure out race condition for collectors.remove() and collectors.put()
+            if (controller.getSwitch(dpid) == null) {
+                switchRemoved(dpid);
+            }
         }
 
         @Override
@@ -364,6 +372,9 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             }
             DeviceId did = deviceId(uri(dpid));
             OpenFlowSwitch sw = controller.getSwitch(dpid);
+            if (sw == null) {
+                return;
+            }
             providerService.updatePorts(did, buildPortDescriptions(sw));
         }
 
