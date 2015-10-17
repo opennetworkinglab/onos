@@ -33,127 +33,27 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.compendium</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ch.ethz.ganymed</groupId>
-            <artifactId>ganymed-ssh2</artifactId>
-            <version>262</version>
-        </dependency>
-        <dependency>
-            <!-- TODO: change this appropriately when the official TailF JNC is available -->
-            <groupId>org.onosproject</groupId>
-            <artifactId>jnc</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jdom</groupId>
-            <artifactId>jdom2</artifactId>
-            <version>2.0.5</version>
-        </dependency>
-        <dependency>
-            <groupId>jaxen</groupId>
-            <artifactId>jaxen</artifactId>
-            <version>1.1.4</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
-            <scope>test</scope>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-netconf-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-netconf-ctl</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <filters>
-                        <filter>
-                            <artifact>com.tailf:JNC</artifact>
-                            <includes>
-                                <include>com/tailf/jnc/**</include>
-                            </includes>
-                        </filter>
-                        <filter>
-                            <artifact>ch.ethz.ganymed:ganymed-ssh2</artifact>
-                            <includes>
-                                <include>ch/ethz/ssh2/**</include>
-                            </includes>
-                        </filter>
-                        <filter>
-                            <artifact>org.jdom:jdom2</artifact>
-                            <includes>
-                                <include>org/jdom2/**</include>
-                            </includes>
-                        </filter>
-                    </filters>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <configuration>
-                    <instructions>
-                        <Export-Package>
-                            com.tailf.jnc,
-                            ch.ethz.ssh2,
-                            ch.ethz.ssh2.auth,
-                            ch.ethz.ssh2.channel,
-                            ch.ethz.ssh2.crypto,
-                            ch.ethz.ssh2.crypto.cipher,
-                            ch.ethz.ssh2.crypto.dh,
-                            ch.ethz.ssh2.crypto.digest,
-                            ch.ethz.ssh2.log,
-                            ch.ethz.ssh2.packets,
-                            ch.ethz.ssh2.server,
-                            ch.ethz.ssh2.sftp,
-                            ch.ethz.ssh2.signature,
-                            ch.ethz.ssh2.transport,
-                            ch.ethz.ssh2.util,
-                            org.jdom2,
-                            org.jdom2.input,
-                            org.jdom2.output,
-                            org.jdom2.adapters,
-                            org.jdom2.filter,
-                            org.jdom2.internal,
-                            org.jdom2.located,
-                            org.jdom2.transform,
-                            org.jdom2.util,
-                            org.jdom2.xpath,
-                            org.jdom2.input.sax,
-                            org.jdom2.input.stax,
-                            org.jdom2.output.support,
-                            org.jdom2.xpath.jaxen,
-                            org.jdom2.xpath.util
-                        </Export-Package>
-                    </instructions>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.onosproject</groupId>

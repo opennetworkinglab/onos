@@ -19,6 +19,13 @@
      features="${project.artifactId}">
     <description>${project.description}</description>
 
+    <artifact>mvn:${project.groupId}/onos-netconf-rfc/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-netconf-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-netconf-ctl/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-drivers/${project.version}</artifact>
+
     <artifact>mvn:${project.groupId}/onos-netconf-provider-device/${project.version}</artifact>
+
+    <!--<artifact>mvn:${project.groupId}/onos-netconf-provider-device/${project.version}</artifact>-->
     <!-- Question: should there be the jnc stuff here? Or is it just for testing -->
 </app>

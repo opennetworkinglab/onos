@@ -1,0 +1,19 @@
+{
+  "devices":{
+    "netconf:mininet@10.1.9.24:1830":{
+      "basic":{
+        "driver":"ovs-netconf"
+      }
+    }
+  },
+  "apps":{
+    "org.onosproject.netconf":{
+      "devices":[{
+        "name":"mininet",
+        "password":"mininet",
+        "ip":"10.1.9.24",
+        "port":1830
+      }]
+    }
+  }
+}

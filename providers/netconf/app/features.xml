@@ -20,6 +20,9 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
+        <bundle>mvn:${project.groupId}/onos-netconf-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-netconf-ctl/${project.version}</bundle>
+
         <bundle>mvn:${project.groupId}/onos-netconf-provider-device/${project.version}</bundle>
         <!-- Question: should there be the jnc stuff here? Or is it just for testing -->
     </feature>

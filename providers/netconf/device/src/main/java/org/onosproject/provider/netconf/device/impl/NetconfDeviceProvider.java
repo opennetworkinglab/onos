@@ -13,39 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.provider.netconf.device.impl;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onlab.util.Tools.delay;
-import static org.onlab.util.Tools.get;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.base.Preconditions;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
-import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.cluster.ClusterService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.incubator.net.config.basics.ConfigException;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
@@ -54,305 +43,180 @@ import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.provider.netconf.device.impl.NetconfDevice.DeviceState;
-import org.osgi.service.component.ComponentContext;
+import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfDevice;
+import org.onosproject.netconf.NetconfDeviceInfo;
+import org.onosproject.netconf.NetconfDeviceListener;
 import org.slf4j.Logger;
 
+import java.util.Map;
+
+import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
- * Provider which will try to fetch the details of NETCONF devices from the core
- * and run a capability discovery on each of the device.
+ * Provider which uses an NETCONF controller to detect device.
  */
 @Component(immediate = true)
 public class NetconfDeviceProvider extends AbstractProvider
         implements DeviceProvider {
-
-    private final Logger log = getLogger(NetconfDeviceProvider.class);
-
-    protected Map<DeviceId, NetconfDevice> netconfDeviceMap = new ConcurrentHashMap<DeviceId, NetconfDevice>();
-
-    private DeviceProviderService providerService;
+    private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetconfController controller; //where is initiated ?
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
+    protected NetworkConfigRegistry cfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService cfgService;
+    protected CoreService coreService;
 
-    private ExecutorService deviceBuilder = Executors
-            .newFixedThreadPool(1, groupedThreads("onos/netconf", "device-creator"));
 
-    // Delay between events in ms.
-    private static final int EVENTINTERVAL = 5;
+    private DeviceProviderService providerService;
+    private NetconfDeviceListener innerNodeListener = new InnerNetconfDeviceListener();
+    protected static final String ISNOTNULL = "NetconfDeviceInfo is not null";
+    private static final String UNKNOWN = "unknown";
 
-    private static final String SCHEME = "netconf";
+    private final ConfigFactory factory =
+            new ConfigFactory<ApplicationId, NetconfProviderConfig>(APP_SUBJECT_FACTORY,
+                                                                    NetconfProviderConfig.class,
+                                                                    "devices",
+                                                                    true) {
+                @Override
+                public NetconfProviderConfig createConfig() {
+                    return new NetconfProviderConfig();
+                }
+            };
+    private final NetworkConfigListener cfgLister = new InternalNetworkConfigListener();
+    private ApplicationId appId;
 
-    @Property(name = "devConfigs", value = "", label = "Instance-specific configurations")
-    private String devConfigs = null;
-
-    @Property(name = "devPasswords", value = "", label = "Instance-specific password")
-    private String devPasswords = null;
-
-    /**
-     * Creates a provider with the supplier identifier.
-     */
-    public NetconfDeviceProvider() {
-        super(new ProviderId("netconf", "org.onosproject.provider.netconf"));
-    }
 
     @Activate
-    public void activate(ComponentContext context) {
-        cfgService.registerProperties(getClass());
+    public void activate() {
         providerService = providerRegistry.register(this);
-        modified(context);
+        cfgService.registerConfigFactory(factory);
+        cfgService.addListener(cfgLister);
+        controller.addDeviceListener(innerNodeListener);
+        connectExistingDevices();
         log.info("Started");
     }
 
+
     @Deactivate
-    public void deactivate(ComponentContext context) {
-        cfgService.unregisterProperties(getClass(), false);
-        try {
-            for (Entry<DeviceId, NetconfDevice> deviceEntry : netconfDeviceMap
-                    .entrySet()) {
-                deviceBuilder.submit(new DeviceCreator(deviceEntry.getValue(),
-                                                       false));
-            }
-            deviceBuilder.awaitTermination(1000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            log.error("Device builder did not terminate");
-        }
-        deviceBuilder.shutdownNow();
-        netconfDeviceMap.clear();
+    public void deactivate() {
         providerRegistry.unregister(this);
         providerService = null;
+        cfgService.unregisterConfigFactory(factory);
         log.info("Stopped");
     }
 
-    @Modified
-    public void modified(ComponentContext context) {
-        if (context == null) {
-            log.info("No configuration file");
-            return;
-        }
-        Dictionary<?, ?> properties = context.getProperties();
-        String deviceCfgValue = get(properties, "devConfigs");
-        log.info("Settings: devConfigs={}", deviceCfgValue);
-        if (!isNullOrEmpty(deviceCfgValue)) {
-            addOrRemoveDevicesConfig(deviceCfgValue);
-        }
-    }
-
-    private void addOrRemoveDevicesConfig(String deviceConfig) {
-        for (String deviceEntry : deviceConfig.split(",")) {
-            NetconfDevice device = processDeviceEntry(deviceEntry);
-            if (device != null) {
-                log.info("Device Detail: username: {}, host={}, port={}, state={}",
-                        device.getUsername(), device.getSshHost(),
-                         device.getSshPort(), device.getDeviceState().name());
-                if (device.isActive()) {
-                    deviceBuilder.submit(new DeviceCreator(device, true));
-                } else {
-                    deviceBuilder.submit(new DeviceCreator(device, false));
-                }
-            }
-        }
-    }
-
-    private NetconfDevice processDeviceEntry(String deviceEntry) {
-        if (deviceEntry == null) {
-            log.info("No content for Device Entry, so cannot proceed further.");
-            return null;
-        }
-        log.info("Trying to convert Device Entry String: " + deviceEntry
-                + " to a Netconf Device Object");
-        NetconfDevice device = null;
-        try {
-            String userInfo = deviceEntry.substring(0, deviceEntry
-                    .lastIndexOf('@'));
-            String hostInfo = deviceEntry.substring(deviceEntry
-                    .lastIndexOf('@') + 1);
-            String[] infoSplit = userInfo.split(":");
-            String username = infoSplit[0];
-            String password = infoSplit[1];
-            infoSplit = hostInfo.split(":");
-            String hostIp = infoSplit[0];
-            Integer hostPort;
-            try {
-                hostPort = Integer.parseInt(infoSplit[1]);
-            } catch (NumberFormatException nfe) {
-                log.error("Bad Configuration Data: Failed to parse host port number string: "
-                        + infoSplit[1]);
-                throw nfe;
-            }
-            String deviceState = infoSplit[2];
-            if (isNullOrEmpty(username) || isNullOrEmpty(password)
-                    || isNullOrEmpty(hostIp) || hostPort == 0) {
-                log.warn("Bad Configuration Data: both user and device information parts of Configuration "
-                        + deviceEntry + " should be non-nullable");
-            } else {
-                device = new NetconfDevice(hostIp, hostPort, username, password);
-                if (!isNullOrEmpty(deviceState)) {
-                    if (deviceState.toUpperCase().equals(DeviceState.ACTIVE
-                                                                 .name())) {
-                        device.setDeviceState(DeviceState.ACTIVE);
-                    } else if (deviceState.toUpperCase()
-                            .equals(DeviceState.INACTIVE.name())) {
-                        device.setDeviceState(DeviceState.INACTIVE);
-                    } else {
-                        log.warn("Device State Information can not be empty, so marking the state as INVALID");
-                        device.setDeviceState(DeviceState.INVALID);
-                    }
-                } else {
-                    log.warn("The device entry do not specify state information, so marking the state as INVALID");
-                    device.setDeviceState(DeviceState.INVALID);
-                }
-            }
-        } catch (ArrayIndexOutOfBoundsException aie) {
-            log.error("Error while reading config infromation from the config file: "
-                              + "The user, host and device state infomation should be "
-                              + "in the order 'userInfo@hostInfo:deviceState'"
-                              + deviceEntry, aie);
-        } catch (Exception e) {
-            log.error("Error while parsing config information for the device entry: "
-                              + deviceEntry, e);
-        }
-        return device;
+    public NetconfDeviceProvider() {
+        super(new ProviderId("netconf", "org.onosproject.netconf.provider.device"));
     }
 
     @Override
     public void triggerProbe(DeviceId deviceId) {
-        // TODO Auto-generated method stub
+        // TODO: This will be implemented later.
+        log.info("Triggering probe on device {}", deviceId);
     }
 
     @Override
     public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
-
+        // TODO: This will be implemented later.
     }
 
     @Override
     public boolean isReachable(DeviceId deviceId) {
-        NetconfDevice netconfDevice = netconfDeviceMap.get(deviceId);
+        Map<DeviceId, NetconfDevice> devices = controller.getDevicesMap();
+
+        NetconfDevice netconfDevice = null;
+        for (DeviceId key : devices.keySet()) {
+            if (key.equals(deviceId)) {
+                netconfDevice = controller.getDevicesMap().get(key);
+            }
+        }
         if (netconfDevice == null) {
             log.warn("BAD REQUEST: the requested device id: "
-                    + deviceId.toString()
-                    + "  is not associated to any NETCONF Device");
+                             + deviceId.toString()
+                             + "  is not associated to any NETCONF Device");
             return false;
         }
-        return netconfDevice.isReachable();
+        return netconfDevice.isActive();
     }
 
-    /**
-     * This class is intended to add or remove Configured Netconf Devices.
-     * Functionality relies on 'createFlag' and 'NetconfDevice' content. The
-     * functionality runs as a thread and dependening on the 'createFlag' value
-     * it will create or remove Device entry from the core.
-     */
-    private class DeviceCreator implements Runnable {
+    private class InnerNetconfDeviceListener implements NetconfDeviceListener {
 
-        private NetconfDevice device;
-        private boolean createFlag;
+        @Override
+        public void deviceAdded(NetconfDeviceInfo nodeId) {
+            Preconditions.checkNotNull(nodeId, ISNOTNULL);
+            DeviceId deviceId = nodeId.getDeviceId();
+            //TODO filter for not netconf devices
+            //Netconf configuration object
+            ChassisId cid = new ChassisId();
+            String ipAddress = nodeId.ip().toString();
+            SparseAnnotations annotations = DefaultAnnotations.builder()
+                    .set("ipaddress", ipAddress).build();
+            DeviceDescription deviceDescription = new DefaultDeviceDescription(
+                    deviceId.uri(),
+                    Device.Type.SWITCH,
+                    UNKNOWN, UNKNOWN,
+                    UNKNOWN, UNKNOWN,
+                    cid,
+                    annotations);
+            providerService.deviceConnected(deviceId, deviceDescription);
 
-        public DeviceCreator(NetconfDevice device, boolean createFlag) {
-            this.device = device;
-            this.createFlag = createFlag;
         }
 
         @Override
-        public void run() {
-            if (createFlag) {
-                log.info("Trying to create Device Info on ONOS core");
-                advertiseDevices();
-            } else {
-                log.info("Trying to remove Device Info on ONOS core");
-                removeDevices();
-            }
-        }
+        public void deviceRemoved(NetconfDeviceInfo nodeId) {
+            Preconditions.checkNotNull(nodeId, ISNOTNULL);
+            DeviceId deviceId = nodeId.getDeviceId();
+            providerService.deviceDisconnected(deviceId);
 
-        /**
-         * For each Netconf Device, remove the entry from the device store.
-         */
-        private void removeDevices() {
-            if (device == null) {
-                log.warn("The Request Netconf Device is null, cannot proceed further");
-                return;
-            }
+        }
+    }
+
+    private void connectExistingDevices() {
+        //TODO consolidate
+        appId = coreService.registerApplication("org.onosproject.netconf");
+        connectDevices();
+    }
+
+    private void connectDevices() {
+        NetconfProviderConfig cfg = cfgService.getConfig(appId, NetconfProviderConfig.class);
+        if (cfg != null) {
+            log.info("cfg {}", cfg);
             try {
-                DeviceId did = getDeviceId();
-                if (!netconfDeviceMap.containsKey(did)) {
-                    log.error("BAD Request: 'Currently device is not discovered, "
-                            + "so cannot remove/disconnect the device: "
-                            + device.deviceInfo() + "'");
-                    return;
-                }
-                providerService.deviceDisconnected(did);
-                device.disconnect();
-                netconfDeviceMap.remove(did);
-                delay(EVENTINTERVAL);
-            } catch (URISyntaxException uriSyntaxExcpetion) {
-                log.error("Syntax Error while creating URI for the device: "
-                                  + device.deviceInfo()
-                                  + " couldn't remove the device from the store",
-                          uriSyntaxExcpetion);
+                cfg.getDevicesAddresses().stream().forEach(addr -> controller
+                        .connectDevice(new NetconfDeviceInfo(addr.name(),
+                                                             addr.password(),
+                                                             addr.ip(),
+                                                             addr.port())));
+            } catch (ConfigException e) {
+                log.error("Cannot read config error " + e);
             }
         }
+    }
 
-        /**
-         * Initialize Netconf Device object, and notify core saying device
-         * connected.
-         */
-        private void advertiseDevices() {
-            try {
-                if (device == null) {
-                    log.warn("The Request Netconf Device is null, cannot proceed further");
-                    return;
-                }
-                device.init();
-                DeviceId did = getDeviceId();
-                ChassisId cid = new ChassisId();
-                DeviceDescription desc = new DefaultDeviceDescription(
-                                                                      did.uri(),
-                                                                      Device.Type.OTHER,
-                                                                      "", "",
-                                                                      "", "",
-                                                                      cid);
-                log.info("Persisting Device" + did.uri().toString());
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
 
-                netconfDeviceMap.put(did, device);
-                providerService.deviceConnected(did, desc);
-                log.info("Done with Device Info Creation on ONOS core. Device Info: "
-                        + device.deviceInfo() + " " + did.uri().toString());
-                delay(EVENTINTERVAL);
-            } catch (URISyntaxException e) {
-                log.error("Syntax Error while creating URI for the device: "
-                        + device.deviceInfo()
-                        + " couldn't persist the device onto the store", e);
-            } catch (SocketTimeoutException e) {
-                log.error("Error while setting connection for the device: "
-                        + device.deviceInfo(), e);
-            } catch (IOException e) {
-                log.error("Error while setting connection for the device: "
-                        + device.deviceInfo(), e);
-            } catch (Exception e) {
-                log.error("Error while initializing session for the device: "
-                        + (device != null ? device.deviceInfo() : null), e);
-            }
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            connectDevices();
         }
 
-        /**
-         * This will build a device id for the device.
-         */
-        private DeviceId getDeviceId() throws URISyntaxException {
-            String additionalSSP = new StringBuilder(device.getUsername())
-                    .append("@").append(device.getSshHost()).append(":")
-                    .append(device.getSshPort()).toString();
-            DeviceId did = DeviceId.deviceId(new URI(SCHEME, additionalSSP,
-                                                     null));
-            return did;
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            //TODO refactor
+            return event.configClass().equals(NetconfProviderConfig.class) &&
+                    (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                            event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED);
         }
     }
 }

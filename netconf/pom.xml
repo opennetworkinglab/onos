@@ -27,6 +27,12 @@
     <artifactId>onos-netconf</artifactId>
     <packaging>pom</packaging>
 
+    <modules>
+        <module>api</module>
+        <module>rfc</module>
+        <module>ctl</module>
+    </modules>
+
     <description>ONOS NETCONF southbound libraries</description>
     <dependencies>
         <dependency>
@@ -54,6 +60,11 @@
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-net</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -68,10 +79,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <modules>
-        <module>api</module>
-        <module>rfc</module>
-        <module>ctl</module>
-    </modules>
 </project>

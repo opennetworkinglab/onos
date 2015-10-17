@@ -59,8 +59,11 @@ public class DeviceSetControllersCommand extends AbstractShellCommand {
         ControllerConfig config = h.behaviour(ControllerConfig.class);
         print("before:");
         config.getControllers().forEach(c -> print(c.target()));
-
-        config.setControllers(newControllers);
+        try {
+            config.setControllers(newControllers);
+        } catch (NullPointerException e) {
+            print("No Device with requested parameters {} ", uri);
+        }
         print("after:");
         config.getControllers().forEach(c -> print(c.target()));
         print("size %d", config.getControllers().size());
