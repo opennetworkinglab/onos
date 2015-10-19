@@ -33,11 +33,9 @@ import org.onlab.packet.EAP;
 import org.onlab.packet.EAPOL;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.RADIUS;
 import org.onlab.packet.RADIUSAttribute;
-import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
@@ -233,14 +231,6 @@ public class AAA {
         selector.matchEthType(EthType.EtherType.EAPOL.ethType().toShort());
         packetService.requestPackets(selector.build(),
                                      CONTROL, appId);
-
-        TrafficSelector radSelector = DefaultTrafficSelector.builder()
-                .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
-                .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpDst(TpPort.tpPort(radiusServerPort))
-                .matchUdpSrc(TpPort.tpPort(radiusServerPort))
-                .build();
-        packetService.requestPackets(radSelector, CONTROL, appId);
     }
 
     /**
@@ -250,14 +240,6 @@ public class AAA {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(EthType.EtherType.EAPOL.ethType().toShort());
         packetService.cancelPackets(selector.build(), CONTROL, appId);
-
-        TrafficSelector radSelector = DefaultTrafficSelector.builder()
-                .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
-                .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpDst(TpPort.tpPort(radiusServerPort))
-                .matchUdpSrc(TpPort.tpPort(radiusServerPort))
-                .build();
-        packetService.cancelPackets(radSelector, CONTROL, appId);
     }
 
     /**
