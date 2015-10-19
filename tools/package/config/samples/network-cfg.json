@@ -28,8 +28,8 @@
                 "routerMac" : "00:00:00:00:01:80",
                 "isEdgeRouter" : true,
                 "adjacencySids" : [
-                    { "sid" : 100, "port" : [2, 3] },
-                    { "sid" : 200, "port" : [4, 5] }
+                    { "sid" : 100, "ports" : [2, 3] },
+                    { "sid" : 200, "ports" : [4, 5] }
                 ]
             }
     	},
