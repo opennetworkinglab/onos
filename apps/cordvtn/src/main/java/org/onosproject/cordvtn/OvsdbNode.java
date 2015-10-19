@@ -19,10 +19,19 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.net.DeviceId;
 
+import java.util.Comparator;
+
 /**
  * Representation of a node with ovsdb server.
  */
 public interface OvsdbNode {
+
+    Comparator<OvsdbNode> OVSDB_NODE_COMPARATOR = new Comparator<OvsdbNode>() {
+        @Override
+        public int compare(OvsdbNode ovsdb1, OvsdbNode ovsdb2) {
+            return ovsdb1.host().compareTo(ovsdb2.host());
+        }
+    };
 
     /**
      * Returns the IP address of the ovsdb server.
