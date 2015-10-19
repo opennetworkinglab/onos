@@ -79,6 +79,8 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     protected OFFeaturesReply features;
     protected OFDescStatsReply desc;
 
+    List<OFMessage> messagesPendingMastership;
+
     @Override
     public void init(Dpid dpid, OFDescStatsReply desc, OFVersion ofv) {
         this.dpid = dpid;
@@ -96,16 +98,21 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     }
 
     @Override
-    public void sendMsg(OFMessage m) {
-        if (role == RoleState.MASTER && channel.isConnected()) {
-            channel.write(Collections.singletonList(m));
-        }
+    public void sendMsg(OFMessage msg) {
+        this.sendMsg(Collections.singletonList(msg));
     }
 
     @Override
     public final void sendMsg(List<OFMessage> msgs) {
         if (role == RoleState.MASTER && channel.isConnected()) {
             channel.write(msgs);
+        } else if (messagesPendingMastership != null) {
+            messagesPendingMastership.addAll(msgs);
+            log.debug("Enqueue message for switch {}. queue size after is {}",
+                      dpid, messagesPendingMastership.size());
+        } else {
+            log.warn("Dropping message for switch {} (role: {}, connected: {}): {}",
+                     dpid, role, channel.isConnected(), msgs);
         }
     }
 
@@ -232,6 +239,12 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     @Override
     public final void transitionToMasterSwitch() {
         this.agent.transitionToMasterSwitch(dpid);
+        if (messagesPendingMastership != null) {
+            this.sendMsg(messagesPendingMastership);
+            log.debug("Sending {} pending messages to switch {}",
+                     messagesPendingMastership.size(), dpid);
+            messagesPendingMastership = null;
+        }
     }
 
     @Override
@@ -278,6 +291,11 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
                 log.debug("Sending role {} to switch {}", role, getStringId());
                 if (role == RoleState.SLAVE || role == RoleState.EQUAL) {
                     this.role = role;
+                } else {
+                    if (messagesPendingMastership == null) {
+                        log.debug("Initializing new queue for switch {}", dpid);
+                        messagesPendingMastership = new ArrayList<>();
+                    }
                 }
             } else {
                 this.role = role;

@@ -30,6 +30,14 @@ public interface OpenFlowSwitch {
     /**
      * Writes the message to the driver.
      *
+     * Note:
+     * Calling {@link #sendMsg(OFMessage)} does NOT guarantee the messages to be
+     * transmitted on the wire in order, especially during role transition.
+     * The messages may be reordered at the switch side.
+     *
+     * Calling {@link #sendMsg(List)} guarantee the messages inside the list
+     * to be transmitted on the wire in order.
+     *
      * @param msg the message to write
      */
     void sendMsg(OFMessage msg);
