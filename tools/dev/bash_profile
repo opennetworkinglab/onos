@@ -52,6 +52,7 @@ alias mis='mvn install -DskipTests -Dcheckstyle.skip -U -T 1C'
 
 # Short-hand for ONOS build, package and test.
 alias ob='onos-build'
+alias obf='ob -DskipTests -Dcheckstyle.skip'
 alias obi='onos-build -Dmaven.test.failure.ignore=true'
 alias obs='onos-build-selective'
 alias obd='onos-build-docs'

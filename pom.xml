@@ -46,6 +46,7 @@
 
         <module>openflow</module>
         <module>ovsdb</module>
+        <module>netconf</module>
         <module>pcep</module>
 
         <module>providers</module>
