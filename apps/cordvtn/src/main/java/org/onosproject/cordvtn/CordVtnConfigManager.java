@@ -94,7 +94,6 @@ public class CordVtnConfigManager {
             DefaultOvsdbNode ovsdb = new DefaultOvsdbNode(
                     node.host(), node.ip(), node.port(), node.bridgeId());
             cordVtnService.addNode(ovsdb);
-            cordVtnService.connect(ovsdb);
         });
     }
 

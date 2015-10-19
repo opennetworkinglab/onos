@@ -27,7 +27,6 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -52,6 +51,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -75,7 +75,8 @@ public class CordVtn implements CordVtnService {
             .register(KryoNamespaces.API)
             .register(DefaultOvsdbNode.class);
     private static final String DEFAULT_BRIDGE_NAME = "br-int";
-    private static final Map<String, String> VXLAN_OPTIONS = new HashMap<String, String>() {
+    private static final String DEFAULT_TUNNEL = "vxlan";
+    private static final Map<String, String> DEFAULT_TUNNEL_OPTIONS = new HashMap<String, String>() {
         {
             put("key", "flow");
             put("local_ip", "flow");
@@ -98,9 +99,6 @@ public class CordVtn implements CordVtnService {
     protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected MastershipService mastershipService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OvsdbController controller;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -117,11 +115,10 @@ public class CordVtn implements CordVtnService {
     private final VmHandler vmHandler = new VmHandler();
 
     private ConsistentMap<DeviceId, OvsdbNode> nodeStore;
-    private ApplicationId appId;
 
     @Activate
     protected void activate() {
-        appId = coreService.registerApplication("org.onosproject.cordvtn");
+        ApplicationId appId = coreService.registerApplication("org.onosproject.cordvtn");
         nodeStore = storageService.<DeviceId, OvsdbNode>consistentMapBuilder()
                 .withSerializer(Serializer.using(NODE_SERIALIZER.build()))
                 .withName("cordvtn-nodestore")
@@ -148,7 +145,16 @@ public class CordVtn implements CordVtnService {
     @Override
     public void addNode(OvsdbNode ovsdb) {
         checkNotNull(ovsdb);
-        nodeStore.put(ovsdb.deviceId(), ovsdb);
+
+        if (!nodeStore.containsKey(ovsdb.deviceId())) {
+            nodeStore.put(ovsdb.deviceId(), ovsdb);
+        }
+
+        if (isNodeConnected(ovsdb)) {
+            init(ovsdb);
+        } else {
+            connect(ovsdb);
+        }
     }
 
     @Override
@@ -159,12 +165,13 @@ public class CordVtn implements CordVtnService {
             return;
         }
 
-        // check ovsdb and integration bridge connection state first
-        if (isNodeConnected(ovsdb)) {
-            log.warn("Cannot delete connected node {}", ovsdb.host());
-        } else {
-            nodeStore.remove(ovsdb.deviceId());
+        if (deviceService.getDevice(ovsdb.deviceId()) != null) {
+            if (deviceService.isAvailable(ovsdb.deviceId())) {
+                log.warn("Cannot delete connected node {}", ovsdb.host());
+                return;
+            }
         }
+        nodeStore.remove(ovsdb.deviceId());
     }
 
     @Override
@@ -175,7 +182,10 @@ public class CordVtn implements CordVtnService {
             log.warn("Node {} does not exist", ovsdb.host());
             return;
         }
-        controller.connect(ovsdb.ip(), ovsdb.port());
+
+        if (!isNodeConnected(ovsdb)) {
+            controller.connect(ovsdb.ip(), ovsdb.port());
+        }
     }
 
     @Override
@@ -187,11 +197,30 @@ public class CordVtn implements CordVtnService {
             return;
         }
 
-        OvsdbClientService ovsdbClient = getOvsdbClient(ovsdb);
-        checkNotNull(ovsdbClient);
-
-        if (ovsdbClient.isConnected()) {
+        if (isNodeConnected(ovsdb)) {
+            OvsdbClientService ovsdbClient = getOvsdbClient(ovsdb);
             ovsdbClient.disconnect();
+        }
+    }
+
+    private void init(OvsdbNode ovsdb) {
+        checkNotNull(ovsdb);
+
+        if (!nodeStore.containsKey(ovsdb.deviceId())) {
+            log.warn("Node {} does not exist", ovsdb.host());
+            return;
+        }
+
+        if (!isNodeConnected(ovsdb)) {
+            log.warn("Node {} is not connected", ovsdb.host());
+            return;
+        }
+
+        if (deviceService.getDevice(ovsdb.intBrId()) == null ||
+                !deviceService.isAvailable(ovsdb.intBrId())) {
+            createIntegrationBridge(ovsdb);
+        } else if (!checkVxlanPort(ovsdb)) {
+            createVxlanPort(ovsdb);
         }
     }
 
@@ -235,9 +264,43 @@ public class CordVtn implements CordVtnService {
         OvsdbClientService ovsdbClient = controller.getOvsdbClient(
                 new OvsdbNodeId(ovsdb.ip(), ovsdb.port().toInt()));
         if (ovsdbClient == null) {
-            log.warn("Couldn't find ovsdb client of node {}", ovsdb.host());
+            log.debug("Couldn't find ovsdb client for {}", ovsdb.host());
         }
         return ovsdbClient;
+    }
+
+    private void createIntegrationBridge(OvsdbNode ovsdb) {
+        List<ControllerInfo> controllers = new ArrayList<>();
+        Sets.newHashSet(clusterService.getNodes())
+                .forEach(controller -> {
+                    ControllerInfo ctrlInfo = new ControllerInfo(controller.ip(), OFPORT, "tcp");
+                    controllers.add(ctrlInfo);
+                });
+        String dpid = ovsdb.intBrId().toString().substring(DPID_BEGIN);
+
+        // TODO change to use bridge config
+        OvsdbClientService ovsdbClient = getOvsdbClient(ovsdb);
+        ovsdbClient.createBridge(DEFAULT_BRIDGE_NAME, dpid, controllers);
+    }
+
+    private void createVxlanPort(OvsdbNode ovsdb) {
+        // TODO change to use tunnel config and tunnel description
+        OvsdbClientService ovsdbClient = getOvsdbClient(ovsdb);
+        ovsdbClient.createTunnel(DEFAULT_BRIDGE_NAME, DEFAULT_TUNNEL,
+                                 DEFAULT_TUNNEL, DEFAULT_TUNNEL_OPTIONS);
+    }
+
+    private boolean checkVxlanPort(OvsdbNode ovsdb) {
+        // TODO change to use tunnel config
+        OvsdbClientService ovsdbClient = getOvsdbClient(ovsdb);
+        try {
+            ovsdbClient.getPorts().stream()
+                    .filter(p -> p.portName().value().equals(DEFAULT_TUNNEL))
+                    .findFirst().get();
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+        return true;
     }
 
     private class InternalDeviceListener implements DeviceListener {
@@ -252,8 +315,11 @@ public class CordVtn implements CordVtnService {
                     eventExecutor.submit(() -> handler.connected(device));
                     break;
                 case DEVICE_AVAILABILITY_CHANGED:
-                    eventExecutor.submit(() -> handler.disconnected(device));
-                    // TODO handle the case that the device is recovered
+                    if (deviceService.isAvailable(device.id())) {
+                        eventExecutor.submit(() -> handler.connected(device));
+                    } else {
+                        eventExecutor.submit(() -> handler.disconnected(device));
+                    }
                     break;
                 default:
                     break;
@@ -286,20 +352,10 @@ public class CordVtn implements CordVtnService {
         public void connected(Device device) {
             log.info("Ovsdb {} is connected", device.id());
 
-            if (!mastershipService.isLocalMaster(device.id())) {
-                return;
-            }
-
-            // TODO change to use bridge config
             OvsdbNode ovsdb = getNode(device.id());
-            OvsdbClientService ovsdbClient = getOvsdbClient(ovsdb);
-
-            List<ControllerInfo> controllers = new ArrayList<>();
-            Sets.newHashSet(clusterService.getNodes()).forEach(controller ->
-                        controllers.add(new ControllerInfo(controller.ip(), OFPORT, "tcp")));
-            String dpid = ovsdb.intBrId().toString().substring(DPID_BEGIN);
-
-            ovsdbClient.createBridge(DEFAULT_BRIDGE_NAME, dpid, controllers);
+            if (ovsdb != null) {
+                init(ovsdb);
+            }
         }
 
         @Override
@@ -314,22 +370,19 @@ public class CordVtn implements CordVtnService {
         public void connected(Device device) {
             log.info("Integration Bridge {} is detected", device.id());
 
-            OvsdbNode ovsdb = getNodes().stream()
-                    .filter(node -> node.intBrId().equals(device.id()))
-                    .findFirst().get();
-
-            if (ovsdb == null) {
+            OvsdbNode ovsdb;
+            try {
+                ovsdb = getNodes().stream()
+                        .filter(node -> node.intBrId().equals(device.id()))
+                        .findFirst().get();
+            } catch (NoSuchElementException e) {
                 log.warn("Couldn't find OVSDB associated with {}", device.id());
                 return;
             }
 
-            if (!mastershipService.isLocalMaster(ovsdb.deviceId())) {
-                return;
+            if (!checkVxlanPort(ovsdb)) {
+                createVxlanPort(ovsdb);
             }
-
-            // TODO change to use tunnel config and tunnel description
-            OvsdbClientService ovsdbClient = getOvsdbClient(ovsdb);
-            ovsdbClient.createTunnel(DEFAULT_BRIDGE_NAME, "vxlan", "vxlan", VXLAN_OPTIONS);
         }
 
         @Override
