@@ -40,7 +40,7 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.onosproject.routing.impl.Router.InternalHostListener;
-import org.onosproject.routing.BgpService;
+import org.onosproject.routing.RouteSourceService;
 import org.onosproject.routing.FibEntry;
 import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
@@ -83,10 +83,10 @@ public class RouterAsyncArpTest {
         routingConfigurationService =
                 createMock(RoutingConfigurationService.class);
 
-        BgpService bgpService = createMock(BgpService.class);
-        bgpService.start(anyObject(RouteListener.class));
-        bgpService.stop();
-        replay(bgpService);
+        RouteSourceService routeSourceService = createMock(RouteSourceService.class);
+        routeSourceService.start(anyObject(RouteListener.class));
+        routeSourceService.stop();
+        replay(routeSourceService);
 
         fibListener = createMock(FibListener.class);
 
@@ -94,7 +94,7 @@ public class RouterAsyncArpTest {
         router.coreService = createNiceMock(CoreService.class);
         router.hostService = hostService;
         router.routingConfigurationService = routingConfigurationService;
-        router.bgpService = bgpService;
+        router.routeSourceService = routeSourceService;
         router.activate();
 
         router.addFibListener(fibListener);

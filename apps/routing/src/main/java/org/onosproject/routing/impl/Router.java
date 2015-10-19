@@ -39,7 +39,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
-import org.onosproject.routing.BgpService;
+import org.onosproject.routing.RouteSourceService;
 import org.onosproject.routing.FibEntry;
 import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
@@ -103,7 +103,7 @@ public class Router implements RoutingService {
     protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected BgpService bgpService;
+    protected RouteSourceService routeSourceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RoutingConfigurationService routingConfigurationService;
@@ -142,14 +142,14 @@ public class Router implements RoutingService {
     public void start() {
         this.hostService.addListener(hostListener);
 
-        bgpService.start(new InternalRouteListener());
+        routeSourceService.start(new InternalRouteListener());
 
         bgpUpdatesExecutor.execute(this::doUpdatesThread);
     }
 
     @Override
     public void stop() {
-        bgpService.stop();
+        routeSourceService.stop();
 
         this.hostService.removeListener(hostListener);
 

@@ -34,7 +34,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.IpPrefix;
-import org.onosproject.routing.BgpService;
+import org.onosproject.routing.RouteSourceService;
 import org.onosproject.routing.RouteListener;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -57,7 +57,7 @@ import static org.onlab.util.Tools.groupedThreads;
  */
 @Component(immediate = true, enabled = false)
 @Service
-public class BgpSessionManager implements BgpInfoService, BgpService {
+public class BgpSessionManager implements BgpInfoService, RouteSourceService {
     private static final Logger log =
             LoggerFactory.getLogger(BgpSessionManager.class);
 

@@ -384,8 +384,11 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
                 .fromApp(fwd.appId())
                 .withPriority(fwd.priority())
                 .forDevice(deviceId)
-                .withSelector(filteredSelector)
-                .withTreatment(tt);
+                .withSelector(filteredSelector);
+
+        if (tt != null) {
+            ruleBuilder.withTreatment(tt);
+        }
 
         if (fwd.permanent()) {
             ruleBuilder.makePermanent();
