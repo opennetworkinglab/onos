@@ -16,6 +16,7 @@
 package org.onosproject.net.flow.criteria;
 
 import org.onlab.packet.EthType;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -25,11 +26,11 @@ import org.onlab.packet.VlanId;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OchSignalType;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criterion.Type;
-import org.onosproject.net.OchSignalType;
 
 /**
  * Factory class to create various traffic selection criteria.
@@ -506,6 +507,16 @@ public final class Criteria {
      */
     public static Criterion matchOduSignalType(OduSignalType signalType) {
         return new OduSignalTypeCriterion(signalType);
+    }
+
+    /**
+     * Creates a match on IPv4 source field using the specified value.
+     *
+     * @param ip ipv4 source value
+     * @return match criterion
+     */
+    public static Criterion matchArpTpa(Ip4Address ip) {
+        return new ArpPaCriterion(ip, Type.ARP_TPA);
     }
 
     public static Criterion dummy() {
