@@ -21,12 +21,14 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.onlab.osgi.ServiceDirectory;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
@@ -56,11 +58,13 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
     private ServiceDirectory serviceDirectory;
     protected FlowObjectiveStore flowObjectiveStore;
     protected DeviceId deviceId;
+    protected ApplicationId appId;
     protected FlowRuleService flowRuleService;
     protected DeviceService deviceService;
     private static final int TIME_OUT = 0;
-    private static final int MAC_TABLE = 40;
-    private static final int PORT_TABLE = 0;
+    private static final int CLASSIFIER_TABLE = 0;
+    private static final int MAC_TABLE = 50;
+    private static final int TABLE_MISS_PRIORITY = 0;
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
@@ -71,9 +75,9 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
         coreService = serviceDirectory.get(CoreService.class);
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
         flowObjectiveStore = context.store();
-        coreService
+        appId = coreService
                 .registerApplication("org.onosproject.driver.OpenVSwitchPipeline");
-
+        initializePipeline();
     }
 
     @Override
@@ -125,6 +129,60 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
         super.next(nextObjective);
     }
 
+    private void initializePipeline() {
+        processClassifierTable(true);
+        processMacTable(true);
+    }
+
+    private void processClassifierTable(boolean install) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+
+        treatment.transition(MAC_TABLE);
+
+        FlowRule rule;
+        rule = DefaultFlowRule.builder().forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(TABLE_MISS_PRIORITY).fromApp(appId)
+                .makePermanent().forTable(CLASSIFIER_TABLE).build();
+
+        applyRules(install, rule);
+    }
+
+    private void processMacTable(boolean install) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+
+        treatment.drop();
+
+        FlowRule rule;
+        rule = DefaultFlowRule.builder().forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(TABLE_MISS_PRIORITY).fromApp(appId)
+                .makePermanent().forTable(MAC_TABLE).build();
+
+        applyRules(install, rule);
+    }
+
+    private void applyRules(boolean install, FlowRule rule) {
+        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+
+        ops = install ? ops.add(rule) : ops.remove(rule);
+        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                log.info("ONOSW provisioned " + rule.tableId() + " table");
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                log.info("ONOSW failed to provision " + rule.tableId() + " table");
+            }
+        }));
+    }
+
     private Collection<FlowRule> processForward(ForwardingObjective fwd) {
         switch (fwd.flag()) {
         case SPECIFIC:
@@ -164,7 +222,7 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
             tb.allInstructions().forEach(t -> newTraffic.add(t));
             newTraffic.transition(MAC_TABLE);
             ruleBuilder.withTreatment(newTraffic.build());
-            ruleBuilder.forTable(PORT_TABLE);
+            ruleBuilder.forTable(CLASSIFIER_TABLE);
         }
         return Collections.singletonList(ruleBuilder.build());
     }
