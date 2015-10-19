@@ -1,0 +1,12 @@
+{
+  "comments": [
+    "Demo of adding badges to devices"
+  ],
+  "title": "Demo adding badges",
+  "params": {
+    "lastAuto": 5
+  },
+  "description": [
+    "Demonstrate the device badging feature."
+  ]
+}

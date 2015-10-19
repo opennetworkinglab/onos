@@ -1,0 +1,14 @@
+{
+  "event": "showHighlights",
+  "payload": {
+    "devices": [],
+    "hosts": [],
+    "links": [
+      {
+        "css": "primary",
+        "id": "of:0000000000000001/5-of:0000000000000002/7",
+        "label": "Antz!"
+      }
+    ]
+  }
+}
