@@ -27,4 +27,5 @@ org.onosproject.vtn*
 org.onosproject.cord*
 org.onosproject.mcast*
 org.onosproject.mfwd*
+org.onosproject.mlb*
 org.onosproject.igmp.impl
