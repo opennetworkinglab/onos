@@ -134,7 +134,7 @@ public class DeviceConfiguration implements DeviceProperties {
     @Override
     public int getSegmentId(DeviceId deviceId) {
         if (deviceConfigMap.get(deviceId) != null) {
-            log.debug("getSegmentId for device{} is {}",
+            log.trace("getSegmentId for device{} is {}",
                     deviceId,
                     deviceConfigMap.get(deviceId).nodeSid);
             return deviceConfigMap.get(deviceId).nodeSid;
@@ -189,7 +189,7 @@ public class DeviceConfiguration implements DeviceProperties {
     @Override
     public MacAddress getDeviceMac(DeviceId deviceId) {
         if (deviceConfigMap.get(deviceId) != null) {
-            log.debug("getDeviceMac for device{} is {}",
+            log.trace("getDeviceMac for device{} is {}",
                     deviceId,
                     deviceConfigMap.get(deviceId).mac);
             return deviceConfigMap.get(deviceId).mac;
@@ -209,7 +209,7 @@ public class DeviceConfiguration implements DeviceProperties {
      */
     public Ip4Address getRouterIp(DeviceId deviceId) {
         if (deviceConfigMap.get(deviceId) != null) {
-            log.debug("getDeviceIp for device{} is {}",
+            log.trace("getDeviceIp for device{} is {}",
                     deviceId,
                     deviceConfigMap.get(deviceId).ip);
             return deviceConfigMap.get(deviceId).ip;
@@ -231,7 +231,7 @@ public class DeviceConfiguration implements DeviceProperties {
     @Override
     public boolean isEdgeDevice(DeviceId deviceId) {
         if (deviceConfigMap.get(deviceId) != null) {
-            log.debug("isEdgeDevice for device{} is {}",
+            log.trace("isEdgeDevice for device{} is {}",
                     deviceId,
                     deviceConfigMap.get(deviceId).isEdge);
             return deviceConfigMap.get(deviceId).isEdge;
@@ -297,7 +297,7 @@ public class DeviceConfiguration implements DeviceProperties {
      */
     public List<Ip4Address> getSubnetGatewayIps(DeviceId deviceId) {
         if (deviceConfigMap.get(deviceId) != null) {
-            log.debug("getSubnetGatewayIps for device{} is {}",
+            log.trace("getSubnetGatewayIps for device{} is {}",
                     deviceId,
                     deviceConfigMap.get(deviceId).gatewayIps.values());
             return new ArrayList<>(deviceConfigMap.get(deviceId).gatewayIps.values());
@@ -314,7 +314,7 @@ public class DeviceConfiguration implements DeviceProperties {
      */
     public List<Ip4Prefix> getSubnets(DeviceId deviceId) {
         if (deviceConfigMap.get(deviceId) != null) {
-            log.debug("getSubnets for device{} is {}",
+            log.trace("getSubnets for device{} is {}",
                     deviceId,
                     deviceConfigMap.get(deviceId).subnets.values());
             return new ArrayList<>(deviceConfigMap.get(deviceId).subnets.values());

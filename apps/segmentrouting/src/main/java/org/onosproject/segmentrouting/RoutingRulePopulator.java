@@ -150,7 +150,7 @@ public class RoutingRulePopulator {
     /**
      * Populates IP flow rules for the router IP address.
      *
-     * @param deviceId device ID to set the rules
+     * @param deviceId target device ID to set the rules
      * @param ipPrefix the IP address of the destination router
      * @param destSw device ID of the destination router
      * @param nextHops next hop switch ID list
@@ -210,9 +210,9 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Populates MPLS flow rules to all transit routers.
+     * Populates MPLS flow rules to all routers.
      *
-     * @param deviceId device ID of the switch to set the rules
+     * @param deviceId target device ID of the switch to set the rules
      * @param destSwId destination switch device ID
      * @param nextHops next hops switch ID list
      * @return true if all rules are set successfully, false otherwise
@@ -379,7 +379,7 @@ public class RoutingRulePopulator {
                 .addCondition(Criteria.matchEthDst(config
                                       .getDeviceMac(deviceId)));
         fob.permit().fromApp(srManager.appId);
-        log.debug("populateTableVlan: Installing filtering objective for router mac");
+        log.debug("populateTableTMac: Installing filtering objective for router mac");
         srManager.flowObjectiveService.
             filter(deviceId,
                    fob.add(new SRObjectiveContext(deviceId,

@@ -31,7 +31,7 @@ import java.util.List;
 
 /**
  * This class creates bandwidth constrained breadth first tree and returns paths
- * from root Device to leaf Devicees which satisfies the bandwidth condition. If
+ * from root Device to leaf Devices which satisfies the bandwidth condition. If
  * bandwidth parameter is not specified, the normal breadth first tree will be
  * calculated. The paths are snapshot paths at the point of the class
  * instantiation.
@@ -281,7 +281,7 @@ public class ECMPShortestPathGraph {
      * Return the complete info of the computed ECMP paths for each Device
      * learned in multiple iterations from the root Device.
      *
-     * @return the hash table of Devicees learned in multiple Dijkstra
+     * @return the hash table of Devices learned in multiple Dijkstra
      *         iterations and corresponding ECMP paths to it from the root
      *         Device
      */
@@ -305,8 +305,8 @@ public class ECMPShortestPathGraph {
      * Return the complete info of the computed ECMP paths for each Device
      * learned in multiple iterations from the root Device.
      *
-     * @return the hash table of Devicees learned in multiple Dijkstra
-     *         iterations and corresponding ECMP paths in terms of Devicees to
+     * @return the hash table of Devices learned in multiple Dijkstra
+     *         iterations and corresponding ECMP paths in terms of Devices to
      *         be traversed to it from the root Device
      */
     public HashMap<Integer, HashMap<DeviceId,

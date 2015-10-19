@@ -93,7 +93,7 @@ public class DefaultRoutingHandler {
         try {
             populationStatus = Status.STARTED;
             rulePopulator.resetCounter();
-            log.info("Starts to populate routing rules");
+            log.info("Starting to populate segment-routing rules");
             log.debug("populateAllRoutingRules: populationStatus is STARTED");
 
             for (Device sw : srManager.deviceService.getDevices()) {
@@ -117,7 +117,7 @@ public class DefaultRoutingHandler {
 
             log.debug("populateAllRoutingRules: populationStatus is SUCCEEDED");
             populationStatus = Status.SUCCEEDED;
-            log.info("Completes routing rule population. Total # of rules pushed : {}",
+            log.info("Completed routing rule population. Total # of rules pushed : {}",
                     rulePopulator.getCounter());
             return true;
         } finally {
@@ -426,7 +426,7 @@ public class DefaultRoutingHandler {
                     .get(itrIdx);
             for (DeviceId targetSw : swViaMap.keySet()) {
                 Set<DeviceId> nextHops = new HashSet<>();
-
+                log.debug("** Iter: {} root: {} target: {}", itrIdx, destSw, targetSw);
                 for (ArrayList<DeviceId> via : swViaMap.get(targetSw)) {
                     if (via.isEmpty()) {
                         nextHops.add(destSw);
@@ -456,7 +456,7 @@ public class DefaultRoutingHandler {
         // rule for both subnet and router IP.
         if (config.isEdgeDevice(targetSw) && config.isEdgeDevice(destSw)) {
             List<Ip4Prefix> subnets = config.getSubnets(destSw);
-            log.debug("populateEcmpRoutingRulePartial in device {} towards {} for subnets {}",
+            log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for subnets {}",
                     targetSw, destSw, subnets);
             result = rulePopulator.populateIpRuleForSubnet(targetSw,
                                                            subnets,
@@ -468,7 +468,7 @@ public class DefaultRoutingHandler {
 
             Ip4Address routerIp = config.getRouterIp(destSw);
             IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
-            log.debug("populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
+            log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
                     targetSw, destSw, routerIpPrefix);
             result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
             if (!result) {
@@ -479,7 +479,7 @@ public class DefaultRoutingHandler {
         } else if (config.isEdgeDevice(targetSw)) {
             Ip4Address routerIp = config.getRouterIp(destSw);
             IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
-            log.debug("populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
+            log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
                     targetSw, destSw, routerIpPrefix);
             result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
             if (!result) {
@@ -488,7 +488,7 @@ public class DefaultRoutingHandler {
         }
 
         // Populates MPLS rules to all routers
-        log.debug("populateEcmpRoutingRulePartial in device{} towards {} for all MPLS rules",
+        log.debug("* populateEcmpRoutingRulePartial in device{} towards {} for all MPLS rules",
                 targetSw, destSw);
         result = rulePopulator.populateMplsRule(targetSw, destSw, nextHops);
         if (!result) {
@@ -500,7 +500,7 @@ public class DefaultRoutingHandler {
 
     /**
      * Populates table miss entries for all tables, and pipeline rules for VLAN
-     * and TACM tables.
+     * and TCAM tables. XXX rename/rethink
      *
      * @param deviceId Switch ID to set the rules
      */
@@ -534,6 +534,8 @@ public class DefaultRoutingHandler {
     /**
      * Resume the flow rule population process if it was aborted for any reason.
      * Mostly the process is aborted when the groups required are not set yet.
+     *  XXX is this called?
+     *
      */
     public void resumePopulationProcess() {
         statusLock.lock();

@@ -296,7 +296,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
-     * Returns the GrouopKey object for the device and the NighborSet given.
+     * Returns the GroupKey object for the device and the NeighborSet given.
+     * XXX is this called
      *
      * @param ns NeightborSet object for the GroupKey
      * @return GroupKey object for the NeighborSet

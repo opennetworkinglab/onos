@@ -169,7 +169,7 @@ public class CpqdOFDPA1Pipeline extends OFDPA1Pipeline {
         }));
     }
 
-    private void processAclTable() {
+    protected void processAclTable() {
         //table miss entry - catch all to executed action-set
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();

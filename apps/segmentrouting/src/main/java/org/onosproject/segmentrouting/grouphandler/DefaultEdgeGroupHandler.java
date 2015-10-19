@@ -35,13 +35,14 @@ import org.onosproject.store.service.EventuallyConsistentMap;
  * where D0 and D3 are edge devices and D1 and D2 are transit devices.
  * Assume device D0 is connected to 2 neighbors (D1 and D2 ).
  * The following groups will be created in D0:
- * 1) all ports to D1 + with no label push,
- * 2) all ports to D1 + with label 102 pushed,
- * 3) all ports to D1 + with label 103 pushed,
+ * 1) all ports to D1 + with no label push, // direct attach case, seen
+ * 2) all ports to D1 + with label 102 pushed, // this is not needed
+ * 3) all ports to D1 + with label 103 pushed, // maybe needed, sometimes seen
  * 4) all ports to D2 + with no label push,
  * 5) all ports to D2 + with label 101 pushed,
  * 6) all ports to D2 + with label 103 pushed,
- * 7) all ports to D1 and D2 + with label 103 pushed
+ * 7) all ports to D1 and D2 + with label 103 pushed // ecmp case
+ * 8) what about ecmp no label case
  */
 public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
 

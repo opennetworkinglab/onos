@@ -115,7 +115,7 @@ public class IpHandler {
     /**
      * Forwards IP packets in the buffer to the destination IP address.
      * It is called when the controller finds the destination MAC address
-     * via ARP responsees.
+     * via ARP responses.
      *
      * @param deviceId switch device ID
      * @param destIpAddress destination IP address
