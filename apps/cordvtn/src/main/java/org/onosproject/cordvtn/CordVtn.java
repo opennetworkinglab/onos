@@ -146,9 +146,7 @@ public class CordVtn implements CordVtnService {
     public void addNode(OvsdbNode ovsdb) {
         checkNotNull(ovsdb);
 
-        if (!nodeStore.containsKey(ovsdb.deviceId())) {
-            nodeStore.put(ovsdb.deviceId(), ovsdb);
-        }
+        nodeStore.putIfAbsent(ovsdb.deviceId(), ovsdb);
 
         if (isNodeConnected(ovsdb)) {
             init(ovsdb);
@@ -160,10 +158,6 @@ public class CordVtn implements CordVtnService {
     @Override
     public void deleteNode(OvsdbNode ovsdb) {
         checkNotNull(ovsdb);
-
-        if (!nodeStore.containsKey(ovsdb.deviceId())) {
-            return;
-        }
 
         if (deviceService.getDevice(ovsdb.deviceId()) != null) {
             if (deviceService.isAvailable(ovsdb.deviceId())) {
