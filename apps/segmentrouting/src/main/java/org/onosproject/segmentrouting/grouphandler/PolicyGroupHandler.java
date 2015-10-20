@@ -54,7 +54,8 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
      * @param config interface to retrieve the device properties
      * @param linkService link service object
      * @param flowObjService flow objective service object
-     * @param nsNextObjStore next objective store map
+     * @param nsNextObjStore NeighborSet next objective store map
+     * @param subnetNextObjStore subnet next objective store map
      */
     public PolicyGroupHandler(DeviceId deviceId,
                               ApplicationId appId,
@@ -62,8 +63,11 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                               LinkService linkService,
                               FlowObjectiveService flowObjService,
                               EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey,
-                                      Integer> nsNextObjStore) {
-        super(deviceId, appId, config, linkService, flowObjService, nsNextObjStore);
+                                      Integer> nsNextObjStore,
+                              EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
+                                      Integer> subnetNextObjStore) {
+        super(deviceId, appId, config, linkService, flowObjService,
+              nsNextObjStore, subnetNextObjStore);
     }
 
     public PolicyGroupIdentifier createPolicyGroupChain(String id,

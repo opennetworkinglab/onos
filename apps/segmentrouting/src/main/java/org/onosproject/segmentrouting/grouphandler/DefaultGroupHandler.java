@@ -25,10 +25,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.util.KryoNamespace;
@@ -74,7 +75,8 @@ public class DefaultGroupHandler {
     //        new HashMap<NeighborSet, Integer>();
     protected EventuallyConsistentMap<
         NeighborSetNextObjectiveStoreKey, Integer> nsNextObjStore = null;
-    protected Random rand = new Random();
+    protected EventuallyConsistentMap<
+            SubnetNextObjectiveStoreKey, Integer> subnetNextObjStore = null;
 
     protected KryoNamespace.Builder kryo = new KryoNamespace.Builder()
             .register(URI.class).register(HashSet.class)
@@ -89,8 +91,10 @@ public class DefaultGroupHandler {
                                   LinkService linkService,
                                   FlowObjectiveService flowObjService,
                                   EventuallyConsistentMap<
-                                  NeighborSetNextObjectiveStoreKey,
-                                  Integer> nsNextObjStore) {
+                                          NeighborSetNextObjectiveStoreKey,
+                                          Integer> nsNextObjStore,
+                                  EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
+                                          Integer> subnetNextObjStore) {
         this.deviceId = checkNotNull(deviceId);
         this.appId = checkNotNull(appId);
         this.deviceConfig = checkNotNull(config);
@@ -101,6 +105,7 @@ public class DefaultGroupHandler {
         nodeMacAddr = checkNotNull(config.getDeviceMac(deviceId));
         this.flowObjectiveService = flowObjService;
         this.nsNextObjStore = nsNextObjStore;
+        this.subnetNextObjStore = subnetNextObjStore;
 
         populateNeighborMaps();
     }
@@ -115,7 +120,8 @@ public class DefaultGroupHandler {
      * @param config interface to retrieve the device properties
      * @param linkService link service object
      * @param flowObjService flow objective service object
-     * @param nsNextObjStore next objective store map
+     * @param nsNextObjStore NeighborSet next objective store map
+     * @param subnetNextObjStore subnet next objective store map
      * @return default group handler type
      */
     public static DefaultGroupHandler createGroupHandler(DeviceId deviceId,
@@ -123,18 +129,23 @@ public class DefaultGroupHandler {
                                                          DeviceProperties config,
                                                          LinkService linkService,
                                                          FlowObjectiveService flowObjService,
-                                                         EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey,
-                                                                 Integer> nsNextObjStore) {
+                                                         EventuallyConsistentMap<
+                                                                 NeighborSetNextObjectiveStoreKey,
+                                                                 Integer> nsNextObjStore,
+                                                         EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
+                                                                 Integer> subnetNextObjStore) {
         if (config.isEdgeDevice(deviceId)) {
             return new DefaultEdgeGroupHandler(deviceId, appId, config,
                                                linkService,
                                                flowObjService,
-                                               nsNextObjStore);
+                                               nsNextObjStore,
+                                               subnetNextObjStore);
         } else {
             return new DefaultTransitGroupHandler(deviceId, appId, config,
                                                   linkService,
                                                   flowObjService,
-                                                  nsNextObjStore);
+                                                  nsNextObjStore,
+                                                  subnetNextObjStore);
         }
     }
 
@@ -323,6 +334,44 @@ public class DefaultGroupHandler {
     }
 
     /**
+     * Returns the next objective associated with the neighborset.
+     * If there is no next objective for this neighborset, this API
+     * would create a next objective and return.
+     *
+     * @param prefix subnet information
+     * @return int if found or -1
+     */
+    public int getSubnetNextObjectiveId(IpPrefix prefix) {
+        Integer nextId = subnetNextObjStore.
+                get(new SubnetNextObjectiveStoreKey(deviceId, prefix));
+        if (nextId == null) {
+            log.trace("getSubnetNextObjectiveId in device{}: Next objective id "
+                              + "not found for {} and creating", deviceId, prefix);
+            log.trace("getSubnetNextObjectiveId: subnetNextObjStore contents for device {}: {}",
+                      deviceId,
+                      subnetNextObjStore.entrySet()
+                              .stream()
+                              .filter((subnetStoreEntry) ->
+                                              (subnetStoreEntry.getKey().deviceId().equals(deviceId)))
+                              .collect(Collectors.toList()));
+            createGroupsFromSubnetConfig();
+            nextId = subnetNextObjStore.
+                    get(new SubnetNextObjectiveStoreKey(deviceId, prefix));
+            if (nextId == null) {
+                log.warn("subnetNextObjStore: unable to create next objective");
+                return -1;
+            } else {
+                log.debug("subnetNextObjStore in device{}: Next objective id {} "
+                                  + "created for {}", deviceId, nextId, prefix);
+            }
+        } else {
+            log.trace("subnetNextObjStore in device{}: Next objective id {} "
+                              + "found for {}", deviceId, nextId, prefix);
+        }
+        return nextId;
+    }
+
+    /**
      * Checks if the next objective ID (group) for the neighbor set exists or not.
      *
      * @param ns neighbor set to check
@@ -484,6 +533,35 @@ public class DefaultGroupHandler {
             nsNextObjStore.put(new NeighborSetNextObjectiveStoreKey(deviceId, ns),
                                nextId);
         }
+    }
+
+    public void createGroupsFromSubnetConfig() {
+        Map<Ip4Prefix, List<PortNumber>> subnetPortMap =
+                this.deviceConfig.getSubnetPortsMap(this.deviceId);
+
+        // Construct a broadcast group for each subnet
+        subnetPortMap.forEach((subnet, ports) -> {
+            int nextId = flowObjectiveService.allocateNextId();
+
+            NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                    .builder().withId(nextId)
+                    .withType(NextObjective.Type.BROADCAST).fromApp(appId);
+
+            ports.forEach(port -> {
+                TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+                tBuilder.setOutput(port);
+                nextObjBuilder.addTreatment(tBuilder.build());
+            });
+
+            NextObjective nextObj = nextObjBuilder.add();
+            flowObjectiveService.next(deviceId, nextObj);
+            log.debug("createGroupFromSubnetConfig: Submited "
+                              + "next objective {} in device {}",
+                      nextId, deviceId);
+            SubnetNextObjectiveStoreKey key =
+                    new SubnetNextObjectiveStoreKey(deviceId, subnet);
+            subnetNextObjStore.put(key, nextId);
+        });
     }
 
     public GroupKey getGroupKey(Object obj) {

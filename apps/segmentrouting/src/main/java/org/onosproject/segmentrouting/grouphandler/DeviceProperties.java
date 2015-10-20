@@ -16,9 +16,12 @@
 package org.onosproject.segmentrouting.grouphandler;
 
 import java.util.List;
+import java.util.Map;
 
+import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 
 /**
  * Mechanism through which group handler module retrieves
@@ -33,6 +36,7 @@ public interface DeviceProperties {
      * @return segment id of a device
      */
     int getSegmentId(DeviceId deviceId);
+
     /**
      * Returns the Mac address of a device to be used in group creation.
      *
@@ -40,6 +44,7 @@ public interface DeviceProperties {
      * @return mac address of a device
      */
     MacAddress getDeviceMac(DeviceId deviceId);
+
     /**
      * Indicates whether a device is edge device or transit/core device.
      *
@@ -47,6 +52,7 @@ public interface DeviceProperties {
      * @return boolean
      */
     boolean isEdgeDevice(DeviceId deviceId);
+
     /**
      * Returns all segment IDs to be considered in building auto
      *
@@ -54,4 +60,16 @@ public interface DeviceProperties {
      * @return list of segment IDs
      */
     List<Integer> getAllDeviceSegmentIds();
+
+    /**
+     * Returns subnet-to-ports mapping of given device.
+     *
+     * For each entry of the map
+     * Key: a subnet
+     * Value: a list of ports, which are bound to the subnet
+     *
+     * @param deviceId device identifier
+     * @return a map that contains all subnet-to-ports mapping of given device
+     */
+    Map<Ip4Prefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId);
 }

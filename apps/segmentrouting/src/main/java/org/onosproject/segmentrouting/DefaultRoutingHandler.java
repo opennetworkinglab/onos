@@ -23,7 +23,6 @@ import org.onlab.packet.IpPrefix;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.net.MastershipRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +96,7 @@ public class DefaultRoutingHandler {
             log.debug("populateAllRoutingRules: populationStatus is STARTED");
 
             for (Device sw : srManager.deviceService.getDevices()) {
-                if (srManager.mastershipService.getLocalRole(sw.id()) != MastershipRole.MASTER) {
+                if (!srManager.mastershipService.isLocalMaster(sw.id())) {
                     log.debug("populateAllRoutingRules: skipping device {}...we are not master",
                               sw.id());
                     continue;
@@ -146,8 +145,7 @@ public class DefaultRoutingHandler {
             // Take the snapshots of the links
             updatedEcmpSpgMap = new HashMap<>();
             for (Device sw : srManager.deviceService.getDevices()) {
-                if (srManager.mastershipService.
-                        getLocalRole(sw.id()) != MastershipRole.MASTER) {
+                if (!srManager.mastershipService.isLocalMaster(sw.id())) {
                     continue;
                 }
                 ECMPShortestPathGraph ecmpSpgUpdated =
@@ -273,8 +271,7 @@ public class DefaultRoutingHandler {
         for (Device sw : srManager.deviceService.getDevices()) {
             log.debug("Computing the impacted routes for device {} due to link fail",
                       sw.id());
-            if (srManager.mastershipService.
-                    getLocalRole(sw.id()) != MastershipRole.MASTER) {
+            if (!srManager.mastershipService.isLocalMaster(sw.id())) {
                 continue;
             }
             ECMPShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(sw.id());
@@ -320,8 +317,7 @@ public class DefaultRoutingHandler {
         for (Device sw : srManager.deviceService.getDevices()) {
             log.debug("Computing the impacted routes for device {}",
                       sw.id());
-            if (srManager.mastershipService.
-                    getLocalRole(sw.id()) != MastershipRole.MASTER) {
+            if (!srManager.mastershipService.isLocalMaster(sw.id())) {
                 log.debug("No mastership for {} and skip route optimization",
                           sw.id());
                 continue;

@@ -252,7 +252,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
     private GroupDescription.Type getGroupType(OFGroupType type) {
         switch (type) {
             case ALL:
-                return  GroupDescription.Type.ALL;
+                return GroupDescription.Type.ALL;
             case INDIRECT:
                 return GroupDescription.Type.INDIRECT;
             case SELECT:

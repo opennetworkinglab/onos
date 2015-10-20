@@ -22,13 +22,17 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.VlanId;
+import org.onlab.packet.IPv4;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigRegistry;
@@ -57,6 +61,7 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.TopologyService;
+import org.onosproject.segmentrouting.grouphandler.SubnetNextObjectiveStoreKey;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.StorageService;
@@ -136,6 +141,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     // Per device next objective ID store with (device id + neighbor set) as key
     private EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey,
         Integer> nsNextObjStore = null;
+    private EventuallyConsistentMap<SubnetNextObjectiveStoreKey, Integer> subnetNextObjStore = null;
     private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
     private EventuallyConsistentMap<String, Policy> policyStore = null;
     // Per device, per-subnet assigned-vlans store, with (device id + subnet
@@ -180,6 +186,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         kryoBuilder = new KryoNamespace.Builder()
             .register(NeighborSetNextObjectiveStoreKey.class,
+                    SubnetNextObjectiveStoreKey.class,
+                    SubnetAssignedVidStoreKey.class,
                     NeighborSet.class,
                     DeviceId.class,
                     URI.class,
@@ -191,8 +199,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     Policy.class,
                     TunnelPolicy.class,
                     Policy.Type.class,
-                    SubnetAssignedVidStoreKey.class,
-                    VlanId.class
+                    VlanId.class,
+                    Ip4Address.class,
+                    Ip4Prefix.class,
+                    IpAddress.Version.class,
+                    ConnectPoint.class
             );
 
         log.debug("Creating EC map nsnextobjectivestore");
@@ -205,6 +216,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
         log.trace("Current size {}", nsNextObjStore.size());
+
+        log.debug("Creating EC map subnetnextobjectivestore");
+        EventuallyConsistentMapBuilder<SubnetNextObjectiveStoreKey, Integer>
+                subnetNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
+
+        subnetNextObjStore = subnetNextObjMapBuilder
+                .withName("subnetnextobjectivestore")
+                .withSerializer(kryoBuilder)
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .build();
 
         EventuallyConsistentMapBuilder<String, Tunnel> tunnelMapBuilder =
                 storageService.eventuallyConsistentMapBuilder();
@@ -399,6 +420,25 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
     }
 
+    /**
+     * Returns the next objective ID for the Subnet given. If the nextObjectiveID does not exist,
+     * a new one is created and returned.
+     *
+     * @param deviceId Device ID
+     * @param prefix Subnet
+     * @return next objective ID
+     */
+    public int getSubnetNextObjectiveId(DeviceId deviceId, IpPrefix prefix) {
+        if (groupHandlerMap.get(deviceId) != null) {
+            log.trace("getSubnetNextObjectiveId query in device {}", deviceId);
+            return groupHandlerMap
+                    .get(deviceId).getSubnetNextObjectiveId(prefix);
+        } else {
+            log.warn("getSubnetNextObjectiveId query in device {} not found", deviceId);
+            return -1;
+        }
+    }
+
     private class InternalPacketProcessor implements PacketProcessor {
         @Override
         public void process(PacketContext context) {
@@ -559,15 +599,20 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         //Because in a multi-instance setup, instances can initiate
         //groups for any devices. Also the default TTP rules are needed
         //to be pushed before inserting any IP table entries for any device
-        DefaultGroupHandler dgh = DefaultGroupHandler.
+        DefaultGroupHandler groupHandler = DefaultGroupHandler.
                 createGroupHandler(device.id(),
                                    appId,
                                    deviceConfiguration,
                                    linkService,
                                    flowObjectiveService,
-                                   nsNextObjStore);
-        groupHandlerMap.put(device.id(), dgh);
+                                   nsNextObjStore,
+                                   subnetNextObjStore);
+        groupHandlerMap.put(device.id(), groupHandler);
         defaultRoutingHandler.populatePortAddressingRules(device.id());
+
+        if (mastershipService.isLocalMaster(device.id())) {
+            groupHandler.createGroupsFromSubnetConfig();
+        }
     }
 
     private void processPortRemoved(Device device, Port port) {
@@ -610,9 +655,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                         .createGroupHandler(device.id(), appId,
                                             deviceConfiguration, linkService,
                                             flowObjectiveService,
-                                            nsNextObjStore);
+                                            nsNextObjStore,
+                                            subnetNextObjStore);
                 groupHandlerMap.put(device.id(), groupHandler);
                 defaultRoutingHandler.populatePortAddressingRules(device.id());
+
+                if (mastershipService.isLocalMaster(device.id())) {
+                    groupHandler.createGroupsFromSubnetConfig();
+                }
             }
 
             defaultRoutingHandler.startPopulationProcess();

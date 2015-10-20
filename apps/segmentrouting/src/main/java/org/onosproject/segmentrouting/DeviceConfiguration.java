@@ -44,8 +44,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * Segment Routing configuration component that reads the
  * segment routing related configuration from Network Configuration Manager
  * component and organizes in more accessible formats.
- *
- * TODO: Merge multiple Segment Routing configuration wrapper classes into one.
  */
 public class DeviceConfiguration implements DeviceProperties {
 
@@ -249,6 +247,26 @@ public class DeviceConfiguration implements DeviceProperties {
     @Override
     public List<Integer> getAllDeviceSegmentIds() {
         return allSegmentIds;
+    }
+
+    @Override
+    public Map<Ip4Prefix, List<PortNumber>> getSubnetPortsMap(DeviceId deviceId) {
+        Map<Ip4Prefix, List<PortNumber>> subnetPortMap = new HashMap<>();
+
+        // Construct subnet-port mapping from port-subnet mapping
+        Map<PortNumber, Ip4Prefix> portSubnetMap =
+                this.deviceConfigMap.get(deviceId).subnets;
+        portSubnetMap.forEach((port, subnet) -> {
+            if (subnetPortMap.containsKey(subnet)) {
+                subnetPortMap.get(subnet).add(port);
+            } else {
+                ArrayList<PortNumber> ports = new ArrayList<>();
+                ports.add(port);
+                subnetPortMap.put(subnet, ports);
+            }
+        });
+
+        return subnetPortMap;
     }
 
     /**

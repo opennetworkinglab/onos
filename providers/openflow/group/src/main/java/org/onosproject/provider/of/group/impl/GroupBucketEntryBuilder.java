@@ -115,6 +115,10 @@ public class GroupBucketEntryBuilder {
                             DefaultGroupBucket.createFailoverGroupBucket(treatment,
                                     port, groupId);
                     break;
+                case ALL:
+                    groupBucket =
+                            DefaultGroupBucket.createAllGroupBucket(treatment);
+                    break;
                 default:
                     log.error("Unsupported Group type : {}", type);
             }

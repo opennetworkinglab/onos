@@ -45,9 +45,12 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
                                   LinkService linkService,
                                   FlowObjectiveService flowObjService,
                                   EventuallyConsistentMap<
-                                  NeighborSetNextObjectiveStoreKey,
-                                  Integer> nsNextObjStore) {
-        super(deviceId, appId, config, linkService, flowObjService, nsNextObjStore);
+                                        NeighborSetNextObjectiveStoreKey,
+                                        Integer> nsNextObjStore,
+                                  EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
+                                        Integer> subnetNextObjStore) {
+        super(deviceId, appId, config, linkService, flowObjService,
+              nsNextObjStore, subnetNextObjStore);
     }
 
     @Override

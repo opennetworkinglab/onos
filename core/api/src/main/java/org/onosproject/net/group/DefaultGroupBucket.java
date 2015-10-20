@@ -139,6 +139,20 @@ public final class DefaultGroupBucket implements GroupBucket, StoredGroupBucketE
                                       watchGroup);
     }
 
+    /**
+     * Creates all group bucket.
+     *
+     * @param treatment traffic treatment associated with group bucket
+     * @return all group bucket object
+     */
+    public static GroupBucket createAllGroupBucket(TrafficTreatment treatment) {
+        return new DefaultGroupBucket(GroupDescription.Type.ALL,
+                                      treatment,
+                                      (short) -1,
+                                      null,
+                                      null);
+    }
+
     @Override
     public GroupDescription.Type type() {
         return this.type;
