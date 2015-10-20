@@ -146,6 +146,8 @@
             <action class="org.onosproject.cli.net.AnnotateDeviceCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
+                <null/>
+                <null/>
             </completers>
         </command>
 
