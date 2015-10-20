@@ -23,11 +23,16 @@ import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.topo.Highlights.Amount;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Unit tests for {@link TopoJson}.
  */
 public class TopoJsonTest {
+
+    private static final String DEV1 = "device-1";
+    private static final String DEV2 = "device-2";
+    private static final String BADGE_MSG = "Hello there";
 
     private ObjectNode payload;
 
@@ -67,5 +72,39 @@ public class TopoJsonTest {
         checkEmptyArrays();
         String subdue = JsonUtils.string(payload, TopoJson.SUBDUE);
         assertEquals("not max", "max", subdue);
+    }
+
+    @Test
+    public void badgedDevice() {
+        Highlights h = new Highlights();
+        DeviceHighlight dh = new DeviceHighlight(DEV1);
+        dh.setBadge(NodeBadge.info(BADGE_MSG));
+        h.add(dh);
+
+        dh = new DeviceHighlight(DEV2);
+        dh.setBadge(NodeBadge.number(7));
+        h.add(dh);
+
+        payload = TopoJson.json(h);
+        System.out.println(payload);
+
+        // dig into the payload, and verify the badges are set on the devices
+        ArrayNode a = (ArrayNode) payload.get(TopoJson.DEVICES);
+
+        ObjectNode d = (ObjectNode) a.get(0);
+        assertEquals("wrong device id", DEV1, d.get(TopoJson.ID).asText());
+
+        ObjectNode b = (ObjectNode) d.get(TopoJson.BADGE);
+        assertNotNull("missing badge", b);
+        assertEquals("wrong type code", "i", b.get(TopoJson.TYPE).asText());
+        assertEquals("wrong message", BADGE_MSG, b.get(TopoJson.MSG).asText());
+
+        d = (ObjectNode) a.get(1);
+        assertEquals("wrong device id", DEV2, d.get(TopoJson.ID).asText());
+
+        b = (ObjectNode) d.get(TopoJson.BADGE);
+        assertNotNull("missing badge", b);
+        assertEquals("wrong type code", "n", b.get(TopoJson.TYPE).asText());
+        assertEquals("wrong message", "7", b.get(TopoJson.MSG).asText());
     }
 }

@@ -17,16 +17,16 @@
 package org.onosproject.ui.topo;
 
 /**
- * Denotes the highlighting to apply to a device.
+ * Denotes the highlighting to be applied to a device.
  */
 public class DeviceHighlight extends NodeHighlight {
 
+    /**
+     * Constructs a device highlight entity.
+     *
+     * @param deviceId the device identifier
+     */
     public DeviceHighlight(String deviceId) {
         super(TopoElementType.DEVICE, deviceId);
     }
-
-    // TODO: implement device highlighting:
-    //   - visual highlight
-    //   - badging
-
 }

@@ -20,7 +20,34 @@ package org.onosproject.ui.topo;
  * Parent class of {@link DeviceHighlight} and {@link HostHighlight}.
  */
 public abstract class NodeHighlight extends AbstractHighlight {
+
+    private NodeBadge badge;
+
+    /**
+     * Constructs a node highlight entity.
+     *
+     * @param type element type
+     * @param elementId element identifier
+     */
     public NodeHighlight(TopoElementType type, String elementId) {
         super(type, elementId);
+    }
+
+    /**
+     * Sets the badge for this node.
+     *
+     * @param badge badge to apply
+     */
+    public void setBadge(NodeBadge badge) {
+        this.badge = badge;
+    }
+
+    /**
+     * Returns the badge for this node, if any.
+     *
+     * @return badge, or null
+     */
+    public NodeBadge badge() {
+        return badge;
     }
 }

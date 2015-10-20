@@ -37,6 +37,8 @@ public final class TopoJson {
     static final String ID = "id";
     static final String LABEL = "label";
     static final String CSS = "css";
+    static final String BADGE = "badge";
+    static final String MSG = "msg";
 
     static final String TITLE = "title";
     static final String TYPE = "type";
@@ -102,6 +104,13 @@ public final class TopoJson {
                 .put(ID, dh.elementId());
         if (dh.subdued()) {
             n.put(SUBDUE, true);
+        }
+        NodeBadge badge = dh.badge();
+        if (badge != null) {
+            ObjectNode b = objectNode()
+                    .put(TYPE, badge.type().code())
+                    .put(MSG, badge.message());
+            n.set(BADGE, b);
         }
         return n;
     }
