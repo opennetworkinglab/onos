@@ -15,10 +15,13 @@
  */
 package org.onlab.packet.pim;
 
+
+
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ip4Address;
-import org.onlab.packet.IpAddress;
 import org.onlab.packet.Ip6Address;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.PIM;
 
 import java.nio.ByteBuffer;
 
@@ -36,7 +39,7 @@ public class PIMAddrUnicast {
      * PIM Encoded Source Address.
      */
     public PIMAddrUnicast() {
-        this.family = 4;
+        this.family = PIM.ADDRESS_FAMILY_IP4;
         this.encType = 0;
     }
 
@@ -48,9 +51,9 @@ public class PIMAddrUnicast {
     public PIMAddrUnicast(String addr) {
         this.addr = IpAddress.valueOf(addr);
         if (this.addr.isIp4()) {
-            this.family = 4;
+            this.family = PIM.ADDRESS_FAMILY_IP4;
         } else {
-            this.family = 6;
+            this.family = PIM.ADDRESS_FAMILY_IP6;
         }
         this.encType = 0;
     }
@@ -63,9 +66,9 @@ public class PIMAddrUnicast {
     public void setAddr(IpAddress addr) {
         this.addr = addr;
         if (this.addr.isIp4()) {
-            this.family = 4;
+            this.family = PIM.ADDRESS_FAMILY_IP4;
         } else {
-            this.family = 6;
+            this.family = PIM.ADDRESS_FAMILY_IP6;
         }
     }
 
@@ -121,17 +124,17 @@ public class PIMAddrUnicast {
         this.family = bb.get();
 
         // If we have IPv6 we need to ensure we have adequate buffer space.
-        if (this.family != 4 && this.family != 6) {
+        if (this.family != PIM.ADDRESS_FAMILY_IP4 && this.family != PIM.ADDRESS_FAMILY_IP6) {
             throw new DeserializationException("Invalid address family: " + this.family);
-        } else if (this.family == 6) {
+        } else if (this.family == PIM.ADDRESS_FAMILY_IP6) {
             // Subtract -1 from ENC_UNICAST_IPv6 BYTE_LENGTH because we read one byte for family previously.
             checkInput(bb.array(), bb.position(), bb.limit() - bb.position(), ENC_UNICAST_IPV6_BYTE_LENGTH - 1);
         }
 
         this.encType = bb.get();
-        if (this.family == 4) {
+        if (this.family == PIM.ADDRESS_FAMILY_IP4) {
             this.addr = IpAddress.valueOf(bb.getInt());
-        } else if (this.family == 6) {
+        } else if (this.family == PIM.ADDRESS_FAMILY_IP6) {
             this.addr = Ip6Address.valueOf(bb.array(), 2);
         }
         return this;

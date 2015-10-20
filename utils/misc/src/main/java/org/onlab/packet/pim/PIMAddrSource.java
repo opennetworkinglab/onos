@@ -17,9 +17,10 @@ package org.onlab.packet.pim;
 
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.Ip6Address;
+import org.onlab.packet.PIM;
 
 import java.nio.ByteBuffer;
 
@@ -66,7 +67,7 @@ public class PIMAddrSource {
     }
 
     private void init() {
-        this.family = 4;
+        this.family = PIM.ADDRESS_FAMILY_IP4;
         this.encType = 0;
         this.reserved = 0;
         this.sBit = true;
@@ -92,7 +93,7 @@ public class PIMAddrSource {
     public void setAddr(IpPrefix spfx) {
         this.addr = spfx.address();
         this.masklen = (byte) spfx.prefixLength();
-        this.family = (byte) ((this.addr.isIp4()) ? 4 : 6);
+        this.family = (byte) ((this.addr.isIp4()) ? PIM.ADDRESS_FAMILY_IP4 : PIM.ADDRESS_FAMILY_IP6);
     }
 
     /**
@@ -156,7 +157,7 @@ public class PIMAddrSource {
      */
     public int getByteSize() {
         int size = 4;
-        size += addr.isIp4() ? 4 : 16;
+        size += addr.isIp4() ? PIM.ADDRESS_FAMILY_IP4 : PIM.ADDRESS_FAMILY_IP6;
         return size;
     }
 
@@ -202,9 +203,9 @@ public class PIMAddrSource {
         checkInput(bb.array(), bb.position(), bb.limit() - bb.position(), ENC_SOURCE_IPV4_BYTE_LENGTH);
 
         this.family = bb.get();
-        if (family != 4 && family != 6) {
+        if (family != PIM.ADDRESS_FAMILY_IP4 && family != PIM.ADDRESS_FAMILY_IP6) {
             throw new DeserializationException("Illegal IP version number: " + family + "\n");
-        } else if (family == 6) {
+        } else if (family == PIM.ADDRESS_FAMILY_IP6) {
 
             // Check for one less by since we have already read the first byte of the packet.
             checkInput(bb.array(), bb.position(), bb.limit() - bb.position(), ENC_SOURCE_IPV6_BYTE_LENGTH - 1);
@@ -226,9 +227,9 @@ public class PIMAddrSource {
         this.reserved &= 0xf8;
 
         this.masklen = bb.get();
-        if (this.family == 4) {
+        if (this.family == PIM.ADDRESS_FAMILY_IP4) {
             this.addr = IpAddress.valueOf(bb.getInt());
-        } else if (this.family == 6) {
+        } else if (this.family == PIM.ADDRESS_FAMILY_IP6) {
             this.addr = Ip6Address.valueOf(bb.array(), 2);
         }
         return this;

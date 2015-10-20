@@ -43,6 +43,9 @@ public class PIM extends BasePacket {
 
     public static final int PIM_HEADER_LEN = 4;
 
+    public static final byte ADDRESS_FAMILY_IP4 = 0x1;
+    public static final byte ADDRESS_FAMILY_IP6 = 0x2;
+
     public static final Map<Byte, Deserializer<? extends IPacket>> PROTOCOL_DESERIALIZER_MAP =
             new HashMap<>();
 
