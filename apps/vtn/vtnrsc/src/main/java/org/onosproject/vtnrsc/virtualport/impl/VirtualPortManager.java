@@ -17,9 +17,12 @@ package org.onosproject.vtnrsc.virtualport.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -68,6 +71,7 @@ public class VirtualPortManager implements VirtualPortService {
     private static final String TENANTID_NOT_NULL = "TenantId  cannot be null";
     private static final String NETWORKID_NOT_NULL = "NetworkId  cannot be null";
     private static final String DEVICEID_NOT_NULL = "DeviceId  cannot be null";
+    private static final String FIXEDIP_NOT_NULL = "FixedIp  cannot be null";
 
     protected Map<VirtualPortId, VirtualPort> vPortStore;
     protected ApplicationId appId;
@@ -122,6 +126,25 @@ public class VirtualPortManager implements VirtualPortService {
     public VirtualPort getPort(VirtualPortId vPortId) {
         checkNotNull(vPortId, VIRTUALPORT_ID_NULL);
         return vPortStore.get(vPortId);
+    }
+
+    @Override
+    public VirtualPort getPort(FixedIp fixedIP) {
+        checkNotNull(fixedIP, FIXEDIP_NOT_NULL);
+        List<VirtualPort> vPorts = new ArrayList<>();
+        vPortStore.values().stream().forEach(p -> {
+            Iterator<FixedIp> fixedIps = p.fixedIps().iterator();
+            while (fixedIps.hasNext()) {
+                if (fixedIps.next().equals(fixedIP)) {
+                    vPorts.add(p);
+                    break;
+                }
+            }
+        });
+        if (vPorts.size() == 0) {
+            return null;
+        }
+        return vPorts.get(0);
     }
 
     @Override

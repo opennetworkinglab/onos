@@ -18,6 +18,7 @@ package org.onosproject.vtnrsc.virtualport;
 import java.util.Collection;
 
 import org.onosproject.net.DeviceId;
+import org.onosproject.vtnrsc.FixedIp;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.VirtualPort;
@@ -42,6 +43,14 @@ public interface VirtualPortService {
      * @return VirtualPort or null if one with the given ID is not know.
      */
     VirtualPort getPort(VirtualPortId virtualPortId);
+
+    /**
+     * Returns the virtualPort associated with the fixedIP.
+     *
+     * @param fixedIP the fixedIP identifier
+     * @return virtualPort.
+     */
+    VirtualPort getPort(FixedIp fixedIP);
 
     /**
      * Returns the collection of the currently known virtualPort.
