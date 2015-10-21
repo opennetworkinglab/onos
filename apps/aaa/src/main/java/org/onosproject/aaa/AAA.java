@@ -394,8 +394,9 @@ public class AAA {
                                                        stateMachine.challengeState());
                             stateMachine.setRequestAuthenticator(radiusPayload.generateAuthCode());
 
-                            sendRADIUSPacket(radiusPayload);
                             radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
+                            sendRADIUSPacket(radiusPayload);
+
                             // TODO: this gets called on every fragment, should only be called at TLS-Start
                             stateMachine.requestAccess();
 
@@ -473,7 +474,9 @@ public class AAA {
             RADIUS inboundRadiusPacket;
             while (!done) {
                 try {
-                    DatagramPacket inboundBasePacket = new DatagramPacket(new byte[1000], 1000);
+                    byte[] packetBuffer = new byte[RADIUS.RADIUS_MAX_LENGTH];
+                    DatagramPacket inboundBasePacket =
+                            new DatagramPacket(packetBuffer, packetBuffer.length);
                     DatagramSocket socket = radiusSocket;
                     socket.receive(inboundBasePacket);
                     log.info("Packet #{} received", packetNumber++);
