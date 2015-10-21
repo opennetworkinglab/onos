@@ -24,7 +24,7 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -54,7 +54,6 @@ public class SetTestRemoveCommand extends AbstractShellCommand {
     String[] values = null;
 
     Set<String> set;
-    Set<String> givenValues = new HashSet<>();
     Serializer serializer = Serializer.using(
             new KryoNamespace.Builder().register(KryoNamespaces.BASIC).build());
 
@@ -79,13 +78,10 @@ public class SetTestRemoveCommand extends AbstractShellCommand {
         }
 
         if (retain) { // Keep only the given values
-            for (String value : values) {
-                givenValues.add(value);
-            }
-            if (set.retainAll(givenValues)) {
-                print("%s was pruned to contain only elements of set %s", setName, givenValues);
+            if (set.retainAll(Arrays.asList(values))) {
+                print("%s was pruned to contain only elements of set %s", setName, Arrays.asList(values));
             } else {
-                print("%s was not changed by retaining only elements of the set %s", setName, givenValues);
+                print("%s was not changed by retaining only elements of the set %s", setName, Arrays.asList(values));
             }
         } else if (values.length == 1) {
             // Remove a single element from the set
@@ -94,15 +90,12 @@ public class SetTestRemoveCommand extends AbstractShellCommand {
             } else {
                 print("[%s] was not in set %s", values[0], setName);
             }
-        } else if (values.length >= 1) {
+        } else if (values.length > 1) {
             // Remove multiple elements from a set
-            for (String value : values) {
-                givenValues.add(value);
-            }
-            if (set.removeAll(givenValues)) {
-                print("%s was removed from the set %s", givenValues, setName);
+            if (set.removeAll(Arrays.asList(values))) {
+                print("%s was removed from the set %s", Arrays.asList(values), setName);
             } else {
-                print("No element of %s was in set %s", givenValues, setName);
+                print("No element of %s was in set %s", Arrays.asList(values), setName);
             }
         }
     }

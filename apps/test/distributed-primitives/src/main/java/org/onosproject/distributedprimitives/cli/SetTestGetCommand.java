@@ -24,7 +24,7 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -49,7 +49,6 @@ public class SetTestGetCommand extends AbstractShellCommand {
     String[] values = null;
 
     Set<String> set;
-    Set<String> toCheck = new HashSet<>();
     String output = "";
 
     Serializer serializer = Serializer.using(
@@ -95,13 +94,10 @@ public class SetTestGetCommand extends AbstractShellCommand {
             }
         } else if (values.length > 1) {
             //containsAll
-            for (String value : values) {
-                toCheck.add(value);
-            }
-            if (set.containsAll(toCheck)) {
-                print("Set %s contains the the subset %s", setName, toCheck);
+            if (set.containsAll(Arrays.asList(values))) {
+                print("Set %s contains the the subset %s", setName, Arrays.asList(values));
             } else {
-                print("Set %s did not contain the the subset %s", setName, toCheck);
+                print("Set %s did not contain the the subset %s", setName, Arrays.asList(values));
             }
         }
     }
