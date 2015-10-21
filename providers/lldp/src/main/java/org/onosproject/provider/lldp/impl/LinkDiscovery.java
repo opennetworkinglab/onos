@@ -61,7 +61,7 @@ class LinkDiscovery implements TimerTask {
 
     private final ONOSLLDP lldpPacket;
     private final Ethernet ethPacket;
-    private Ethernet bddpEth;
+    private final Ethernet bddpEth;
 
     private Timeout timeout;
     private volatile boolean isStopped;
@@ -126,7 +126,7 @@ class LinkDiscovery implements TimerTask {
     }
 
     /**
-     * Add physical port port to discovery process.
+     * Add physical port to discovery process.
      * Send out initial LLDP and label it as slow port.
      *
      * @param port the port
@@ -138,6 +138,14 @@ class LinkDiscovery implements TimerTask {
             log.debug("Sending initial probe to port {}@{}", port.number().toLong(), device.id());
             sendProbes(port.number().toLong());
         }
+    }
+
+    /**
+     * removed physical port from discovery process.
+     * @param port the port number
+     */
+    void removePort(PortNumber port) {
+        ports.remove(port.toLong());
     }
 
     /**

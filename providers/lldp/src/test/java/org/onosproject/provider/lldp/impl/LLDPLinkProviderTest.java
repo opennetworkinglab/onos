@@ -16,6 +16,7 @@
 package org.onosproject.provider.lldp.impl;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.After;
@@ -32,7 +33,9 @@ import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
@@ -73,6 +76,7 @@ public class LLDPLinkProviderTest {
 
     private static final DeviceId DID1 = DeviceId.deviceId("of:0000000000000001");
     private static final DeviceId DID2 = DeviceId.deviceId("of:0000000000000002");
+    private static final DeviceId DID3 = DeviceId.deviceId("of:0000000000000003");
 
     private static Port pd1;
     private static Port pd2;
@@ -133,8 +137,33 @@ public class LLDPLinkProviderTest {
         deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID1));
         deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_REMOVED, DID1));
 
-        assertTrue("Discoverer is not gone", provider.discoverers.get(DID1).isStopped());
+        final LinkDiscovery linkDiscovery = provider.discoverers.get(DID1);
+        if (linkDiscovery != null) {
+            // If LinkDiscovery helper is there after DEVICE_REMOVED,
+            // it should be stopped
+            assertTrue("Discoverer is not stopped", linkDiscovery.isStopped());
+        }
         assertTrue("Device is not gone.", vanishedDpid(DID1));
+    }
+
+    /**
+     * Checks that links on a reconfigured switch are properly removed.
+     */
+    @Test
+    public void switchSuppressed() {
+        // add device to stub DeviceService
+        deviceService.putDevice(device(DID3));
+        deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID3));
+
+        assertFalse("Device not added", provider.discoverers.isEmpty());
+
+        // update device in stub DeviceService with suppression config
+        deviceService.putDevice(device(DID3, DefaultAnnotations.builder()
+                                              .set(LLDPLinkProvider.NO_LLDP, "true")
+                                              .build()));
+        deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_UPDATED, DID3));
+
+        assertTrue("Links on suppressed Device was expected to vanish.", vanishedDpid(DID3));
     }
 
     @Test
@@ -152,27 +181,101 @@ public class LLDPLinkProviderTest {
         deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID1));
         deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID1, port(DID1, 1, false)));
 
-
-
         assertFalse("Port added to discoverer",
                     provider.discoverers.get(DID1).containsPort(1L));
         assertTrue("Port is not gone.", vanishedPort(1L));
     }
 
     @Test
+    public void portRemoved() {
+        deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID1));
+        deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID1, port(DID1, 3, true)));
+        deviceListener.event(portEvent(DeviceEvent.Type.PORT_REMOVED, DID1, port(DID1, 3, true)));
+
+        assertTrue("Port is not gone.", vanishedPort(3L));
+        assertFalse("Port was not removed from discoverer",
+                   provider.discoverers.get(DID1).containsPort(3L));
+    }
+
+    /**
+     * Checks that discovery on reconfigured switch are properly restarted.
+     */
+    @Test
+    public void portSuppressedByDeviceConfig() {
+
+        /// When Device is configured with suppression:ON, Port also is same
+
+        // add device in stub DeviceService with suppression configured
+        deviceService.putDevice(device(DID3, DefaultAnnotations.builder()
+                                              .set(LLDPLinkProvider.NO_LLDP, "true")
+                                              .build()));
+        deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID3));
+
+        // non-suppressed port added to suppressed device
+        final long portno3 = 3L;
+        deviceService.putPorts(DID3, port(DID3, portno3, true));
+        deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID3, port(DID3, portno3, true)));
+
+        // discovery on device is expected to be stopped
+        LinkDiscovery linkDiscovery = provider.discoverers.get(DID3);
+        if (linkDiscovery != null) {
+            assertTrue("Discovery expected to be stopped", linkDiscovery.isStopped());
+        }
+
+        /// When Device is reconfigured without suppression:OFF,
+        /// Port should be included for discovery
+
+        // update device in stub DeviceService without suppression configured
+        deviceService.putDevice(device(DID3));
+        // update the Port in stub DeviceService. (Port has reference to Device)
+        deviceService.putPorts(DID3, port(DID3, portno3, true));
+        deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_UPDATED, DID3));
+
+        // discovery should come back on
+        assertFalse("Discoverer is expected to start", provider.discoverers.get(DID3).isStopped());
+        assertTrue("Discoverer should contain the port there", provider.discoverers.get(DID3).containsPort(portno3));
+    }
+
+    /**
+     * Checks that discovery on reconfigured port are properly restarted.
+     */
+    @Test
+    public void portSuppressedByPortConfig() {
+        // add device in stub DeviceService without suppression configured
+        deviceService.putDevice(device(DID3));
+        deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID3));
+
+        // suppressed port added to non-suppressed device
+        final long portno3 = 3L;
+        final Port port3 = port(DID3, portno3, true,
+                                          DefaultAnnotations.builder()
+                                          .set(LLDPLinkProvider.NO_LLDP, "true")
+                                          .build());
+        deviceService.putPorts(DID3, port3);
+        deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID3, port3));
+
+        // discovery helper should be there turned on
+        assertFalse("Discoverer is expected to start", provider.discoverers.get(DID3).isStopped());
+        assertFalse("Discoverer should not contain the port there",
+                    provider.discoverers.get(DID3).containsPort(portno3));
+    }
+
+    @Test
     public void portUnknown() {
         deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID1));
-        deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID2, port(DID2, 1, false)));
+        // Note: DID3 hasn't been added to TestDeviceService, but only port is added
+        deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID3, port(DID3, 1, false)));
 
 
         assertNull("DeviceId exists",
-                   provider.discoverers.get(DID2));
+                   provider.discoverers.get(DID3));
     }
 
     @Test
     public void unknownPktCtx() {
 
-        PacketContext pktCtx = new TestPacketContext(deviceService.getDevice(DID2));
+        // Note: DID3 hasn't been added to TestDeviceService
+        PacketContext pktCtx = new TestPacketContext(device(DID3));
 
         testProcessor.process(pktCtx);
         assertFalse("Context should still be free", pktCtx.isHandled());
@@ -206,6 +309,16 @@ public class LLDPLinkProviderTest {
 
     }
 
+    private DefaultDevice device(DeviceId did) {
+        return new DefaultDevice(ProviderId.NONE, did, Device.Type.SWITCH,
+                             "TESTMF", "TESTHW", "TESTSW", "TESTSN", new ChassisId());
+    }
+
+    private DefaultDevice device(DeviceId did, Annotations annotations) {
+        return new DefaultDevice(ProviderId.NONE, did, Device.Type.SWITCH,
+                             "TESTMF", "TESTHW", "TESTSW", "TESTSN", new ChassisId(), annotations);
+    }
+
     @SuppressWarnings(value = { "unused" })
     private DeviceEvent portEvent(DeviceEvent.Type type, DeviceId did, PortNumber port) {
         return new  DeviceEvent(type, deviceService.getDevice(did),
@@ -221,6 +334,10 @@ public class LLDPLinkProviderTest {
                                PortNumber.portNumber(port), enabled);
     }
 
+    private Port port(DeviceId did, long port, boolean enabled, Annotations annotations) {
+        return new DefaultPort(deviceService.getDevice(did),
+                               PortNumber.portNumber(port), enabled, annotations);
+    }
 
     private boolean vanishedDpid(DeviceId... dids) {
         for (int i = 0; i < dids.length; i++) {
@@ -384,10 +501,9 @@ public class LLDPLinkProviderTest {
 
     private class TestDeviceService extends DeviceServiceAdapter {
 
-        private Map<DeviceId, Device> devices = new HashMap<>();
+        private final Map<DeviceId, Device> devices = new HashMap<>();
         private final ArrayListMultimap<DeviceId, Port> ports =
                 ArrayListMultimap.create();
-
         public TestDeviceService() {
             Device d1 = new DefaultDevice(ProviderId.NONE, DID1, Device.Type.SWITCH,
                                           "TESTMF", "TESTHW", "TESTSW", "TESTSN", new ChassisId());
@@ -395,7 +511,6 @@ public class LLDPLinkProviderTest {
                                           "TESTMF", "TESTHW", "TESTSW", "TESTSN", new ChassisId());
             devices.put(DID1, d1);
             devices.put(DID2, d2);
-
             pd1 = new DefaultPort(d1, PortNumber.portNumber(1), true);
             pd2 = new DefaultPort(d1, PortNumber.portNumber(2), true);
             pd3 = new DefaultPort(d2, PortNumber.portNumber(1), true);
@@ -405,6 +520,15 @@ public class LLDPLinkProviderTest {
             ports.putAll(DID2, Lists.newArrayList(pd3, pd4));
         }
 
+        private void putDevice(Device device) {
+            DeviceId deviceId = device.id();
+            devices.put(deviceId, device);
+        }
+
+        private void putPorts(DeviceId did, Port...ports) {
+            this.ports.putAll(did, Lists.newArrayList(ports));
+        }
+
         @Override
         public int getDeviceCount() {
             return devices.values().size();
@@ -412,7 +536,7 @@ public class LLDPLinkProviderTest {
 
         @Override
         public Iterable<Device> getDevices() {
-            return Collections.emptyList();
+            return ImmutableList.copyOf(devices.values());
         }
 
         @Override
