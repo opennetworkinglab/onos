@@ -25,7 +25,6 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 
-
 /**
  * Encode an openflow message for output into a ChannelBuffer, for use in a
  * netty pipeline.
@@ -50,7 +49,9 @@ public class OFMessageEncoder extends OneToOneEncoder {
         ChannelBuffer buf = ChannelBuffers.dynamicBuffer();
 
         for (OFMessage ofm : msglist) {
-            ofm.writeTo(buf);
+            if (ofm != null) {
+                ofm.writeTo(buf);
+            }
         }
         return buf;
     }
