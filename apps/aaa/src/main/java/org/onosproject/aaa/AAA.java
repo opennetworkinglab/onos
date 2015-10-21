@@ -397,8 +397,9 @@ public class AAA {
                             radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
                             sendRADIUSPacket(radiusPayload);
 
-                            // TODO: this gets called on every fragment, should only be called at TLS-Start
-                            stateMachine.requestAccess();
+                            if (stateMachine.state() != StateMachine.STATE_PENDING) {
+                                stateMachine.requestAccess();
+                            }
 
                             break;
                         default:
