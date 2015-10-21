@@ -45,7 +45,7 @@ public class EthType {
         private final Deserializer<?> deserializer;
 
         /**
-         * Constucts a new ethertype.
+         * Constructs a new ethertype.
          *
          * @param ethType The actual ethertype
          * @param type it's textual representation

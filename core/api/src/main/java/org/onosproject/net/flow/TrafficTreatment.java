@@ -190,14 +190,14 @@ public interface TrafficTreatment {
         /**
          * Push MPLS ether type.
          *
-         * @return a treatment builder.
+         * @return a treatment builder
          */
         Builder pushMpls();
 
         /**
          * Pops MPLS ether type.
          *
-         * @return a treatment builder.
+         * @return a treatment builder
          */
         Builder popMpls();
 
@@ -205,7 +205,7 @@ public interface TrafficTreatment {
          * Pops MPLS ether type and set the new ethertype.
          *
          * @param etherType an ether type
-         * @return a treatment builder.
+         * @return a treatment builder
          * @deprecated in Drake Release
          */
         @Deprecated
@@ -215,22 +215,22 @@ public interface TrafficTreatment {
          * Pops MPLS ether type and set the new ethertype.
          *
          * @param etherType an ether type
-         * @return a treatment builder.
+         * @return a treatment builder
          */
         Builder popMpls(EthType etherType);
 
         /**
          * Sets the mpls label.
          *
-         * @param mplsLabel MPLS label.
-         * @return a treatment builder.
+         * @param mplsLabel MPLS label
+         * @return a treatment builder
          */
         Builder setMpls(MplsLabel mplsLabel);
 
         /**
          * Sets the mpls bottom-of-stack indicator bit.
          *
-         * @param mplsBos boolean to set BOS=1 (true) or BOS=0 (false).
+         * @param mplsBos boolean to set BOS=1 (true) or BOS=0 (false)
          * @return a treatment builder.
          */
         Builder setMplsBos(boolean mplsBos);
@@ -288,14 +288,14 @@ public interface TrafficTreatment {
         /**
          * Pops outermost VLAN tag.
          *
-         * @return a treatment builder.
+         * @return a treatment builder
          */
         Builder popVlan();
 
         /**
          * Pushes a new VLAN tag.
          *
-         * @return a treatment builder.
+         * @return a treatment builder
          */
         Builder pushVlan();
 
@@ -335,8 +335,8 @@ public interface TrafficTreatment {
         /**
          * Sets the tunnel id.
          *
-         * @param tunnelId a tunnel id.
-         * @return a treatment builder.
+         * @param tunnelId a tunnel id
+         * @return a treatment builder
          */
         Builder setTunnelId(long tunnelId);
 

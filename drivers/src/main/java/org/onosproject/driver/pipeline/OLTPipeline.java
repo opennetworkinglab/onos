@@ -30,7 +30,6 @@ import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
-import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -86,13 +85,13 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
         coreService = serviceDirectory.get(CoreService.class);
 
-        try {
+        /*try {
             DeviceProviderService providerService = registry.register(provider);
             providerService.deviceConnected(deviceId,
                                             description(deviceId, DEVICE, OLT));
         } finally {
             registry.unregister(provider);
-        }
+        }*/
 
         appId = coreService.registerApplication(
                 "org.onosproject.driver.OLTPipeline");
@@ -109,12 +108,12 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                                                 PacketPriority.CONTROL.priorityValue(),
                                                 appId, 0, true, null);
 
-        flowRuleService.applyFlowRules(flowRule);
+        //flowRuleService.applyFlowRules(flowRule);
     }
 
     @Override
     public void filter(FilteringObjective filter) {
-        throw new UnsupportedOperationException("Single table does not filter.");
+        throw new UnsupportedOperationException("OLT does not filter.");
     }
 
     @Override
@@ -140,19 +139,11 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
         TrafficSelector selector = fwd.selector();
         TrafficTreatment treatment = fwd.treatment();
-        if ((fwd.treatment().deferred().size() == 0) &&
-                (fwd.treatment().immediate().size() == 0) &&
-                (fwd.treatment().tableTransition() == null) &&
-                (!fwd.treatment().clearedDeferred())) {
-            TrafficTreatment.Builder flowTreatment = DefaultTrafficTreatment.builder();
-            flowTreatment.add(Instructions.createDrop());
-            treatment = flowTreatment.build();
-        }
 
         FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
                 .forDevice(deviceId)
                 .withSelector(selector)
-                .withTreatment(fwd.treatment())
+                .withTreatment(treatment)
                 .fromApp(fwd.appId())
                 .withPriority(fwd.priority());
 
@@ -162,9 +153,7 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             ruleBuilder.makeTemporary(fwd.timeout());
         }
 
-
         switch (fwd.op()) {
-
             case ADD:
                 flowBuilder.add(ruleBuilder.build());
                 break;
@@ -190,16 +179,16 @@ public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 }
             }
         }));
-
     }
 
     @Override
     public void next(NextObjective nextObjective) {
-        throw new UnsupportedOperationException("Single table does not next hop.");
+        throw new UnsupportedOperationException("OLT does not next hop.");
     }
 
     /**
      * Build a device description.
+     *
      * @param deviceId a deviceId
      * @param key the key of the annotation
      * @param value the value for the annotation
