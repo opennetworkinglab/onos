@@ -294,7 +294,8 @@
              unsupLink( key, [less] )
          */
 
-        // TODO: clear node highlighting
+        api.clearNodeDeco();
+        api.removeNodeBadges();
         api.clearLinkTrafficStyle();
         api.removeLinkLabels();
 
@@ -319,8 +320,11 @@
         });
 
         data.devices.forEach(function (device) {
-            var ddata = api.findNodeById(device.id);
+            var ddata = api.findNodeById(device.id),
+                badgeData = device.badge || null;
+
             if (ddata && !ddata.el.empty()) {
+                ddata.badge = badgeData;
                 if (!device.subdue) {
                     api.unsupNode(ddata.id, less);
                 }

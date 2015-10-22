@@ -860,6 +860,16 @@
         });
     }
 
+    function clearNodeDeco() {
+        node.selectAll('g.badge').remove();
+    }
+
+    function removeNodeBadges() {
+        network.nodes.forEach(function (d) {
+            d.badge = null;
+        });
+    }
+
     function updateLinkLabelModel() {
         // create the backing data for showing labels..
         var data = [];
@@ -923,6 +933,8 @@
 
     function mkOverlayApi() {
         return {
+            clearNodeDeco: clearNodeDeco,
+            removeNodeBadges: removeNodeBadges,
             clearLinkTrafficStyle: clearLinkTrafficStyle,
             removeLinkLabels: removeLinkLabels,
             findLinkById: tms.findLinkById,

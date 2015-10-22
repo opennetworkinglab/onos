@@ -17,6 +17,7 @@
 package org.onosproject.ui.topo;
 
 import org.junit.Test;
+import org.onosproject.ui.topo.NodeBadge.Status;
 
 import static org.junit.Assert.assertEquals;
 
@@ -25,92 +26,87 @@ import static org.junit.Assert.assertEquals;
  */
 public class NodeBadgeTest {
 
-    private static final String SOME_MSG = "a msg";
-    private static final String WR_T = "wrong type";
+    private static final String MSG = "a msg";
+    private static final String TXT = "text";
+    private static final String GID = "glyph-id";
+    private static final int NUM = 42;
+    private static final String NUM_STR = Integer.toString(NUM);
+
+    private static final String WR_S = "wrong status";
+    private static final String WR_B = "wrong boolean";
+    private static final String WR_T = "wrong text";
     private static final String WR_M = "wrong message";
     private static final String WR_SF = "wrong string format";
 
     private NodeBadge badge;
 
-    private String expStr(String t) {
-        return "{Badge {" + t + "} \"" + SOME_MSG + "\"}";
-    }
-
-    private String expNumStr(String n) {
-        return "{Badge {n} \"" + n + "\"}";
-    }
-
-    @Test
-    public void info() {
-        badge = NodeBadge.info(SOME_MSG);
-        assertEquals(WR_T, NodeBadge.Type.INFO, badge.type());
-        assertEquals(WR_M, SOME_MSG, badge.message());
-        assertEquals(WR_SF, expStr("i"), badge.toString());
-    }
-
-    @Test
-    public void warn() {
-        badge = NodeBadge.warn(SOME_MSG);
-        assertEquals(WR_T, NodeBadge.Type.WARN, badge.type());
-        assertEquals(WR_M, SOME_MSG, badge.message());
-        assertEquals(WR_SF, expStr("w"), badge.toString());
-    }
-
-    @Test
-    public void error() {
-        badge = NodeBadge.error(SOME_MSG);
-        assertEquals(WR_T, NodeBadge.Type.ERROR, badge.type());
-        assertEquals(WR_M, SOME_MSG, badge.message());
-        assertEquals(WR_SF, expStr("e"), badge.toString());
-    }
-
-    @Test
-    public void checkMark() {
-        badge = NodeBadge.checkMark(SOME_MSG);
-        assertEquals(WR_T, NodeBadge.Type.CHECK_MARK, badge.type());
-        assertEquals(WR_M, SOME_MSG, badge.message());
-        assertEquals(WR_SF, expStr("/"), badge.toString());
-    }
-
-    @Test
-    public void xMark() {
-        badge = NodeBadge.xMark(SOME_MSG);
-        assertEquals(WR_T, NodeBadge.Type.X_MARK, badge.type());
-        assertEquals(WR_M, SOME_MSG, badge.message());
-        assertEquals(WR_SF, expStr("X"), badge.toString());
-    }
-
-    @Test
-    public void number0() {
-        badge = NodeBadge.number(0);
-        assertEquals(WR_T, NodeBadge.Type.NUMBER, badge.type());
-        assertEquals(WR_M, "0", badge.message());
-        assertEquals(WR_SF, expNumStr("0"), badge.toString());
-    }
-
-    @Test
-    public void number5() {
-        badge = NodeBadge.number(5);
-        assertEquals(WR_T, NodeBadge.Type.NUMBER, badge.type());
-        assertEquals(WR_M, "5", badge.message());
-        assertEquals(WR_SF, expNumStr("5"), badge.toString());
-    }
-
-    @Test
-    public void number99() {
-        badge = NodeBadge.number(99);
-        assertEquals(WR_T, NodeBadge.Type.NUMBER, badge.type());
-        assertEquals(WR_M, "99", badge.message());
-        assertEquals(WR_SF, expNumStr("99"), badge.toString());
+    private void checkFields(NodeBadge b, Status s, boolean g,
+                             String txt, String msg) {
+        assertEquals(WR_S, s, b.status());
+        assertEquals(WR_B, g, b.isGlyph());
+        assertEquals(WR_T, txt, b.text());
+        assertEquals(WR_M, msg, b.message());
     }
 
     @Test
     public void badgeTypes() {
-        assertEquals(WR_SF, "i", NodeBadge.Type.INFO.code());
-        assertEquals(WR_SF, "w", NodeBadge.Type.WARN.code());
-        assertEquals(WR_SF, "e", NodeBadge.Type.ERROR.code());
-        assertEquals(WR_SF, "/", NodeBadge.Type.CHECK_MARK.code());
-        assertEquals(WR_SF, "X", NodeBadge.Type.X_MARK.code());
-        assertEquals(WR_SF, "n", NodeBadge.Type.NUMBER.code());
+        assertEquals(WR_SF, "i", Status.INFO.code());
+        assertEquals(WR_SF, "w", Status.WARN.code());
+        assertEquals(WR_SF, "e", Status.ERROR.code());
+        assertEquals("unexpected size", 3, Status.values().length);
+    }
+
+    @Test
+    public void textOnly() {
+        badge = NodeBadge.text(TXT);
+        checkFields(badge, Status.INFO, false, TXT, null);
+    }
+
+    @Test
+    public void glyphOnly() {
+        badge = NodeBadge.glyph(GID);
+        checkFields(badge, Status.INFO, true, GID, null);
+    }
+
+    @Test
+    public void numberOnly() {
+        badge = NodeBadge.number(NUM);
+        checkFields(badge, Status.INFO, false, NUM_STR, null);
+    }
+
+    @Test
+    public void textInfo() {
+        badge = NodeBadge.text(Status.INFO, TXT);
+        checkFields(badge, Status.INFO, false, TXT, null);
+    }
+
+    @Test
+    public void glyphWarn() {
+        badge = NodeBadge.glyph(Status.WARN, GID);
+        checkFields(badge, Status.WARN, true, GID, null);
+    }
+
+    @Test
+    public void numberError() {
+        badge = NodeBadge.number(Status.ERROR, NUM);
+        checkFields(badge, Status.ERROR, false, NUM_STR, null);
+    }
+
+    @Test
+    public void textInfoMsg() {
+        badge = NodeBadge.text(Status.INFO, TXT, MSG);
+        checkFields(badge, Status.INFO, false, TXT, MSG);
+    }
+
+    @Test
+    public void glyphWarnMsg() {
+        badge = NodeBadge.glyph(Status.WARN, GID, MSG);
+        checkFields(badge, Status.WARN, true, GID, MSG);
+    }
+
+    @Test
+    public void numberErrorMsg() {
+        badge = NodeBadge.number(Status.ERROR, NUM, MSG);
+        checkFields(badge, Status.ERROR, false, NUM_STR, MSG);
     }
 }

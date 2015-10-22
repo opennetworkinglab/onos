@@ -218,6 +218,24 @@
             .attr('transform', sus.translate(dx, dy));
     }
 
+    function updateDeviceBadge(d) {
+        // TODO: Fix this WIP
+        var node = d.el,
+            bsel;
+
+        if (d.badge) {
+            bsel = node.append('g')
+                .classed('badge', true)
+                .attr('transform', sus.translate(-14, -14));
+
+            bsel.append('circle')
+                .attr('r', 14);
+            bsel.append('text')
+                .attr('transform', sus.translate(-5, 3))
+                .text('42');
+        }
+    }
+
     function updateHostLabel(d) {
         var label = trimLabel(hostLabel(d));
         d.el.select('text').text(label);
@@ -241,6 +259,7 @@
         var node = d.el;
         node.classed('online', d.online);
         updateDeviceLabel(d);
+        updateDeviceBadge(d);
         api.posNode(d, true);
     }
 

@@ -21,9 +21,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.topo.Highlights.Amount;
+import org.onosproject.ui.topo.NodeBadge.Status;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * Unit tests for {@link TopoJson}.
@@ -32,7 +34,8 @@ public class TopoJsonTest {
 
     private static final String DEV1 = "device-1";
     private static final String DEV2 = "device-2";
-    private static final String BADGE_MSG = "Hello there";
+    private static final String SOME_MSG = "Hello there";
+    private static final String GID = "glyph-ID";
 
     private ObjectNode payload;
 
@@ -78,15 +81,15 @@ public class TopoJsonTest {
     public void badgedDevice() {
         Highlights h = new Highlights();
         DeviceHighlight dh = new DeviceHighlight(DEV1);
-        dh.setBadge(NodeBadge.info(BADGE_MSG));
-        h.add(dh);
-
-        dh = new DeviceHighlight(DEV2);
         dh.setBadge(NodeBadge.number(7));
         h.add(dh);
 
+        dh = new DeviceHighlight(DEV2);
+        dh.setBadge(NodeBadge.glyph(Status.WARN, GID, SOME_MSG));
+        h.add(dh);
+
         payload = TopoJson.json(h);
-        System.out.println(payload);
+//        System.out.println(payload);
 
         // dig into the payload, and verify the badges are set on the devices
         ArrayNode a = (ArrayNode) payload.get(TopoJson.DEVICES);
@@ -96,15 +99,19 @@ public class TopoJsonTest {
 
         ObjectNode b = (ObjectNode) d.get(TopoJson.BADGE);
         assertNotNull("missing badge", b);
-        assertEquals("wrong type code", "i", b.get(TopoJson.TYPE).asText());
-        assertEquals("wrong message", BADGE_MSG, b.get(TopoJson.MSG).asText());
+        assertEquals("wrong status code", "i", b.get(TopoJson.STATUS).asText());
+        assertEquals("wrong text", "7", b.get(TopoJson.TXT).asText());
+        assertNull("glyph?", b.get(TopoJson.GID));
+        assertNull("msg?", b.get(TopoJson.MSG));
 
         d = (ObjectNode) a.get(1);
         assertEquals("wrong device id", DEV2, d.get(TopoJson.ID).asText());
 
         b = (ObjectNode) d.get(TopoJson.BADGE);
         assertNotNull("missing badge", b);
-        assertEquals("wrong type code", "n", b.get(TopoJson.TYPE).asText());
-        assertEquals("wrong message", "7", b.get(TopoJson.MSG).asText());
+        assertEquals("wrong status code", "w", b.get(TopoJson.STATUS).asText());
+        assertNull("text?", b.get(TopoJson.TXT));
+        assertEquals("wrong text", GID, b.get(TopoJson.GID).asText());
+        assertEquals("wrong message", SOME_MSG, b.get(TopoJson.MSG).asText());
     }
 }

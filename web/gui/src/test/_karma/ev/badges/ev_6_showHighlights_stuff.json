@@ -1,7 +1,23 @@
 {
   "event": "showHighlights",
   "payload": {
-    "devices": [],
+    "devices": [
+      {
+        "id": "of:0000000000000001",
+        "badge": {
+          "status": "e",
+          "gid": "xMark",
+          "msg": "x marks the spot"
+        }
+      },
+      {
+        "id": "of:0000000000000002",
+        "badge": {
+          "status": "w",
+          "txt": "7"
+        }
+      }
+    ],
     "hosts": [],
     "links": [
       {

@@ -23,18 +23,15 @@ public final class NodeBadge {
 
     private static final String EMPTY = "";
 
-    /** Designates the type of badge. */
-    public enum Type {
+    /** Designates the badge status. */
+    public enum Status {
         INFO("i"),
         WARN("w"),
-        ERROR("e"),
-        CHECK_MARK("/"),
-        X_MARK("X"),
-        NUMBER("n");
+        ERROR("e");
 
         private String code;
 
-        Type(String code) {
+        Status(String code) {
             this.code = code;
         }
 
@@ -43,33 +40,60 @@ public final class NodeBadge {
             return "{" + code + "}";
         }
 
-        /** Returns the type's code in string form. */
+        /** Returns the status code in string form. */
         public String code() {
             return code;
         }
     }
 
-    private final Type type;
+    private final Status status;
+    private final boolean isGlyph;
+    private final String text;
     private final String message;
 
     // only instantiated through static methods.
-    private NodeBadge(Type type, String message) {
-        this.type = type;
+    private NodeBadge(Status status, boolean isGlyph, String text, String message) {
+        this.status = status == null ? Status.INFO : status;
+        this.isGlyph = isGlyph;
+        this.text = text;
         this.message = message;
     }
 
     @Override
     public String toString() {
-        return "{Badge " + type + " \"" + message + "\"}";
+        return "{Badge " + status +
+                " (" + text + ")" +
+                (isGlyph ? "*G " : " ") +
+                "\"" + message + "\"}";
     }
 
     /**
-     * Returns the badge type.
+     * Returns the badge status.
      *
-     * @return badge type
+     * @return badge status
      */
-    public Type type() {
-        return type;
+    public Status status() {
+        return status;
+    }
+
+    /**
+     * Returns true if the text for this badge designates a glyph ID.
+     *
+     * @return true if badge uses glyph
+     */
+    public boolean isGlyph() {
+        return isGlyph;
+    }
+
+    /**
+     * Returns the text for the badge.
+     * Note that if {@link #isGlyph} is true, the text is a glyph ID, otherwise
+     * the text is displayed verbatim in the badge.
+     *
+     * @return text for badge
+     */
+    public String text() {
+        return text;
     }
 
     /**
@@ -86,64 +110,111 @@ public final class NodeBadge {
     }
 
     /**
-     * Returns an informational badge, with associated message.
+     * Returns an arbitrary text badge, with default status.
      *
-     * @param message the message
-     * @return INFO type node badge
+     * @param txt the text
+     * @return node badge to display text
      */
-    public static NodeBadge info(String message) {
-        return new NodeBadge(Type.INFO, nonNull(message));
+    public static NodeBadge text(String txt) {
+        // TODO: consider length constraint on txt (3 chars?)
+        return new NodeBadge(Status.INFO, false, nonNull(txt), null);
     }
 
     /**
-     * Returns a warning badge, with associated message.
+     * Returns a glyph badge, with default status.
      *
-     * @param message the message
-     * @return WARN type node badge
+     * @param gid the glyph ID
+     * @return node badge to display glyph
      */
-    public static NodeBadge warn(String message) {
-        return new NodeBadge(Type.WARN, nonNull(message));
+    public static NodeBadge glyph(String gid) {
+        return new NodeBadge(Status.INFO, true, nonNull(gid), null);
     }
 
     /**
-     * Returns an error badge, with associated message.
-     *
-     * @param message the message
-     * @return ERROR type node badge
-     */
-    public static NodeBadge error(String message) {
-        return new NodeBadge(Type.ERROR, nonNull(message));
-    }
-
-    /**
-     * Returns a check-mark badge, with associated message.
-     *
-     * @param message the message
-     * @return CHECK_MARK type node badge
-     */
-    public static NodeBadge checkMark(String message) {
-        return new NodeBadge(Type.CHECK_MARK, nonNull(message));
-    }
-
-    /**
-     * Returns an X-mark badge, with associated message.
-     *
-     * @param message the message
-     * @return X_MARK type node badge
-     */
-    public static NodeBadge xMark(String message) {
-        return new NodeBadge(Type.X_MARK, nonNull(message));
-    }
-
-    /**
-     * Returns a numeric badge.
+     * Returns a numeric badge, with default status.
      *
      * @param n the number
-     * @return NUMBER type node badge
+     * @return node badge to display a number
      */
     public static NodeBadge number(int n) {
-        // TODO: consider constraints, e.g. 1 <= n <= 99
-        return new NodeBadge(Type.NUMBER, Integer.toString(n));
+        // TODO: consider constraints, e.g. 1 <= n <= 999
+        return new NodeBadge(Status.INFO, false, Integer.toString(n), null);
+    }
+
+    /**
+     * Returns an arbitrary text badge, with the given status.
+     *
+     * @param s the status
+     * @param txt the text
+     * @return node badge to display text
+     */
+    public static NodeBadge text(Status s, String txt) {
+        // TODO: consider length constraint on txt (3 chars?)
+        return new NodeBadge(s, false, nonNull(txt), null);
+    }
+
+    /**
+     * Returns a glyph badge, with the given status.
+     *
+     * @param s the status
+     * @param gid the glyph ID
+     * @return node badge to display glyph
+     */
+    public static NodeBadge glyph(Status s, String gid) {
+        return new NodeBadge(s, true, nonNull(gid), null);
+    }
+
+
+    /**
+     * Returns a numeric badge, with the given status and optional message.
+     *
+     * @param s the status
+     * @param n the number
+     * @return node badge to display a number
+     */
+    public static NodeBadge number(Status s, int n) {
+        // TODO: consider constraints, e.g. 1 <= n <= 999
+        return new NodeBadge(s, false, Integer.toString(n), null);
+    }
+
+    /**
+     * Returns an arbitrary text badge, with the given status and optional
+     * message.
+     *
+     * @param s the status
+     * @param txt the text
+     * @param msg the optional message
+     * @return node badge to display text
+     */
+    public static NodeBadge text(Status s, String txt, String msg) {
+        // TODO: consider length constraint on txt (3 chars?)
+        return new NodeBadge(s, false, nonNull(txt), msg);
+    }
+
+    /**
+     * Returns a glyph badge, with the given status and optional message.
+     *
+     * @param s the status
+     * @param gid the glyph ID
+     * @param msg the optional message
+     * @return node badge to display glyph
+     */
+    public static NodeBadge glyph(Status s, String gid, String msg) {
+        return new NodeBadge(s, true, nonNull(gid), msg);
+    }
+
+
+    /**
+     * Returns a numeric badge, with the given status and optional message.
+     *
+     * @param s the status
+     * @param n the number
+     * @param msg the optional message
+     * @return node badge to display a number
+     */
+    public static NodeBadge number(Status s, int n, String msg) {
+        // TODO: consider constraints, e.g. 1 <= n <= 999
+        return new NodeBadge(s, false, Integer.toString(n), msg);
     }
 
 }
