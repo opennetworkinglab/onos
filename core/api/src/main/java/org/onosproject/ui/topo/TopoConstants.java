@@ -32,14 +32,17 @@ public final class TopoConstants {
     public static final class Glyphs {
         public static final String UNKNOWN = "unknown";
         public static final String BIRD = "bird";
+        public static final String QUERY = "query";
         public static final String NODE = "node";
         public static final String SWITCH = "switch";
         public static final String ROADM = "roadm";
         public static final String ENDSTATION = "endstation";
         public static final String ROUTER = "router";
         public static final String BGP_SPEAKER = "bgpSpeaker";
+        public static final String MICROWAVE = "microwave";
         public static final String CHAIN = "chain";
         public static final String CROWN = "crown";
+        public static final String LOCK = "lock";
         public static final String TOPO = "topo";
         public static final String REFRESH = "refresh";
         public static final String GARBAGE = "garbage";

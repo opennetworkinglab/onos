@@ -49,6 +49,8 @@
     //          otn, roadm_otn, firewall, balancer, ips, ids,
     //          controller, virtual, fiber_switch, other
 
+    // NOTE: when adding glyphs, please also update TopoConstants.Glyphs class.
+
         glyphDataSet = {
             _viewbox: "0 0 110 110",
 
