@@ -48,6 +48,7 @@ public class Compiler {
     private static final String GROUP = "group";
     private static final String STEP = "step";
     private static final String PARALLEL = "parallel";
+    private static final String SEQUENTIAL = "sequential";
     private static final String DEPENDENCY = "dependency";
 
     private static final String LOG_DIR = "[@logDir]";
@@ -59,12 +60,16 @@ public class Compiler {
     private static final String IF = "[@if]";
     private static final String UNLESS = "[@unless]";
     private static final String VAR = "[@var]";
+    private static final String STARTS = "[@starts]";
+    private static final String ENDS = "[@ends]";
     private static final String FILE = "[@file]";
     private static final String NAMESPACE = "[@namespace]";
 
     static final String PROP_START = "${";
     static final String PROP_END = "}";
+
     private static final String HASH = "#";
+    private static final String HASH_PREV = "#-1";
 
     private final Scenario scenario;
 
@@ -72,7 +77,7 @@ public class Compiler {
     private final Map<String, Step> inactiveSteps = Maps.newHashMap();
     private final Map<String, String> requirements = Maps.newHashMap();
     private final Set<Dependency> dependencies = Sets.newHashSet();
-    private final List<Integer> parallels = Lists.newArrayList();
+    private final List<Integer> clonables = Lists.newArrayList();
 
     private ProcessFlow processFlow;
     private File logDir;
@@ -174,6 +179,10 @@ public class Compiler {
         // Scan all parallel groups
         cfg.configurationsAt(PARALLEL)
                 .forEach(c -> processParallelGroup(c, namespace, parentGroup));
+
+        // Scan all sequential groups
+        cfg.configurationsAt(SEQUENTIAL)
+                .forEach(c -> processSequentialGroup(c, namespace, parentGroup));
 
         // Scan all dependencies
         cfg.configurationsAt(DEPENDENCY)
@@ -309,10 +318,58 @@ public class Compiler {
 
         int i = 1;
         while (condition(var, i).length() > 0) {
-            parallels.add(0, i);
+            clonables.add(0, i);
             compile(cfg, namespace, parentGroup);
-            parallels.remove(0);
+            clonables.remove(0);
             i++;
+        }
+    }
+
+    /**
+     * Processes a sequential clone group directive.
+     *
+     * @param cfg         hierarchical definition
+     * @param namespace   optional namespace
+     * @param parentGroup optional parent group
+     */
+    private void processSequentialGroup(HierarchicalConfiguration cfg,
+                                        String namespace, Group parentGroup) {
+        String var = cfg.getString(VAR);
+        String starts = cfg.getString(STARTS);
+        String ends = cfg.getString(ENDS);
+        print("sequential var=%s", var);
+
+        int i = 1;
+        while (condition(var, i).length() > 0) {
+            clonables.add(0, i);
+            compile(cfg, namespace, parentGroup);
+            if (i > 1) {
+                processSequentialRequirements(starts, ends, namespace);
+            }
+            clonables.remove(0);
+            i++;
+        }
+    }
+
+    /**
+     * Hooks starts of this sequence tier to the previous tier.
+     *
+     * @param starts    comma-separated list of start steps
+     * @param ends      comma-separated list of end steps
+     * @param namespace optional namespace
+     */
+    private void processSequentialRequirements(String starts, String ends,
+                                               String namespace) {
+        for (String s : split(starts)) {
+            String start = expand(prefix(s, namespace));
+            String reqs = requirements.get(s);
+            for (String n : split(ends)) {
+                boolean isSoft = n.startsWith("~");
+                String name = n.replaceFirst("^~", "");
+                name = (isSoft ? "~" : "") + expand(prefix(name, namespace));
+                reqs = reqs == null ? name : (reqs + "," + name);
+            }
+            requirements.put(start, reqs);
         }
     }
 
@@ -413,9 +470,11 @@ public class Compiler {
             String prop = pString.substring(start + PROP_START.length(), end);
             String value;
             if (prop.equals(HASH)) {
-                value = parallels.get(0).toString();
+                value = Integer.toString(clonables.get(0));
+            } else if (prop.equals(HASH_PREV)) {
+                value = Integer.toString(clonables.get(0) - 1);
             } else if (prop.endsWith(HASH)) {
-                pString = pString.replaceFirst("#}", parallels.get(0).toString() + "}");
+                pString = pString.replaceFirst("#}", clonables.get(0) + "}");
                 last = start;
                 continue;
             } else {

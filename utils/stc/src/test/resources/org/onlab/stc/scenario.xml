@@ -44,4 +44,11 @@
         <step name="ding-${#}" exec="asdads" requires="ping-${#},pong-${#}"/>
         <dependency name="maybe" requires="ding-${#}"/>
     </parallel>
+
+    <sequential var="${TOC#}" requires="alpha" starts="fifi-${#},gigi-${#}" ends="gaga-${#-1}">
+        <step name="fifi-${#}" exec="asdads ${TOC#}"/>
+        <step name="gigi-${#}" exec="asdads"/>
+        <step name="gaga-${#}" exec="asdads" requires="fifi-${#},gigi-${#}"/>
+        <dependency name="maybe" requires="gaga-${#}"/>
+    </sequential>
 </scenario>
