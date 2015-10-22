@@ -388,7 +388,12 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
 
         @Override
         public Builder setQueue(long queueId) {
-            return add(Instructions.setQueue(queueId));
+            return add(Instructions.setQueue(queueId, null));
+        }
+
+        @Override
+        public Builder setQueue(long queueId, PortNumber port) {
+            return add(Instructions.setQueue(queueId, port));
         }
 
         @Override

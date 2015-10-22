@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flow.instructions;
 
+import com.google.common.base.MoreObjects;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -99,11 +100,12 @@ public final class Instructions {
      * Creates a set-queue instruction.
      *
      * @param queueId Queue Id
+     * @param port Port number
      * @return set-queue instruction
      */
-    public static SetQueueInstruction setQueue(final long queueId) {
+    public static SetQueueInstruction setQueue(final long queueId, final PortNumber port) {
         checkNotNull(queueId, "queue ID cannot be null");
-        return new SetQueueInstruction(queueId);
+        return new SetQueueInstruction(queueId, port);
     }
 
     public static MeterInstruction meterTraffic(final MeterId meterId) {
@@ -655,13 +657,24 @@ public final class Instructions {
      */
     public static final class SetQueueInstruction implements Instruction {
         private final long queueId;
+        private final PortNumber port;
 
         private SetQueueInstruction(long queueId) {
             this.queueId = queueId;
+            this.port = null;
+        }
+
+        private SetQueueInstruction(long queueId, PortNumber port) {
+            this.queueId = queueId;
+            this.port = port;
         }
 
         public long queueId() {
             return queueId;
+        }
+
+        public PortNumber port() {
+            return port;
         }
 
         @Override
@@ -671,13 +684,18 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
-                    .add("queueId", queueId).toString();
+            MoreObjects.ToStringHelper toStringHelper = toStringHelper(type().toString());
+            toStringHelper.add("queueId", queueId);
+
+            if (port() != null) {
+                toStringHelper.add("port", port);
+            }
+            return toStringHelper.toString();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(type().ordinal(), queueId);
+            return Objects.hash(type().ordinal(), queueId, port);
         }
 
         @Override
@@ -687,7 +705,7 @@ public final class Instructions {
             }
             if (obj instanceof SetQueueInstruction) {
                 SetQueueInstruction that = (SetQueueInstruction) obj;
-                return Objects.equals(queueId, that.queueId);
+                return Objects.equals(queueId, that.queueId) && Objects.equals(port, that.port);
 
             }
             return false;

@@ -50,6 +50,7 @@ import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
+import org.projectfloodlight.openflow.protocol.action.OFActionEnqueue;
 import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
 import org.projectfloodlight.openflow.protocol.action.OFActionGroup;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
@@ -346,6 +347,10 @@ public class FlowEntryBuilder {
                     OFActionSetQueue setQueue = (OFActionSetQueue) act;
                     builder.setQueue(setQueue.getQueueId());
                     break;
+                case ENQUEUE:
+                    OFActionEnqueue enqueue = (OFActionEnqueue) act;
+                    builder.setQueue(enqueue.getQueueId(), PortNumber.portNumber(enqueue.getPort().getPortNumber()));
+                    break;
                 case STRIP_VLAN:
                 case POP_VLAN:
                     builder.popVlan();
@@ -364,7 +369,6 @@ public class FlowEntryBuilder {
                 case SET_NW_TOS:
                 case SET_NW_TTL:
 
-                case ENQUEUE:
                 default:
                     log.warn("Action type {} not yet implemented.", act.getType());
             }

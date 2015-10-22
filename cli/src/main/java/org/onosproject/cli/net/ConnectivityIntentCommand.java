@@ -33,6 +33,7 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Link;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -166,7 +167,8 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     private String pushVlan = null;
 
-    @Option(name = "--setQueue", description = "Set Queue ID",
+    @Option(name = "--setQueue", description = "Set Queue ID (for OpenFlow 1.0, " +
+            "also the port has to be specified, i.e., <port>/<queue>",
             required = false, multiValued = false)
     private String setQueue = null;
 
@@ -332,7 +334,15 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             emptyTreatment = false;
         }
         if (!isNullOrEmpty(setQueue)) {
-            treatmentBuilder.setQueue(Long.parseLong(setQueue));
+            // OpenFlow 1.0 notation (for ENQUEUE): <port>/<queue>
+            if (setQueue.contains("/")) {
+                String[] queueConfig = setQueue.split("/");
+                PortNumber port = PortNumber.portNumber(Long.parseLong(queueConfig[0]));
+                long queueId = Long.parseLong(queueConfig[1]);
+                treatmentBuilder.setQueue(queueId, port);
+            } else {
+                treatmentBuilder.setQueue(Long.parseLong(setQueue));
+            }
             emptyTreatment = false;
         }
 

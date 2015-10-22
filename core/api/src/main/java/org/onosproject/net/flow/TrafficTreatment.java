@@ -271,6 +271,15 @@ public interface TrafficTreatment {
         Builder setQueue(long queueId);
 
         /**
+         * Sets the Queue ID for a specific port.
+         *
+         * @param queueId a queue ID
+         * @param port a port number
+         * @return a treatment builder
+         */
+        Builder setQueue(long queueId, PortNumber port);
+
+        /**
          * Sets a meter to be used by this flow.
          *
          * @param meterId a meter id
