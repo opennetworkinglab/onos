@@ -17,6 +17,7 @@ package org.onosproject.provider.of.flow.impl;
 
 import org.onlab.packet.Ip4Address;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -68,8 +69,9 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
      * @param xid the transaction ID
      */
     protected FlowModBuilderVer10(FlowRule flowRule,
-                                  OFFactory factory, Optional<Long> xid) {
-        super(flowRule, factory, xid);
+                                  OFFactory factory, Optional<Long> xid,
+                                  Optional<DriverService> driverService) {
+        super(flowRule, factory, xid, driverService);
 
         this.treatment = flowRule.treatment();
     }

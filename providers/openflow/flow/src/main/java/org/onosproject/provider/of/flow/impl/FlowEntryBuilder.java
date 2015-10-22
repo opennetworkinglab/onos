@@ -28,6 +28,11 @@ import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -39,6 +44,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.ExtensionInterpreter;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
@@ -106,7 +112,9 @@ public class FlowEntryBuilder {
 
     private final FlowType type;
 
-    public FlowEntryBuilder(Dpid dpid, OFFlowStatsEntry entry) {
+    private final DriverService driverService;
+
+    public FlowEntryBuilder(Dpid dpid, OFFlowStatsEntry entry, DriverService driverService) {
         this.stat = entry;
         this.match = entry.getMatch();
         this.instructions = getInstructions(entry);
@@ -114,9 +122,10 @@ public class FlowEntryBuilder {
         this.removed = null;
         this.flowMod = null;
         this.type = FlowType.STAT;
+        this.driverService = driverService;
     }
 
-    public FlowEntryBuilder(Dpid dpid, OFFlowRemoved removed) {
+    public FlowEntryBuilder(Dpid dpid, OFFlowRemoved removed, DriverService driverService) {
         this.match = removed.getMatch();
         this.removed = removed;
 
@@ -125,10 +134,10 @@ public class FlowEntryBuilder {
         this.stat = null;
         this.flowMod = null;
         this.type = FlowType.REMOVED;
-
+        this.driverService = driverService;
     }
 
-    public FlowEntryBuilder(Dpid dpid, OFFlowMod fm) {
+    public FlowEntryBuilder(Dpid dpid, OFFlowMod fm, DriverService driverService) {
         this.match = fm.getMatch();
         this.dpid = dpid;
         this.instructions = getInstructions(fm);
@@ -136,6 +145,7 @@ public class FlowEntryBuilder {
         this.flowMod = fm;
         this.stat = null;
         this.removed = null;
+        this.driverService = driverService;
     }
 
     public FlowEntry build(FlowEntryState... state) {
@@ -307,7 +317,7 @@ public class FlowEntryBuilder {
                     break;
                 case SET_FIELD:
                     OFActionSetField setField = (OFActionSetField) act;
-                    handleSetField(builder, setField.getField());
+                    handleSetField(builder, setField);
                     break;
                 case POP_MPLS:
                     OFActionPopMpls popMpls = (OFActionPopMpls) act;
@@ -363,7 +373,8 @@ public class FlowEntryBuilder {
     }
 
 
-    private void handleSetField(TrafficTreatment.Builder builder, OFOxm<?> oxm) {
+    private void handleSetField(TrafficTreatment.Builder builder, OFActionSetField action) {
+        OFOxm<?> oxm = action.getField();
         switch (oxm.getMatchField().id) {
         case VLAN_PCP:
             @SuppressWarnings("unchecked")
@@ -431,6 +442,13 @@ public class FlowEntryBuilder {
             @SuppressWarnings("unchecked")
             OFOxm<TransportPort> udpsrc = (OFOxm<TransportPort>) oxm;
             builder.setUdpSrc(TpPort.tpPort(udpsrc.getValue().getPort()));
+            break;
+        case TUNNEL_IPV4_DST:
+            DriverHandler driver = getDriver(dpid);
+            ExtensionInterpreter interpreter = driver.behaviour(ExtensionInterpreter.class);
+            if (interpreter != null) {
+                builder.extension(interpreter.mapAction(action), DeviceId.deviceId(Dpid.uri(dpid)));
+            }
             break;
         case ARP_OP:
         case ARP_SHA:
@@ -696,5 +714,12 @@ public class FlowEntryBuilder {
             }
         }
         return builder.build();
+    }
+
+    private DriverHandler getDriver(Dpid dpid) {
+        DeviceId deviceId = DeviceId.deviceId(Dpid.uri(dpid));
+        Driver driver = driverService.getDriver(deviceId);
+        DriverHandler handler = new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
+        return handler;
     }
 }

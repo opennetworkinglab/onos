@@ -27,8 +27,10 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.instructions.ExtensionInstruction;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.meter.MeterId;
@@ -244,6 +246,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
                 case L2MODIFICATION:
                 case L3MODIFICATION:
                 case L4MODIFICATION:
+                case EXTENSION:
                     current.add(instruction);
                     break;
                 case TABLE:
@@ -478,6 +481,12 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         @Override
         public TrafficTreatment.Builder setUdpDst(TpPort port) {
             return add(Instructions.modUdpDst(port));
+        }
+
+        @Override
+        public TrafficTreatment.Builder extension(ExtensionInstruction extension,
+                                                  DeviceId deviceId) {
+            return add(Instructions.extension(extension, deviceId));
         }
 
         @Override

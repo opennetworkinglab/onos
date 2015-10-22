@@ -22,6 +22,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OchSignal;
@@ -480,6 +481,20 @@ public final class Instructions {
     }
 
     /**
+     * Creates an extension instruction.
+     *
+     * @param extension extension instruction
+     * @param deviceId device ID
+     * @return extension instruction
+     */
+    public static ExtensionInstructionWrapper extension(ExtensionInstruction extension,
+                                                        DeviceId deviceId) {
+        checkNotNull(extension, "Extension instruction cannot be null");
+        checkNotNull(deviceId, "Device ID cannot be null");
+        return new ExtensionInstructionWrapper(extension, deviceId);
+    }
+
+    /**
      *  Drop instruction.
      */
     @Deprecated
@@ -814,6 +829,59 @@ public final class Instructions {
                 MetadataInstruction that = (MetadataInstruction) obj;
                 return Objects.equals(metadata, that.metadata) &&
                         Objects.equals(metadataMask, that.metadataMask);
+
+            }
+            return false;
+        }
+    }
+
+    /**
+     *  Extension instruction.
+     */
+    public static class ExtensionInstructionWrapper implements Instruction {
+        private final ExtensionInstruction extensionInstruction;
+        private final DeviceId deviceId;
+
+        ExtensionInstructionWrapper(ExtensionInstruction extension, DeviceId deviceId) {
+            extensionInstruction = extension;
+            this.deviceId = deviceId;
+        }
+
+        public ExtensionInstruction extensionInstruction() {
+            return extensionInstruction;
+        }
+
+        public DeviceId deviceId() {
+            return deviceId;
+        }
+
+        @Override
+        public Type type() {
+            return Type.EXTENSION;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(type().toString())
+                    .add("extension", extensionInstruction)
+                    .add("deviceId", deviceId)
+                    .toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type().ordinal(), extensionInstruction, deviceId);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ExtensionInstructionWrapper) {
+                ExtensionInstructionWrapper that = (ExtensionInstructionWrapper) obj;
+                return Objects.equals(extensionInstruction, that.extensionInstruction)
+                        && Objects.equals(deviceId, that.deviceId);
 
             }
             return false;

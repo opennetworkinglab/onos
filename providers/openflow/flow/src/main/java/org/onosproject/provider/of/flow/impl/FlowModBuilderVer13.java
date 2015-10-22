@@ -18,10 +18,16 @@ package org.onosproject.provider.of.flow.impl;
 import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.ExtensionInstruction;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.GroupInstruction;
@@ -34,15 +40,16 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsBosInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsLabelInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModTunnelIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModTunnelIdInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
+import org.onosproject.openflow.controller.ExtensionInterpreter;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
@@ -88,6 +95,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     private static final int OFPCML_NO_BUFFER = 0xffff;
 
     private final TrafficTreatment treatment;
+    private final DeviceId deviceId;
 
     /**
      * Constructor for a flow mod builder for OpenFlow 1.3.
@@ -96,10 +104,12 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
      * @param factory the OpenFlow factory to use to build the flow mod
      * @param xid the transaction ID
      */
-    protected FlowModBuilderVer13(FlowRule flowRule, OFFactory factory, Optional<Long> xid) {
-        super(flowRule, factory, xid);
+    protected FlowModBuilderVer13(FlowRule flowRule, OFFactory factory, Optional<Long> xid,
+                                  Optional<DriverService> driverService) {
+        super(flowRule, factory, xid, driverService);
 
         this.treatment = flowRule.treatment();
+        this.deviceId = flowRule.deviceId();
     }
 
     @Override
@@ -255,6 +265,10 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 case TABLE:
                     //FIXME: should not occur here.
                     tableFound = true;
+                    break;
+                case EXTENSION:
+                    actions.add(buildExtensionAction(((Instructions.ExtensionInstructionWrapper) i)
+                            .extensionInstruction()));
                     break;
                 default:
                     log.warn("Instruction type {} not yet implemented.", i.type());
@@ -464,6 +478,22 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         if (oxm != null) {
             return factory().actions().buildSetField().setField(oxm).build();
         }
+        return null;
+    }
+
+    private OFAction buildExtensionAction(ExtensionInstruction i) {
+        if (!driverService.isPresent()) {
+            log.error("No driver service present");
+            return null;
+        }
+        Driver driver = driverService.get().getDriver(deviceId);
+        if (driver.hasBehaviour(ExtensionInterpreter.class)) {
+            DefaultDriverHandler handler =
+                    new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
+            ExtensionInterpreter interpreter = handler.behaviour(ExtensionInterpreter.class);
+            return interpreter.mapInstruction(factory(), i);
+        }
+
         return null;
     }
 

@@ -21,7 +21,6 @@ import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -32,6 +31,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultTableStatisticsEntry;
 import org.onosproject.net.flow.FlowEntry;
@@ -61,12 +61,12 @@ import org.projectfloodlight.openflow.protocol.OFErrorType;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsReply;
-import org.projectfloodlight.openflow.protocol.OFTableStatsReply;
-import org.projectfloodlight.openflow.protocol.OFTableStatsEntry;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
+import org.projectfloodlight.openflow.protocol.OFTableStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFTableStatsReply;
 import org.projectfloodlight.openflow.protocol.errormsg.OFBadRequestErrorMsg;
 import org.projectfloodlight.openflow.protocol.errormsg.OFFlowModFailedErrorMsg;
 import org.slf4j.Logger;
@@ -105,6 +105,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
 
     private static final int DEFAULT_POLL_FREQUENCY = 5;
     @Property(name = "flowPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
@@ -269,7 +272,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
             return;
         }
         sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
-                                          Optional.empty()).buildFlowAdd());
+                Optional.empty(), Optional.of(driverService)).buildFlowAdd());
 
         if (adaptiveFlowSampling) {
             // Add TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
@@ -298,7 +301,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
             return;
         }
         sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
-                                          Optional.empty()).buildFlowDel());
+                                          Optional.empty(), Optional.of(driverService)).buildFlowDel());
 
         if (adaptiveFlowSampling) {
             // Remove TypedFlowEntry to deviceFlowEntries in NewAdaptiveFlowStatsCollector
@@ -334,7 +337,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
                 continue;
             }
             FlowModBuilder builder =
-                    FlowModBuilder.builder(fbe.target(), sw.factory(), Optional.of(batch.id()));
+                    FlowModBuilder.builder(fbe.target(), sw.factory(),
+                            Optional.of(batch.id()), Optional.of(driverService));
             NewAdaptiveFlowStatsCollector collector = afsCollectors.get(dpid);
             switch (fbe.operator()) {
                 case ADD:
@@ -423,7 +427,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
                 case FLOW_REMOVED:
                     OFFlowRemoved removed = (OFFlowRemoved) msg;
 
-                    FlowEntry fr = new FlowEntryBuilder(dpid, removed).build();
+                    FlowEntry fr = new FlowEntryBuilder(dpid, removed, driverService).build();
                     providerService.flowRemoved(fr);
 
                     if (adaptiveFlowSampling) {
@@ -474,7 +478,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
                             InternalCacheEntry entry =
                                     pendingBatches.getIfPresent(msg.getXid());
                             if (entry != null) {
-                                entry.appendFailure(new FlowEntryBuilder(dpid, fm).build());
+                                entry.appendFailure(new FlowEntryBuilder(dpid, fm, driverService).build());
                             } else {
                                 log.error("No matching batch for this error: {}", error);
                             }
@@ -501,7 +505,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
             DeviceId did = DeviceId.deviceId(Dpid.uri(dpid));
 
             List<FlowEntry> flowEntries = replies.getEntries().stream()
-                    .map(entry -> new FlowEntryBuilder(dpid, entry).build())
+                    .map(entry -> new FlowEntryBuilder(dpid, entry, driverService).build())
                     .collect(Collectors.toList());
 
             if (adaptiveFlowSampling)  {

@@ -32,6 +32,10 @@
                    impl="org.onosproject.driver.handshaker.NiciraSwitchHandshaker"/>
         <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
                    impl="org.onosproject.driver.ovsdb.OvsdbControllerConfig"/>
+        <behaviour api="org.onosproject.openflow.controller.ExtensionInterpreter"
+                   impl="org.onosproject.driver.extensions.NiciraExtensionInterpreter" />
+        <behaviour api="org.onosproject.net.behaviour.ExtensionResolver"
+                   impl="org.onosproject.driver.extensions.NiciraExtensionInterpreter" />
     </driver>
     <driver name="ovs-corsa" extends="ovs"
             manufacturer="Corsa" hwVersion="emulation" swVersion="0.0.0">

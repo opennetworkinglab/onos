@@ -16,21 +16,10 @@
 
 package org.onosproject.provider.of.flow.impl;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import org.onosproject.net.flow.DefaultTypedFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowId;
@@ -47,9 +36,19 @@ import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.TableId;
 import org.slf4j.Logger;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.flow.TypedStoredFlowEntry.*;
+import static org.onosproject.net.flow.TypedStoredFlowEntry.FlowLiveType;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -232,7 +231,8 @@ public class NewAdaptiveFlowStatsCollector {
     // send openflow flow stats request message with getting the specific flow entry(fe) to a given switch sw
     private void ofFlowStatsRequestFlowSend(FlowEntry fe) {
         // set find match
-        Match match = FlowModBuilder.builder(fe, sw.factory(), Optional.empty()).buildMatch();
+        Match match = FlowModBuilder.builder(fe, sw.factory(), Optional.empty(),
+                Optional.empty()).buildMatch();
         // set find tableId
         TableId tableId = TableId.of(fe.tableId());
         // set output port

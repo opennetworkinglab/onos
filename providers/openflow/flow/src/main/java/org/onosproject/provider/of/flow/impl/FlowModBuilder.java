@@ -15,16 +15,13 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Optional;
-
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -85,6 +82,10 @@ import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
 import org.slf4j.Logger;
 
+import java.util.Optional;
+
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Builder for OpenFlow flow mods based on FlowRules.
  */
@@ -96,6 +97,7 @@ public abstract class FlowModBuilder {
     private final FlowRule flowRule;
     private final TrafficSelector selector;
     protected final Long xid;
+    protected final Optional<DriverService> driverService;
 
     /**
      * Creates a new flow mod builder.
@@ -107,12 +109,13 @@ public abstract class FlowModBuilder {
      */
     public static FlowModBuilder builder(FlowRule flowRule,
                                          OFFactory factory,
-                                         Optional<Long> xid) {
+                                         Optional<Long> xid,
+                                         Optional<DriverService> driverService) {
         switch (factory.getVersion()) {
         case OF_10:
-            return new FlowModBuilderVer10(flowRule, factory, xid);
+            return new FlowModBuilderVer10(flowRule, factory, xid, driverService);
         case OF_13:
-            return new FlowModBuilderVer13(flowRule, factory, xid);
+            return new FlowModBuilderVer13(flowRule, factory, xid, driverService);
         default:
             throw new UnsupportedOperationException(
                     "No flow mod builder for protocol version " + factory.getVersion());
@@ -126,12 +129,13 @@ public abstract class FlowModBuilder {
      * @param factory the OpenFlow factory to use to build the flow mod
      * @param xid the transaction ID
      */
-    protected FlowModBuilder(FlowRule flowRule, OFFactory factory, Optional<Long> xid) {
+    protected FlowModBuilder(FlowRule flowRule, OFFactory factory, Optional<Long> xid,
+                             Optional<DriverService> driverService) {
         this.factory = factory;
         this.flowRule = flowRule;
         this.selector = flowRule.selector();
         this.xid = xid.orElse(0L);
-
+        this.driverService = driverService;
     }
 
     /**

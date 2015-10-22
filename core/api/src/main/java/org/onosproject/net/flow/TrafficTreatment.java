@@ -24,7 +24,9 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.instructions.ExtensionInstruction;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.meter.MeterId;
@@ -411,6 +413,15 @@ public interface TrafficTreatment {
          * @return a treatment builder
          */
         Builder setUdpDst(TpPort port);
+
+        /**
+         * Uses an extension treatment.
+         *
+         * @param extension extension treatment
+         * @param deviceId device ID
+         * @return a treatment builder
+         */
+        Builder extension(ExtensionInstruction extension, DeviceId deviceId);
 
         /**
          * Builds an immutable traffic treatment descriptor.

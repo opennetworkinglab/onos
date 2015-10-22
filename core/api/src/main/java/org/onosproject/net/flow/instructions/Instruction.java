@@ -92,7 +92,12 @@ public interface Instruction {
         /**
          * Signifies that the traffic should be modified in L4 way.
          */
-        L4MODIFICATION
+        L4MODIFICATION,
+
+        /**
+         * Signifies that an extension instruction will be used.
+         */
+        EXTENSION
     }
 
     /**
