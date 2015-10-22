@@ -17,6 +17,8 @@ package org.onosproject.pim.impl;
 
 import org.jboss.netty.util.HashedWheelTimer;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * PIM Timer used for PIM Neighbors.
  */
@@ -49,5 +51,22 @@ public final class PIMTimer {
             hwTimer.start();
             PIMTimer.timer = hwTimer;
         }
+    }
+
+    public static void start() {
+        if (PIMTimer.timer == null) {
+            getTimer();
+        }
+        checkNotNull(timer);
+        timer.start();
+    }
+
+    public static void stop() {
+        if (PIMTimer.timer == null) {
+            // No need to stop
+            return;
+        }
+        checkNotNull(timer);
+        timer.stop();
     }
 }

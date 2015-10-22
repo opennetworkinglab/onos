@@ -19,16 +19,15 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.net.ConnectPoint;
 
-import java.util.HashMap;
+import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * PIM neighbors Codec.
  */
-public class PIMNeighborsCodec extends JsonCodec<HashMap<ConnectPoint, PIMNeighbors>> {
+public class PIMInterfacesCodec extends JsonCodec<Collection<PIMInterface>> {
     // JSON field names
     //Return Name
     private static final String CPNBRLIST = "connect_point_list";
@@ -53,22 +52,22 @@ public class PIMNeighborsCodec extends JsonCodec<HashMap<ConnectPoint, PIMNeighb
      * @return Encoded neighbors used by CLI and REST
      */
     @Override
-    public ObjectNode encode(HashMap<ConnectPoint, PIMNeighbors> cpn, CodecContext context) {
+    public ObjectNode encode(Collection<PIMInterface> cpn, CodecContext context) {
         checkNotNull(cpn, "Pim Neighbors cannot be null");
 
         ObjectNode pimNbrJsonCodec = context.mapper().createObjectNode();
         ArrayNode cpnList = context.mapper().createArrayNode();
 
-        for (PIMNeighbors pn: cpn.values()) {
+        for (PIMInterface pn: cpn) {
             // get the PimNeighbors Obj, contains Neighbors list
             // create the json object for a single Entry in the Neighbors list
             ObjectNode cp = context.mapper().createObjectNode();
-            cp.put(IP, pn.getOurIpAddress().toString());
-            cp.put(PRIORITY, String.valueOf(pn.getOurPriority()));
+            cp.put(IP, pn.getIpAddress().toString());
+            cp.put(PRIORITY, String.valueOf(pn.getPriority()));
 
             // create the array for the neighbors list
             ArrayNode nbrsList = context.mapper().createArrayNode();
-            for (PIMNeighbor nbr : pn.getOurNeighborsList().values()) {
+            for (PIMNeighbor nbr : pn.getNeighbors()) {
                 nbrsList.add(neighbor(nbr, context));
             }
             // adds pim neighbor to list

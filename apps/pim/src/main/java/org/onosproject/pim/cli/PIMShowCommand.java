@@ -18,30 +18,30 @@ package org.onosproject.pim.cli;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.pim.impl.PIMNeighbors;
-import org.onosproject.pim.impl.PIMNeighborsCodec;
+import org.onosproject.pim.impl.PIMInterface;
+import org.onosproject.pim.impl.PIMInterfaces;
+import org.onosproject.pim.impl.PIMInterfacesCodec;
 
-import java.util.HashMap;
+import java.util.Collection;
 
-@Command(scope = "onos", name = "pim-neighbors", description = "Displays the pim neighbors")
+@Command(scope = "onos", name = "pim-interfaces", description = "Displays the pim interfaces")
 public class PIMShowCommand extends AbstractShellCommand {
 
     // prints either the json or cli version of the hash map connect point
-    // neighbors from the PIMNeighbors class.
+    // neighbors from the PIMInterfaces class.
     @Override
     protected  void execute() {
         // grab connect point neighbors hash map to send in to json encoder.
-        HashMap<ConnectPoint, PIMNeighbors> pimNbrs = PIMNeighbors.getConnectPointNeighbors();
+        Collection<PIMInterface> pimIntfs = PIMInterfaces.getInstance().getInterfaces();
         if (outputJson()) {
-            print("%s", json(pimNbrs));
+            print("%s", json(pimIntfs));
         } else {
-            print(PIMNeighbors.printPimNeighbors());
+            print(PIMInterfaces.getInstance().printInterfaces());
         }
     }
 
-    private JsonNode json(HashMap<ConnectPoint, PIMNeighbors> pimNbrs) {
-        return new PIMNeighborsCodec().encode(pimNbrs, this);
+    private JsonNode json(Collection<PIMInterface> pimIntfs) {
+        return new PIMInterfacesCodec().encode(pimIntfs, this);
     }
 
 }

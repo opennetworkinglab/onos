@@ -60,22 +60,20 @@ public class PIMNeighbor {
     // Timeout for this neighbor
     private volatile Timeout timeout;
 
-    private boolean reelect = false;
-
     // A back pointer the neighbors list this neighbor belongs to.
-    private PIMNeighbors neighbors;
+    private PIMInterface pimInterface;
 
     /**
      * Construct this neighbor from the address and connect point.
      *
      * @param ipaddr IP Address of neighbor
      * @param macaddr MAC Address of the neighbor
-     * @param cp The ConnectPoint of this neighbor
+     * @param pimInterface The PIMInterface of this neighbor
      */
-    public PIMNeighbor(IpAddress ipaddr, MacAddress macaddr, ConnectPoint cp) {
+    public PIMNeighbor(IpAddress ipaddr, MacAddress macaddr, PIMInterface pimInterface) {
         this.macAddress = macaddr;
         this.primaryAddr = ipaddr;
-        this.connectPoint = cp;
+        this.pimInterface = pimInterface;
         this.resetTimeout();
     }
 
@@ -174,30 +172,12 @@ public class PIMNeighbor {
      *
      * @return the ConnectPoint
      */
-    public ConnectPoint getConnectPoint() {
-        return connectPoint;
+    public PIMInterface getPimInterface() {
+        return pimInterface;
     }
 
     /**
-     * Set the ConnectPoint this router is connected to.
-     *
-     * @param connectPoint the ConnectPoint this router is connected to.
-     */
-    public void setConnectPoint(ConnectPoint connectPoint) {
-        this.connectPoint = connectPoint;
-    }
-
-    /**
-     * Set a back pointer to the neighbors list this neighbor is a member of.
-     *
-     * @param neighbors the neighbor list this neighbor belongs to
-     */
-    public void setNeighbors(PIMNeighbors neighbors) {
-        this.neighbors = neighbors;
-    }
-
-    /**
-     * We have received a fresh hello from a neighbor, now we need to process it.
+     * We have received a fresh hello from this neighbor, now we need to process it.
      * Depending on the values received in the the hello options may force a
      * re-election process.
      *
@@ -208,17 +188,19 @@ public class PIMNeighbor {
     public void refresh(PIMHello hello) {
         checkNotNull(hello);
 
+        boolean reelect = false;
         for (PIMHelloOption opt : hello.getOptions().values()) {
 
             int len = opt.getOptLength();
-            byte [] value = new byte[len];
-            ByteBuffer bb = ByteBuffer.wrap(value);
+            ByteBuffer bb = ByteBuffer.wrap(opt.getValue());
 
             switch (opt.getOptType()) {
                 case PIMHelloOption.OPT_GENID:
                     int newid = bb.getInt();
                     if (this.genId != newid) {
-                        // TODO: we have a newly rebooted neighbor.  Send them our joins.
+
+                        // We have a newly rebooted neighbor, this is where we would
+                        // send them our joins.
                         this.genId = newid;
                     }
                     break;
@@ -228,7 +210,7 @@ public class PIMNeighbor {
                     if (this.priority != newpri) {
 
                         // The priorities have changed.  We may need to re-elect a new DR?
-                        if (this.isDr || this.neighbors.getDesignatedRouter().getPriority() < priority) {
+                        if (this.isDr || pimInterface.getDesignatedRouter().getPriority() < priority) {
                             reelect = true;
                         }
                         this.priority = newpri;
@@ -242,7 +224,6 @@ public class PIMNeighbor {
                         if (holdtime == 0) {
                             // We have a neighbor going down.  We can remove all joins
                             // we have learned from them.
-                            // TODO: What else do we need to do when a neighbor goes down?
 
                             log.debug("PIM Neighbor has timed out: {}", this.primaryAddr.toString());
                             return;
@@ -261,7 +242,7 @@ public class PIMNeighbor {
         }
 
         if (reelect) {
-            this.neighbors.electDR(this);
+            pimInterface.electDR(this);
         }
 
         // Reset the next timeout timer
@@ -307,9 +288,8 @@ public class PIMNeighbor {
         @Override
         public void run(Timeout timeout) throws Exception {
 
-            // TODO: log.debug;
-            PIMNeighbors neighbors = nbr.neighbors;
-            neighbors.removeNeighbor(nbr.getPrimaryAddr());
+            log.debug("PIM Neighbor {} has timed out: ", nbr.toString());
+            nbr.pimInterface.removeNeighbor(nbr);
         }
     }
 

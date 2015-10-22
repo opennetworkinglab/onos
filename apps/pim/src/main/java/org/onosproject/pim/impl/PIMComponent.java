@@ -22,132 +22,61 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
-import org.onlab.packet.Ip4Address;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.PIM;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.packet.InboundPacket;
-import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketPriority;
-import org.onosproject.net.packet.PacketProcessor;
+import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 
 /**
- * Protocol Independent Multicast Emulation.
+ * Protocol Independent Multicast (PIM) Emulation.  This component is responsible
+ * for reference the services this PIM module is going to need, then initializing
+ * the corresponding utility classes.
  */
 @Component(immediate = true)
 public class PIMComponent {
     private final Logger log = getLogger(getClass());
 
+    // Register to receive PIM packets, used to send packets as well
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
 
+    // Get the appId
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
-    private PIMPacketProcessor processor = new PIMPacketProcessor();
+    // Get the network configuration updates
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService configService;
+
+    // Access defined network (IP) interfaces
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected InterfaceService interfaceService;
+
     private static ApplicationId appId;
+
+    private PIMInterfaces pimInterfaces;
+    private PIMPacketHandler pimPacketHandler;
 
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.pim");
 
-        packetService.addProcessor(processor, PacketProcessor.director(1));
+        // Initialize the Packet Handler class
+        pimPacketHandler = PIMPacketHandler.getInstance();
+        pimPacketHandler.initialize(packetService, appId);
 
-        // Build a traffic selector for all multicast traffic
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchEthType(Ethernet.TYPE_IPV4);
-        selector.matchIPProtocol(IPv4.PROTOCOL_PIM);
-        packetService.requestPackets(selector.build(), PacketPriority.REACTIVE, appId);
+        // Initialize the Interface class
+        pimInterfaces = PIMInterfaces.getInstance();
+        pimInterfaces.initialize(configService, interfaceService);
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        packetService.removeProcessor(processor);
-        processor = null;
+        PIMPacketHandler.getInstance().stop();
         log.info("Stopped");
-    }
-
-    /**
-     * Packet processor responsible for handling IGMP packets.
-     */
-    private class PIMPacketProcessor implements PacketProcessor {
-
-        @Override
-        public void process(PacketContext context) {
-            // Stop processing if the packet has been handled, since we
-            // can't do any more to it.
-            if (context.isHandled()) {
-                return;
-            }
-
-            InboundPacket pkt = context.inPacket();
-            if (pkt == null) {
-                return;
-            }
-
-            Ethernet ethPkt = pkt.parsed();
-            if (ethPkt == null) {
-                return;
-            }
-
-            /*
-             * IPv6 MLD packets are handled by ICMP6. We'll only deal
-             * with IPv4.
-             */
-            if (ethPkt.getEtherType() != Ethernet.TYPE_IPV4) {
-                return;
-            }
-
-            IPv4 ip = (IPv4) ethPkt.getPayload();
-            IpAddress gaddr = IpAddress.valueOf(ip.getDestinationAddress());
-            IpAddress saddr = Ip4Address.valueOf(ip.getSourceAddress());
-            log.debug("Packet (" + saddr.toString() + ", " + gaddr.toString() +
-                    "\tingress port: " + context.inPacket().receivedFrom().toString());
-
-            if (ip.getProtocol() != IPv4.PROTOCOL_PIM) {
-                log.debug("PIM Picked up a non PIM packet: IP protocol: " + ip.getProtocol());
-                return;
-            }
-
-            // TODO: check incoming to be PIM.PIM_ADDRESS or "Our" address.
-            IpPrefix spfx = IpPrefix.valueOf(saddr, 32);
-            IpPrefix gpfx = IpPrefix.valueOf(gaddr, 32);
-
-            PIM pim = (PIM) ip.getPayload();
-            switch (pim.getPimMsgType()) {
-
-                case PIM.TYPE_HELLO:
-                    PIMNeighbors.processHello(ethPkt, context.inPacket().receivedFrom());
-                    break;
-
-                case PIM.TYPE_JOIN_PRUNE_REQUEST:
-                    // Create the function
-                    break;
-
-                case PIM.TYPE_ASSERT:
-                case PIM.TYPE_BOOTSTRAP:
-                case PIM.TYPE_CANDIDATE_RP_ADV:
-                case PIM.TYPE_GRAFT:
-                case PIM.TYPE_GRAFT_ACK:
-                case PIM.TYPE_REGISTER:
-                case PIM.TYPE_REGISTER_STOP:
-                    log.debug("Unsupported PIM message type: " + pim.getPimMsgType());
-                    break;
-
-                default:
-                    log.debug("Unkown PIM message type: " + pim.getPimMsgType());
-                    break;
-            }
-        }
     }
 }
