@@ -55,7 +55,21 @@
                 height: 14
             }
         },
+        badgeConfig = {
+            radius: 12,
+            yoff: 5
+        },
         icfg;
+
+    var status = {
+        i: 'badgeInfo',
+        w: 'badgeWarn',
+        e: 'badgeError'
+    };
+
+    function badgeStatus(badge) {
+        return status[badge.status] || status.i;
+    }
 
     // internal state
     var deviceLabelIndex = 0,
@@ -186,12 +200,14 @@
     }
 
 
-    function updateDeviceLabel(d) {
+    function updateDeviceRendering(d) {
         var label = trimLabel(deviceLabel(d)),
             noLabel = !label,
             node = d.el,
             dim = icfg.device.dim,
-            box, dx, dy;
+            box, dx, dy, bsel,
+            bdg = d.badge,
+            bcr = badgeConfig.radius;
 
         node.select('text')
             .text(label)
@@ -216,23 +232,31 @@
         node.select('g.deviceIcon')
             .transition()
             .attr('transform', sus.translate(dx, dy));
-    }
 
-    function updateDeviceBadge(d) {
-        // TODO: Fix this WIP
-        var node = d.el,
-            bsel;
-
-        if (d.badge) {
+        // handle badge, if defined
+        if (bdg) {
             bsel = node.append('g')
                 .classed('badge', true)
-                .attr('transform', sus.translate(-14, -14));
+                .classed(badgeStatus(bdg), true)
+                .attr('transform', sus.translate(dx + dim, dy));
 
             bsel.append('circle')
-                .attr('r', 14);
-            bsel.append('text')
-                .attr('transform', sus.translate(-5, 3))
-                .text('42');
+                .attr('r', bcr);
+
+            if (bdg.txt) {
+                bsel.append('text')
+                    .attr('dy', badgeConfig.yoff)
+                    .attr('text-anchor', 'middle')
+                    .text(bdg.txt);
+            } else if (bdg.gid) {
+                bsel.append('use')
+                    .attr({
+                        width: bcr * 2,
+                        height: bcr * 2,
+                        'xlink:href': '#' + bdg.gid
+                    });
+
+            }
         }
     }
 
@@ -258,8 +282,7 @@
     function deviceExisting(d) {
         var node = d.el;
         node.classed('online', d.online);
-        updateDeviceLabel(d);
-        updateDeviceBadge(d);
+        updateDeviceRendering(d);
         api.posNode(d, true);
     }
 
@@ -574,7 +597,7 @@
                 deviceLabel: deviceLabel,
                 trimLabel: trimLabel,
 
-                updateDeviceLabel: updateDeviceLabel,
+                updateDeviceLabel: updateDeviceRendering,
                 updateHostLabel: updateHostLabel,
                 updateDeviceColors: updateDeviceColors,
 
