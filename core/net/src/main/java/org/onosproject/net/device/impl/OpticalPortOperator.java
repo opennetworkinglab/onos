@@ -112,10 +112,10 @@ public final class OpticalPortOperator implements ConfigOperator {
                 return new OduCltPortDescription(port, odu.isEnabled(), odu.signalType(), sa);
             case PACKET:
             case FIBER:
+            case COPPER:
                 return new DefaultPortDescription(port, descr.isEnabled(), descr.type(),
                         descr.portSpeed(), sa);
             default:
-                // this includes copper ports.
                 log.warn("Unsupported optical port type {} - can't update", descr.type());
                 return descr;
         }

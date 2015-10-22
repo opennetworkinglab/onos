@@ -344,7 +344,10 @@ class LINCSwitch(OpticalSwitch):
                 continue
             portDict = {}
             portDict[ 'port' ] = port
-            portDict[ 'type' ] = 'FIBER' if isinstance(intf.link, LINCLink) else 'COPPER'
+            portType = 'COPPER'
+            if isinstance(intf.link, LINCLink):
+                portType = 'OCH' if intf.link.isCrossConnect else 'OMS'
+            portDict[ 'type' ] = portType
             intfList = [ intf.link.intf1, intf.link.intf2 ]
             intfList.remove(intf)
             portDict[ 'speed' ] = intfList[ 0 ].speed if isinstance(intf.link, LINCLink) else 0
@@ -787,7 +790,10 @@ class LINCIntf(OpticalIntf):
         configDict = {}
         configDict[ 'port' ] = self.port
         configDict[ 'speed' ] = self.speed
-        configDict[ 'type' ] = 'FIBER'
+        portType = 'COPPER'
+        if isinstance(self.link, LINCLink):
+            portType = 'OCH' if self.link.isCrossConnect else 'OMS'
+        configDict[ 'type' ] = portType
         return configDict
 
     def config(self, *args, **kwargs):
