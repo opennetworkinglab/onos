@@ -21,11 +21,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.ICMP6;
+import org.onlab.packet.IPacket;
+import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Address;
+import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.packet.ndp.NeighborAdvertisement;
+import org.onlab.packet.ndp.NeighborDiscoveryOptions;
+import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
@@ -66,9 +74,13 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -83,6 +95,8 @@ public class ProxyArpManagerTest {
 
     private static final Ip4Address IP1 = Ip4Address.valueOf("192.168.1.1");
     private static final Ip4Address IP2 = Ip4Address.valueOf("192.168.1.2");
+    private static final Ip6Address IP3 = Ip6Address.valueOf("1000::1");
+    private static final Ip6Address IP4 = Ip6Address.valueOf("1000::2");
 
     private static final ProviderId PID = new ProviderId("of", "foo");
 
@@ -90,8 +104,14 @@ public class ProxyArpManagerTest {
     private static final VlanId VLAN2 = VlanId.vlanId((short) 2);
     private static final MacAddress MAC1 = MacAddress.valueOf("00:00:11:00:00:01");
     private static final MacAddress MAC2 = MacAddress.valueOf("00:00:22:00:00:02");
+    private static final MacAddress MAC3 = MacAddress.valueOf("00:00:33:00:00:03");
+    private static final MacAddress MAC4 = MacAddress.valueOf("00:00:44:00:00:04");
+    private static final MacAddress SOLICITED_MAC3 = MacAddress.valueOf("33:33:FF:00:00:01");
     private static final HostId HID1 = HostId.hostId(MAC1, VLAN1);
     private static final HostId HID2 = HostId.hostId(MAC2, VLAN1);
+    private static final HostId HID3 = HostId.hostId(MAC3, VLAN1);
+    private static final HostId HID4 = HostId.hostId(MAC4, VLAN1);
+    private static final HostId SOLICITED_HID3 = HostId.hostId(SOLICITED_MAC3, VLAN1);
 
     private static final DeviceId DID1 = getDeviceId(1);
     private static final DeviceId DID2 = getDeviceId(2);
@@ -222,21 +242,29 @@ public class ProxyArpManagerTest {
 
         for (int i = 1; i <= NUM_ADDRESS_PORTS; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(i), P1);
-            Ip4Prefix prefix1 =
-                    Ip4Prefix.valueOf("10.0." + (2 * i - 1) + ".0/24");
-            Ip4Address addr1 =
-                    Ip4Address.valueOf("10.0." + (2 * i - 1) + ".1");
+
+            // Interface address for IPv4
+            Ip4Prefix prefix1 = Ip4Prefix.valueOf("10.0." + (2 * i - 1) + ".0/24");
+            Ip4Address addr1 = Ip4Address.valueOf("10.0." + (2 * i - 1) + ".1");
             Ip4Prefix prefix2 = Ip4Prefix.valueOf("10.0." + (2 * i) + ".0/24");
             Ip4Address addr2 = Ip4Address.valueOf("10.0." + (2 * i) + ".1");
             InterfaceIpAddress ia1 = new InterfaceIpAddress(addr1, prefix1);
             InterfaceIpAddress ia2 = new InterfaceIpAddress(addr2, prefix2);
-            Interface intf1 = new Interface(cp, Sets.newHashSet(ia1),
+
+            // Interface address for IPv6
+            Ip6Prefix prefix3 = Ip6Prefix.valueOf((2 * i - 1) + "000::0/64");
+            Ip6Address addr3 = Ip6Address.valueOf((2 * i - 1) + "000::1");
+            Ip6Prefix prefix4 = Ip6Prefix.valueOf((2 * i) + "000::0/64");
+            Ip6Address addr4 = Ip6Address.valueOf((2 * i) + "000::1");
+            InterfaceIpAddress ia3 = new InterfaceIpAddress(addr3, prefix3);
+            InterfaceIpAddress ia4 = new InterfaceIpAddress(addr4, prefix4);
+
+            Interface intf1 = new Interface(cp, Sets.newHashSet(ia1, ia3),
                     MacAddress.valueOf(2 * i - 1),
                     VlanId.vlanId((short) 1));
-            Interface intf2 = new Interface(cp, Sets.newHashSet(ia2),
+            Interface intf2 = new Interface(cp, Sets.newHashSet(ia2, ia4),
                     MacAddress.valueOf(2 * i),
                     VlanId.NONE);
-
             interfaces.add(intf1);
             interfaces.add(intf2);
 
@@ -321,6 +349,41 @@ public class ProxyArpManagerTest {
 
     /**
      * Tests {@link ProxyArpManager#reply(Ethernet, ConnectPoint)} in the case where the
+     * destination host is known.
+     * Verifies the correct NDP reply is sent out the correct port.
+     */
+    @Test
+    public void testReplyKnownIpv6() {
+        //Set the return value of isEdgePoint from the edgemanager.
+        isEdgePointReturn = true;
+
+        Host replyer = new DefaultHost(PID, HID3, MAC3, VLAN1, getLocation(4),
+                                       Collections.singleton(IP3));
+
+        Host requestor = new DefaultHost(PID, HID4, MAC4, VLAN1, getLocation(5),
+                                         Collections.singleton(IP4));
+
+        expect(hostService.getHostsByIp(IP3))
+                .andReturn(Collections.singleton(replyer));
+        expect(hostService.getHost(HID4)).andReturn(requestor);
+
+        replay(hostService);
+        replay(interfaceService);
+
+        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
+                                       MAC4, SOLICITED_MAC3,
+                                       IP4, IP3);
+
+        proxyArp.reply(ndpRequest, getLocation(5));
+
+        assertEquals(1, packetService.packets.size());
+        Ethernet ndpReply = buildNDP(ICMP6.NEIGHBOR_ADVERTISEMENT,
+                                     MAC3, MAC4, IP3, IP4);
+        verifyPacketOut(ndpReply, getLocation(5), packetService.packets.get(0));
+    }
+
+    /**
+     * Tests {@link ProxyArpManager#reply(Ethernet, ConnectPoint)} in the case where the
      * destination host is not known.
      * Verifies the ARP request is flooded out the correct edge ports.
      */
@@ -337,7 +400,6 @@ public class ProxyArpManagerTest {
                 .andReturn(Collections.emptySet());
         expect(hostService.getHost(HID2)).andReturn(requestor);
 
-
         replay(hostService);
         replay(interfaceService);
 
@@ -351,6 +413,41 @@ public class ProxyArpManagerTest {
         proxyArp.reply(arpRequest, getLocation(6));
 
         verifyFlood(arpRequest);
+    }
+
+    /**
+     * Tests {@link ProxyArpManager#reply(Ethernet, ConnectPoint)} in the case where the
+     * destination host is not known.
+     * Verifies the NDP request is flooded out the correct edge ports.
+     */
+    @Test
+    public void testReplyUnknownIpv6() {
+        isEdgePointReturn = true;
+
+        Host requestor = new DefaultHost(PID, HID4, MAC4, VLAN1, getLocation(5),
+                                         Collections.singleton(IP4));
+
+        expect(hostService.getHostsByIp(IP3))
+                .andReturn(Collections.emptySet());
+        expect(interfaceService.getInterfacesByIp(IP4))
+                .andReturn(Collections.emptySet());
+        expect(hostService.getHost(HID4)).andReturn(requestor);
+
+        replay(hostService);
+        replay(interfaceService);
+
+        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
+                                       MAC4, SOLICITED_MAC3,
+                                       IP4, IP3);
+
+        //Setup the set of edge ports to be used in the reply method
+        getEdgePointsNoArg = Lists.newLinkedList();
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("5"), PortNumber.portNumber(1)));
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("4"), PortNumber.portNumber(1)));
+
+        proxyArp.reply(ndpRequest, getLocation(6));
+
+        verifyFlood(ndpRequest);
     }
 
     /**
@@ -388,6 +485,46 @@ public class ProxyArpManagerTest {
         verifyFlood(arpRequest);
     }
 
+    /**
+     * Tests {@link ProxyArpManager#reply(Ethernet, ConnectPoint)} in the case where the
+     * destination host is known for that IP address, but is not on the same
+     * VLAN as the source host.
+     * Verifies the NDP request is flooded out the correct edge ports.
+     */
+    @Test
+    public void testReplyDifferentVlanIpv6() {
+
+        Host replyer = new DefaultHost(PID, HID3, MAC3, VLAN2, getLocation(4),
+                                       Collections.singleton(IP3));
+
+        Host requestor = new DefaultHost(PID, HID4, MAC4, VLAN1, getLocation(5),
+                                         Collections.singleton(IP4));
+
+        expect(hostService.getHostsByIp(IP3))
+                .andReturn(Collections.singleton(replyer));
+        expect(interfaceService.getInterfacesByIp(IP4))
+                .andReturn(Collections.emptySet());
+        expect(hostService.getHost(HID4)).andReturn(requestor);
+
+        replay(hostService);
+        replay(interfaceService);
+
+        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
+                                       MAC4, SOLICITED_MAC3,
+                                       IP4, IP3);
+
+        //Setup for flood test
+        getEdgePointsNoArg = Lists.newLinkedList();
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("5"), PortNumber.portNumber(1)));
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("4"), PortNumber.portNumber(1)));
+        proxyArp.reply(ndpRequest, getLocation(6));
+
+        verifyFlood(ndpRequest);
+    }
+
+    /**
+     * Test ARP request from external network to an internal host.
+     */
     @Test
     public void testReplyToRequestForUs() {
         Ip4Address theirIp = Ip4Address.valueOf("10.0.1.254");
@@ -422,6 +559,63 @@ public class ProxyArpManagerTest {
         verifyPacketOut(arpReply, LOC1, packetService.packets.get(0));
     }
 
+    /**
+     * Test NDP request from external network to an internal host.
+     */
+    @Test
+    public void testReplyToRequestForUsIpv6() {
+        Ip6Address theirIp = Ip6Address.valueOf("1000::ffff");
+        Ip6Address ourFirstIp = Ip6Address.valueOf("1000::1");
+        Ip6Address ourSecondIp = Ip6Address.valueOf("2000::1");
+        MacAddress firstMac = MacAddress.valueOf(1L);
+        MacAddress secondMac = MacAddress.valueOf(2L);
+
+        Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, LOC1,
+                                         Collections.singleton(theirIp));
+
+        expect(hostService.getHost(HID2)).andReturn(requestor);
+        expect(hostService.getHostsByIp(ourFirstIp))
+                .andReturn(Collections.singleton(requestor));
+        replay(hostService);
+        replay(interfaceService);
+
+        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
+                                       MAC2,
+                                       MacAddress.valueOf("33:33:ff:00:00:01"),
+                                       theirIp,
+                                       ourFirstIp);
+        isEdgePointReturn = true;
+        proxyArp.reply(ndpRequest, LOC1);
+        assertEquals(1, packetService.packets.size());
+
+        Ethernet ndpReply = buildNDP(ICMP6.NEIGHBOR_ADVERTISEMENT,
+                                     firstMac,
+                                     MAC2,
+                                     ourFirstIp,
+                                     theirIp);
+        verifyPacketOut(ndpReply, LOC1, packetService.packets.get(0));
+
+        // Test a request for the second address on that port
+        packetService.packets.clear();
+        ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
+                              MAC2,
+                                       MacAddress.valueOf("33:33:ff:00:00:01"),
+                                       theirIp,
+                                       ourSecondIp);
+        proxyArp.reply(ndpRequest, LOC1);
+        assertEquals(1, packetService.packets.size());
+
+        ndpReply = buildNDP(ICMP6.NEIGHBOR_ADVERTISEMENT,
+                                     secondMac,
+                                     MAC2,
+                                     ourSecondIp,
+                                     theirIp);
+        verifyPacketOut(ndpReply, LOC1, packetService.packets.get(0));
+    }
+
+    /**
+     * Request for a valid external IPv4 address but coming in the wrong port.
+     */
     @Test
     public void testReplyExternalPortBadRequest() {
         replay(hostService); // no further host service expectations
@@ -442,6 +636,38 @@ public class ProxyArpManagerTest {
         assertEquals(0, packetService.packets.size());
     }
 
+    /**
+     * Request for a valid external IPv6 address but coming in the wrong port.
+     */
+    @Test
+    public void testReplyExternalPortBadRequestIpv6() {
+        replay(hostService); // no further host service expectations
+        replay(interfaceService);
+
+        Ip6Address theirIp = Ip6Address.valueOf("1000::ffff");
+
+        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
+                                       MAC1,
+                                       MacAddress.valueOf("33:33:ff:00:00:01"),
+                                       theirIp,
+                                       Ip6Address.valueOf("3000::1"));
+        proxyArp.reply(ndpRequest, LOC1);
+        assertEquals(0, packetService.packets.size());
+
+        // Request for a valid internal IP address but coming in an external port
+        packetService.packets.clear();
+        ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
+                                       MAC1,
+                                       MacAddress.valueOf("33:33:ff:00:00:01"),
+                                       theirIp,
+                                       IP3);
+        proxyArp.reply(ndpRequest, LOC1);
+        assertEquals(0, packetService.packets.size());
+    }
+
+    /**
+     * Test ARP request from internal network to an external host.
+     */
     @Test
     public void testReplyToRequestFromUs() {
         Ip4Address ourIp = Ip4Address.valueOf("10.0.1.1");
@@ -474,6 +700,48 @@ public class ProxyArpManagerTest {
     }
 
     /**
+     * Test NDP request from internal network to an external host.
+     */
+    @Test
+    public void testReplyToRequestFromUsIpv6() {
+        Ip6Address ourIp = Ip6Address.valueOf("1000::1");
+        MacAddress ourMac = MacAddress.valueOf(1L);
+        Ip6Address theirIp = Ip6Address.valueOf("1000::100");
+
+        expect(hostService.getHostsByIp(theirIp)).andReturn(Collections.emptySet());
+        expect(interfaceService.getInterfacesByIp(ourIp))
+                .andReturn(Collections.singleton(new Interface(getLocation(1),
+                        Collections.singleton(new InterfaceIpAddress(
+                                ourIp,
+                                IpPrefix.valueOf("1000::1/64"))),
+                                ourMac,
+                                VLAN1)));
+        expect(hostService.getHost(HostId.hostId(ourMac, VLAN1))).andReturn(null);
+        replay(hostService);
+        replay(interfaceService);
+
+        // This is a request from something inside our network (like a BGP
+        // daemon) to an external host.
+        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
+                                       ourMac,
+                                       MacAddress.valueOf("33:33:ff:00:00:01"),
+                                       ourIp,
+                                       theirIp);
+
+        //Ensure the packet is allowed through (it is not to an internal port)
+        isEdgePointReturn = true;
+
+        proxyArp.reply(ndpRequest, getLocation(5));
+        assertEquals(1, packetService.packets.size());
+        verifyPacketOut(ndpRequest, getLocation(1), packetService.packets.get(0));
+
+        // The same request from a random external port should fail
+        packetService.packets.clear();
+        proxyArp.reply(ndpRequest, getLocation(2));
+        assertEquals(0, packetService.packets.size());
+    }
+
+    /**
      * Tests {@link ProxyArpManager#forward(Ethernet, ConnectPoint)} in the case where the
      * destination host is known.
      * Verifies the correct ARP request is sent out the correct port.
@@ -502,6 +770,35 @@ public class ProxyArpManagerTest {
 
     /**
      * Tests {@link ProxyArpManager#forward(Ethernet, ConnectPoint)} in the case where the
+     * destination host is known.
+     * Verifies the correct ARP request is sent out the correct port.
+     */
+    @Test
+    public void testForwardToHostIpv6() {
+        Host host1 = new DefaultHost(PID, HID3, MAC3, VLAN1, LOC1,
+                                     Collections.singleton(IP3));
+        Host host2 = new DefaultHost(PID, HID4, MAC4, VLAN1, LOC2,
+                                     Collections.singleton(IP4));
+
+        expect(hostService.getHost(SOLICITED_HID3)).andReturn(host1);
+        expect(hostService.getHost(HID4)).andReturn(host2);
+        replay(hostService);
+        replay(interfaceService);
+
+        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
+                                       MAC4, SOLICITED_MAC3,
+                                       IP4, IP3);
+
+        proxyArp.forward(ndpRequest, LOC2);
+
+        assertEquals(1, packetService.packets.size());
+        OutboundPacket packet = packetService.packets.get(0);
+
+        verifyPacketOut(ndpRequest, LOC1, packet);
+    }
+
+    /**
+     * Tests {@link ProxyArpManager#forward(Ethernet, ConnectPoint)} in the case where the
      * destination host is not known.
      * Verifies the correct ARP request is flooded out the correct edge ports.
      */
@@ -523,6 +820,33 @@ public class ProxyArpManagerTest {
         proxyArp.forward(arpRequest, getLocation(6));
 
         verifyFlood(arpRequest);
+    }
+
+    /**
+     * Tests {@link ProxyArpManager#forward(Ethernet, ConnectPoint)} in the case where the
+     * destination host is not known.
+     * Verifies the correct NDP request is flooded out the correct edge ports.
+     */
+    @Test
+    public void testForwardFloodIpv6() {
+        expect(hostService.getHost(SOLICITED_HID3)).andReturn(null);
+        replay(hostService);
+        replay(interfaceService);
+
+        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
+                                       MAC4, SOLICITED_MAC3,
+                                       IP4, IP3);
+
+        //populate the list of edges when so that when forward hits flood in the manager it contains the values
+        //that should continue on
+        getEdgePointsNoArg = Lists.newLinkedList();
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("3"), PortNumber.portNumber(1)));
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("5"), PortNumber.portNumber(1)));
+        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("4"), PortNumber.portNumber(1)));
+
+        proxyArp.forward(ndpRequest, getLocation(6));
+
+        verifyFlood(ndpRequest);
     }
 
     /**
@@ -622,6 +946,61 @@ public class ProxyArpManagerTest {
         arp.setTargetProtocolAddress(dstIp.toOctets());
 
         eth.setPayload(arp);
+        return eth;
+    }
+
+    /**
+     * Builds an NDP packet with the given parameters.
+     *
+     * @param type NeighborSolicitation or NeighborAdvertisement
+     * @param srcMac source MAC address
+     * @param dstMac destination MAC address, or null if this is a request
+     * @param srcIp  source IP address
+     * @param dstIp  destination IP address
+     * @return the NDP packet
+     */
+    private Ethernet buildNDP(byte type, MacAddress srcMac, MacAddress dstMac,
+                              Ip6Address srcIp, Ip6Address dstIp) {
+        assertThat(type, anyOf(
+                is(ICMP6.NEIGHBOR_SOLICITATION),
+                is(ICMP6.NEIGHBOR_ADVERTISEMENT)
+        ));
+        assertNotNull(srcMac);
+        assertNotNull(dstMac);
+        assertNotNull(srcIp);
+        assertNotNull(dstIp);
+
+        IPacket ndp;
+        if (type == ICMP6.NEIGHBOR_SOLICITATION) {
+            ndp = new NeighborSolicitation().setTargetAddress(dstIp.toOctets());
+        } else {
+            ndp = new NeighborAdvertisement()
+                    .setSolicitedFlag((byte) 1)
+                    .setOverrideFlag((byte) 1)
+                    .setTargetAddress(srcIp.toOctets())
+                    .addOption(NeighborDiscoveryOptions.TYPE_TARGET_LL_ADDRESS,
+                       srcMac.toBytes());
+        }
+
+        ICMP6 icmp6 = new ICMP6();
+        icmp6.setIcmpType(type);
+        icmp6.setIcmpCode((byte) 0);
+        icmp6.setPayload(ndp);
+
+        IPv6 ipv6 = new IPv6();
+        ipv6.setDestinationAddress(dstIp.toOctets());
+        ipv6.setSourceAddress(srcIp.toOctets());
+        ipv6.setNextHeader(IPv6.PROTOCOL_ICMP6);
+        ipv6.setHopLimit((byte) 255);
+        ipv6.setPayload(icmp6);
+
+        Ethernet eth = new Ethernet();
+        eth.setDestinationMACAddress(dstMac);
+        eth.setSourceMACAddress(srcMac);
+        eth.setEtherType(Ethernet.TYPE_IPV6);
+        eth.setVlanID(VLAN1.toShort());
+        eth.setPayload(ipv6);
+
         return eth;
     }
 
