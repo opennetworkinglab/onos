@@ -15,6 +15,7 @@
  */
 package org.onosproject.cluster;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ import static com.google.common.base.Verify.verify;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Cluster metadata.
@@ -80,6 +82,33 @@ public final class ClusterMetadata {
                 .add("nodes", nodes)
                 .add("partitions", partitions)
                 .toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(new Object[] {name, nodes, partitions});
+    }
+
+    /*
+     * Provide a deep quality check of the meta data (non-Javadoc)
+     *
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object object) {
+
+        if (!ClusterMetadata.class.isInstance(object)) {
+            return false;
+        }
+        ClusterMetadata that = (ClusterMetadata) object;
+
+        if (!this.name.equals(that.name) || this.nodes.size() != that.nodes.size()
+                || this.partitions.size() != that.partitions.size()) {
+            return false;
+        }
+
+        return Sets.symmetricDifference(this.nodes, that.nodes).isEmpty()
+                && Sets.symmetricDifference(this.partitions, that.partitions).isEmpty();
     }
 
     /**
@@ -146,10 +175,10 @@ public final class ClusterMetadata {
 
             // verify that partitions are constituted from valid cluster nodes.
             boolean validPartitions = Collections2.transform(metadata.getNodes(), ControllerNode::id)
-                                                  .containsAll(metadata.getPartitions()
-                                                                       .stream()
-                                                                       .flatMap(r -> r.getMembers().stream())
-                                                                       .collect(Collectors.toSet()));
+                    .containsAll(metadata.getPartitions()
+                            .stream()
+                            .flatMap(r -> r.getMembers().stream())
+                            .collect(Collectors.toSet()));
             verify(validPartitions, "Partition locations must be valid cluster nodes");
         }
     }

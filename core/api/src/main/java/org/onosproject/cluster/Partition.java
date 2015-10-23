@@ -15,10 +15,12 @@
  */
 package org.onosproject.cluster;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -60,5 +62,30 @@ public class Partition {
      */
     public Collection<NodeId> getMembers() {
         return this.members;
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(new Object[] {name, members});
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (other == null || !Partition.class.isInstance(other)) {
+            return false;
+        }
+
+        Partition that = (Partition) other;
+
+        if (!this.name.equals(that.name) || (this.members == null && that.members != null)
+                || (this.members != null && that.members == null) || this.members.size() != that.members.size()) {
+            return false;
+        }
+
+        return Sets.symmetricDifference(this.members, that.members).isEmpty();
     }
 }

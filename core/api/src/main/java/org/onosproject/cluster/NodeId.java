@@ -20,7 +20,7 @@ import java.util.Objects;
 /**
  * Controller cluster identity.
  */
-public class NodeId {
+public class NodeId implements Comparable<NodeId> {
 
     private final String id;
 
@@ -53,6 +53,11 @@ public class NodeId {
     @Override
     public String toString() {
         return id;
+    }
+
+    @Override
+    public int compareTo(NodeId that) {
+        return this.id.compareTo(that.id);
     }
 
 }
