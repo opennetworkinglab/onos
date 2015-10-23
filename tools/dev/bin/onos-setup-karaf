@@ -97,13 +97,11 @@ fi
 echo "Creating local cluster configs for IP $IP..."
 [ -d $STAGE/config ] || mkdir -p $STAGE/config
 cat > $STAGE/config/cluster.json <<EOF
-    { "ipPrefix": "$SUBNET.*",
-      "nodes":[ { "id": "$IP", "ip": "$IP", "tcpPort": 9876 }]}
-EOF
-
-cat > $STAGE/config/tablets.json <<EOF
-    { "nodes": [ { "ip": "$IP", "id": "$IP", "tcpPort": 9876 }],
-      "partitions": { "p1": [ { "ip": "$IP", "id": "$IP", "tcpPort": 9876 }]}}
+{
+  "name": "default",
+  "nodes": [ {"id": "$IP", "ip": "$IP", "port": 9876 } ],
+  "partitions": [ { "name": "p1", "members": [ "$IP" ] } ]
+}
 EOF
 
 if [ "$CLEAN" = "true" ]; then
