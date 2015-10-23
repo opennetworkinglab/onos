@@ -112,7 +112,7 @@ public class ArpHandler {
 
 
     private boolean isArpReqForRouter(DeviceId deviceId, ARP arpRequest) {
-        List<Ip4Address> gatewayIpAddresses = config.getSubnetGatewayIps(deviceId);
+        List<Ip4Address> gatewayIpAddresses = config.getPortIPs(deviceId);
         if (gatewayIpAddresses != null) {
             Ip4Address targetProtocolAddress = Ip4Address.valueOf(arpRequest
                     .getTargetProtocolAddress());

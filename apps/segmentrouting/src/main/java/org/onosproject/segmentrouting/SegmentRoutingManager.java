@@ -497,7 +497,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                    flowObjectiveService,
                                    nsNextObjStore);
         groupHandlerMap.put(device.id(), dgh);
-        defaultRoutingHandler.populateTtpRules(device.id());
+        defaultRoutingHandler.populatePortAddressingRules(device.id());
     }
 
     private void processPortRemoved(Device device, Port port) {
@@ -542,7 +542,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                             flowObjectiveService,
                                             nsNextObjStore);
                 groupHandlerMap.put(device.id(), groupHandler);
-                defaultRoutingHandler.populateTtpRules(device.id());
+                defaultRoutingHandler.populatePortAddressingRules(device.id());
             }
 
             defaultRoutingHandler.startPopulationProcess();

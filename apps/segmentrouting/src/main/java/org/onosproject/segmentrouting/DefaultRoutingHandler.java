@@ -499,14 +499,13 @@ public class DefaultRoutingHandler {
     }
 
     /**
-     * Populates table miss entries for all tables, and pipeline rules for VLAN
-     * and TCAM tables. XXX rename/rethink
+     * Populates filtering rules for permitting Router DstMac and VLAN.
      *
      * @param deviceId Switch ID to set the rules
      */
-    public void populateTtpRules(DeviceId deviceId) {
-        rulePopulator.populateTableVlan(deviceId);
-        rulePopulator.populateTableTMac(deviceId);
+    public void populatePortAddressingRules(DeviceId deviceId) {
+        rulePopulator.populateRouterMacVlanFilters(deviceId);
+        rulePopulator.populateRouterIpPunts(deviceId);
     }
 
     /**

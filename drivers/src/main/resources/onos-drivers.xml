@@ -38,6 +38,9 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OVSCorsaPipeline"/>
     </driver>
+    <!--  Emulation of the spring-open pipeline using a CPqD OF 1.3 software switch.
+       ~  This driver is the default driver assigned to the CPqD switch.
+      -->
     <driver name="spring-open-cpqd" extends="default"
             manufacturer="Stanford University, Ericsson Research and CPqD Research"
             hwVersion="OpenFlow 1.3 Reference Userspace Switch" swVersion=".*">
@@ -66,7 +69,7 @@
     <driver name="ofdpa" extends="default"
             manufacturer="Broadcom Corp." hwVersion="OF-DPA.*" swVersion="OF-DPA.*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.OFDPA1Pipeline"/>
+                   impl="org.onosproject.driver.pipeline.OFDPA2Pipeline"/>
     </driver>
     <driver name="pmc-olt" extends="default"
             manufacturer="Big Switch Networks" hwVersion="ivs 0.5" swVersion="ivs 0.5">
@@ -109,7 +112,7 @@
             manufacturer="ONF"
             hwVersion="OF1.3 Software Switch from CPqD" swVersion="for Group Chaining">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.CpqdOFDPA1Pipeline"/>
+                   impl="org.onosproject.driver.pipeline.CpqdOFDPA2Pipeline"/>
     </driver>
     <driver name="calient" extends="default"
             manufacturer="calient inc" hwVersion="calient hardware"

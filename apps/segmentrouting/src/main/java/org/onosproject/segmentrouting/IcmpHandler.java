@@ -70,7 +70,7 @@ public class IcmpHandler {
         DeviceId deviceId = connectPoint.deviceId();
         Ip4Address destinationAddress =
                 Ip4Address.valueOf(ipv4.getDestinationAddress());
-        List<Ip4Address> gatewayIpAddresses = config.getSubnetGatewayIps(deviceId);
+        List<Ip4Address> gatewayIpAddresses = config.getPortIPs(deviceId);
         Ip4Address routerIp = config.getRouterIp(deviceId);
         IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
         Ip4Address routerIpAddress = routerIpPrefix.getIp4Prefix().address();

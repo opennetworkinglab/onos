@@ -29,22 +29,23 @@ import org.slf4j.Logger;
 
 
 /**
- * Driver for software switch emulation of the OFDPA 1.0 pipeline.
+ * Driver for software switch emulation of the OFDPA 2.0 pipeline.
  * The software switch is the CPqD OF 1.3 switch.
  */
-public class CpqdOFDPA1Pipeline extends OFDPA1Pipeline {
+public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
 
     private final Logger log = getLogger(getClass());
 
     @Override
     protected void initializePipeline() {
         processPortTable();
-        //processVlanTable();
         processTmacTable();
         processIpTable();
-        //processMcastTable();
         processBridgingTable();
         processAclTable();
+        // XXX implement table miss entries and default groups
+        //processVlanTable();
+        //processMPLSTable();
         //processGroupTable();
     }
 
@@ -169,6 +170,7 @@ public class CpqdOFDPA1Pipeline extends OFDPA1Pipeline {
         }));
     }
 
+    @Override
     protected void processAclTable() {
         //table miss entry - catch all to executed action-set
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();

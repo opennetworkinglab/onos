@@ -126,7 +126,7 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
-     * Returns the segment id of a segment router.
+     * Returns the Node segment id of a segment router.
      *
      * @param deviceId device identifier
      * @return segment id
@@ -147,7 +147,7 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
-     * Returns the segment id of a segment router given its mac address.
+     * Returns the Node segment id of a segment router given its Router mac address.
      *
      * @param routerMac router mac address
      * @return segment id
@@ -164,7 +164,7 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
-     * Returns the segment id of a segment router given its router ip address.
+     * Returns the Node segment id of a segment router given its Router ip address.
      *
      * @param routerAddress router ip address
      * @return segment id
@@ -223,7 +223,7 @@ public class DeviceConfiguration implements DeviceProperties {
 
     /**
      * Indicates if the segment router is a edge router or
-     * a transit/back bone router.
+     * a core/backbone router.
      *
      * @param deviceId device identifier
      * @return boolean
@@ -244,9 +244,9 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
-     * Returns the segment ids of all configured segment routers.
+     * Returns the node segment ids of all configured segment routers.
      *
-     * @return list of segment ids
+     * @return list of node segment ids
      */
     @Override
     public List<Integer> getAllDeviceSegmentIds() {
@@ -290,12 +290,14 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
-     * Returns the configured subnet gateway ip addresses for a segment router.
+     * Returns the configured port ip addresses for a segment router.
+     * These addresses serve as gateway IP addresses for the subnets configured
+     * on those ports.
      *
      * @param deviceId device identifier
-     * @return list of ip addresses
+     * @return list of ip addresses configured on the ports
      */
-    public List<Ip4Address> getSubnetGatewayIps(DeviceId deviceId) {
+    public List<Ip4Address> getPortIPs(DeviceId deviceId) {
         if (deviceConfigMap.get(deviceId) != null) {
             log.trace("getSubnetGatewayIps for device{} is {}",
                     deviceId,
@@ -304,6 +306,20 @@ public class DeviceConfiguration implements DeviceProperties {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Returns the configured IP addresses per port
+     * for a segment router.
+     *
+     * @param deviceId device identifier
+     * @return map of port to gateway IP addresses
+     */
+    public Map<PortNumber, Ip4Address> getPortIPMap(DeviceId deviceId) {
+        if (deviceConfigMap.get(deviceId) != null) {
+            return deviceConfigMap.get(deviceId).gatewayIps;
+        }
+        return null;
     }
 
     /**
