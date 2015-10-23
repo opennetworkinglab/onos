@@ -427,6 +427,39 @@ html[data-platform='iPad'] #topo-p-detail {
     fill: #f90;
 }
 
+/* Badges */
+/* (... works for both light and dark themes...) */
+#ov-topo svg .node .badge circle {
+    stroke: #aaa;
+}
+
+#ov-topo svg .node .badge.badgeInfo circle {
+    fill: #ccf;
+}
+
+#ov-topo svg .node .badge.badgeWarn circle {
+    fill: #da2;
+}
+
+#ov-topo svg .node .badge.badgeError circle {
+    fill: #e44;
+}
+
+#ov-topo svg .node .badge use {
+    fill: white;
+}
+
+#ov-topo svg .node .badge.badgeInfo use {
+    fill: #448;
+}
+
+#ov-topo svg .node .badge text {
+    fill: white;
+}
+
+#ov-topo svg .node .badge.badgeInfo text {
+    fill: #448;
+}
 
 /* Host Nodes */
 

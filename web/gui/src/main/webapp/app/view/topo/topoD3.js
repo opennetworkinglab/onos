@@ -57,7 +57,8 @@
         },
         badgeConfig = {
             radius: 12,
-            yoff: 5
+            yoff: 5,
+            gdelta: 10
         },
         icfg;
 
@@ -207,7 +208,8 @@
             dim = icfg.device.dim,
             box, dx, dy, bsel,
             bdg = d.badge,
-            bcr = badgeConfig.radius;
+            bcr = badgeConfig.radius,
+            bcgd = badgeConfig.gdelta;
 
         node.select('text')
             .text(label)
@@ -235,6 +237,8 @@
 
         // handle badge, if defined
         if (bdg) {
+            node.select('g.badge').remove();
+
             bsel = node.append('g')
                 .classed('badge', true)
                 .classed(badgeStatus(bdg), true)
@@ -251,8 +255,9 @@
             } else if (bdg.gid) {
                 bsel.append('use')
                     .attr({
-                        width: bcr * 2,
-                        height: bcr * 2,
+                        width: bcgd * 2,
+                        height: bcgd * 2,
+                        transform: sus.translate(-bcgd, -bcgd),
                         'xlink:href': '#' + bdg.gid
                     });
 
