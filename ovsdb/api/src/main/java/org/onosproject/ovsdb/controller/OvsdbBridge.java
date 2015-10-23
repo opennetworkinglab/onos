@@ -21,7 +21,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Objects;
 
 /**
- * The class representing a ovsdb bridge. This class is immutable.
+ * The class representing an ovsdb bridge.
+ * This class is immutable.
  */
 public final class OvsdbBridge {
 
@@ -29,7 +30,7 @@ public final class OvsdbBridge {
     private final OvsdbDatapathId datapathId;
 
     /**
-     * Constructor from a OvsdbBridgeName bridgeName and a OvsdbDatapathId
+     * Constructor from an OvsdbBridgeName bridgeName and an OvsdbDatapathId
      * datapathId.
      *
      * @param bridgeName the bridgeName to use
@@ -43,16 +44,16 @@ public final class OvsdbBridge {
     }
 
     /**
-     * Gets the bridge name of the bridge.
+     * Gets the bridge name of bridge.
      *
-     * @return the bridge name of the bridge
+     * @return the bridge name of bridge
      */
     public OvsdbBridgeName bridgeName() {
         return bridgeName;
     }
 
     /**
-     * Gets the datapathId of the bridge.
+     * Gets the datapathId of bridge.
      *
      * @return datapathId the datapathId to use
      */
