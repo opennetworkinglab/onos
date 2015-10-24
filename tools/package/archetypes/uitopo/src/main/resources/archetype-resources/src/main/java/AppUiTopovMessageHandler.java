@@ -33,7 +33,10 @@ import org.onosproject.net.link.LinkService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.topo.DeviceHighlight;
 import org.onosproject.ui.topo.Highlights;
+import org.onosproject.ui.topo.NodeBadge;
+import org.onosproject.ui.topo.NodeBadge.Status;
 import org.onosproject.ui.topo.TopoJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -224,9 +227,24 @@ public class AppUiTopovMessageHandler extends UiMessageHandler {
         if (elementOfNote != null && elementOfNote instanceof Device) {
             DeviceId devId = (DeviceId) elementOfNote.id();
             Set<Link> links = linkService.getDeviceEgressLinks(devId);
-            sendHighlights(fromLinks(links, devId));
+            Highlights highlights = fromLinks(links, devId);
+            addDeviceBadge(highlights, devId, links.size());
+            sendHighlights(highlights);
         }
         // Note: could also process Host, if available
+    }
+
+    private void addDeviceBadge(Highlights h, DeviceId devId, int n) {
+        DeviceHighlight dh = new DeviceHighlight(devId.toString());
+        dh.setBadge(createBadge(n));
+        h.add(dh);
+    }
+
+    private NodeBadge createBadge(int n) {
+        Status status = n > 3 ? Status.ERROR : Status.WARN;
+        String noun = n > 3 ? "(critical)" : "(problematic)";
+        String msg = "Egress links: " + n + " " + noun;
+        return NodeBadge.number(status, n, msg);
     }
 
     private Highlights fromLinks(Set<Link> links, DeviceId devId) {

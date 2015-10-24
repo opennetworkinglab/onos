@@ -18,13 +18,20 @@
  */
 package ${package};
 
+import org.onosproject.net.DeviceId;
 import org.onosproject.ui.UiTopoOverlay;
 import org.onosproject.ui.topo.ButtonId;
 import org.onosproject.ui.topo.PropertyPanel;
 import org.onosproject.ui.topo.TopoConstants.CoreButtons;
 import org.onosproject.ui.topo.TopoConstants.Glyphs;
 
-import static org.onosproject.ui.topo.TopoConstants.Properties.*;
+import static org.onosproject.ui.topo.TopoConstants.Properties.FLOWS;
+import static org.onosproject.ui.topo.TopoConstants.Properties.INTENTS;
+import static org.onosproject.ui.topo.TopoConstants.Properties.LATITUDE;
+import static org.onosproject.ui.topo.TopoConstants.Properties.LONGITUDE;
+import static org.onosproject.ui.topo.TopoConstants.Properties.TOPOLOGY_SSCS;
+import static org.onosproject.ui.topo.TopoConstants.Properties.TUNNELS;
+import static org.onosproject.ui.topo.TopoConstants.Properties.VERSION;
 
 /**
  * Our topology overlay.
@@ -61,7 +68,7 @@ public class AppUiTopovOverlay extends UiTopoOverlay {
     }
 
     @Override
-    public void modifyDeviceDetails(PropertyPanel pp) {
+    public void modifyDeviceDetails(PropertyPanel pp, DeviceId deviceId) {
         pp.title(MY_DEVICE_TITLE);
         pp.removeProps(LATITUDE, LONGITUDE);
 

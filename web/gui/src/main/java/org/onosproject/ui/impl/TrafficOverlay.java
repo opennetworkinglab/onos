@@ -17,6 +17,7 @@
 
 package org.onosproject.ui.impl;
 
+import org.onosproject.net.DeviceId;
 import org.onosproject.ui.UiTopoOverlay;
 import org.onosproject.ui.topo.ButtonId;
 import org.onosproject.ui.topo.PropertyPanel;
@@ -55,7 +56,7 @@ public class TrafficOverlay extends UiTopoOverlay {
     }
 
     @Override
-    public void modifyDeviceDetails(PropertyPanel pp) {
+    public void modifyDeviceDetails(PropertyPanel pp, DeviceId deviceId) {
         pp.addButton(SHOW_DEVICE_FLOWS)
             .addButton(SHOW_RELATED_TRAFFIC);
     }

@@ -33,6 +33,7 @@ import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
@@ -344,11 +345,13 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             PropertyPanel pp = null;
 
             if (type.equals(DEVICE)) {
-                pp = deviceDetails(deviceId(id), sid);
-                overlayCache.currentOverlay().modifyDeviceDetails(pp);
+                DeviceId did = deviceId(id);
+                pp = deviceDetails(did, sid);
+                overlayCache.currentOverlay().modifyDeviceDetails(pp, did);
             } else if (type.equals(HOST)) {
-                pp = hostDetails(hostId(id), sid);
-                overlayCache.currentOverlay().modifyHostDetails(pp);
+                HostId hid = hostId(id);
+                pp = hostDetails(hid, sid);
+                overlayCache.currentOverlay().modifyHostDetails(pp, hid);
             }
 
             sendMessage(envelope(SHOW_DETAILS, sid, json(pp)));
