@@ -44,12 +44,12 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
     @Argument(index = 0, name = "ingressDevice",
               description = "Ingress Device/Port Description",
               required = true, multiValued = false)
-    String ingressDeviceString = null;
+    String ingressDeviceString = "";
 
     @Argument(index = 1, name = "egressDevice",
               description = "Egress Device/Port Description",
               required = true, multiValued = false)
-    String egressDeviceString = null;
+    String egressDeviceString = "";
 
     @Option(name = "-b", aliases = "--bidirectional",
             description = "If this argument is passed the optical link created will be bidirectional, " +
@@ -65,7 +65,6 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
                 "Connect point must be in \"deviceUri/portNumber\" format");
 
         DeviceId deviceId = DeviceId.deviceId(splitted[0]);
-
         DeviceService deviceService = get(DeviceService.class);
 
         List<Port> ports = deviceService.getPorts(deviceId);
@@ -87,7 +86,8 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
         ConnectPoint egress = createConnectPoint(egressDeviceString);
 
         if (ingress == null || egress == null) {
-            print("Could not create optical intent");
+            print("Invalid endpoint(s); could not create optical intent");
+            return;
         }
 
         DeviceService deviceService = get(DeviceService.class);
