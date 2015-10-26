@@ -20,13 +20,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Objects;
 
 /**
- * The class representing a datapathid. This class is immutable.
+ * The class representing a datapathid.
+ * This class is immutable.
  */
 public final class OvsdbDatapathId {
     private final String value;
 
     /**
-     * Constructor from a String datapathid.
+     * Constructor from a String.
      *
      * @param value the datapathid to use
      */
@@ -36,9 +37,9 @@ public final class OvsdbDatapathId {
     }
 
     /**
-     * Gets the value of the datapathid.
+     * Gets the value of datapathid.
      *
-     * @return the value of the datapathid
+     * @return the value of datapathid
      */
     public String value() {
         return value;
