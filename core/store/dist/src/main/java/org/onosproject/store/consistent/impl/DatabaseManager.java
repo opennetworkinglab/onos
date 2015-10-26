@@ -55,6 +55,7 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.ecmap.EventuallyConsistentMapBuilderImpl;
 import org.onosproject.store.service.AtomicCounterBuilder;
@@ -127,6 +128,9 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterCommunicationService clusterCommunicator;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PersistenceService persistenceService;
 
     protected String nodeIdToUri(NodeId nodeId) {
         ControllerNode node = clusterService.getNode(nodeId);
@@ -312,7 +316,8 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     @Override
     public <K, V> EventuallyConsistentMapBuilder<K, V> eventuallyConsistentMapBuilder() {
         return new EventuallyConsistentMapBuilderImpl<>(clusterService,
-                                                        clusterCommunicator);
+                                                        clusterCommunicator,
+                                                        persistenceService);
     }
 
     @Override

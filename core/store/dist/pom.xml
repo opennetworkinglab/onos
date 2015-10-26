@@ -69,6 +69,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-persistence</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.mapdb</groupId>
             <artifactId>mapdb</artifactId>
             <version>1.0.8</version>
@@ -110,5 +116,4 @@
             <artifactId>onlab-thirdparty</artifactId>
         </dependency>
     </dependencies>
-
 </project>

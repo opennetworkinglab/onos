@@ -42,6 +42,7 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.AbstractEvent;
+import org.onosproject.persistence.impl.PersistenceManager;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapter;
@@ -81,6 +82,7 @@ public class EventuallyConsistentMapImplTest {
 
     private EventuallyConsistentMap<String, String> ecMap;
 
+    private PersistenceManager persistenceService;
     private ClusterService clusterService;
     private ClusterCommunicationService clusterCommunicator;
     private SequentialClockService<String, String> clockService;
@@ -136,6 +138,8 @@ public class EventuallyConsistentMapImplTest {
 
         clusterCommunicator = createMock(ClusterCommunicationService.class);
 
+        persistenceService = new PersistenceManager();
+        persistenceService.activate();
         // Add expectation for adding cluster message subscribers which
         // delegate to our ClusterCommunicationService implementation. This
         // allows us to get a reference to the map's internal cluster message
@@ -153,11 +157,12 @@ public class EventuallyConsistentMapImplTest {
                 .register(TestTimestamp.class);
 
         ecMap = new EventuallyConsistentMapBuilderImpl<String, String>(
-                        clusterService, clusterCommunicator)
+                        clusterService, clusterCommunicator, persistenceService)
                 .withName(MAP_NAME)
                 .withSerializer(serializer)
                 .withTimestampProvider((k, v) -> clockService.getTimestamp(k, v))
                 .withCommunicationExecutor(MoreExecutors.newDirectExecutorService())
+                .withPersistence()
                 .build();
 
         // Reset ready for tests to add their own expectations

@@ -18,6 +18,7 @@ package org.onosproject.store.ecmap;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.service.EventuallyConsistentMap;
@@ -52,6 +53,8 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
     private TimeUnit antiEntropyTimeUnit = TimeUnit.SECONDS;
     private boolean convergeFaster = false;
     private boolean persistent = false;
+    private boolean persistentMap = false;
+    private final PersistenceService persistenceService;
 
     /**
      * Creates a new eventually consistent map builder.
@@ -60,7 +63,9 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
      * @param clusterCommunicator cluster communication service
      */
     public EventuallyConsistentMapBuilderImpl(ClusterService clusterService,
-                                              ClusterCommunicationService clusterCommunicator) {
+                                              ClusterCommunicationService clusterCommunicator,
+                                              PersistenceService persistenceService) {
+        this.persistenceService = persistenceService;
         this.clusterService = checkNotNull(clusterService);
         this.clusterCommunicator = checkNotNull(clusterCommunicator);
     }
@@ -133,6 +138,7 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
 
     @Override
     public EventuallyConsistentMapBuilder<K, V> withPersistence() {
+        checkNotNull(this.persistenceService);
         persistent = true;
         return this;
     }
@@ -156,6 +162,7 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
                                                  antiEntropyPeriod,
                                                  antiEntropyTimeUnit,
                                                  convergeFaster,
-                                                 persistent);
+                                                 persistent,
+                                                 persistenceService);
     }
 }

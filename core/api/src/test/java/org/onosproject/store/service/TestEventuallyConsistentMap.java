@@ -30,7 +30,8 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.Timestamp;
 
-import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.*;
+import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
+import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.REMOVE;
 
 /**
  * Testing version of an Eventually Consistent Map.
