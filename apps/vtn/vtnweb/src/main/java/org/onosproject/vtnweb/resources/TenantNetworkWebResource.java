@@ -51,7 +51,7 @@ import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.TenantNetwork.State;
 import org.onosproject.vtnrsc.TenantNetwork.Type;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
-import org.onosproject.vtnrsc.web.TenantNetworkCodec;
+import org.onosproject.vtnweb.web.TenantNetworkCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -58,7 +58,7 @@ import org.onosproject.vtnrsc.VirtualPort;
 import org.onosproject.vtnrsc.VirtualPort.State;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
-import org.onosproject.vtnrsc.web.VirtualPortCodec;
+import org.onosproject.vtnweb.web.VirtualPortCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

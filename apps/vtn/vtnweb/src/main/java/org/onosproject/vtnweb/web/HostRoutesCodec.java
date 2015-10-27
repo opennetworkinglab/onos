@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtnrsc.web;
+package org.onosproject.vtnweb.web;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.vtnrsc.FixedIp;
+import org.onosproject.vtnrsc.HostRoute;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * VirtualPort FixedIp codec.
+ * Subnet HostRoute codec.
  */
-public final class FixedIpCodec extends JsonCodec<FixedIp> {
+public final class HostRoutesCodec extends JsonCodec<HostRoute> {
 
     @Override
-    public ObjectNode encode(FixedIp fixIp, CodecContext context) {
-        checkNotNull(fixIp, "FixedIp cannot be null");
+    public ObjectNode encode(HostRoute hostRoute, CodecContext context) {
+        checkNotNull(hostRoute, "HostRoute cannot be null");
         ObjectNode result = context.mapper().createObjectNode()
-                .put("subnet_id", fixIp.subnetId().toString())
-                .put("ip_address", fixIp.ip().toString());
+                .put("nexthop", hostRoute.nexthop().toString())
+                .put("destination", hostRoute.destination().toString());
         return result;
     }
 

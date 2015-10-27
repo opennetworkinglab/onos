@@ -56,7 +56,7 @@ import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.Subnet.Mode;
 import org.onosproject.vtnrsc.subnet.SubnetService;
-import org.onosproject.vtnrsc.web.SubnetCodec;
+import org.onosproject.vtnweb.web.SubnetCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

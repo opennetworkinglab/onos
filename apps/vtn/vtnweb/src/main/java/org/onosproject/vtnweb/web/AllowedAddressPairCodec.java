@@ -13,26 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtnrsc.web;
+package org.onosproject.vtnweb.web;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.vtnrsc.SecurityGroup;
+import org.onosproject.vtnrsc.AllowedAddressPair;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Virtualport SecurityGroup codec.
+ * VirtualPort AllowedAddressPair codec.
  */
-public final class SecurityGroupCodec extends JsonCodec<SecurityGroup> {
+public final class AllowedAddressPairCodec extends JsonCodec<AllowedAddressPair> {
 
     @Override
-    public ObjectNode encode(SecurityGroup securGroup, CodecContext context) {
-        checkNotNull(securGroup, "SecurityGroup cannot be null");
+    public ObjectNode encode(AllowedAddressPair alocAddPair, CodecContext context) {
+        checkNotNull(alocAddPair, "AllowedAddressPair cannot be null");
         ObjectNode result = context.mapper().createObjectNode()
-                .put("security_group", securGroup.securityGroup());
+                .put("ip_address", alocAddPair.ip().toString())
+                .put("mac_address", alocAddPair.mac().toString());
         return result;
     }
 

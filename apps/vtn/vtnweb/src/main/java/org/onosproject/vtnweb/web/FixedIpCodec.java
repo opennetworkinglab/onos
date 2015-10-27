@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtnrsc.web;
+package org.onosproject.vtnweb.web;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.vtnrsc.AllowedAddressPair;
+import org.onosproject.vtnrsc.FixedIp;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * VirtualPort AllowedAddressPair codec.
+ * VirtualPort FixedIp codec.
  */
-public final class AllowedAddressPairCodec extends JsonCodec<AllowedAddressPair> {
+public final class FixedIpCodec extends JsonCodec<FixedIp> {
 
     @Override
-    public ObjectNode encode(AllowedAddressPair alocAddPair, CodecContext context) {
-        checkNotNull(alocAddPair, "AllowedAddressPair cannot be null");
+    public ObjectNode encode(FixedIp fixIp, CodecContext context) {
+        checkNotNull(fixIp, "FixedIp cannot be null");
         ObjectNode result = context.mapper().createObjectNode()
-                .put("ip_address", alocAddPair.ip().toString())
-                .put("mac_address", alocAddPair.mac().toString());
+                .put("subnet_id", fixIp.subnetId().toString())
+                .put("ip_address", fixIp.ip().toString());
         return result;
     }
 
