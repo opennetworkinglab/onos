@@ -81,7 +81,7 @@ div.summary-list tr.no-data td {
 }
 
 .light div.summary-list tr.selected {
-    background-color: deepskyblue;
+    background-color: deepskyblue !important;
 }
 
 .dark div.summary-list tr.selected {

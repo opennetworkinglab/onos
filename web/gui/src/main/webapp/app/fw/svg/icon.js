@@ -37,6 +37,8 @@
         play: 'play',
         stop: 'stop',
 
+        topo: 'topo',
+
         refresh: 'refresh',
         garbage: 'garbage',
 

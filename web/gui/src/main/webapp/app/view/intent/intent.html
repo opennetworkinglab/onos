@@ -1,24 +1,13 @@
-<!--
-  ~ Copyright 2015 Open Networking Laboratory
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
-
 <!-- Intent partial HTML -->
 <div id="ov-intent">
     <div class="tabular-header">
         <h2>Intents ({{tableData.length}} total)</h2>
         <div class="ctrl-btns">
+            <div ng-class="{active: !!selId}"
+                    icon icon-id="topo" icon-size="36"
+                    tooltip tt-msg="topoTip"
+                    ng-click="showIntent()"></div>
+            <div class="separator"></div>
             <div class="refresh" ng-class="{active: autoRefresh}"
                  icon icon-size="36" icon-id="refresh"
                  tooltip tt-msg="autoRefreshTip"
@@ -51,6 +40,8 @@
                 </tr>
 
                 <tr ng-repeat-start="intent in tableData track by $index"
+                    ng-click="selectCallback($event, intent)"
+                    ng-class="{selected: intent.key === selId}"
                     ng-repeat-complete row-id="{{intent.key}}">
                     <td>{{intent.appId}}</td>
                     <td>{{intent.key}}</td>
@@ -58,10 +49,14 @@
                     <td>{{intent.priority}}</td>
                     <td>{{intent.state}}</td>
                 </tr>
-                <tr row-id="{{intent.key}}">
+                <tr ng-click="selectCallback($event, intent)"
+                    ng-class="{selected: intent.key === selId}"
+                    row-id="{{intent.key}}">
                     <td class="resources" colspan="5">{{intent.resources}}</td>
                 </tr>
-                <tr row-id="{{intent.key}}" ng-repeat-end>
+                <tr ng-click="selectCallback($event, intent)"
+                    ng-class="{selected: intent.key === selId}"
+                    row-id="{{intent.key}}" ng-repeat-end>
                     <td class="details" colspan="5">{{intent.details}}</td>
                 </tr>
             </table>

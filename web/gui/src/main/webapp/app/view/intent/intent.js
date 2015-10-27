@@ -25,12 +25,26 @@
         .controller('OvIntentCtrl',
         ['$log', '$scope', 'TableBuilderService',
 
-            function ($log, $scope, tbs) {
-                tbs.buildTable({
-                    scope: $scope,
-                    tag: 'intent'
-                });
+        function ($log, $scope, tbs) {
 
-                $log.log('OvIntentCtrl has been created');
-            }]);
+            function selCb($event, row) {
+                $log.debug('Got a click on:', row);
+            }
+
+            tbs.buildTable({
+                scope: $scope,
+                tag: 'intent',
+                selCb: selCb,
+                idKey: 'key'
+            });
+
+            $scope.topoTip = 'Show selected intent on topology view';
+
+            $scope.showIntent = function () {
+                // TODO: navigate to topology view with selected intent context
+                $log.debug("+++ showIntent +++", $scope.selId);
+            };
+
+            $log.log('OvIntentCtrl has been created');
+        }]);
 }());

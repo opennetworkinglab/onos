@@ -47,6 +47,7 @@
             resp = o.tag + 'DataResponse',
             onSel = fs.isF(o.selCb),
             onResp = fs.isF(o.respCb),
+            idKey = o.idKey || 'id',
             oldTableData = [],
             loaded = false,
             refreshPromise, loadingPromise;
@@ -104,7 +105,8 @@
 
         // === selecting a row functions ----------------
         function selCb($event, selRow) {
-            o.scope.selId = (o.scope.selId === selRow.id) ? null : selRow.id;
+            var selId = selRow[idKey];
+            o.scope.selId = (o.scope.selId === selId) ? null : selId;
             onSel && onSel($event, selRow);
         }
         o.scope.selectCallback = selCb;
