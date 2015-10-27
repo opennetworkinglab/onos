@@ -46,19 +46,20 @@
 
 
     <dependencies>
-        <dependency>
+        <!--<dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
+        </dependency>-->
+	    <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-api</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mapdb</groupId>
             <artifactId>mapdb</artifactId>
             <version>1.0.8</version>
-        </dependency>
-        <dependency>
-            <groupId>org.junit</groupId>
-            <artifactId>com.springsource.org.junit</artifactId>
-            <version>4.11.0</version>
         </dependency>
     </dependencies>
 

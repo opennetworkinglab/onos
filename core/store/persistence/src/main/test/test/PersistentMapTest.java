@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.persistence.impl.test;
+package test;
 
 import com.google.common.collect.Maps;
 import org.junit.After;
