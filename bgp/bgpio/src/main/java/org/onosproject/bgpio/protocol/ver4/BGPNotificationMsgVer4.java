@@ -44,7 +44,7 @@ class BGPNotificationMsgVer4 implements BGPNotificationMsg {
               REFERENCE : RFC 4271
     */
 
-    protected static final Logger log = LoggerFactory.getLogger(BGPNotificationMsgVer4.class);
+    private static final Logger log = LoggerFactory.getLogger(BGPNotificationMsgVer4.class);
 
     static final byte PACKET_VERSION = 4;
     //BGPHeader(19) + Error code(1) + Error subcode(1)
@@ -52,8 +52,10 @@ class BGPNotificationMsgVer4 implements BGPNotificationMsg {
     static final int PACKET_MINIMUM_LENGTH = 2;
     static final BGPType MSG_TYPE = BGPType.NOTIFICATION;
     static final byte DEFAULT_ERRORSUBCODE = 0;
-    static final byte[] MARKER = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-            0x01, 0x01};
+    static final byte[] MARKER = {(byte) 0xff, (byte) 0xff, (byte) 0xff,
+            (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+            (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+            (byte) 0xff, (byte) 0xff, (byte) 0xff };
     static final byte MESSAGE_TYPE = 3;
     static final BGPHeader DEFAULT_MESSAGE_HEADER = new BGPHeader(MARKER, BGPHeader.DEFAULT_HEADER_LENGTH,
                                                                   MESSAGE_TYPE);
@@ -65,7 +67,7 @@ class BGPNotificationMsgVer4 implements BGPNotificationMsg {
     public static final BGPNotificationMsgVer4.Reader READER = new Reader();
 
     /**
-     * Resets fields.
+     * Initialize fields.
      */
     public BGPNotificationMsgVer4() {
         this.bgpHeader = null;
@@ -150,13 +152,6 @@ class BGPNotificationMsgVer4 implements BGPNotificationMsg {
         @Override
         public Builder setData(byte[] data) {
             this.data = data;
-            return this;
-        }
-
-        @Override
-        public Builder setNotificationMsgHeader(BGPHeader header) {
-            this.bgpHeader = header;
-            this.isBGPHeaderSet = true;
             return this;
         }
 

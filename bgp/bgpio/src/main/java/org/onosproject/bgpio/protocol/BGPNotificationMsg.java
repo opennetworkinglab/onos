@@ -16,36 +16,34 @@
 package org.onosproject.bgpio.protocol;
 
 import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.types.BGPHeader;
 
 /**
- * Abstraction of an entity providing BGP Notification Message.
+ * Abstraction of an entity providing BGP notification message.
  */
 public interface BGPNotificationMsg extends BGPMessage {
     /**
-     * Returns errorCode in Notification message.
+     * Returns errorCode in notification message.
      *
-     * @return errorCode in Notification message
+     * @return errorCode in notification message
      */
     byte getErrorCode();
 
     /**
-     * Returns error SubCode in Notification message.
+     * Returns error subCode in notification message.
      *
-     * @return error SubCode in Notification message
+     * @return error subCode in notification message
      */
     byte getErrorSubCode();
 
     /**
-     * Returns error data in Notification message.
+     * Returns error data in notification message.
      *
-     * @return error data in Notification message
+     * @return error data in notification message
      */
     byte[] getData();
 
     /**
-     * Builder interface with get and set functions to build Notification
-     * message.
+     * Builder interface with get and set functions to build notification message.
      */
     public interface Builder extends BGPMessage.Builder {
 
@@ -53,26 +51,18 @@ public interface BGPNotificationMsg extends BGPMessage {
         BGPNotificationMsg build() throws BGPParseException;
 
         /**
-         * Sets notification message header and returns its builder.
-         *
-         * @param header of notification message
-         * @return Builder by setting notification message header
-         */
-        Builder setNotificationMsgHeader(BGPHeader header);
-
-        /**
          * Sets errorCode in notification message and return its builder.
          *
          * @param errorCode in notification message
-         * @return builder by setting ErrorCode in notification message
+         * @return builder by setting errorCode in notification message
          */
         Builder setErrorCode(byte errorCode);
 
         /**
-         * Sets error SubCode in notification message and return its builder.
+         * Sets error subCode in notification message and return its builder.
          *
-         * @param errorSubCode in notification Message
-         * @return builder by setting ErrorSubCode in notification Message
+         * @param errorSubCode in notification message
+         * @return builder by setting error subCode in notification message
          */
         Builder setErrorSubCode(byte errorSubCode);
 
