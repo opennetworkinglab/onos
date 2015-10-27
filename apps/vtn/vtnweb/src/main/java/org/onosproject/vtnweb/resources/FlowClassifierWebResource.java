@@ -40,7 +40,7 @@ import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.FlowClassifierId;
 import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.vtnrsc.flowClassifier.FlowClassifierService;
-import org.onosproject.vtnrsc.web.FlowClassifierCodec;
+import org.onosproject.vtnweb.web.FlowClassifierCodec;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
