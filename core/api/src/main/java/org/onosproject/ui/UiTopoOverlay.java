@@ -107,6 +107,7 @@ public class UiTopoOverlay {
      * This default implementation does nothing.
      *
      * @param pp property panel model of summary data
+     * @param deviceId device id
      */
     public void modifyDeviceDetails(PropertyPanel pp, DeviceId deviceId) {
     }
@@ -117,6 +118,7 @@ public class UiTopoOverlay {
      * This default implementation does nothing.
      *
      * @param pp property panel model of summary data
+     * @param hostId host id
      */
     public void modifyHostDetails(PropertyPanel pp, HostId hostId) {
     }

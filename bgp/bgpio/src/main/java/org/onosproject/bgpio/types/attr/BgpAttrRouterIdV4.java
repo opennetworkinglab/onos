@@ -56,6 +56,7 @@ public class BgpAttrRouterIdV4 implements BGPValueType {
      * Reads the IPv4 Router-ID.
      *
      * @param cb ChannelBuffer
+     * @param sType type
      * @return object of BgpAttrRouterIdV4
      * @throws BGPParseException while parsing BgpAttrNodeRouterId
      */

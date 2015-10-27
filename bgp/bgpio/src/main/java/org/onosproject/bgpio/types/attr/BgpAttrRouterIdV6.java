@@ -56,6 +56,7 @@ public class BgpAttrRouterIdV6 implements BGPValueType {
      * Reads the IPv6 Router-ID.
      *
      * @param cb ChannelBuffer
+     * @param sType type
      * @return object of BgpAttrRouterIdV6
      * @throws BGPParseException while parsing BgpAttrRouterIdV6
      */

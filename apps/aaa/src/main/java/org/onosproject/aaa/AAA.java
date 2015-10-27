@@ -419,6 +419,7 @@ public class AAA {
          * Handles RADIUS packets.
          *
          * @param radiusPacket RADIUS packet coming from the RADIUS server.
+         * @throws StateMachineException if an illegal state transition is triggered
          */
         protected void handleRadiusPacket(RADIUS radiusPacket) throws StateMachineException {
             StateMachine stateMachine = StateMachine.lookupStateMachineById(radiusPacket.getIdentifier());

@@ -40,7 +40,7 @@ public final class NodeBadge {
             return "{" + code + "}";
         }
 
-        /** Returns the status code in string form. */
+        /* Returns the status code in string form. */
         public String code() {
             return code;
         }
