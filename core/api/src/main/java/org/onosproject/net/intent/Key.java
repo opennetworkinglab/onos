@@ -28,7 +28,7 @@ import java.util.Objects;
  */
 // TODO maybe pull this up to utils
 @Beta
-public abstract class Key {
+public abstract class Key implements Comparable<Key> {
 
     //TODO consider making this a HashCode object (worry about performance)
     private final long hash;
@@ -117,6 +117,12 @@ public abstract class Key {
                     Objects.equals(this.appId, other.appId) &&
                     Objects.equals(this.key, other.key);
         }
+
+        @Override
+        public int compareTo(Key o) {
+            StringKey sk = (StringKey) o;
+            return this.key.compareTo(sk.key);
+        }
     }
 
     private static final class LongKey extends Key {
@@ -156,6 +162,13 @@ public abstract class Key {
             return this.hash() == other.hash() &&
                     this.key == other.key &&
                     Objects.equals(this.appId, other.appId);
+        }
+
+        @Override
+        public int compareTo(Key o) {
+            Long myKey = key;
+            Long otherKey = ((LongKey) o).key;
+            return myKey.compareTo(otherKey);
         }
     }
 }

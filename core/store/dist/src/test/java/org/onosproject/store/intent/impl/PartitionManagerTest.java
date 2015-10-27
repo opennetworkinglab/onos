@@ -325,5 +325,11 @@ public class PartitionManagerTest {
 
             return Objects.equals(this.hash(), that.hash());
         }
+
+        @Override
+        public int compareTo(Key o) {
+            Long thisHash = hash();
+            return thisHash.compareTo(o.hash());
+        }
     }
 }
