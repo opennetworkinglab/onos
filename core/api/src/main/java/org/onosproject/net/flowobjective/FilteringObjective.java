@@ -17,49 +17,54 @@ package org.onosproject.net.flowobjective;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 
 import java.util.Collection;
 
 /**
  * Represents a filtering flow objective. Each filtering flow objective
- * is made up of a key (criterion) to a set of criteria. Using this information
- * a pipeline aware driver will decide how this objective should be mapped
- * to the specific device pipeline. For example, consider the following
- * filtering objective:
- *
- * portX -&gt; {MAC1, IP1, MAC2}
- *
- * The driver could decide to pass L3 packet to the L3 table and L2 packets to
- * the L2 table for packets arriving on portX.
- *
- * Filtering objectives do not only represent what should be permitted into the
- * pipeline but can also be used to deny or drop unwanted packets by specifying
- * the appropriate type of filtering objective. It is also important to note
- * that submitting a filtering objective does not necessarily result in rules
- * programmed at the switch, the driver is free to decide when these rules are
- * programmed. For example, a filtering rule may only be programmed once a
- * corresponding forwarding objective has been received.
+ * is made up of a key (typically a PortCriterion) mapped to a set of criteria.
+ * Using this information, a pipeline aware driver will decide how this objective
+ * should be mapped to the device specific pipeline-tables in order to satisfy the
+ * filtering condition. For example, consider the following PERMIT filtering
+ * objective:
+ * <p>
+ * portX -&gt; {MAC1, VLAN1}
+ * <p>
+ * The driver could decide to pass packets to the MAC table or VLAN or PORT
+ * tables to ensure that only those packets arriving with the correct dst MAC
+ * and VLAN ids from Port X are allowed into the pipeline.
+ * <p>
+ * Filtering objectives of type PERMIT allow packets that match the key:criteria
+ * to enter the pipeline. As a result, the implication is that packets that don't
+ * match are automatically denied (dropped).
+ * <p>
+ * Filtering objectives of type DENY, are used to deny packets that would
+ * otherwise be permitted and forwarded through the pipeline (ie. those packets
+ * that make it through the PERMIT filters).
  */
 @Beta
 public interface FilteringObjective extends Objective {
 
     enum Type {
         /**
-         * Enables the filtering condition.
+         * Permits packets that match the filtering condition to be processed
+         * by the rest of the pipeline. Automatically denies packets that don't
+         * match the criteria.
          */
         PERMIT,
 
         /**
-         * Disables the filtering condition.
+         * Denies packets that make it through the permit filters.
          */
         DENY
     }
 
     /**
-     * Obtain the key for this filter.
+     * Obtain the key for this filter. The filter may or may not require a key.
      *
-     * @return a criterion
+     * @return a criterion, which could be null if no key was provided.
      */
     Criterion key();
 
@@ -76,6 +81,16 @@ public interface FilteringObjective extends Objective {
      * @return a collection of criteria
      */
     Collection<Criterion> conditions();
+
+    /**
+     * Auxiliary optional information provided to the device-driver.Typically
+     * conveys information about changes (treatments) to packets that are
+     * permitted into the pipeline by the PERMIT filtering condition.
+     *
+     * @return a treatment on the packets that make it through the PERMIT filters.
+     *         Value may be null if no meta information is provided.
+     */
+    TrafficTreatment meta();
 
     /**
      * Builder of Filtering objective entities.
@@ -113,11 +128,19 @@ public interface FilteringObjective extends Objective {
         Builder deny();
 
         /**
+         * Set meta information about this filtering condition set.
+         *
+         * @return a filtering builder
+         */
+        Builder setMeta(TrafficTreatment treatment);
+
+        /**
          * Assigns an application id.
          *
          * @param appId an application id
          * @return a filtering builder
          */
+        @Override
         Builder fromApp(ApplicationId appId);
 
         /**

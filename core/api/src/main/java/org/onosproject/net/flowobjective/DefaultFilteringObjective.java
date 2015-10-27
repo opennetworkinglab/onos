@@ -18,6 +18,7 @@ package org.onosproject.net.flowobjective;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 
@@ -46,6 +47,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
     private final int id;
     private final Operation op;
     private final Optional<ObjectiveContext> context;
+    private final TrafficTreatment meta;
 
     private DefaultFilteringObjective(Builder builder) {
         this.key = builder.key;
@@ -57,6 +59,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         this.conditions = builder.conditions;
         this.op = builder.op;
         this.context = Optional.ofNullable(builder.context);
+        this.meta = builder.meta;
 
         this.id = Objects.hash(type, key, conditions, permanent,
                 timeout, appId, priority);
@@ -81,6 +84,12 @@ public final class DefaultFilteringObjective implements FilteringObjective {
     public int id() {
         return id;
     }
+
+    @Override
+    public TrafficTreatment meta() {
+        return meta;
+    }
+
 
     @Override
     public int priority() {
@@ -135,6 +144,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         private List<Criterion> conditions;
         private Operation op;
         private ObjectiveContext context;
+        private TrafficTreatment meta;
 
         @Override
         public Builder withKey(Criterion key) {
@@ -182,6 +192,12 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         @Override
         public Builder withPriority(int priority) {
             this.priority = priority;
+            return this;
+        }
+
+        @Override
+        public Builder setMeta(TrafficTreatment treatment) {
+            this.meta = treatment;
             return this;
         }
 
