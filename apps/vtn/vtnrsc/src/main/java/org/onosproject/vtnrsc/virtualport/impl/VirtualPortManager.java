@@ -191,22 +191,20 @@ public class VirtualPortManager implements VirtualPortService {
     @Override
     public boolean updatePorts(Iterable<VirtualPort> vPorts) {
         checkNotNull(vPorts, VIRTUALPORT_NOT_NULL);
-        if (vPorts != null) {
-            for (VirtualPort vPort : vPorts) {
-                vPortStore.put(vPort.portId(), vPort);
-                if (!vPortStore.containsKey(vPort.portId())) {
-                    log.debug("The virtualPort is not exist whose identifier is {}",
-                              vPort.portId().toString());
-                    return false;
-                }
+        for (VirtualPort vPort : vPorts) {
+            vPortStore.put(vPort.portId(), vPort);
+            if (!vPortStore.containsKey(vPort.portId())) {
+                log.debug("The virtualPort is not exist whose identifier is {}",
+                          vPort.portId().toString());
+                return false;
+            }
 
-                vPortStore.put(vPort.portId(), vPort);
+            vPortStore.put(vPort.portId(), vPort);
 
-                if (!vPort.equals(vPortStore.get(vPort.portId()))) {
-                    log.debug("The virtualPort is updated failed whose  identifier is {}",
-                              vPort.portId().toString());
-                    return false;
-                }
+            if (!vPort.equals(vPortStore.get(vPort.portId()))) {
+                log.debug("The virtualPort is updated failed whose  identifier is {}",
+                          vPort.portId().toString());
+                return false;
             }
         }
         return true;
@@ -215,14 +213,12 @@ public class VirtualPortManager implements VirtualPortService {
     @Override
     public boolean removePorts(Iterable<VirtualPortId> vPortIds) {
         checkNotNull(vPortIds, VIRTUALPORT_ID_NULL);
-        if (vPortIds != null) {
-            for (VirtualPortId vPortId : vPortIds) {
-                vPortStore.remove(vPortId);
-                if (vPortStore.containsKey(vPortId)) {
-                    log.debug("The virtualPort is removed failed whose identifier is {}",
-                              vPortId.toString());
-                    return false;
-                }
+        for (VirtualPortId vPortId : vPortIds) {
+            vPortStore.remove(vPortId);
+            if (vPortStore.containsKey(vPortId)) {
+                log.debug("The virtualPort is removed failed whose identifier is {}",
+                          vPortId.toString());
+                return false;
             }
         }
         return true;
