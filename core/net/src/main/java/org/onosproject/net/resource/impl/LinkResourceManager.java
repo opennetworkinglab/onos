@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.resource.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -46,6 +47,7 @@ import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
 import org.onosproject.net.resource.link.MplsLabelResourceRequest;
 import org.slf4j.Logger;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,7 +55,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -114,15 +115,12 @@ public class LinkResourceManager
      * @param links the links
      * @return available lambdas on specified links
      */
-    private Iterable<LambdaResource> getAvailableLambdas(Iterable<Link> links) {
+    private Collection<LambdaResource> getAvailableLambdas(Iterable<Link> links) {
         checkNotNull(links);
-        Iterator<Link> i = links.iterator();
-        checkArgument(i.hasNext());
-        Set<LambdaResource> lambdas = new HashSet<>(getAvailableLambdas(i.next()));
-        while (i.hasNext()) {
-            lambdas.retainAll(getAvailableLambdas(i.next()));
-        }
-        return lambdas;
+        return ImmutableList.copyOf(links).stream()
+                .map(this::getAvailableLambdas)
+                .reduce(Sets::intersection)
+                .orElse(Collections.emptySet());
     }
 
 
