@@ -65,6 +65,14 @@ public class ManuallyAdvancingTimer extends java.util.Timer {
     /* Data structure for tracking tasks */
     private final TaskQueue queue = new TaskQueue();
 
+    /* Whether execution should execute on the executor thread or the calling thread. */
+    private final boolean runLocally;
+
+    public ManuallyAdvancingTimer(boolean runLocally) {
+        this.runLocally = runLocally;
+    }
+
+
     @Override
     public void schedule(TimerTask task, long delay) {
         if (!staticsPopulated) {
@@ -165,14 +173,16 @@ public class ManuallyAdvancingTimer extends java.util.Timer {
 
     /**
      * Advances the virtual time a certain number of millis triggers execution delays a certain amount to
-     * allow time for execution.
+     * allow time for execution.  If runLocally is true then all real time delays are ignored.
      *
      * @param virtualTimeAdvance the time to be advances in millis of simulated time.
      * @param realTimeDelay      the time to delay in real time to allow for processing.
      */
     public void advanceTimeMillis(long virtualTimeAdvance, int realTimeDelay) {
         timerKeeper.advanceTimeMillis(virtualTimeAdvance);
-        delay(realTimeDelay);
+        if (!runLocally) {
+            delay(realTimeDelay);
+        }
     }
 
     /**
@@ -238,7 +248,11 @@ public class ManuallyAdvancingTimer extends java.util.Timer {
                     e.printStackTrace();
                     return false;
                 }
-                executorService.execute(task);
+                if (runLocally) {
+                    task.run();
+                } else {
+                    executorService.execute(task);
+                }
                 return true;
             } else {
                 //Calculate next execution time, using absolute value of period
@@ -253,7 +267,11 @@ public class ManuallyAdvancingTimer extends java.util.Timer {
                 }
                 //Schedule next execution
                 queue.insertOrdered(task);
-                executorService.execute(task);
+                if (runLocally) {
+                    task.run();
+                } else {
+                    executorService.execute(task);
+                }
                 return true;
             }
         }

@@ -54,7 +54,7 @@ public class ManuallyAdvancingTimerTest {
      */
     @Before
     public void setup() {
-        timer = new ManuallyAdvancingTimer();
+        timer = new ManuallyAdvancingTimer(true);
         idGenerator = new AtomicInteger(1);
         tasksRunCount = new AtomicInteger(0);
         taskList = Lists.newArrayList();

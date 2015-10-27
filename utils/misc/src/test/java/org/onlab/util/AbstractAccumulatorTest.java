@@ -31,7 +31,7 @@ import static org.onlab.junit.TestTools.assertAfter;
 public class AbstractAccumulatorTest {
 
 
-    private final ManuallyAdvancingTimer timer = new ManuallyAdvancingTimer();
+    private final ManuallyAdvancingTimer timer = new ManuallyAdvancingTimer(true);
 
     private static final int LONG_REAL_TIME_DELAY = 30;
     private static final int SHORT_REAL_TIME_DELAY = 5;
