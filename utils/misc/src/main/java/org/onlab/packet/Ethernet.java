@@ -18,6 +18,12 @@
 
 package org.onlab.packet;
 
+import org.onlab.packet.ndp.NeighborAdvertisement;
+import org.onlab.packet.ndp.NeighborSolicitation;
+import org.onlab.packet.ndp.Redirect;
+import org.onlab.packet.ndp.RouterAdvertisement;
+import org.onlab.packet.ndp.RouterSolicitation;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -531,27 +537,114 @@ public class Ethernet extends BasePacket {
             sb.append("\nnw_proto: ");
             sb.append(p.getProtocol());
 
-            if (pkt instanceof TCP) {
-                sb.append("\ntp_src: ");
-                sb.append(((TCP) pkt).getSourcePort());
-                sb.append("\ntp_dst: ");
-                sb.append(((TCP) pkt).getDestinationPort());
+            IPacket payload = pkt.getPayload();
+            if (payload != null) {
+                if (payload instanceof TCP) {
+                    sb.append("\ntp_src: ");
+                    sb.append(((TCP) payload).getSourcePort());
+                    sb.append("\ntp_dst: ");
+                    sb.append(((TCP) payload).getDestinationPort());
 
-            } else if (pkt instanceof UDP) {
-                sb.append("\ntp_src: ");
-                sb.append(((UDP) pkt).getSourcePort());
-                sb.append("\ntp_dst: ");
-                sb.append(((UDP) pkt).getDestinationPort());
+                } else if (payload instanceof UDP) {
+                    sb.append("\ntp_src: ");
+                    sb.append(((UDP) payload).getSourcePort());
+                    sb.append("\ntp_dst: ");
+                    sb.append(((UDP) payload).getDestinationPort());
+                } else if (payload instanceof ICMP) {
+                    final ICMP icmp = (ICMP) payload;
+                    sb.append("\nicmp_type: ");
+                    sb.append(icmp.getIcmpType());
+                    sb.append("\nicmp_code: ");
+                    sb.append(icmp.getIcmpCode());
+                }
             }
+        } else if (pkt instanceof IPv6) {
+            final IPv6 ipv6 = (IPv6) pkt;
+            sb.append("\nipv6_src: ");
+            sb.append(Ip6Address.valueOf(ipv6.getSourceAddress()).toString());
+            sb.append("\nipv6_dst: ");
+            sb.append(Ip6Address.valueOf(ipv6.getDestinationAddress()).toString());
+            sb.append("\nipv6_proto: ");
+            sb.append(ipv6.getNextHeader());
 
-            if (pkt instanceof ICMP) {
-                final ICMP icmp = (ICMP) pkt;
-                sb.append("\nicmp_type: ");
-                sb.append(icmp.getIcmpType());
-                sb.append("\nicmp_code: ");
-                sb.append(icmp.getIcmpCode());
+            IPacket payload = pkt.getPayload();
+            if (payload != null && payload instanceof ICMP6) {
+                final ICMP6 icmp6 = (ICMP6) payload;
+                sb.append("\nicmp6_type: ");
+                sb.append(icmp6.getIcmpType());
+                sb.append("\nicmp6_code: ");
+                sb.append(icmp6.getIcmpCode());
+
+                payload = payload.getPayload();
+                if (payload != null) {
+                    if (payload instanceof NeighborSolicitation) {
+                        final NeighborSolicitation ns = (NeighborSolicitation) payload;
+                        sb.append("\nns_target_addr: ");
+                        sb.append(Ip6Address.valueOf(ns.getTargetAddress()).toString());
+                        ns.getOptions().forEach(option -> {
+                            sb.append("\noption_type: ");
+                            sb.append(option.type());
+                            sb.append("\noption_data: ");
+                            sb.append(bytesToHex(option.data()));
+                        });
+                    } else if (payload instanceof NeighborAdvertisement) {
+                        final NeighborAdvertisement na = (NeighborAdvertisement) payload;
+                        sb.append("\nna_target_addr: ");
+                        sb.append(Ip6Address.valueOf(na.getTargetAddress()).toString());
+                        sb.append("\nna_solicited_flag: ");
+                        sb.append(na.getSolicitedFlag());
+                        sb.append("\nna_router_flag: ");
+                        sb.append(na.getRouterFlag());
+                        sb.append("\nna_override_flag: ");
+                        sb.append(na.getOverrideFlag());
+                        na.getOptions().forEach(option -> {
+                            sb.append("\noption_type: ");
+                            sb.append(option.type());
+                            sb.append("\noption_data: ");
+                            sb.append(bytesToHex(option.data()));
+                        });
+                    } else if (payload instanceof RouterSolicitation) {
+                        final RouterSolicitation rs = (RouterSolicitation) payload;
+                        sb.append("\nrs");
+                        rs.getOptions().forEach(option -> {
+                            sb.append("\noption_type: ");
+                            sb.append(option.type());
+                            sb.append("\noption_data: ");
+                            sb.append(bytesToHex(option.data()));
+                        });
+                    } else if (payload instanceof RouterAdvertisement) {
+                        final RouterAdvertisement ra = (RouterAdvertisement) payload;
+                        sb.append("\nra_hop_limit: ");
+                        sb.append(ra.getCurrentHopLimit());
+                        sb.append("\nra_mflag: ");
+                        sb.append(ra.getMFlag());
+                        sb.append("\nra_oflag: ");
+                        sb.append(ra.getOFlag());
+                        sb.append("\nra_reachable_time: ");
+                        sb.append(ra.getReachableTime());
+                        sb.append("\nra_retransmit_time: ");
+                        sb.append(ra.getRetransmitTimer());
+                        sb.append("\nra_router_lifetime: ");
+                        sb.append(ra.getRouterLifetime());
+                        ra.getOptions().forEach(option -> {
+                            sb.append("\noption_type: ");
+                            sb.append(option.type());
+                            sb.append("\noption_data: ");
+                            sb.append(bytesToHex(option.data()));
+                        });
+                    } else if (payload instanceof Redirect) {
+                        final Redirect rd = (Redirect) payload;
+                        sb.append("\nrd_target_addr: ");
+                        sb.append(Ip6Address.valueOf(rd.getTargetAddress()).toString());
+                        rd.getOptions().forEach(option -> {
+                            sb.append("\noption_type: ");
+                            sb.append(option.type());
+                            sb.append("\noption_data: ");
+                            sb.append(bytesToHex(option.data()));
+                        });
+                    }
+                }
             }
-
         } else if (pkt instanceof DHCP) {
             sb.append("\ndhcp packet");
         } else if (pkt instanceof Data) {
