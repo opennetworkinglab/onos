@@ -48,8 +48,8 @@ import org.slf4j.Logger;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.onosproject.security.AppGuard.checkPermission;
@@ -130,12 +130,15 @@ public class LinkResourceManager
                     if (allocsPerLink.get(link) == null) {
                         allocsPerLink.put(link, new HashSet<>());
                     }
-                    Iterator<MplsLabel> mplsIter = getAvailableMplsLabels(link)
-                            .iterator();
-                    if (mplsIter.hasNext()) {
-                        allocsPerLink.get(link)
-                                .add(new MplsLabelResourceAllocation(mplsIter
-                                             .next()));
+
+                    Optional<MplsLabel> label = req.resources(link).stream()
+                            .filter(x -> x.type() == ResourceType.MPLS_LABEL)
+                            .map(x -> (MplsLabelResourceRequest) x)
+                            .map(MplsLabelResourceRequest::mplsLabel)
+                            .findFirst();
+
+                    if (label.isPresent()) {
+                        allocsPerLink.get(link).add(new MplsLabelResourceAllocation(label.get()));
                     } else {
                         log.info("Failed to allocate MPLS resource.");
                         break;
@@ -214,7 +217,8 @@ public class LinkResourceManager
                         ((LambdaResourceAllocation) alloc).lambda()));
                 break;
             case MPLS_LABEL:
-                result.add(new MplsLabelResourceRequest());
+                result.add(new MplsLabelResourceRequest(
+                        ((MplsLabelResourceAllocation) alloc).mplsLabel()));
                 break;
             default:
                 break;

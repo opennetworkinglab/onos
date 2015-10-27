@@ -15,14 +15,49 @@
  */
 package org.onosproject.net.resource.link;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import org.onosproject.net.resource.ResourceRequest;
 import org.onosproject.net.resource.ResourceType;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Representation of a request for lambda resource.
  */
 public class MplsLabelResourceRequest implements ResourceRequest {
+
+    private final MplsLabel mplsLabel;
+
+    /**
+     * Constructs a request specifying the given MPLS label.
+     *
+     * @param mplsLabel MPLS label to be requested
+     */
+    @Beta
+    public MplsLabelResourceRequest(MplsLabel mplsLabel) {
+        this.mplsLabel = checkNotNull(mplsLabel);
+    }
+
+    /**
+     * Constructs a request asking an arbitrary available MPLS label.
+     *
+     * @deprecated in Emu Release
+     */
+    @Deprecated
+    public MplsLabelResourceRequest() {
+        this.mplsLabel = null;
+    }
+
+    /**
+     * Returns the MPLS label this request expects.
+     *
+     * @return the MPLS label this request expects
+     */
+    @Beta
+    public MplsLabel mplsLabel() {
+        return mplsLabel;
+    }
 
     @Override
     public ResourceType type() {
@@ -32,6 +67,7 @@ public class MplsLabelResourceRequest implements ResourceRequest {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+                .add("mplsLabel", mplsLabel)
                 .toString();
     }
 }
