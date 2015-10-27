@@ -123,8 +123,14 @@ public class FlowsListCommand extends AbstractShellCommand {
         if (state != null && !state.equals("any")) {
             s = FlowEntryState.valueOf(state.toUpperCase());
         }
-        Iterable<Device> devices = uri == null ? deviceService.getDevices() :
-                Collections.singletonList(deviceService.getDevice(DeviceId.deviceId(uri)));
+        Iterable<Device> devices = null;
+        if (uri == null) {
+            devices = deviceService.getDevices();
+        } else {
+            Device dev = deviceService.getDevice(DeviceId.deviceId(uri));
+            devices = (dev == null) ? deviceService.getDevices()
+                                    : Collections.singletonList(dev);
+        }
         for (Device d : devices) {
             if (s == null) {
                 rules = newArrayList(service.getFlowEntries(d.id()));

@@ -71,7 +71,10 @@ public final class Comparators {
     public static final Comparator<FlowRule> FLOW_RULE_COMPARATOR = new Comparator<FlowRule>() {
         @Override
         public int compare(FlowRule f1, FlowRule f2) {
-            return Long.valueOf(f1.id().value()).compareTo(f2.id().value());
+            int tableCompare = Integer.valueOf(f1.tableId()).compareTo(f2.tableId());
+            return (tableCompare == 0)
+                    ? Long.valueOf(f1.id().value()).compareTo(f2.id().value())
+                    : tableCompare;
         }
     };
 
