@@ -72,8 +72,6 @@ public class CordVtnConfigManager {
 
         configService.addListener(configListener);
         configRegistry.registerConfigFactory(configFactory);
-
-        readConfiguration();
     }
 
     @Deactivate
@@ -101,7 +99,22 @@ public class CordVtnConfigManager {
 
         @Override
         public void event(NetworkConfigEvent event) {
-            // TODO handle update event
+            if (!event.configClass().equals(CordVtnConfig.class)) {
+                return;
+            }
+
+            switch (event.type()) {
+                case CONFIG_ADDED:
+                    log.info("Network configuration added");
+                    readConfiguration();
+                    break;
+                case CONFIG_UPDATED:
+                    log.info("Network configuration updated");
+                    // TODO handle update event
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }
