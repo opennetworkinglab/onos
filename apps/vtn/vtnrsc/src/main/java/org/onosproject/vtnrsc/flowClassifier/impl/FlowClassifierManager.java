@@ -15,21 +15,26 @@
  */
 package org.onosproject.vtnrsc.flowClassifier.impl;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.MultiValuedTimestamp;
+import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.vtnrsc.FlowClassifierId;
 import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.flowClassifier.FlowClassifierService;
-
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 
+import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -44,16 +49,26 @@ public class FlowClassifierManager implements FlowClassifierService {
     private static final String FLOW_CLASSIFIER_NOT_NULL = "Flow Classifier cannot be null";
     private static final String FLOW_CLASSIFIER_ID_NOT_NULL = "Flow Classifier Id cannot be null";
 
-    private ConcurrentMap<FlowClassifierId, FlowClassifier> flowClassifierStore
-    = new ConcurrentHashMap<FlowClassifierId, FlowClassifier>();
+    private EventuallyConsistentMap<FlowClassifierId, FlowClassifier> flowClassifierStore;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
 
     @Activate
     private void activate() {
+        KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
+                .register(KryoNamespaces.API)
+                .register(MultiValuedTimestamp.class)
+                .register(FlowClassifier.class);
+        flowClassifierStore = storageService
+                .<FlowClassifierId, FlowClassifier>eventuallyConsistentMapBuilder()
+                .withName("flowclassifierstore").withSerializer(serializer)
+                .withTimestampProvider((k, v) -> new WallClockTimestamp()).build();
         log.info("Flow Classifier service activated");
     }
 
     @Deactivate
     private void deactivate() {
+        flowClassifierStore.destroy();
         log.info("Flow Classifier service deactivated");
     }
 
@@ -92,7 +107,8 @@ public class FlowClassifierManager implements FlowClassifierService {
     public boolean updateFlowClassifier(FlowClassifier flowClassifier) {
         checkNotNull(flowClassifier, FLOW_CLASSIFIER_NOT_NULL);
         FlowClassifierId id = flowClassifier.flowClassifierId();
-        return flowClassifierStore.replace(id, flowClassifierStore.get(id), flowClassifier);
+        flowClassifierStore.put(id, flowClassifier);
+        return true;
     }
 
     @Override
