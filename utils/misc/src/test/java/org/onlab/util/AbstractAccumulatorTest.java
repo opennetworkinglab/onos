@@ -33,6 +33,9 @@ public class AbstractAccumulatorTest {
 
     private final ManuallyAdvancingTimer timer = new ManuallyAdvancingTimer();
 
+    private static final int LONG_REAL_TIME_DELAY = 30;
+    private static final int SHORT_REAL_TIME_DELAY = 5;
+
 
     @Test
     public void basics() throws Exception {
@@ -52,7 +55,7 @@ public class AbstractAccumulatorTest {
         accumulator.add(new TestItem("d"));
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("e"));
-        timer.advanceTimeMillis(20, 10);
+        timer.advanceTimeMillis(20, LONG_REAL_TIME_DELAY);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "abcde", accumulator.batch);
     }
@@ -61,16 +64,16 @@ public class AbstractAccumulatorTest {
     public void timeTrigger() {
         TestAccumulator accumulator = new TestAccumulator();
         accumulator.add(new TestItem("a"));
-        timer.advanceTimeMillis(30, 1);
+        timer.advanceTimeMillis(30, SHORT_REAL_TIME_DELAY);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("b"));
-        timer.advanceTimeMillis(30, 1);
+        timer.advanceTimeMillis(30, SHORT_REAL_TIME_DELAY);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("c"));
-        timer.advanceTimeMillis(30, 1);
+        timer.advanceTimeMillis(30, SHORT_REAL_TIME_DELAY);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("d"));
-        timer.advanceTimeMillis(10, 10);
+        timer.advanceTimeMillis(10, LONG_REAL_TIME_DELAY);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "abcd", accumulator.batch);
     }
@@ -81,7 +84,7 @@ public class AbstractAccumulatorTest {
         accumulator.add(new TestItem("a"));
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("b"));
-        timer.advanceTimeMillis(70, 10);
+        timer.advanceTimeMillis(70, LONG_REAL_TIME_DELAY);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "ab", accumulator.batch);
     }
@@ -93,10 +96,10 @@ public class AbstractAccumulatorTest {
         accumulator.add(new TestItem("a"));
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("b"));
-        timer.advanceTimeMillis(80, 1);
+        timer.advanceTimeMillis(80, SHORT_REAL_TIME_DELAY);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.ready = true;
-        timer.advanceTimeMillis(80, 10);
+        timer.advanceTimeMillis(80, LONG_REAL_TIME_DELAY);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "ab", accumulator.batch);
     }
@@ -105,12 +108,12 @@ public class AbstractAccumulatorTest {
     public void readyLongTrigger() {
         TestAccumulator accumulator = new TestAccumulator();
         accumulator.ready = false;
-        timer.advanceTimeMillis(120, 1);
+        timer.advanceTimeMillis(120, SHORT_REAL_TIME_DELAY);
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.add(new TestItem("a"));
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.ready = true;
-        timer.advanceTimeMillis(120, 10);
+        timer.advanceTimeMillis(120, LONG_REAL_TIME_DELAY);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "a", accumulator.batch);
     }
@@ -128,7 +131,7 @@ public class AbstractAccumulatorTest {
         assertTrue("should not have fired yet", accumulator.batch.isEmpty());
         accumulator.ready = true;
         accumulator.add(new TestItem("g"));
-        timer.advanceTimeMillis(10, 10);
+        timer.advanceTimeMillis(10, LONG_REAL_TIME_DELAY);
         assertFalse("should have fired", accumulator.batch.isEmpty());
         assertEquals("incorrect batch", "abcdefg", accumulator.batch);
     }
