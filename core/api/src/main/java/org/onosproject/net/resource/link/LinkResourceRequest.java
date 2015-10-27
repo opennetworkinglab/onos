@@ -15,13 +15,13 @@
  */
 package org.onosproject.net.resource.link;
 
-import java.util.Collection;
-import java.util.Set;
-
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.resource.ResourceRequest;
+
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Representation of a request for link resource.
@@ -53,7 +53,7 @@ public interface LinkResourceRequest extends ResourceRequest {
      * Builder of link resource request.
      */
     interface Builder {
-         /**
+        /**
          * Adds lambda request.
          *
          * @return self
@@ -61,11 +61,11 @@ public interface LinkResourceRequest extends ResourceRequest {
         Builder addLambdaRequest();
 
         /**
-        * Adds MPLS request.
-        *
-        * @return self
-        */
-       Builder addMplsRequest();
+         * Adds MPLS request.
+         *
+         * @return self
+         */
+        Builder addMplsRequest();
 
         /**
          * Adds bandwidth request with bandwidth value.
