@@ -28,6 +28,7 @@ import org.onlab.util.Frequency;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Link;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
@@ -42,16 +43,10 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
+import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.newresource.ResourceService;
-import org.onosproject.net.resource.ResourceType;
-import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
-import org.onosproject.net.resource.link.LambdaResource;
-import org.onosproject.net.resource.link.LambdaResourceAllocation;
-import org.onosproject.net.resource.link.LambdaResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
-import org.onosproject.net.resource.link.LinkResourceRequest;
-import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
@@ -64,6 +59,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.net.LinkKey.linkKey;
 
 /**
  * An intent compiler for {@link org.onosproject.net.intent.OpticalConnectivityIntent}.
@@ -85,9 +81,6 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceService resourceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkResourceService linkResourceService;
 
     @Activate
     public void activate() {
@@ -144,13 +137,12 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                 ochSignal = srcOchPort.lambda();
             } else {
                 // Request and reserve lambda on path
-                LinkResourceAllocations linkAllocs = assignWavelength(intent, path);
-                if (linkAllocs == null) {
+                IndexedLambda lambda = assignWavelength(intent, path);
+                if (lambda == null) {
                     continue;
                 }
-                LambdaResourceAllocation lambdaAlloc = getWavelength(path, linkAllocs);
                 OmsPort omsPort = (OmsPort) deviceService.getPort(path.src().deviceId(), path.src().port());
-                ochSignal = new OchSignal(lambdaAlloc.lambda().toInt(), omsPort.maxFrequency(), omsPort.grid());
+                ochSignal = new OchSignal((int) lambda.index(), omsPort.maxFrequency(), omsPort.grid());
             }
 
             // Create installable optical path intent
@@ -177,97 +169,46 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     }
 
     /**
-     * Find the lambda allocated to the path.
-     *
-     * @param path the path
-     * @param linkAllocs the link allocations
-     * @return lambda allocated to the given path
-     */
-    private LambdaResourceAllocation getWavelength(Path path, LinkResourceAllocations linkAllocs) {
-        return path.links().stream()
-                .flatMap(x -> linkAllocs.getResourceAllocation(x).stream())
-                .filter(x -> x.type() == ResourceType.LAMBDA)
-                .findFirst()
-                .map(x -> (LambdaResourceAllocation) x)
-                .orElse(null);
-    }
-
-    /**
      * Request and reserve first available wavelength across path.
      *
      * @param path path in WDM topology
-     * @return first available lambda resource allocation
+     * @return first available lambda allocated
      */
-    private LinkResourceAllocations assignWavelength(Intent intent, Path path) {
-        Set<LambdaResource> lambdas = findCommonLambdasOverLinks(path.links());
+    private IndexedLambda assignWavelength(Intent intent, Path path) {
+        Set<IndexedLambda> lambdas = findCommonLambdasOverLinks(path.links());
         if (lambdas.isEmpty()) {
             return null;
         }
 
-        LambdaResource minLambda = findFirstLambda(lambdas);
+        IndexedLambda minLambda = findFirstLambda(lambdas);
+        List<ResourcePath> lambdaResources = path.links().stream()
+                .map(x -> new ResourcePath(linkKey(x.src(), x.dst())))
+                .map(x -> ResourcePath.child(x, minLambda))
+                .collect(Collectors.toList());
 
-        LinkResourceRequest request =
-                DefaultLinkResourceRequest.builder(intent.id(), path.links())
-                .addLambdaRequest(minLambda)
-                .build();
-
-        LinkResourceAllocations allocations = linkResourceService.requestResources(request);
-
-        if (!checkWavelengthContinuity(allocations, path)) {
-            linkResourceService.releaseResources(allocations);
-            return null;
+        List<ResourceAllocation> allocations = resourceService.allocate(intent.id(), lambdaResources);
+        if (allocations.isEmpty()) {
+            log.info("Resource allocation for {} failed (resource request: {})", intent, lambdaResources);
         }
 
-        return allocations;
+        return minLambda;
     }
 
-    private Set<LambdaResource> findCommonLambdasOverLinks(List<Link> links) {
+    private Set<IndexedLambda> findCommonLambdasOverLinks(List<Link> links) {
         return links.stream()
-                .map(x -> ImmutableSet.copyOf(linkResourceService.getAvailableResources(x)))
-                .map(x -> Sets.filter(x, req -> req instanceof LambdaResourceRequest))
-                .map(x -> Iterables.transform(x, req -> (LambdaResourceRequest) req))
-                .map(x -> Iterables.transform(x, LambdaResourceRequest::lambda))
-                .map(x -> (Set<LambdaResource>) ImmutableSet.copyOf(x))
+                .map(x -> new ResourcePath(linkKey(x.src(), x.dst())))
+                .map(resourceService::getAvailableResources)
+                .map(x -> Iterables.filter(x, r -> r.lastComponent() instanceof IndexedLambda))
+                .map(x -> Iterables.transform(x, r -> (IndexedLambda) r.lastComponent()))
+                .map(x -> (Set<IndexedLambda>) ImmutableSet.copyOf(x))
                 .reduce(Sets::intersection)
                 .orElse(Collections.emptySet());
     }
 
-    private LambdaResource findFirstLambda(Set<LambdaResource> lambdas) {
+    private IndexedLambda findFirstLambda(Set<IndexedLambda> lambdas) {
         return lambdas.stream()
                 .findFirst()
                 .get();
-    }
-
-    /**
-     * Checks wavelength continuity constraint across path, i.e., an identical lambda is used on all links.
-     * @return true if wavelength continuity is met, false otherwise
-     */
-    private boolean checkWavelengthContinuity(LinkResourceAllocations allocations, Path path) {
-        if (allocations == null) {
-            return false;
-        }
-
-        List<LambdaResource> lambdas = path.links().stream()
-                .flatMap(x -> allocations.getResourceAllocation(x).stream())
-                .filter(x -> x.type() == ResourceType.LAMBDA)
-                .map(x -> ((LambdaResourceAllocation) x).lambda())
-                .collect(Collectors.toList());
-
-        LambdaResource lambda = null;
-        for (LambdaResource nextLambda: lambdas) {
-            if (nextLambda == null) {
-                return false;
-            }
-            if (lambda == null) {
-                lambda = nextLambda;
-                continue;
-            }
-            if (!lambda.equals(nextLambda)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private ConnectPoint staticPort(ConnectPoint connectPoint) {
