@@ -148,12 +148,6 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     //private static final int MPLSINTERFACEMASK = 0x90000000;
     private static final int L3ECMPMASK = 0x70000000;
 
-    /*
-     * This driver assigns all incoming untagged packets the same VLAN ID
-     */
-    private static final short UNTAGGED_ASSIGNED_VLAN = 0xffa; // 4090
-
-
     private final Logger log = getLogger(getClass());
     private ServiceDirectory serviceDirectory;
     protected FlowRuleService flowRuleService;
@@ -351,11 +345,35 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
         }
 
+        VlanId assignedVlan = null;
+        if (vidCriterion != null && vidCriterion.vlanId() == VlanId.NONE) {
+            // untagged packets are assigned vlans in OF-DPA
+            if (filt.meta() == null) {
+                log.error("Missing metadata in filtering objective required "
+                        + "for vlan assignment in dev {}", deviceId);
+                fail(filt, ObjectiveError.BADPARAMS);
+                return;
+            }
+            for (Instruction i : filt.meta().allInstructions()) {
+                if (i instanceof ModVlanIdInstruction) {
+                    assignedVlan = ((ModVlanIdInstruction) i).vlanId();
+                }
+            }
+            if (assignedVlan == null) {
+                log.error("Driver requires an assigned vlan-id to tag incoming "
+                        + "untagged packets. Not processing vlan filters on "
+                        + "device {}", deviceId);
+                fail(filt, ObjectiveError.BADPARAMS);
+                return;
+            }
+        }
+
         if (ethCriterion == null) {
             log.debug("filtering objective missing dstMac, cannot program TMAC table");
         } else {
             for (FlowRule tmacRule : processEthDstFilter(portCriterion, ethCriterion,
-                                                         vidCriterion, applicationId)) {
+                                                         vidCriterion, assignedVlan,
+                                                         applicationId)) {
                 log.debug("adding MAC filtering rules in TMAC table: {} for dev: {}",
                           tmacRule, deviceId);
                 ops = install ? ops.add(tmacRule) : ops.remove(tmacRule);
@@ -367,6 +385,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     + "Vlan Table");
         } else {
             for (FlowRule vlanRule : processVlanIdFilter(portCriterion, vidCriterion,
+                                                         assignedVlan,
                                                          applicationId)) {
                 log.debug("adding VLAN filtering rule in VLAN table: {} for dev: {}",
                           vlanRule, deviceId);
@@ -419,14 +438,18 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
     /**
      * Allows untagged packets into pipeline by assigning a vlan id.
+     * Vlan assignment is done by the application.
      * Allows tagged packets into pipeline as per configured port-vlan info.
+     *
      * @param portCriterion   port on device for which this filter is programmed
      * @param vidCriterion   vlan assigned to port, or NONE for untagged
+     * @param assignedVlan   assigned vlan-id for untagged packets
      * @param applicationId  for application programming this filter
      * @return list of FlowRule for port-vlan filters
      */
     protected List<FlowRule> processVlanIdFilter(PortCriterion portCriterion,
                                                  VlanIdCriterion vidCriterion,
+                                                 VlanId assignedVlan,
                                                  ApplicationId applicationId) {
         List<FlowRule> rules = new ArrayList<FlowRule>();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -434,7 +457,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         selector.matchVlanId(vidCriterion.vlanId());
         if (vidCriterion.vlanId() == VlanId.NONE) {
             // untagged packets are assigned vlans
-            treatment.pushVlan().setVlanId(VlanId.vlanId(UNTAGGED_ASSIGNED_VLAN));
+            treatment.pushVlan().setVlanId(assignedVlan);
             // XXX ofdpa may require an additional vlan match on the assigned vlan
             // and it may not require the push.
         }
@@ -475,6 +498,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @param portCriterion  port on device for which this filter is programmed
      * @param ethCriterion   dstMac of device for which is filter is programmed
      * @param vidCriterion   vlan assigned to port, or NONE for untagged
+     * @param assignedVlan   assigned vlan-id for untagged packets
      * @param applicationId  for application programming this filter
      * @return list of FlowRule for port-vlan filters
 
@@ -482,11 +506,11 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected List<FlowRule> processEthDstFilter(PortCriterion portCriterion,
                                                  EthCriterion ethCriterion,
                                                  VlanIdCriterion vidCriterion,
+                                                 VlanId assignedVlan,
                                                  ApplicationId applicationId) {
         //handling untagged packets via assigned VLAN
         if (vidCriterion.vlanId() == VlanId.NONE) {
-            vidCriterion = (VlanIdCriterion) Criteria
-                                .matchVlanId(VlanId.vlanId(UNTAGGED_ASSIGNED_VLAN));
+            vidCriterion = (VlanIdCriterion) Criteria.matchVlanId(assignedVlan);
         }
         // ofdpa cannot match on ALL portnumber, so we need to use separate
         // rules for each port.

@@ -25,6 +25,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -60,6 +61,8 @@ public class RoutingRulePopulator {
     private DeviceConfiguration config;
 
     private static final int HIGHEST_PRIORITY = 0xffff;
+    private static final long OFPP_MAX = 0xffffff00L;
+
 
     /**
      * Creates a RoutingRulePopulator object.
@@ -355,25 +358,37 @@ public class RoutingRulePopulator {
 
     /**
      * Creates a filtering objective to permit all untagged packets with a
-     * dstMac corresponding to the router's MAC address.
+     * dstMac corresponding to the router's MAC address. For those pipelines
+     * that need to internally assign vlans to untagged packets, this method
+     * provides per-subnet vlan-ids as metadata.
      *
      * @param deviceId  the switch dpid for the router
      */
     public void populateRouterMacVlanFilters(DeviceId deviceId) {
-        FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
-        fob.withKey(Criteria.matchInPort(PortNumber.ALL))
+        log.debug("Installing per-port filtering objective for untagged "
+                + "packets in device {}", deviceId);
+        for (Port port : srManager.deviceService.getPorts(deviceId)) {
+            if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
+                Ip4Prefix portSubnet = config.getPortSubnet(deviceId, port.number());
+                VlanId assignedVlan = (portSubnet == null)
+                        ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
+                        : srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
+                TrafficTreatment tt = DefaultTrafficTreatment.builder()
+                        .pushVlan().setVlanId(assignedVlan).build();
+                FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
+                fob.withKey(Criteria.matchInPort(port.number()))
                 .addCondition(Criteria.matchEthDst(config.getDeviceMac(deviceId)))
                 .addCondition(Criteria.matchVlanId(VlanId.NONE))
-                .addCondition(Criteria.matchIPDst(
-                                  IpPrefix.valueOf(config.getRouterIp(deviceId),
-                                                   IpPrefix.MAX_INET_MASK_LENGTH)));
-
-        fob.permit().fromApp(srManager.appId);
-        log.debug("Installing filtering objective for untagged packets");
-        srManager.flowObjectiveService.
-            filter(deviceId,
-                   fob.add(new SRObjectiveContext(deviceId,
-                                                  SRObjectiveContext.ObjectiveType.FILTER)));
+                .setMeta(tt)
+                .addCondition(Criteria.matchIPDst(IpPrefix.valueOf(
+                                                      config.getRouterIp(deviceId),
+                                                      IpPrefix.MAX_INET_MASK_LENGTH)));
+                fob.permit().fromApp(srManager.appId);
+                srManager.flowObjectiveService.
+                filter(deviceId, fob.add(new SRObjectiveContext(deviceId,
+                                      SRObjectiveContext.ObjectiveType.FILTER)));
+            }
+        }
     }
 
     /**

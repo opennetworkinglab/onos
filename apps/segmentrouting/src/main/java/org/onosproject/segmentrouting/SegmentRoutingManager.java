@@ -23,6 +23,8 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -45,7 +47,6 @@ import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkEvent;
@@ -64,9 +65,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -135,6 +138,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         Integer> nsNextObjStore = null;
     private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
     private EventuallyConsistentMap<String, Policy> policyStore = null;
+    // Per device, per-subnet assigned-vlans store, with (device id + subnet
+    // IPv4 prefix) as key
+    private EventuallyConsistentMap<SubnetAssignedVidStoreKey, VlanId>
+        subnetVidStore = null;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
@@ -163,6 +170,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private KryoNamespace.Builder kryoBuilder = null;
 
+    private static final short ASSIGNED_VLAN_START = 4093;
+    public static final short ASSIGNED_VLAN_NO_SUBNET = 4094;
+
     @Activate
     protected void activate() {
         appId = coreService
@@ -180,7 +190,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     DefaultTunnel.class,
                     Policy.class,
                     TunnelPolicy.class,
-                    Policy.Type.class
+                    Policy.Type.class,
+                    SubnetAssignedVidStoreKey.class,
+                    VlanId.class
             );
 
         log.debug("Creating EC map nsnextobjectivestore");
@@ -208,6 +220,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         policyStore = policyMapBuilder
                 .withName("policystore")
+                .withSerializer(kryoBuilder)
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .build();
+
+        EventuallyConsistentMapBuilder<SubnetAssignedVidStoreKey, VlanId>
+            subnetVidStoreMapBuilder = storageService.eventuallyConsistentMapBuilder();
+
+        subnetVidStore = subnetVidStoreMapBuilder
+                .withName("subnetvidstore")
                 .withSerializer(kryoBuilder)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
@@ -296,23 +317,72 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
-     * Returns the GroupKey object for the device and the NeighborSet given.
-     * XXX is this called
+     * Returns the vlan-id assigned to the subnet configured for a device.
+     * If no vlan-id has been assigned, a new one is assigned out of a pool of ids,
+     * if and only if this controller instance is the master for the device.
+     * <p>
+     * USAGE: The assigned vlans are meant to be applied to untagged packets on those
+     * switches/pipelines that need this functionality. These vids are meant
+     * to be used internally within a switch, and thus need to be unique only
+     * on a switch level. Note that packets never go out on the wire with these
+     * vlans. Currently, vlan ids are assigned from value 4093 down.
+     * Vlan id 4094 expected to be used for all ports that are not assigned subnets.
+     * Vlan id 4095 is reserved and unused. Only a single vlan id is assigned
+     * per subnet.
+     * XXX This method should avoid any vlans configured on the ports, but
+     *     currently the app works only on untagged packets and as a result
+     *     ignores any vlan configuration.
      *
-     * @param ns NeightborSet object for the GroupKey
-     * @return GroupKey object for the NeighborSet
+     * @param deviceId switch dpid
+     * @param subnet IPv4 prefix for which assigned vlan is desired
+     * @return VlanId assigned for the subnet on the device, or
+     *         null if no vlan assignment was found and this instance is not
+     *         the master for the device.
      */
-    public GroupKey getGroupKey(NeighborSet ns) {
-        for (DefaultGroupHandler groupHandler : groupHandlerMap.values()) {
-            return groupHandler.getGroupKey(ns);
+    public VlanId getSubnetAssignedVlanId(DeviceId deviceId, Ip4Prefix subnet) {
+        VlanId assignedVid = subnetVidStore.get(new SubnetAssignedVidStoreKey(
+                                                        deviceId, subnet));
+        if (assignedVid != null) {
+            log.debug("Query for subnet:{} on device:{} returned assigned-vlan "
+                    + "{}", subnet, deviceId, assignedVid);
+            return assignedVid;
+        }
+        //check mastership for the right to assign a vlan
+        if (!mastershipService.isLocalMaster(deviceId)) {
+            log.warn("This controller instance is not the master for device {}. "
+                    + "Cannot assign vlan-id for subnet {}", deviceId, subnet);
+            return null;
+        }
+        // vlan assignment is expensive but done only once
+        List<Ip4Prefix> configuredSubnets = deviceConfiguration.getSubnets(deviceId);
+        Set<Short> assignedVlans = new HashSet<>();
+        Set<Ip4Prefix> unassignedSubnets = new HashSet<>();
+        for (Ip4Prefix sub : configuredSubnets) {
+            VlanId v = subnetVidStore.get(new SubnetAssignedVidStoreKey(deviceId,
+                                                                        sub));
+            if (v != null) {
+                assignedVlans.add(v.toShort());
+            } else {
+                unassignedSubnets.add(sub);
+            }
+        }
+        short nextAssignedVlan = ASSIGNED_VLAN_START;
+        if (!assignedVlans.isEmpty()) {
+            nextAssignedVlan = (short) (Collections.min(assignedVlans) - 1);
+        }
+        for (Ip4Prefix unsub : unassignedSubnets) {
+            subnetVidStore.put(new SubnetAssignedVidStoreKey(deviceId, unsub),
+                               VlanId.vlanId(nextAssignedVlan--));
+            log.info("Assigned vlan: {} to subnet: {} on device: {}",
+                      nextAssignedVlan + 1, unsub, deviceId);
         }
 
-        return null;
+        return subnetVidStore.get(new SubnetAssignedVidStoreKey(deviceId, subnet));
     }
 
     /**
-     * Returns the next objective ID for the NeighborSet given. If the nextObjectiveID does not exist,
-     * a new one is created and returned.
+     * Returns the next objective ID for the given NeighborSet.
+     * If the nextObjectiveID does not exist, a new one is created and returned.
      *
      * @param deviceId Device ID
      * @param ns NegighborSet
