@@ -130,6 +130,7 @@ public interface FilteringObjective extends Objective {
         /**
          * Set meta information about this filtering condition set.
          *
+         * @param treatment traffic treatment to use
          * @return a filtering builder
          */
         Builder setMeta(TrafficTreatment treatment);

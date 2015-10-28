@@ -61,6 +61,7 @@ public final class VbngConfiguration {
      *        public IP addresses
      * @param xosIpAddress the XOS server IP address
      * @param xosRestPort the port of the XOS server for REST
+     * @param hosts map of hosts
      */
     @JsonCreator
     public VbngConfiguration(@JsonProperty("localPublicIpPrefixes")
