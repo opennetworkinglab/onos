@@ -46,6 +46,16 @@ public final class FlowClassifierId {
         return new FlowClassifierId(flowClassifierId);
     }
 
+    /**
+     * Returns new flow classifier id.
+     *
+     * @param flowClassifierId flow classifier id
+     * @return new flow classifier id
+     */
+    public static FlowClassifierId flowClassifierId(final String flowClassifierId) {
+        return new FlowClassifierId(UUID.fromString(flowClassifierId));
+    }
+
     @Override
     public int hashCode() {
         return Objects.hashCode(this.flowClassifierId);
