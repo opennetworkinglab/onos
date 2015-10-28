@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.resource.link;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.IntentId;
@@ -57,8 +58,19 @@ public interface LinkResourceRequest extends ResourceRequest {
          * Adds lambda request.
          *
          * @return self
+         * @deprecated in Emu Release
          */
+        @Deprecated
         Builder addLambdaRequest();
+
+        /**
+         * Adds lambda request.
+         *
+         * @param lambda lambda to be requested
+         * @return self
+         */
+        @Beta
+        Builder addLambdaRequest(LambdaResource lambda);
 
         /**
          * Adds MPLS request.

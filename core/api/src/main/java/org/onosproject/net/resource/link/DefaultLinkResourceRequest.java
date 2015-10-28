@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Objects;
 
+import com.google.common.annotations.Beta;
 import org.onlab.util.Bandwidth;
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.Constraint;
@@ -114,10 +115,19 @@ public final class DefaultLinkResourceRequest implements LinkResourceRequest {
          * Adds lambda request.
          *
          * @return self
+         * @deprecated in Emu Release
          */
+        @Deprecated
         @Override
         public Builder addLambdaRequest() {
             resources.add(new LambdaResourceRequest());
+            return this;
+        }
+
+        @Beta
+        @Override
+        public LinkResourceRequest.Builder addLambdaRequest(LambdaResource lambda) {
+            resources.add(new LambdaResourceRequest(lambda));
             return this;
         }
 

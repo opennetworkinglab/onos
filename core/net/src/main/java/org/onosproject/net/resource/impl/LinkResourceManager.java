@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.resource.impl;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -32,7 +31,6 @@ import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.resource.link.BandwidthResourceAllocation;
 import org.onosproject.net.resource.link.BandwidthResourceRequest;
 import org.onosproject.net.resource.link.DefaultLinkResourceAllocations;
-import org.onosproject.net.resource.link.LambdaResource;
 import org.onosproject.net.resource.link.LambdaResourceAllocation;
 import org.onosproject.net.resource.link.LambdaResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
@@ -47,7 +45,6 @@ import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
 import org.onosproject.net.resource.link.MplsLabelResourceRequest;
 import org.slf4j.Logger;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,7 +52,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppPermission.Type.*;
@@ -85,42 +81,6 @@ public class LinkResourceManager
     public void deactivate() {
         eventDispatcher.removeSink(LinkResourceEvent.class);
         log.info("Stopped");
-    }
-
-    /**
-     * Returns available lambdas on specified link.
-     *
-     * @param link the link
-     * @return available lambdas on specified link
-     */
-    private Set<LambdaResource> getAvailableLambdas(Link link) {
-        checkNotNull(link);
-        Set<ResourceAllocation> resAllocs = store.getFreeResources(link);
-        if (resAllocs == null) {
-            return Collections.emptySet();
-        }
-        Set<LambdaResource> lambdas = new HashSet<>();
-        for (ResourceAllocation res : resAllocs) {
-            if (res.type() == ResourceType.LAMBDA) {
-                lambdas.add(((LambdaResourceAllocation) res).lambda());
-            }
-        }
-        return lambdas;
-    }
-
-
-    /**
-     * Returns available lambdas on specified links.
-     *
-     * @param links the links
-     * @return available lambdas on specified links
-     */
-    private Collection<LambdaResource> getAvailableLambdas(Iterable<Link> links) {
-        checkNotNull(links);
-        return ImmutableList.copyOf(links).stream()
-                .map(this::getAvailableLambdas)
-                .reduce(Sets::intersection)
-                .orElse(Collections.emptySet());
     }
 
 
@@ -162,14 +122,8 @@ public class LinkResourceManager
                 allocs.add(new BandwidthResourceAllocation(br.bandwidth()));
                 break;
             case LAMBDA:
-                Iterator<LambdaResource> lambdaIterator =
-                        getAvailableLambdas(req.links()).iterator();
-                if (lambdaIterator.hasNext()) {
-                    allocs.add(new LambdaResourceAllocation(lambdaIterator.next()));
-                } else {
-                    log.info("Failed to allocate lambda resource.");
-                    return null;
-                }
+                LambdaResourceRequest lr = (LambdaResourceRequest) r;
+                allocs.add(new LambdaResourceAllocation(lr.lambda()));
                 break;
             case MPLS_LABEL:
                 for (Link link : req.links()) {
@@ -256,7 +210,8 @@ public class LinkResourceManager
                         ((BandwidthResourceAllocation) alloc).bandwidth()));
                 break;
             case LAMBDA:
-                result.add(new LambdaResourceRequest());
+                result.add(new LambdaResourceRequest(
+                        ((LambdaResourceAllocation) alloc).lambda()));
                 break;
             case MPLS_LABEL:
                 result.add(new MplsLabelResourceRequest());

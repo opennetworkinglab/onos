@@ -15,14 +15,49 @@
  */
 package org.onosproject.net.resource.link;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import org.onosproject.net.resource.ResourceRequest;
 import org.onosproject.net.resource.ResourceType;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Representation of a request for lambda resource.
  */
 public class LambdaResourceRequest implements ResourceRequest {
+
+    private final LambdaResource lambda;
+
+    /**
+     * Constructs a request specifying the given lambda.
+     *
+     * @param lambda lambda to be requested
+     */
+    @Beta
+    public LambdaResourceRequest(LambdaResource lambda) {
+        this.lambda = checkNotNull(lambda);
+    }
+
+    /**
+     * Constructs a request asking an arbitrary available lambda.
+     *
+     * @deprecated in Emu Release
+     */
+    @Deprecated
+    public LambdaResourceRequest() {
+        this.lambda = null;
+    }
+
+    /**
+     * Returns the lambda this request expects.
+     *
+     * @return the lambda this request expects
+     */
+    @Beta
+    public LambdaResource lambda() {
+        return lambda;
+    }
 
     @Override
     public ResourceType type() {

@@ -16,6 +16,9 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -45,6 +48,7 @@ import org.onosproject.net.resource.ResourceType;
 import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
 import org.onosproject.net.resource.link.LambdaResource;
 import org.onosproject.net.resource.link.LambdaResourceAllocation;
+import org.onosproject.net.resource.link.LambdaResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.resource.link.LinkResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceService;
@@ -54,6 +58,7 @@ import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -194,11 +199,19 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
      * @return first available lambda resource allocation
      */
     private LinkResourceAllocations assignWavelength(Intent intent, Path path) {
-        LinkResourceRequest.Builder request =
-                DefaultLinkResourceRequest.builder(intent.id(), path.links())
-                .addLambdaRequest();
+        Set<LambdaResource> lambdas = findCommonLambdasOverLinks(path.links());
+        if (lambdas.isEmpty()) {
+            return null;
+        }
 
-        LinkResourceAllocations allocations = linkResourceService.requestResources(request.build());
+        LambdaResource minLambda = findFirstLambda(lambdas);
+
+        LinkResourceRequest request =
+                DefaultLinkResourceRequest.builder(intent.id(), path.links())
+                .addLambdaRequest(minLambda)
+                .build();
+
+        LinkResourceAllocations allocations = linkResourceService.requestResources(request);
 
         if (!checkWavelengthContinuity(allocations, path)) {
             linkResourceService.releaseResources(allocations);
@@ -206,6 +219,23 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         }
 
         return allocations;
+    }
+
+    private Set<LambdaResource> findCommonLambdasOverLinks(List<Link> links) {
+        return links.stream()
+                .map(x -> ImmutableSet.copyOf(linkResourceService.getAvailableResources(x)))
+                .map(x -> Sets.filter(x, req -> req instanceof LambdaResourceRequest))
+                .map(x -> Iterables.transform(x, req -> (LambdaResourceRequest) req))
+                .map(x -> Iterables.transform(x, LambdaResourceRequest::lambda))
+                .map(x -> (Set<LambdaResource>) ImmutableSet.copyOf(x))
+                .reduce(Sets::intersection)
+                .orElse(Collections.emptySet());
+    }
+
+    private LambdaResource findFirstLambda(Set<LambdaResource> lambdas) {
+        return lambdas.stream()
+                .findFirst()
+                .get();
     }
 
     /**
