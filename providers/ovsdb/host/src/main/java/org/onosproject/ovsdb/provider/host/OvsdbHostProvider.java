@@ -111,7 +111,7 @@ public class OvsdbHostProvider extends AbstractProvider implements HostProvider 
             }
             switch (event.type()) {
             case PORT_ADDED:
-                HostId hostId = HostId.hostId(subject.hwAddress(), null);
+                HostId hostId = HostId.hostId(subject.hwAddress(), VlanId.vlanId());
                 DeviceId deviceId = DeviceId.deviceId(uri(subject.dpid().value()));
                 PortNumber portNumber = PortNumber.portNumber(subject
                         .portNumber().value(), subject.portName().value());
@@ -127,7 +127,7 @@ public class OvsdbHostProvider extends AbstractProvider implements HostProvider 
                 providerService.hostDetected(hostId, hostDescription);
                 break;
             case PORT_REMOVED:
-                HostId host = HostId.hostId(subject.hwAddress(), null);
+                HostId host = HostId.hostId(subject.hwAddress(), VlanId.vlanId());
                 providerService.hostVanished(host);
                 break;
             default:
