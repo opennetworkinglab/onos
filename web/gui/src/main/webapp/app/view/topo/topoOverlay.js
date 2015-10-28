@@ -34,7 +34,8 @@
 
     // internal state
     var overlays = {},
-        current = null;
+        current = null,
+        reset = true;
 
     function error(fn, msg) {
         $log.error(tos + fn + '(): ' + msg);
@@ -144,7 +145,8 @@
             payload[op] = oid;
         }
 
-        if (!same) {
+        if (reset || !same) {
+            reset = false;
             current && doop('deactivate');
             current = overlays[id];
             current && doop('activate');
@@ -390,6 +392,7 @@
                 tbSelection: tbSelection,
                 installButtons: installButtons,
                 addDetailButton: addDetailButton,
+                resetOnToolbarDestroy: function () { reset = true; },
                 hooks: {
                     escape: escapeHook,
                     emptySelect: emptySelectHook,

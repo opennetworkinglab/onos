@@ -27,6 +27,7 @@ import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.event.Event;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipEvent;
@@ -49,11 +50,14 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
+import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.impl.TrafficMonitor.Mode;
@@ -77,7 +81,9 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.HostId.hostId;
-import static org.onosproject.net.device.DeviceEvent.Type.*;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_UPDATED;
+import static org.onosproject.net.device.DeviceEvent.Type.PORT_STATS_UPDATED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
 import static org.onosproject.ui.JsonUtils.envelope;
@@ -98,6 +104,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String REQ_NEXT_INTENT = "requestNextRelatedIntent";
     private static final String REQ_PREV_INTENT = "requestPrevRelatedIntent";
     private static final String REQ_SEL_INTENT_TRAFFIC = "requestSelectedIntentTraffic";
+    private static final String SEL_INTENT = "selectIntent";
     private static final String REQ_ALL_FLOW_TRAFFIC = "requestAllFlowTraffic";
     private static final String REQ_ALL_PORT_TRAFFIC = "requestAllPortTraffic";
     private static final String REQ_DEV_LINK_FLOWS = "requestDeviceLinkFlows";
@@ -118,9 +125,13 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String SPRITE_LIST_RESPONSE = "spriteListResponse";
     private static final String SPRITE_DATA_RESPONSE = "spriteDataResponse";
     private static final String UPDATE_INSTANCE = "updateInstance";
+    private static final String TOPO_START_DONE = "topoStartDone";
 
     // fields
     private static final String ID = "id";
+    private static final String KEY = "key";
+    private static final String APP_ID = "appId";
+    private static final String APP_NAME = "appName";
     private static final String DEVICE = "device";
     private static final String HOST = "host";
     private static final String CLASS = "class";
@@ -136,7 +147,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String DEACTIVATE = "deactivate";
 
 
-    private static final String APP_ID = "org.onosproject.gui";
+    private static final String MY_APP_ID = "org.onosproject.gui";
 
     private static final long TRAFFIC_PERIOD = 5000;
     private static final long SUMMARY_PERIOD = 30000;
@@ -177,7 +188,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     @Override
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
-        appId = directory.get(CoreService.class).registerApplication(APP_ID);
+        appId = directory.get(CoreService.class).registerApplication(MY_APP_ID);
         traffic = new TrafficMonitor(TRAFFIC_PERIOD, servicesBundle, this);
     }
 
@@ -214,6 +225,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 new ReqNextIntent(),
                 new ReqPrevIntent(),
                 new ReqSelectedIntentTraffic(),
+                new SelIntent(),
 
                 new CancelTraffic()
         );
@@ -242,6 +254,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
             sendAllDevices();
             sendAllLinks();
             sendAllHosts();
+            sendTopoStartDone();
         }
     }
 
@@ -527,6 +540,31 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
     }
 
+    private final class SelIntent extends RequestHandler {
+        private SelIntent() {
+            super(SEL_INTENT);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            int appId = Integer.parseInt(string(payload, APP_ID));
+            String appName = string(payload, APP_NAME);
+            ApplicationId applicId = new DefaultApplicationId(appId, appName);
+            long intentKey = Long.decode(string(payload, KEY));
+
+            Key key = Key.of(intentKey, applicId);
+            log.debug("Attempting to select intent key={}", key);
+
+            Intent intent = intentService.getIntent(key);
+            if (intent == null) {
+                log.debug("no such intent found!");
+            } else {
+                log.debug("starting to monitor intent {}", key);
+                traffic.monitor(intent);
+            }
+        }
+    }
+
     private final class CancelTraffic extends RequestHandler {
         private CancelTraffic() {
             super(CANCEL_TRAFFIC);
@@ -626,6 +664,9 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         return hostIds;
     }
 
+    private void sendTopoStartDone() {
+        sendMessage(JsonUtils.envelope(TOPO_START_DONE, objectNode()));
+    }
 
     private synchronized void startSummaryMonitoring() {
         stopSummaryMonitoring();

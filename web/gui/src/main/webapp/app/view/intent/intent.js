@@ -23,12 +23,21 @@
 
     angular.module('ovIntent', [])
         .controller('OvIntentCtrl',
-        ['$log', '$scope', 'TableBuilderService',
+        ['$log', '$scope', 'TableBuilderService', 'NavService',
 
-        function ($log, $scope, tbs) {
+        function ($log, $scope, tbs, ns) {
 
             function selCb($event, row) {
                 $log.debug('Got a click on:', row);
+                var m = /(\d+)\s:\s(.*)/.exec(row.appId),
+                    id = m ? m[1] : null,
+                    name = m ? m[2] : null;
+
+                $scope.intentData = m ? {
+                    intentAppId: id,
+                    intentAppName: name,
+                    intentKey: row.key
+                } : null;
             }
 
             tbs.buildTable({
@@ -41,8 +50,9 @@
             $scope.topoTip = 'Show selected intent on topology view';
 
             $scope.showIntent = function () {
-                // TODO: navigate to topology view with selected intent context
-                $log.debug("+++ showIntent +++", $scope.selId);
+                var d = $scope.intentData;
+                $log.debug("+++ showIntent +++", d);
+                ns.navTo('topo', d);
             };
 
             $log.log('OvIntentCtrl has been created');

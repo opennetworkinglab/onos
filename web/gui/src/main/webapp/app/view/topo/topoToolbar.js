@@ -243,6 +243,7 @@
 
     function destroyToolbar() {
         tbs.destroyToolbar(name);
+        tov.resetOnToolbarDestroy();
     }
 
     // allows us to ensure the button states track key strokes

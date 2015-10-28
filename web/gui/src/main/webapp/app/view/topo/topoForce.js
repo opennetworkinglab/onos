@@ -240,6 +240,11 @@
         }
     }
 
+    function topoStartDone(data) {
+        // called when the initial barrage of data has been sent from server
+        uplink.topoStartDone();
+    }
+
     // ========================
 
     function nodeById(id) {
@@ -1140,7 +1145,8 @@
                 removeHost: removeHost,
                 addLink: addLink,
                 updateLink: updateLink,
-                removeLink: removeLink
+                removeLink: removeLink,
+                topoStartDone: topoStartDone
             };
         }]);
 }());

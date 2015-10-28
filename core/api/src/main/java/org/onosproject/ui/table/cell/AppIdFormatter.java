@@ -27,6 +27,7 @@ public final class AppIdFormatter extends AbstractCellFormatter {
     // non-instantiable
     private AppIdFormatter() { }
 
+    // NOTE: do not change this format; we parse it on the client side.
     @Override
     protected String nonNullFormat(Object value) {
         ApplicationId appId = (ApplicationId) value;

@@ -412,6 +412,12 @@
         flash.enable(true);
     }
 
+    function topoStartDone() {
+        var d = $scope.intentData;
+        if (d) {
+            tts.selectIntent(d);
+        }
+    }
 
     // --- Controller Definition -----------------------------------------
 
@@ -430,7 +436,8 @@
                   _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _tes_, _tfs_,
                   _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_, _ttbs_, tspr,
                   _ttip_, _tov_) {
-            var projection,
+            var params = $loc.search(),
+                projection,
                 dim,
                 uplink = {
                     // provides function calls back into this space
@@ -438,7 +445,8 @@
                     projection: function () { return projection; },
                     zoomLayer: function () { return zoomLayer; },
                     zoomer: function () { return zoomer; },
-                    opacifyMap: opacifyMap
+                    opacifyMap: opacifyMap,
+                    topoStartDone: topoStartDone
                 };
 
             $scope = _$scope_;
@@ -468,6 +476,14 @@
             ttbs = _ttbs_;
             ttip = _ttip_;
             tov = _tov_;
+
+            if (params.intentKey && params.intentAppId && params.intentAppName) {
+                $scope.intentData = {
+                    key: params.intentKey,
+                    appId: params.intentAppId,
+                    appName: params.intentAppName
+                };
+            }
 
             $scope.notifyResize = function () {
                 svgResized(fs.windowSize(mast.mastHeight()));

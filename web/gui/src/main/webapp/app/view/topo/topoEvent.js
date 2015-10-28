@@ -60,6 +60,8 @@
             updateLink: tfs,
             removeLink: tfs,
 
+            topoStartDone: tfs,
+
             spriteListResponse: tspr,
             spriteDataResponse: tspr
         };
