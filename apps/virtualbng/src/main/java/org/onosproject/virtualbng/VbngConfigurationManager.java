@@ -16,6 +16,16 @@
 package org.onosproject.virtualbng;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
+import org.onosproject.net.ConnectPoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,16 +35,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of ConfigurationService which reads virtual BNG
@@ -63,6 +63,7 @@ public class VbngConfigurationManager implements VbngConfigurationService {
     private MacAddress macOfPublicIpAddresses;
     private IpAddress xosIpAddress;
     private int xosRestPort;
+    private Map<String, ConnectPoint> nodeToPort;
 
     @Activate
     public void activate() {
@@ -104,6 +105,8 @@ public class VbngConfigurationManager implements VbngConfigurationService {
             macOfPublicIpAddresses = config.getPublicFacingMac();
             xosIpAddress = config.getXosIpAddress();
             xosRestPort = config.getXosRestPort();
+            nodeToPort = config.getHosts();
+
 
         } catch (FileNotFoundException e) {
             log.warn("Configuration file not found: {}", configFileName);
@@ -130,6 +133,11 @@ public class VbngConfigurationManager implements VbngConfigurationService {
     @Override
     public int getXosRestPort() {
         return xosRestPort;
+    }
+
+    @Override
+    public Map<String, ConnectPoint> getNodeToPort() {
+        return nodeToPort;
     }
 
     // TODO handle the case: the number of public IP addresses is not enough

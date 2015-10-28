@@ -15,18 +15,9 @@
  */
 package org.onosproject.virtualbng;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Maps;
-
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -42,7 +33,6 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -55,6 +45,13 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This is a virtual Broadband Network Gateway (BNG) application. It mainly
@@ -111,9 +108,8 @@ public class VbngManager implements VbngService {
         p2pIntentsToHost = new ConcurrentHashMap<>();
         privateIpAddressMap = new ConcurrentHashMap<>();
 
-        setupMap();
-
         nextHopIpAddress = vbngConfigurationService.getNextHopIpAddress();
+        nodeToPort = vbngConfigurationService.getNodeToPort();
         hostListener = new InternalHostListener();
         hostService.addListener(hostListener);
 
@@ -136,10 +132,16 @@ public class VbngManager implements VbngService {
      */
     private void statusRecovery() {
         log.info("vBNG starts to recover from XOS record......");
-        RestClient restClient =
-                new RestClient(vbngConfigurationService.getXosIpAddress(),
-                               vbngConfigurationService.getXosRestPort());
-        ObjectNode map = restClient.getRest();
+        ObjectNode map;
+        try {
+            RestClient restClient =
+                    new RestClient(vbngConfigurationService.getXosIpAddress(),
+                            vbngConfigurationService.getXosRestPort());
+            map = restClient.getRest();
+        } catch (Exception e) {
+            log.error("Could not contact XOS", e);
+            return;
+        }
         if (map == null) {
             log.info("Stop to recover vBNG status due to the vBNG map "
                     + "is null!");
@@ -165,21 +167,6 @@ public class VbngManager implements VbngService {
             createVbng(hostIpAdddress, publicIpAddress, macAddress, hostName);
 
         }
-    }
-
-    /**
-     * Sets up mapping from hostname to connect point.
-     */
-    private void setupMap() {
-        nodeToPort = Maps.newHashMap();
-
-        nodeToPort.put("cordcompute01.onlab.us",
-                       new ConnectPoint(FABRIC_DEVICE_ID,
-                                        PortNumber.portNumber(48)));
-
-        nodeToPort.put("cordcompute02.onlab.us",
-                       new ConnectPoint(FABRIC_DEVICE_ID,
-                                        PortNumber.portNumber(47)));
     }
 
     /**

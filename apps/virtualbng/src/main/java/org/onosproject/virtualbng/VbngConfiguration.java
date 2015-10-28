@@ -17,13 +17,15 @@ package org.onosproject.virtualbng;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Collections;
-import java.util.List;
-
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.ConnectPoint;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Contains the configuration data for virtual BNG that has been read from a
@@ -36,6 +38,7 @@ public final class VbngConfiguration {
     private final MacAddress publicFacingMac;
     private final IpAddress xosIpAddress;
     private final int xosRestPort;
+    private final Map<String, ConnectPointConfiguration> hosts;
 
     /**
      * Default constructor.
@@ -46,6 +49,7 @@ public final class VbngConfiguration {
         publicFacingMac = null;
         xosIpAddress = null;
         xosRestPort = 0;
+        hosts = null;
     }
 
     /**
@@ -68,12 +72,15 @@ public final class VbngConfiguration {
                              @JsonProperty("xosIpAddress")
                              IpAddress xosIpAddress,
                              @JsonProperty("xosRestPort")
-                             int xosRestPort) {
+                             int xosRestPort,
+                             @JsonProperty("hosts")
+                             Map<String, ConnectPointConfiguration> hosts) {
         localPublicIpPrefixes = prefixes;
         this.nextHopIpAddress = nextHopIpAddress;
         this.publicFacingMac = publicFacingMac;
         this.xosIpAddress = xosIpAddress;
         this.xosRestPort = xosRestPort;
+        this.hosts = hosts;
     }
 
     /**
@@ -119,5 +126,14 @@ public final class VbngConfiguration {
      */
     public int getXosRestPort() {
         return xosRestPort;
+    }
+
+    public Map<String, ConnectPoint> getHosts() {
+        return hosts.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        e -> e.getKey(),
+                        e -> e.getValue().connectPoint()
+                ));
     }
 }
