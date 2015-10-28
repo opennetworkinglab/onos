@@ -17,6 +17,7 @@ package org.onosproject.net.intent.impl.compiler;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
@@ -70,7 +71,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  * An intent compiler for {@link org.onosproject.net.intent.OpticalCircuitIntent}.
  */
 // For now, remove component designation until dependency on the new resource manager is available.
-// @Component(immediate = true)
+@Component(immediate = true)
 public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircuitIntent> {
 
     private static final Logger log = LoggerFactory.getLogger(OpticalCircuitIntentCompiler.class);

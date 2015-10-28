@@ -41,7 +41,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * An implementation of ResourceService.
  */
-@Component(immediate = true, enabled = false)
+@Component(immediate = true)
 @Service
 @Beta
 public final class ResourceManager implements ResourceService, ResourceAdminService {

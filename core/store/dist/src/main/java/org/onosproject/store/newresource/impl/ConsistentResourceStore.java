@@ -52,7 +52,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Implementation of ResourceStore using TransactionalMap.
  */
-@Component(immediate = true, enabled = false)
+@Component(immediate = true)
 @Service
 @Beta
 public class ConsistentResourceStore implements ResourceStore {
