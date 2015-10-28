@@ -20,13 +20,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Objects;
 
 /**
- * The class representing a ifaceid. This class is immutable.
+ * The class representing an ifaceid.
+ * This class is immutable.
  */
 public class OvsdbIfaceId {
     private final String value;
 
     /**
-     * Constructor from a String ifaceid.
+     * Constructor from a String.
      *
      * @param value the ifaceid to use
      */
@@ -36,9 +37,9 @@ public class OvsdbIfaceId {
     }
 
     /**
-     * Gets the value of the ifaceid.
+     * Gets the value of ifaceid.
      *
-     * @return the value of the ifaceid
+     * @return the value of ifaceid
      */
     public String value() {
         return value;

@@ -21,7 +21,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 
 /**
- * Represents for a entity that carry important information for listener.
+ * Represents for an entity that carry important information for listener.
  */
 public interface OvsdbEventSubject extends EventSubject {
     /**
