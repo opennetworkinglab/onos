@@ -61,7 +61,7 @@ public class DefaultOvsdbNode implements OvsdbNode {
 
     @Override
     public DeviceId deviceId() {
-        return DeviceId.deviceId("ovsdb:" + this.ip.toString() + ":" + this.port.toString());
+        return DeviceId.deviceId("ovsdb:" + this.ip.toString());
     }
 
     @Override
