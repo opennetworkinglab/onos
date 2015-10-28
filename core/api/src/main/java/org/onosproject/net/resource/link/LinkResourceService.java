@@ -22,7 +22,10 @@ import org.onosproject.net.resource.ResourceRequest;
 
 /**
  * Service for providing link resource allocation.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public interface LinkResourceService
     extends ListenerService<LinkResourceEvent, LinkResourceListener> {
 
@@ -31,14 +34,18 @@ public interface LinkResourceService
      *
      * @param req resources to be allocated
      * @return allocated resources
+     * @deprecated in Emu Release
      */
+    @Deprecated
     LinkResourceAllocations requestResources(LinkResourceRequest req);
 
     /**
      * Releases resources.
      *
      * @param allocations resources to be released
+     * @deprecated in Emu Release
      */
+    @Deprecated
     void releaseResources(LinkResourceAllocations allocations);
 
     /**
@@ -47,7 +54,9 @@ public interface LinkResourceService
      * @param req            updated resource request
      * @param oldAllocations old resource allocations
      * @return new resource allocations
+     * @deprecated in Emu Release
      */
+    @Deprecated
     LinkResourceAllocations updateResources(LinkResourceRequest req,
                                             LinkResourceAllocations oldAllocations);
 
@@ -55,7 +64,9 @@ public interface LinkResourceService
      * Returns all allocated resources.
      *
      * @return allocated resources
+     * @deprecated in Emu Release
      */
+    @Deprecated
     Iterable<LinkResourceAllocations> getAllocations();
 
     /**
@@ -63,7 +74,9 @@ public interface LinkResourceService
      *
      * @param link a target link
      * @return allocated resources
+     * @deprecated in Emu Release
      */
+    @Deprecated
     Iterable<LinkResourceAllocations> getAllocations(Link link);
 
     /**
@@ -71,7 +84,9 @@ public interface LinkResourceService
      *
      * @param intentId the target Intent's id
      * @return allocated resources for Intent
+     * @deprecated in Emu Release
      */
+    @Deprecated
     LinkResourceAllocations getAllocations(IntentId intentId);
 
     /**
@@ -79,7 +94,9 @@ public interface LinkResourceService
      *
      * @param link a target link
      * @return available resources for the target link
+     * @deprecated in Emu Release
      */
+    @Deprecated
     Iterable<ResourceRequest> getAvailableResources(Link link);
 
     /**
@@ -88,7 +105,9 @@ public interface LinkResourceService
      * @param link        a target link
      * @param allocations allocations to be included as available
      * @return available resources for the target link
+     * @deprecated in Emu Release
      */
+    @Deprecated
     Iterable<ResourceRequest> getAvailableResources(Link link,
                                                     LinkResourceAllocations allocations);
 
