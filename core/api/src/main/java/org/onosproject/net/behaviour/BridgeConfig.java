@@ -36,6 +36,17 @@ public interface BridgeConfig extends HandlerBehaviour {
     void addBridge(BridgeName bridgeName);
 
     /**
+     * Adds a bridge with given bridge name and dpid, and sets the controller
+     * of the bridge with given controllers.
+     *
+     * @param bridgeName bridge name
+     * @param dpid dpid
+     * @param controllers list of controller
+     * @return true if succeeds, fail otherwise
+     */
+    boolean addBridge(BridgeName bridgeName, String dpid, List<ControllerInfo> controllers);
+
+    /**
      * Remove a bridge.
      *
      * @param bridgeName bridge name

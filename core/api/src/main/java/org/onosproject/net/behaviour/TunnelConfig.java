@@ -32,6 +32,15 @@ public interface TunnelConfig extends HandlerBehaviour {
     void createTunnel(TunnelDescription tunnel);
 
     /**
+     * Creates a tunnel interface on a given bridge of this device.
+     *
+     * @param bridgeName bridge name
+     * @param tunnel tunnel description
+     * @return true if succeeds, false otherwise
+     */
+    boolean createTunnelInterface(BridgeName bridgeName, TunnelDescription tunnel);
+
+    /**
      * Removes a tunnel on this device.
      *
      * @param tunnel tunnel descriptor

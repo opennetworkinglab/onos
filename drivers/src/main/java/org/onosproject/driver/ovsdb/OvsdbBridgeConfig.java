@@ -22,11 +22,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.onlab.packet.IpAddress;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeDescription;
 import org.onosproject.net.behaviour.BridgeName;
+import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.DefaultBridgeDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.PortDescription;
@@ -49,6 +51,13 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
         DriverHandler handler = handler();
         OvsdbClientService clientService = getOvsdbClientService(handler);
         clientService.createBridge(bridgeName.name());
+    }
+
+    @Override
+    public boolean addBridge(BridgeName bridgeName, String dpid, List<ControllerInfo> controllers) {
+        DriverHandler handler = handler();
+        OvsdbClientService clientService = getOvsdbClientService(handler);
+        return clientService.createBridge(bridgeName.name(), dpid, controllers);
     }
 
     @Override
@@ -108,9 +117,10 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
         return ports.stream()
                 .map(x -> new DefaultPortDescription(
                                 PortNumber.portNumber(x.portNumber().value()),
-                                true
-                        )
-                )
+                                true,
+                                DefaultAnnotations.builder()
+                                        .set("portName", x.portName().value())
+                                        .build()))
                 .collect(Collectors.toSet());
     }
 
