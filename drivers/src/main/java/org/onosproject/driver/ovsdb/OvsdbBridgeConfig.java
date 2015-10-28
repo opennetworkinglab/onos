@@ -131,7 +131,7 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
         if (splits == null || splits.length < 1) {
             return null;
         }
-        IpAddress ipAddress = IpAddress.valueOf(splits[0]);
+        IpAddress ipAddress = IpAddress.valueOf(splits[1]);
         return new OvsdbNodeId(ipAddress, 0);
     }
 
