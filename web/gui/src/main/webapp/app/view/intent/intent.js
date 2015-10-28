@@ -33,7 +33,7 @@
                     id = m ? m[1] : null,
                     name = m ? m[2] : null;
 
-                $scope.intentData = m ? {
+                $scope.intentData = ($scope.selId && m) ? {
                     intentAppId: id,
                     intentAppName: name,
                     intentKey: row.key
@@ -51,8 +51,7 @@
 
             $scope.showIntent = function () {
                 var d = $scope.intentData;
-                $log.debug("+++ showIntent +++", d);
-                ns.navTo('topo', d);
+                d && ns.navTo('topo', d);
             };
 
             $log.log('OvIntentCtrl has been created');
