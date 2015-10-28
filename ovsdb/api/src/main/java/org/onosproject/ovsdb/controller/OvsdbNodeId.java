@@ -39,7 +39,7 @@ public final class OvsdbNodeId {
     public OvsdbNodeId(IpAddress ipAddress, long port) {
         checkNotNull(ipAddress, "ipAddress is not null");
         this.ipAddress = ipAddress.toString();
-        this.nodeId = ipAddress + ":" + port;
+        this.nodeId = ipAddress.toString();
     }
 
     @Override

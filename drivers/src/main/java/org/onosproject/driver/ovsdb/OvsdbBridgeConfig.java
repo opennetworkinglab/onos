@@ -114,16 +114,15 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
                 .collect(Collectors.toSet());
     }
 
-    // OvsdbNodeId(IP:port) is used in the adaptor while DeviceId(ovsdb:IP:port)
+    // OvsdbNodeId(IP) is used in the adaptor while DeviceId(ovsdb:IP)
     // is used in the core. So DeviceId need be changed to OvsdbNodeId.
     private OvsdbNodeId changeDeviceIdToNodeId(DeviceId deviceId) {
-        int lastColon = deviceId.toString().lastIndexOf(":");
-        int fistColon = deviceId.toString().indexOf(":");
-        String ip = deviceId.toString().substring(fistColon + 1, lastColon);
-        String port = deviceId.toString().substring(lastColon + 1);
-        IpAddress ipAddress = IpAddress.valueOf(ip);
-        long portL = Long.parseLong(port);
-        return new OvsdbNodeId(ipAddress, portL);
+        String[] splits = deviceId.toString().split(":");
+        if (splits == null || splits.length < 1) {
+            return null;
+        }
+        IpAddress ipAddress = IpAddress.valueOf(splits[0]);
+        return new OvsdbNodeId(ipAddress, 0);
     }
 
     // Used for getting OvsdbClientService.
