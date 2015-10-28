@@ -90,6 +90,10 @@
                             <packages>@internal-pcep</packages>
                         </group>
                         <group>
+                            <title>BGP-LS Providers</title>
+                            <packages>@internal-bgpls</packages>
+                        </group>
+                        <group>
                             <title>Other Providers</title>
                             <packages>@internal-providers</packages>
                         </group>
