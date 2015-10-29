@@ -138,17 +138,17 @@ public class CriteriaTest {
 
 
     int tcpFlags1 =
-        Criterion.TCPFlags.NS.getValue() |
-        Criterion.TCPFlags.CWR.getValue() |
-        Criterion.TCPFlags.ECE.getValue() |
-        Criterion.TCPFlags.URG.getValue() |
-        Criterion.TCPFlags.ACK.getValue() |
-        Criterion.TCPFlags.PSH.getValue() |
-        Criterion.TCPFlags.RST.getValue() |
-        Criterion.TCPFlags.SYN.getValue();
+        Criterion.TcpFlags.NS.getValue() |
+        Criterion.TcpFlags.CWR.getValue() |
+        Criterion.TcpFlags.ECE.getValue() |
+        Criterion.TcpFlags.URG.getValue() |
+        Criterion.TcpFlags.ACK.getValue() |
+        Criterion.TcpFlags.PSH.getValue() |
+        Criterion.TcpFlags.RST.getValue() |
+        Criterion.TcpFlags.SYN.getValue();
 
     int tcpFlags2 = tcpFlags1 |
-        Criterion.TCPFlags.FIN.getValue();
+        Criterion.TcpFlags.FIN.getValue();
 
     Criterion matchTcpFlags1 = Criteria.matchTcpFlags(tcpFlags1);
     Criterion sameAsmatchTcpFlags1 = Criteria.matchTcpFlags(tcpFlags1);

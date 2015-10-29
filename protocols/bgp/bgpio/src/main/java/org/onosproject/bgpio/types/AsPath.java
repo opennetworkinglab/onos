@@ -16,10 +16,7 @@
 
 package org.onosproject.bgpio.types;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.util.Constants;
@@ -27,7 +24,9 @@ import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Provides Implementation of AsPath mandatory BGP Path Attribute.
@@ -36,7 +35,7 @@ public class AsPath implements BgpValueType {
     /**
      * Enum to provide AS types.
      */
-    public enum ASTYPE {
+    public enum AsType {
         AS_SET(1), AS_SEQUENCE(2), AS_CONFED_SEQUENCE(3), AS_CONFED_SET(4);
         int value;
 
@@ -45,7 +44,7 @@ public class AsPath implements BgpValueType {
          *
          * @param val AS type
          */
-        ASTYPE(int val) {
+        AsType(int val) {
             value = val;
         }
 

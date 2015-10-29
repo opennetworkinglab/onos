@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstackrouting;
 
-import org.onosproject.net.packet.PacketContext;
+package org.onosproject.bgpio.protocol;
 
 /**
- * Handle NAT packet processing for Managing Flow Rules In Openstack Nodes.
+ * Provides Abstraction of IGP RouterID TLV.
  */
-public class OpenstackPNATHandler implements Runnable {
-
-    volatile PacketContext context;
-    OpenstackPNATHandler(PacketContext context) {
-        this.context = context;
-    }
-
-    @Override
-    public void run() {
-
-    }
+public interface IgpRouterId {
 }

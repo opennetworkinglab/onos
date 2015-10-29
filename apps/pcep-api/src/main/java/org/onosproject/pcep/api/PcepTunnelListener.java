@@ -26,7 +26,7 @@ public interface PcepTunnelListener {
      *
      * @param tunnel a pceptunnel.
      */
-    void handlePCEPTunnel(PcepTunnel tunnel);
+    void handlePcepTunnel(PcepTunnel tunnel);
 
     /**
      * Notify that get a tunnel statistic data from the network.

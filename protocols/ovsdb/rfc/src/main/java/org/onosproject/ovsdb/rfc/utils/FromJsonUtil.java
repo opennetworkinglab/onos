@@ -31,7 +31,7 @@ import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.message.UpdateNotification;
 import org.onosproject.ovsdb.rfc.notation.Column;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.operations.Operation;
 import org.onosproject.ovsdb.rfc.schema.ColumnSchema;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
@@ -276,12 +276,12 @@ public final class FromJsonUtil {
      * @return TableUpdate
      */
     public static TableUpdate jsonNodeToTableUpdate(TableSchema tableSchema, JsonNode updateJson) {
-        Map<UUID, RowUpdate> rows = Maps.newHashMap();
+        Map<Uuid, RowUpdate> rows = Maps.newHashMap();
         Iterator<Map.Entry<String, JsonNode>> tableUpdateItr = updateJson.fields();
         while (tableUpdateItr.hasNext()) {
             Map.Entry<String, JsonNode> oldNewRow = tableUpdateItr.next();
             String uuidStr = oldNewRow.getKey();
-            UUID uuid = UUID.uuid(uuidStr);
+            Uuid uuid = Uuid.uuid(uuidStr);
             JsonNode newR = oldNewRow.getValue().get("new");
             JsonNode oldR = oldNewRow.getValue().get("old");
             Row newRow = newR != null ? createRow(tableSchema, uuid, newR) : null;
@@ -298,7 +298,7 @@ public final class FromJsonUtil {
      * @param rowNode JsonNode
      * @return Row
      */
-    private static Row createRow(TableSchema tableSchema, UUID uuid, JsonNode rowNode) {
+    private static Row createRow(TableSchema tableSchema, Uuid uuid, JsonNode rowNode) {
         if (tableSchema == null) {
             return null;
         }

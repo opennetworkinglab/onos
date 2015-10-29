@@ -242,12 +242,12 @@ public class TELinkAttributesTlv implements PcepValueType {
             case LinkProtectionTypeTlv.TYPE:
                 tlv = LinkProtectionTypeTlv.read(tempCb);
                 break;
-            case MPLSProtocolMaskTlv.TYPE:
+            case MplsProtocolMaskTlv.TYPE:
                 byte cValue = tempCb.readByte();
-                tlv = new MPLSProtocolMaskTlv(cValue);
+                tlv = new MplsProtocolMaskTlv(cValue);
                 break;
-            case IGPMetricTlv.TYPE:
-                tlv = IGPMetricTlv.read(tempCb, length);
+            case IgpMetricTlv.TYPE:
+                tlv = IgpMetricTlv.read(tempCb, length);
                 break;
             case SharedRiskLinkGroupTlv.TYPE:
                 tlv = SharedRiskLinkGroupTlv.read(tempCb, length);

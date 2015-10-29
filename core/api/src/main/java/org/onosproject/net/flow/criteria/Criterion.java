@@ -247,7 +247,7 @@ public interface Criterion {
         }
     }
 
-    enum TCPFlags {
+    enum TcpFlags {
 
         /** ECN-nonce concealment protection. */
         NS((short) (1 << 0)),
@@ -270,7 +270,7 @@ public interface Criterion {
 
         private short value;
 
-        TCPFlags(short value) {
+        TcpFlags(short value) {
             this.value = value;
         }
 

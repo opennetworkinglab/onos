@@ -13,11 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.pcepio.types;
 
-package org.onosproject.bgpio.protocol;
+import com.google.common.testing.EqualsTester;
+import org.junit.Test;
 
 /**
- * Provides Abstraction of IGP RouterID TLV.
+ * Test of the OSPFareaIDsubTlv.
  */
-public interface IGPRouterID {
+public class OspfAreaIdSubTlvTest {
+    private final int rawValue1 = 0x0A;
+
+    private final OspfAreaIdSubTlv tlv1 = new OspfAreaIdSubTlv(rawValue1);
+    private final OspfAreaIdSubTlv tlv2 = OspfAreaIdSubTlv.of(tlv1.getInt());
+
+    @Test
+    public void basics() {
+        new EqualsTester()
+        .addEqualityGroup(tlv1, tlv2)
+        .testEquals();
+    }
 }

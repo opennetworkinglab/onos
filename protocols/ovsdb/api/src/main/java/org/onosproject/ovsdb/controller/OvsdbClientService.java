@@ -20,11 +20,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerInfo;
-import org.onosproject.ovsdb.rfc.jsonrpc.OvsdbRPC;
+import org.onosproject.ovsdb.rfc.jsonrpc.OvsdbRpc;
 import org.onosproject.ovsdb.rfc.message.OperationResult;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.operations.Operation;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * Represents to provider facing side of a node.
  */
-public interface OvsdbClientService extends OvsdbRPC {
+public interface OvsdbClientService extends OvsdbRpc {
     /**
      * Gets the node identifier.
      *
@@ -136,7 +136,7 @@ public interface OvsdbClientService extends OvsdbRPC {
      * @param bridgeUuid bridge uuid
      * @param controllers list of controllers
      */
-    void setControllersWithUUID(UUID bridgeUuid, List<ControllerInfo> controllers);
+    void setControllersWithUuid(Uuid bridgeUuid, List<ControllerInfo> controllers);
 
     /**
      * Sets the Controllers for the specified device.

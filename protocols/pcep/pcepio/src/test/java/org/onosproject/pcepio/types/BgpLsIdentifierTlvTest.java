@@ -19,14 +19,12 @@ import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
 /**
- * Test of the IGPMetricTlv.
+ * Test of the BGPLSidentifierTlv.
  */
-public class IGPMetricTlvTest {
-    private final byte[] b1 = new byte[] {0x01, 0x02};
-    private final byte[] b2 = new byte[] {0x01, 0x03};
-    private final IGPMetricTlv tlv1 = IGPMetricTlv.of(b1, (short) 2);
-    private final IGPMetricTlv sameAsTlv1 = IGPMetricTlv.of(b1, (short) 2);
-    private final IGPMetricTlv tlv2 = IGPMetricTlv.of(b2, (short) 2);
+public class BgpLsIdentifierTlvTest {
+    private final BgpLsIdentifierTlv tlv1 = BgpLsIdentifierTlv.of(1);
+    private final BgpLsIdentifierTlv sameAsTlv1 = BgpLsIdentifierTlv.of(1);
+    private final BgpLsIdentifierTlv tlv2 = BgpLsIdentifierTlv.of(2);
 
     @Test
     public void basics() {

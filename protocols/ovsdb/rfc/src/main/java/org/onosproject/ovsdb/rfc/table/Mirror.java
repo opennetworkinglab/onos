@@ -20,7 +20,7 @@ import java.util.Set;
 
 import org.onosproject.ovsdb.rfc.notation.Column;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 import org.onosproject.ovsdb.rfc.tableservice.AbstractOvsdbTableService;
 import org.onosproject.ovsdb.rfc.tableservice.ColumnDescription;
@@ -114,7 +114,7 @@ public class Mirror extends AbstractOvsdbTableService {
      * @param selectSrcPort the column data which column name is
      *            "select_src_port"
      */
-    public void setSelectSrcPort(Set<UUID> selectSrcPort) {
+    public void setSelectSrcPort(Set<Uuid> selectSrcPort) {
         ColumnDescription columndesc = new ColumnDescription(MirrorColumn.SELECTSRCPORT.columnName(),
                                                              "setSelectSrcPort", VersionNum.VERSION100);
         super.setDataHandler(columndesc, selectSrcPort);
@@ -137,7 +137,7 @@ public class Mirror extends AbstractOvsdbTableService {
      * @param selectDstPrt the column data which column name is
      *            "select_dst_port"
      */
-    public void setSelectDstPort(Set<UUID> selectDstPrt) {
+    public void setSelectDstPort(Set<Uuid> selectDstPrt) {
         ColumnDescription columndesc = new ColumnDescription(MirrorColumn.SELECTDSTPORT.columnName(),
                                                              "setSelectDstPort", VersionNum.VERSION100);
         super.setDataHandler(columndesc, selectDstPrt);
@@ -181,7 +181,7 @@ public class Mirror extends AbstractOvsdbTableService {
      * of attributes.
      * @param outputPort the column data which column name is "output_port"
      */
-    public void setOutputPort(Set<UUID> outputPort) {
+    public void setOutputPort(Set<Uuid> outputPort) {
         ColumnDescription columndesc = new ColumnDescription(MirrorColumn.OUTPUTPORT.columnName(),
                                                              "setOutputPort", VersionNum.VERSION100);
         super.setDataHandler(columndesc, outputPort);

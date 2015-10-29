@@ -28,24 +28,24 @@ public interface ServiceFunctionForwarderService {
      * Install Forwarding rule.
      *
      * @param portChain port-chain
-     * @param nshSPI nsh spi
+     * @param nshSpi nsh spi
      */
-    void installForwardingRule(PortChain portChain, NshServicePathId nshSPI);
+    void installForwardingRule(PortChain portChain, NshServicePathId nshSpi);
 
     /**
      * Uninstall Forwarding rule.
      *
      * @param portChain port-chain
-     * @param nshSPI nsh spi
+     * @param nshSpi nsh spi
      */
-    void unInstallForwardingRule(PortChain portChain, NshServicePathId nshSPI);
+    void unInstallForwardingRule(PortChain portChain, NshServicePathId nshSpi);
 
     /**
      * Prepare forwarding object for Service Function.
      *
      * @param portChain port-chain
-     * @param nshSPI nsh spi
+     * @param nshSpi nsh spi
      * @param type forwarding objective operation type
      */
-    void prepareServiceFunctionForwarder(PortChain portChain, NshServicePathId nshSPI, Objective.Operation type);
+    void prepareServiceFunctionForwarder(PortChain portChain, NshServicePathId nshSpi, Objective.Operation type);
 }

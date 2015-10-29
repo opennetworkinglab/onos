@@ -25,7 +25,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides OSPF Route Type Tlv which contains route type.
  */
-public class OSPFRouteTypeTlv implements BgpValueType {
+public class OspfRouteTypeTlv implements BgpValueType {
 
     /* Reference :draft-ietf-idr-ls-distribution-11
       0                   1                   2                   3
@@ -69,7 +69,7 @@ public class OSPFRouteTypeTlv implements BgpValueType {
      *
      * @param routeType Route type
      */
-    public OSPFRouteTypeTlv(byte routeType) {
+    public OspfRouteTypeTlv(byte routeType) {
         this.routeType = routeType;
     }
 
@@ -79,8 +79,8 @@ public class OSPFRouteTypeTlv implements BgpValueType {
      * @param routeType Route type
      * @return object of OSPFRouteTypeTlv
      */
-    public static OSPFRouteTypeTlv of(final byte routeType) {
-        return new OSPFRouteTypeTlv(routeType);
+    public static OspfRouteTypeTlv of(final byte routeType) {
+        return new OspfRouteTypeTlv(routeType);
     }
 
     /**
@@ -118,8 +118,8 @@ public class OSPFRouteTypeTlv implements BgpValueType {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof OSPFRouteTypeTlv) {
-            OSPFRouteTypeTlv other = (OSPFRouteTypeTlv) obj;
+        if (obj instanceof OspfRouteTypeTlv) {
+            OspfRouteTypeTlv other = (OspfRouteTypeTlv) obj;
             return Objects.equals(routeType, other.routeType);
         }
         return false;
@@ -140,8 +140,8 @@ public class OSPFRouteTypeTlv implements BgpValueType {
      * @param cb channelBuffer
      * @return object of OSPFRouteTypeTlv
      */
-    public static OSPFRouteTypeTlv read(ChannelBuffer cb) {
-        return OSPFRouteTypeTlv.of(cb.readByte());
+    public static OspfRouteTypeTlv read(ChannelBuffer cb) {
+        return OspfRouteTypeTlv.of(cb.readByte());
     }
 
     @Override
@@ -154,7 +154,7 @@ public class OSPFRouteTypeTlv implements BgpValueType {
         if (this.equals(o)) {
             return 0;
         }
-        return ((Byte) (this.routeType)).compareTo((Byte) (((OSPFRouteTypeTlv) o).routeType));
+        return ((Byte) (this.routeType)).compareTo((Byte) (((OspfRouteTypeTlv) o).routeType));
     }
 
     @Override

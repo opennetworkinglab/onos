@@ -20,8 +20,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
 
-import org.onosproject.ovsdb.rfc.notation.json.UUIDConverter;
-import org.onosproject.ovsdb.rfc.notation.json.UUIDSerializer;
+import org.onosproject.ovsdb.rfc.notation.json.UuidConverter;
+import org.onosproject.ovsdb.rfc.notation.json.UuidSerializer;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -29,16 +29,16 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 /**
  * Handles both uuid and named-uuid.
  */
-@JsonSerialize(using = UUIDSerializer.class)
-@JsonDeserialize(converter = UUIDConverter.class)
-public final class UUID {
+@JsonSerialize(using = UuidSerializer.class)
+@JsonDeserialize(converter = UuidConverter.class)
+public final class Uuid {
     private final String value;
 
     /**
      * UUID constructor.
      * @param value UUID value
      */
-    private UUID(String value) {
+    private Uuid(String value) {
         checkNotNull(value, "value cannot be null");
         this.value = value;
     }
@@ -48,8 +48,8 @@ public final class UUID {
      * @param value UUID value
      * @return UUID
      */
-    public static UUID uuid(String value) {
-        return new UUID(value);
+    public static Uuid uuid(String value) {
+        return new Uuid(value);
     }
 
     /**
@@ -70,8 +70,8 @@ public final class UUID {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof UUID) {
-            final UUID other = (UUID) obj;
+        if (obj instanceof Uuid) {
+            final Uuid other = (Uuid) obj;
             return Objects.equals(this.value, other.value);
         }
         return false;

@@ -57,8 +57,8 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     protected DriverService driverService;
 
     private ApplicationId appId;
-    private OpenstackICMPHandler icmpHandler;
-    private OpenstackPNATHandler natHandler;
+    private OpenstackIcmpHandler icmpHandler;
+    private OpenstackPnatHandler natHandler;
     private OpenstackFloatingIPHandler floatingIPHandler;
     private OpenstackRoutingRulePopulator openstackRoutingRulePopulator;
 
@@ -144,10 +144,10 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
                 IPv4 iPacket = (IPv4) ethernet.getPayload();
                 switch (iPacket.getProtocol()) {
                     case IPv4.PROTOCOL_ICMP:
-                        icmpEventExcutorService.execute(new OpenstackICMPHandler(context));
+                        icmpEventExcutorService.execute(new OpenstackIcmpHandler(context));
                         break;
                     default:
-                        l3EventExcutorService.execute(new OpenstackPNATHandler(context));
+                        l3EventExcutorService.execute(new OpenstackPnatHandler(context));
                         break;
                 }
 

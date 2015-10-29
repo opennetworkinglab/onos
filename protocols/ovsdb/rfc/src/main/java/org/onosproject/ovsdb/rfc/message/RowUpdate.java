@@ -21,7 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Objects;
 
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 
 /**
  * A TableUpdate is an object that maps from the row's UUID to a RowUpdate object.
@@ -29,7 +29,7 @@ import org.onosproject.ovsdb.rfc.notation.UUID;
  * Refer to RFC 7047 Section 4.1.6.
  */
 public final class RowUpdate {
-    private final UUID uuid;
+    private final Uuid uuid;
     private final Row oldRow;
     private final Row newRow;
 
@@ -39,7 +39,7 @@ public final class RowUpdate {
      * @param oldRow present for "delete" and "modify" updates
      * @param newRow present for "initial", "insert", and "modify" updates
      */
-    public RowUpdate(UUID uuid, Row oldRow, Row newRow) {
+    public RowUpdate(Uuid uuid, Row oldRow, Row newRow) {
         checkNotNull(uuid, "uuid cannot be null");
         this.uuid = uuid;
         this.oldRow = oldRow;
@@ -50,7 +50,7 @@ public final class RowUpdate {
      * Return uuid.
      * @return uuid
      */
-    public UUID uuid() {
+    public Uuid uuid() {
         return this.uuid;
     }
 

@@ -25,7 +25,7 @@ import org.onosproject.ovsdb.rfc.exception.TableSchemaNotFoundException;
 import org.onosproject.ovsdb.rfc.exception.VersionMismatchException;
 import org.onosproject.ovsdb.rfc.notation.Column;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.schema.ColumnSchema;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 import org.onosproject.ovsdb.rfc.schema.TableSchema;
@@ -196,12 +196,12 @@ public abstract class AbstractOvsdbTableService implements OvsdbTableService {
     }
 
     @Override
-    public UUID getTableUuid() {
+    public Uuid getTableUuid() {
         if (!isValid()) {
             return null;
         }
         ColumnDescription columnDesc = new ColumnDescription("_uuid", "getTableUuid");
-        return (UUID) getDataHandler(columnDesc);
+        return (Uuid) getDataHandler(columnDesc);
     }
 
     @Override
@@ -214,12 +214,12 @@ public abstract class AbstractOvsdbTableService implements OvsdbTableService {
     }
 
     @Override
-    public UUID getTableVersion() {
+    public Uuid getTableVersion() {
         if (!isValid()) {
             return null;
         }
         ColumnDescription columnDesc = new ColumnDescription("_version", "getTableVersion");
-        return (UUID) getDataHandler(columnDesc);
+        return (Uuid) getDataHandler(columnDesc);
     }
 
     @Override

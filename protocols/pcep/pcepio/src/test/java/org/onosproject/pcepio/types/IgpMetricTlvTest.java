@@ -19,16 +19,14 @@ import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
 /**
- * Test of the ISISAreaIdentifierTlv.
+ * Test of the IGPMetricTlv.
  */
-public class ISISAreaIdentifierTlvTest {
-
-    private final byte[] b1 = new byte[] {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    private final byte[] b2 = new byte[] {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
-
-    private final ISISAreaIdentifierTlv tlv1 = ISISAreaIdentifierTlv.of(b1, (short) 20);
-    private final ISISAreaIdentifierTlv sameAsTlv1 = ISISAreaIdentifierTlv.of(b1, (short) 20);
-    private final ISISAreaIdentifierTlv tlv2 = ISISAreaIdentifierTlv.of(b2, (short) 20);
+public class IgpMetricTlvTest {
+    private final byte[] b1 = new byte[] {0x01, 0x02};
+    private final byte[] b2 = new byte[] {0x01, 0x03};
+    private final IgpMetricTlv tlv1 = IgpMetricTlv.of(b1, (short) 2);
+    private final IgpMetricTlv sameAsTlv1 = IgpMetricTlv.of(b1, (short) 2);
+    private final IgpMetricTlv tlv2 = IgpMetricTlv.of(b2, (short) 2);
 
     @Test
     public void basics() {

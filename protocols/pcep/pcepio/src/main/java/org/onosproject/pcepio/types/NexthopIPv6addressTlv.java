@@ -16,15 +16,14 @@
 
 package org.onosproject.pcepio.types;
 
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.protocol.PcepVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
+import java.util.Objects;
 
 /**
  * NexthopIPv6addressTlv provides Ipv6  address of next hop.
@@ -84,15 +83,15 @@ public class NexthopIPv6addressTlv implements PcepValueType {
     //logic to be checked
     public static NexthopIPv6addressTlv of(final byte[] raw) {
         //check NONE_VAL
-        boolean bFoundNONE = true;
+        boolean bFoundNone = true;
         //value starts from 3rd byte.
         for (int i = 5; i < 20; ++i) {
             if (NONE_VAL[i] != raw[i]) {
-                bFoundNONE = false;
+                bFoundNone = false;
             }
         }
 
-        if (bFoundNONE) {
+        if (bFoundNone) {
             return NONE;
         }
 

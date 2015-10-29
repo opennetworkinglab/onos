@@ -21,11 +21,31 @@ import com.btisystems.pronx.ems.core.snmp.ISnmpSession;
 import com.btisystems.pronx.ems.core.snmp.ISnmpSessionFactory;
 import com.btisystems.pronx.ems.core.snmp.SnmpSessionFactory;
 import com.btisystems.pronx.ems.core.snmp.V2cSnmpConfiguration;
-import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.Sets;
-import java.io.IOException;
-import static org.slf4j.LoggerFactory.getLogger;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEvent;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmListener;
+import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProvider;
+import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
+import org.osgi.service.component.ComponentContext;
+import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,32 +54,9 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEvent;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmListener;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProvider;
-
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.provider.AbstractProvider;
-import org.onosproject.net.provider.ProviderId;
-import org.osgi.service.component.ComponentContext;
-import org.slf4j.Logger;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
-import org.onosproject.net.device.DeviceEvent;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
-import org.onosproject.net.device.DeviceListener;
-import org.onosproject.net.device.DeviceService;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * SNMP alarms provider.
@@ -145,8 +142,8 @@ public class SnmpAlarmProviderService extends AbstractProvider implements AlarmP
 
             try (ISnmpSession session = getSessionFactory().createSession(config, ipAddress)) {
                 // Each session will be auto-closed.
-                String deviceOID = session.identifyDevice();
-                alarms.addAll(getAlarmsForDevice(deviceOID, session, deviceId));
+                String deviceOid = session.identifyDevice();
+                alarms.addAll(getAlarmsForDevice(deviceOid, session, deviceId));
                 log.info("SNMP walk completed ok for deviceId={}", deviceId);
             } catch (IOException | RuntimeException ex) {
                 log.error("Failed to walk device.", ex.getMessage());
@@ -177,11 +174,11 @@ public class SnmpAlarmProviderService extends AbstractProvider implements AlarmP
         return sessionFactory;
     }
 
-    private Collection<Alarm> getAlarmsForDevice(String deviceOID, ISnmpSession session,
+    private Collection<Alarm> getAlarmsForDevice(String deviceOid, ISnmpSession session,
             DeviceId deviceID) throws IOException {
         Collection<Alarm> alarms = new HashSet<>();
-        if (providers.containsKey(deviceOID)) {
-            alarms.addAll(providers.get(deviceOID).getAlarms(session, deviceID));
+        if (providers.containsKey(deviceOid)) {
+            alarms.addAll(providers.get(deviceOid).getAlarms(session, deviceID));
         }
         return alarms;
     }

@@ -25,13 +25,13 @@ import java.util.HashMap;
 public final class OpenstackExternalGateway {
 
     private String networkId;
-    private boolean enablePNAT;
+    private boolean enablePnat;
     private HashMap<String, Ip4Address> externalFixedIps;
 
-    private OpenstackExternalGateway(String networkId, boolean enablePNAT,
+    private OpenstackExternalGateway(String networkId, boolean enablePnat,
                                      HashMap externalFixedIps) {
         this.networkId = networkId;
-        this.enablePNAT = enablePNAT;
+        this.enablePnat = enablePnat;
         this.externalFixedIps = externalFixedIps;
     }
 
@@ -49,8 +49,8 @@ public final class OpenstackExternalGateway {
      *
      * @return PNAT status
      */
-    public boolean isEnablePNAT() {
-        return enablePNAT;
+    public boolean isEnablePnat() {
+        return enablePnat;
     }
 
     /**
@@ -58,11 +58,11 @@ public final class OpenstackExternalGateway {
      */
     public static final class Builder {
         private String networkId;
-        private boolean enablePNAT;
-        private HashMap<String, Ip4Address> externalFixedIPs;
+        private boolean enablePnat;
+        private HashMap<String, Ip4Address> externalFixedIps;
 
         Builder() {
-            externalFixedIPs = new HashMap<>();
+            externalFixedIps = new HashMap<>();
         }
 
         /**
@@ -79,11 +79,11 @@ public final class OpenstackExternalGateway {
         /**
          * Sets whether PNAT status is enabled or not.
          *
-         * @param enablePNAT true if PNAT status is enabled, false otherwise
+         * @param enablePnat true if PNAT status is enabled, false otherwise
          * @return Builder object
          */
-        public Builder enablePNAT(boolean enablePNAT) {
-            this.enablePNAT = enablePNAT;
+        public Builder enablePnat(boolean enablePnat) {
+            this.enablePnat = enablePnat;
             return this;
         }
 
@@ -93,8 +93,8 @@ public final class OpenstackExternalGateway {
          * @param externalFixedIPs External fixed IP information
          * @return Builder object
          */
-        public Builder externalFixedIPs(HashMap<String, Ip4Address> externalFixedIPs) {
-            this.externalFixedIPs.putAll(externalFixedIPs);
+        public Builder externalFixedIps(HashMap<String, Ip4Address> externalFixedIPs) {
+            this.externalFixedIps.putAll(externalFixedIPs);
             return this;
         }
 
@@ -104,7 +104,7 @@ public final class OpenstackExternalGateway {
          * @return OpenstackExternalGateway object
          */
         public OpenstackExternalGateway build() {
-            return new OpenstackExternalGateway(networkId, enablePNAT, externalFixedIPs);
+            return new OpenstackExternalGateway(networkId, enablePnat, externalFixedIps);
         }
     }
 

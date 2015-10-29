@@ -145,10 +145,10 @@ public class PcInitiatedLspRequestVer1 implements PcInitiatedLspRequest {
      */
     public static class Builder implements PcInitiatedLspRequest.Builder {
 
-        private boolean bIsSRPObjectSet = false;
-        private boolean bIsLSPObjectSet = false;
+        private boolean bIsSrpObjectSet = false;
+        private boolean bIsLspObjectSet = false;
         private boolean bIsEndPointsObjectSet = false;
-        private boolean bIsEROObjectSet = false;
+        private boolean bIsEroObjectSet = false;
         private boolean bIsPcepAttributeSet = false;
         private boolean bIsbRFlagSet = false;
 
@@ -178,7 +178,7 @@ public class PcInitiatedLspRequestVer1 implements PcInitiatedLspRequest {
             PcepAttribute pcepAttribute = null;
             boolean bRFlag = false;
 
-            if (!this.bIsSRPObjectSet) {
+            if (!this.bIsSrpObjectSet) {
                 throw new PcepParseException("Srp object NOT Set while building PcInitiatedLspRequest");
             } else {
                 srpObject = this.srpObject;
@@ -191,7 +191,7 @@ public class PcInitiatedLspRequestVer1 implements PcInitiatedLspRequest {
                 this.bIsbRFlagSet = false;
             }
 
-            if (!this.bIsLSPObjectSet) {
+            if (!this.bIsLspObjectSet) {
                 throw new PcepParseException("LSP Object NOT Set while building PcInitiatedLspRequest");
             } else {
                 lspObject = this.lspObject;
@@ -203,7 +203,7 @@ public class PcInitiatedLspRequestVer1 implements PcInitiatedLspRequest {
                 } else {
                     endPointsObject = this.endPointsObject;
                 }
-                if (!this.bIsEROObjectSet) {
+                if (!this.bIsEroObjectSet) {
                     throw new PcepParseException("ERO Object NOT Set while building PcInitiatedLspRequest");
                 } else {
                     eroObject = this.eroObject;
@@ -243,7 +243,7 @@ public class PcInitiatedLspRequestVer1 implements PcInitiatedLspRequest {
         @Override
         public Builder setSrpObject(PcepSrpObject srpobj) {
             this.srpObject = srpobj;
-            this.bIsSRPObjectSet = true;
+            this.bIsSrpObjectSet = true;
             return this;
 
         }
@@ -251,7 +251,7 @@ public class PcInitiatedLspRequestVer1 implements PcInitiatedLspRequest {
         @Override
         public Builder setLspObject(PcepLspObject lspObject) {
             this.lspObject = lspObject;
-            this.bIsLSPObjectSet = true;
+            this.bIsLspObjectSet = true;
             return this;
         }
 
@@ -265,7 +265,7 @@ public class PcInitiatedLspRequestVer1 implements PcInitiatedLspRequest {
         @Override
         public Builder setEroObject(PcepEroObject eroObject) {
             this.eroObject = eroObject;
-            this.bIsEROObjectSet = true;
+            this.bIsEroObjectSet = true;
             return this;
         }
 

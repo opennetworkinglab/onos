@@ -26,10 +26,10 @@ import java.util.LinkedList;
 public class RemoteTENodeDescriptorsTlvTest {
 
     private final AutonomousSystemTlv autonomousSystemTlv1 = new AutonomousSystemTlv(10);
-    private final BGPLSidentifierTlv bGPLSidentifierTlv1 = new BGPLSidentifierTlv(20);
+    private final BgpLsIdentifierTlv bGPLSidentifierTlv1 = new BgpLsIdentifierTlv(20);
 
     private final AutonomousSystemTlv autonomousSystemTlv2 = new AutonomousSystemTlv(20);
-    private final BGPLSidentifierTlv bGPLSidentifierTlv2 = new BGPLSidentifierTlv(30);
+    private final BgpLsIdentifierTlv bGPLSidentifierTlv2 = new BgpLsIdentifierTlv(30);
 
     private final LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLV1 = new LinkedList<>();
     private final boolean a = llRemoteTENodeDescriptorSubTLV1.add(autonomousSystemTlv1);

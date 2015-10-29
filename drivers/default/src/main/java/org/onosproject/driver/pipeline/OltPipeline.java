@@ -149,7 +149,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             IPProtocolCriterion ipProto = (IPProtocolCriterion)
                     filterForCriterion(filter.conditions(), Criterion.Type.IP_PROTO);
             if (ipProto.protocol() == IPv4.PROTOCOL_IGMP) {
-                provisionIGMP(filter, ethType, ipProto, output);
+                provisionIgmp(filter, ethType, ipProto, output);
             } else {
                 log.error("OLT can only filter igmp");
                 fail(filter, ObjectiveError.UNSUPPORTED);
@@ -377,7 +377,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     }
 
-    private void provisionIGMP(FilteringObjective filter, EthTypeCriterion ethType,
+    private void provisionIgmp(FilteringObjective filter, EthTypeCriterion ethType,
                                IPProtocolCriterion ipProto,
                                Instructions.OutputInstruction output) {
         TrafficSelector selector = buildSelector(filter.key(), ethType, ipProto);

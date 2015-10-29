@@ -15,10 +15,7 @@
  */
 package org.onosproject.bgpio.types;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.util.Constants;
@@ -26,7 +23,9 @@ import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Provides Implementation of As4Path BGP Path Attribute.
@@ -122,7 +121,7 @@ public class As4Path implements BgpValueType {
      *
      * @return list of ASNum in AS4path Sequence
      */
-    public List<Integer> as4PathSEQ() {
+    public List<Integer> as4PathSeq() {
         return this.as4pathSeq;
     }
 
@@ -131,7 +130,7 @@ public class As4Path implements BgpValueType {
      *
      * @return list of ASNum in AS4path Set
      */
-    public List<Integer> as4PathSET() {
+    public List<Integer> as4PathSet() {
         return this.as4pathSet;
     }
 

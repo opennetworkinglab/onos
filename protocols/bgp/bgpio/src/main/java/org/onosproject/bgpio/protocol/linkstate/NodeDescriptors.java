@@ -31,8 +31,8 @@ import org.onosproject.bgpio.types.BgpLSIdentifierTlv;
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.IsIsNonPseudonode;
 import org.onosproject.bgpio.types.IsIsPseudonode;
-import org.onosproject.bgpio.types.OSPFNonPseudonode;
-import org.onosproject.bgpio.types.OSPFPseudonode;
+import org.onosproject.bgpio.types.OspfNonPseudonode;
+import org.onosproject.bgpio.types.OspfPseudonode;
 import org.onosproject.bgpio.util.UnSupportedAttribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -193,9 +193,9 @@ public class NodeDescriptors {
                     }
                 } else if (protocolId == OSPF_V2_PROTOCOL_ID || protocolId == OSPF_V3_PROTOCOL_ID) {
                     if (length == OSPFNONPSEUDONODE_LEN) {
-                        tlv = OSPFNonPseudonode.read(tempCb);
+                        tlv = OspfNonPseudonode.read(tempCb);
                     } else if (length == OSPFPSEUDONODE_LEN) {
-                        tlv = OSPFPseudonode.read(tempCb);
+                        tlv = OspfPseudonode.read(tempCb);
                     }
                 }
                 break;

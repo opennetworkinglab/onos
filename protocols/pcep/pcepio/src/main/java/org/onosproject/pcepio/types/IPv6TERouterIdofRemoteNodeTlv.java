@@ -15,15 +15,14 @@
  */
 package org.onosproject.pcepio.types;
 
-import java.util.Arrays;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.protocol.PcepVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
+import java.util.Arrays;
 
 /**
  * Provides IPv6 TE Router Id of Remote Node.  Reference :[RFC6119]/4.1.
@@ -64,15 +63,15 @@ public class IPv6TERouterIdofRemoteNodeTlv implements PcepValueType {
      */
     public static IPv6TERouterIdofRemoteNodeTlv of(final byte[] raw) {
         //check NONE_VAL
-        boolean bFoundNONE = true;
+        boolean bFoundNone = true;
         //value starts from 3rd byte.
         for (int i = 2; i < 20; ++i) {
             if (NONE_VAL[i] != raw[i]) {
-                bFoundNONE = false;
+                bFoundNone = false;
             }
         }
 
-        if (bFoundNONE) {
+        if (bFoundNone) {
             return NONE;
         }
 

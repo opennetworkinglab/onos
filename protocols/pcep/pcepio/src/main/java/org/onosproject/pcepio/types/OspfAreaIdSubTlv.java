@@ -15,33 +15,32 @@
  */
 package org.onosproject.pcepio.types;
 
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.protocol.PcepVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
 
 /**
- * Provides BGP LS identifier which contains opaque value (32 Bit ID).
+ * Provides area ID for OSPF area.
  */
-public class BGPLSidentifierTlv implements PcepValueType {
+public class OspfAreaIdSubTlv implements PcepValueType {
 
-    /* Reference :draft-ietf-idr-ls-distribution-10
+    /* Reference :draft-ietf-idr-ls-distribution-10.
      *  0                   1                   2                   3
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |           Type=[TBD11]         |             Length=4         |
+     |           Type=[TBD12]         |             Length=4         |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |                    opaque value (32 Bit ID).                  |
+     |                    opaque value (32 Bit AS Number)            |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(BGPLSidentifierTlv.class);
+    protected static final Logger log = LoggerFactory.getLogger(OspfAreaIdSubTlv.class);
 
-    public static final short TYPE = 17; //TODD:change this TBD11
+    public static final short TYPE = 600; //TODD:change this TBD12
     public static final short LENGTH = 4;
 
     private final int rawValue;
@@ -49,26 +48,26 @@ public class BGPLSidentifierTlv implements PcepValueType {
     /**
      * constructor to initialize rawValue.
      *
-     * @param rawValue BGP LS identifier Tlv
+     * @param rawValue area ID for OSPF area.
      */
-    public BGPLSidentifierTlv(int rawValue) {
+    public OspfAreaIdSubTlv(int rawValue) {
         this.rawValue = rawValue;
     }
 
     /**
-     * Returns newly created BGPLSidentifierTlv object.
+     * Returns newly created OSPFareaIDsubTlv object.
      *
-     * @param raw value
-     * @return object of BGPLSidentifierTlv
+     * @param raw opaque value of AreaID
+     * @return new object of OSPF area ID sub TLV
      */
-    public static BGPLSidentifierTlv of(final int raw) {
-        return new BGPLSidentifierTlv(raw);
+    public static OspfAreaIdSubTlv of(final int raw) {
+        return new OspfAreaIdSubTlv(raw);
     }
 
     /**
-     * Returns opaque value.
+     * Returns RawValue opaque value of AreaID.
      *
-     * @return rawValue opaque value
+     * @return rawValue Area ID
      */
     public int getInt() {
         return rawValue;
@@ -99,9 +98,9 @@ public class BGPLSidentifierTlv implements PcepValueType {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof BGPLSidentifierTlv) {
-            BGPLSidentifierTlv other = (BGPLSidentifierTlv) obj;
-            return Objects.equals(rawValue, other.rawValue);
+        if (obj instanceof OspfAreaIdSubTlv) {
+            OspfAreaIdSubTlv other = (OspfAreaIdSubTlv) obj;
+            return Objects.equals(this.rawValue, other.rawValue);
         }
         return false;
     }
@@ -116,13 +115,13 @@ public class BGPLSidentifierTlv implements PcepValueType {
     }
 
     /**
-     * Reads the channel buffer and returns object of BGPLSidentifierTlv.
+     * Reads the channel buffer and returns object of OSPFAreaIdSubTlv.
      *
      * @param c input channel buffer
-     * @return object of BGP LS identifier Tlv
+     * @return object of OSPFAreaIdSubTlv
      */
-    public static BGPLSidentifierTlv read(ChannelBuffer c) {
-        return BGPLSidentifierTlv.of(c.readInt());
+    public static OspfAreaIdSubTlv read(ChannelBuffer c) {
+        return OspfAreaIdSubTlv.of(c.readInt());
     }
 
     @Override

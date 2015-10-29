@@ -19,15 +19,16 @@ import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
 /**
- * Test of the MPLSProtocolMaskTlv.
+ * Test of the ISISAreaIdentifierTlv.
  */
-public class MPLSProtocolMaskTlvTest {
-    private final byte rawValue1 = 0x0A;
-    private final byte rawValue2 = 0x0B;
+public class IsisAreaIdentifierTlvTest {
 
-    private final MPLSProtocolMaskTlv tlv1 = new MPLSProtocolMaskTlv(rawValue1);
-    private final MPLSProtocolMaskTlv sameAsTlv1 = new MPLSProtocolMaskTlv(rawValue1);
-    private final MPLSProtocolMaskTlv tlv2 = MPLSProtocolMaskTlv.of(rawValue2);
+    private final byte[] b1 = new byte[] {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+    private final byte[] b2 = new byte[] {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 };
+
+    private final IsisAreaIdentifierTlv tlv1 = IsisAreaIdentifierTlv.of(b1, (short) 20);
+    private final IsisAreaIdentifierTlv sameAsTlv1 = IsisAreaIdentifierTlv.of(b1, (short) 20);
+    private final IsisAreaIdentifierTlv tlv2 = IsisAreaIdentifierTlv.of(b2, (short) 20);
 
     @Test
     public void basics() {

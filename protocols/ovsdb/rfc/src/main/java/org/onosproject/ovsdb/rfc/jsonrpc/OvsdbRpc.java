@@ -15,18 +15,17 @@
  */
 package org.onosproject.ovsdb.rfc.jsonrpc;
 
-import java.util.List;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.onosproject.ovsdb.rfc.operations.Operation;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.ListenableFuture;
+import java.util.List;
 
 /**
  * The following interface describe the RPC7047's methods that are supported.
  */
-public interface OvsdbRPC {
+public interface OvsdbRpc {
 
     /**
      * This operation retrieves a database-schema that describes hosted database

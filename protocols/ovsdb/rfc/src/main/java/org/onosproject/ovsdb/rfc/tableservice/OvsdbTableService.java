@@ -16,7 +16,7 @@
 package org.onosproject.ovsdb.rfc.tableservice;
 
 import org.onosproject.ovsdb.rfc.notation.Column;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 
 /**
  * Representation of conversion between Ovsdb table and Row.
@@ -48,7 +48,7 @@ public interface OvsdbTableService {
      * Returns UUID which column name is _uuid.
      * @return UUID
      */
-    public UUID getTableUuid();
+    public Uuid getTableUuid();
 
     /**
      * Returns UUID Column which column name is _uuid.
@@ -60,7 +60,7 @@ public interface OvsdbTableService {
      * Returns UUID which column name is _version.
      * @return UUID
      */
-    public UUID getTableVersion();
+    public Uuid getTableVersion();
 
     /**
      * Returns UUID Column which column name is _version.

@@ -110,8 +110,8 @@ public class PcepUpdateRequestVer1 implements PcepUpdateRequest {
      */
     public static class Builder implements PcepUpdateRequest.Builder {
 
-        private boolean bIsSRPObjectSet = false;
-        private boolean bIsLSPObjectSet = false;
+        private boolean bIsSrpObjectSet = false;
+        private boolean bIsLspObjectSet = false;
         private boolean bIsPcepMsgPathSet = false;
 
         //PCEP SRP Object
@@ -131,12 +131,12 @@ public class PcepUpdateRequestVer1 implements PcepUpdateRequest {
             //PCEP Attribute list
             PcepMsgPath msgPath = null;
 
-            if (!this.bIsSRPObjectSet) {
+            if (!this.bIsSrpObjectSet) {
                 throw new PcepParseException(" SRP Object NOT Set while building PcepUpdateRequest.");
             } else {
                 srpObject = this.srpObject;
             }
-            if (!this.bIsLSPObjectSet) {
+            if (!this.bIsLspObjectSet) {
                 throw new PcepParseException(" LSP Object NOT Set while building PcepUpdateRequest.");
             } else {
                 lspObject = this.lspObject;
@@ -168,7 +168,7 @@ public class PcepUpdateRequestVer1 implements PcepUpdateRequest {
         @Override
         public Builder setSrpObject(PcepSrpObject srpobj) {
             this.srpObject = srpobj;
-            this.bIsSRPObjectSet = true;
+            this.bIsSrpObjectSet = true;
             return this;
 
         }
@@ -176,7 +176,7 @@ public class PcepUpdateRequestVer1 implements PcepUpdateRequest {
         @Override
         public Builder setLspObject(PcepLspObject lspObject) {
             this.lspObject = lspObject;
-            this.bIsLSPObjectSet = true;
+            this.bIsLspObjectSet = true;
             return this;
         }
 

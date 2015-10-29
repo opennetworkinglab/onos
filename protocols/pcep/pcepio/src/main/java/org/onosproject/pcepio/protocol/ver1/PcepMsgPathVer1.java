@@ -121,7 +121,7 @@ public class PcepMsgPathVer1 implements PcepMsgPath {
      */
     public static class Builder implements PcepMsgPath.Builder {
 
-        private boolean bIsEROObjectSet = false;
+        private boolean bIsEroObjectSet = false;
         private boolean bIsPcepAttributeSet = false;
 
         //PCEP ERO Object
@@ -137,7 +137,7 @@ public class PcepMsgPathVer1 implements PcepMsgPath {
             //PCEP Attribute list
             PcepAttribute pcepAttribute = null;
 
-            if (!this.bIsEROObjectSet) {
+            if (!this.bIsEroObjectSet) {
                 throw new PcepParseException("ERO Object NOT Set while building PcepMsgPath.");
             } else {
                 eroObject = this.eroObject;
@@ -164,7 +164,7 @@ public class PcepMsgPathVer1 implements PcepMsgPath {
         @Override
         public Builder setEroObject(PcepEroObject eroObject) {
             this.eroObject = eroObject;
-            this.bIsEROObjectSet = true;
+            this.bIsEroObjectSet = true;
             return this;
         }
 

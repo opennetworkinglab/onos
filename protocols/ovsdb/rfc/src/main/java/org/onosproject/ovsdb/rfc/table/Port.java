@@ -20,7 +20,7 @@ import java.util.Set;
 
 import org.onosproject.ovsdb.rfc.notation.Column;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 import org.onosproject.ovsdb.rfc.tableservice.AbstractOvsdbTableService;
 import org.onosproject.ovsdb.rfc.tableservice.ColumnDescription;
@@ -126,7 +126,7 @@ public class Port extends AbstractOvsdbTableService {
      * of attributes.
      * @param interfaces the column data which column name is "interfaces"
      */
-    public void setInterfaces(Set<UUID> interfaces) {
+    public void setInterfaces(Set<Uuid> interfaces) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              PortColumn.INTERFACES
                                                                      .columnName(),
@@ -238,7 +238,7 @@ public class Port extends AbstractOvsdbTableService {
      * attributes.
      * @param qos the column data which column name is "qos"
      */
-    public void setQos(Set<UUID> qos) {
+    public void setQos(Set<Uuid> qos) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              PortColumn.QOS
                                                                      .columnName(),

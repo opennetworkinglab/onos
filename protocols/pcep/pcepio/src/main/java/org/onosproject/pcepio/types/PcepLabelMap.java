@@ -43,7 +43,7 @@ public class PcepLabelMap {
      *
      * @param fecObject PCEP fec object
      */
-    public void setFECObject(PcepFecObject fecObject) {
+    public void setFecObject(PcepFecObject fecObject) {
         this.fecObject = fecObject;
     }
 
@@ -52,7 +52,7 @@ public class PcepLabelMap {
      *
      * @return PCEP fec object
      */
-    public PcepFecObject getFECObject() {
+    public PcepFecObject getFecObject() {
         return this.fecObject;
     }
 

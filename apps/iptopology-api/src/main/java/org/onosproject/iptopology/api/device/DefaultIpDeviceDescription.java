@@ -60,7 +60,7 @@ public class DefaultIpDeviceDescription extends AbstractDescription
      * @param annotations Annotations to use.
      */
     public DefaultIpDeviceDescription(IpDeviceDescription base, SparseAnnotations... annotations) {
-        this(base.deviceURI(), base.type(), base.deviceIdentifier(),
+        this(base.deviceUri(), base.type(), base.deviceIdentifier(),
              base.deviceTed(), annotations);
     }
 
@@ -71,12 +71,12 @@ public class DefaultIpDeviceDescription extends AbstractDescription
      * @param annotations Annotations to use.
      */
     public DefaultIpDeviceDescription(IpDeviceDescription base, Type type, SparseAnnotations... annotations) {
-        this(base.deviceURI(), type, base.deviceIdentifier(),
+        this(base.deviceUri(), type, base.deviceIdentifier(),
                 base.deviceTed(), annotations);
     }
 
     @Override
-    public URI deviceURI() {
+    public URI deviceUri() {
         return uri;
     }
 

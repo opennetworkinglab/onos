@@ -45,14 +45,14 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private StorageService storageService;
 
-    protected ConsistentMap<McastRoute, MulticastData> mcastRIB;
+    protected ConsistentMap<McastRoute, MulticastData> mcastRib;
     protected Map<McastRoute, MulticastData> mcastRoutes;
 
 
     @Activate
     public void activate() {
 
-        mcastRIB = storageService.<McastRoute, MulticastData>consistentMapBuilder()
+        mcastRib = storageService.<McastRoute, MulticastData>consistentMapBuilder()
                 .withName(MCASTRIB)
                 .withSerializer(Serializer.using(KryoNamespace.newBuilder().register(
                         MulticastData.class,
@@ -65,7 +65,7 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
                 .withRelaxedReadConsistency()
                 .build();
 
-        mcastRoutes = mcastRIB.asJavaMap();
+        mcastRoutes = mcastRib.asJavaMap();
 
 
         log.info("Started");

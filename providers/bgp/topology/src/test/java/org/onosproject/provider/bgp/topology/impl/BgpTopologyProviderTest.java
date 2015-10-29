@@ -186,7 +186,7 @@ public class BgpTopologyProviderTest {
         }
 
         @Override
-        public void processBGPPacket(BgpId bgpId, BgpMessage msg) throws BgpParseException {
+        public void processBgpPacket(BgpId bgpId, BgpMessage msg) throws BgpParseException {
             // TODO Auto-generated method stub
 
         }

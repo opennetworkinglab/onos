@@ -47,7 +47,7 @@ import org.onosproject.ovsdb.rfc.message.UpdateNotification;
 import org.onosproject.ovsdb.rfc.notation.OvsdbMap;
 import org.onosproject.ovsdb.rfc.notation.OvsdbSet;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 import org.onosproject.ovsdb.rfc.table.Bridge;
 import org.onosproject.ovsdb.rfc.table.Interface;
@@ -221,7 +221,7 @@ public class OvsdbControllerImpl implements OvsdbController {
 
         for (String tableName : updates.result().keySet()) {
             TableUpdate update = updates.result().get(tableName);
-            for (UUID uuid : (Set<UUID>) update.rows().keySet()) {
+            for (Uuid uuid : (Set<Uuid>) update.rows().keySet()) {
                 log.debug("Begin to process table updates uuid: {}, databaseName: {}, tableName: {}",
                           uuid.value(), dbName, tableName);
 

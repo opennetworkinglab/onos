@@ -19,7 +19,7 @@ import java.util.Map;
 
 import org.onosproject.ovsdb.rfc.notation.Column;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 import org.onosproject.ovsdb.rfc.tableservice.AbstractOvsdbTableService;
 import org.onosproject.ovsdb.rfc.tableservice.ColumnDescription;
@@ -97,7 +97,7 @@ public class FlowSampleCollectorSet extends AbstractOvsdbTableService {
      * attributes.
      * @param bridge the column data which column name is "bridge"
      */
-    public void setBridge(UUID bridge) {
+    public void setBridge(Uuid bridge) {
         ColumnDescription columndesc = new ColumnDescription(FlowSampleCollectorSetColumn.BRIDGE.columnName(),
                                                              "setBridge", VersionNum.VERSION710);
         super.setDataHandler(columndesc, bridge);
@@ -119,7 +119,7 @@ public class FlowSampleCollectorSet extends AbstractOvsdbTableService {
      * attributes.
      * @param ipfix the column data which column name is "ipfix"
      */
-    public void setIpfix(UUID ipfix) {
+    public void setIpfix(Uuid ipfix) {
         ColumnDescription columndesc = new ColumnDescription(FlowSampleCollectorSetColumn.IPFIX.columnName(),
                                                              "setIpfix", VersionNum.VERSION710);
         super.setDataHandler(columndesc, ipfix);

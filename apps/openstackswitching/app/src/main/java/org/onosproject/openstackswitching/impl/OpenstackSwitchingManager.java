@@ -327,7 +327,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         OpenstackPortInfo.Builder portBuilder = OpenstackPortInfo.builder()
                 .setDeviceId(deviceId)
                 .setHostIp((Ip4Address) openstackPort.fixedIps().values().stream().findFirst().orElse(null))
-                .setVNI(vni);
+                .setVni(vni);
 
         openstackPortInfoMap.putIfAbsent(port.annotations().value(PORTNAME),
                 portBuilder.build());

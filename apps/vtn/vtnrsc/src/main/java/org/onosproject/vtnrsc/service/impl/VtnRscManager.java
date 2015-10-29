@@ -389,7 +389,7 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
     }
 
     @Override
-    public Iterator<Device> getSFFOfTenant(TenantId tenantId) {
+    public Iterator<Device> getSffOfTenant(TenantId tenantId) {
         checkNotNull(tenantId, TENANTID_NOT_NULL);
         Set<DeviceId> deviceIdSet = sffOvsMap.get(tenantId);
         Set<Device> deviceSet = new HashSet<>();
@@ -430,7 +430,7 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
     }
 
     @Override
-    public DeviceId getSFToSFFMaping(VirtualPortId portId) {
+    public DeviceId getSfToSffMaping(VirtualPortId portId) {
         checkNotNull(portId, "portId cannot be null");
         VirtualPort vmPort = virtualPortService.getPort(portId);
         Set<Host> hostSet = hostService.getHostsByMac(vmPort.macAddress());

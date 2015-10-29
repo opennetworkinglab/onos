@@ -27,7 +27,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides MPLS Protocol Mask.
  */
-public class MPLSProtocolMaskTlv implements PcepValueType {
+public class MplsProtocolMaskTlv implements PcepValueType {
 
     /* Reference :[I-D.ietf-idr-ls-distribution]/3.3.2.2
      *  0                   1                   2                   3
@@ -38,7 +38,7 @@ public class MPLSProtocolMaskTlv implements PcepValueType {
      |L|R|  Reserved |
      +-+-+-+-+-+-+-+-+
      */
-    protected static final Logger log = LoggerFactory.getLogger(MPLSProtocolMaskTlv.class);
+    protected static final Logger log = LoggerFactory.getLogger(MplsProtocolMaskTlv.class);
 
     public static final short TYPE = 1094; //TDB39
     public static final short LENGTH = 1;
@@ -55,7 +55,7 @@ public class MPLSProtocolMaskTlv implements PcepValueType {
      *
      * @param rawValue MPLS Protocol Mask Flag Bits
      */
-    public MPLSProtocolMaskTlv(byte rawValue) {
+    public MplsProtocolMaskTlv(byte rawValue) {
         this.rawValue = rawValue;
         this.isRawValueSet = true;
         this.bLFlag = (rawValue & LFLAG_SET) == LFLAG_SET;
@@ -68,7 +68,7 @@ public class MPLSProtocolMaskTlv implements PcepValueType {
      * @param bLFlag L-flag
      * @param bRFlag R-flag
      */
-    public MPLSProtocolMaskTlv(boolean bLFlag, boolean bRFlag) {
+    public MplsProtocolMaskTlv(boolean bLFlag, boolean bRFlag) {
         this.bLFlag = bLFlag;
         this.bRFlag = bRFlag;
         this.rawValue = 0;
@@ -81,8 +81,8 @@ public class MPLSProtocolMaskTlv implements PcepValueType {
      * @param raw MPLS Protocol Mask Tlv
      * @return new object of MPLS Protocol Mask Tlv
      */
-    public static MPLSProtocolMaskTlv of(final byte raw) {
-        return new MPLSProtocolMaskTlv(raw);
+    public static MplsProtocolMaskTlv of(final byte raw) {
+        return new MplsProtocolMaskTlv(raw);
     }
 
     /**
@@ -141,8 +141,8 @@ public class MPLSProtocolMaskTlv implements PcepValueType {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof MPLSProtocolMaskTlv) {
-            MPLSProtocolMaskTlv other = (MPLSProtocolMaskTlv) obj;
+        if (obj instanceof MplsProtocolMaskTlv) {
+            MplsProtocolMaskTlv other = (MplsProtocolMaskTlv) obj;
             if (isRawValueSet) {
                 return Objects.equals(this.rawValue, other.rawValue);
             } else {
@@ -186,7 +186,7 @@ public class MPLSProtocolMaskTlv implements PcepValueType {
         bLFlag = (temp & LFLAG_SET) == LFLAG_SET;
         bRFlag = (temp & RFLAG_SET) == RFLAG_SET;
 
-        return new MPLSProtocolMaskTlv(bLFlag, bRFlag);
+        return new MplsProtocolMaskTlv(bLFlag, bRFlag);
     }
 
     @Override

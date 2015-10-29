@@ -20,7 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.List;
 
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class OperationResult {
     private int count;
-    private UUID uuid;
+    private Uuid uuid;
     private List<Row> rows;
     private String error;
     private String details;
@@ -59,7 +59,7 @@ public final class OperationResult {
      * @param error error message
      * @param details details of error message
      */
-    public OperationResult(int count, UUID uuid, List<Row> rows, String error,
+    public OperationResult(int count, Uuid uuid, List<Row> rows, String error,
                            String details) {
         checkNotNull(uuid, "uuid cannot be null");
         checkNotNull(rows, "rows cannot be null");
@@ -92,7 +92,7 @@ public final class OperationResult {
      * Return uuid.
      * @return uuid
      */
-    public UUID getUuid() {
+    public Uuid getUuid() {
         return uuid;
     }
 
@@ -100,7 +100,7 @@ public final class OperationResult {
      * Set uuid value.
      * @param uuid the Operation message of uuid
      */
-    public void setUuid(UUID uuid) {
+    public void setUuid(Uuid uuid) {
         checkNotNull(uuid, "uuid cannot be null");
         this.uuid = uuid;
     }

@@ -82,7 +82,7 @@ import org.onosproject.store.service.LogicalClockService;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
-import org.onosproject.vtn.manager.VTNService;
+import org.onosproject.vtn.manager.VtnService;
 import org.onosproject.vtn.table.ArpService;
 import org.onosproject.vtn.table.ClassifierService;
 import org.onosproject.vtn.table.DnatService;
@@ -131,7 +131,7 @@ import com.google.common.collect.Sets;
  */
 @Component(immediate = true)
 @Service
-public class VTNManager implements VTNService {
+public class VtnManager implements VtnService {
     private final Logger log = getLogger(getClass());
     private static final String APP_ID = "org.onosproject.app.vtn";
 

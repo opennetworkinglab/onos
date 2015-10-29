@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class Row {
     private String tableName;
-    private UUID uuid;
+    private Uuid uuid;
     private Map<String, Column> columns;
 
     /**
@@ -59,7 +59,7 @@ public final class Row {
      * @param columns   Map of Column entity
      * @param uuid UUID of the row
      */
-    public Row(String tableName, UUID uuid, Map<String, Column> columns) {
+    public Row(String tableName, Uuid uuid, Map<String, Column> columns) {
         checkNotNull(tableName, "table name cannot be null");
         checkNotNull(uuid, "uuid cannot be null");
         checkNotNull(columns, "columns cannot be null");
@@ -91,7 +91,7 @@ public final class Row {
      *
      * @return uuid
      */
-    public UUID uuid() {
+    public Uuid uuid() {
         return uuid;
     }
 
@@ -100,7 +100,7 @@ public final class Row {
      *
      * @param uuid new uuid
      */
-    public void setUuid(UUID uuid) {
+    public void setUuid(Uuid uuid) {
         this.uuid = uuid;
     }
 

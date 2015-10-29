@@ -30,7 +30,7 @@ public class NetconfDriversLoader extends AbstractDriverLoader {
     private static final String DRIVERS_XML = "/netconf-drivers.xml";
 
     @Override
-    protected InputStream loadXMLDriversStream() {
+    protected InputStream loadXmlDriversStream() {
         return getClassLoaderInstance().getResourceAsStream(DRIVERS_XML);
     }
 

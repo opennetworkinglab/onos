@@ -35,7 +35,7 @@ import org.onosproject.bgpio.types.LinkStateAttributes;
 import org.onosproject.bgpio.types.Med;
 import org.onosproject.bgpio.types.MpReachNlri;
 import org.onosproject.bgpio.types.Origin;
-import org.onosproject.bgpio.types.Origin.ORIGINTYPE;
+import org.onosproject.bgpio.types.Origin.OriginType;
 import org.onosproject.bgpio.types.attr.BgpAttrNodeFlagBitTlv;
 import org.onosproject.bgpio.types.attr.BgpAttrNodeIsIsAreaId;
 import org.onosproject.bgpio.types.attr.BgpAttrNodeMultiTopologyId;
@@ -132,7 +132,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         //compare Origin
         testPathAttribute = listIterator.next();
@@ -250,7 +250,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -363,7 +363,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -477,7 +477,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -594,7 +594,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -713,7 +713,7 @@ public class BgpUpdateLinkStateAttrTest {
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
 
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -827,7 +827,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -945,7 +945,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1063,7 +1063,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1175,7 +1175,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1288,7 +1288,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1400,7 +1400,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1513,7 +1513,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1626,7 +1626,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1739,7 +1739,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1840,7 +1840,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1935,7 +1935,7 @@ public class BgpUpdateLinkStateAttrTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;

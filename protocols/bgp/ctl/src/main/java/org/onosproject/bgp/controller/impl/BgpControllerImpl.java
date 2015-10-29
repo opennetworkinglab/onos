@@ -16,14 +16,6 @@
 
 package org.onosproject.bgp.controller.impl;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -32,8 +24,8 @@ import org.onosproject.bgp.controller.BgpCfg;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpId;
 import org.onosproject.bgp.controller.BgpLocalRib;
-import org.onosproject.bgp.controller.BgpPeer;
 import org.onosproject.bgp.controller.BgpNodeListener;
+import org.onosproject.bgp.controller.BgpPeer;
 import org.onosproject.bgp.controller.BgpPeerManager;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpMessage;
@@ -43,6 +35,14 @@ import org.onosproject.bgpio.types.MpReachNlri;
 import org.onosproject.bgpio.types.MpUnReachNlri;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Component(immediate = true)
 @Service
@@ -54,8 +54,8 @@ public class BgpControllerImpl implements BgpController {
 
     protected BgpPeerManagerImpl peerManager = new BgpPeerManagerImpl();
 
-    private BgpLocalRib bgplocalRIB = new BgpLocalRibImpl(this);
-    private BgpLocalRib bgplocalRIBVpn = new BgpLocalRibImpl(this);
+    private BgpLocalRib bgplocalRib = new BgpLocalRibImpl(this);
+    private BgpLocalRib bgplocalRibVpn = new BgpLocalRibImpl(this);
 
     protected Set<BgpNodeListener> bgpNodeListener = new CopyOnWriteArraySet<>();
 
@@ -108,7 +108,7 @@ public class BgpControllerImpl implements BgpController {
     }
 
     @Override
-    public void processBGPPacket(BgpId bgpId, BgpMessage msg) throws BgpParseException {
+    public void processBgpPacket(BgpId bgpId, BgpMessage msg) throws BgpParseException {
 
         BgpPeer peer = getPeer(bgpId);
 
@@ -251,7 +251,7 @@ public class BgpControllerImpl implements BgpController {
      */
     @Override
     public BgpLocalRib bgpLocalRib() {
-        return bgplocalRIB;
+        return bgplocalRib;
     }
 
     /**
@@ -261,6 +261,6 @@ public class BgpControllerImpl implements BgpController {
      */
     @Override
     public BgpLocalRib bgpLocalRibVpn() {
-        return bgplocalRIBVpn;
+        return bgplocalRibVpn;
     }
 }

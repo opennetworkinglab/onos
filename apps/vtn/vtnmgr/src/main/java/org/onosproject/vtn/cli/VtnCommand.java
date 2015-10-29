@@ -18,7 +18,7 @@ package org.onosproject.vtn.cli;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.vtn.manager.impl.VTNManager;
+import org.onosproject.vtn.manager.impl.VtnManager;
 
 /**
  * Supports for updating the external gateway virtualPort.
@@ -33,6 +33,6 @@ public class VtnCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        VTNManager.setExPortName(exPortName);
+        VtnManager.setExPortName(exPortName);
     }
 }

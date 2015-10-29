@@ -15,12 +15,12 @@
  */
 package org.onosproject.bgpio.types;
 
-import java.util.Objects;
+import com.google.common.base.MoreObjects;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
 
 /**
  * Provides MultiProtocolExtnCapabilityTlv.
@@ -74,7 +74,7 @@ public class MultiProtocolExtnCapabilityTlv implements BgpValueType {
      * Returns afi Address Family Identifiers value.
      * @return afi Address Family Identifiers value
      */
-    public short getAFI() {
+    public short getAfi() {
         return afi;
     }
 
@@ -90,7 +90,7 @@ public class MultiProtocolExtnCapabilityTlv implements BgpValueType {
      * Returns safi Subsequent Address Family Identifier value.
      * @return safi Subsequent Address Family Identifier value
      */
-    public byte getSAFI() {
+    public byte getSafi() {
         return safi;
     }
 

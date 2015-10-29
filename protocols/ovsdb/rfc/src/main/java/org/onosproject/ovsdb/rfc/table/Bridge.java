@@ -18,7 +18,7 @@ package org.onosproject.ovsdb.rfc.table;
 import org.onosproject.ovsdb.rfc.notation.Column;
 import org.onosproject.ovsdb.rfc.notation.OvsdbSet;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 import org.onosproject.ovsdb.rfc.tableservice.AbstractOvsdbTableService;
 import org.onosproject.ovsdb.rfc.tableservice.ColumnDescription;
@@ -212,7 +212,7 @@ public class Bridge extends AbstractOvsdbTableService {
      * attributes.
      * @param ports the column data which column name is "ports"
      */
-    public void setPorts(Set<UUID> ports) {
+    public void setPorts(Set<Uuid> ports) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              BridgeColumn.PORTS
                                                                      .columnName(),
@@ -240,7 +240,7 @@ public class Bridge extends AbstractOvsdbTableService {
      * attributes.
      * @param mirrors the column data which column name is "mirrors"
      */
-    public void setMirrors(Set<UUID> mirrors) {
+    public void setMirrors(Set<Uuid> mirrors) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              BridgeColumn.MIRRORS
                                                                      .columnName(),
@@ -268,7 +268,7 @@ public class Bridge extends AbstractOvsdbTableService {
      * attributes.
      * @param netflow the column data which column name is "netflow"
      */
-    public void setNetflow(Set<UUID> netflow) {
+    public void setNetflow(Set<Uuid> netflow) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              BridgeColumn.NETFLOW
                                                                      .columnName(),
@@ -296,7 +296,7 @@ public class Bridge extends AbstractOvsdbTableService {
      * attributes.
      * @param sflow the column data which column name is "sflow"
      */
-    public void setSflow(Set<UUID> sflow) {
+    public void setSflow(Set<Uuid> sflow) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              BridgeColumn.SFLOW
                                                                      .columnName(),
@@ -324,7 +324,7 @@ public class Bridge extends AbstractOvsdbTableService {
      * attributes.
      * @param ipfix the column data which column name is "ipfix"
      */
-    public void setIpfix(Set<UUID> ipfix) {
+    public void setIpfix(Set<Uuid> ipfix) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              BridgeColumn.IPFIX
                                                                      .columnName(),
@@ -548,7 +548,7 @@ public class Bridge extends AbstractOvsdbTableService {
      * of attributes.
      * @param flowTables the column data which column name is "flow_tables"
      */
-    public void setFlowTables(Map<Long, UUID> flowTables) {
+    public void setFlowTables(Map<Long, Uuid> flowTables) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              BridgeColumn.FLOWTABLES
                                                                      .columnName(),

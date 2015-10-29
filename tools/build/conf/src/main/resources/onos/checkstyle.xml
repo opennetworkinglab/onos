@@ -146,6 +146,9 @@
             <property name="tagSeverity" value="error"/>
         </module>
 
+        <module name="AbbreviationAsWordInName">
+            <property name="allowedAbbreviationLength" value="2" />
+        </module>
 
         <!-- Checks for Naming Conventions.                  -->
         <!-- See http://checkstyle.sf.net/config_naming.html -->

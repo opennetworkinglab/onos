@@ -15,24 +15,6 @@
  */
 package org.onosproject.provider.pcep.tunnel.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onosproject.net.DefaultAnnotations.EMPTY;
-import static org.onlab.util.Tools.get;
-import static org.onosproject.net.DeviceId.deviceId;
-import static org.onosproject.net.PortNumber.portNumber;
-import static org.onosproject.pcep.api.PcepDpid.uri;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Optional;
-
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -47,8 +29,8 @@ import org.onosproject.core.DefaultGroupId;
 import org.onosproject.incubator.net.tunnel.DefaultOpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.DefaultTunnelDescription;
-import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.DefaultTunnelStatistics;
+import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.OpticalLogicId;
 import org.onosproject.incubator.net.tunnel.OpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
@@ -79,11 +61,10 @@ import org.onosproject.pcep.api.PcepDpid;
 import org.onosproject.pcep.api.PcepHopNodeDescription;
 import org.onosproject.pcep.api.PcepOperator.OperationType;
 import org.onosproject.pcep.api.PcepTunnel;
-import org.onosproject.pcep.api.PcepTunnel.PATHTYPE;
 import org.onosproject.pcep.api.PcepTunnel.PathState;
+import org.onosproject.pcep.api.PcepTunnel.PathType;
 import org.onosproject.pcep.api.PcepTunnelListener;
 import org.onosproject.pcep.api.PcepTunnelStatistics;
-import org.osgi.service.component.annotations.Modified;
 import org.onosproject.pcep.controller.PccId;
 import org.onosproject.pcep.controller.PcepClient;
 import org.onosproject.pcep.controller.PcepClientController;
@@ -109,8 +90,27 @@ import org.onosproject.pcepio.types.IPv4SubObject;
 import org.onosproject.pcepio.types.PcepValueType;
 import org.onosproject.pcepio.types.StatefulIPv4LspIdentidiersTlv;
 import org.onosproject.pcepio.types.SymbolicPathNameTlv;
-import org.slf4j.Logger;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Modified;
+import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
+import static org.onosproject.net.DefaultAnnotations.EMPTY;
+import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.pcep.api.PcepDpid.uri;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an PCEP controller to detect, update, create network
@@ -156,7 +156,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
     private InnerTunnelProvider listener = new InnerTunnelProvider();
 
-    protected PcepTunnelApiMapper pcepTunnelAPIMapper = new PcepTunnelApiMapper();
+    protected PcepTunnelApiMapper pcepTunnelApiMapper = new PcepTunnelApiMapper();
     private static final int DEFAULT_BANDWIDTH_VALUE = 10;
 
     /**
@@ -174,7 +174,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         pcepClientController.addListener(listener);
         pcepClientController.addEventListener(listener);
         tunnelService.queryAllTunnels().forEach(tunnel -> {
-            String pcepTunnelId = getPCEPTunnelKey(tunnel.tunnelId());
+            String pcepTunnelId = getPcepTunnelKey(tunnel.tunnelId());
             TunnelStatsCollector tsc = new TunnelStatsCollector(pcepTunnelId, tunnelStatsPollFrequency);
             tsc.start();
             collectors.put(tunnel.tunnelId().id(), tsc);
@@ -373,7 +373,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     @Override
     public TunnelId tunnelAdded(TunnelDescription tunnel) {
         if (tunnel.type() == Tunnel.Type.MPLS) {
-            pcepTunnelAPIMapper.removeFromCoreTunnelRequestQueue(tunnel.id());
+            pcepTunnelApiMapper.removeFromCoreTunnelRequestQueue(tunnel.id());
             return service.tunnelAdded(tunnel);
         }
 
@@ -419,7 +419,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     @Override
     public void tunnelRemoved(TunnelDescription tunnel) {
         if (tunnel.type() == Tunnel.Type.MPLS) {
-            pcepTunnelAPIMapper.removeFromCoreTunnelRequestQueue(tunnel.id());
+            pcepTunnelApiMapper.removeFromCoreTunnelRequestQueue(tunnel.id());
             service.tunnelRemoved(tunnel);
         }
 
@@ -429,7 +429,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             error("Illegal tunnel type. Only support VLAN tunnel deletion.");
             return;
         }
-        String pcepTunnelId = getPCEPTunnelKey(tunnel.id());
+        String pcepTunnelId = getPcepTunnelKey(tunnel.id());
         checkNotNull(pcepTunnelId, "The tunnel id is not exsited.");
         if (!controller.deleteTunnel(pcepTunnelId)) {
             error("Delete tunnel failed, Maybe some devices have been disconnected.");
@@ -442,7 +442,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     @Override
     public void tunnelUpdated(TunnelDescription tunnel) {
         if (tunnel.type() == Tunnel.Type.MPLS) {
-            pcepTunnelAPIMapper.removeFromCoreTunnelRequestQueue(tunnel.id());
+            pcepTunnelApiMapper.removeFromCoreTunnelRequestQueue(tunnel.id());
             service.tunnelUpdated(tunnel);
         }
 
@@ -457,7 +457,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             error("Update failed, invalid bandwidth.");
             return;
         }
-        String pcepTunnelId = getPCEPTunnelKey(tunnel.id());
+        String pcepTunnelId = getPcepTunnelKey(tunnel.id());
 
         checkNotNull(pcepTunnelId, "Invalid tunnel id");
         if (!controller.updateTunnelBandwidth(pcepTunnelId, bandwidth)) {
@@ -490,7 +490,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
     // Creates a path that leads through the given devices.
     private Path createPath(List<PcepHopNodeDescription> hopList,
-                            PATHTYPE pathtype, PathState pathState) {
+                            PathType pathtype, PathState pathState) {
         if (hopList == null || hopList.size() == 0) {
             return null;
         }
@@ -627,7 +627,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
      * @param tunnelId tunnel id
      * @return corresponding a tunnel key of the tunnel id.
      */
-    private String getPCEPTunnelKey(TunnelId tunnelId) {
+    private String getPcepTunnelKey(TunnelId tunnelId) {
         for (String key : tunnelMap.keySet()) {
             if (tunnelMap.get(key).id() == tunnelId.id()) {
                 return key;
@@ -760,7 +760,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             int srpId = SrpIdGenerators.create();
             PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, path, RequestType.CREATE);
 
-            pcepTunnelAPIMapper.addToCoreTunnelRequestQueue(pcepTunnelData);
+            pcepTunnelApiMapper.addToCoreTunnelRequestQueue(pcepTunnelData);
 
             LinkedList<PcInitiatedLspRequest> llPcInitiatedLspRequestList = createPcInitiatedLspReqList(tunnel, path,
                                                                                                         pc, srpId);
@@ -776,7 +776,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
             pc.sendMessage(Collections.singletonList(pcInitiateMsg));
 
-            pcepTunnelAPIMapper.addToTunnelRequestQueue(srpId, pcepTunnelData);
+            pcepTunnelApiMapper.addToTunnelRequestQueue(srpId, pcepTunnelData);
         } catch (PcepParseException e) {
             log.error("PcepParseException occurred while processing setup tunnel {}", e.getMessage());
         }
@@ -791,17 +791,17 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     private void pcepReleaseTunnel(Tunnel tunnel, PcepClient pc) {
         try {
             PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, RequestType.DELETE);
-            pcepTunnelAPIMapper.addToCoreTunnelRequestQueue(pcepTunnelData);
+            pcepTunnelApiMapper.addToCoreTunnelRequestQueue(pcepTunnelData);
             int srpId = SrpIdGenerators.create();
             TunnelId tunnelId = tunnel.tunnelId();
             int plspId = 0;
             StatefulIPv4LspIdentidiersTlv statefulIpv4IndentifierTlv = null;
 
-            if (!(pcepTunnelAPIMapper.checkFromTunnelDBQueue(tunnelId))) {
+            if (!(pcepTunnelApiMapper.checkFromTunnelDBQueue(tunnelId))) {
                 log.error("Tunnel doesnot exists. Tunnel id {}" + tunnelId.toString());
                 return;
             } else {
-                PcepTunnelData pcepTunnelDbData = pcepTunnelAPIMapper.getDataFromTunnelDBQueue(tunnelId);
+                PcepTunnelData pcepTunnelDbData = pcepTunnelApiMapper.getDataFromTunnelDBQueue(tunnelId);
                 plspId = pcepTunnelDbData.plspId();
                 statefulIpv4IndentifierTlv = pcepTunnelDbData.statefulIpv4IndentifierTlv();
             }
@@ -837,7 +837,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
             pc.sendMessage(Collections.singletonList(pcInitiateMsg));
 
-            pcepTunnelAPIMapper.addToTunnelRequestQueue(srpId, pcepTunnelData);
+            pcepTunnelApiMapper.addToTunnelRequestQueue(srpId, pcepTunnelData);
         } catch (PcepParseException e) {
             log.error("PcepParseException occurred while processing release tunnel {}", e.getMessage());
         }
@@ -853,7 +853,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     private void pcepUpdateTunnel(Tunnel tunnel, Path path, PcepClient pc) {
         try {
             PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, path, RequestType.UPDATE);
-            pcepTunnelAPIMapper.addToCoreTunnelRequestQueue(pcepTunnelData);
+            pcepTunnelApiMapper.addToCoreTunnelRequestQueue(pcepTunnelData);
             int srpId = SrpIdGenerators.create();
             TunnelId tunnelId = tunnel.tunnelId();
             PcepValueType tlv;
@@ -866,11 +866,11 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             //build SRP object
             PcepSrpObject srpobj = pc.factory().buildSrpObject().setSrpID(srpId).setRFlag(false).build();
 
-            if (!(pcepTunnelAPIMapper.checkFromTunnelDBQueue(tunnelId))) {
+            if (!(pcepTunnelApiMapper.checkFromTunnelDBQueue(tunnelId))) {
                 log.error("Tunnel doesnot exists in DB");
                 return;
             } else {
-                PcepTunnelData pcepTunnelDBData = pcepTunnelAPIMapper.getDataFromTunnelDBQueue(tunnelId);
+                PcepTunnelData pcepTunnelDBData = pcepTunnelApiMapper.getDataFromTunnelDBQueue(tunnelId);
                 plspId = pcepTunnelDBData.plspId();
             }
 
@@ -910,7 +910,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             PcepUpdateMsg pcUpdateMsg = pc.factory().buildUpdateMsg().setUpdateRequestList(llUpdateRequestList).build();
 
             pc.sendMessage(Collections.singletonList(pcUpdateMsg));
-            pcepTunnelAPIMapper.addToTunnelRequestQueue(srpId, pcepTunnelData);
+            pcepTunnelApiMapper.addToTunnelRequestQueue(srpId, pcepTunnelData);
         } catch (PcepParseException e) {
             log.error("PcepParseException occurred while processing release tunnel {}", e.getMessage());
         }
@@ -921,7 +921,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     private class InnerTunnelProvider implements PcepTunnelListener, PcepEventListener, PcepClientListener {
 
         @Override
-        public void handlePCEPTunnel(PcepTunnel pcepTunnel) {
+        public void handlePcepTunnel(PcepTunnel pcepTunnel) {
             TunnelDescription tunnel = null;
             // instance and id identify a tunnel together
             String tunnelKey = String.valueOf(pcepTunnel.getInstance())
@@ -981,7 +981,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                         log.debug("Plsp ID in handle message " + lspObj.getPlspId());
                         log.debug("SRP ID in handle message " + srpId);
 
-                        if (!(pcepTunnelAPIMapper.checkFromTunnelRequestQueue(srpId))) {
+                        if (!(pcepTunnelApiMapper.checkFromTunnelRequestQueue(srpId))) {
 
                             // Check the sync status
                             if (lspObj.getSFlag()) {
@@ -1013,7 +1013,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
          */
         private void handleReportMessage(int srpId, PcepLspObject lspObj) {
             ProviderId providerId = new ProviderId("pcep", PROVIDER_ID);
-            PcepTunnelData pcepTunnelData = pcepTunnelAPIMapper.getDataFromTunnelRequestQueue(srpId);
+            PcepTunnelData pcepTunnelData = pcepTunnelApiMapper.getDataFromTunnelRequestQueue(srpId);
             SparseAnnotations annotations = (SparseAnnotations) pcepTunnelData.tunnel().annotations();
 
             // store the values required from report message
@@ -1045,7 +1045,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             if (RequestType.CREATE == pcepTunnelData.requestType()) {
                 log.debug("Report received for create request");
 
-                pcepTunnelAPIMapper.handleCreateTunnelRequestQueue(srpId, pcepTunnelData);
+                pcepTunnelApiMapper.handleCreateTunnelRequestQueue(srpId, pcepTunnelData);
                 if (0 == lspObj.getOFlag()) {
                     log.warn("The tunnel is in down state");
                 }
@@ -1053,20 +1053,20 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
             }
             if (RequestType.DELETE == pcepTunnelData.requestType()) {
                 log.debug("Report received for delete request");
-                pcepTunnelAPIMapper.handleRemoveFromTunnelRequestQueue(srpId, pcepTunnelData);
+                pcepTunnelApiMapper.handleRemoveFromTunnelRequestQueue(srpId, pcepTunnelData);
                 tunnelRemoved(td);
             }
 
             if (RequestType.UPDATE == pcepTunnelData.requestType()) {
                 log.debug("Report received for update request");
                 pcepTunnelData.setRptFlag(true);
-                pcepTunnelAPIMapper.addToTunnelIdMap(pcepTunnelData);
-                pcepTunnelAPIMapper.handleUpdateTunnelRequestQueue(srpId, pcepTunnelData);
+                pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
+                pcepTunnelApiMapper.handleUpdateTunnelRequestQueue(srpId, pcepTunnelData);
 
                 if (0 == lspObj.getOFlag()) {
                     log.warn("The tunnel is in down state");
                 }
-                if (!(pcepTunnelAPIMapper.checkFromTunnelRequestQueue(srpId))) {
+                if (!(pcepTunnelApiMapper.checkFromTunnelRequestQueue(srpId))) {
                     tunnelUpdated(td);
                 }
             }
@@ -1207,8 +1207,8 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
             PcepTunnelData pcepTunnelData = new PcepTunnelData(tunnel, path, RequestType.LSP_STATE_RPT);
             pcepTunnelData.setStatefulIpv4IndentifierTlv(lspIdenTlv);
-            pcepTunnelAPIMapper.addPccTunnelDB(pcepTunnelData);
-            pcepTunnelAPIMapper.addToTunnelIdMap(pcepTunnelData);
+            pcepTunnelApiMapper.addPccTunnelDB(pcepTunnelData);
+            pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
         }
 
         @Override

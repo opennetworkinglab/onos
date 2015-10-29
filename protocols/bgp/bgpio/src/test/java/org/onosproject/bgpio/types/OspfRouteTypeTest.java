@@ -25,9 +25,9 @@ import com.google.common.testing.EqualsTester;
 public class OspfRouteTypeTest {
     private final byte value1 = 5;
     private final byte value2 = 4;
-    private final OSPFRouteTypeTlv tlv1 = OSPFRouteTypeTlv.of(value1);
-    private final OSPFRouteTypeTlv sameAsTlv1 = OSPFRouteTypeTlv.of(value1);
-    private final OSPFRouteTypeTlv tlv2 = OSPFRouteTypeTlv.of(value2);
+    private final OspfRouteTypeTlv tlv1 = OspfRouteTypeTlv.of(value1);
+    private final OspfRouteTypeTlv sameAsTlv1 = OspfRouteTypeTlv.of(value1);
+    private final OspfRouteTypeTlv tlv2 = OspfRouteTypeTlv.of(value2);
 
     @Test
     public void testEquality() {

@@ -16,27 +16,21 @@
 
 package org.onosproject.bgp.controller.impl;
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.Collections;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.concurrent.RejectedExecutionException;
-
+import com.google.common.base.MoreObjects;
 import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
 import org.onosproject.bgp.controller.BgpController;
+import org.onosproject.bgp.controller.BgpLocalRib;
 import org.onosproject.bgp.controller.BgpPeer;
 import org.onosproject.bgp.controller.BgpSessionInfo;
-import org.onosproject.bgp.controller.BgpLocalRib;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpFactories;
 import org.onosproject.bgpio.protocol.BgpFactory;
 import org.onosproject.bgpio.protocol.BgpLSNlri;
 import org.onosproject.bgpio.protocol.BgpMessage;
+import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BgpPrefixIPv4LSNlriVer4;
-import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.MpReachNlri;
@@ -44,7 +38,12 @@ import org.onosproject.bgpio.types.MpUnReachNlri;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * BGPPeerImpl implements BGPPeer, maintains peer information and store updates in RIB .
@@ -62,8 +61,8 @@ public class BgpPeerImpl implements BgpPeer {
     protected boolean isHandShakeComplete = false;
     private BgpSessionInfo sessionInfo;
     private BgpPacketStatsImpl pktStats;
-    private BgpLocalRib bgplocalRIB;
-    private BgpLocalRib bgplocalRIBVpn;
+    private BgpLocalRib bgplocalRib;
+    private BgpLocalRib bgplocalRibVpn;
     private AdjRibIn adjRib;
     private VpnAdjRibIn vpnAdjRib;
 
@@ -101,8 +100,8 @@ public class BgpPeerImpl implements BgpPeer {
         this.bgpController = bgpController;
         this.sessionInfo = sessionInfo;
         this.pktStats = pktStats;
-        this.bgplocalRIB =  bgpController.bgpLocalRib();
-        this.bgplocalRIBVpn =  bgpController.bgpLocalRibVpn();
+        this.bgplocalRib =  bgpController.bgpLocalRib();
+        this.bgplocalRibVpn =  bgpController.bgpLocalRibVpn();
         this.adjRib = new AdjRibIn();
         this.vpnAdjRib = new VpnAdjRibIn();
     }
@@ -141,30 +140,30 @@ public class BgpPeerImpl implements BgpPeer {
                 PathAttrNlriDetails details = setPathAttrDetails(nlriInfo, pathAttr);
                 if (!((BgpNodeLSNlriVer4) nlriInfo).isVpnPresent()) {
                     adjRib.add(nlriInfo, details);
-                    bgplocalRIB.add(sessionInfo(), nlriInfo, details);
+                    bgplocalRib.add(sessionInfo(), nlriInfo, details);
                 } else {
                     vpnAdjRib.addVpn(nlriInfo, details, ((BgpNodeLSNlriVer4) nlriInfo).getRouteDistinguisher());
-                    bgplocalRIBVpn.add(sessionInfo(), nlriInfo, details,
+                    bgplocalRibVpn.add(sessionInfo(), nlriInfo, details,
                                        ((BgpNodeLSNlriVer4) nlriInfo).getRouteDistinguisher());
                 }
             } else if (nlriInfo instanceof BgpLinkLsNlriVer4) {
                 PathAttrNlriDetails details = setPathAttrDetails(nlriInfo, pathAttr);
                 if (!((BgpLinkLsNlriVer4) nlriInfo).isVpnPresent()) {
                     adjRib.add(nlriInfo, details);
-                    bgplocalRIB.add(sessionInfo(), nlriInfo, details);
+                    bgplocalRib.add(sessionInfo(), nlriInfo, details);
                 } else {
                     vpnAdjRib.addVpn(nlriInfo, details, ((BgpLinkLsNlriVer4) nlriInfo).getRouteDistinguisher());
-                    bgplocalRIBVpn.add(sessionInfo(), nlriInfo, details,
+                    bgplocalRibVpn.add(sessionInfo(), nlriInfo, details,
                                        ((BgpLinkLsNlriVer4) nlriInfo).getRouteDistinguisher());
                 }
             } else if (nlriInfo instanceof BgpPrefixIPv4LSNlriVer4) {
                 PathAttrNlriDetails details = setPathAttrDetails(nlriInfo, pathAttr);
                 if (!((BgpPrefixIPv4LSNlriVer4) nlriInfo).isVpnPresent()) {
                     adjRib.add(nlriInfo, details);
-                    bgplocalRIB.add(sessionInfo(), nlriInfo, details);
+                    bgplocalRib.add(sessionInfo(), nlriInfo, details);
                 } else {
                     vpnAdjRib.addVpn(nlriInfo, details, ((BgpPrefixIPv4LSNlriVer4) nlriInfo).getRouteDistinguisher());
-                    bgplocalRIBVpn.add(sessionInfo(), nlriInfo, details,
+                    bgplocalRibVpn.add(sessionInfo(), nlriInfo, details,
                                        ((BgpPrefixIPv4LSNlriVer4) nlriInfo).getRouteDistinguisher());
                 }
             }
@@ -201,26 +200,26 @@ public class BgpPeerImpl implements BgpPeer {
             if (nlriInfo instanceof BgpNodeLSNlriVer4) {
                 if (!((BgpNodeLSNlriVer4) nlriInfo).isVpnPresent()) {
                     adjRib.remove(nlriInfo);
-                    bgplocalRIB.delete(nlriInfo);
+                    bgplocalRib.delete(nlriInfo);
                 } else {
                     vpnAdjRib.removeVpn(nlriInfo, ((BgpNodeLSNlriVer4) nlriInfo).getRouteDistinguisher());
-                    bgplocalRIBVpn.delete(nlriInfo, ((BgpNodeLSNlriVer4) nlriInfo).getRouteDistinguisher());
+                    bgplocalRibVpn.delete(nlriInfo, ((BgpNodeLSNlriVer4) nlriInfo).getRouteDistinguisher());
                 }
             } else if (nlriInfo instanceof BgpLinkLsNlriVer4) {
                 if (!((BgpLinkLsNlriVer4) nlriInfo).isVpnPresent()) {
                     adjRib.remove(nlriInfo);
-                    bgplocalRIB.delete(nlriInfo);
+                    bgplocalRib.delete(nlriInfo);
                 } else {
                     vpnAdjRib.removeVpn(nlriInfo, ((BgpLinkLsNlriVer4) nlriInfo).getRouteDistinguisher());
-                    bgplocalRIBVpn.delete(nlriInfo, ((BgpLinkLsNlriVer4) nlriInfo).getRouteDistinguisher());
+                    bgplocalRibVpn.delete(nlriInfo, ((BgpLinkLsNlriVer4) nlriInfo).getRouteDistinguisher());
                 }
             } else if (nlriInfo instanceof BgpPrefixIPv4LSNlriVer4) {
                 if (!((BgpPrefixIPv4LSNlriVer4) nlriInfo).isVpnPresent()) {
                     adjRib.remove(nlriInfo);
-                    bgplocalRIB.delete(nlriInfo);
+                    bgplocalRib.delete(nlriInfo);
                 } else {
                     vpnAdjRib.removeVpn(nlriInfo, ((BgpPrefixIPv4LSNlriVer4) nlriInfo).getRouteDistinguisher());
-                    bgplocalRIBVpn.delete(nlriInfo, ((BgpPrefixIPv4LSNlriVer4) nlriInfo).getRouteDistinguisher());
+                    bgplocalRibVpn.delete(nlriInfo, ((BgpPrefixIPv4LSNlriVer4) nlriInfo).getRouteDistinguisher());
                 }
             }
         }
@@ -248,12 +247,12 @@ public class BgpPeerImpl implements BgpPeer {
      * Update localRIB on peer disconnect.
      *
      */
-    public void updateLocalRIBOnPeerDisconnect() {
-        BgpLocalRibImpl localRib = (BgpLocalRibImpl) bgplocalRIB;
-        BgpLocalRibImpl localRibVpn = (BgpLocalRibImpl) bgplocalRIBVpn;
+    public void updateLocalRibOnPeerDisconnect() {
+        BgpLocalRibImpl localRib = (BgpLocalRibImpl) bgplocalRib;
+        BgpLocalRibImpl localRibVpn = (BgpLocalRibImpl) bgplocalRibVpn;
 
-        localRib.localRIBUpdate(adjacencyRib());
-        localRibVpn.localRIBUpdate(vpnAdjacencyRib());
+        localRib.localRibUpdate(adjacencyRib());
+        localRibVpn.localRibUpdate(vpnAdjacencyRib());
     }
 
     // ************************

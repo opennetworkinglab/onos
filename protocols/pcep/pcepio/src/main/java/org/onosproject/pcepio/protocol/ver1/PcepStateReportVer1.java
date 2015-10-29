@@ -333,8 +333,8 @@ public class PcepStateReportVer1 implements PcepStateReport {
      */
     public static class Builder implements PcepStateReport.Builder {
 
-        private boolean bIsSRPObjectSet = false;
-        private boolean bIsLSPObjectSet = false;
+        private boolean bIsSrpObjectSet = false;
+        private boolean bIsLspObjectSet = false;
         private boolean bIsPcepMsgPathSet = false;
 
         //PCEP SRP Object
@@ -354,11 +354,11 @@ public class PcepStateReportVer1 implements PcepStateReport {
             //PCEP Attribute list
             PcepStateReport.PcepMsgPath msgPath = null;
 
-            if (this.bIsSRPObjectSet) {
+            if (this.bIsSrpObjectSet) {
                 srpObject = this.srpObject;
             }
 
-            if (!this.bIsLSPObjectSet) {
+            if (!this.bIsLspObjectSet) {
                 throw new PcepParseException(" LSP Object NOT Set while building PcepStateReport.");
             } else {
                 lspObject = this.lspObject;
@@ -390,14 +390,14 @@ public class PcepStateReportVer1 implements PcepStateReport {
         @Override
         public Builder setSrpObject(PcepSrpObject srpobj) {
             this.srpObject = srpobj;
-            this.bIsSRPObjectSet = true;
+            this.bIsSrpObjectSet = true;
             return this;
         }
 
         @Override
         public Builder setLspObject(PcepLspObject lspObject) {
             this.lspObject = lspObject;
-            this.bIsLSPObjectSet = true;
+            this.bIsLspObjectSet = true;
             return this;
         }
 

@@ -22,23 +22,6 @@ import com.btisystems.pronx.ems.core.snmp.ISnmpSession;
 import com.btisystems.pronx.ems.core.snmp.ISnmpSessionFactory;
 import com.btisystems.pronx.ems.core.snmp.SnmpSessionFactory;
 import com.btisystems.pronx.ems.core.snmp.V2cSnmpConfiguration;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import java.io.IOException;
-import static org.onlab.util.Tools.delay;
-import static org.onlab.util.Tools.get;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -62,6 +45,23 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.delay;
+import static org.onlab.util.Tools.get;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which will try to fetch the details of SNMP devices from the core and run a capability discovery on each of
@@ -374,10 +374,10 @@ public class SnmpDeviceProvider extends AbstractProvider
 
                 try (ISnmpSession session = sessionFactory.createSession(config, ipAddress)) {
                     // Each session will be auto-closed.
-                    String deviceOID = session.identifyDevice();
+                    String deviceOid = session.identifyDevice();
 
-                    if (providers.containsKey(deviceOID)) {
-                        desc = providers.get(deviceOID).populateDescription(session, desc);
+                    if (providers.containsKey(deviceOid)) {
+                        desc = providers.get(deviceOid).populateDescription(session, desc);
                     }
 
                 } catch (IOException | RuntimeException ex) {
@@ -392,10 +392,10 @@ public class SnmpDeviceProvider extends AbstractProvider
          * This will build a device id for the device.
          */
         private DeviceId getDeviceId() throws URISyntaxException {
-            String additionalSSP = new StringBuilder(
+            String additionalSsp = new StringBuilder(
                     device.getSnmpHost()).append(":")
                     .append(device.getSnmpPort()).toString();
-            return DeviceId.deviceId(new URI(SCHEME, additionalSSP,
+            return DeviceId.deviceId(new URI(SCHEME, additionalSsp,
                     null));
         }
     }

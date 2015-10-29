@@ -52,7 +52,7 @@ import org.onosproject.ovsdb.rfc.notation.Mutation;
 import org.onosproject.ovsdb.rfc.notation.OvsdbMap;
 import org.onosproject.ovsdb.rfc.notation.OvsdbSet;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.operations.Delete;
 import org.onosproject.ovsdb.rfc.operations.Insert;
 import org.onosproject.ovsdb.rfc.operations.Mutate;
@@ -255,13 +255,13 @@ public class DefaultOvsdbClient
         if (bridge != null) {
             OvsdbSet setPorts = (OvsdbSet) bridge.getPortsColumn().data();
             @SuppressWarnings("unchecked")
-            Set<UUID> ports = setPorts.set();
+            Set<Uuid> ports = setPorts.set();
             if (ports == null || ports.size() == 0) {
                 log.warn("The port uuid is null");
                 return null;
             }
 
-            for (UUID uuid : ports) {
+            for (Uuid uuid : ports) {
                 Row portRow = getRow(OvsdbConstant.DATABASENAME,
                                      OvsdbConstant.PORT, uuid.value());
                 Port port = (Port) TableGenerator.getTable(dbSchema, portRow,
@@ -287,14 +287,14 @@ public class DefaultOvsdbClient
         if (port != null) {
             OvsdbSet setInterfaces = (OvsdbSet) port.getInterfacesColumn().data();
             @SuppressWarnings("unchecked")
-            Set<UUID> interfaces = setInterfaces.set();
+            Set<Uuid> interfaces = setInterfaces.set();
 
             if (interfaces == null || interfaces.size() == 0) {
                 log.warn("The interface uuid is null");
                 return null;
             }
 
-            for (UUID uuid : interfaces) {
+            for (Uuid uuid : interfaces) {
                 Row intfRow = getRow(OvsdbConstant.DATABASENAME,
                                      OvsdbConstant.INTERFACE, uuid.value());
                 Interface intf = (Interface) TableGenerator
@@ -606,7 +606,7 @@ public class DefaultOvsdbClient
             return false;
         }
 
-        setControllersWithUUID(UUID.uuid(bridgeUuid), controllers);
+        setControllersWithUuid(Uuid.uuid(bridgeUuid), controllers);
         return true;
     }
 
@@ -623,11 +623,11 @@ public class DefaultOvsdbClient
         ControllerInfo controllerInfo = new ControllerInfo(ipAddress, OvsdbConstant.OFPORT, "tcp");
         log.debug("Automatically setting controller for bridge {} to {}",
                   bridgeUuid, controllerInfo.target());
-        setControllersWithUUID(UUID.uuid(bridgeUuid), ImmutableList.of(controllerInfo));
+        setControllersWithUuid(Uuid.uuid(bridgeUuid), ImmutableList.of(controllerInfo));
     }
 
     @Override
-    public void setControllersWithUUID(UUID bridgeUuid, List<ControllerInfo> controllers) {
+    public void setControllersWithUuid(Uuid bridgeUuid, List<ControllerInfo> controllers) {
 
         DatabaseSchema dbSchema = schema.get(OvsdbConstant.DATABASENAME);
         if (dbSchema == null) {
@@ -640,7 +640,7 @@ public class DefaultOvsdbClient
             return;
         }
 
-        Set<UUID> newControllerUuids = new HashSet<>();
+        Set<Uuid> newControllerUuids = new HashSet<>();
 
         Set<ControllerInfo> newControllers = new HashSet<>(controllers);
         List<Controller> removeControllers = new ArrayList<>();
@@ -672,7 +672,7 @@ public class DefaultOvsdbClient
             String uuid = insertConfig(OvsdbConstant.CONTROLLER, "_uuid",
                                        OvsdbConstant.BRIDGE, "controller", bridgeUuid.value(),
                                        c.getRow());
-            newControllerUuids.add(UUID.uuid(uuid));
+            newControllerUuids.add(Uuid.uuid(uuid));
 
         });
 
@@ -691,17 +691,17 @@ public class DefaultOvsdbClient
 
     @Override
     public void setControllersWithDeviceId(DeviceId deviceId, List<ControllerInfo> controllers) {
-        setControllersWithUUID(getBridgeUUID(deviceId), controllers);
+        setControllersWithUuid(getBridgeUuid(deviceId), controllers);
     }
 
     @Override
     public void dropBridge(String bridgeName) {
-        String bridgeUUID = getBridgeUuid(bridgeName);
-        if (bridgeUUID == null) {
+        String bridgeUuid = getBridgeUuid(bridgeName);
+        if (bridgeUuid == null) {
             log.warn("Could not find bridge in node", nodeId.getIpAddress());
             return;
         }
-        deleteConfig(OvsdbConstant.BRIDGE, "_uuid", bridgeUUID,
+        deleteConfig(OvsdbConstant.BRIDGE, "_uuid", bridgeUuid,
                      OvsdbConstant.DATABASENAME, "bridges");
     }
 
@@ -798,12 +798,12 @@ public class DefaultOvsdbClient
         Port port = (Port) TableGenerator.createTable(dbSchema, OvsdbTable.PORT);
         port.setName(portName);
         Insert portInsert = new Insert(dbSchema.getTableSchema("Port"), "Port", port.getRow());
-        portInsert.getRow().put("interfaces", UUID.uuid("Interface"));
+        portInsert.getRow().put("interfaces", Uuid.uuid("Interface"));
         operations.add(portInsert);
 
         // update the bridge table
-        Condition condition = ConditionUtil.isEqual("_uuid", UUID.uuid(bridgeUuid));
-        Mutation mutation = MutationUtil.insert("ports", UUID.uuid("Port"));
+        Condition condition = ConditionUtil.isEqual("_uuid", Uuid.uuid(bridgeUuid));
+        Mutation mutation = MutationUtil.insert("ports", Uuid.uuid("Port"));
         List<Condition> conditions = new ArrayList<>(Arrays.asList(condition));
         List<Mutation> mutations = new ArrayList<>(Arrays.asList(mutation));
         operations.add(new Mutate(dbSchema.getTableSchema("Bridge"), conditions, mutations));
@@ -831,10 +831,10 @@ public class DefaultOvsdbClient
             return;
         }
 
-        String portUUID = getPortUuid(portName, bridgeUuid);
-        if (portUUID != null) {
+        String portUuid = getPortUuid(portName, bridgeUuid);
+        if (portUuid != null) {
             log.info("Delete tunnel");
-            deleteConfig(OvsdbConstant.PORT, "_uuid", portUUID,
+            deleteConfig(OvsdbConstant.PORT, "_uuid", portUuid,
                          OvsdbConstant.BRIDGE, "ports");
         }
 
@@ -864,18 +864,18 @@ public class DefaultOvsdbClient
                     .getColumnSchema(parentColumnName);
             List<Mutation> mutations = Lists.newArrayList();
             Mutation mutation = MutationUtil.delete(parentColumnSchema.name(),
-                                                    UUID.uuid(childUuid));
+                                                    Uuid.uuid(childUuid));
             mutations.add(mutation);
             List<Condition> conditions = Lists.newArrayList();
             Condition condition = ConditionUtil.includes(parentColumnName,
-                                                         UUID.uuid(childUuid));
+                                                         Uuid.uuid(childUuid));
             conditions.add(condition);
             Mutate op = new Mutate(parentTableSchema, conditions, mutations);
             operations.add(op);
         }
 
         List<Condition> conditions = Lists.newArrayList();
-        Condition condition = ConditionUtil.isEqual(childColumnName, UUID.uuid(childUuid));
+        Condition condition = ConditionUtil.isEqual(childColumnName, Uuid.uuid(childUuid));
         conditions.add(condition);
         Delete del = new Delete(childTableSchema, conditions);
         operations.add(del);
@@ -898,7 +898,7 @@ public class DefaultOvsdbClient
         TableSchema tableSchema = dbSchema.getTableSchema(tableName);
 
         List<Condition> conditions = Lists.newArrayList();
-        Condition condition = ConditionUtil.isEqual(columnName, UUID.uuid(uuid));
+        Condition condition = ConditionUtil.isEqual(columnName, Uuid.uuid(uuid));
         conditions.add(condition);
 
         Update update = new Update(tableSchema, row, conditions);
@@ -940,12 +940,12 @@ public class DefaultOvsdbClient
 
             List<Mutation> mutations = Lists.newArrayList();
             Mutation mutation = MutationUtil.insert(parentColumnSchema.name(),
-                                                    UUID.uuid(namedUuid));
+                                                    Uuid.uuid(namedUuid));
             mutations.add(mutation);
 
             List<Condition> conditions = Lists.newArrayList();
             Condition condition = ConditionUtil.isEqual("_uuid",
-                                                       UUID.uuid(parentUuid));
+                                                       Uuid.uuid(parentUuid));
             conditions.add(condition);
 
             Mutate op = new Mutate(parentTableSchema, conditions, mutations);
@@ -962,7 +962,7 @@ public class DefaultOvsdbClient
 
             Insert ins = (Insert) operations.get(0);
             ins.getRow().put("interfaces",
-                             UUID.uuid(OvsdbConstant.INTERFACE));
+                             Uuid.uuid(OvsdbConstant.INTERFACE));
         }
 
         List<OperationResult> results;
@@ -1250,7 +1250,7 @@ public class DefaultOvsdbClient
 
     @Override
     public Set<ControllerInfo> getControllers(DeviceId openflowDeviceId) {
-        UUID bridgeUuid = getBridgeUUID(openflowDeviceId);
+        Uuid bridgeUuid = getBridgeUuid(openflowDeviceId);
         if (bridgeUuid == null) {
             log.warn("bad bridge Uuid");
             return null;
@@ -1266,7 +1266,7 @@ public class DefaultOvsdbClient
                                 .data())).collect(Collectors.toSet());
     }
 
-    private List<Controller> getControllers(UUID bridgeUuid) {
+    private List<Controller> getControllers(Uuid bridgeUuid) {
         DatabaseSchema dbSchema = schema.get(OvsdbConstant.DATABASENAME);
         if (dbSchema == null) {
             return null;
@@ -1285,7 +1285,7 @@ public class DefaultOvsdbClient
         //FIXME remove log
         log.warn("type of controller column", bridge.getControllerColumn()
                 .data().getClass());
-        Set<UUID> controllerUuids = (Set<UUID>) ((OvsdbSet) bridge
+        Set<Uuid> controllerUuids = (Set<Uuid>) ((OvsdbSet) bridge
                 .getControllerColumn().data()).set();
 //        Set<String> controllerUuidStrings = (Set<String>) bridge.getControllerColumn().data();
 
@@ -1299,7 +1299,7 @@ public class DefaultOvsdbClient
         List<Controller> ovsdbControllers = new ArrayList<>();
         ConcurrentMap<String, Row> controllerTableRows = controllerRowStore.getRowStore();
         controllerTableRows.forEach((key, row) -> {
-            if (!controllerUuids.contains(UUID.uuid(key))) {
+            if (!controllerUuids.contains(Uuid.uuid(key))) {
                 return;
             }
             Controller controller = (Controller) TableGenerator
@@ -1310,7 +1310,7 @@ public class DefaultOvsdbClient
     }
 
 
-    private UUID getBridgeUUID(DeviceId openflowDeviceId) {
+    private Uuid getBridgeUuid(DeviceId openflowDeviceId) {
         DatabaseSchema dbSchema = schema.get(OvsdbConstant.DATABASENAME);
         if (dbSchema == null) {
             return null;
@@ -1323,13 +1323,13 @@ public class DefaultOvsdbClient
         }
 
         ConcurrentMap<String, Row> bridgeTableRows = rowStore.getRowStore();
-        final AtomicReference<UUID> uuid = new AtomicReference<>();
+        final AtomicReference<Uuid> uuid = new AtomicReference<>();
         for (Map.Entry<String, Row> entry : bridgeTableRows.entrySet()) {
             Bridge b = (Bridge) TableGenerator.getTable(dbSchema,
                                                         entry.getValue(),
                                                         OvsdbTable.BRIDGE);
             if (matchesDpid(b, openflowDeviceId)) {
-                uuid.set(UUID.uuid(entry.getKey()));
+                uuid.set(Uuid.uuid(entry.getKey()));
                 break;
             }
         }

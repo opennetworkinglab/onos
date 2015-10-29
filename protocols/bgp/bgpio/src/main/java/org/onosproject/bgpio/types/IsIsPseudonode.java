@@ -15,19 +15,18 @@
  */
 package org.onosproject.bgpio.types;
 
+import com.google.common.base.MoreObjects;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.onosproject.bgpio.protocol.IgpRouterId;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.protocol.IGPRouterID;
-
-import com.google.common.base.MoreObjects;
-
 /**
  * Provides implementation of IsIsPseudonode Tlv.
  */
-public class IsIsPseudonode implements IGPRouterID, BgpValueType {
+public class IsIsPseudonode implements IgpRouterId, BgpValueType {
     public static final short TYPE = 515;
     public static final short LENGTH = 7;
 
@@ -62,7 +61,7 @@ public class IsIsPseudonode implements IGPRouterID, BgpValueType {
      *
      * @return ISO NodeID
      */
-    public byte[] getISONodeID() {
+    public byte[] getIsoNodeId() {
         return isoNodeID;
     }
 
@@ -71,7 +70,7 @@ public class IsIsPseudonode implements IGPRouterID, BgpValueType {
      *
      * @return PSN Identifier
      */
-    public byte getPSNIdentifier() {
+    public byte getPsnIdentifier() {
         return this.psnIdentifier;
     }
 

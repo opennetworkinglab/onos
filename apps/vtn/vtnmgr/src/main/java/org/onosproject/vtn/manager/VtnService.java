@@ -22,7 +22,7 @@ import org.onosproject.vtnrsc.event.VtnRscEventFeedback;
 /**
  * VTN application that applies configuration and flows to the device.
  */
-public interface VTNService {
+public interface VtnService {
 
     /**
      * Creates a vxlan tunnel and creates the ovs when a ovs controller node is

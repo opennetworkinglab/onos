@@ -28,6 +28,12 @@
     <suppress files=".*" checks="OperatorWrapCheck"/>
     <suppress files=".*" checks="HiddenField"/>
     <suppress files=".java" checks="NewlineAtEndOfFile"/>
+    <suppress files="org.onlab.packet.*" checks="AbbreviationAsWordInName" />
+    <suppress files="org.onlab.jdvue.*" checks="AbbreviationAsWordInName" />
+    <suppress files="org.onosproject.driver.pipeline.*" checks="AbbreviationAsWordInName" />
+    <suppress files="org.onosproject.igmp.*" checks="AbbreviationAsWordInName" />
+    <suppress files="org.onosproject.pim.*" checks="AbbreviationAsWordInName" />
+    <suppress files="org.onosproject.segmentrouting.*" checks="AbbreviationAsWordInName" />
 
     <!-- Suppressions for unit testing code -->
     <suppress checks="JavadocPackage"

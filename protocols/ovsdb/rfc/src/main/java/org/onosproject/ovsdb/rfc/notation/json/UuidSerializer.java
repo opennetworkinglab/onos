@@ -15,20 +15,19 @@
  */
 package org.onosproject.ovsdb.rfc.notation.json;
 
-import java.io.IOException;
-
-import org.onosproject.ovsdb.rfc.notation.UUID;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
+
+import java.io.IOException;
 
 /**
  * UUID Serializer.
  */
-public class UUIDSerializer extends JsonSerializer<UUID> {
+public class UuidSerializer extends JsonSerializer<Uuid> {
     @Override
-    public void serialize(UUID value, JsonGenerator generator,
+    public void serialize(Uuid value, JsonGenerator generator,
                           SerializerProvider provider) throws IOException {
         generator.writeStartArray();
         String reg = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";

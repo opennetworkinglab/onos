@@ -13,46 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.bgpio.types;
+
+import com.google.common.base.MoreObjects;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.onosproject.bgpio.protocol.IgpRouterId;
 
 import java.util.Objects;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.onlab.packet.Ip4Address;
-import org.onosproject.bgpio.protocol.IGPRouterID;
-
-import com.google.common.base.MoreObjects;
-
 /**
- * Provides implementation of OSPFPseudonode Tlv.
+ * Provides implementation of OSPFNonPseudonode Tlv.
  */
-public class OSPFPseudonode implements IGPRouterID, BgpValueType {
+public class OspfNonPseudonode implements IgpRouterId, BgpValueType {
     public static final short TYPE = 515;
-    public static final short LENGTH = 8;
+    public static final short LENGTH = 4;
 
     private final int routerID;
-    private final Ip4Address drInterface;
 
     /**
-     * Constructor to initialize parameters.
+     * Constructor to initialize routerID.
      *
      * @param routerID routerID
-     * @param drInterface IPv4 address of the DR's interface
      */
-    public OSPFPseudonode(int routerID, Ip4Address drInterface) {
+    public OspfNonPseudonode(int routerID) {
         this.routerID = routerID;
-        this.drInterface = drInterface;
     }
 
     /**
-     * Returns object of this class with specified values.
+     * Returns object of this class with specified routerID.
      *
      * @param routerID routerID
-     * @param drInterface IPv4 address of the DR's interface
-     * @return object of OSPFPseudonode
+     * @return object of OSPFNonPseudonode
      */
-    public static OSPFPseudonode of(final int routerID, final Ip4Address drInterface) {
-        return new OSPFPseudonode(routerID, drInterface);
+    public static OspfNonPseudonode of(final int routerID) {
+        return new OspfNonPseudonode(routerID);
     }
 
     /**
@@ -66,7 +61,7 @@ public class OSPFPseudonode implements IGPRouterID, BgpValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(routerID, drInterface);
+        return Objects.hash(routerID);
     }
 
     @Override
@@ -74,9 +69,10 @@ public class OSPFPseudonode implements IGPRouterID, BgpValueType {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof OSPFPseudonode) {
-            OSPFPseudonode other = (OSPFPseudonode) obj;
-            return Objects.equals(routerID, other.routerID) && Objects.equals(drInterface, other.drInterface);
+
+        if (obj instanceof OspfNonPseudonode) {
+            OspfNonPseudonode other = (OspfNonPseudonode) obj;
+            return Objects.equals(routerID, other.routerID);
         }
         return false;
     }
@@ -87,20 +83,17 @@ public class OSPFPseudonode implements IGPRouterID, BgpValueType {
         c.writeShort(TYPE);
         c.writeShort(LENGTH);
         c.writeInt(routerID);
-        c.writeInt(drInterface.toInt());
         return c.writerIndex() - iLenStartIndex;
     }
 
     /**
-     * Reads the channel buffer and returns object of OSPFPseudonode.
+     * Reads the channel buffer and returns object of OSPFNonPseudonode.
      *
      * @param cb ChannelBuffer
-     * @return object of OSPFPseudonode
+     * @return object of OSPFNonPseudonode
      */
-    public static OSPFPseudonode read(ChannelBuffer cb) {
-        int routerID = cb.readInt();
-        Ip4Address drInterface = Ip4Address.valueOf(cb.readInt());
-        return OSPFPseudonode.of(routerID, drInterface);
+    public static OspfNonPseudonode read(ChannelBuffer cb) {
+        return OspfNonPseudonode.of(cb.readInt());
     }
 
     @Override
@@ -113,11 +106,7 @@ public class OSPFPseudonode implements IGPRouterID, BgpValueType {
         if (this.equals(o)) {
             return 0;
         }
-        int result = ((Integer) (this.routerID)).compareTo((Integer) (((OSPFPseudonode) o).routerID));
-        if (result != 0) {
-            return this.drInterface.compareTo(((OSPFPseudonode) o).drInterface);
-        }
-        return result;
+        return ((Integer) (this.routerID)).compareTo((Integer) (((OspfNonPseudonode) o).routerID));
     }
 
     @Override
@@ -126,7 +115,6 @@ public class OSPFPseudonode implements IGPRouterID, BgpValueType {
                 .add("Type", TYPE)
                 .add("Length", LENGTH)
                 .add("RouterID", routerID)
-                .add("DRInterface", drInterface)
                 .toString();
     }
 }

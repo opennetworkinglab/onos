@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pcepio.types;
+package org.onosproject.ovsdb.rfc.notation.json;
 
-import com.google.common.testing.EqualsTester;
-import org.junit.Test;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.util.StdConverter;
 
 /**
- * Test of the BGPLSidentifierTlv.
+ * UUIDConverter Converter.
  */
-public class BGPLSidentifierTlvTest {
-    private final BGPLSidentifierTlv tlv1 = BGPLSidentifierTlv.of(1);
-    private final BGPLSidentifierTlv sameAsTlv1 = BGPLSidentifierTlv.of(1);
-    private final BGPLSidentifierTlv tlv2 = BGPLSidentifierTlv.of(2);
+public class UuidConverter extends StdConverter<JsonNode, Uuid> {
 
-    @Test
-    public void basics() {
-        new EqualsTester()
-        .addEqualityGroup(tlv1, sameAsTlv1)
-        .addEqualityGroup(tlv2)
-        .testEquals();
+    @Override
+    public Uuid convert(JsonNode json) {
+        return Uuid.uuid(json.get(1).asText());
     }
 }

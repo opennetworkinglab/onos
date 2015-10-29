@@ -278,7 +278,7 @@ public class PcepTopologyProvider extends AbstractProvider
         }
 
         @Override
-        public void handlePCEPlink(PcepLink link) {
+        public void handlePceplink(PcepLink link) {
 
             OperationType operType = link.getOperationType();
             LinkDescription ld = buildLinkDescription(link);

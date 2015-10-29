@@ -204,8 +204,8 @@ public class TENodeAttributesTlv implements PcepValueType {
             case NodeNameTlv.TYPE:
                 tlv = NodeNameTlv.read(tempCb, length);
                 break;
-            case ISISAreaIdentifierTlv.TYPE:
-                tlv = ISISAreaIdentifierTlv.read(tempCb, length);
+            case IsisAreaIdentifierTlv.TYPE:
+                tlv = IsisAreaIdentifierTlv.read(tempCb, length);
                 break;
             case IPv4TERouterIdOfLocalNodeTlv.TYPE:
                 iValue = tempCb.readInt();

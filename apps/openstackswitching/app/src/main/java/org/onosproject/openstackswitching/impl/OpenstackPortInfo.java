@@ -67,7 +67,7 @@ public final class OpenstackPortInfo {
             return this;
         }
 
-        public Builder setVNI(long vni) {
+        public Builder setVni(long vni) {
             this.vni = checkNotNull(vni, "vni cannot be null");
             return this;
         }

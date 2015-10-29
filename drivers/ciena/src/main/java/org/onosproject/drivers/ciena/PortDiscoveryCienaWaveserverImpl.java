@@ -84,7 +84,7 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
             if (LINESIDE.contains(name)) {
                 String wsportInfoRequest = SPECIFIC_PORT_PATH + sub.getLong(PORT_ID) +
                         SPECIFIC_PORT_CONFIG;
-                ports.add(XmlConfigParser.parseWaveServerCienaOCHPorts(
+                ports.add(XmlConfigParser.parseWaveServerCienaOchPorts(
                         sub.getLong(PORT_ID),
                         toGbps(Long.parseLong(sub.getString(SPEED).replace(GBPS, EMPTY_STRING))),
                         XmlConfigParser.loadXml(controller.get(deviceId, wsportInfoRequest, XML)),

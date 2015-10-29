@@ -30,7 +30,7 @@ import org.onosproject.ovsdb.controller.OvsdbTunnel;
 import org.onosproject.ovsdb.rfc.message.OperationResult;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.operations.Operation;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
@@ -94,7 +94,7 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     }
 
     @Override
-    public void setControllersWithUUID(UUID bridgeUuid, List<ControllerInfo> controllers) {
+    public void setControllersWithUuid(Uuid bridgeUuid, List<ControllerInfo> controllers) {
 
     }
 

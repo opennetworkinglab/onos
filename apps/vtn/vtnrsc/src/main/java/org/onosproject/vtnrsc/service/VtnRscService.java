@@ -15,8 +15,6 @@
  */
 package org.onosproject.vtnrsc.service;
 
-import java.util.Iterator;
-
 import org.onlab.packet.MacAddress;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.Device;
@@ -28,6 +26,8 @@ import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.event.VtnRscEvent;
 import org.onosproject.vtnrsc.event.VtnRscListener;
+
+import java.util.Iterator;
 
 /**
  * Service for interacting with the inventory of Vtn resource.
@@ -55,7 +55,7 @@ public interface VtnRscService extends ListenerService<VtnRscEvent, VtnRscListen
      * @param tenantId tenant identifier
      * @return iterable collection of Device
      */
-    Iterator<Device> getSFFOfTenant(TenantId tenantId);
+    Iterator<Device> getSffOfTenant(TenantId tenantId);
 
     /**
      * Returns gateway mac address of the specific host.
@@ -79,7 +79,7 @@ public interface VtnRscService extends ListenerService<VtnRscEvent, VtnRscListen
      * @param portId port identifier
      * @return device identifier
      */
-    DeviceId getSFToSFFMaping(VirtualPortId portId);
+    DeviceId getSfToSffMaping(VirtualPortId portId);
 
     /**
      * Adds specify Device identifier to Service Function Forward OvsMap

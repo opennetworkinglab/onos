@@ -44,7 +44,7 @@ public abstract class AbstractDriverLoader {
     protected void activate() {
         try {
             provider = new XmlDriverLoader(getClassLoaderInstance())
-                    .loadDrivers(loadXMLDriversStream(), driverAdminService);
+                    .loadDrivers(loadXmlDriversStream(), driverAdminService);
             driverAdminService.registerProvider(provider);
         } catch (Exception e) {
             log.error("Unable to load default drivers", e);
@@ -58,7 +58,7 @@ public abstract class AbstractDriverLoader {
         log.info("Stopped");
     }
 
-    protected abstract InputStream loadXMLDriversStream();
+    protected abstract InputStream loadXmlDriversStream();
 
     protected abstract ClassLoader getClassLoaderInstance();
 

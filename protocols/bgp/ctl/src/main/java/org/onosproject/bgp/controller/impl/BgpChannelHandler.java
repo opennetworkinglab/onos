@@ -16,18 +16,6 @@
 
 package org.onosproject.bgp.controller.impl;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.net.UnknownHostException;
-import java.nio.channels.ClosedChannelException;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.concurrent.RejectedExecutionException;
-
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -58,6 +46,18 @@ import org.onosproject.bgpio.types.FourOctetAsNumCapabilityTlv;
 import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
+import java.nio.channels.ClosedChannelException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * Channel handler deals with the bgp peer connection and dispatches messages from peer to the appropriate locations.
@@ -95,7 +95,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
     // proceeds to cleaup peer state - we need to ensure that it does not
     // cleanup
     // peer state for the older (still connected) peer
-    private volatile Boolean duplicateBGPIdFound;
+    private volatile Boolean duplicateBgpIdFound;
     // Indicates the bgp version used by this bgp peer
     protected BgpVersion bgpVersion;
     private BgpController bgpController;
@@ -119,7 +119,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         this.peerManager = (BgpPeerManagerImpl) bgpController.peerManager();
         this.state = ChannelState.IDLE;
         this.factory4 = Controller.getBgpMessageFactory4();
-        this.duplicateBGPIdFound = Boolean.FALSE;
+        this.duplicateBgpIdFound = Boolean.FALSE;
         this.bgpPacketStats = new BgpPacketStatsImpl();
         this.bgpconfig = bgpController.getConfig();
     }
@@ -344,7 +344,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         protected void disconnectDuplicate(BgpChannelHandler h) {
             log.error("Duplicated BGP IP or incompleted cleanup - " + "" + "disconnecting channel {}",
                       h.getPeerInfoString());
-            h.duplicateBGPIdFound = Boolean.TRUE;
+            h.duplicateBgpIdFound = Boolean.TRUE;
             h.channel.disconnect();
         }
 
@@ -438,7 +438,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         peerAddr = IpAddress.valueOf(inetAddress.getAddress()).toString();
 
         if (thisbgpId != null) {
-            if (!duplicateBGPIdFound) {
+            if (!duplicateBgpIdFound) {
                 // if the disconnected peer (on this ChannelHandler)
                 // was not one with a duplicate, it is safe to remove all
                 // state for it at the controller. Notice that if the disconnected
@@ -449,7 +449,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                 if (bgpPeer != null) {
                     BgpPeerImpl peer = (BgpPeerImpl) bgpPeer;
                     peerManager.removeConnectedPeer(thisbgpId);
-                    peer.updateLocalRIBOnPeerDisconnect();
+                    peer.updateLocalRibOnPeerDisconnect();
                 }
 
                 // Retry connection if connection is lost to bgp speaker/peer
@@ -475,7 +475,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                 // this is the same peer reconnecting, but the original state was
                 // not cleaned up - XXX check liveness of original ChannelHandler
                 log.debug("{}:duplicate found", getPeerInfoString());
-                duplicateBGPIdFound = Boolean.FALSE;
+                duplicateBgpIdFound = Boolean.FALSE;
             }
 
            stopKeepAliveTimer();
@@ -610,7 +610,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
      */
     private void dispatchMessage(BgpMessage m) throws BgpParseException {
         bgpPacketStats.addInPacket();
-        bgpController.processBGPPacket(thisbgpId, m);
+        bgpController.processBgpPacket(thisbgpId, m);
     }
 
     /**

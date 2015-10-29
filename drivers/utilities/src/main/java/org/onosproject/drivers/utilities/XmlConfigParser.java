@@ -135,7 +135,7 @@ public final class XmlConfigParser {
         return cfg.configurationsAt("ws-ports.port-interface");
     }
 
-    public static PortDescription parseWaveServerCienaOCHPorts(long portNumber, long oduPortSpeed,
+    public static PortDescription parseWaveServerCienaOchPorts(long portNumber, long oduPortSpeed,
                                                                HierarchicalConfiguration config,
                                                                SparseAnnotations annotations) {
         final List<String> tunableType = Lists.newArrayList("Performance-Optimized", "Accelerated");

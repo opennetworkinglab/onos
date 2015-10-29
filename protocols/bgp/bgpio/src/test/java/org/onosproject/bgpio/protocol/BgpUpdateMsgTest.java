@@ -16,10 +16,6 @@
 package org.onosproject.bgpio.protocol;
 
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.core.Is.is;
-
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
@@ -43,13 +39,13 @@ import org.onosproject.bgpio.types.IPReachabilityInformationTlv;
 import org.onosproject.bgpio.types.IsIsNonPseudonode;
 import org.onosproject.bgpio.types.IsIsPseudonode;
 import org.onosproject.bgpio.types.LinkStateAttributes;
+import org.onosproject.bgpio.types.LocalPref;
 import org.onosproject.bgpio.types.Med;
 import org.onosproject.bgpio.types.MpReachNlri;
 import org.onosproject.bgpio.types.MpUnReachNlri;
-import org.onosproject.bgpio.types.Origin;
 import org.onosproject.bgpio.types.NextHop;
-import org.onosproject.bgpio.types.LocalPref;
-import org.onosproject.bgpio.types.Origin.ORIGINTYPE;
+import org.onosproject.bgpio.types.Origin;
+import org.onosproject.bgpio.types.Origin.OriginType;
 import org.onosproject.bgpio.types.attr.BgpAttrRouterIdV4;
 import org.onosproject.bgpio.types.attr.BgpLinkAttrName;
 import org.onosproject.bgpio.types.attr.BgpPrefixAttrExtRouteTag;
@@ -60,6 +56,10 @@ import org.slf4j.LoggerFactory;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.core.Is.is;
 
 /**
  * Test cases for BGP update Message.
@@ -255,7 +255,7 @@ public class BgpUpdateMsgTest {
         BgpPathAttributes actualpathAttribute = other.bgpPathAttributes();
         pathAttributes = actualpathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributes.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -639,7 +639,7 @@ public class BgpUpdateMsgTest {
         BgpPathAttributes actualpathAttribute = other.bgpPathAttributes();
         pathAttributes = actualpathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributes.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -684,13 +684,13 @@ public class BgpUpdateMsgTest {
         assertThat(testAutonomousSystemTlv.getAsNum(), is(2222));
         assertThat(testAutonomousSystemTlv.getType(), is((short) 512));
 
-        BgpLSIdentifierTlv testBGPLSIdentifierTlv = (BgpLSIdentifierTlv) subtlvlist1.next();
-        assertThat(testBGPLSIdentifierTlv.getBgpLsIdentifier(), is(33686018));
-        assertThat(testBGPLSIdentifierTlv.getType(), is((short) 513));
+        BgpLSIdentifierTlv testBgpLsIdentifierTlv = (BgpLSIdentifierTlv) subtlvlist1.next();
+        assertThat(testBgpLsIdentifierTlv.getBgpLsIdentifier(), is(33686018));
+        assertThat(testBgpLsIdentifierTlv.getType(), is((short) 513));
 
         IsIsNonPseudonode testIsIsNonPseudonode = (IsIsNonPseudonode) subtlvlist1.next();
-        byte[] expISONodeID = new byte[] {0x19, 0x00, (byte) 0x95, 0x01, (byte) 0x90, 0x58};
-        assertThat(testIsIsNonPseudonode.getISONodeID(), is(expISONodeID));
+        byte[] expIsoNodeId = new byte[] {0x19, 0x00, (byte) 0x95, 0x01, (byte) 0x90, 0x58};
+        assertThat(testIsIsNonPseudonode.getIsoNodeId(), is(expIsoNodeId));
         assertThat(testIsIsNonPseudonode.getType(), is((short) 515));
 
     }
@@ -763,7 +763,7 @@ public class BgpUpdateMsgTest {
         BgpPathAttributes actualpathAttribute = other.bgpPathAttributes();
         pathAttributes = actualpathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributes.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -807,13 +807,13 @@ public class BgpUpdateMsgTest {
         assertThat(testAutonomousSystemTlv.getAsNum(), is(2222));
         assertThat(testAutonomousSystemTlv.getType(), is((short) 512));
 
-        BgpLSIdentifierTlv testBGPLSIdentifierTlv = (BgpLSIdentifierTlv) subtlvlist1.next();
-        assertThat(testBGPLSIdentifierTlv.getBgpLsIdentifier(), is(33686018));
-        assertThat(testBGPLSIdentifierTlv.getType(), is((short) 513));
+        BgpLSIdentifierTlv testBgpLsIdentifierTlv = (BgpLSIdentifierTlv) subtlvlist1.next();
+        assertThat(testBgpLsIdentifierTlv.getBgpLsIdentifier(), is(33686018));
+        assertThat(testBgpLsIdentifierTlv.getType(), is((short) 513));
 
         IsIsNonPseudonode testIsIsNonPseudonode = (IsIsNonPseudonode) subtlvlist1.next();
-        byte[] expISONodeID = new byte[] {0x19, 0x21, 0x68, 0x07, 0x70, 0x01};
-        assertThat(testIsIsNonPseudonode.getISONodeID(), is(expISONodeID));
+        byte[] expIsoNodeId = new byte[] {0x19, 0x21, 0x68, 0x07, 0x70, 0x01};
+        assertThat(testIsIsNonPseudonode.getIsoNodeId(), is(expIsoNodeId));
         assertThat(testIsIsNonPseudonode.getType(), is((short) 515));
 
         List<BgpValueType> testPrefixDescriptors =  new LinkedList<>();
@@ -885,7 +885,7 @@ public class BgpUpdateMsgTest {
         BgpPathAttributes actualpathAttribute = other.bgpPathAttributes();
         pathAttributes = actualpathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributes.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -930,12 +930,12 @@ public class BgpUpdateMsgTest {
         assertThat(testAutonomousSystemTlv.getAsNum(), is(2222));
         assertThat(testAutonomousSystemTlv.getType(), is((short) 512));
 
-        BgpLSIdentifierTlv testBGPLSIdentifierTlv = (BgpLSIdentifierTlv) subtlvlist1.next();
-        assertThat(testBGPLSIdentifierTlv.getBgpLsIdentifier(), is(33686018));
-        assertThat(testBGPLSIdentifierTlv.getType(), is((short) 513));
+        BgpLSIdentifierTlv testBgpLsIdentifierTlv = (BgpLSIdentifierTlv) subtlvlist1.next();
+        assertThat(testBgpLsIdentifierTlv.getBgpLsIdentifier(), is(33686018));
+        assertThat(testBgpLsIdentifierTlv.getType(), is((short) 513));
 
         IsIsPseudonode testIsIsPseudonode = (IsIsPseudonode) subtlvlist1.next();
-        assertThat(testIsIsPseudonode.getPSNIdentifier(), is((byte) 3));
+        assertThat(testIsIsPseudonode.getPsnIdentifier(), is((byte) 3));
         assertThat(testIsIsPseudonode.getType(), is((short) 515));
 
         NodeDescriptors testRemoteNodeDescriptors = testlinknlri.remoteNodeDescriptors();
@@ -947,13 +947,13 @@ public class BgpUpdateMsgTest {
         assertThat(testAutonomousSystemTlv.getAsNum(), is(2222));
         assertThat(testAutonomousSystemTlv.getType(), is((short) 512));
 
-        testBGPLSIdentifierTlv = (BgpLSIdentifierTlv) subtlvlist2.next();
-        assertThat(testBGPLSIdentifierTlv.getBgpLsIdentifier(), is(33686018));
-        assertThat(testBGPLSIdentifierTlv.getType(), is((short) 513));
+        testBgpLsIdentifierTlv = (BgpLSIdentifierTlv) subtlvlist2.next();
+        assertThat(testBgpLsIdentifierTlv.getBgpLsIdentifier(), is(33686018));
+        assertThat(testBgpLsIdentifierTlv.getType(), is((short) 513));
 
         IsIsNonPseudonode testIsIsNonPseudonode = (IsIsNonPseudonode) subtlvlist2.next();
-        byte[] expISONodeID = new byte[] {0x19, 0x00, (byte) 0x95, 0x02, 0x50, 0x21};
-        assertThat(testIsIsNonPseudonode.getISONodeID(), is(expISONodeID));
+        byte[] expIsoNodeId = new byte[] {0x19, 0x00, (byte) 0x95, 0x02, 0x50, 0x21};
+        assertThat(testIsIsNonPseudonode.getIsoNodeId(), is(expIsoNodeId));
         assertThat(testIsIsNonPseudonode.getType(), is((short) 515));
     }
 
@@ -1231,7 +1231,7 @@ public class BgpUpdateMsgTest {
         BgpPathAttributes actualpathAttribute = other.bgpPathAttributes();
         pathAttributes = actualpathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributes.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1239,7 +1239,7 @@ public class BgpUpdateMsgTest {
 
         testPathAttribute = listIterator.next();
         as4Path = (As4Path) testPathAttribute;
-        ListIterator<Integer> listIterator2 = as4Path.as4PathSEQ().listIterator();
+        ListIterator<Integer> listIterator2 = as4Path.as4PathSeq().listIterator();
         assertThat(listIterator2.next(), is(655361));
 
         testPathAttribute = listIterator.next();
@@ -1309,7 +1309,7 @@ public class BgpUpdateMsgTest {
         BgpPathAttributes actualpathAttribute = other.bgpPathAttributes();
         pathAttributes = actualpathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributes.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1355,13 +1355,13 @@ public class BgpUpdateMsgTest {
         assertThat(testAutonomousSystemTlv.getAsNum(), is(2222));
         assertThat(testAutonomousSystemTlv.getType(), is((short) 512));
 
-        BgpLSIdentifierTlv testBGPLSIdentifierTlv = (BgpLSIdentifierTlv) subtlvlist1.next();
-        assertThat(testBGPLSIdentifierTlv.getBgpLsIdentifier(), is(33686018));
-        assertThat(testBGPLSIdentifierTlv.getType(), is((short) 513));
+        BgpLSIdentifierTlv testBgpLsIdentifierTlv = (BgpLSIdentifierTlv) subtlvlist1.next();
+        assertThat(testBgpLsIdentifierTlv.getBgpLsIdentifier(), is(33686018));
+        assertThat(testBgpLsIdentifierTlv.getType(), is((short) 513));
 
         IsIsNonPseudonode testIsIsNonPseudonode = (IsIsNonPseudonode) subtlvlist1.next();
-        byte[] expISONodeID = new byte[] {0x19, 0x00, (byte) 0x95, 0x01, (byte) 0x90, 0x58};
-        assertThat(testIsIsNonPseudonode.getISONodeID(), is(expISONodeID));
+        byte[] expIsoNodeId = new byte[] {0x19, 0x00, (byte) 0x95, 0x01, (byte) 0x90, 0x58};
+        assertThat(testIsIsNonPseudonode.getIsoNodeId(), is(expIsoNodeId));
         assertThat(testIsIsNonPseudonode.getType(), is((short) 515));
     }
 
@@ -1753,7 +1753,7 @@ public class BgpUpdateMsgTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1857,7 +1857,7 @@ public class BgpUpdateMsgTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;
@@ -1954,7 +1954,7 @@ public class BgpUpdateMsgTest {
         BgpPathAttributes pathAttribute = other.bgpPathAttributes();
         pathAttributeList = pathAttribute.pathAttributes();
         ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
-        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+        OriginType originValue = OriginType.IGP;
 
         testPathAttribute = listIterator.next();
         origin = (Origin) testPathAttribute;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.ovsdb.rfc.notation.json;
+package org.onosproject.openstackrouting;
 
-import org.onosproject.ovsdb.rfc.notation.UUID;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.util.StdConverter;
+import org.onosproject.net.packet.PacketContext;
 
 /**
- * UUIDConverter Converter.
+ * Handle ICMP packet processing for Managing Flow Rules In Openstack Nodes.
  */
-public class UUIDConverter extends StdConverter<JsonNode, UUID> {
+public class OpenstackIcmpHandler implements Runnable {
+
+    volatile PacketContext context;
+    OpenstackIcmpHandler(PacketContext context) {
+        this.context = context;
+    }
 
     @Override
-    public UUID convert(JsonNode json) {
-        return UUID.uuid(json.get(1).asText());
+    public void run() {
+
     }
 }

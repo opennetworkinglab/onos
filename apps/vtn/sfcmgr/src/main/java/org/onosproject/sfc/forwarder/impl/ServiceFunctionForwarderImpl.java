@@ -15,57 +15,55 @@
  */
 package org.onosproject.sfc.forwarder.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.net.flow.criteria.ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_SPI;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-import java.util.ListIterator;
-
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.net.behaviour.ExtensionSelectorResolver;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.NshServicePathId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.ExtensionSelectorResolver;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.ForwardingObjective.Flag;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.flowobjective.ForwardingObjective.Flag;
-import org.onosproject.vtnrsc.VirtualPortId;
-import org.onosproject.vtnrsc.service.VtnRscService;
+import org.onosproject.sfc.forwarder.ServiceFunctionForwarderService;
 import org.onosproject.vtnrsc.PortChain;
 import org.onosproject.vtnrsc.PortPair;
 import org.onosproject.vtnrsc.PortPairGroup;
 import org.onosproject.vtnrsc.PortPairGroupId;
 import org.onosproject.vtnrsc.PortPairId;
-import org.onosproject.vtnrsc.virtualport.VirtualPortService;
-import org.onosproject.vtnrsc.portpair.PortPairService;
-import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
+import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.flowclassifier.FlowClassifierService;
 import org.onosproject.vtnrsc.portchain.PortChainService;
-import org.onosproject.sfc.forwarder.ServiceFunctionForwarderService;
-
+import org.onosproject.vtnrsc.portpair.PortPairService;
+import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
+import org.onosproject.vtnrsc.service.VtnRscService;
+import org.onosproject.vtnrsc.virtualport.VirtualPortService;
 import org.slf4j.Logger;
+
+import java.util.List;
+import java.util.ListIterator;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.flow.criteria.ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_NSH_SPI;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides Service Function Forwarder implementation.
@@ -119,19 +117,19 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
     }
 
     @Override
-    public void installForwardingRule(PortChain portChain, NshServicePathId nshSPI) {
+    public void installForwardingRule(PortChain portChain, NshServicePathId nshSpi) {
         checkNotNull(portChain, PORT_CHAIN_NOT_NULL);
-        prepareServiceFunctionForwarder(portChain, nshSPI, Objective.Operation.ADD);
+        prepareServiceFunctionForwarder(portChain, nshSpi, Objective.Operation.ADD);
     }
 
     @Override
-    public void unInstallForwardingRule(PortChain portChain, NshServicePathId nshSPI) {
+    public void unInstallForwardingRule(PortChain portChain, NshServicePathId nshSpi) {
         checkNotNull(portChain, PORT_CHAIN_NOT_NULL);
-        prepareServiceFunctionForwarder(portChain, nshSPI, Objective.Operation.REMOVE);
+        prepareServiceFunctionForwarder(portChain, nshSpi, Objective.Operation.REMOVE);
     }
 
     @Override
-    public void prepareServiceFunctionForwarder(PortChain portChain, NshServicePathId nshSPI,
+    public void prepareServiceFunctionForwarder(PortChain portChain, NshServicePathId nshSpi,
                                                 Objective.Operation type) {
 
         // Go through the port pair group list
@@ -153,7 +151,7 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
         PortPairGroup nextPortPairGroup = portPairGroupService.getPortPairGroup(portPairGrpId);
 
         // push SFF to OVS
-        pushServiceFunctionForwarder(currentPortPairGroup, nextPortPairGroup, listGrpIterator, nshSPI, type);
+        pushServiceFunctionForwarder(currentPortPairGroup, nextPortPairGroup, listGrpIterator, nshSpi, type);
     }
 
     /**
@@ -162,11 +160,11 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
      * @param currentPortPairGroup current port-pair-group
      * @param nextPortPairGroup next port-pair-group
      * @param listGrpIterator pointer to port-pair-group list
-     * @param nshSPI nsh service path id
+     * @param nshSpi nsh service path id
      * @param type objective type
      */
     public void pushServiceFunctionForwarder(PortPairGroup currentPortPairGroup, PortPairGroup nextPortPairGroup,
-            ListIterator<PortPairGroupId> listGrpIterator, NshServicePathId nshSPI, Objective.Operation type) {
+            ListIterator<PortPairGroupId> listGrpIterator, NshServicePathId nshSpi, Objective.Operation type) {
         DeviceId deviceId = null;
         DeviceId currentDeviceId = null;
         DeviceId nextDeviceId = null;
@@ -185,13 +183,13 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
             PortPairId portPairId = portPLIterator.next();
             PortPair portPair = portPairService.getPortPair(portPairId);
 
-            currentDeviceId = vtnRscService.getSFToSFFMaping(VirtualPortId.portId(portPair.ingress()));
+            currentDeviceId = vtnRscService.getSfToSffMaping(VirtualPortId.portId(portPair.ingress()));
             if (deviceId == null) {
                 deviceId = currentDeviceId;
             }
 
             // pack traffic selector
-            TrafficSelector.Builder selector = packTrafficSelector(deviceId, portPair, nshSPI);
+            TrafficSelector.Builder selector = packTrafficSelector(deviceId, portPair, nshSpi);
 
             // Get the required information on port pairs from destination port
             // pair group
@@ -204,7 +202,7 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
             portPairId = portPLIterator.next();
             portPair = portPairService.getPortPair(portPairId);
 
-            nextDeviceId = vtnRscService.getSFToSFFMaping(VirtualPortId.portId(portPair.ingress()));
+            nextDeviceId = vtnRscService.getSfToSffMaping(VirtualPortId.portId(portPair.ingress()));
 
             // pack traffic treatment
             TrafficTreatment.Builder treatment = packTrafficTreatment(currentDeviceId, nextDeviceId, portPair);
@@ -228,10 +226,10 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
      *
      * @param deviceId device id
      * @param portPair port-pair
-     * @param nshSPI nsh spi
+     * @param nshSpi nsh spi
      * @return traffic treatment
      */
-    public TrafficSelector.Builder packTrafficSelector(DeviceId deviceId, PortPair portPair, NshServicePathId nshSPI) {
+    public TrafficSelector.Builder packTrafficSelector(DeviceId deviceId, PortPair portPair, NshServicePathId nshSpi) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         MacAddress dstMacAddress = virtualPortService.getPort(VirtualPortId.portId(portPair.egress())).macAddress();
         Host host = hostService.getHost(HostId.hostId(dstMacAddress));
@@ -243,7 +241,7 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
         ExtensionSelector nspSpiSelector = resolver.getExtensionSelector(NICIRA_MATCH_NSH_SPI.type());
 
         try {
-            nspSpiSelector.setPropertyValue("nshSpi", nshSPI);
+            nspSpiSelector.setPropertyValue("nshSpi", nshSpi);
         } catch (Exception e) {
             log.error("Failed to get extension instruction to set Nsh Spi Id {}", deviceId);
         }

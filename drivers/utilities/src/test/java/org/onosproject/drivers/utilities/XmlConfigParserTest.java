@@ -65,9 +65,9 @@ public class XmlConfigParserTest {
     @Test
     public void controllersConfig() {
         InputStream streamOrig = getClass().getResourceAsStream("/testConfig.xml");
-        InputStream streamCFG = XmlConfigParser.class.getResourceAsStream("/controllers.xml");
+        InputStream streamCfg = XmlConfigParser.class.getResourceAsStream("/controllers.xml");
         String config = XmlConfigParser
-                .createControllersConfig(XmlConfigParser.loadXml(streamCFG),
+                .createControllersConfig(XmlConfigParser.loadXml(streamCfg),
                                          XmlConfigParser.loadXml(streamOrig),
                                          "running", "merge", "create",
                                          new ArrayList<>(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pcepio.types;
+package org.onosproject.openstackrouting;
 
-import com.google.common.testing.EqualsTester;
-import org.junit.Test;
+import org.onosproject.net.packet.PacketContext;
 
 /**
- * Test of the OSPFareaIDsubTlv.
+ * Handle NAT packet processing for Managing Flow Rules In Openstack Nodes.
  */
-public class OSPFareaIDsubTlvTest {
-    private final int rawValue1 = 0x0A;
+public class OpenstackPnatHandler implements Runnable {
 
-    private final OSPFareaIDsubTlv tlv1 = new OSPFareaIDsubTlv(rawValue1);
-    private final OSPFareaIDsubTlv tlv2 = OSPFareaIDsubTlv.of(tlv1.getInt());
+    volatile PacketContext context;
+    OpenstackPnatHandler(PacketContext context) {
+        this.context = context;
+    }
 
-    @Test
-    public void basics() {
-        new EqualsTester()
-        .addEqualityGroup(tlv1, tlv2)
-        .testEquals();
+    @Override
+    public void run() {
+
     }
 }

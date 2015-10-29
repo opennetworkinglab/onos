@@ -15,8 +15,7 @@
  */
 package org.onosproject.bgpio.types.attr;
 
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.types.BgpErrorType;
@@ -25,7 +24,7 @@ import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
 
 /**
  * Implements BGP prefix IGP Flag attribute.
@@ -55,15 +54,15 @@ public final class BgpPrefixAttrIgpFlags implements BgpValueType {
      * @param bisisUpDownBit IS-IS Up/Down Bit
      * @param bOspfNoUnicastBit OSPF no unicast Bit
      * @param bOspfLclAddrBit OSPF local address Bit
-     * @param bOspfNSSABit OSPF propagate NSSA Bit
+     * @param bOspfNssaBit OSPF propagate NSSA Bit
      */
     public BgpPrefixAttrIgpFlags(boolean bisisUpDownBit,
                           boolean bOspfNoUnicastBit,
-                          boolean bOspfLclAddrBit, boolean bOspfNSSABit) {
+                          boolean bOspfLclAddrBit, boolean bOspfNssaBit) {
         this.bisisUpDownBit = bisisUpDownBit;
         this.bOspfNoUnicastBit = bOspfNoUnicastBit;
         this.bOspfLclAddrBit = bOspfLclAddrBit;
-        this.bOspfNSSABit = bOspfNSSABit;
+        this.bOspfNSSABit = bOspfNssaBit;
     }
 
     /**
@@ -72,15 +71,15 @@ public final class BgpPrefixAttrIgpFlags implements BgpValueType {
      * @param bisisUpDownBit IS-IS Up/Down Bit
      * @param bOspfNoUnicastBit OSPF no unicast Bit
      * @param bOspfLclAddrBit OSPF local address Bit
-     * @param bOspfNSSABit OSPF propagate NSSA Bit
+     * @param bOspfNssaBit OSPF propagate NSSA Bit
      * @return object of BgpPrefixAttrIGPFlags
      */
     public static BgpPrefixAttrIgpFlags of(final boolean bisisUpDownBit,
                                            final boolean bOspfNoUnicastBit,
                                            final boolean bOspfLclAddrBit,
-                                           final boolean bOspfNSSABit) {
+                                           final boolean bOspfNssaBit) {
         return new BgpPrefixAttrIgpFlags(bisisUpDownBit, bOspfNoUnicastBit,
-                                         bOspfLclAddrBit, bOspfNSSABit);
+                                         bOspfLclAddrBit, bOspfNssaBit);
     }
 
     /**
@@ -95,7 +94,7 @@ public final class BgpPrefixAttrIgpFlags implements BgpValueType {
         boolean bisisUpDownBit = false;
         boolean bOspfNoUnicastBit = false;
         boolean bOspfLclAddrBit = false;
-        boolean bOspfNSSABit = false;
+        boolean bOspfNssaBit = false;
 
         short lsAttrLength = cb.readShort();
 
@@ -111,10 +110,10 @@ public final class BgpPrefixAttrIgpFlags implements BgpValueType {
         bisisUpDownBit = ((nodeFlagBits & FIRST_BIT) == FIRST_BIT);
         bOspfNoUnicastBit = ((nodeFlagBits & SECOND_BIT) == SECOND_BIT);
         bOspfLclAddrBit = ((nodeFlagBits & THIRD_BIT) == THIRD_BIT);
-        bOspfNSSABit = ((nodeFlagBits & FOURTH_BIT) == FOURTH_BIT);
+        bOspfNssaBit = ((nodeFlagBits & FOURTH_BIT) == FOURTH_BIT);
 
         return BgpPrefixAttrIgpFlags.of(bisisUpDownBit, bOspfNoUnicastBit,
-                                        bOspfLclAddrBit, bOspfNSSABit);
+                                        bOspfLclAddrBit, bOspfNssaBit);
     }
 
     /**
@@ -149,7 +148,7 @@ public final class BgpPrefixAttrIgpFlags implements BgpValueType {
      *
      * @return OSPF propagate NSSA Bit set or not
      */
-    public boolean ospfNSSABit() {
+    public boolean ospfNssaBit() {
         return bOspfNSSABit;
     }
 

@@ -30,7 +30,7 @@ public class FujitsuDriversLoader extends AbstractDriverLoader {
     private static final String DRIVERS_XML = "/fujitsu-drivers.xml";
 
     @Override
-    protected InputStream loadXMLDriversStream() {
+    protected InputStream loadXmlDriversStream() {
         return getClassLoaderInstance().getResourceAsStream(DRIVERS_XML);
     }
 

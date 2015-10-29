@@ -13,10 +13,7 @@
 
 package org.onosproject.bgp.controller.impl;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
+import com.google.common.base.MoreObjects;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpId;
 import org.onosproject.bgp.controller.BgpLocalRib;
@@ -35,8 +32,11 @@ import org.onosproject.bgpio.types.RouteDistinguisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import static com.google.common.base.Preconditions.checkNotNull;
-import com.google.common.base.MoreObjects;
 
 /**
  * Implementation of local RIB.
@@ -447,7 +447,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
      *
      * @param o adjacency-in/VPN adjacency-in
      */
-    public void localRIBUpdateNode(Object o) {
+    public void localRibUpdateNode(Object o) {
 
         if (o instanceof AdjRibIn) {
             AdjRibIn adjRib = (AdjRibIn) o;
@@ -488,7 +488,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
      *
      * @param o adjacency-in/VPN adjacency-in
      */
-    public void localRIBUpdateLink(Object o) {
+    public void localRibUpdateLink(Object o) {
 
         if (o instanceof AdjRibIn) {
             AdjRibIn adjRib = (AdjRibIn) o;
@@ -529,7 +529,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
      *
      * @param o instance of adjacency-in/VPN adjacency-in
      */
-    public void localRIBUpdatePrefix(Object o) {
+    public void localRibUpdatePrefix(Object o) {
 
         if (o instanceof AdjRibIn) {
             AdjRibIn adjRib = (AdjRibIn) o;
@@ -573,12 +573,12 @@ public class BgpLocalRibImpl implements BgpLocalRib {
      *
      * @param adjRibIn adjacency RIB-in
      */
-    public void localRIBUpdate(AdjRibIn adjRibIn) {
+    public void localRibUpdate(AdjRibIn adjRibIn) {
         log.debug("Update local RIB.");
 
-        localRIBUpdateNode(adjRibIn);
-        localRIBUpdateLink(adjRibIn);
-        localRIBUpdatePrefix(adjRibIn);
+        localRibUpdateNode(adjRibIn);
+        localRibUpdateLink(adjRibIn);
+        localRibUpdatePrefix(adjRibIn);
     }
 
     /**
@@ -586,12 +586,12 @@ public class BgpLocalRibImpl implements BgpLocalRib {
      *
      * @param vpnAdjRibIn VPN adjacency RIB-in
      */
-    public void localRIBUpdate(VpnAdjRibIn vpnAdjRibIn) {
+    public void localRibUpdate(VpnAdjRibIn vpnAdjRibIn) {
         log.debug("Update VPN local RIB.");
 
-        localRIBUpdateNode(vpnAdjRibIn);
-        localRIBUpdateLink(vpnAdjRibIn);
-        localRIBUpdatePrefix(vpnAdjRibIn);
+        localRibUpdateNode(vpnAdjRibIn);
+        localRibUpdateLink(vpnAdjRibIn);
+        localRibUpdatePrefix(vpnAdjRibIn);
     }
 
     @Override

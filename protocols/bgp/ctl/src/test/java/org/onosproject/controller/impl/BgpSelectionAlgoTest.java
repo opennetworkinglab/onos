@@ -15,16 +15,12 @@
  */
 package org.onosproject.controller.impl;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-
-import java.util.LinkedList;
-
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpAddress.Version;
+import org.onosproject.bgp.controller.impl.BgpSelectionAlgo;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4.ProtocolType;
 import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
@@ -34,7 +30,11 @@ import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.LocalPref;
 import org.onosproject.bgpio.types.Med;
 import org.onosproject.bgpio.types.Origin;
-import org.onosproject.bgp.controller.impl.BgpSelectionAlgo;
+
+import java.util.LinkedList;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 
 /**
  * Test cases for BGP Selection Algorithm.
@@ -65,14 +65,14 @@ public class BgpSelectionAlgoTest {
 
         IpAddress ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         int bgpId = 168427777;
-        short locRIBASNum = 100;
+        short locRibAsNum = 100;
         boolean isIbgp = false;
         PathAttrNlriDetails attrList1 = new PathAttrNlriDetails();
         attrList1.setIdentifier(0);
         attrList1.setPathAttribute(pathAttributes1);
         attrList1.setProtocolID(ProtocolType.ISIS_LEVEL_ONE);
         PathAttrNlriDetailsLocalRib list1 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList1);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList1);
 
         peerIp = new byte[] {0x0b, 0x0b, 0x0b, 0x0b };
         LinkedList<BgpValueType> pathAttributes2 = new LinkedList<>();
@@ -92,14 +92,14 @@ public class BgpSelectionAlgoTest {
 
         ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         bgpId = 536936448;
-        locRIBASNum = 200;
+        locRibAsNum = 200;
         isIbgp = true;
         PathAttrNlriDetails attrList2 = new PathAttrNlriDetails();
         attrList2.setIdentifier(0);
         attrList2.setPathAttribute(pathAttributes2);
         attrList2.setProtocolID(ProtocolType.OSPF_V2);
         PathAttrNlriDetailsLocalRib list2 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList2);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList2);
         BgpSelectionAlgo algo = new BgpSelectionAlgo();
         int result = algo.compare(list1, list2);
         assertThat(result, is(1));
@@ -128,14 +128,14 @@ public class BgpSelectionAlgoTest {
 
         IpAddress ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         int bgpId = 168427777;
-        short locRIBASNum = 100;
+        short locRibAsNum = 100;
         boolean isIbgp = false;
         PathAttrNlriDetails attrList1 = new PathAttrNlriDetails();
         attrList1.setIdentifier(0);
         attrList1.setPathAttribute(pathAttributes1);
         attrList1.setProtocolID(ProtocolType.ISIS_LEVEL_ONE);
         PathAttrNlriDetailsLocalRib list1 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList1);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList1);
 
         peerIp = new byte[] {0x0b, 0x0b, 0x0b, 0x0b };
         LinkedList<BgpValueType> pathAttributes2 = new LinkedList<>();
@@ -153,14 +153,14 @@ public class BgpSelectionAlgoTest {
 
         ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         bgpId = 536936448;
-        locRIBASNum = 200;
+        locRibAsNum = 200;
         isIbgp = true;
         PathAttrNlriDetails attrList2 = new PathAttrNlriDetails();
         attrList2.setIdentifier(0);
         attrList2.setPathAttribute(pathAttributes2);
         attrList2.setProtocolID(ProtocolType.OSPF_V2);
         PathAttrNlriDetailsLocalRib list2 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList2);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList2);
         BgpSelectionAlgo algo = new BgpSelectionAlgo();
         int result = algo.compare(list1, list2);
         assertThat(result, is(-1));
@@ -189,14 +189,14 @@ public class BgpSelectionAlgoTest {
 
         IpAddress ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         int bgpId = 168427777;
-        short locRIBASNum = 100;
+        short locRibAsNum = 100;
         boolean isIbgp = false;
         PathAttrNlriDetails attrList1 = new PathAttrNlriDetails();
         attrList1.setIdentifier(0);
         attrList1.setPathAttribute(pathAttributes1);
         attrList1.setProtocolID(ProtocolType.ISIS_LEVEL_ONE);
         PathAttrNlriDetailsLocalRib list1 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList1);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList1);
 
         peerIp = new byte[] {0x0b, 0x0b, 0x0b, 0x0b };
         LinkedList<BgpValueType> pathAttributes2 = new LinkedList<>();
@@ -214,14 +214,14 @@ public class BgpSelectionAlgoTest {
 
         ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         bgpId = 536936448;
-        locRIBASNum = 200;
+        locRibAsNum = 200;
         isIbgp = true;
         PathAttrNlriDetails attrList2 = new PathAttrNlriDetails();
         attrList2.setIdentifier(0);
         attrList2.setPathAttribute(pathAttributes2);
         attrList2.setProtocolID(ProtocolType.OSPF_V2);
         PathAttrNlriDetailsLocalRib list2 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList2);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList2);
         BgpSelectionAlgo algo = new BgpSelectionAlgo();
         int result = algo.compare(list1, list2);
         assertThat(result, is(1));
@@ -254,14 +254,14 @@ public class BgpSelectionAlgoTest {
 
         IpAddress ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         int bgpId = 168427777;
-        short locRIBASNum = 100;
+        short locRibAsNum = 100;
         boolean isIbgp = false;
         PathAttrNlriDetails attrList1 = new PathAttrNlriDetails();
         attrList1.setIdentifier(0);
         attrList1.setPathAttribute(pathAttributes1);
         attrList1.setProtocolID(ProtocolType.ISIS_LEVEL_ONE);
         PathAttrNlriDetailsLocalRib list1 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList1);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList1);
 
         peerIp = new byte[] {0x0b, 0x0b, 0x0b, 0x0b };
         LinkedList<BgpValueType> pathAttributes2 = new LinkedList<>();
@@ -283,14 +283,14 @@ public class BgpSelectionAlgoTest {
 
         ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         bgpId = 536936448;
-        locRIBASNum = 200;
+        locRibAsNum = 200;
         isIbgp = true;
         PathAttrNlriDetails attrList2 = new PathAttrNlriDetails();
         attrList2.setIdentifier(0);
         attrList2.setPathAttribute(pathAttributes2);
         attrList2.setProtocolID(ProtocolType.OSPF_V2);
         PathAttrNlriDetailsLocalRib list2 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList2);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList2);
         BgpSelectionAlgo algo = new BgpSelectionAlgo();
         int result = algo.compare(list1, list2);
         assertThat(result, is(1));
@@ -314,14 +314,14 @@ public class BgpSelectionAlgoTest {
 
         IpAddress ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         int bgpId = 168427777;
-        short locRIBASNum = 100;
+        short locRibAsNum = 100;
         boolean isIbgp = false;
         PathAttrNlriDetails attrList1 = new PathAttrNlriDetails();
         attrList1.setIdentifier(0);
         attrList1.setPathAttribute(pathAttributes1);
         attrList1.setProtocolID(ProtocolType.ISIS_LEVEL_ONE);
         PathAttrNlriDetailsLocalRib list1 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList1);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList1);
 
         peerIp = new byte[] {0x0b, 0x0b, 0x0b, 0x0b };
         LinkedList<BgpValueType> pathAttributes2 = new LinkedList<>();
@@ -334,14 +334,14 @@ public class BgpSelectionAlgoTest {
 
         ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         bgpId = 536936448;
-        locRIBASNum = 200;
+        locRibAsNum = 200;
         isIbgp = true;
         PathAttrNlriDetails attrList2 = new PathAttrNlriDetails();
         attrList2.setIdentifier(0);
         attrList2.setPathAttribute(pathAttributes2);
         attrList2.setProtocolID(ProtocolType.OSPF_V2);
         PathAttrNlriDetailsLocalRib list2 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList2);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList2);
         BgpSelectionAlgo algo = new BgpSelectionAlgo();
         int result = algo.compare(list1, list2);
         assertThat(result, is(-1));
@@ -369,14 +369,14 @@ public class BgpSelectionAlgoTest {
 
         IpAddress ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         int bgpId = 168427777;
-        short locRIBASNum = 100;
+        short locRibAsNum = 100;
         boolean isIbgp = true;
         PathAttrNlriDetails attrList1 = new PathAttrNlriDetails();
         attrList1.setIdentifier(0);
         attrList1.setPathAttribute(pathAttributes1);
         attrList1.setProtocolID(ProtocolType.ISIS_LEVEL_ONE);
         PathAttrNlriDetailsLocalRib list1 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList1);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList1);
 
         peerIp = new byte[] {0x0b, 0x0b, 0x0b, 0x0b };
         LinkedList<BgpValueType> pathAttributes2 = new LinkedList<>();
@@ -394,14 +394,14 @@ public class BgpSelectionAlgoTest {
 
         ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         bgpId = 536936448;
-        locRIBASNum = 200;
+        locRibAsNum = 200;
         isIbgp = false;
         PathAttrNlriDetails attrList2 = new PathAttrNlriDetails();
         attrList2.setIdentifier(0);
         attrList2.setPathAttribute(pathAttributes2);
         attrList2.setProtocolID(ProtocolType.OSPF_V2);
         PathAttrNlriDetailsLocalRib list2 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, false, attrList2);
+                ipAddress, bgpId, locRibAsNum, false, attrList2);
         BgpSelectionAlgo algo = new BgpSelectionAlgo();
         int result = algo.compare(list1, list2);
         assertThat(result, is(-1));
@@ -430,14 +430,14 @@ public class BgpSelectionAlgoTest {
         IpAddress ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         //A0A0A00
         Integer bgpId = 168430080;
-        short locRIBASNum = 100;
+        short locRibAsNum = 100;
         boolean isIbgp = false;
         PathAttrNlriDetails attrList1 = new PathAttrNlriDetails();
         attrList1.setIdentifier(0);
         attrList1.setPathAttribute(pathAttributes1);
         attrList1.setProtocolID(ProtocolType.ISIS_LEVEL_ONE);
         PathAttrNlriDetailsLocalRib list1 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList1);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList1);
 
         peerIp = new byte[] {0x0b, 0x0b, 0x0b, 0x0b };
         LinkedList<BgpValueType> pathAttributes2 = new LinkedList<>();
@@ -456,14 +456,14 @@ public class BgpSelectionAlgoTest {
         ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         //B0A0A00
         bgpId = 185207296;
-        locRIBASNum = 200;
+        locRibAsNum = 200;
         isIbgp = false;
         PathAttrNlriDetails attrList2 = new PathAttrNlriDetails();
         attrList2.setIdentifier(0);
         attrList2.setPathAttribute(pathAttributes2);
         attrList2.setProtocolID(ProtocolType.OSPF_V2);
         PathAttrNlriDetailsLocalRib list2 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList2);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList2);
         BgpSelectionAlgo algo = new BgpSelectionAlgo();
         int result = algo.compare(list1, list2);
         assertThat(result, is(1));
@@ -492,14 +492,14 @@ public class BgpSelectionAlgoTest {
         IpAddress ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         //A0A0A00
         Integer bgpId = 168430080;
-        short locRIBASNum = 100;
+        short locRibAsNum = 100;
         boolean isIbgp = false;
         PathAttrNlriDetails attrList1 = new PathAttrNlriDetails();
         attrList1.setIdentifier(0);
         attrList1.setPathAttribute(pathAttributes1);
         attrList1.setProtocolID(ProtocolType.ISIS_LEVEL_ONE);
         PathAttrNlriDetailsLocalRib list1 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList1);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList1);
 
         peerIp = new byte[] {0x0a, 0x0a, 0x0a, 0x0a };
         LinkedList<BgpValueType> pathAttributes2 = new LinkedList<>();
@@ -518,14 +518,14 @@ public class BgpSelectionAlgoTest {
         ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         //A0A0A00
         bgpId = 168430080;
-        locRIBASNum = 200;
+        locRibAsNum = 200;
         isIbgp = false;
         PathAttrNlriDetails attrList2 = new PathAttrNlriDetails();
         attrList2.setIdentifier(0);
         attrList2.setPathAttribute(pathAttributes2);
         attrList2.setProtocolID(ProtocolType.OSPF_V2);
         PathAttrNlriDetailsLocalRib list2 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList2);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList2);
         BgpSelectionAlgo algo = new BgpSelectionAlgo();
         int result = algo.compare(list1, list2);
         assertThat(result, is(-1));
@@ -554,14 +554,14 @@ public class BgpSelectionAlgoTest {
         IpAddress ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         //A0A0A00
         Integer bgpId = 168430080;
-        short locRIBASNum = 100;
+        short locRibAsNum = 100;
         boolean isIbgp = false;
         PathAttrNlriDetails attrList1 = new PathAttrNlriDetails();
         attrList1.setIdentifier(0);
         attrList1.setPathAttribute(pathAttributes1);
         attrList1.setProtocolID(ProtocolType.ISIS_LEVEL_ONE);
         PathAttrNlriDetailsLocalRib list1 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList1);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList1);
 
         peerIp = new byte[] {0x0a, 0x0a, 0x0a, 0x0a };
         LinkedList<BgpValueType> pathAttributes2 = new LinkedList<>();
@@ -580,14 +580,14 @@ public class BgpSelectionAlgoTest {
         ipAddress = IpAddress.valueOf(Version.INET, peerIp);
         //A0A0A00
         bgpId = 168430080;
-        locRIBASNum = 200;
+        locRibAsNum = 200;
         isIbgp = false;
         PathAttrNlriDetails attrList2 = new PathAttrNlriDetails();
         attrList2.setIdentifier(0);
         attrList2.setPathAttribute(pathAttributes2);
         attrList2.setProtocolID(ProtocolType.OSPF_V2);
         PathAttrNlriDetailsLocalRib list2 = new PathAttrNlriDetailsLocalRib(
-                ipAddress, bgpId, locRIBASNum, isIbgp, attrList2);
+                ipAddress, bgpId, locRibAsNum, isIbgp, attrList2);
         BgpSelectionAlgo algo = new BgpSelectionAlgo();
         int result = algo.compare(list1, list2);
         assertThat(result, is(0));

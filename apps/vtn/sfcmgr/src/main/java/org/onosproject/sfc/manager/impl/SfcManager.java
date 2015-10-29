@@ -15,20 +15,14 @@
  */
 package org.onosproject.sfc.manager.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.onlab.util.KryoNamespace;
 import org.onlab.util.ItemNotFoundException;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.NshServicePathId;
@@ -38,21 +32,25 @@ import org.onosproject.sfc.installer.FlowClassifierInstallerService;
 import org.onosproject.sfc.installer.impl.FlowClassifierInstallerImpl;
 import org.onosproject.sfc.manager.NshSpiIdGenerators;
 import org.onosproject.sfc.manager.SfcService;
-import org.onosproject.vtnrsc.PortPair;
-import org.onosproject.vtnrsc.PortPairId;
-import org.onosproject.vtnrsc.PortPairGroup;
-import org.onosproject.vtnrsc.PortPairGroupId;
 import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.FlowClassifierId;
 import org.onosproject.vtnrsc.PortChain;
 import org.onosproject.vtnrsc.PortChainId;
+import org.onosproject.vtnrsc.PortPair;
+import org.onosproject.vtnrsc.PortPairGroup;
+import org.onosproject.vtnrsc.PortPairGroupId;
+import org.onosproject.vtnrsc.PortPairId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.event.VtnRscEvent;
 import org.onosproject.vtnrsc.event.VtnRscEventFeedback;
 import org.onosproject.vtnrsc.event.VtnRscListener;
 import org.onosproject.vtnrsc.service.VtnRscService;
-
 import org.slf4j.Logger;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of SFC Service.
@@ -192,18 +190,18 @@ public class SfcManager implements SfcService {
 
     @Override
     public void onPortChainCreated(PortChain portChain) {
-        NshServicePathId nshSPI;
+        NshServicePathId nshSpi;
         log.info("onPortChainCreated");
         if (nshSpiPortChainMap.containsKey(portChain.portChainId())) {
-            nshSPI = nshSpiPortChainMap.get(portChain.portChainId());
+            nshSpi = nshSpiPortChainMap.get(portChain.portChainId());
         } else {
-            nshSPI = NshServicePathId.of(NshSpiIdGenerators.create());
-            nshSpiPortChainMap.put(portChain.portChainId(), nshSPI);
+            nshSpi = NshServicePathId.of(NshSpiIdGenerators.create());
+            nshSpiPortChainMap.put(portChain.portChainId(), nshSpi);
         }
 
         // install in OVS.
-        flowClassifierInstallerService.installFlowClassifier(portChain, nshSPI);
-        serviceFunctionForwarderService.installForwardingRule(portChain, nshSPI);
+        flowClassifierInstallerService.installFlowClassifier(portChain, nshSpi);
+        serviceFunctionForwarderService.installForwardingRule(portChain, nshSpi);
     }
 
     @Override
@@ -213,12 +211,12 @@ public class SfcManager implements SfcService {
             throw new ItemNotFoundException("Unable to find NSH SPI");
         }
 
-        NshServicePathId nshSPI = nshSpiPortChainMap.get(portChain.portChainId());
+        NshServicePathId nshSpi = nshSpiPortChainMap.get(portChain.portChainId());
         // uninstall from OVS.
-        flowClassifierInstallerService.unInstallFlowClassifier(portChain, nshSPI);
-        serviceFunctionForwarderService.unInstallForwardingRule(portChain, nshSPI);
+        flowClassifierInstallerService.unInstallFlowClassifier(portChain, nshSpi);
+        serviceFunctionForwarderService.unInstallForwardingRule(portChain, nshSpi);
 
         // remove SPI. No longer it will be used.
-        nshSpiPortChainMap.remove(nshSPI);
+        nshSpiPortChainMap.remove(nshSpi);
     }
 }

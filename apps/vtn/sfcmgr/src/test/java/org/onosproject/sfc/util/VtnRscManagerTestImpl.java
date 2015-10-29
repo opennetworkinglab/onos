@@ -51,7 +51,7 @@ public class VtnRscManagerTestImpl implements VtnRscService {
     }
 
     @Override
-    public Iterator<Device> getSFFOfTenant(TenantId tenantId) {
+    public Iterator<Device> getSffOfTenant(TenantId tenantId) {
         return null;
     }
 
@@ -67,7 +67,7 @@ public class VtnRscManagerTestImpl implements VtnRscService {
     }
 
     @Override
-    public DeviceId getSFToSFFMaping(VirtualPortId portId) {
+    public DeviceId getSfToSffMaping(VirtualPortId portId) {
         return DeviceId.deviceId("www.google.com");
     }
 

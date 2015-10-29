@@ -13,27 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgpio.types;
-
-import org.junit.Test;
-import org.onlab.packet.Ip4Address;
+package org.onosproject.pcepio.types;
 
 import com.google.common.testing.EqualsTester;
+import org.junit.Test;
 
 /**
- * Test for OSPFPseudonode Tlv.
+ * Test of the MPLSProtocolMaskTlv.
  */
-public class OspfPseudonodeTest {
-    private final int value1 = 0xc3223409;
-    private final int value2 = 0xc3223406;
-    private final Ip4Address drInterface1 = Ip4Address.valueOf(0xaf91e01);
-    private final Ip4Address drInterface2 = Ip4Address.valueOf(0xaf91e02);
-    private final OspfPseudonode tlv1 = OspfPseudonode.of(value1, drInterface1);
-    private final OspfPseudonode sameAsTlv1 = OspfPseudonode.of(value1, drInterface1);
-    private final OspfPseudonode tlv2 = OspfPseudonode.of(value2, drInterface2);
+public class MplsProtocolMaskTlvTest {
+    private final byte rawValue1 = 0x0A;
+    private final byte rawValue2 = 0x0B;
+
+    private final MplsProtocolMaskTlv tlv1 = new MplsProtocolMaskTlv(rawValue1);
+    private final MplsProtocolMaskTlv sameAsTlv1 = new MplsProtocolMaskTlv(rawValue1);
+    private final MplsProtocolMaskTlv tlv2 = MplsProtocolMaskTlv.of(rawValue2);
 
     @Test
-    public void testEquality() {
+    public void basics() {
         new EqualsTester()
         .addEqualityGroup(tlv1, sameAsTlv1)
         .addEqualityGroup(tlv2)

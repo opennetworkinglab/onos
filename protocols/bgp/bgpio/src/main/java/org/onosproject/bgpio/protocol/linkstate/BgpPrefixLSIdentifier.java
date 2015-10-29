@@ -27,7 +27,7 @@ import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.types.BgpErrorType;
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.IPReachabilityInformationTlv;
-import org.onosproject.bgpio.types.OSPFRouteTypeTlv;
+import org.onosproject.bgpio.types.OspfRouteTypeTlv;
 import org.onosproject.bgpio.types.attr.BgpAttrNodeMultiTopologyId;
 import org.onosproject.bgpio.util.UnSupportedAttribute;
 import org.slf4j.Logger;
@@ -139,8 +139,8 @@ public class BgpPrefixLSIdentifier implements Comparable<Object> {
             }
             tempCb = cb.readBytes(length);
             switch (type) {
-            case OSPFRouteTypeTlv.TYPE:
-                tlv = OSPFRouteTypeTlv.read(tempCb);
+            case OspfRouteTypeTlv.TYPE:
+                tlv = OspfRouteTypeTlv.read(tempCb);
                 break;
             case IPReachabilityInformationTlv.TYPE:
                 tlv = IPReachabilityInformationTlv.read(tempCb, length);

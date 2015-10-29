@@ -21,7 +21,7 @@ import java.util.Set;
 import org.onosproject.ovsdb.rfc.notation.OvsdbMap;
 import org.onosproject.ovsdb.rfc.notation.OvsdbSet;
 import org.onosproject.ovsdb.rfc.notation.RefTableRow;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.schema.type.AtomicColumnType;
 import org.onosproject.ovsdb.rfc.schema.type.BaseType;
 import org.onosproject.ovsdb.rfc.schema.type.BooleanBaseType;
@@ -160,7 +160,7 @@ public final class TransValueUtil {
                     if (valueNode.get(0).isTextual()
                             && ("uuid".equals(valueNode.get(0).asText()) || "named-uuid"
                                     .equals(valueNode.get(0).asText()))) {
-                        return UUID.uuid(valueNode.get(1).asText());
+                        return Uuid.uuid(valueNode.get(1).asText());
                     }
                 }
             } else {

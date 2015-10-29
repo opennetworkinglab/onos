@@ -16,11 +16,11 @@
 
 package org.onosproject.bgp.controller;
 
-import java.util.Map;
-import java.util.Set;
-
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpMessage;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstraction of an BGP controller. Serves as a one stop shop for obtaining BGP devices and (un)register listeners on
@@ -72,7 +72,7 @@ public interface BgpController {
      * @param msg the message to process.
      * @throws BgpParseException on data processing error
      */
-    void processBGPPacket(BgpId bgpId, BgpMessage msg) throws BgpParseException;
+    void processBgpPacket(BgpId bgpId, BgpMessage msg) throws BgpParseException;
 
     /**
      * Close all connected BGP peers.

@@ -58,7 +58,7 @@ public class PcepUpdateTunnelProviderTest {
         tunnelProvider.tunnelProviderRegistry = registry;
         tunnelProvider.pcepClientController = controller;
         tunnelProvider.controller = ctl;
-        tunnelProvider.pcepTunnelAPIMapper = pcepTunnelAPIMapper;
+        tunnelProvider.pcepTunnelApiMapper = pcepTunnelAPIMapper;
         tunnelProvider.cfgService = new ComponentConfigAdapter();
         tunnelProvider.tunnelService = tunnelService;
         tunnelProvider.activate();
@@ -98,9 +98,9 @@ public class PcepUpdateTunnelProviderTest {
         pcepTunnelData.setPlspId(1);
         StatefulIPv4LspIdentidiersTlv tlv = new StatefulIPv4LspIdentidiersTlv(0, (short) 1, (short) 2, 3, 4);
         pcepTunnelData.setStatefulIpv4IndentifierTlv(tlv);
-        tunnelProvider.pcepTunnelAPIMapper.addToTunnelIdMap(pcepTunnelData);
+        tunnelProvider.pcepTunnelApiMapper.addToTunnelIdMap(pcepTunnelData);
 
-        tunnelProvider.pcepTunnelAPIMapper.handleCreateTunnelRequestQueue(1, pcepTunnelData);
+        tunnelProvider.pcepTunnelApiMapper.handleCreateTunnelRequestQueue(1, pcepTunnelData);
 
         tunnelProvider.updateTunnel(tunnel, path);
     }

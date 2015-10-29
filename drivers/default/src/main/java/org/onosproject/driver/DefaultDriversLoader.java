@@ -33,7 +33,7 @@ public class DefaultDriversLoader extends AbstractDriverLoader implements Defaul
     private static final String DRIVERS_XML = "/onos-drivers.xml";
 
     @Override
-    protected InputStream loadXMLDriversStream() {
+    protected InputStream loadXmlDriversStream() {
        return getClassLoaderInstance().getResourceAsStream(DRIVERS_XML);
     }
 

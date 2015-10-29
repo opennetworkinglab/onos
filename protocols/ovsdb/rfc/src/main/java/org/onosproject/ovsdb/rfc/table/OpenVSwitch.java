@@ -20,7 +20,7 @@ import java.util.Set;
 
 import org.onosproject.ovsdb.rfc.notation.Column;
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 import org.onosproject.ovsdb.rfc.tableservice.AbstractOvsdbTableService;
 import org.onosproject.ovsdb.rfc.tableservice.ColumnDescription;
@@ -85,7 +85,7 @@ public class OpenVSwitch extends AbstractOvsdbTableService {
      * attributes.
      * @param bridges the column data which column name is "bridges"
      */
-    public void setBridges(Set<UUID> bridges) {
+    public void setBridges(Set<Uuid> bridges) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              OpenVSwitchColumn.BRIDGES
                                                                      .columnName(),
@@ -114,7 +114,7 @@ public class OpenVSwitch extends AbstractOvsdbTableService {
      * attributes.
      * @param managers the column data which column name is "managers"
      */
-    public void setManagers(Set<UUID> managers) {
+    public void setManagers(Set<Uuid> managers) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              OpenVSwitchColumn.MANAGERS
                                                                      .columnName(),
@@ -144,7 +144,7 @@ public class OpenVSwitch extends AbstractOvsdbTableService {
      * @param managerOptions the column data which column name is
      *            "manager_options"
      */
-    public void setManagerOptions(Set<UUID> managerOptions) {
+    public void setManagerOptions(Set<Uuid> managerOptions) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              OpenVSwitchColumn.MANAGEROPTIONS
                                                                      .columnName(),
@@ -172,7 +172,7 @@ public class OpenVSwitch extends AbstractOvsdbTableService {
      * attributes.
      * @param ssl the column data which column name is "ssl"
      */
-    public void setSsl(Set<UUID> ssl) {
+    public void setSsl(Set<Uuid> ssl) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              OpenVSwitchColumn.SSL
                                                                      .columnName(),
@@ -313,7 +313,7 @@ public class OpenVSwitch extends AbstractOvsdbTableService {
      * of attributes.
      * @param capabilities the column data which column name is "capabilities"
      */
-    public void setCapabilities(Map<String, UUID> capabilities) {
+    public void setCapabilities(Map<String, Uuid> capabilities) {
         ColumnDescription columndesc = new ColumnDescription(
                                                              OpenVSwitchColumn.CAPABILITIES
                                                                      .columnName(),

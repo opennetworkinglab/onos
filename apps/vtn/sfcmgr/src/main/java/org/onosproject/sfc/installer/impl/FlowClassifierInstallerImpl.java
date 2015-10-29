@@ -15,20 +15,10 @@
  */
 package org.onosproject.sfc.installer.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SI;
-import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI;
-import static org.slf4j.LoggerFactory.getLogger;
-
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-
-import org.apache.felix.scr.annotations.Component;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
@@ -41,8 +31,8 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.NshServicePathId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -72,8 +62,16 @@ import org.onosproject.vtnrsc.portpair.PortPairService;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
 import org.onosproject.vtnrsc.service.VtnRscService;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
-
 import org.slf4j.Logger;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SI;
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides flow classifier installer implementation.
@@ -175,7 +173,7 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
     }
 
     @Override
-    public void prepareFlowClassification(FlowClassifier flowClassifier, PortPair portPair, NshServicePathId nshSPI,
+    public void prepareFlowClassification(FlowClassifier flowClassifier, PortPair portPair, NshServicePathId nshSpi,
                                           Operation type) {
         DeviceId deviceId = null;
         // device id if virtual ports are set in flow classifier.
@@ -187,10 +185,10 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
         TpPort nshDstPort = TpPort.tpPort(6633);
 
         if ((flowClassifier.srcPort() != null) && (!flowClassifier.srcPort().portId().isEmpty())) {
-            deviceIdfromFc = vtnRscService.getSFToSFFMaping(flowClassifier.srcPort());
+            deviceIdfromFc = vtnRscService.getSfToSffMaping(flowClassifier.srcPort());
             deviceId = deviceIdfromFc;
         } else {
-            deviceIdfromPp = vtnRscService.getSFToSFFMaping(VirtualPortId.portId(portPair.ingress()));
+            deviceIdfromPp = vtnRscService.getSfToSffMaping(VirtualPortId.portId(portPair.ingress()));
             srcMacAddress = virtualPortService.getPort(VirtualPortId.portId(portPair.egress())).macAddress();
             deviceId = deviceIdfromPp;
         }
@@ -200,7 +198,7 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
 
         // Build traffic treatment.
         TrafficTreatment.Builder treatment = packTrafficTreatment(deviceId, srcMacAddress, nshDstPort, deviceIdfromFc,
-                                                                  deviceIdfromPp, nshSPI, flowClassifier);
+                                                                  deviceIdfromPp, nshSpi, flowClassifier);
 
         // Build forwarding objective and send to OVS.
         sendServiceFunctionForwarder(selector, treatment, deviceId, type);
@@ -266,13 +264,13 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
      * @param nshDstPort vxlan tunnel port for nsh header
      * @param deviceIdfromFc device id if virtual ports are set in flow classifier.
      * @param deviceIdfromPp device id if port pair is used to fetch device id.
-     * @param nshSPI nsh spi
+     * @param nshSpi nsh spi
      * @param flowClassifier flow-classifier
      * @return traffic treatment
      */
     public TrafficTreatment.Builder packTrafficTreatment(DeviceId deviceId, MacAddress srcMacAddress,
                                                TpPort nshDstPort, DeviceId deviceIdfromFc, DeviceId deviceIdfromPp,
-                                               NshServicePathId nshSPI, FlowClassifier flowClassifier) {
+                                               NshServicePathId nshSpi, FlowClassifier flowClassifier) {
         TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
 
         Host host = hostService.getHost(HostId.hostId(srcMacAddress));
@@ -295,7 +293,7 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
         treatmentBuilder.setUdpDst(nshDstPort);
 
         try {
-            nspIdTreatment.setPropertyValue("nshSpi", nshSPI);
+            nspIdTreatment.setPropertyValue("nshSpi", nshSpi);
         } catch (Exception e) {
             log.error("Failed to get extension instruction to set Nsh Spi Id {}", deviceId);
         }

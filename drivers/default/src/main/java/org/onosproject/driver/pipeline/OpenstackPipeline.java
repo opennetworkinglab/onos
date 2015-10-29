@@ -134,11 +134,11 @@ public class OpenstackPipeline extends DefaultSingleTablePipeline
     }
 
     private void initializePipeline() {
-        processVNITable(true);
+        processVniTable(true);
         processForwardingTable(true);
     }
 
-    private void processVNITable(boolean install) {
+    private void processVniTable(boolean install) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
 

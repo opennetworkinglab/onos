@@ -30,7 +30,7 @@ public class CienaDriversLoader extends AbstractDriverLoader {
     private static final String DRIVERS_XML = "/ciena-drivers.xml";
 
     @Override
-    protected InputStream loadXMLDriversStream() {
+    protected InputStream loadXmlDriversStream() {
         return getClassLoaderInstance().getResourceAsStream(DRIVERS_XML);
     }
 

@@ -22,20 +22,20 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.onosproject.ovsdb.rfc.notation.Row;
-import org.onosproject.ovsdb.rfc.notation.UUID;
+import org.onosproject.ovsdb.rfc.notation.Uuid;
 
 /**
  * TableUpdate is an object that maps from the row's UUID to a RowUpdate object.
  */
 public final class TableUpdate {
 
-    private final Map<UUID, RowUpdate> rows;
+    private final Map<Uuid, RowUpdate> rows;
 
     /**
      * Constructs a TableUpdate object.
      * @param rows the parameter of TableUpdate entity
      */
-    private TableUpdate(Map<UUID, RowUpdate> rows) {
+    private TableUpdate(Map<Uuid, RowUpdate> rows) {
         this.rows = rows;
     }
 
@@ -44,7 +44,7 @@ public final class TableUpdate {
      * @param rows the parameter of TableUpdate entity
      * @return TableUpdate entity
      */
-    public static TableUpdate tableUpdate(Map<UUID, RowUpdate> rows) {
+    public static TableUpdate tableUpdate(Map<Uuid, RowUpdate> rows) {
         checkNotNull(rows, "rows cannot be null");
         return new TableUpdate(rows);
     }
@@ -54,7 +54,7 @@ public final class TableUpdate {
      * @param uuid the key of rows
      * @return Row old row
      */
-    public Row getOld(UUID uuid) {
+    public Row getOld(Uuid uuid) {
         RowUpdate rowUpdate = rows.get(uuid);
         if (rowUpdate == null) {
             return null;
@@ -67,7 +67,7 @@ public final class TableUpdate {
      * @param uuid the key of rows
      * @return Row new row
      */
-    public Row getNew(UUID uuid) {
+    public Row getNew(Uuid uuid) {
         RowUpdate rowUpdate = rows.get(uuid);
         if (rowUpdate == null) {
             return null;
@@ -79,7 +79,7 @@ public final class TableUpdate {
      * Return rows.
      * @return rows
      */
-    public Map<UUID, RowUpdate> rows() {
+    public Map<Uuid, RowUpdate> rows() {
         return rows;
     }
 

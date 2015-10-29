@@ -26,5 +26,5 @@ public interface PcepLinkListener {
      *
      * @param link pcep link
      */
-    void handlePCEPlink(PcepLink link);
+    void handlePceplink(PcepLink link);
 }

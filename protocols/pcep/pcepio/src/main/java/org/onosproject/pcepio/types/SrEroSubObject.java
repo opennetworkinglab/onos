@@ -16,15 +16,14 @@
 
 package org.onosproject.pcepio.types;
 
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.protocol.PcepNai;
 import org.onosproject.pcepio.protocol.PcepVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
 
 /**
  * Provides SrEroSubObject.
@@ -185,7 +184,7 @@ public class SrEroSubObject implements PcepValueType {
      * Returns sID.
      * @return sID
      */
-    public int getSID() {
+    public int getSid() {
         return sID;
     }
 

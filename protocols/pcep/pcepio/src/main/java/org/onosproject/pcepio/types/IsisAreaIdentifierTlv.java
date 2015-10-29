@@ -15,64 +15,69 @@
  */
 package org.onosproject.pcepio.types;
 
-import java.util.Arrays;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.protocol.PcepVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.MoreObjects.ToStringHelper;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
- * Provides IGP Link Metric .
+ * Provides ISIS Area Identifier.
  */
-public class IGPMetricTlv implements PcepValueType {
+public class IsisAreaIdentifierTlv implements PcepValueType {
 
-    /* Reference :[I-D.ietf-idr-ls-distribution] /3.3.2.4
-     *  0                   1                   2                   3
+    /* Reference :[I-D.ietf-idr- ls-distribution]/3.3.1.2
+     * 0                   1                   2                   3
       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     |              Type=TDB40             |             Length      |
+     |              Type=[TBD24]    |             Length            |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-     //      IGP Link Metric (variable length)      //
-     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     //                 Area Identifier (variable)                  //
+     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(IGPMetricTlv.class);
+    protected static final Logger log = LoggerFactory.getLogger(IsisAreaIdentifierTlv.class);
 
-    public static final short TYPE = 1095; //TODO:NEED TO HANDLE TDB40
+    public static final short TYPE = 107; //TODO:NEED TO HANDLE TBD24
     private short hLength;
 
     private final byte[] rawValue;
 
     /**
-     * Constructor to initialize raw value.
+     * Constructor to initialize rawValue.
      *
-     * @param rawValue IGP Link Metric
+     * @param rawValue ISIS-Area-Identifier
      * @param hLength length
      */
-    public IGPMetricTlv(byte[] rawValue, short hLength) {
+    public IsisAreaIdentifierTlv(byte[] rawValue, short hLength) {
+        log.debug("ISISAreaIdentifierTlv");
         this.rawValue = rawValue;
-        this.hLength = hLength;
+        if (0 == hLength) {
+            this.hLength = (short) rawValue.length;
+        } else {
+            this.hLength = hLength;
+        }
     }
 
     /**
-     * Returns newly created IGPMetricTlv object.
+     * Returns newly created ISISAreaIdentifierTlv object.
      *
-     * @param raw value of IGP Link Metric
+     * @param raw ISIS-Area-Identifier
      * @param hLength length
-     * @return object of IGPMetricTlv
+     * @return object of ISISAreaIdentifierTlv
      */
-    public static IGPMetricTlv of(final byte[] raw, short hLength) {
-        return new IGPMetricTlv(raw, hLength);
+    public static IsisAreaIdentifierTlv of(final byte[] raw, short hLength) {
+        return new IsisAreaIdentifierTlv(raw, hLength);
     }
 
     /**
-     * Returns value of IGP Link Metric.
+     * Returns value of ISIS-Area-Identifier.
      *
-     * @return rawValue of IGP Link Metric
+     * @return byte array of rawValue
      */
     public byte[] getValue() {
         return rawValue;
@@ -95,7 +100,7 @@ public class IGPMetricTlv implements PcepValueType {
 
     @Override
     public int hashCode() {
-        return  Arrays.hashCode(rawValue);
+        return Objects.hash(Arrays.hashCode(rawValue), rawValue.length);
     }
 
     @Override
@@ -103,9 +108,9 @@ public class IGPMetricTlv implements PcepValueType {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof IGPMetricTlv) {
-            IGPMetricTlv other = (IGPMetricTlv) obj;
-            return Arrays.equals(rawValue, other.rawValue);
+        if (obj instanceof IsisAreaIdentifierTlv) {
+            IsisAreaIdentifierTlv other = (IsisAreaIdentifierTlv) obj;
+            return Objects.equals(hLength, other.hLength) && Arrays.equals(rawValue, other.rawValue);
         }
         return false;
     }
@@ -120,16 +125,16 @@ public class IGPMetricTlv implements PcepValueType {
     }
 
     /**
-     * Reads the channel buffer and returns object of IGPMetricTlv.
+     * Reads the channel buffer and returns object of ISISAreaIdentifierTlv.
      *
      * @param c input channel buffer
      * @param hLength length
-     * @return object of IGPMetricTlv
+     * @return object of ISISAreaIdentifierTlv
      */
     public static PcepValueType read(ChannelBuffer c, short hLength) {
-        byte[] iIGPMetric = new byte[hLength];
-        c.readBytes(iIGPMetric, 0, hLength);
-        return new IGPMetricTlv(iIGPMetric, hLength);
+        byte[] iIsisAreaIdentifier = new byte[hLength];
+        c.readBytes(iIsisAreaIdentifier, 0, hLength);
+        return new IsisAreaIdentifierTlv(iIsisAreaIdentifier, hLength);
     }
 
     @Override
