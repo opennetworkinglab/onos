@@ -19,6 +19,9 @@ import org.onosproject.store.StoreDelegate;
 
 /**
  * Link resource store delegate abstraction.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public interface LinkResourceStoreDelegate extends StoreDelegate<LinkResourceEvent> {
 }

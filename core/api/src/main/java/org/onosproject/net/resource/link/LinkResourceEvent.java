@@ -23,7 +23,10 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * Describes an event related to a Link Resource.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public final class LinkResourceEvent
        extends AbstractEvent<LinkResourceEvent.Type, Collection<LinkResourceAllocations>> {
 

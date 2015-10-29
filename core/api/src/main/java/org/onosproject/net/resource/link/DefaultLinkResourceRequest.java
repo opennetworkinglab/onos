@@ -39,7 +39,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Implementation of {@link LinkResourceRequest}.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public final class DefaultLinkResourceRequest implements LinkResourceRequest {
 
     private final IntentId intentId;

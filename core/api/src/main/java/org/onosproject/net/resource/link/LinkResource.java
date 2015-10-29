@@ -17,6 +17,9 @@ package org.onosproject.net.resource.link;
 
 /**
  * Abstraction of link resource.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public interface LinkResource {
 }

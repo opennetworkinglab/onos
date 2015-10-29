@@ -23,7 +23,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Representation of bandwidth resource in bps.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public final class BandwidthResource implements LinkResource {
 
     private final Bandwidth bandwidth;

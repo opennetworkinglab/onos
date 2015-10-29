@@ -19,7 +19,10 @@ import java.util.Set;
 
 /**
  * Abstraction of a resources of a link.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public interface LinkResources {
 
     /**
@@ -31,7 +34,10 @@ public interface LinkResources {
 
     /**
      * Builder of {@link LinkResources}.
+     *
+     * @deprecated in Emu Release
      */
+    @Deprecated
     interface Builder {
 
         /**

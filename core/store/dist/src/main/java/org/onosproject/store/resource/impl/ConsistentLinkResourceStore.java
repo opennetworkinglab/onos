@@ -72,7 +72,10 @@ import static org.onosproject.net.AnnotationKeys.BANDWIDTH;
 
 /**
  * Store that manages link resources using Copycat-backed TransactionalMaps.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 @Component(immediate = true, enabled = true)
 @Service
 public class ConsistentLinkResourceStore extends

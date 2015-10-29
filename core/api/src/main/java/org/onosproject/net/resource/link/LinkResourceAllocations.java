@@ -25,7 +25,10 @@ import org.onosproject.net.resource.ResourceRequest;
 
 /**
  * Representation of allocated link resources.
+ *
+ * @deprecated
  */
+@Deprecated
 public interface LinkResourceAllocations extends ResourceAllocation {
 
     /**

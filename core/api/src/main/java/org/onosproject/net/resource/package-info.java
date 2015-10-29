@@ -16,5 +16,9 @@
 
 /**
  * Abstractions for reserving network resources.
+ * <p>
+ * Note: Classes under the package will be removed.
+ * Developers should not use the classes.
+ * </p>
  */
 package org.onosproject.net.resource;

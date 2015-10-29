@@ -24,7 +24,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Representation of a request for lambda resource.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public class MplsLabelResourceRequest implements ResourceRequest {
 
     private final MplsLabel mplsLabel;

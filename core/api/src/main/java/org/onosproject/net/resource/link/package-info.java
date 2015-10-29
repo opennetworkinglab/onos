@@ -17,5 +17,11 @@
 /**
  * Services for reserving links and their capacity as network resources,
  * e.g.&nbsp;bandwidth, lambdas.
+ * <p>
+ * Note: Classes under the package will be remove.
+ * Developers should not use the classes.
+ * This package is marked as deprecated in Emu Release.
+ * </p>
  */
+@Deprecated
 package org.onosproject.net.resource.link;

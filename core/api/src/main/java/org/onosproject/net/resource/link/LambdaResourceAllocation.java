@@ -23,7 +23,10 @@ import java.util.Objects;
 
 /**
  * Representation of allocated lambda resource.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public class LambdaResourceAllocation implements ResourceAllocation {
     private final LambdaResource lambda;
 

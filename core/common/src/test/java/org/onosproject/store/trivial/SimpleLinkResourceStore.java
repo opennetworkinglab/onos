@@ -52,7 +52,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages link resources using trivial in-memory structures implementation.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 @Component(immediate = true)
 @Service
 public class SimpleLinkResourceStore implements LinkResourceStore {

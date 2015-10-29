@@ -20,7 +20,10 @@ import java.util.Objects;
 
 /**
  * Representation of MPLS label resource.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public final class MplsLabel implements LinkResource {
 
     private final org.onlab.packet.MplsLabel mplsLabel;

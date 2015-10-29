@@ -23,7 +23,10 @@ import java.util.Objects;
 
 /**
  * Representation of allocated bandwidth resource.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public class BandwidthResourceAllocation implements ResourceAllocation {
     private final BandwidthResource bandwidth;
 

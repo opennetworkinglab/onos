@@ -23,7 +23,10 @@ import org.onosproject.net.resource.ResourceType;
 
 /**
  * Representation of a request for bandwidth resource.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public class BandwidthResourceRequest implements ResourceRequest {
     private final BandwidthResource bandwidth;
 

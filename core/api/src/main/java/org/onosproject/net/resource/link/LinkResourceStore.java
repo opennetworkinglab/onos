@@ -23,7 +23,10 @@ import org.onosproject.net.resource.ResourceAllocation;
 
 /**
  * Manages link resources.
+ *
+ * @deprecated in Emu Release.
  */
+@Deprecated
 public interface LinkResourceStore {
     /**
      * Returns free resources for given link.

@@ -19,6 +19,9 @@ import org.onosproject.event.EventListener;
 
 /**
  * Entity for receiving link resource events.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public interface LinkResourceListener extends EventListener<LinkResourceEvent> {
 }

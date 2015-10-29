@@ -27,7 +27,10 @@ import org.onosproject.net.resource.ResourceRequest;
 
 /**
  * Representation of a request for link resource.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public interface LinkResourceRequest extends ResourceRequest {
 
     /**

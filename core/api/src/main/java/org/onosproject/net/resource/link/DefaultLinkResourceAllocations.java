@@ -36,7 +36,10 @@ import java.util.Set;
 
 /**
  * Implementation of {@link LinkResourceAllocations}.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public class DefaultLinkResourceAllocations implements LinkResourceAllocations {
     private final LinkResourceRequest request;
     // TODO: probably should be using LinkKey instead

@@ -24,7 +24,10 @@ import java.util.Objects;
 
 /**
  * Representation of allocated MPLS label resource.
+ *
+ * @deprecated in Emu Release
  */
+@Deprecated
 public class MplsLabelResourceAllocation implements ResourceAllocation {
     private final MplsLabel mplsLabel;
 
