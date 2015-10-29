@@ -21,14 +21,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Objects;
 
 /**
- * The class representing a port number. This class is immutable.
+ * The class representing a port number.
+ * This class is immutable.
  */
 public final class OvsdbPortName {
 
     private final String value;
 
     /**
-     * Constructor from a String port name.
+     * Constructor from a String.
      *
      * @param value the port name to use
      */
@@ -38,9 +39,9 @@ public final class OvsdbPortName {
     }
 
     /**
-     * Gets the value of the port name.
+     * Gets the value of port name.
      *
-     * @return the value of the port name
+     * @return the value of port name
      */
     public String value() {
         return value;

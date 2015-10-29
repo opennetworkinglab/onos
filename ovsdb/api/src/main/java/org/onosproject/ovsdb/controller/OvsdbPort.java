@@ -29,7 +29,7 @@ public final class OvsdbPort {
     private final OvsdbPortName portName;
 
     /**
-     * Constructor from a OvsdbPortNumber portNumber, OvsdbPortName portName.
+     * Constructor from  OvsdbPortNumber portNumber, OvsdbPortName portName.
      *
      * @param portNumber the portNumber to use
      * @param portName the portName to use
@@ -42,18 +42,18 @@ public final class OvsdbPort {
     }
 
     /**
-     * Gets the port number of the port.
+     * Gets the port number of port.
      *
-     * @return the port number of the port
+     * @return the port number of port
      */
     public OvsdbPortNumber portNumber() {
         return portNumber;
     }
 
     /**
-     * Gets the port name of the port.
+     * Gets the port name of port.
      *
-     * @return the port name of the port
+     * @return the port name of port
      */
     public OvsdbPortName portName() {
         return portName;

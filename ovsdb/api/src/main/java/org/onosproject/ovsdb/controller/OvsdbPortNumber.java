@@ -20,14 +20,15 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import java.util.Objects;
 
 /**
- * The class representing a port number. This class is immutable.
+ * The class representing a port number.
+ * This class is immutable.
  */
 public final class OvsdbPortNumber {
 
     private final long value;
 
     /**
-     * Constructor from a long port number.
+     * Constructor from a long value.
      *
      * @param value the port number to use
      */
@@ -36,9 +37,9 @@ public final class OvsdbPortNumber {
     }
 
     /**
-     * Gets the value of the port number.
+     * Gets the value of port number.
      *
-     * @return the value of the port number
+     * @return the value of port number
      */
     public long value() {
         return value;
