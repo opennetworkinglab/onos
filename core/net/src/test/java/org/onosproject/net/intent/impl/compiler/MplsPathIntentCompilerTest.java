@@ -41,10 +41,8 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentExtensionService;
-import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.MplsPathIntent;
-import org.onosproject.store.trivial.SimpleLinkStore;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -52,6 +50,7 @@ import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.PID;
@@ -61,10 +60,12 @@ public class MplsPathIntentCompilerTest {
 
     private final ApplicationId appId = new TestApplicationId("test");
 
+    private final ConnectPoint d1pi = connectPoint("s1", 100);
     private final ConnectPoint d1p1 = connectPoint("s1", 0);
     private final ConnectPoint d2p0 = connectPoint("s2", 0);
     private final ConnectPoint d2p1 = connectPoint("s2", 1);
     private final ConnectPoint d3p1 = connectPoint("s3", 1);
+    private final ConnectPoint d3pe = connectPoint("s3", 100);
 
     private final TrafficSelector selector = DefaultTrafficSelector.builder().build();
     private final TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
@@ -75,8 +76,10 @@ public class MplsPathIntentCompilerTest {
             Optional.of(MplsLabel.mplsLabel(20));
 
     private final List<Link> links = Arrays.asList(
+            createEdgeLink(d1pi, true),
             new DefaultLink(PID, d1p1, d2p0, DIRECT),
-            new DefaultLink(PID, d2p1, d3p1, DIRECT)
+            new DefaultLink(PID, d2p1, d3p1, DIRECT),
+            createEdgeLink(d3pe, false)
     );
 
     private IdGenerator idGenerator = new MockIdGenerator();
@@ -92,8 +95,7 @@ public class MplsPathIntentCompilerTest {
         expect(coreService.registerApplication("org.onosproject.net.intent"))
                 .andReturn(appId);
         sut.coreService = coreService;
-        sut.linkStore = new SimpleLinkStore();
-        sut.resourceService = new IntentTestsMocks.MockResourceService();
+        sut.resourceService = new MockResourceService();
 
         Intent.bindIdGenerator(idGenerator);
 
@@ -128,7 +130,7 @@ public class MplsPathIntentCompilerTest {
         assertThat(compiled, hasSize(1));
 
         Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
-        assertThat(rules, hasSize(1));
+        assertThat(rules, hasSize(3));
 
         FlowRule rule = rules.stream()
                 .filter(x -> x.deviceId().equals(d2p0.deviceId()))
@@ -139,4 +141,5 @@ public class MplsPathIntentCompilerTest {
         sut.deactivate();
 
     }
+
 }
