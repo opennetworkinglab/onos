@@ -15,10 +15,10 @@
  */
 package org.onosproject.vtnrsc;
 
-import java.util.Objects;
-import java.util.UUID;
-
 import com.google.common.base.MoreObjects;
+
+import java.util.UUID;
+import java.util.Objects;
 
 /**
  * Flow classification identifier.
@@ -54,6 +54,15 @@ public final class FlowClassifierId {
      */
     public static FlowClassifierId flowClassifierId(final String flowClassifierId) {
         return new FlowClassifierId(UUID.fromString(flowClassifierId));
+    }
+
+    /**
+     * Returns the value of flow classifier id.
+     *
+     * @return flow classifier id.
+     */
+    public UUID value() {
+        return flowClassifierId;
     }
 
     @Override
