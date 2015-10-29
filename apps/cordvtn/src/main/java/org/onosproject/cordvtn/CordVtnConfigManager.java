@@ -110,7 +110,7 @@ public class CordVtnConfigManager {
                     break;
                 case CONFIG_UPDATED:
                     log.info("Network configuration updated");
-                    // TODO handle update event
+                    readConfiguration();
                     break;
                 default:
                     break;

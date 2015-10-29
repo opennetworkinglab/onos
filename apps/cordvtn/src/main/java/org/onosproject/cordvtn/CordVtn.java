@@ -23,17 +23,27 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
+import org.onosproject.net.behaviour.BridgeConfig;
+import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.net.behaviour.DefaultTunnelDescription;
+import org.onosproject.net.behaviour.TunnelConfig;
+import org.onosproject.net.behaviour.TunnelDescription;
+import org.onosproject.net.behaviour.TunnelName;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
@@ -58,6 +68,7 @@ import java.util.concurrent.Executors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.Device.Type.SWITCH;
+import static org.onosproject.net.behaviour.TunnelDescription.Type.VXLAN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -79,7 +90,6 @@ public class CordVtn implements CordVtnService {
     private static final Map<String, String> DEFAULT_TUNNEL_OPTIONS = new HashMap<String, String>() {
         {
             put("key", "flow");
-            put("local_ip", "flow");
             put("remote_ip", "flow");
         }
     };
@@ -97,6 +107,9 @@ public class CordVtn implements CordVtnService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OvsdbController controller;
@@ -213,8 +226,8 @@ public class CordVtn implements CordVtnService {
         if (deviceService.getDevice(ovsdb.intBrId()) == null ||
                 !deviceService.isAvailable(ovsdb.intBrId())) {
             createIntegrationBridge(ovsdb);
-        } else if (!checkVxlanPort(ovsdb)) {
-            createVxlanPort(ovsdb);
+        } else if (!checkVxlanInterface(ovsdb)) {
+            createVxlanInterface(ovsdb);
         }
     }
 
@@ -272,26 +285,41 @@ public class CordVtn implements CordVtnService {
                 });
         String dpid = ovsdb.intBrId().toString().substring(DPID_BEGIN);
 
-        // TODO change to use bridge config
-        OvsdbClientService ovsdbClient = getOvsdbClient(ovsdb);
-        ovsdbClient.createBridge(DEFAULT_BRIDGE_NAME, dpid, controllers);
-    }
-
-    private void createVxlanPort(OvsdbNode ovsdb) {
-        // TODO change to use tunnel config and tunnel description
-        OvsdbClientService ovsdbClient = getOvsdbClient(ovsdb);
-        ovsdbClient.createTunnel(DEFAULT_BRIDGE_NAME, DEFAULT_TUNNEL,
-                                 DEFAULT_TUNNEL, DEFAULT_TUNNEL_OPTIONS);
-    }
-
-    private boolean checkVxlanPort(OvsdbNode ovsdb) {
-        // TODO change to use tunnel config
-        OvsdbClientService ovsdbClient = getOvsdbClient(ovsdb);
         try {
-            ovsdbClient.getPorts().stream()
-                    .filter(p -> p.portName().value().equals(DEFAULT_TUNNEL))
-                    .findFirst().get();
-        } catch (NoSuchElementException e) {
+            DriverHandler handler = driverService.createHandler(ovsdb.deviceId());
+            BridgeConfig bridgeConfig =  handler.behaviour(BridgeConfig.class);
+            bridgeConfig.addBridge(BridgeName.bridgeName(DEFAULT_BRIDGE_NAME), dpid, controllers);
+        } catch (ItemNotFoundException e) {
+            log.warn("Failed to create integration bridge on {}", ovsdb.deviceId());
+        }
+    }
+
+    private void createVxlanInterface(OvsdbNode ovsdb) {
+        DefaultAnnotations.Builder optionBuilder = DefaultAnnotations.builder();
+        for (String key : DEFAULT_TUNNEL_OPTIONS.keySet()) {
+            optionBuilder.set(key, DEFAULT_TUNNEL_OPTIONS.get(key));
+        }
+        TunnelDescription description =
+                new DefaultTunnelDescription(null, null, VXLAN,
+                                             TunnelName.tunnelName(DEFAULT_TUNNEL),
+                                             optionBuilder.build());
+        try {
+            DriverHandler handler = driverService.createHandler(ovsdb.deviceId());
+            TunnelConfig tunnelConfig =  handler.behaviour(TunnelConfig.class);
+            tunnelConfig.createTunnelInterface(BridgeName.bridgeName(DEFAULT_BRIDGE_NAME), description);
+        } catch (ItemNotFoundException e) {
+            log.warn("Failed to create VXLAN interface on {}", ovsdb.deviceId());
+        }
+    }
+
+    private boolean checkVxlanInterface(OvsdbNode ovsdb) {
+        try {
+            DriverHandler handler = driverService.createHandler(ovsdb.deviceId());
+            BridgeConfig bridgeConfig = handler.behaviour(BridgeConfig.class);
+            bridgeConfig.getPorts().stream()
+                    .filter(p -> p.annotations().value("portName").equals(DEFAULT_TUNNEL))
+                    .findAny().get();
+        } catch (ItemNotFoundException | NoSuchElementException e) {
             return false;
         }
         return true;
@@ -374,8 +402,8 @@ public class CordVtn implements CordVtnService {
                 return;
             }
 
-            if (!checkVxlanPort(ovsdb)) {
-                createVxlanPort(ovsdb);
+            if (!checkVxlanInterface(ovsdb)) {
+                createVxlanInterface(ovsdb);
             }
         }
 
