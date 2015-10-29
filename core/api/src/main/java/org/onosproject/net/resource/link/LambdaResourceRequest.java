@@ -67,6 +67,7 @@ public class LambdaResourceRequest implements ResourceRequest {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+                .add("lambda", lambda)
                 .toString();
     }
 }
