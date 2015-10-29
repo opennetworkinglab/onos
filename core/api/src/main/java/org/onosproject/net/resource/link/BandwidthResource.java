@@ -16,7 +16,7 @@
 package org.onosproject.net.resource.link;
 
 import org.onlab.util.Bandwidth;
-
+import org.onlab.util.DataRateUnit;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -40,6 +40,17 @@ public final class BandwidthResource implements LinkResource {
     // Constructor for serialization
     private BandwidthResource() {
         this.bandwidth = null;
+    }
+
+    /**
+     * Creates a new bandwidth resource.
+     *
+     * @param v         amount of bandwidth to request
+     * @param unit      {@link DataRateUnit} of {@code v}
+     * @return  {@link BandwidthResource} instance with given bandwidth
+     */
+    public static BandwidthResource of(double v, DataRateUnit unit) {
+        return new BandwidthResource(Bandwidth.of(v, unit));
     }
 
     /**

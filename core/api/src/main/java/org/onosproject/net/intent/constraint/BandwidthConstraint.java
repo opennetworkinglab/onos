@@ -16,6 +16,8 @@
 package org.onosproject.net.intent.constraint;
 
 import com.google.common.annotations.Beta;
+
+import org.onlab.util.DataRateUnit;
 import org.onosproject.net.Link;
 import org.onosproject.net.resource.link.BandwidthResource;
 import org.onosproject.net.resource.link.BandwidthResourceRequest;
@@ -32,7 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Constraint that evaluates links based on available bandwidths.
  */
 @Beta
-public class BandwidthConstraint extends BooleanConstraint {
+public final class BandwidthConstraint extends BooleanConstraint {
 
     private final BandwidthResource bandwidth;
 
@@ -43,6 +45,17 @@ public class BandwidthConstraint extends BooleanConstraint {
      */
     public BandwidthConstraint(BandwidthResource bandwidth) {
         this.bandwidth = checkNotNull(bandwidth, "Bandwidth cannot be null");
+    }
+
+    /**
+     * Creates a new bandwidth constraint.
+     *
+     * @param v         required amount of bandwidth
+     * @param unit      {@link DataRateUnit} of {@code v}
+     * @return  {@link BandwidthConstraint} instance with given bandwidth requirement
+     */
+    public static BandwidthConstraint of(double v, DataRateUnit unit) {
+        return new BandwidthConstraint(BandwidthResource.of(v, unit));
     }
 
     // Constructor for serialization

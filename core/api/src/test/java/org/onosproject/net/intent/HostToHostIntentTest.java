@@ -16,14 +16,12 @@
 package org.onosproject.net.intent;
 
 import org.junit.Test;
-import org.onlab.util.Bandwidth;
+import org.onlab.util.DataRateUnit;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
-import org.onosproject.net.resource.link.BandwidthResource;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
 
@@ -109,8 +107,7 @@ public class HostToHostIntentTest extends IntentTest {
 
     @Test
     public void testImplicitConstraintsAreAdded() {
-        final BandwidthConstraint other = new BandwidthConstraint(
-                                           new BandwidthResource(Bandwidth.gbps(1)));
+        final Constraint other = BandwidthConstraint.of(1, DataRateUnit.GBPS);
         final HostToHostIntent intent = HostToHostIntent.builder()
                 .appId(APPID)
                 .one(id1)

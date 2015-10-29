@@ -42,6 +42,17 @@ public final class Bandwidth implements RichComparable<Bandwidth> {
     }
 
     /**
+     * Creates a new instance with given bandwidth.
+     *
+     * @param v         bandwidth value
+     * @param unit      {@link DataRateUnit} of {@code v}
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    public static Bandwidth of(double v, DataRateUnit unit) {
+        return new Bandwidth(unit.toBitsPerSecond(v));
+    }
+
+    /**
      * Creates a new instance with given bandwidth in bps.
      *
      * @param bps bandwidth value to be assigned
