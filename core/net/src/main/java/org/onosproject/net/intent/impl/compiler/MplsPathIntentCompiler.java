@@ -47,6 +47,7 @@ import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.MplsPathIntent;
 import org.onosproject.net.link.LinkStore;
+import org.onosproject.net.resource.ResourceRequest;
 import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.resource.link.LinkResourceRequest;
@@ -55,13 +56,18 @@ import org.onosproject.net.resource.link.MplsLabel;
 import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceType;
+import org.onosproject.net.resource.link.MplsLabelResourceRequest;
 import org.slf4j.Logger;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -117,11 +123,34 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
             linkRequest.add(linkStore.getLink(link.dst(), link.src()));
         }
 
-        LinkResourceRequest.Builder request = DefaultLinkResourceRequest
-                .builder(intent.id(), linkRequest).addMplsRequest();
-        LinkResourceAllocations reqMpls = resourceService
-                .requestResources(request.build());
-        return reqMpls;
+        Map<Link, MplsLabel> labels = findMplsLabels(linkRequest);
+
+        LinkResourceRequest request = DefaultLinkResourceRequest
+                .builder(intent.id(), linkRequest)
+                .addMplsRequest(labels)
+                .build();
+        return resourceService.requestResources(request);
+    }
+
+    private Map<Link, MplsLabel> findMplsLabels(Set<Link> links) {
+        Map<Link, MplsLabel> labels = new HashMap<>();
+        for (Link link : links) {
+            Optional<MplsLabel> label = findMplsLabel(link);
+            if (label.isPresent()) {
+                labels.put(link, label.get());
+            }
+        }
+
+        return labels;
+    }
+
+    private Optional<MplsLabel> findMplsLabel(Link link) {
+        Iterable<ResourceRequest> freeLabels = resourceService.getAvailableResources(link);
+        return StreamSupport.stream(freeLabels.spliterator(), false)
+                .filter(x -> x instanceof MplsLabelResourceRequest)
+                .map(x -> (MplsLabelResourceRequest) x)
+                .map(MplsLabelResourceRequest::mplsLabel)
+                .findFirst();
     }
 
     private MplsLabel getMplsLabel(LinkResourceAllocations allocations, Link link) {

@@ -45,7 +45,6 @@ import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
 import org.onosproject.net.resource.link.MplsLabelResourceRequest;
 import org.slf4j.Logger;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -83,28 +82,6 @@ public class LinkResourceManager
         log.info("Stopped");
     }
 
-
-    /**
-     * Returns available MPLS label on specified link.
-     *
-     * @param link the link
-     * @return available MPLS labels on specified link
-     */
-    private Iterable<MplsLabel> getAvailableMplsLabels(Link link) {
-        Set<ResourceAllocation> resAllocs = store.getFreeResources(link);
-        if (resAllocs == null) {
-            return Collections.emptySet();
-        }
-        Set<MplsLabel> mplsLabels = new HashSet<>();
-        for (ResourceAllocation res : resAllocs) {
-            if (res.type() == ResourceType.MPLS_LABEL) {
-
-                mplsLabels.add(((MplsLabelResourceAllocation) res).mplsLabel());
-            }
-        }
-
-        return mplsLabels;
-    }
 
     @Override
     public LinkResourceAllocations requestResources(LinkResourceRequest req) {
