@@ -15,9 +15,11 @@ if [ -n "$projects" ]; then
     # Ascertain artifact IDs of the projects to be rebuilt
     modulesERE=""
     for pd in ${projects//,/ }; do
-        artifactId=$(grep -E "^    <artifactId>.*</artifactId>$" ${pd}/pom.xml | \
-                        sed 's/.[^>]*>//;s/<.*//')
-        modulesERE="$modulesERE|$artifactId"
+        if [ -f ${pd}/pom.xml ]; then
+            artifactId=$(grep -E "^    <artifactId>.*</artifactId>$" ${pd}/pom.xml | \
+                            sed 's/.[^>]*>//;s/<.*//')
+            modulesERE="$modulesERE|$artifactId"
+        fi
     done
     modulesERE=${modulesERE#|*}
 
