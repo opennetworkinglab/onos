@@ -7,3 +7,4 @@
 .*/jdvue/.*
 .*/ovsdb/api/.*
 .*/netconf/flow/.*
+.*/vtn/sfcmgr/.*
