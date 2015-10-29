@@ -141,7 +141,7 @@ public class RoutingRulePopulator {
      * @return true if all rules are set successfully, false otherwise
      */
     public boolean populateIpRuleForSubnet(DeviceId deviceId,
-                                           List<Ip4Prefix> subnets,
+                                           Set<Ip4Prefix> subnets,
                                            DeviceId destSw,
                                            Set<DeviceId> nextHops) {
 

@@ -375,7 +375,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             return null;
         }
         // vlan assignment is expensive but done only once
-        List<Ip4Prefix> configuredSubnets = deviceConfiguration.getSubnets(deviceId);
+        Set<Ip4Prefix> configuredSubnets = deviceConfiguration.getSubnets(deviceId);
         Set<Short> assignedVlans = new HashSet<>();
         Set<Ip4Prefix> unassignedSubnets = new HashSet<>();
         for (Ip4Prefix sub : configuredSubnets) {

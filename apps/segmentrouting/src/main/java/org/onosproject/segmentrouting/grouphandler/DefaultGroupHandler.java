@@ -334,8 +334,8 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Returns the next objective associated with the neighborset.
-     * If there is no next objective for this neighborset, this API
+     * Returns the next objective associated with the subnet.
+     * If there is no next objective for this subnet, this API
      * would create a next objective and return.
      *
      * @param prefix subnet information
@@ -344,31 +344,8 @@ public class DefaultGroupHandler {
     public int getSubnetNextObjectiveId(IpPrefix prefix) {
         Integer nextId = subnetNextObjStore.
                 get(new SubnetNextObjectiveStoreKey(deviceId, prefix));
-        if (nextId == null) {
-            log.trace("getSubnetNextObjectiveId in device{}: Next objective id "
-                              + "not found for {} and creating", deviceId, prefix);
-            log.trace("getSubnetNextObjectiveId: subnetNextObjStore contents for device {}: {}",
-                      deviceId,
-                      subnetNextObjStore.entrySet()
-                              .stream()
-                              .filter((subnetStoreEntry) ->
-                                              (subnetStoreEntry.getKey().deviceId().equals(deviceId)))
-                              .collect(Collectors.toList()));
-            createGroupsFromSubnetConfig();
-            nextId = subnetNextObjStore.
-                    get(new SubnetNextObjectiveStoreKey(deviceId, prefix));
-            if (nextId == null) {
-                log.warn("subnetNextObjStore: unable to create next objective");
-                return -1;
-            } else {
-                log.debug("subnetNextObjStore in device{}: Next objective id {} "
-                                  + "created for {}", deviceId, nextId, prefix);
-            }
-        } else {
-            log.trace("subnetNextObjStore in device{}: Next objective id {} "
-                              + "found for {}", deviceId, nextId, prefix);
-        }
-        return nextId;
+
+        return (nextId != null) ? nextId : -1;
     }
 
     /**
@@ -541,6 +518,15 @@ public class DefaultGroupHandler {
 
         // Construct a broadcast group for each subnet
         subnetPortMap.forEach((subnet, ports) -> {
+            SubnetNextObjectiveStoreKey key =
+                    new SubnetNextObjectiveStoreKey(deviceId, subnet);
+
+            if (subnetNextObjStore.containsKey(key)) {
+                log.debug("Broadcast group for device {} and subnet {} exists",
+                          deviceId, subnet);
+                return;
+            }
+
             int nextId = flowObjectiveService.allocateNextId();
 
             NextObjective.Builder nextObjBuilder = DefaultNextObjective
@@ -558,8 +544,7 @@ public class DefaultGroupHandler {
             log.debug("createGroupFromSubnetConfig: Submited "
                               + "next objective {} in device {}",
                       nextId, deviceId);
-            SubnetNextObjectiveStoreKey key =
-                    new SubnetNextObjectiveStoreKey(deviceId, subnet);
+
             subnetNextObjStore.put(key, nextId);
         });
     }

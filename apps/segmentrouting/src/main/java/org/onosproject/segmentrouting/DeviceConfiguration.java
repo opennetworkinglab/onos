@@ -15,6 +15,7 @@
  */
 package org.onosproject.segmentrouting;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
@@ -344,12 +345,12 @@ public class DeviceConfiguration implements DeviceProperties {
      * @param deviceId device identifier
      * @return list of ip prefixes or null if not found
      */
-    public List<Ip4Prefix> getSubnets(DeviceId deviceId) {
+    public Set<Ip4Prefix> getSubnets(DeviceId deviceId) {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null) {
             log.trace("getSubnets for device{} is {}", deviceId,
                       srinfo.subnets.values());
-            return new ArrayList<>(srinfo.subnets.values());
+            return ImmutableSet.copyOf(srinfo.subnets.values());
         }
         return null;
     }
@@ -424,7 +425,7 @@ public class DeviceConfiguration implements DeviceProperties {
      */
     public boolean inSameSubnet(DeviceId deviceId, Ip4Address hostIp) {
 
-        List<Ip4Prefix> subnets = getSubnets(deviceId);
+        Set<Ip4Prefix> subnets = getSubnets(deviceId);
         if (subnets == null) {
             return false;
         }

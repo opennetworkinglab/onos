@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -451,7 +450,7 @@ public class DefaultRoutingHandler {
         // If both target switch and dest switch are edge routers, then set IP
         // rule for both subnet and router IP.
         if (config.isEdgeDevice(targetSw) && config.isEdgeDevice(destSw)) {
-            List<Ip4Prefix> subnets = config.getSubnets(destSw);
+            Set<Ip4Prefix> subnets = config.getSubnets(destSw);
             log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for subnets {}",
                     targetSw, destSw, subnets);
             result = rulePopulator.populateIpRuleForSubnet(targetSw,
