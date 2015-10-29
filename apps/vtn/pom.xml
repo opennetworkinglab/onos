@@ -32,6 +32,7 @@
     <description>ONOS framework applications</description>
 
     <modules>
+        <module>sfcmgr</module>
         <module>vtnrsc</module>
         <module>vtnmgr</module>
         <module>vtnweb</module>

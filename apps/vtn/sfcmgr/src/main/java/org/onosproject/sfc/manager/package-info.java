@@ -17,4 +17,4 @@
 /**
  * Service for interacting with SFC.
  */
-package org.onosproject.sfc;
+package org.onosproject.sfc.manager;

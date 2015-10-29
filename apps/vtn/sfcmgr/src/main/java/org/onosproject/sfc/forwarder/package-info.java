@@ -15,6 +15,6 @@
  */
 
 /**
- * SFC Service manager for interacting with SFC.
+ * Service function forwarder for SFC.
  */
-package org.onosproject.sfc.impl;
+package org.onosproject.sfc.forwarder;
