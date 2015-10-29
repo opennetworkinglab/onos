@@ -46,4 +46,10 @@ public interface OpenstackSwitchingService {
      */
     void createNetwork(OpenstackNetwork openstackNetwork);
 
+    /**
+     * Store the subnet information created by openstack.
+     *
+     * @param openstackSubnet subnet information
+     */
+    void createSubnet(OpenstackSubnet openstackSubnet);
 }

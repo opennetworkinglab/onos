@@ -54,6 +54,8 @@ public class OpenstackNetworkCodec extends JsonCodec<OpenstackNetwork> {
                 .id(id);
 
         if (!networkInfo.path(NETWORK_TYPE).isMissingNode()) {
+            onb.networkType(OpenstackNetwork.NetworkType.valueOf(networkInfo.path(NETWORK_TYPE).
+                    asText().toUpperCase()));
             onb.name(networkInfo.path(NETWORK_TYPE).asText());
             onb.segmentId(networkInfo.path(SEGMENTATION_ID).asText());
         }

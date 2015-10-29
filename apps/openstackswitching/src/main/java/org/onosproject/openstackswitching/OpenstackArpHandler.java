@@ -15,11 +15,20 @@
 */
 package org.onosproject.openstackswitching;
 
+import org.onlab.packet.ARP;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.MacAddress;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
+import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
+import java.nio.ByteBuffer;
+import java.util.Map;
 
 /**
  * It handles ARP packet from VMs.
@@ -28,16 +37,18 @@ public class OpenstackArpHandler {
 
     private static Logger log = LoggerFactory
             .getLogger(OpenstackArpHandler.class);
-
-    HashMap<String, OpenstackPort> openstackPortHashMap;
+    private PacketService packetService;
+    private Map<String, OpenstackPort> openstackPortMap;
 
     /**
-     * Constructs an OpenstackArpHandler.
+     * Returns OpenstackArpHandler reference.
      *
-     * @param openstackPortMap port map
+     * @param openstackPortMap
+     * @param packetService
      */
-    public OpenstackArpHandler(HashMap<String, OpenstackPort> openstackPortMap) {
-        this.openstackPortHashMap = openstackPortMap;
+    public OpenstackArpHandler(Map<String, OpenstackPort> openstackPortMap, PacketService packetService) {
+        this.openstackPortMap = openstackPortMap;
+        this.packetService = packetService;
     }
 
     /**
@@ -46,6 +57,50 @@ public class OpenstackArpHandler {
      * @param pkt ARP request packet
      */
     public void processPacketIn(InboundPacket pkt) {
-        log.warn("Received an ARP packet");
+        Ethernet ethernet = pkt.parsed();
+        ARP arp = (ARP) ethernet.getPayload();
+
+        if (arp.getOpCode() == ARP.OP_REQUEST) {
+            byte[] srcMacAddress = arp.getSenderHardwareAddress();
+            byte[] srcIPAddress = arp.getSenderProtocolAddress();
+            byte[] dstIPAddress = arp.getTargetProtocolAddress();
+
+            //Searches the Dst MAC Address based on openstackPortMap
+            MacAddress macAddress = null;
+
+            OpenstackPort openstackPort = openstackPortMap.values().stream().filter(e -> e.fixedIps().
+                    containsValue(Ip4Address.valueOf(dstIPAddress))).findAny().orElse(null);
+
+            if (openstackPort != null) {
+                macAddress = openstackPort.macAddress();
+                log.debug("Found MACAddress: {}", macAddress.toString());
+            } else {
+                return;
+            }
+
+            //Creates a response packet
+            ARP arpReply = new ARP();
+            arpReply.setOpCode(ARP.OP_REPLY)
+                    .setHardwareAddressLength(arp.getHardwareAddressLength())
+                    .setHardwareType(arp.getHardwareType())
+                    .setProtocolAddressLength(arp.getProtocolAddressLength())
+                    .setProtocolType(arp.getProtocolType())
+                    .setSenderHardwareAddress(macAddress.toBytes())
+                    .setSenderProtocolAddress(dstIPAddress)
+                    .setTargetHardwareAddress(srcMacAddress)
+                    .setTargetProtocolAddress(srcIPAddress);
+
+            //Sends a response packet
+            ethernet.setDestinationMACAddress(srcMacAddress)
+                    .setSourceMACAddress(macAddress)
+                    .setEtherType(Ethernet.TYPE_ARP)
+                    .setPayload(arpReply);
+
+            TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
+            builder.setOutput(pkt.receivedFrom().port());
+            OutboundPacket packet = new DefaultOutboundPacket(pkt.receivedFrom().deviceId(),
+                    builder.build(), ByteBuffer.wrap(ethernet.serialize()));
+            packetService.emit(packet);
+        }
     }
 }

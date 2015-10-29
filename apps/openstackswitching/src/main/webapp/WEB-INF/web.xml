@@ -31,7 +31,8 @@
             <param-name>com.sun.jersey.config.property.classnames</param-name>
             <param-value>
                 org.onosproject.openstackswitching.web.OpenstackPortWebResource,
-                org.onosproject.openstackswitching.web.OpenstackNetworkWebResource
+                org.onosproject.openstackswitching.web.OpenstackNetworkWebResource,
+                org.onosproject.openstackswitching.web.OpenstackSubnetWebResource
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>

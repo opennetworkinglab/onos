@@ -87,7 +87,6 @@ public class OpenstackSwitchingRulePopulator {
      */
     public void populateDefaultRules(DeviceId id) {
 
-        //setFlowRuleForDHCP(id);
         setFlowRuleForArp(id);
 
         log.warn("Default rule has been set");

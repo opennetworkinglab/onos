@@ -26,8 +26,18 @@ public final class OpenstackNetwork {
     private String name;
     private String tenantId;
     private String segmentId;
-    private String networkType;
     private String id;
+    private NetworkType networkType;
+
+    public enum NetworkType {
+        /**
+         * Currently only VXLAN moded is supported.
+         */
+        VXLAN,
+        VLAN,
+        STT,
+        LOCAL
+    }
 
     /**
      * Returns the builder object of the OpenstackNetwork class.
@@ -39,12 +49,12 @@ public final class OpenstackNetwork {
     }
 
     private OpenstackNetwork(String name, String tenantId, String id, String sid,
-                             String type) {
+                             NetworkType type) {
         this.name = checkNotNull(name);
         this.tenantId = checkNotNull(tenantId);
         this.segmentId = checkNotNull(sid);
         this.id = checkNotNull(id);
-        this.networkType = checkNotNull(type);
+        this.networkType = type;
     }
 
     public String name() {
@@ -63,7 +73,7 @@ public final class OpenstackNetwork {
         return this.segmentId;
     }
 
-    public String networkType() {
+    public NetworkType networkType() {
         return this.networkType;
     }
 
@@ -72,7 +82,7 @@ public final class OpenstackNetwork {
         private String tenantId;
         private String id;
         private String sid;
-        private String networkType;
+        private NetworkType networkType;
 
         public Builder name(String name) {
             this.name = name;
@@ -98,7 +108,7 @@ public final class OpenstackNetwork {
             return this;
         }
 
-        public Builder networkType(String type) {
+        public Builder networkType(NetworkType type) {
             this.networkType = type;
 
             return this;

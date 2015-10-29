@@ -24,13 +24,12 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
-import org.onlab.packet.UDP;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.dhcp.DhcpService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -45,8 +44,8 @@ import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -73,12 +72,14 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DhcpService dhcpService;
 
     public static final int DHCP_PORT = 67;
 
     private ApplicationId appId;
     private OpenstackArpHandler arpHandler;
-    private OpenstackDhcpHandler dhcpHandler = new OpenstackDhcpHandler();
+
     private OpenstackSwitchingRulePopulator rulePopulator;
     private ExecutorService deviceEventExcutorService = Executors.newFixedThreadPool(10);
 
@@ -86,12 +87,14 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     private InternalDeviceListener internalDeviceListener = new InternalDeviceListener();
 
     // Map <port_id, OpenstackPort>
-    private HashMap<String, OpenstackPort> openstackPortMap;
+    private Map<String, OpenstackPort> openstackPortMap;
     // Map <network_id, OpenstackNetwork>
-    private HashMap<String, OpenstackNetwork> openstackNetworkMap;
+    private Map<String, OpenstackNetwork> openstackNetworkMap;
+    // Map <subnet_id, OpenstackSubner>
+    private Map<String, OpenstackSubnet> openstackSubnetMap;
     // Map <vni, List <Entry <portName, host ip>>
-    private HashMap<String, List<PortInfo>> vniPortMap;
-    private HashMap<Ip4Address, Port> tunnelPortMap;
+    private Map<String, List<PortInfo>> vniPortMap;
+    private Map<Ip4Address, Port> tunnelPortMap;
 
 
     @Activate
@@ -104,11 +107,11 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
         openstackPortMap = Maps.newHashMap();
         openstackNetworkMap = Maps.newHashMap();
+        openstackSubnetMap = Maps.newHashMap();
+
         vniPortMap = Maps.newHashMap();
         tunnelPortMap = Maps.newHashMap();
-
-        arpHandler = new OpenstackArpHandler(openstackPortMap);
-
+        arpHandler = new OpenstackArpHandler(openstackPortMap, packetService);
         log.info("Started");
     }
 
@@ -124,8 +127,42 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
     @Override
     public void createPorts(OpenstackPort openstackPort) {
+        //For DHCP purpose
+        //registerDhcpInfo(openstackPort);
         openstackPortMap.put(openstackPort.id(), openstackPort);
     }
+
+    /*
+    private void registerDhcpInfo(OpenstackPort openstackPort) {
+        Ip4Address ip4Address;
+        Ip4Address subnetMask;
+        Ip4Address dhcpServer;
+        Ip4Address gatewayIPAddress;
+        Ip4Address domainServer;
+        OpenstackSubnet openstackSubnet;
+
+        ip4Address = (Ip4Address) openstackPort.fixedIps().values().toArray()[0];
+
+        openstackSubnet = openstackSubnetMap.values().stream()
+                .filter(n -> n.networkId().equals(openstackPort.networkId()))
+                .findFirst().get();
+
+        int prefix;
+        String[] parts = openstackSubnet.cidr().split("/");
+        prefix = Integer.parseInt(parts[1]);
+        int mask = 0xffffffff << (32 - prefix);
+        byte[] bytes = new byte[]{(byte) (mask >>> 24),
+                (byte) (mask >> 16 & 0xff), (byte) (mask >> 8 & 0xff), (byte) (mask & 0xff)};
+
+        subnetMask = Ip4Address.valueOf(bytes);
+        gatewayIPAddress = Ip4Address.valueOf(openstackSubnet.gatewayIp());
+        dhcpServer = gatewayIPAddress;
+        domainServer = Ip4Address.valueOf("8.8.8.8");
+
+        dhcpService.setStaticMappingOpenstack(openstackPort.macAddress(),
+                ip4Address, subnetMask, dhcpServer, gatewayIPAddress, domainServer);
+    }
+    */
 
     @Override
     public void deletePorts() {
@@ -142,8 +179,15 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         openstackNetworkMap.put(openstackNetwork.id(), openstackNetwork);
     }
 
+
+    @Override
+    public void createSubnet(OpenstackSubnet openstackSubnet) {
+        openstackSubnetMap.put(openstackSubnet.id(), openstackSubnet);
+        log.debug("Added Subnet Info {}", openstackNetworkMap.get(openstackSubnet.id()));
+    }
+
     private void processDeviceAdded(Device device) {
-        log.warn("device {} is added", device.id());
+        log.debug("device {} is added", device.id());
         rulePopulator.populateDefaultRules(device.id());
     }
 
@@ -152,7 +196,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         // TODO: Make it stateless
         // TODO: All the logics need to be processed inside of the rulePopulator class
         synchronized (vniPortMap) {
-            log.warn("port {} is updated", port.toString());
+            log.debug("port {} is updated", port.toString());
 
             updatePortMaps(device, port);
             if (!port.annotations().value("portName").equals("vxlan")) {
@@ -163,7 +207,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     }
 
     private void processPortRemoved(Device device, Port port) {
-        log.warn("port {} is removed", port.toString());
+        log.debug("port {} is removed", port.toString());
         // TODO: need to update the vniPortMap
     }
 
@@ -182,7 +226,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         // TODO: Avoid duplicate flow rule set up for VMs in other Cnode
         //       (possibly avoided by flowrule subsystem?)
         if (tunnelPortMap.get(hostIpAddress) == null) {
-            log.warn("There is no tunnel port information");
+            log.debug("There is no tunnel port information");
             return;
         }
         String vni = getVniForPort(portName);
@@ -251,20 +295,19 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                 .filter(p -> p.id().startsWith(uuid))
                 .findFirst().get();
         if (port == null) {
-            log.warn("No port information for port {}", portName);
+            log.debug("No port information for port {}", portName);
             return null;
         }
 
-        //OpenstackSubnet subnet = openstackSubnetMap.values().stream()
-        //        .filter(s -> s.networkId().equals(port.networkId()))
-        //        .findFirst().get();
-        //if (subnet == null) {
-        //    log.warn("No subnet information for network {}", subnet.id());
-        //    return null;
-        //}
+        OpenstackSubnet subnet = openstackSubnetMap.values().stream()
+                .filter(s -> s.networkId().equals(port.networkId()))
+                .findFirst().get();
+        if (subnet == null) {
+            log.debug("No subnet information for network {}", subnet.id());
+            return null;
+        }
 
-        //return Ip4Prefix.valueOf(subnet.cidr());
-        return null;
+        return Ip4Prefix.valueOf(subnet.cidr());
     }
 
     /**
@@ -280,14 +323,14 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                 .filter(p -> p.id().startsWith(uuid))
                 .findFirst().get();
         if (port == null) {
-            log.warn("No port information for port {}", portName);
+            log.debug("No port information for port {}", portName);
             return null;
         }
         OpenstackNetwork network = openstackNetworkMap.values().stream()
                 .filter(n -> n.id().equals(port.networkId()))
                 .findFirst().get();
         if (network == null) {
-            log.warn("No VNI information for network {}", network.id());
+            log.debug("No VNI information for network {}", network.id());
             return null;
         }
 
@@ -357,15 +400,6 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
             if (ethernet.getEtherType() == Ethernet.TYPE_ARP) {
                 arpHandler.processPacketIn(pkt);
-            } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV4) {
-                IPv4 ipPacket = (IPv4) ethernet.getPayload();
-
-                if (ipPacket.getProtocol() == IPv4.PROTOCOL_UDP) {
-                    UDP udpPacket = (UDP) ipPacket.getPayload();
-                    if (udpPacket.getDestinationPort() == DHCP_PORT) {
-                        dhcpHandler.processPacketIn(pkt);
-                    }
-                }
             }
         }
     }
