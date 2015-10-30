@@ -10,7 +10,8 @@ nodes=$(env | sort | egrep "OC[0-9]+" | cut -d= -f2)
 
 for node in $nodes; do
     # Prune the node entry from the known hosts file since server key changes
-    ssh-keygen -f "$HOME/.ssh/known_hosts" -R [$node]:8101
+    ssh-keygen -f "$HOME/.ssh/known_hosts" -R [$node]:8101 || 
+        ( echo "Failed to remove key from known_hosts" >&2 && exit 1 )
 
     # Setup passwordless login for the local user on the remote node
     ssh $ONOS_USER@$node "
