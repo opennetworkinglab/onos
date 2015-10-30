@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.proxyarp.impl;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +47,7 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.edgeservice.impl.EdgeManager;
+import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -67,6 +66,7 @@ import org.onosproject.net.proxyarp.ProxyArpStoreDelegate;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -88,47 +88,65 @@ import static org.junit.Assert.assertTrue;
  */
 public class ProxyArpManagerTest {
 
-    private static final int NUM_DEVICES = 6;
+    private static final int NUM_DEVICES = 10;
     private static final int NUM_PORTS_PER_DEVICE = 3;
-    private static final int NUM_ADDRESS_PORTS = NUM_DEVICES / 2;
-    private static final int NUM_FLOOD_PORTS = 3;
+    private static final int LAST_CONF_DEVICE_INTF_VLAN_IP = 3;
+    private static final int LAST_CONF_DEVICE_INTF_VLAN = 6;
 
     private static final Ip4Address IP1 = Ip4Address.valueOf("192.168.1.1");
     private static final Ip4Address IP2 = Ip4Address.valueOf("192.168.1.2");
-    private static final Ip6Address IP3 = Ip6Address.valueOf("1000::1");
-    private static final Ip6Address IP4 = Ip6Address.valueOf("1000::2");
+    private static final Ip6Address IP3 = Ip6Address.valueOf("1000:ffff::1");
+    private static final Ip6Address IP4 = Ip6Address.valueOf("1000:ffff::2");
 
     private static final ProviderId PID = new ProviderId("of", "foo");
 
     private static final VlanId VLAN1 = VlanId.vlanId((short) 1);
     private static final VlanId VLAN2 = VlanId.vlanId((short) 2);
-    private static final MacAddress MAC1 = MacAddress.valueOf("00:00:11:00:00:01");
-    private static final MacAddress MAC2 = MacAddress.valueOf("00:00:22:00:00:02");
-    private static final MacAddress MAC3 = MacAddress.valueOf("00:00:33:00:00:03");
-    private static final MacAddress MAC4 = MacAddress.valueOf("00:00:44:00:00:04");
+    private static final VlanId VLAN10 = VlanId.vlanId((short) 10);
+
+    private static final MacAddress MAC1 = MacAddress.valueOf("00:00:00:00:00:01");
+    private static final MacAddress MAC2 = MacAddress.valueOf("00:00:00:00:00:02");
+    private static final MacAddress MAC3 = MacAddress.valueOf("00:00:00:00:00:03");
+    private static final MacAddress MAC4 = MacAddress.valueOf("00:00:00:00:00:04");
+    private static final MacAddress MAC10 = MacAddress.valueOf("00:00:00:00:00:0A");
+
     private static final MacAddress SOLICITED_MAC3 = MacAddress.valueOf("33:33:FF:00:00:01");
+
     private static final HostId HID1 = HostId.hostId(MAC1, VLAN1);
     private static final HostId HID2 = HostId.hostId(MAC2, VLAN1);
     private static final HostId HID3 = HostId.hostId(MAC3, VLAN1);
     private static final HostId HID4 = HostId.hostId(MAC4, VLAN1);
+    private static final HostId HID10 = HostId.hostId(MAC10, VLAN10);
+
     private static final HostId SOLICITED_HID3 = HostId.hostId(SOLICITED_MAC3, VLAN1);
 
     private static final DeviceId DID1 = getDeviceId(1);
     private static final DeviceId DID2 = getDeviceId(2);
+
     private static final PortNumber P1 = PortNumber.portNumber(1);
+
     private static final HostLocation LOC1 = new HostLocation(DID1, P1, 123L);
     private static final HostLocation LOC2 = new HostLocation(DID2, P1, 123L);
-    private static final byte[] ZERO_MAC_ADDRESS = MacAddress.ZERO.toBytes();
 
-    //Return values used for various functions of the TestPacketService inner class.
-    private boolean isEdgePointReturn;
-    private List<ConnectPoint> getEdgePointsNoArg;
+    private final byte[] zeroMacAddress = MacAddress.ZERO.toBytes();
 
+    // The first three devices in the topology have interfaces configured
+    // with VLANs and IPs
+    private final List<ConnectPoint> configIpCPoints = new ArrayList<>();
+
+    // Other three devices in the topology (from 4 to 6) have interfaces
+    // configured only with VLANs
+    private final List<ConnectPoint> configVlanCPoints = new ArrayList<>();
+
+    // Remaining devices in the network (id > 6) don't have any interface
+    // configured.
+    private final List<ConnectPoint> noConfigCPoints = new ArrayList<>();
 
     private ProxyArpManager proxyArp;
 
     private TestPacketService packetService;
     private DeviceService deviceService;
+    private EdgePortService edgePortService;
     private LinkService linkService;
     private HostService hostService;
     private InterfaceService interfaceService;
@@ -140,19 +158,26 @@ public class ProxyArpManagerTest {
         proxyArp.packetService = packetService;
         proxyArp.store = new TestProxyArpStoreAdapter();
 
-        proxyArp.edgeService = new TestEdgePortService();
-
-        // Create a host service mock here. Must be replayed by tests once the
-        // expectations have been set up
+        // Create a host service mock here.
         hostService = createMock(HostService.class);
         proxyArp.hostService = hostService;
 
+        // Create an edge port service.
+        edgePortService = createMock(EdgePortService.class);
+        proxyArp.edgeService = edgePortService;
+
+        // Create interface service
         interfaceService = createMock(InterfaceService.class);
         proxyArp.interfaceService = interfaceService;
 
+        // Create the topology
         createTopology();
         proxyArp.deviceService = deviceService;
         proxyArp.linkService = linkService;
+
+        setupNoConfigCPoints();
+        setupconfigIpCPoints();
+        setupconfigVlanCPoints();
 
         proxyArp.activate();
     }
@@ -176,7 +201,8 @@ public class ProxyArpManagerTest {
 
         createDevices(NUM_DEVICES, NUM_PORTS_PER_DEVICE);
         createLinks(NUM_DEVICES);
-        addAddressBindings();
+        addIntfConfig();
+        popluateEdgePortService();
     }
 
     /**
@@ -237,13 +263,22 @@ public class ProxyArpManagerTest {
         replay(linkService);
     }
 
-    private void addAddressBindings() {
+    /**
+     * On the first three devices two config interfaces are binded on port 1.
+     * The first one with VLAN1, the second one with VLAN equals to none.
+     * Both interfaces have an IP.
+     * On devices 4, 5 and 6 it's binded a config interface on port 1.
+     * The interface is configured with VLAN 1 and no IP.
+     */
+    private void addIntfConfig() {
         Set<Interface> interfaces = Sets.newHashSet();
 
-        for (int i = 1; i <= NUM_ADDRESS_PORTS; i++) {
+        Set<Interface> vlanOneSet = new HashSet<>();
+
+        for (int i = 1; i <= LAST_CONF_DEVICE_INTF_VLAN_IP; i++) {
             ConnectPoint cp = new ConnectPoint(getDeviceId(i), P1);
 
-            // Interface address for IPv4
+            // Interface addresses for IPv4
             Ip4Prefix prefix1 = Ip4Prefix.valueOf("10.0." + (2 * i - 1) + ".0/24");
             Ip4Address addr1 = Ip4Address.valueOf("10.0." + (2 * i - 1) + ".1");
             Ip4Prefix prefix2 = Ip4Prefix.valueOf("10.0." + (2 * i) + ".0/24");
@@ -251,35 +286,127 @@ public class ProxyArpManagerTest {
             InterfaceIpAddress ia1 = new InterfaceIpAddress(addr1, prefix1);
             InterfaceIpAddress ia2 = new InterfaceIpAddress(addr2, prefix2);
 
-            // Interface address for IPv6
+            // Interface addresses for IPv6
             Ip6Prefix prefix3 = Ip6Prefix.valueOf((2 * i - 1) + "000::0/64");
             Ip6Address addr3 = Ip6Address.valueOf((2 * i - 1) + "000::1");
             Ip6Prefix prefix4 = Ip6Prefix.valueOf((2 * i) + "000::0/64");
-            Ip6Address addr4 = Ip6Address.valueOf((2 * i) + "000::1");
+            Ip6Address addr4 = Ip6Address.valueOf((2 * i) + "000::2");
             InterfaceIpAddress ia3 = new InterfaceIpAddress(addr3, prefix3);
             InterfaceIpAddress ia4 = new InterfaceIpAddress(addr4, prefix4);
 
+            // Setting up interfaces
             Interface intf1 = new Interface(cp, Sets.newHashSet(ia1, ia3),
                     MacAddress.valueOf(2 * i - 1),
                     VlanId.vlanId((short) 1));
             Interface intf2 = new Interface(cp, Sets.newHashSet(ia2, ia4),
                     MacAddress.valueOf(2 * i),
                     VlanId.NONE);
+
             interfaces.add(intf1);
             interfaces.add(intf2);
+
+            vlanOneSet.add(intf1);
 
             expect(interfaceService.getInterfacesByPort(cp))
                     .andReturn(Sets.newHashSet(intf1, intf2)).anyTimes();
         }
+        for (int i = LAST_CONF_DEVICE_INTF_VLAN_IP + 1; i <= LAST_CONF_DEVICE_INTF_VLAN; i++) {
+            ConnectPoint cp = new ConnectPoint(getDeviceId(i), P1);
+            Interface intf1 = new Interface(cp, null,
+                    MacAddress.NONE,
+                    VlanId.vlanId((short) 1));
 
-        expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
-
-        for (int i = 1; i <= NUM_FLOOD_PORTS; i++) {
-            ConnectPoint cp = new ConnectPoint(getDeviceId(i + NUM_ADDRESS_PORTS),
-                    P1);
+            interfaces.add(intf1);
+            vlanOneSet.add(intf1);
 
             expect(interfaceService.getInterfacesByPort(cp))
+                    .andReturn(Sets.newHashSet(intf1)).anyTimes();
+        }
+        expect(interfaceService.getInterfacesByVlan(VLAN1))
+                .andReturn(vlanOneSet).anyTimes();
+        expect(interfaceService.getInterfacesByVlan(VLAN10))
+                .andReturn(Collections.emptySet()).anyTimes();
+        expect(interfaceService.getInterfaces()).andReturn(interfaces).anyTimes();
+
+        for (int i = LAST_CONF_DEVICE_INTF_VLAN + 1; i <= NUM_DEVICES; i++) {
+            ConnectPoint cp = new ConnectPoint(getDeviceId(i),
+                    P1);
+            expect(interfaceService.getInterfacesByPort(cp))
                     .andReturn(Collections.emptySet()).anyTimes();
+        }
+    }
+
+    /**
+     * Populates edge ports in the EdgePortService to return all port 1
+     * as edge ports.
+     */
+    private void popluateEdgePortService() {
+        Set<ConnectPoint> edgeConnectPoints = new HashSet<>();
+
+        for (int i = 1; i <= NUM_DEVICES; i++) {
+            for (int j = 1; j <= NUM_PORTS_PER_DEVICE; j++) {
+                ConnectPoint edgeConnectPoint = new ConnectPoint(
+                        getDeviceId(i),
+                        PortNumber.portNumber(1));
+                ConnectPoint noEdgeConnectPointOne = new ConnectPoint(
+                        getDeviceId(i),
+                        PortNumber.portNumber(2));
+                ConnectPoint noEdgeConnectPointTwo = new ConnectPoint(
+                        getDeviceId(i),
+                        PortNumber.portNumber(3));
+
+                edgeConnectPoints.add(edgeConnectPoint);
+
+                expect(edgePortService.isEdgePoint(edgeConnectPoint))
+                        .andReturn(true).anyTimes();
+                expect(edgePortService.isEdgePoint(noEdgeConnectPointOne))
+                        .andReturn(false).anyTimes();
+                expect(edgePortService.isEdgePoint(noEdgeConnectPointTwo))
+                        .andReturn(false).anyTimes();
+            }
+        }
+        expect(edgePortService.getEdgePoints())
+                .andReturn(edgeConnectPoints).anyTimes();
+
+        replay(edgePortService);
+    }
+
+    /**
+     * Creates a list of connect points used to verify floodling on ports
+     * with no interfaces configured (all ports without interface config).
+     */
+    private void setupNoConfigCPoints() {
+        for (int i = NUM_DEVICES / 2 + 2; i <= NUM_DEVICES; i++) {
+            ConnectPoint connectPoint = new ConnectPoint(
+                    getDeviceId(i),
+                    PortNumber.portNumber(1));
+            noConfigCPoints.add(connectPoint);
+        }
+    }
+
+    /**
+     * Creates a list of connect points used to verify floodling on ports
+     * with interfaces configured (both VLAN and IP).
+     */
+    private void setupconfigIpCPoints() {
+        for (int i = 1; i <= 3; i++) {
+            ConnectPoint connectPoint = new ConnectPoint(
+                    getDeviceId(i),
+                    PortNumber.portNumber(1));
+            configIpCPoints.add(connectPoint);
+        }
+    }
+
+    /**
+     * Creates a list of connect points used to verify floodling on ports
+     * with interfaces configured (both VLAN and IP).
+     */
+    private void setupconfigVlanCPoints() {
+        for (int i = LAST_CONF_DEVICE_INTF_VLAN_IP + 1; i <= LAST_CONF_DEVICE_INTF_VLAN; i++) {
+            ConnectPoint connectPoint = new ConnectPoint(
+                    getDeviceId(i),
+                    PortNumber.portNumber(1));
+            configVlanCPoints.add(connectPoint);
         }
     }
 
@@ -318,33 +445,34 @@ public class ProxyArpManagerTest {
     /**
      * Tests {@link ProxyArpManager#reply(Ethernet, ConnectPoint)} in the case where the
      * destination host is known.
-     * Verifies the correct ARP reply is sent out the correct port.
+     * Two host using the same VLAN are registered on the host service on devices 5 and 6.
+     * Host on port 6 asks for the MAC of the device on port 5.
+     * Since the destination mac address is known, the request is not flooded to anywhere
+     * and ONOS directly builds an ARP reply, sended back to the requester on device 6.
+     * It's verified that a proper ARP reply is received on port 1 of device 6.
      */
     @Test
     public void testReplyKnown() {
-        //Set the return value of isEdgePoint from the edgemanager.
-        isEdgePointReturn = true;
-
-        Host replyer = new DefaultHost(PID, HID1, MAC1, VLAN1, getLocation(4),
+        Host requestor = new DefaultHost(PID, HID1, MAC1, VLAN1, getLocation(NUM_DEVICES),
                 Collections.singleton(IP1));
 
-        Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
+        Host replyer = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(NUM_DEVICES - 1),
                 Collections.singleton(IP2));
 
-        expect(hostService.getHostsByIp(IP1))
+        expect(hostService.getHostsByIp(IP2))
                 .andReturn(Collections.singleton(replyer));
-        expect(hostService.getHost(HID2)).andReturn(requestor);
+        expect(hostService.getHost(HID1)).andReturn(requestor);
 
         replay(hostService);
         replay(interfaceService);
 
-        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
+        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, VLAN1, MAC1, null, IP1, IP2);
 
-        proxyArp.reply(arpRequest, getLocation(5));
+        proxyArp.reply(arpRequest, getLocation(NUM_DEVICES));
 
         assertEquals(1, packetService.packets.size());
-        Ethernet arpReply = buildArp(ARP.OP_REPLY, MAC1, MAC2, IP1, IP2);
-        verifyPacketOut(arpReply, getLocation(5), packetService.packets.get(0));
+        Ethernet arpReply = buildArp(ARP.OP_REPLY, VLAN1, MAC2, MAC1, IP2, IP1);
+        verifyPacketOut(arpReply, getLocation(NUM_DEVICES), packetService.packets.get(0));
     }
 
     /**
@@ -354,9 +482,6 @@ public class ProxyArpManagerTest {
      */
     @Test
     public void testReplyKnownIpv6() {
-        //Set the return value of isEdgePoint from the edgemanager.
-        isEdgePointReturn = true;
-
         Host replyer = new DefaultHost(PID, HID3, MAC3, VLAN1, getLocation(4),
                                        Collections.singleton(IP3));
 
@@ -385,34 +510,31 @@ public class ProxyArpManagerTest {
     /**
      * Tests {@link ProxyArpManager#reply(Ethernet, ConnectPoint)} in the case where the
      * destination host is not known.
+     * Only a requestor is present (on device 6, port 1). The device has a VLAN configured
+     * which is not configured anywhere in the system.
+     * Since the destination is not known, and since the ARP request can't be sent out of
+     * interfaces configured, the ARP request is flooded out of ports 4 and 5.
      * Verifies the ARP request is flooded out the correct edge ports.
      */
     @Test
     public void testReplyUnknown() {
-        isEdgePointReturn = true;
+        Host requestor = new DefaultHost(PID, HID10, MAC10, VLAN10, getLocation(NUM_DEVICES),
+                Collections.singleton(IP1));
 
-        Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
-                Collections.singleton(IP2));
-
-        expect(hostService.getHostsByIp(IP1))
+        expect(hostService.getHostsByIp(IP2))
                 .andReturn(Collections.emptySet());
-        expect(interfaceService.getInterfacesByIp(IP2))
+        expect(interfaceService.getInterfacesByIp(IP1))
                 .andReturn(Collections.emptySet());
-        expect(hostService.getHost(HID2)).andReturn(requestor);
+        expect(hostService.getHost(HID10)).andReturn(requestor);
 
         replay(hostService);
         replay(interfaceService);
 
-        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
+        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, VLAN10, MAC10, null, IP1, IP2);
 
-        //Setup the set of edge ports to be used in the reply method
-        getEdgePointsNoArg = Lists.newLinkedList();
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("5"), PortNumber.portNumber(1)));
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("4"), PortNumber.portNumber(1)));
+        proxyArp.reply(arpRequest, getLocation(NUM_DEVICES));
 
-        proxyArp.reply(arpRequest, getLocation(6));
-
-        verifyFlood(arpRequest);
+        verifyFlood(arpRequest, noConfigCPoints);
     }
 
     /**
@@ -422,9 +544,7 @@ public class ProxyArpManagerTest {
      */
     @Test
     public void testReplyUnknownIpv6() {
-        isEdgePointReturn = true;
-
-        Host requestor = new DefaultHost(PID, HID4, MAC4, VLAN1, getLocation(5),
+        Host requestor = new DefaultHost(PID, HID4, MAC4, VLAN1, getLocation(NUM_DEVICES),
                                          Collections.singleton(IP4));
 
         expect(hostService.getHostsByIp(IP3))
@@ -440,49 +560,107 @@ public class ProxyArpManagerTest {
                                        MAC4, SOLICITED_MAC3,
                                        IP4, IP3);
 
-        //Setup the set of edge ports to be used in the reply method
-        getEdgePointsNoArg = Lists.newLinkedList();
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("5"), PortNumber.portNumber(1)));
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("4"), PortNumber.portNumber(1)));
+        proxyArp.reply(ndpRequest, getLocation(NUM_DEVICES));
 
-        proxyArp.reply(ndpRequest, getLocation(6));
-
-        verifyFlood(ndpRequest);
+        verifyFlood(ndpRequest, noConfigCPoints);
     }
 
     /**
      * Tests {@link ProxyArpManager#reply(Ethernet, ConnectPoint)} in the case where the
      * destination host is known for that IP address, but is not on the same
      * VLAN as the source host.
+     * An host is connected on device 6, port 1 where no interfaces are defined. It sends
+     * ARP requests from VLAN10, not configured anywhere in the network. Another host with
+     * the IP address requested lives on device 5, port 1 in the network. Anyway, since the
+     * host uses another VLAN it's not found and the ARP packet is flooded out of port
+     * 4 and 5.
+     *
      * Verifies the ARP request is flooded out the correct edge ports.
      */
     @Test
     public void testReplyDifferentVlan() {
-
-        Host replyer = new DefaultHost(PID, HID1, MAC1, VLAN2, getLocation(4),
+        Host requestor = new DefaultHost(PID, HID10, MAC10, VLAN10, getLocation(NUM_DEVICES),
                 Collections.singleton(IP1));
 
-        Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, getLocation(5),
+        Host replyer = new DefaultHost(PID, HID2, MAC2, VLAN2, getLocation(NUM_DEVICES - 1),
                 Collections.singleton(IP2));
 
-        expect(hostService.getHostsByIp(IP1))
+        expect(hostService.getHostsByIp(IP2))
                 .andReturn(Collections.singleton(replyer));
-        expect(interfaceService.getInterfacesByIp(IP2))
+        expect(interfaceService.getInterfacesByIp(IP1))
                 .andReturn(Collections.emptySet());
-        expect(hostService.getHost(HID2)).andReturn(requestor);
+        expect(hostService.getHost(HID10)).andReturn(requestor);
 
         replay(hostService);
         replay(interfaceService);
 
-        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, IP2, IP1);
+        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, VLAN10, MAC10, null, IP1, IP2);
 
-        //Setup for flood test
-        getEdgePointsNoArg = Lists.newLinkedList();
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("5"), PortNumber.portNumber(1)));
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("4"), PortNumber.portNumber(1)));
+        proxyArp.reply(arpRequest, getLocation(NUM_DEVICES));
+
+        verifyFlood(arpRequest, noConfigCPoints);
+    }
+
+    /**
+     * Tests {@link ProxyArpManager#reply(Ethernet, ConnectPoint)} in the case where the
+     * a vlan packet comes in from a port without interfaces configured. The destination
+     * host is unknown for that IP address and there are some interfaces configured on
+     * the same vlan.
+     * It's expected to see the ARP request going out through ports with no interfaces
+     * configured, devices 4 and 5, port 1.
+     *
+     * Verifies the ARP request is flooded out the correct edge ports.
+     */
+    @Test
+    public void testConfiguredVlan() {
+        Host requestor = new DefaultHost(PID, HID1, MAC1, VLAN1, getLocation(NUM_DEVICES),
+                Collections.singleton(IP1));
+
+        expect(hostService.getHostsByIp(IP2))
+                .andReturn(Collections.emptySet());
+        expect(interfaceService.getInterfacesByIp(IP1))
+                .andReturn(Collections.emptySet());
+        expect(hostService.getHost(HID1)).andReturn(requestor);
+
+        replay(hostService);
+        replay(interfaceService);
+
+        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, VLAN1, MAC1, null, IP1, IP2);
+
+        proxyArp.reply(arpRequest, getLocation(NUM_DEVICES));
+
+        verifyFlood(arpRequest, noConfigCPoints);
+    }
+
+    /**
+     * Tests {@link ProxyArpManager#reply(Ethernet, ConnectPoint)} in the case where the
+     * a vlan packet comes in from a port without interfaces configured. The destination
+     * host is not known for that IP address and there are some interfaces configured on
+     * the same vlan.
+     * It's expected to see the ARP request going out through ports with no interfaces
+     * configured, devices 4 and 5, port 1.
+     *
+     * Verifies the ARP request is flooded out the correct edge ports.
+     */
+    @Test
+    public void testConfiguredVlanOnInterfaces() {
+        Host requestor = new DefaultHost(PID, HID1, MAC1, VLAN1, getLocation(6),
+                Collections.singleton(IP1));
+
+        expect(hostService.getHostsByIp(IP2))
+                .andReturn(Collections.emptySet());
+        expect(interfaceService.getInterfacesByIp(IP1))
+                .andReturn(Collections.emptySet());
+        expect(hostService.getHost(HID1)).andReturn(requestor);
+
+        replay(hostService);
+        replay(interfaceService);
+
+        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, VLAN1, MAC1, null, IP1, IP2);
+
         proxyArp.reply(arpRequest, getLocation(6));
 
-        verifyFlood(arpRequest);
+        verifyFlood(arpRequest, configVlanCPoints);
     }
 
     /**
@@ -493,12 +671,11 @@ public class ProxyArpManagerTest {
      */
     @Test
     public void testReplyDifferentVlanIpv6() {
-
-        Host replyer = new DefaultHost(PID, HID3, MAC3, VLAN2, getLocation(4),
-                                       Collections.singleton(IP3));
-
-        Host requestor = new DefaultHost(PID, HID4, MAC4, VLAN1, getLocation(5),
+        Host requestor = new DefaultHost(PID, HID4, MAC4, VLAN1, getLocation(NUM_DEVICES),
                                          Collections.singleton(IP4));
+
+        Host replyer = new DefaultHost(PID, HID3, MAC3, VLAN2, getLocation(NUM_DEVICES - 1),
+                Collections.singleton(IP3));
 
         expect(hostService.getHostsByIp(IP3))
                 .andReturn(Collections.singleton(replyer));
@@ -513,13 +690,9 @@ public class ProxyArpManagerTest {
                                        MAC4, SOLICITED_MAC3,
                                        IP4, IP3);
 
-        //Setup for flood test
-        getEdgePointsNoArg = Lists.newLinkedList();
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("5"), PortNumber.portNumber(1)));
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("4"), PortNumber.portNumber(1)));
-        proxyArp.reply(ndpRequest, getLocation(6));
+        proxyArp.reply(ndpRequest, getLocation(NUM_DEVICES));
 
-        verifyFlood(ndpRequest);
+        verifyFlood(ndpRequest, noConfigCPoints);
     }
 
     /**
@@ -533,29 +706,29 @@ public class ProxyArpManagerTest {
         MacAddress firstMac = MacAddress.valueOf(1L);
         MacAddress secondMac = MacAddress.valueOf(2L);
 
-        Host requestor = new DefaultHost(PID, HID2, MAC2, VLAN1, LOC1,
+        Host requestor = new DefaultHost(PID, HID1, MAC1, VLAN1, LOC1,
                 Collections.singleton(theirIp));
 
-        expect(hostService.getHost(HID2)).andReturn(requestor);
+        expect(hostService.getHost(HID1)).andReturn(requestor);
         replay(hostService);
         replay(interfaceService);
 
-        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, theirIp, ourFirstIp);
-        isEdgePointReturn = true;
+        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, VLAN1, MAC1, null, theirIp, ourFirstIp);
+
         proxyArp.reply(arpRequest, LOC1);
 
         assertEquals(1, packetService.packets.size());
-        Ethernet arpReply = buildArp(ARP.OP_REPLY, firstMac, MAC2, ourFirstIp, theirIp);
+        Ethernet arpReply = buildArp(ARP.OP_REPLY, VLAN1, firstMac, MAC1, ourFirstIp, theirIp);
         verifyPacketOut(arpReply, LOC1, packetService.packets.get(0));
 
         // Test a request for the second address on that port
         packetService.packets.clear();
-        arpRequest = buildArp(ARP.OP_REQUEST, MAC2, null, theirIp, ourSecondIp);
+        arpRequest = buildArp(ARP.OP_REQUEST, VLAN1, MAC1, null, theirIp, ourSecondIp);
 
         proxyArp.reply(arpRequest, LOC1);
 
         assertEquals(1, packetService.packets.size());
-        arpReply = buildArp(ARP.OP_REPLY, secondMac, MAC2, ourSecondIp, theirIp);
+        arpReply = buildArp(ARP.OP_REPLY, VLAN1, secondMac, MAC1, ourSecondIp, theirIp);
         verifyPacketOut(arpReply, LOC1, packetService.packets.get(0));
     }
 
@@ -566,7 +739,7 @@ public class ProxyArpManagerTest {
     public void testReplyToRequestForUsIpv6() {
         Ip6Address theirIp = Ip6Address.valueOf("1000::ffff");
         Ip6Address ourFirstIp = Ip6Address.valueOf("1000::1");
-        Ip6Address ourSecondIp = Ip6Address.valueOf("2000::1");
+        Ip6Address ourSecondIp = Ip6Address.valueOf("2000::2");
         MacAddress firstMac = MacAddress.valueOf(1L);
         MacAddress secondMac = MacAddress.valueOf(2L);
 
@@ -584,7 +757,7 @@ public class ProxyArpManagerTest {
                                        MacAddress.valueOf("33:33:ff:00:00:01"),
                                        theirIp,
                                        ourFirstIp);
-        isEdgePointReturn = true;
+
         proxyArp.reply(ndpRequest, LOC1);
         assertEquals(1, packetService.packets.size());
 
@@ -599,9 +772,9 @@ public class ProxyArpManagerTest {
         packetService.packets.clear();
         ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
                               MAC2,
-                                       MacAddress.valueOf("33:33:ff:00:00:01"),
-                                       theirIp,
-                                       ourSecondIp);
+                              MacAddress.valueOf("33:33:ff:00:00:01"),
+                              theirIp,
+                              ourSecondIp);
         proxyArp.reply(ndpRequest, LOC1);
         assertEquals(1, packetService.packets.size());
 
@@ -624,14 +797,14 @@ public class ProxyArpManagerTest {
         Ip4Address theirIp = Ip4Address.valueOf("10.0.1.254");
 
         // Request for a valid external IP address but coming in the wrong port
-        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, MAC1, null, theirIp,
+        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, VLAN1, MAC1, null, theirIp,
                 Ip4Address.valueOf("10.0.3.1"));
         proxyArp.reply(arpRequest, LOC1);
         assertEquals(0, packetService.packets.size());
 
         // Request for a valid internal IP address but coming in an external port
         packetService.packets.clear();
-        arpRequest = buildArp(ARP.OP_REQUEST, MAC1, null, theirIp, IP1);
+        arpRequest = buildArp(ARP.OP_REQUEST, VLAN1, MAC1, null, theirIp, IP1);
         proxyArp.reply(arpRequest, LOC1);
         assertEquals(0, packetService.packets.size());
     }
@@ -647,20 +820,20 @@ public class ProxyArpManagerTest {
         Ip6Address theirIp = Ip6Address.valueOf("1000::ffff");
 
         Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
-                                       MAC1,
-                                       MacAddress.valueOf("33:33:ff:00:00:01"),
-                                       theirIp,
-                                       Ip6Address.valueOf("3000::1"));
+                              MAC1,
+                              MacAddress.valueOf("33:33:ff:00:00:01"),
+                              theirIp,
+                              Ip6Address.valueOf("3000::1"));
         proxyArp.reply(ndpRequest, LOC1);
         assertEquals(0, packetService.packets.size());
 
         // Request for a valid internal IP address but coming in an external port
         packetService.packets.clear();
         ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
-                                       MAC1,
-                                       MacAddress.valueOf("33:33:ff:00:00:01"),
-                                       theirIp,
-                                       IP3);
+                              MAC1,
+                              MacAddress.valueOf("33:33:ff:00:00:01"),
+                              theirIp,
+                              IP3);
         proxyArp.reply(ndpRequest, LOC1);
         assertEquals(0, packetService.packets.size());
     }
@@ -685,9 +858,8 @@ public class ProxyArpManagerTest {
 
         // This is a request from something inside our network (like a BGP
         // daemon) to an external host.
-        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, ourMac, null, ourIp, theirIp);
+        Ethernet arpRequest = buildArp(ARP.OP_REQUEST, VLAN1, ourMac, null, ourIp, theirIp);
         //Ensure the packet is allowed through (it is not to an internal port)
-        isEdgePointReturn = true;
 
         proxyArp.reply(arpRequest, getLocation(5));
         assertEquals(1, packetService.packets.size());
@@ -728,9 +900,6 @@ public class ProxyArpManagerTest {
                                        ourIp,
                                        theirIp);
 
-        //Ensure the packet is allowed through (it is not to an internal port)
-        isEdgePointReturn = true;
-
         proxyArp.reply(ndpRequest, getLocation(5));
         assertEquals(1, packetService.packets.size());
         verifyPacketOut(ndpRequest, getLocation(1), packetService.packets.get(0));
@@ -758,7 +927,7 @@ public class ProxyArpManagerTest {
         replay(hostService);
         replay(interfaceService);
 
-        Ethernet arpRequest = buildArp(ARP.OP_REPLY, MAC2, MAC1, IP2, IP1);
+        Ethernet arpRequest = buildArp(ARP.OP_REPLY, VLAN1, MAC2, MAC1, IP2, IP1);
 
         proxyArp.forward(arpRequest, LOC2);
 
@@ -804,22 +973,15 @@ public class ProxyArpManagerTest {
      */
     @Test
     public void testForwardFlood() {
-        expect(hostService.getHost(HID1)).andReturn(null);
+        expect(hostService.getHost(HID2)).andReturn(null);
         replay(hostService);
         replay(interfaceService);
 
-        Ethernet arpRequest = buildArp(ARP.OP_REPLY, MAC2, MAC1, IP2, IP1);
+        Ethernet arpRequest = buildArp(ARP.OP_REPLY, VLAN1, MAC1, MAC2, IP1, IP2);
 
-        //populate the list of edges when so that when forward hits flood in the manager it contains the values
-        //that should continue on
-        getEdgePointsNoArg = Lists.newLinkedList();
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("3"), PortNumber.portNumber(1)));
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("5"), PortNumber.portNumber(1)));
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("4"), PortNumber.portNumber(1)));
+        proxyArp.forward(arpRequest, getLocation(NUM_DEVICES));
 
-        proxyArp.forward(arpRequest, getLocation(6));
-
-        verifyFlood(arpRequest);
+        verifyFlood(arpRequest, noConfigCPoints);
     }
 
     /**
@@ -837,16 +999,9 @@ public class ProxyArpManagerTest {
                                        MAC4, SOLICITED_MAC3,
                                        IP4, IP3);
 
-        //populate the list of edges when so that when forward hits flood in the manager it contains the values
-        //that should continue on
-        getEdgePointsNoArg = Lists.newLinkedList();
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("3"), PortNumber.portNumber(1)));
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("5"), PortNumber.portNumber(1)));
-        getEdgePointsNoArg.add(new ConnectPoint(DeviceId.deviceId("4"), PortNumber.portNumber(1)));
+        proxyArp.forward(ndpRequest, getLocation(NUM_DEVICES));
 
-        proxyArp.forward(ndpRequest, getLocation(6));
-
-        verifyFlood(ndpRequest);
+        verifyFlood(ndpRequest, noConfigCPoints);
     }
 
     /**
@@ -854,21 +1009,20 @@ public class ProxyArpManagerTest {
      * except for the input port.
      *
      * @param packet the packet that was expected to be flooded
+     * @param connectPoints the connectPoints where the outpacket should be
+     *                      observed
      */
-    private void verifyFlood(Ethernet packet) {
+    private void verifyFlood(Ethernet packet, List<ConnectPoint> connectPoints) {
+
         // There should be 1 less than NUM_FLOOD_PORTS; the inPort should be excluded.
-        assertEquals(NUM_FLOOD_PORTS - 1, packetService.packets.size());
+        assertEquals(connectPoints.size() - 1, packetService.packets.size());
 
         Collections.sort(packetService.packets,
                 (o1, o2) -> o1.sendThrough().uri().compareTo(o2.sendThrough().uri()));
 
-
-        for (int i = 0; i < NUM_FLOOD_PORTS - 1; i++) {
-            ConnectPoint cp = new ConnectPoint(getDeviceId(NUM_ADDRESS_PORTS + i + 1),
-                    PortNumber.portNumber(1));
-
+        for (int i = 0; i < connectPoints.size() - 1; i++) {
             OutboundPacket outboundPacket = packetService.packets.get(i);
-            verifyPacketOut(packet, cp, outboundPacket);
+            verifyPacketOut(packet, connectPoints.get(i), outboundPacket);
         }
     }
 
@@ -913,8 +1067,8 @@ public class ProxyArpManagerTest {
      * @param dstIp  destination IP address
      * @return the ARP packet
      */
-    private Ethernet buildArp(short opcode, MacAddress srcMac, MacAddress dstMac,
-                              Ip4Address srcIp, Ip4Address dstIp) {
+    private Ethernet buildArp(short opcode, VlanId vlanId, MacAddress srcMac,
+                              MacAddress dstMac, Ip4Address srcIp, Ip4Address dstIp) {
         Ethernet eth = new Ethernet();
 
         if (dstMac == null) {
@@ -925,7 +1079,7 @@ public class ProxyArpManagerTest {
 
         eth.setSourceMACAddress(srcMac);
         eth.setEtherType(Ethernet.TYPE_ARP);
-        eth.setVlanID(VLAN1.toShort());
+        eth.setVlanID(vlanId.toShort());
 
         ARP arp = new ARP();
         arp.setOpCode(opcode);
@@ -937,7 +1091,7 @@ public class ProxyArpManagerTest {
         arp.setSenderHardwareAddress(srcMac.toBytes());
 
         if (dstMac == null) {
-            arp.setTargetHardwareAddress(ZERO_MAC_ADDRESS);
+            arp.setTargetHardwareAddress(zeroMacAddress);
         } else {
             arp.setTargetHardwareAddress(dstMac.toBytes());
         }
@@ -1017,19 +1171,6 @@ public class ProxyArpManagerTest {
             packets.add(packet);
         }
 
-    }
-
-    class TestEdgePortService extends EdgeManager {
-
-        @Override
-        public boolean isEdgePoint(ConnectPoint connectPoint) {
-            return isEdgePointReturn;
-        }
-
-        @Override
-        public Iterable<ConnectPoint> getEdgePoints() {
-            return getEdgePointsNoArg;
-        }
     }
 
     private class TestProxyArpStoreAdapter implements ProxyArpStore {

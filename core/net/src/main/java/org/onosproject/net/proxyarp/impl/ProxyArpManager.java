@@ -53,6 +53,7 @@ import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -199,9 +200,47 @@ public class ProxyArpManager implements ProxyArpService {
             return;
         }
 
+        // If the packets has a vlanId look if there are some other
+        // interfaces in the configuration on the same vlan and broadcast
+        // the packet out just of through those interfaces.
+        VlanId vlanId = context.vlan();
+
+        Set<Interface> filteredVlanInterfaces =
+                filterVlanInterfacesNoIp(interfaceService.getInterfacesByVlan(vlanId));
+
+        if (vlanId != null
+        && !vlanId.equals(VlanId.NONE)
+        && confContainsVlans(vlanId, context.inPort())) {
+            vlanFlood(context.packet(), filteredVlanInterfaces, context.inPort);
+            return;
+        }
+
         // The request couldn't be resolved.
         // Flood the request on all ports except the incoming port.
         flood(context.packet(), context.inPort());
+    }
+
+    private Set<Interface> filterVlanInterfacesNoIp(Set<Interface> vlanInterfaces) {
+        return vlanInterfaces
+                .stream()
+                .filter(intf -> intf.ipAddresses().isEmpty())
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * States if the interface configuration contains more than one interface configured
+     * on a specific vlan, including the interface passed as argument.
+     *
+     * @param vlanId the vlanid to look for in the interface configuration
+     * @param connectPoint the connect point to exclude from the search
+     * @return true if interfaces are found. False otherwise
+     */
+    private boolean confContainsVlans(VlanId vlanId, ConnectPoint connectPoint) {
+        Set<Interface> vlanInterfaces = interfaceService.getInterfacesByVlan(vlanId);
+        return interfaceService.getInterfacesByVlan(vlanId)
+                .stream()
+                .anyMatch(intf -> intf.connectPoint().equals(connectPoint) && intf.ipAddresses().isEmpty())
+                && vlanInterfaces.size() > 1;
     }
 
     /**
@@ -259,14 +298,29 @@ public class ProxyArpManager implements ProxyArpService {
     /**
      * Returns whether the given port has any IP addresses configured or not.
      *
-     * @param port the port to check
+     * @param connectPoint the port to check
      * @return true if the port has at least one IP address configured,
-     * otherwise false
+     * false otherwise
      */
-    private boolean hasIpAddress(ConnectPoint port) {
-        return interfaceService.getInterfacesByPort(port)
+    private boolean hasIpAddress(ConnectPoint connectPoint) {
+        return interfaceService.getInterfacesByPort(connectPoint)
                 .stream()
-                .map(intf -> intf.ipAddresses())
+                .flatMap(intf -> intf.ipAddresses().stream())
+                .findAny()
+                .isPresent();
+    }
+
+    /**
+     * Returns whether the given port has any VLAN configured or not.
+     *
+     * @param connectPoint the port to check
+     * @return true if the port has at least one VLAN configured,
+     * false otherwise
+     */
+    private boolean hasVlan(ConnectPoint connectPoint) {
+        return interfaceService.getInterfacesByPort(connectPoint)
+                .stream()
+                .filter(intf -> !intf.vlan().equals(VlanId.NONE))
                 .findAny()
                 .isPresent();
     }
@@ -322,6 +376,30 @@ public class ProxyArpManager implements ProxyArpService {
     }
 
     /**
+     * Flood the arp request at all edges on a specifc VLAN.
+     *
+     * @param request the arp request
+     * @param dsts the destination interfaces
+     * @param inPort the connect point the arp request was received on
+     */
+    private void vlanFlood(Ethernet request, Set<Interface> dsts, ConnectPoint inPort) {
+        TrafficTreatment.Builder builder = null;
+        ByteBuffer buf = ByteBuffer.wrap(request.serialize());
+
+        for (Interface intf : dsts) {
+            ConnectPoint cPoint = intf.connectPoint();
+            if (cPoint.equals(inPort)) {
+                continue;
+            }
+
+            builder = DefaultTrafficTreatment.builder();
+            builder.setOutput(cPoint.port());
+            packetService.emit(new DefaultOutboundPacket(cPoint.deviceId(),
+                    builder.build(), buf));
+        }
+    }
+
+    /**
      * Flood the arp request at all edges in the network.
      *
      * @param request the arp request
@@ -332,7 +410,9 @@ public class ProxyArpManager implements ProxyArpService {
         ByteBuffer buf = ByteBuffer.wrap(request.serialize());
 
         for (ConnectPoint connectPoint : edgeService.getEdgePoints()) {
-            if (hasIpAddress(connectPoint) || connectPoint.equals(inPort)) {
+            if (hasIpAddress(connectPoint)
+             || hasVlan(connectPoint)
+             || connectPoint.equals(inPort)) {
                 continue;
             }
 
