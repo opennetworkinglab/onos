@@ -15,15 +15,7 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
-import static org.onosproject.net.flow.criteria.Criteria.matchLambda;
-import static org.onosproject.net.flow.criteria.Criteria.matchOchSignalType;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupChannelSpacing;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupGridType;
-import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOchSignalType;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
@@ -55,13 +47,13 @@ import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
 import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
 import org.projectfloodlight.openflow.protocol.action.OFActionGroup;
 import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
-import org.projectfloodlight.openflow.protocol.action.OFActionSetQueue;
 import org.projectfloodlight.openflow.protocol.action.OFActionPopMpls;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlDst;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetDlSrc;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetField;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetNwDst;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetNwSrc;
+import org.projectfloodlight.openflow.protocol.action.OFActionSetQueue;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanPcp;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanVid;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
@@ -75,7 +67,6 @@ import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
 import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
-import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.Masked;
@@ -87,7 +78,14 @@ import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+
+import static org.onosproject.net.flow.criteria.Criteria.matchLambda;
+import static org.onosproject.net.flow.criteria.Criteria.matchOchSignalType;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupChannelSpacing;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupGridType;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOchSignalType;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class FlowEntryBuilder {
     private final Logger log = getLogger(getClass());
@@ -520,11 +518,7 @@ public class FlowEntryBuilder {
                 break;
             case ETH_TYPE:
                 int ethType = match.get(MatchField.ETH_TYPE).getValue();
-                if (ethType == EthType.VLAN_FRAME.getValue()) {
-                    builder.matchVlanId(VlanId.ANY);
-                } else {
-                    builder.matchEthType((short) ethType);
-                }
+                builder.matchEthType((short) ethType);
                 break;
             case VLAN_VID:
                 VlanId vlanId = null;
