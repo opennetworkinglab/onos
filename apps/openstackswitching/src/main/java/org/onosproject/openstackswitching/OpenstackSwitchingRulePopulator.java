@@ -49,7 +49,9 @@ public class OpenstackSwitchingRulePopulator {
     private ApplicationId appId;
 
     /**
-     * Returns OpenstackSwitchingRule reference.
+     * Creates OpenstackSwitchingRulPopulator.
+     *
+     * @param appId application id
      * @param flowObjectiveService FlowObjectiveService reference
      */
     public OpenstackSwitchingRulePopulator(ApplicationId appId,
@@ -61,6 +63,10 @@ public class OpenstackSwitchingRulePopulator {
     /**
      * Populates flows rules for forwarding packets to and from VMs.
      *
+     * @param ip v4 IP Address
+     * @param  id device ID
+     * @param port port
+     * @param cidr v4 IP prefix
      * @return true if it succeeds to populate rules, false otherwise.
      */
     public boolean populateForwardingRule(Ip4Address ip, DeviceId id, Port port, Ip4Prefix cidr) {
@@ -94,9 +100,13 @@ public class OpenstackSwitchingRulePopulator {
      * @param id device ID to populates the flow rules
      * @param hostIp host IP address of the VM
      * @param vmIp fixed IP address for the VM
+     * @param vmMac MAC address for the VM
+     * @param tunnelPort tunnel port number for the VM
      * @param idx device ID for OVS of the other VM
      * @param hostIpx host IP address of the other VM
      * @param vmIpx fixed IP address of the other VM
+     * @param vmMacx MAC address for the other VM
+     * @param tunnelPortx x tunnel port number for other VM
      */
     public void populateForwardingRuleForOtherCnode(String vni, DeviceId id, Ip4Address hostIp,
                                                     Ip4Address vmIp, MacAddress vmMac, PortNumber tunnelPort,

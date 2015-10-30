@@ -32,9 +32,9 @@ public class OpenstackArpHandler {
     HashMap<String, OpenstackPort> openstackPortHashMap;
 
     /**
-     * Returns OpenstackArpHandler reference.
+     * Constructs an OpenstackArpHandler.
      *
-     * @param openstackPortMap
+     * @param openstackPortMap port map
      */
     public OpenstackArpHandler(HashMap<String, OpenstackPort> openstackPortMap) {
         this.openstackPortHashMap = openstackPortMap;
