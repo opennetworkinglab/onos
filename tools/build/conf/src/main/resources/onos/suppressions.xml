@@ -29,4 +29,12 @@
     <suppress files=".*" checks="HiddenField"/>
     <suppress files=".java" checks="NewlineAtEndOfFile"/>
 
+    <!-- Suppressions for unit testing code -->
+    <suppress checks="JavadocPackage"
+              files=".*/src/test/.*.java"
+            />
+
+    <suppress checks="JavadocPackage"
+              files=".*/thirdparty/.*.java"/>
+
 </suppressions>

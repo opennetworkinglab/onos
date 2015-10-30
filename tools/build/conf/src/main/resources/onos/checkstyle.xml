@@ -67,9 +67,7 @@
     -->
     <!-- Checks that a package-info.java file exists for each package.     -->
     <!-- See http://checkstyle.sf.net/config_javadoc.html#JavadocPackage -->
-    <!-- ONOS does not currently supply package level Javadoc information
-         in package-info files -->
-    <!-- <module name="JavadocPackage"/> -->
+    <module name="JavadocPackage"/>
 
     <!-- Checks whether files end with a new line.                        -->
     <!-- See http://checkstyle.sf.net/config_misc.html#NewlineAtEndOfFile -->
