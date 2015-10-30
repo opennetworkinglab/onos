@@ -19,7 +19,9 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.HostId;
 
+import java.util.List;
 import java.util.Map;
+
 
 /**
  * DHCP Service Interface.
@@ -56,12 +58,16 @@ public interface DhcpService {
 
     /**
      * Registers a static IP mapping with the DHCP Server.
+     * Supports the request from OpenStack
      *
-     * @param macID     macID of the client
+     * @param macID macID of the client
      * @param ipAddress IP Address requested for the client
-     * @return true if the mapping was successfully registered, false otherwise
+     * @param fromOpenStack true if the request is from OpenStack
+     * @param addressList subnetMask, DHCP/Router/Domain Server IP Address if the request from OpenStack
+     * @return true if the mapping was successfully added, false otherwise
      */
-    boolean setStaticMapping(MacAddress macID, Ip4Address ipAddress);
+    boolean setStaticMapping(MacAddress macID, Ip4Address ipAddress, boolean fromOpenStack,
+                             List<Ip4Address> addressList);
 
     /**
      * Removes a static IP mapping with the DHCP Server.
@@ -77,5 +83,4 @@ public interface DhcpService {
      * @return list of available IPs
      */
     Iterable<Ip4Address> getAvailableIPs();
-
 }

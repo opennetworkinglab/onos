@@ -18,6 +18,7 @@ package org.onosproject.dhcp.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.dhcp.DhcpService;
@@ -121,7 +122,7 @@ public class DHCPWebResource extends AbstractWebResource {
             if (macID != null && ip != null) {
 
                 if (!service.setStaticMapping(MacAddress.valueOf(macID.asText()),
-                        Ip4Address.valueOf(ip.asText()))) {
+                        Ip4Address.valueOf(ip.asText()), false, Lists.newArrayList())) {
                     throw new IllegalArgumentException("Static Mapping Failed. The IP maybe unavailable.");
                 }
             }

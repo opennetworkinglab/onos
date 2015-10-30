@@ -15,6 +15,7 @@
  */
 package org.onosproject.dhcp.cli;
 
+import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.Ip4Address;
@@ -48,7 +49,7 @@ public class DhcpSetStaticMapping extends AbstractShellCommand {
         try {
             MacAddress macID = MacAddress.valueOf(macAddr);
             Ip4Address ipAddress = Ip4Address.valueOf(ipAddr);
-            if (dhcpService.setStaticMapping(macID, ipAddress)) {
+            if (dhcpService.setStaticMapping(macID, ipAddress, false, Lists.newArrayList())) {
                 print(DHCP_SUCCESS);
             } else {
                 print(DHCP_FAILURE);

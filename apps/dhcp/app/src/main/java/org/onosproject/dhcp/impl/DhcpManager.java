@@ -16,6 +16,7 @@
 package org.onosproject.dhcp.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -77,7 +78,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
 import static org.onlab.packet.MacAddress.valueOf;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 
@@ -168,7 +168,6 @@ public class DhcpManager implements DhcpService {
         cfgService.addListener(cfgListener);
         factories.forEach(cfgService::registerConfigFactory);
         cfgListener.reconfigureNetwork(cfgService.getConfig(appId, DhcpConfig.class));
-
         hostProviderService = hostProviderRegistry.register(hostProvider);
         packetService.addProcessor(processor, PacketProcessor.director(0));
         requestPackets();
@@ -242,8 +241,12 @@ public class DhcpManager implements DhcpService {
     }
 
     @Override
-    public boolean setStaticMapping(MacAddress macID, Ip4Address ipAddress) {
-        return dhcpStore.assignStaticIP(macID, ipAddress);
+    public boolean setStaticMapping(MacAddress macID, Ip4Address ipAddress, boolean fromOpenStack,
+                                    List<Ip4Address> addressList) {
+        log.debug("setStaticMapping is called with Mac: {}, Ip: {} addressList: {}",
+                macID.toString(), ipAddress.toString(), addressList.toString());
+
+        return dhcpStore.assignStaticIP(macID, ipAddress, fromOpenStack, addressList);
     }
 
     @Override
@@ -268,6 +271,26 @@ public class DhcpManager implements DhcpService {
          */
         private Ethernet buildReply(Ethernet packet, Ip4Address ipOffered, byte outgoingMessageType) {
 
+            Ip4Address subnetMaskReply;
+            Ip4Address dhcpServerReply;
+            Ip4Address routerAddressReply;
+            Ip4Address domainServerReply;
+            IpAssignment ipAssignment;
+
+            ipAssignment = dhcpStore.getIpAssignmentFromAllocationMap(HostId.hostId(packet.getSourceMAC()));
+
+            if (ipAssignment != null && ipAssignment.fromOpenStack()) {
+                subnetMaskReply = ipAssignment.subnetMask();
+                dhcpServerReply = ipAssignment.dhcpServer();
+                domainServerReply = ipAssignment.domainServer();
+                routerAddressReply = ipAssignment.routerAddress();
+            } else {
+                subnetMaskReply = subnetMask;
+                dhcpServerReply = myIP;
+                routerAddressReply = routerAddress;
+                domainServerReply = domainServer;
+            }
+
             // Ethernet Frame.
             Ethernet ethReply = new Ethernet();
             ethReply.setSourceMACAddress(myMAC);
@@ -278,7 +301,7 @@ public class DhcpManager implements DhcpService {
             // IP Packet
             IPv4 ipv4Packet = (IPv4) packet.getPayload();
             IPv4 ipv4Reply = new IPv4();
-            ipv4Reply.setSourceAddress(myIP.toInt());
+            ipv4Reply.setSourceAddress(dhcpServerReply.toInt());
             ipv4Reply.setDestinationAddress(ipOffered.toInt());
             ipv4Reply.setTtl(packetTTL);
 
@@ -299,7 +322,7 @@ public class DhcpManager implements DhcpService {
 
             if (outgoingMessageType != DHCPPacketType.DHCPNAK.getValue()) {
                 dhcpReply.setYourIPAddress(ipOffered.toInt());
-                dhcpReply.setServerIPAddress(myIP.toInt());
+                dhcpReply.setServerIPAddress(dhcpServerReply.toInt());
                 if (dhcpPacket.getGatewayIPAddress() == 0) {
                     ipv4Reply.setDestinationAddress(IP_BROADCAST.toInt());
                 }
@@ -322,7 +345,7 @@ public class DhcpManager implements DhcpService {
             option = new DHCPOption();
             option.setCode(DHCP.DHCPOptionCode.OptionCode_DHCPServerIp.getValue());
             option.setLength((byte) 4);
-            option.setData(myIP.toOctets());
+            option.setData(dhcpServerReply.toOctets());
             optionList.add(option);
 
             if (outgoingMessageType != DHCPPacketType.DHCPNAK.getValue()) {
@@ -352,7 +375,7 @@ public class DhcpManager implements DhcpService {
                 option = new DHCPOption();
                 option.setCode(DHCP.DHCPOptionCode.OptionCode_SubnetMask.getValue());
                 option.setLength((byte) 4);
-                option.setData(subnetMask.toOctets());
+                option.setData(subnetMaskReply.toOctets());
                 optionList.add(option);
 
                 // Broadcast Address.
@@ -366,14 +389,14 @@ public class DhcpManager implements DhcpService {
                 option = new DHCPOption();
                 option.setCode(DHCP.DHCPOptionCode.OptionCode_RouterAddress.getValue());
                 option.setLength((byte) 4);
-                option.setData(routerAddress.toOctets());
+                option.setData(routerAddressReply.toOctets());
                 optionList.add(option);
 
                 // DNS Server Address.
                 option = new DHCPOption();
                 option.setCode(DHCP.DHCPOptionCode.OptionCode_DomainServer.getValue());
                 option.setLength((byte) 4);
-                option.setData(domainServer.toOctets());
+                option.setData(domainServerReply.toOctets());
                 optionList.add(option);
             }
 
@@ -384,7 +407,6 @@ public class DhcpManager implements DhcpService {
             optionList.add(option);
 
             dhcpReply.setOptions(optionList);
-
             udpReply.setPayload(dhcpReply);
             ipv4Reply.setPayload(udpReply);
             ethReply.setPayload(ipv4Reply);
@@ -449,31 +471,40 @@ public class DhcpManager implements DhcpService {
                 if (incomingPacketType.getValue() == DHCPPacketType.DHCPDISCOVER.getValue()) {
 
                     outgoingPacketType = DHCPPacketType.DHCPOFFER;
-                    Ip4Address ipOffered = dhcpStore.suggestIP(hostId, requestedIP);
+                    Ip4Address ipOffered = null;
+                    ipOffered = dhcpStore.suggestIP(hostId, requestedIP);
+
                     if (ipOffered != null) {
                         Ethernet ethReply = buildReply(packet, ipOffered,
                                 (byte) outgoingPacketType.getValue());
                         sendReply(context, ethReply);
                     }
-
                 } else if (incomingPacketType.getValue() == DHCPPacketType.DHCPREQUEST.getValue()) {
 
                     if (flagIfServerIP && flagIfRequestedIP) {
                         // SELECTING state
-                        if (myIP.equals(serverIP)) {
 
-                            if (dhcpStore.assignIP(hostId, requestedIP, leaseTime)) {
-                                outgoingPacketType = DHCPPacketType.DHCPACK;
-                                discoverHost(context, requestedIP);
-                            } else {
-                                outgoingPacketType = DHCPPacketType.DHCPNAK;
-                            }
+                        if (dhcpStore.getIpAssignmentFromAllocationMap(HostId.hostId(clientMAC))
+                                .fromOpenStack()) {
+                            outgoingPacketType = DHCPPacketType.DHCPACK;
                             Ethernet ethReply = buildReply(packet, requestedIP, (byte) outgoingPacketType.getValue());
                             sendReply(context, ethReply);
+                        } else {
+                            if (myIP.equals(serverIP)) {
+                                if (dhcpStore.assignIP(hostId, requestedIP, leaseTime, false, Lists.newArrayList())) {
+                                    outgoingPacketType = DHCPPacketType.DHCPACK;
+                                    discoverHost(context, requestedIP);
+                                } else {
+                                    outgoingPacketType = DHCPPacketType.DHCPNAK;
+                                }
+                                Ethernet ethReply = buildReply(packet, requestedIP,
+                                        (byte) outgoingPacketType.getValue());
+                                sendReply(context, ethReply);
+                            }
                         }
                     } else if (flagIfRequestedIP) {
                         // INIT-REBOOT state
-                        if (dhcpStore.assignIP(hostId, requestedIP, leaseTime)) {
+                        if (dhcpStore.assignIP(hostId, requestedIP, leaseTime, false, Lists.newArrayList())) {
                             outgoingPacketType = DHCPPacketType.DHCPACK;
                             Ethernet ethReply = buildReply(packet, requestedIP, (byte) outgoingPacketType.getValue());
                             sendReply(context, ethReply);
@@ -485,7 +516,7 @@ public class DhcpManager implements DhcpService {
                         int ciaadr = dhcpPayload.getClientIPAddress();
                         if (ciaadr != 0) {
                             Ip4Address clientIaddr = Ip4Address.valueOf(ciaadr);
-                            if (dhcpStore.assignIP(hostId, clientIaddr, leaseTime)) {
+                            if (dhcpStore.assignIP(hostId, clientIaddr, leaseTime, false, Lists.newArrayList())) {
                                 outgoingPacketType = DHCPPacketType.DHCPACK;
                                 discoverHost(context, clientIaddr);
                             } else if (packet.getEtherType() == Ethernet.TYPE_IPV4 &&

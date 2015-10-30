@@ -19,7 +19,9 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.HostId;
 
+import java.util.List;
 import java.util.Map;
+
 
 /**
  * DHCPStore Interface.
@@ -43,15 +45,21 @@ public interface DhcpStore {
      */
     Ip4Address suggestIP(HostId hostId, Ip4Address requestedIP);
 
+
     /**
      * Assigns the requested IP to the Mac ID, in response to a DHCP REQUEST message.
      *
      * @param hostId Host Id of the client requesting an IP
      * @param ipAddr IP Address being requested
      * @param leaseTime Lease time offered by the server for this mapping
+     * @param fromOpenStack true if the request is from Openstack
+     * @param addressList subnetMask, DHCP IP Address, Router IP Address, Domain Server IP Address if the request
+     *                    from OpenStack
      * @return returns true if the assignment was successful, false otherwise
      */
-    boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime);
+    boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime, boolean fromOpenStack,
+                     List<Ip4Address> addressList);
+
 
     /**
      * Sets the default time for which suggested IP mappings are valid.
@@ -87,9 +95,11 @@ public interface DhcpStore {
      *
      * @param macID macID of the client
      * @param ipAddr IP Address requested for the client
+     * @param fromOpenStack true if the request is from Openstack
+     * @param addressList subnetMask, DHCP/Router/Domain Server IP Address if the request from OpenStack
      * @return true if the mapping was successfully registered, false otherwise
      */
-    boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr);
+    boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr, boolean fromOpenStack, List<Ip4Address> addressList);
 
     /**
      * Removes a static IP mapping associated with the given MAC ID from the DHCP Server.
@@ -106,4 +116,11 @@ public interface DhcpStore {
      */
     Iterable<Ip4Address> getAvailableIPs();
 
+    /**
+     *
+     *
+     * @param hostId
+     * @return
+     */
+    IpAssignment getIpAssignmentFromAllocationMap(HostId hostId);
 }

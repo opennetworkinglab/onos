@@ -228,7 +228,8 @@ public class DhcpManagerTest {
             return Ip4Address.valueOf(EXPECTED_IP);
         }
 
-        public boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime) {
+        public boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime, boolean fromOpenStack,
+                                List<Ip4Address> addressList) {
             return true;
         }
 
@@ -255,7 +256,8 @@ public class DhcpManagerTest {
             return map;
         }
 
-        public boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr) {
+        public boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr, boolean fromOpenStack,
+                                      List<Ip4Address> addressList) {
             return true;
         }
 
@@ -267,6 +269,9 @@ public class DhcpManagerTest {
             List<Ip4Address> ipList = new ArrayList<>();
             ipList.add(Ip4Address.valueOf(EXPECTED_IP));
             return ImmutableSet.copyOf(ipList);
+        }
+        public IpAssignment getIpAssignmentFromAllocationMap(HostId hostId) {
+            return null;
         }
     }
 

@@ -38,8 +38,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.HashMap;
 import java.util.Objects;
 
 /**
@@ -105,7 +106,9 @@ public class DistributedDhcpStore implements DhcpStore {
             IpAssignment.AssignmentStatus status = assignmentInfo.assignmentStatus();
             Ip4Address ipAddr = assignmentInfo.ipAddress();
 
-            if (status == IpAssignment.AssignmentStatus.Option_Assigned ||
+            if (assignmentInfo.fromOpenStack()) {
+                return assignmentInfo.ipAddress();
+            } else if (status == IpAssignment.AssignmentStatus.Option_Assigned ||
                     status == IpAssignment.AssignmentStatus.Option_Requested) {
                 // Client has a currently Active Binding.
                 if (ipWithinRange(ipAddr)) {
@@ -160,9 +163,11 @@ public class DistributedDhcpStore implements DhcpStore {
     }
 
     @Override
-    public boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime) {
+    public boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime, boolean fromOpenStack,
+                            List<Ip4Address> addressList) {
 
         IpAssignment assignmentInfo;
+
         if (allocationMap.containsKey(hostId)) {
             assignmentInfo = allocationMap.get(hostId).value();
             IpAssignment.AssignmentStatus status = assignmentInfo.assignmentStatus();
@@ -207,6 +212,20 @@ public class DistributedDhcpStore implements DhcpStore {
                 allocationMap.put(hostId, assignmentInfo);
                 return true;
             }
+        } else if (fromOpenStack) {
+            assignmentInfo = IpAssignment.builder()
+                                    .ipAddress(ipAddr)
+                                    .timestamp(new Date())
+                                    .leasePeriod(leaseTime)
+                                    .fromOpenStack(true)
+                                    .assignmentStatus(IpAssignment.AssignmentStatus.Option_Requested_From_OpenStack)
+                                    .subnetMask((Ip4Address) addressList.toArray()[0])
+                                    .dhcpServer((Ip4Address) addressList.toArray()[1])
+                                    .domainServer((Ip4Address) addressList.toArray()[2])
+                                    .routerAddress((Ip4Address) addressList.toArray()[3])
+                                    .build();
+            allocationMap.put(hostId, assignmentInfo);
+            return true;
         }
         return false;
     }
@@ -239,7 +258,8 @@ public class DistributedDhcpStore implements DhcpStore {
         IpAssignment assignment;
         for (Map.Entry<HostId, Versioned<IpAssignment>> entry: allocationMap.entrySet()) {
             assignment = entry.getValue().value();
-            if (assignment.assignmentStatus() == IpAssignment.AssignmentStatus.Option_Assigned) {
+            if (assignment.assignmentStatus() == IpAssignment.AssignmentStatus.Option_Assigned
+                    || assignment.assignmentStatus() == IpAssignment.AssignmentStatus.Option_Requested_From_OpenStack) {
                 validMapping.put(entry.getKey(), assignment);
             }
         }
@@ -256,9 +276,10 @@ public class DistributedDhcpStore implements DhcpStore {
     }
 
     @Override
-    public boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr) {
+    public boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr, boolean fromOpenStack,
+                                  List<Ip4Address> addressList) {
         HostId host = HostId.hostId(macID);
-        return assignIP(host, ipAddr, -1);
+        return assignIP(host, ipAddr, -1, fromOpenStack, addressList);
     }
 
     @Override
@@ -299,6 +320,11 @@ public class DistributedDhcpStore implements DhcpStore {
         }
     }
 
+    @Override
+    public IpAssignment getIpAssignmentFromAllocationMap(HostId hostId) {
+        return allocationMap.get(hostId).value();
+    }
+
     /**
      * Fetches the next available IP from the free pool pf IPs.
      *
@@ -326,3 +352,4 @@ public class DistributedDhcpStore implements DhcpStore {
         return false;
     }
 }
+

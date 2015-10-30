@@ -33,6 +33,16 @@ public final class IpAssignment {
 
     private final long leasePeriod;
 
+    private final Ip4Address subnetMask;
+
+    private final Ip4Address dhcpServer;
+
+    private final Ip4Address routerAddress;
+
+    private final Ip4Address domainServer;
+
+    private final boolean fromOpenStack;
+
     private final AssignmentStatus assignmentStatus;
 
     public enum AssignmentStatus {
@@ -41,6 +51,10 @@ public final class IpAssignment {
          */
         Option_Requested,
 
+        /**
+         * IP Assignment has been requested by a OpenStack.
+         */
+        Option_Requested_From_OpenStack,
         /**
          * IP has been assigned to a host.
          */
@@ -58,16 +72,28 @@ public final class IpAssignment {
      *
      * @param ipAddress
      * @param leasePeriod
+     * @param timestamp
      * @param assignmentStatus
+     * @param subnetMask
+     * @param dhcpServer
+     * @param routerAddress
+     * @param domainServer
+     * @param fromOpenStack
      */
     private IpAssignment(Ip4Address ipAddress,
                          long leasePeriod,
                          Date timestamp,
-                         AssignmentStatus assignmentStatus) {
+                         AssignmentStatus assignmentStatus, Ip4Address subnetMask, Ip4Address dhcpServer,
+                         Ip4Address routerAddress, Ip4Address domainServer, boolean fromOpenStack) {
         this.ipAddress = ipAddress;
         this.leasePeriod = leasePeriod;
         this.timestamp = timestamp;
         this.assignmentStatus = assignmentStatus;
+        this.subnetMask = subnetMask;
+        this.dhcpServer = dhcpServer;
+        this.routerAddress = routerAddress;
+        this.domainServer = domainServer;
+        this.fromOpenStack = fromOpenStack;
     }
 
     /**
@@ -115,6 +141,26 @@ public final class IpAssignment {
         return (int) this.leasePeriod * 1000;
     }
 
+    public Ip4Address subnetMask() {
+        return subnetMask;
+    }
+
+    public Ip4Address dhcpServer() {
+        return dhcpServer;
+    }
+
+    public Ip4Address routerAddress() {
+        return routerAddress;
+    }
+
+    public Ip4Address domainServer() {
+        return domainServer;
+    }
+
+    public boolean fromOpenStack() {
+        return fromOpenStack;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
@@ -122,6 +168,11 @@ public final class IpAssignment {
                 .add("timestamp", timestamp)
                 .add("lease", leasePeriod)
                 .add("assignmentStatus", assignmentStatus)
+                .add("subnetMask", subnetMask)
+                .add("dhcpServer", dhcpServer)
+                .add("routerAddress", routerAddress)
+                .add("domainServer", domainServer)
+                .add("fromOpenStack", fromOpenStack)
                 .toString();
     }
 
@@ -157,6 +208,16 @@ public final class IpAssignment {
 
         private AssignmentStatus assignmentStatus;
 
+        private Ip4Address subnetMask;
+
+        private Ip4Address dhcpServer;
+
+        private Ip4Address domainServer;
+
+        private Ip4Address routerAddress;
+
+        private boolean fromOpenStack = false;
+
         private Builder() {
 
         }
@@ -170,10 +231,8 @@ public final class IpAssignment {
 
         public IpAssignment build() {
             validateInputs();
-            return new IpAssignment(ipAddress,
-                                    leasePeriod,
-                                    timeStamp,
-                                    assignmentStatus);
+            return new IpAssignment(ipAddress, leasePeriod, timeStamp, assignmentStatus, subnetMask,
+                    dhcpServer, domainServer, routerAddress, fromOpenStack);
         }
 
         public Builder ipAddress(Ip4Address addr) {
@@ -196,14 +255,48 @@ public final class IpAssignment {
             return this;
         }
 
+        public Builder subnetMask(Ip4Address subnetMask) {
+            this.subnetMask = subnetMask;
+            return this;
+        }
+
+        public Builder dhcpServer(Ip4Address dhcpServer) {
+            this.dhcpServer = dhcpServer;
+            return this;
+        }
+
+        public Builder domainServer(Ip4Address domainServer) {
+            this.domainServer = domainServer;
+            return this;
+        }
+
+        public Builder routerAddress(Ip4Address routerAddress) {
+            this.routerAddress = routerAddress;
+            return this;
+        }
+
+        public Builder fromOpenStack(boolean fromOpenStack) {
+            this.fromOpenStack = fromOpenStack;
+            return this;
+        }
+
+
         private void validateInputs() {
             checkNotNull(ipAddress, "IP Address must be specified");
             checkNotNull(assignmentStatus, "Assignment Status must be specified");
             checkNotNull(leasePeriod, "Lease Period must be specified");
             checkNotNull(timeStamp, "Timestamp must be specified");
 
+            if (fromOpenStack) {
+                checkNotNull(subnetMask, "subnetMask must be specified in case of OpenStack");
+                checkNotNull(dhcpServer, "dhcpServer must be specified in case of OpenStack");
+                checkNotNull(domainServer, "domainServer must be specified in case of OpenStack");
+                checkNotNull(routerAddress, "routerAddress must be specified in case of OpenStack");
+            }
+
             switch (assignmentStatus) {
                 case Option_Requested:
+                case Option_Requested_From_OpenStack:
                 case Option_Assigned:
                 case Option_Expired:
                     break;
