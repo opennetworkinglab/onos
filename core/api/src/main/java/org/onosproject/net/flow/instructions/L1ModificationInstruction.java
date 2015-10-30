@@ -62,7 +62,7 @@ public abstract class L1ModificationInstruction implements Instruction {
 
         @Override
         public int hashCode() {
-            return Objects.hash(oduSignalId);
+            return oduSignalId.hashCode();
         }
 
         @Override

@@ -49,7 +49,7 @@ public final class OvsdbBridgeName {
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return value.hashCode();
     }
 
     @Override

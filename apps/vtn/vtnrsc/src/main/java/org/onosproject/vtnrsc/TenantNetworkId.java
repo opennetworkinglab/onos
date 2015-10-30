@@ -52,7 +52,7 @@ public final class TenantNetworkId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(networkId);
+        return networkId.hashCode();
     }
 
     @Override

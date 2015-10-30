@@ -67,7 +67,7 @@ public class LatencyConstraint implements Constraint {
 
     @Override
     public int hashCode() {
-        return Objects.hash(latency);
+        return latency.hashCode();
     }
 
     @Override

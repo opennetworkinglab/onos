@@ -46,7 +46,7 @@ public final class VirtualPortId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(portId);
+        return portId.hashCode();
     }
 
     @Override

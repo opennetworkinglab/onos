@@ -53,7 +53,7 @@ public final class ClusterId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return id;
     }
 
     @Override

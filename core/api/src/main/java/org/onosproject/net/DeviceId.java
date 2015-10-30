@@ -75,7 +75,7 @@ public final class DeviceId extends ElementId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(str);
+        return str.hashCode();
     }
 
     @Override

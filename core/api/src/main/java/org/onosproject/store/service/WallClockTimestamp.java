@@ -52,7 +52,7 @@ public class WallClockTimestamp implements Timestamp {
     }
     @Override
     public int hashCode() {
-        return Objects.hash(unixTimestamp);
+        return Long.hashCode(unixTimestamp);
     }
 
     @Override

@@ -53,7 +53,7 @@ public class BandwidthResourceRequest implements ResourceRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hash(bandwidth);
+        return bandwidth.hashCode();
     }
 
     @Override

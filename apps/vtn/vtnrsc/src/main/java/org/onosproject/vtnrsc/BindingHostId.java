@@ -49,7 +49,7 @@ public final class BindingHostId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(bindingHostId);
+        return bindingHostId.hashCode();
     }
 
     @Override

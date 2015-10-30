@@ -20,6 +20,7 @@ import org.onlab.packet.IpAddress;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Default implementation of a controller instance descriptor.
@@ -57,7 +58,7 @@ public class DefaultControllerNode implements ControllerNode {
      * @param tcpPort TCP port
      */
     public DefaultControllerNode(NodeId id, IpAddress ip, int tcpPort) {
-        this.id = id;
+        this.id = checkNotNull(id);
         this.ip = ip;
         this.tcpPort = tcpPort;
     }
@@ -79,7 +80,7 @@ public class DefaultControllerNode implements ControllerNode {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return id.hashCode();
     }
 
     @Override

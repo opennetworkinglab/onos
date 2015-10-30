@@ -127,7 +127,7 @@ public final class Version {
 
     @Override
     public int hashCode() {
-        return Objects.hash(format);
+        return format.hashCode();
     }
 
     @Override

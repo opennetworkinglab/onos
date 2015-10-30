@@ -53,7 +53,7 @@ public class DefaultVirtualDevice extends DefaultDevice implements VirtualDevice
 
     @Override
     public int hashCode() {
-        return 31 * super.hashCode() + Objects.hash(networkId);
+        return 31 * super.hashCode() + networkId.hashCode();
     }
 
     @Override

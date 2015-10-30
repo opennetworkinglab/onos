@@ -44,7 +44,7 @@ public final class OvsdbNodeId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(nodeId);
+        return nodeId.hashCode();
     }
 
     @Override

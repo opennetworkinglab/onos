@@ -39,7 +39,7 @@ public class DomainEdge extends AbstractEdge<DomainVertex> {
 
     @Override
     public int hashCode() {
-        return 43 * super.hashCode() + Objects.hash(connectPoint);
+        return 43 * super.hashCode() + connectPoint.hashCode();
     }
 
     @Override

@@ -61,7 +61,7 @@ public class NextHopGroupKey {
 
     @Override
     public int hashCode() {
-        return Objects.hash(address);
+        return address.hashCode();
     }
 
     @Override

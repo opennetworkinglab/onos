@@ -91,7 +91,7 @@ public class WaypointConstraint implements Constraint {
 
     @Override
     public int hashCode() {
-        return Objects.hash(waypoints);
+        return waypoints.hashCode();
     }
 
     @Override

@@ -110,7 +110,7 @@ public class DependencyCycle {
 
     @Override
     public int hashCode() {
-        return Objects.hash(cycle);
+        return cycle.hashCode();
     }
 
     @Override

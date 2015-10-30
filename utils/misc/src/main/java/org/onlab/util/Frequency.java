@@ -18,8 +18,6 @@ package org.onlab.util;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
 
-import java.util.Objects;
-
 /**
  * Class representing frequency. This class is intended to be used for a value whose unit is Hz
  * and its family (KHz, MHz, etc.).
@@ -157,7 +155,7 @@ public final class Frequency implements RichComparable<Frequency> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(frequency);
+        return Long.hashCode(frequency);
     }
 
     @Override

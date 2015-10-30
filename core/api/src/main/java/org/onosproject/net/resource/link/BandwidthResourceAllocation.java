@@ -53,7 +53,7 @@ public class BandwidthResourceAllocation implements ResourceAllocation {
 
     @Override
     public int hashCode() {
-        return Objects.hash(bandwidth);
+        return bandwidth.hashCode();
     }
 
     @Override

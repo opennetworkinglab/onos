@@ -61,7 +61,7 @@ public final class OvsdbMap {
 
     @Override
     public int hashCode() {
-        return Objects.hash(map);
+        return map.hashCode();
     }
 
     @Override

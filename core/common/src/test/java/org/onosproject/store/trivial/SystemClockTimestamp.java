@@ -51,7 +51,7 @@ public class SystemClockTimestamp implements Timestamp {
     }
     @Override
     public int hashCode() {
-        return Objects.hash(nanoTimestamp);
+        return Long.hashCode(nanoTimestamp);
     }
 
     @Override

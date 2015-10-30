@@ -63,7 +63,7 @@ public final class OpticalLogicId {
 
         @Override
         public int hashCode() {
-            return Objects.hash(logicId);
+            return Objects.hashCode(logicId);
         }
 
         @Override

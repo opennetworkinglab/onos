@@ -85,7 +85,7 @@ public final class TableUpdate {
 
     @Override
     public int hashCode() {
-        return Objects.hash(rows);
+        return rows.hashCode();
     }
 
     @Override

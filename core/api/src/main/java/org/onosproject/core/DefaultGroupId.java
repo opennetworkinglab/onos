@@ -42,7 +42,7 @@ public class DefaultGroupId implements GroupId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return id;
     }
 
     @Override

@@ -17,8 +17,6 @@
 package org.onosproject.segmentrouting;
 
 import java.util.List;
-import java.util.Objects;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -96,7 +94,7 @@ public class DefaultTunnel implements Tunnel {
 
     @Override
     public int hashCode() {
-        return Objects.hash(labelIds);
+        return labelIds.hashCode();
     }
 
     @Override

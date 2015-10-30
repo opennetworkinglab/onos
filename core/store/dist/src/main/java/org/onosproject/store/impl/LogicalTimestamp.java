@@ -50,7 +50,7 @@ public class LogicalTimestamp implements Timestamp {
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return Long.hashCode(value);
     }
 
     @Override

@@ -30,8 +30,8 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 public class DisjointPathPair<V extends Vertex, E extends Edge<V>> implements Path<V, E> {
 
-    private Path<V, E> primary, secondary;
-    boolean primaryActive = true;
+    private final Path<V, E> primary, secondary;
+    private boolean primaryActive = true;
 
     /**
      * Creates a disjoint path pair from two paths.
@@ -88,7 +88,7 @@ public class DisjointPathPair<V extends Vertex, E extends Edge<V>> implements Pa
      * @return boolean representing whether it has backup
      */
     public boolean hasBackup() {
-        return secondary != null && secondary.edges() != null;
+        return secondary != null;
     }
 
     @Override
@@ -103,7 +103,9 @@ public class DisjointPathPair<V extends Vertex, E extends Edge<V>> implements Pa
 
     @Override
     public int hashCode() {
-        return hasBackup() ? Objects.hash(primary) + Objects.hash(secondary) :
+        // Note: DisjointPathPair with primary and secondary swapped
+        // must result in same hashCode
+        return hasBackup() ? primary.hashCode() + secondary.hashCode() :
                 Objects.hash(primary);
     }
 

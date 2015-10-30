@@ -66,7 +66,7 @@ public class ObstacleConstraint extends BooleanConstraint {
 
     @Override
     public int hashCode() {
-        return Objects.hash(obstacles);
+        return obstacles.hashCode();
     }
 
     @Override

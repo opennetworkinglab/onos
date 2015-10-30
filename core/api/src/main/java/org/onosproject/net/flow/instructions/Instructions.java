@@ -516,7 +516,7 @@ public final class Instructions {
 
         @Override
         public int hashCode() {
-            return Objects.hash(type().ordinal());
+            return type().ordinal();
         }
 
         @Override
@@ -550,7 +550,7 @@ public final class Instructions {
 
         @Override
         public int hashCode() {
-            return Objects.hash(type().ordinal());
+            return type().ordinal();
         }
 
         @Override

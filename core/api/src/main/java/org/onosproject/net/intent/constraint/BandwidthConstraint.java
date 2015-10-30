@@ -87,7 +87,7 @@ public final class BandwidthConstraint extends BooleanConstraint {
 
     @Override
     public int hashCode() {
-        return Objects.hash(bandwidth);
+        return bandwidth.hashCode();
     }
 
     @Override

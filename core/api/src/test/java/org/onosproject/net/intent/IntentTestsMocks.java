@@ -192,14 +192,17 @@ public class IntentTestsMocks {
                     new MplsLabelResourceAllocation(MplsLabel.valueOf(10)));
         }
 
+        @Override
         public IntentId intentId() {
             return null;
         }
 
+        @Override
         public Collection<Link> links() {
             return null;
         }
 
+        @Override
         public Set<ResourceRequest> resources() {
             return null;
         }
@@ -408,7 +411,7 @@ public class IntentTestsMocks {
 
         @Override
         public int hashCode() {
-            return Objects.hash(priority);
+            return priority;
         }
 
         @Override

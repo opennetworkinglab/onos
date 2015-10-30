@@ -53,7 +53,7 @@ public class LambdaResourceAllocation implements ResourceAllocation {
 
     @Override
     public int hashCode() {
-        return Objects.hash(lambda);
+        return Objects.hashCode(lambda);
     }
 
     @Override

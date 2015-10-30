@@ -53,7 +53,7 @@ public final class SegmentationId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(segmentationId);
+        return segmentationId.hashCode();
     }
 
     @Override

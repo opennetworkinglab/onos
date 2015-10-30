@@ -421,7 +421,7 @@ public class BgpRouteEntry extends RouteEntry {
 
         @Override
         public int hashCode() {
-            return Objects.hash(pathSegments);
+            return pathSegments.hashCode();
         }
 
         @Override

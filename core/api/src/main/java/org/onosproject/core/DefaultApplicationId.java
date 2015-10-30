@@ -58,7 +58,7 @@ public class DefaultApplicationId implements ApplicationId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Short.hashCode(id);
     }
 
     @Override

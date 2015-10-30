@@ -88,7 +88,7 @@ public class DefaultPath extends DefaultLink implements Path {
 
     @Override
     public int hashCode() {
-        return Objects.hash(links);
+        return links.hashCode();
     }
 
     @Override

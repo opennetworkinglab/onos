@@ -186,7 +186,7 @@ public class DefaultGroup extends DefaultGroupDescription
      */
     @Override
     public int hashCode() {
-        return super.hashCode() + Objects.hash(id);
+        return Objects.hash(super.hashCode(), id);
     }
 
     /*

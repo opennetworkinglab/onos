@@ -54,7 +54,7 @@ public class MplsLabelResourceAllocation implements ResourceAllocation {
 
     @Override
     public int hashCode() {
-        return Objects.hash(mplsLabel);
+        return Objects.hashCode(mplsLabel);
     }
 
     @Override

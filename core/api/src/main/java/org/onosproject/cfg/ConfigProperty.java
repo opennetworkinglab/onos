@@ -245,7 +245,7 @@ public final class ConfigProperty {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return name.hashCode();
     }
 
     /**

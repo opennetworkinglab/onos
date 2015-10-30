@@ -63,7 +63,7 @@ public final class OvsdbSet {
 
     @Override
     public int hashCode() {
-        return Objects.hash(set);
+        return set.hashCode();
     }
 
     @Override

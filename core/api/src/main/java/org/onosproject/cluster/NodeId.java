@@ -35,7 +35,7 @@ public class NodeId implements Comparable<NodeId> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return id.hashCode();
     }
 
     @Override

@@ -20,6 +20,7 @@ import org.onosproject.net.Link;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Implementation of the topology edge backed by a link.
@@ -40,7 +41,7 @@ public class DefaultTopologyEdge implements TopologyEdge {
     public DefaultTopologyEdge(TopologyVertex src, TopologyVertex dst, Link link) {
         this.src = src;
         this.dst = dst;
-        this.link = link;
+        this.link = checkNotNull(link);
     }
 
     @Override
@@ -60,7 +61,7 @@ public class DefaultTopologyEdge implements TopologyEdge {
 
     @Override
     public int hashCode() {
-        return Objects.hash(link);
+        return link.hashCode();
     }
 
     @Override

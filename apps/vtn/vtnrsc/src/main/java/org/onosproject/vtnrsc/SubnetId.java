@@ -53,7 +53,7 @@ public final class SubnetId {
 
     @Override
     public int hashCode() {
-        return Objects.hash(subnetId);
+        return subnetId.hashCode();
     }
 
     @Override

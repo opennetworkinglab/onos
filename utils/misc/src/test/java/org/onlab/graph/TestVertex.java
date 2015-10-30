@@ -30,7 +30,7 @@ public class TestVertex implements Vertex {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return name.hashCode();
     }
 
     @Override

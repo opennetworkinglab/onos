@@ -52,7 +52,7 @@ public final class SecurityGroup {
 
     @Override
     public int hashCode() {
-        return Objects.hash(securityGroup);
+        return securityGroup.hashCode();
     }
 
     @Override

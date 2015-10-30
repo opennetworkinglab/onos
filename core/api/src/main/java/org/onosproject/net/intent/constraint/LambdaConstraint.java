@@ -69,7 +69,7 @@ public class LambdaConstraint extends BooleanConstraint {
 
     @Override
     public int hashCode() {
-        return Objects.hash(lambda);
+        return Objects.hashCode(lambda);
     }
 
     @Override

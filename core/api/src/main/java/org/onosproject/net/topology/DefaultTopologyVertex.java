@@ -42,7 +42,7 @@ public class DefaultTopologyVertex implements TopologyVertex {
 
     @Override
     public int hashCode() {
-        return Objects.hash(deviceId);
+        return deviceId.hashCode();
     }
 
     @Override

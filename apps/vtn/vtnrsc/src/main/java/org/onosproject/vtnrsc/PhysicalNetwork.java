@@ -53,7 +53,7 @@ public final class PhysicalNetwork {
 
     @Override
     public int hashCode() {
-        return Objects.hash(physicalNetwork);
+        return physicalNetwork.hashCode();
     }
 
     @Override
