@@ -15,12 +15,17 @@
  */
 package org.onosproject.sdnip;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Objects;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.app.ApplicationService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.LeadershipEvent;
@@ -28,8 +33,8 @@ import org.onosproject.cluster.LeadershipEventListener;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.routing.IntentSynchronizationService;
@@ -37,10 +42,6 @@ import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.SdnIpService;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
-
-import java.util.Objects;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Component for the SDN-IP peering application.
@@ -57,6 +58,9 @@ public class SdnIp implements SdnIpService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService intentService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ApplicationService applicationService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
@@ -84,7 +88,7 @@ public class SdnIp implements SdnIpService {
     private SdnIpFib fib;
 
     private LeadershipEventListener leadershipEventListener =
-        new InnerLeadershipEventListener();
+            new InnerLeadershipEventListener();
     private ApplicationId appId;
     private ControllerNode localControllerNode;
 
@@ -113,6 +117,10 @@ public class SdnIp implements SdnIpService {
 
         leadershipService.addListener(leadershipEventListener);
         leadershipService.runForLeadership(appId.name());
+
+        applicationService.registerDeactivateHook(appId,
+                intentSynchronizer::removeIntents);
+
     }
 
     @Deactivate

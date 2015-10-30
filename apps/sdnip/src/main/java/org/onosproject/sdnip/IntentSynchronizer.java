@@ -15,6 +15,17 @@
  */
 package org.onosproject.sdnip;
 
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
@@ -23,16 +34,6 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * Synchronizes intents between the in-memory intent store and the
@@ -97,55 +98,30 @@ public class IntentSynchronizer implements IntentSynchronizationService {
         synchronized (this) {
             // Stop the thread(s)
             intentsSynchronizerExecutor.shutdownNow();
+            log.info("Intents Synchronizer Executor shutdown completed");
 
-            //
-            // Withdraw all app related intents
-            //
-            if (!isElectedLeader) {
-                return;         // Nothing to do: not the leader anymore
-            }
-
-            //
-            // NOTE: We don't withdraw the intents during shutdown, because
-            // it creates flux in the data plane during switchover.
-            //
-
-            /*
-            //
-            // Build a batch operation to withdraw all intents from this
-            // application.
-            //
-            log.debug("Intent Synchronizer shutdown: " +
-                      "withdrawing all intents...");
-            IntentOperations.Builder builder = IntentOperations.builder(appId);
-            for (Intent intent : intentService.getIntents()) {
-                // Skip the intents from other applications
-                if (!intent.appId().equals(appId)) {
-                    continue;
-                }
-
-                // Skip the intents that are already withdrawn
-                IntentState intentState =
-                    intentService.getIntentState(intent.id());
-                if ((intentState == null) ||
-                    intentState.equals(IntentState.WITHDRAWING) ||
-                    intentState.equals(IntentState.WITHDRAWN)) {
-                    continue;
-                }
-
-                log.trace("Intent Synchronizer withdrawing intent: {}",
-                          intent);
-                builder.addWithdrawOperation(intent.id());
-            }
-            IntentOperations intentOperations = builder.build();
-            intentService.execute(intentOperations);
-            leaderChanged(false);
-
-            peerIntents.clear();
-            routeIntents.clear();
-            log.debug("Intent Synchronizer shutdown completed");
-            */
         }
+    }
+
+    /**
+     * Withdraws all intents.
+     */
+    public void removeIntents() {
+        if (!isElectedLeader) {
+            // only leader will withdraw intents
+            return;
+        }
+
+        log.debug("Intent Synchronizer shutdown: withdrawing all intents...");
+
+        for (Entry<Key, Intent> entry : intents.entrySet()) {
+            intentService.withdraw(entry.getValue());
+            log.debug("Intent Synchronizer withdrawing intent: {}",
+                      entry.getValue());
+        }
+
+        intents.clear();
+        log.info("Tried to clean all intents");
     }
 
     @Override
@@ -261,5 +237,4 @@ public class IntentSynchronizer implements IntentSynchronizationService {
         }
         log.debug("Intent synchronization completed");
     }
-
 }
