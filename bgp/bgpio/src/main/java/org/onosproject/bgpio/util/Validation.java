@@ -16,6 +16,8 @@
 
 package org.onosproject.bgpio.util;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -23,6 +25,8 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.primitives.Ints;
 
@@ -30,10 +34,11 @@ import com.google.common.primitives.Ints;
  * Provides methods to parse attribute header, validate length and type.
  */
 public class Validation {
+    private static final Logger log = LoggerFactory.getLogger(Validation.class);
     public static final byte FIRST_BIT = (byte) 0x80;
     public static final byte SECOND_BIT = 0x40;
     public static final byte THIRD_BIT = 0x20;
-    public static final byte FOURTH_BIT = 0x01;
+    public static final byte FOURTH_BIT = (byte) 0x10;
     public static final byte IPV4_SIZE = 4;
     private boolean firstBit;
     private boolean secondBit;
@@ -42,6 +47,16 @@ public class Validation {
     private int len;
     private boolean isShort;
 
+    /**
+     * Constructor to initialize parameter.
+     *
+     * @param firstBit in AttributeFlags
+     * @param secondBit in AttributeFlags
+     * @param thirdBit in AttributeFlags
+     * @param fourthBit in AttributeFlags
+     * @param len length
+     * @param isShort true if length is read as short otherwise false
+     */
     Validation(boolean firstBit, boolean secondBit, boolean thirdBit, boolean fourthBit, int len, boolean isShort) {
         this.firstBit = firstBit;
         this.secondBit = secondBit;
@@ -116,6 +131,25 @@ public class Validation {
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errType);
         throw new BGPParseException(errorCode, subErrCode, buffer);
+    }
+
+    /**
+     * Convert byte array to InetAddress.
+     *
+     * @param length of IpAddress
+     * @param cb channelBuffer
+     * @return InetAddress
+     */
+    public static InetAddress toInetAddress(int length, ChannelBuffer cb) {
+        byte[] address = new byte[length];
+        cb.readBytes(address, 0, length);
+        InetAddress ipAddress = null;
+        try {
+            ipAddress = InetAddress.getByAddress(address);
+        } catch (UnknownHostException e) {
+             log.info("InetAddress convertion failed");
+        }
+        return ipAddress;
     }
 
     /**
