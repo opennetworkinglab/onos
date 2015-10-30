@@ -96,6 +96,24 @@ html[data-platform='iPad'] #topo-p-detail {
     height: 30px;
 }
 
+/* --- Topo Dialog Panel --- */
+
+#topo-p-dialog .dialog-button {
+    display: inline-block;
+    cursor: pointer;
+    height: 20px;
+    padding: 2px 6px;
+    margin: 4px;
+    float: right;
+}
+
+.light #topo-p-dialog .dialog-button {
+    background-color: #fec;
+}
+.dark #topo-p-dialog .dialog-button {
+    background-color: #369;
+}
+
 /* --- general topo-panel styling --- */
 
 .topo-p div.header div.icon {

@@ -240,6 +240,33 @@
         return cc;
     }
 
+    // returns a selection context, providing info about what is selected
+    function selectionContext() {
+        var devices = [],
+            hosts = [],
+            types = {};
+
+        angular.forEach(selections, function (d) {
+            var o = d.obj,
+                c = o.class;
+
+            if (c === 'device') {
+                devices.push(o.id);
+                types[o.id] = o.type;
+            }
+            if (c === 'host') {
+                hosts.push(o.id);
+                types[o.id] = o.type;
+            }
+        });
+
+        return {
+            devices: devices,
+            hosts: hosts,
+            types: types
+        };
+    }
+
     // === -----------------------------------------------------
     // === MODULE DEFINITION ===
 
@@ -280,7 +307,8 @@
                 selectOrder: function () { return selectOrder; },
                 somethingSelected: somethingSelected,
 
-                clickConsumed: clickConsumed
+                clickConsumed: clickConsumed,
+                selectionContext: selectionContext
             };
         }]);
 }());
