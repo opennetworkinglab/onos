@@ -35,7 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
-import java.util.List;
+import java.util.Set;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ArpHandler {
@@ -112,7 +113,7 @@ public class ArpHandler {
 
 
     private boolean isArpReqForRouter(DeviceId deviceId, ARP arpRequest) {
-        List<Ip4Address> gatewayIpAddresses = config.getPortIPs(deviceId);
+        Set<Ip4Address> gatewayIpAddresses = config.getPortIPs(deviceId);
         if (gatewayIpAddresses != null) {
             Ip4Address targetProtocolAddress = Ip4Address.valueOf(arpRequest
                     .getTargetProtocolAddress());

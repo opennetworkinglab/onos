@@ -533,6 +533,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                             event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
                             event.type() == DeviceEvent.Type.DEVICE_UPDATED) {
                         if (deviceService.isAvailable(((Device) event.subject()).id())) {
+                            log.info("Processing device event {} for available device {}",
+                                     event.type(), ((Device) event.subject()).id());
                             processDeviceAdded((Device) event.subject());
                         }
                     } else if (event.type() == DeviceEvent.Type.PORT_REMOVED) {
@@ -594,11 +596,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private void processDeviceAdded(Device device) {
         log.debug("A new device with ID {} was added", device.id());
-        //Irrespective whether the local is a MASTER or not for this device,
-        //create group handler instance and push default TTP flow rules.
-        //Because in a multi-instance setup, instances can initiate
-        //groups for any devices. Also the default TTP rules are needed
-        //to be pushed before inserting any IP table entries for any device
+        // Irrespective of whether the local is a MASTER or not for this device,
+        // we need to create a SR-group-handler instance. This is because in a
+        // multi-instance setup, any instance can initiate forwarding/next-objectives
+        // for any switch (even if this instance is a SLAVE or not even connected
+        // to the switch). To handle this, a default-group-handler instance is necessary
+        // per switch.
         DefaultGroupHandler groupHandler = DefaultGroupHandler.
                 createGroupHandler(device.id(),
                                    appId,
@@ -608,6 +611,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                    nsNextObjStore,
                                    subnetNextObjStore);
         groupHandlerMap.put(device.id(), groupHandler);
+
+        // Also, in some cases, drivers may need extra
+        // information to process rules (eg. Router IP/MAC); and so, we send
+        // port addressing rules to the driver as well irrespective of whether
+        // this instance is the master or not.
         defaultRoutingHandler.populatePortAddressingRules(device.id());
 
         if (mastershipService.isLocalMaster(device.id())) {
@@ -646,11 +654,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                               tunnelHandler, policyStore);
 
             for (Device device : deviceService.getDevices()) {
-                //Irrespective whether the local is a MASTER or not for this device,
-                //create group handler instance and push default TTP flow rules.
-                //Because in a multi-instance setup, instances can initiate
-                //groups for any devices. Also the default TTP rules are needed
-                //to be pushed before inserting any IP table entries for any device
+                // Irrespective of whether the local is a MASTER or not for this device,
+                // we need to create a SR-group-handler instance. This is because in a
+                // multi-instance setup, any instance can initiate forwarding/next-objectives
+                // for any switch (even if this instance is a SLAVE or not even connected
+                // to the switch). To handle this, a default-group-handler instance is necessary
+                // per switch.
                 DefaultGroupHandler groupHandler = DefaultGroupHandler
                         .createGroupHandler(device.id(), appId,
                                             deviceConfiguration, linkService,
@@ -658,6 +667,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                             nsNextObjStore,
                                             subnetNextObjStore);
                 groupHandlerMap.put(device.id(), groupHandler);
+
+                // Also, in some cases, drivers may need extra
+                // information to process rules (eg. Router IP/MAC); and so, we send
+                // port addressing rules to the driver as well, irrespective of whether
+                // this instance is the master or not.
                 defaultRoutingHandler.populatePortAddressingRules(device.id());
 
                 if (mastershipService.isLocalMaster(device.id())) {

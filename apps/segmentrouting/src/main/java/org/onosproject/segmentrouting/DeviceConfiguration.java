@@ -312,14 +312,14 @@ public class DeviceConfiguration implements DeviceProperties {
      * on those ports.
      *
      * @param deviceId device identifier
-     * @return list of ip addresses configured on the ports or null if not found
+     * @return immutable set of ip addresses configured on the ports or null if not found
      */
-    public List<Ip4Address> getPortIPs(DeviceId deviceId) {
+    public Set<Ip4Address> getPortIPs(DeviceId deviceId) {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null) {
             log.trace("getSubnetGatewayIps for device{} is {}", deviceId,
                       srinfo.gatewayIps.values());
-            return new ArrayList<>(srinfo.gatewayIps.values());
+            return ImmutableSet.copyOf(srinfo.gatewayIps.values());
         }
         return null;
     }

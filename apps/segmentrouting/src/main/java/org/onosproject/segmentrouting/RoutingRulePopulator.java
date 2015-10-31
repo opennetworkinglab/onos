@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -361,6 +362,10 @@ public class RoutingRulePopulator {
      * dstMac corresponding to the router's MAC address. For those pipelines
      * that need to internally assign vlans to untagged packets, this method
      * provides per-subnet vlan-ids as metadata.
+     * <p>
+     * Note that the vlan assignment is only done by the master-instance for a switch.
+     * However we send the filtering objective from slave-instances as well, so
+     * that drivers can obtain other information (like Router MAC and IP).
      *
      * @param deviceId  the switch dpid for the router
      */
@@ -373,16 +378,16 @@ public class RoutingRulePopulator {
                 VlanId assignedVlan = (portSubnet == null)
                         ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
                         : srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
-                TrafficTreatment tt = DefaultTrafficTreatment.builder()
-                        .pushVlan().setVlanId(assignedVlan).build();
                 FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
                 fob.withKey(Criteria.matchInPort(port.number()))
                 .addCondition(Criteria.matchEthDst(config.getDeviceMac(deviceId)))
-                .addCondition(Criteria.matchVlanId(VlanId.NONE))
-                .setMeta(tt)
-                .addCondition(Criteria.matchIPDst(IpPrefix.valueOf(
-                                                      config.getRouterIp(deviceId),
-                                                      IpPrefix.MAX_INET_MASK_LENGTH)));
+                .addCondition(Criteria.matchVlanId(VlanId.NONE));
+                // vlan assignment is valid only if this instance is master
+                if (srManager.mastershipService.isLocalMaster(deviceId)) {
+                    TrafficTreatment tt = DefaultTrafficTreatment.builder()
+                            .pushVlan().setVlanId(assignedVlan).build();
+                    fob.setMeta(tt);
+                }
                 fob.permit().fromApp(srManager.appId);
                 srManager.flowObjectiveService.
                 filter(deviceId, fob.add(new SRObjectiveContext(deviceId,
@@ -393,16 +398,22 @@ public class RoutingRulePopulator {
 
     /**
      * Creates a forwarding objective to punt all IP packets, destined to the
-     * router's port IP addresses, to the controller. Note that it the input
+     * router's port IP addresses, to the controller. Note that the input
      * port should not be matched on, as these packets can come from any input.
+     * Furthermore, these are applied only by the master instance.
      *
      * @param deviceId the switch dpid for the router
      */
     public void populateRouterIpPunts(DeviceId deviceId) {
+        if (!srManager.mastershipService.isLocalMaster(deviceId)) {
+            log.debug("Not installing port-IP punts - not the master for dev:{} ",
+                      deviceId);
+            return;
+        }
         ForwardingObjective.Builder puntIp = DefaultForwardingObjective.builder();
-
-        List<Ip4Address> gws = config.getPortIPs(deviceId);
-        for (Ip4Address ipaddr : gws) {
+        Set<Ip4Address> allIps = new HashSet<Ip4Address>(config.getPortIPs(deviceId));
+        allIps.add(config.getRouterIp(deviceId));
+        for (Ip4Address ipaddr : allIps) {
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
             TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
             selector.matchEthType(Ethernet.TYPE_IPV4);
