@@ -30,24 +30,24 @@ import com.google.common.base.MoreObjects;
 /**
  * Implements BGP prefix IGP Flag attribute.
  */
-public class BgpPrefixAttrIGPFlags implements BGPValueType {
+public final class BgpPrefixAttrIgpFlags implements BGPValueType {
 
     protected static final Logger log = LoggerFactory
-            .getLogger(BgpPrefixAttrIGPFlags.class);
+            .getLogger(BgpPrefixAttrIgpFlags.class);
 
     public static final int ATTR_PREFIX_FLAGBIT = 1152;
     public static final int ATTR_PREFIX_FLAG_LEN = 1;
 
-    public static final int FIRST_BIT = 0x80;
-    public static final int SECOND_BIT = 0x40;
-    public static final int THIRD_BIT = 0x20;
-    public static final int FOURTH_BIT = 0x01;
+    public static final byte FIRST_BIT = (byte) 0x80;
+    public static final byte SECOND_BIT = 0x40;
+    public static final byte THIRD_BIT = 0x20;
+    public static final byte FOURTH_BIT = 0x01;
 
     /* Prefix IGP flag bit TLV */
-    private boolean bisisUpDownBit = false;
-    private boolean bOspfNoUnicastBit = false;
-    private boolean bOspfLclAddrBit = false;
-    private boolean bOspfNSSABit = false;
+    private final boolean bisisUpDownBit;
+    private final boolean bOspfNoUnicastBit;
+    private final boolean bOspfLclAddrBit;
+    private final boolean bOspfNSSABit;
 
     /**
      * Constructor to initialize the value.
@@ -57,12 +57,30 @@ public class BgpPrefixAttrIGPFlags implements BGPValueType {
      * @param bOspfLclAddrBit OSPF local address Bit
      * @param bOspfNSSABit OSPF propagate NSSA Bit
      */
-    BgpPrefixAttrIGPFlags(boolean bisisUpDownBit, boolean bOspfNoUnicastBit,
+    BgpPrefixAttrIgpFlags(boolean bisisUpDownBit,
+                          boolean bOspfNoUnicastBit,
                           boolean bOspfLclAddrBit, boolean bOspfNSSABit) {
         this.bisisUpDownBit = bisisUpDownBit;
         this.bOspfNoUnicastBit = bOspfNoUnicastBit;
         this.bOspfLclAddrBit = bOspfLclAddrBit;
         this.bOspfNSSABit = bOspfNSSABit;
+    }
+
+    /**
+     * Returns object of this class with specified values.
+     *
+     * @param bisisUpDownBit IS-IS Up/Down Bit
+     * @param bOspfNoUnicastBit OSPF no unicast Bit
+     * @param bOspfLclAddrBit OSPF local address Bit
+     * @param bOspfNSSABit OSPF propagate NSSA Bit
+     * @return object of BgpPrefixAttrIGPFlags
+     */
+    public static BgpPrefixAttrIgpFlags of(final boolean bisisUpDownBit,
+                                           final boolean bOspfNoUnicastBit,
+                                           final boolean bOspfLclAddrBit,
+                                           final boolean bOspfNSSABit) {
+        return new BgpPrefixAttrIgpFlags(bisisUpDownBit, bOspfNoUnicastBit,
+                                         bOspfLclAddrBit, bOspfNSSABit);
     }
 
     /**
@@ -72,7 +90,7 @@ public class BgpPrefixAttrIGPFlags implements BGPValueType {
      * @return object of BgpPrefixAttrIGPFlags
      * @throws BGPParseException while parsing BgpPrefixAttrIGPFlags
      */
-    public static BgpPrefixAttrIGPFlags read(ChannelBuffer cb)
+    public static BgpPrefixAttrIgpFlags read(ChannelBuffer cb)
             throws BGPParseException {
         boolean bisisUpDownBit = false;
         boolean bOspfNoUnicastBit = false;
@@ -90,13 +108,13 @@ public class BgpPrefixAttrIGPFlags implements BGPValueType {
 
         byte nodeFlagBits = cb.readByte();
 
-        bisisUpDownBit = ((nodeFlagBits & (byte) FIRST_BIT) == FIRST_BIT);
-        bOspfNoUnicastBit = ((nodeFlagBits & (byte) SECOND_BIT) == SECOND_BIT);
-        bOspfLclAddrBit = ((nodeFlagBits & (byte) THIRD_BIT) == THIRD_BIT);
-        bOspfNSSABit = ((nodeFlagBits & (byte) FOURTH_BIT) == FOURTH_BIT);
+        bisisUpDownBit = ((nodeFlagBits & FIRST_BIT) == FIRST_BIT);
+        bOspfNoUnicastBit = ((nodeFlagBits & SECOND_BIT) == SECOND_BIT);
+        bOspfLclAddrBit = ((nodeFlagBits & THIRD_BIT) == THIRD_BIT);
+        bOspfNSSABit = ((nodeFlagBits & FOURTH_BIT) == FOURTH_BIT);
 
-        return new BgpPrefixAttrIGPFlags(bisisUpDownBit, bOspfNoUnicastBit,
-                                         bOspfLclAddrBit, bOspfNSSABit);
+        return BgpPrefixAttrIgpFlags.of(bisisUpDownBit, bOspfNoUnicastBit,
+                                        bOspfLclAddrBit, bOspfNSSABit);
     }
 
     /**
@@ -104,7 +122,7 @@ public class BgpPrefixAttrIGPFlags implements BGPValueType {
      *
      * @return IS-IS Up/Down Bit set or not
      */
-    boolean getisisUpDownBit() {
+    public boolean isisUpDownBit() {
         return bisisUpDownBit;
     }
 
@@ -113,7 +131,7 @@ public class BgpPrefixAttrIGPFlags implements BGPValueType {
      *
      * @return OSPF no unicast Bit set or not
      */
-    boolean getOspfNoUnicastBit() {
+    public boolean ospfNoUnicastBit() {
         return bOspfNoUnicastBit;
     }
 
@@ -122,7 +140,7 @@ public class BgpPrefixAttrIGPFlags implements BGPValueType {
      *
      * @return OSPF local address Bit set or not
      */
-    boolean getOspfLclAddrBit() {
+    public boolean ospfLclAddrBit() {
         return bOspfLclAddrBit;
     }
 
@@ -131,7 +149,7 @@ public class BgpPrefixAttrIGPFlags implements BGPValueType {
      *
      * @return OSPF propagate NSSA Bit set or not
      */
-    boolean getOspfNSSABit() {
+    public boolean ospfNSSABit() {
         return bOspfNSSABit;
     }
 
@@ -158,13 +176,13 @@ public class BgpPrefixAttrIGPFlags implements BGPValueType {
             return true;
         }
 
-        if (obj instanceof BgpPrefixAttrIGPFlags) {
-            BgpPrefixAttrIGPFlags other = (BgpPrefixAttrIGPFlags) obj;
+        if (obj instanceof BgpPrefixAttrIgpFlags) {
+            BgpPrefixAttrIgpFlags other = (BgpPrefixAttrIgpFlags) obj;
             return Objects.equals(bisisUpDownBit, other.bisisUpDownBit)
                     && Objects.equals(bOspfNoUnicastBit,
                                       other.bOspfNoUnicastBit)
-                    && Objects.equals(bOspfLclAddrBit, other.bOspfLclAddrBit)
-                    && Objects.equals(bOspfNSSABit, other.bOspfNSSABit);
+                                      && Objects.equals(bOspfLclAddrBit, other.bOspfLclAddrBit)
+                                      && Objects.equals(bOspfNSSABit, other.bOspfNSSABit);
         }
         return false;
     }
