@@ -427,6 +427,7 @@ public class GossipDeviceStore
 
         // Primary providers can respond to all changes, but ancillary ones
         // should respond only to annotation changes.
+        DeviceEvent event = null;
         if ((providerId.isAncillary() && annotationsChanged) ||
                 (!providerId.isAncillary() && (propertiesChanged || annotationsChanged))) {
             boolean replaced = devices.replace(newDevice.id(), oldDevice, newDevice);
@@ -436,17 +437,18 @@ public class GossipDeviceStore
                        providerId, oldDevice, devices.get(newDevice.id())
                         , newDevice);
             }
-            if (!providerId.isAncillary()) {
-                boolean wasOnline = availableDevices.contains(newDevice.id());
-                markOnline(newDevice.id(), newTimestamp);
-                if (!wasOnline) {
-                    notifyDelegateIfNotNull(new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, newDevice, null));
-                }
-            }
 
-            return new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, newDevice, null);
+            event = new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, newDevice, null);
         }
-        return null;
+
+        if (!providerId.isAncillary()) {
+            boolean wasOnline = availableDevices.contains(newDevice.id());
+            markOnline(newDevice.id(), newTimestamp);
+            if (!wasOnline) {
+                notifyDelegateIfNotNull(new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, newDevice, null));
+            }
+        }
+        return event;
     }
 
     @Override
