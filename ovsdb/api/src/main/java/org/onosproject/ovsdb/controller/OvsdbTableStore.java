@@ -29,18 +29,18 @@ public class OvsdbTableStore {
     /**
      * Gets the ovsdbRowStore.
      *
-     * @param tableName a ovsdb table name
-     * @return OvsdbRowStore the data of the table
+     * @param tableName an ovsdb table name
+     * @return OvsdbRowStore the data of table
      */
     public OvsdbRowStore getRows(String tableName) {
         return tableStore.get(tableName);
     }
 
     /**
-     * Create or update a value to tableStore.
+     * Creates or updates a value to tableStore.
      *
-     * @param tableName key of the tableName
-     * @param rowStore a row of the table
+     * @param tableName key of tableName
+     * @param rowStore a row of table
      */
     public void createOrUpdateTable(String tableName, OvsdbRowStore rowStore) {
         tableStore.put(tableName, rowStore);
@@ -49,14 +49,14 @@ public class OvsdbTableStore {
     /**
      * Drops a value to table data.
      *
-     * @param tableName key of the tableName
+     * @param tableName key of tableName
      */
     public void dropTable(String tableName) {
         tableStore.remove(tableName);
     }
 
     /**
-     * Gets the tableStore.
+     * Gets tableStore.
      *
      * @return tableStore
      */
