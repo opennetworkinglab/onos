@@ -31,15 +31,15 @@ import com.google.common.base.MoreObjects;
 /**
  * Implements BGP attribute node router ID.
  */
-public class BgpAttrRouterIdV4 implements BGPValueType {
+public final class BgpAttrRouterIdV4 implements BGPValueType {
 
     protected static final Logger log = LoggerFactory
             .getLogger(BgpAttrRouterIdV4.class);
 
-    public short sType;
+    private final short sType;
 
     /* IPv4 Router-ID of Node */
-    private Ip4Address ip4RouterId;
+    private final Ip4Address ip4RouterId;
 
     /**
      * Constructor to initialize the value.
@@ -47,36 +47,45 @@ public class BgpAttrRouterIdV4 implements BGPValueType {
      * @param ip4RouterId IPV4 address of router
      * @param sType TLV type
      */
-    BgpAttrRouterIdV4(Ip4Address ip4RouterId, short sType) {
+    private BgpAttrRouterIdV4(Ip4Address ip4RouterId, short sType) {
         this.ip4RouterId = ip4RouterId;
         this.sType = sType;
+    }
+
+    /**
+     * Returns object of this class with specified values.
+     *
+     * @param ip4RouterId IPv4 address
+     * @param sType Type of this TLV
+     * @return object of BgpAttrRouterIdV4
+     */
+    public static BgpAttrRouterIdV4 of(final Ip4Address ip4RouterId,
+                                       final short sType) {
+        return new BgpAttrRouterIdV4(ip4RouterId, sType);
     }
 
     /**
      * Reads the IPv4 Router-ID.
      *
      * @param cb ChannelBuffer
-     * @param sType type
+     * @param sType tag type
      * @return object of BgpAttrRouterIdV4
-     * @throws BGPParseException while parsing BgpAttrNodeRouterId
+     * @throws BGPParseException while parsing BgpAttrRouterIdV4
      */
     public static BgpAttrRouterIdV4 read(ChannelBuffer cb, short sType)
             throws BGPParseException {
-        byte[] ipBytes;
-        Ip4Address ip4RouterId;
-
         short lsAttrLength = cb.readShort();
 
-        if (4 != lsAttrLength) {
+        if ((lsAttrLength != 4) || (cb.readableBytes() < lsAttrLength)) {
             Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
                                    BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
                                    lsAttrLength);
         }
 
-        ipBytes = new byte[lsAttrLength];
-        cb.readBytes(ipBytes);
-        ip4RouterId = Ip4Address.valueOf(ipBytes);
-        return new BgpAttrRouterIdV4(ip4RouterId, sType);
+        byte[] ipBytes = new byte[lsAttrLength];
+        cb.readBytes(ipBytes, 0, lsAttrLength);
+        Ip4Address ip4RouterId = Ip4Address.valueOf(ipBytes);
+        return BgpAttrRouterIdV4.of(ip4RouterId, sType);
     }
 
     /**
@@ -84,7 +93,7 @@ public class BgpAttrRouterIdV4 implements BGPValueType {
      *
      * @return Router ID
      */
-    Ip4Address getAttrRouterId() {
+    public Ip4Address attrRouterId() {
         return ip4RouterId;
     }
 
@@ -113,7 +122,7 @@ public class BgpAttrRouterIdV4 implements BGPValueType {
 
     @Override
     public int write(ChannelBuffer cb) {
-        // TODO Auto-generated method stub
+        // TODO This will be implemented in the next version
         return 0;
     }
 
