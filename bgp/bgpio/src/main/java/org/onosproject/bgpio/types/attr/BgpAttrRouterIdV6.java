@@ -31,15 +31,15 @@ import com.google.common.base.MoreObjects;
 /**
  * Implements BGP attribute IPv6 router ID.
  */
-public class BgpAttrRouterIdV6 implements BGPValueType {
+public final class BgpAttrRouterIdV6 implements BGPValueType {
 
     protected static final Logger log = LoggerFactory
             .getLogger(BgpAttrRouterIdV6.class);
 
-    public short sType;
+    private final short sType;
 
     /* IPv4 Router-ID of Node */
-    private Ip6Address ip6RouterId;
+    private final Ip6Address ip6RouterId;
 
     /**
      * Constructor to initialize the value.
@@ -47,16 +47,28 @@ public class BgpAttrRouterIdV6 implements BGPValueType {
      * @param ip6RouterId IPV6 address of the router ID
      * @param sType TLV type
      */
-    BgpAttrRouterIdV6(Ip6Address ip6RouterId, short sType) {
+    private BgpAttrRouterIdV6(Ip6Address ip6RouterId, short sType) {
         this.ip6RouterId = ip6RouterId;
         this.sType = sType;
+    }
+
+    /**
+     * Returns object of this class with specified values.
+     *
+     * @param ip6RouterId IPV6 address of the router ID
+     * @param sType TLV type
+     * @return object of BgpAttrRouterIdV6
+     */
+    public static BgpAttrRouterIdV6 of(final Ip6Address ip6RouterId,
+                                       final short sType) {
+        return new BgpAttrRouterIdV6(ip6RouterId, sType);
     }
 
     /**
      * Reads the IPv6 Router-ID.
      *
      * @param cb ChannelBuffer
-     * @param sType type
+     * @param sType TLV type
      * @return object of BgpAttrRouterIdV6
      * @throws BGPParseException while parsing BgpAttrRouterIdV6
      */
@@ -67,7 +79,7 @@ public class BgpAttrRouterIdV6 implements BGPValueType {
 
         short lsAttrLength = cb.readShort();
 
-        if (16 != lsAttrLength) {
+        if ((lsAttrLength != 16) || (cb.readableBytes() < lsAttrLength)) {
             Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
                                    BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
                                    lsAttrLength);
@@ -76,7 +88,7 @@ public class BgpAttrRouterIdV6 implements BGPValueType {
         ipBytes = new byte[lsAttrLength];
         cb.readBytes(ipBytes);
         ip6RouterId = Ip6Address.valueOf(ipBytes);
-        return new BgpAttrRouterIdV6(ip6RouterId, sType);
+        return BgpAttrRouterIdV6.of(ip6RouterId, sType);
     }
 
     /**
@@ -84,7 +96,7 @@ public class BgpAttrRouterIdV6 implements BGPValueType {
      *
      * @return Router ID
      */
-    Ip6Address getAttrRouterId() {
+    public Ip6Address attrRouterId() {
         return ip6RouterId;
     }
 
@@ -113,7 +125,7 @@ public class BgpAttrRouterIdV6 implements BGPValueType {
 
     @Override
     public int write(ChannelBuffer cb) {
-        // TODO Auto-generated method stub
+        // TODO This will be implemented in the next version
         return 0;
     }
 
