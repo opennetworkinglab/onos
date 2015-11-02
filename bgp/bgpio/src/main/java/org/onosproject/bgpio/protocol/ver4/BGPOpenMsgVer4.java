@@ -311,8 +311,8 @@ public class BGPOpenMsgVer4 implements BGPOpenMsg {
 
             if (this.isLargeAsCapabilityTlvSet) {
                 BGPValueType tlv;
-                int iValue = this.getAsNumber();
-                tlv = new FourOctetAsNumCapabilityTlv(iValue);
+                int value = this.asNumber;
+                tlv = new FourOctetAsNumCapabilityTlv(value);
                 this.capabilityTlv.add(tlv);
             }
 
@@ -330,26 +330,6 @@ public class BGPOpenMsgVer4 implements BGPOpenMsg {
         public Builder setHeader(BGPHeader bgpMsgHeader) {
             this.bgpMsgHeader = bgpMsgHeader;
             return this;
-        }
-
-        @Override
-        public short getHoldTime() {
-            return this.holdTime;
-        }
-
-        @Override
-        public short getAsNumber() {
-            return this.asNumber;
-        }
-
-        @Override
-        public int getBgpId() {
-            return this.bgpId;
-        }
-
-        @Override
-        public LinkedList<BGPValueType> getCapabilityTlv() {
-            return this.capabilityTlv;
         }
 
         @Override

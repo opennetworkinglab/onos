@@ -72,26 +72,12 @@ public interface BGPOpenMsg extends BGPMessage {
         BGPOpenMsg build() throws BGPParseException;
 
         /**
-         * Returns hold time of Open Message.
-         *
-         * @return hold time of Open Message
-         */
-        short getHoldTime();
-
-        /**
          * Sets hold time in Open Message and return its builder.
          *
          * @param holdtime hold timer value in open message
          * @return builder by setting hold time
          */
         Builder setHoldTime(short holdtime);
-
-        /**
-         * Returns as number of Open Message.
-         *
-         * @return as number of Open Message
-         */
-        short getAsNumber();
 
         /**
          * Sets AS number in Open Message and return its builder.
@@ -102,26 +88,12 @@ public interface BGPOpenMsg extends BGPMessage {
         Builder setAsNumber(short asNumber);
 
         /**
-         * Returns BGP Identifier of Open Message.
-         *
-         * @return BGP Identifier of Open Message
-         */
-        int getBgpId();
-
-        /**
          * Sets BGP Identifier in Open Message and return its builder.
          *
          * @param bgpId BGP Identifier in open message
          * @return builder by setting BGP Identifier
          */
         Builder setBgpId(int bgpId);
-
-        /**
-         * Returns capabilities of Open Message.
-         *
-         * @return capabilities of Open Message
-         */
-        LinkedList<BGPValueType> getCapabilityTlv();
 
         /**
          * Sets capabilities in Open Message and return its builder.
