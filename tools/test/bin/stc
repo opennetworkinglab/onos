@@ -20,6 +20,7 @@ scenario=${1:-smoke}
 
 # If stcColor is not set, we will enable color if this is an interactive session
 [ -t 1 ] && interactive=true || interactive=false
+[ -t 1 ] && notInteractive=false || notInteractive=true
 
 # stc requires that ONOS_USE_SSH=true, but we will store the old value and reset it after
 sshSet=$([ -z ${ONOS_USE_SSH+x} ]) && oldSSH=$ONOS_USE_SSH
@@ -27,7 +28,8 @@ export ONOS_USE_SSH=true
 
 # Run stc
 [ -z "$stcDebug" ] && DEBUG_OPTS=""
-stcColor=${stcColor:-$interactive} java $DEBUG_OPTS -jar $JAR $scenario "$@"
+stcColor=${stcColor:-$interactive} stcDumpLogs=${stcDumpLogs:-$notInteractive} \
+    java $DEBUG_OPTS -jar $JAR $scenario "$@"
 
 # Reset the old value of ONOS_USE_SSH
 [ $sshSet ] && export ONOS_USE_SSH=oldSSH || unset ONOS_USE_SSH

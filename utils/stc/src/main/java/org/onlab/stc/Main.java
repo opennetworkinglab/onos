@@ -16,13 +16,16 @@
 package org.onlab.stc;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.util.log.Logger;
 import org.onlab.stc.Coordinator.Status;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -64,10 +67,12 @@ public final class Main {
     private String runToPatterns = "";
 
     private Coordinator coordinator;
+    private Compiler compiler;
     private Monitor monitor;
     private Listener delegate = new Listener();
 
     private static boolean useColor = Objects.equals("true", System.getenv("stcColor"));
+    private static boolean dumpLogs = Objects.equals("true", System.getenv("stcDumpLogs"));
 
     // usage: stc [<scenario-file>] [run]
     // usage: stc [<scenario-file>] run [from <from-patterns>] [to <to-patterns>]]
@@ -113,7 +118,7 @@ public final class Main {
             Scenario scenario = Scenario.loadScenario(new FileInputStream(scenarioFile));
 
             // Elaborate scenario
-            Compiler compiler = new Compiler(scenario);
+            compiler = new Compiler(scenario);
             compiler.compile();
 
             // Setup the process flow coordinator
@@ -221,7 +226,7 @@ public final class Main {
     /**
      * Internal delegate to monitor the process execution.
      */
-    private static class Listener implements StepProcessListener {
+    private class Listener implements StepProcessListener {
         @Override
         public void onStart(Step step, String command) {
             logStatus(currentTimeMillis(), step.name(), IN_PROGRESS, command);
@@ -230,6 +235,9 @@ public final class Main {
         @Override
         public void onCompletion(Step step, Status status) {
             logStatus(currentTimeMillis(), step.name(), status, null);
+            if (dumpLogs && !(step instanceof Group) && status == FAILED) {
+                dumpLogs(step);
+            }
         }
 
         @Override
@@ -243,6 +251,18 @@ public final class Main {
             print("%s  %s%s %s%s -- %s", time(time), color(status), name, action(status), color(null), cmd);
         } else {
             print("%s  %s%s %s%s", time(time), color(status), name, action(status), color(null));
+        }
+    }
+
+    // Dumps the step logs to standard output.
+    private void dumpLogs(Step step) {
+        File logFile = new File(compiler.logDir(), step.name() + ".log");
+        try {
+            print(">>>>>");
+            Files.copy(logFile, System.out);
+            print("<<<<<");
+        } catch (IOException e) {
+            print("Unable to dump log file %s", logFile.getName());
         }
     }
 
