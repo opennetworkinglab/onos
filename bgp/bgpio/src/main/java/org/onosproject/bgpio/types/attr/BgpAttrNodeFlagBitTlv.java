@@ -30,7 +30,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Implements BGP attribute node flag.
  */
-public class BgpAttrNodeFlagBitTlv implements BGPValueType {
+public final class BgpAttrNodeFlagBitTlv implements BGPValueType {
 
     protected static final Logger log = LoggerFactory
             .getLogger(BgpAttrNodeFlagBitTlv.class);
@@ -38,16 +38,15 @@ public class BgpAttrNodeFlagBitTlv implements BGPValueType {
     public static final int ATTRNODE_FLAGBIT = 1024;
 
     /* Node flag bit TLV */
-    private boolean bOverloadBit;
-    private boolean bAttachedBit;
-    private boolean bExternalBit;
-    private boolean bABRBit;
+    private final boolean bOverloadBit;
+    private final boolean bAttachedBit;
+    private final boolean bExternalBit;
+    private final boolean bAbrBit;
 
-    public static final int BIT_SET = 1;
-    public static final int FIRST_BIT = 0x80;
-    public static final int SECOND_BIT = 0x40;
-    public static final int THIRD_BIT = 0x20;
-    public static final int FOURTH_BIT = 0x01;
+    public static final byte FIRST_BIT = (byte) 0x80;
+    public static final byte SECOND_BIT = 0x40;
+    public static final byte THIRD_BIT = 0x20;
+    public static final byte FOURTH_BIT = 0x01;
 
     /**
      * Constructor to initialize parameters.
@@ -55,14 +54,31 @@ public class BgpAttrNodeFlagBitTlv implements BGPValueType {
      * @param bOverloadBit Overload bit
      * @param bAttachedBit Attached bit
      * @param bExternalBit External bit
-     * @param bABRBit ABR Bit
+     * @param bAbrBit ABR Bit
      */
-    BgpAttrNodeFlagBitTlv(boolean bOverloadBit, boolean bAttachedBit,
-                          boolean bExternalBit, boolean bABRBit) {
+    private BgpAttrNodeFlagBitTlv(boolean bOverloadBit, boolean bAttachedBit,
+                                  boolean bExternalBit, boolean bAbrBit) {
         this.bOverloadBit = bOverloadBit;
         this.bAttachedBit = bAttachedBit;
         this.bExternalBit = bExternalBit;
-        this.bABRBit = bABRBit;
+        this.bAbrBit = bAbrBit;
+    }
+
+    /**
+     * Returns object of this class with specified values.
+     *
+     * @param bOverloadBit Overload bit
+     * @param bAttachedBit Attached bit
+     * @param bExternalBit External bit
+     * @param bAbrBit ABR Bit
+     * @return object of BgpAttrNodeFlagBitTlv
+     */
+    public static BgpAttrNodeFlagBitTlv of(final boolean bOverloadBit,
+                                           final boolean bAttachedBit,
+                                           final boolean bExternalBit,
+                                           final boolean bAbrBit) {
+        return new BgpAttrNodeFlagBitTlv(bOverloadBit, bAttachedBit,
+                                         bExternalBit, bAbrBit);
     }
 
     /**
@@ -77,11 +93,11 @@ public class BgpAttrNodeFlagBitTlv implements BGPValueType {
         boolean bOverloadBit = false;
         boolean bAttachedBit = false;
         boolean bExternalBit = false;
-        boolean bABRBit = false;
+        boolean bAbrBit = false;
 
         short lsAttrLength = cb.readShort();
 
-        if (lsAttrLength != 1) {
+        if ((lsAttrLength != 1) || (cb.readableBytes() < lsAttrLength)) {
             Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
                                    BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
                                    lsAttrLength);
@@ -89,13 +105,13 @@ public class BgpAttrNodeFlagBitTlv implements BGPValueType {
 
         byte nodeFlagBits = cb.readByte();
 
-        bOverloadBit = ((nodeFlagBits & (byte) FIRST_BIT) == FIRST_BIT);
-        bAttachedBit = ((nodeFlagBits & (byte) SECOND_BIT) == SECOND_BIT);
-        bExternalBit = ((nodeFlagBits & (byte) THIRD_BIT) == THIRD_BIT);
-        bABRBit = ((nodeFlagBits & (byte) FOURTH_BIT) == FOURTH_BIT);
+        bOverloadBit = ((nodeFlagBits & FIRST_BIT) == FIRST_BIT);
+        bAttachedBit = ((nodeFlagBits & SECOND_BIT) == SECOND_BIT);
+        bExternalBit = ((nodeFlagBits & THIRD_BIT) == THIRD_BIT);
+        bAbrBit = ((nodeFlagBits & FOURTH_BIT) == FOURTH_BIT);
 
-        return new BgpAttrNodeFlagBitTlv(bOverloadBit, bAttachedBit,
-                                         bExternalBit, bABRBit);
+        return BgpAttrNodeFlagBitTlv.of(bOverloadBit, bAttachedBit,
+                                        bExternalBit, bAbrBit);
     }
 
     /**
@@ -103,7 +119,7 @@ public class BgpAttrNodeFlagBitTlv implements BGPValueType {
      *
      * @return Overload Bit
      */
-    boolean getOverLoadBit() {
+    public boolean overLoadBit() {
         return bOverloadBit;
     }
 
@@ -112,7 +128,7 @@ public class BgpAttrNodeFlagBitTlv implements BGPValueType {
      *
      * @return Attached Bit
      */
-    boolean getAttachedBit() {
+    public boolean attachedBit() {
         return bAttachedBit;
     }
 
@@ -121,7 +137,7 @@ public class BgpAttrNodeFlagBitTlv implements BGPValueType {
      *
      * @return External Bit
      */
-    boolean getExternalBit() {
+    public boolean externalBit() {
         return bExternalBit;
     }
 
@@ -130,8 +146,8 @@ public class BgpAttrNodeFlagBitTlv implements BGPValueType {
      *
      * @return ABR Bit
      */
-    boolean getABRBit() {
-        return bABRBit;
+    public boolean abrBit() {
+        return bAbrBit;
     }
 
     @Override
@@ -141,13 +157,13 @@ public class BgpAttrNodeFlagBitTlv implements BGPValueType {
 
     @Override
     public int write(ChannelBuffer cb) {
-        // TODO will be implementing it later
+        // TODO This will be implemented in the next version
         return 0;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bOverloadBit, bAttachedBit, bExternalBit, bABRBit);
+        return Objects.hash(bOverloadBit, bAttachedBit, bExternalBit, bAbrBit);
     }
 
     @Override
@@ -161,7 +177,7 @@ public class BgpAttrNodeFlagBitTlv implements BGPValueType {
             return Objects.equals(bOverloadBit, other.bOverloadBit)
                     && Objects.equals(bAttachedBit, other.bAttachedBit)
                     && Objects.equals(bExternalBit, other.bExternalBit)
-                    && Objects.equals(bABRBit, other.bABRBit);
+                    && Objects.equals(bAbrBit, other.bAbrBit);
         }
         return false;
     }
@@ -171,7 +187,7 @@ public class BgpAttrNodeFlagBitTlv implements BGPValueType {
         return MoreObjects.toStringHelper(getClass())
                 .add("bOverloadBit", bOverloadBit)
                 .add("bAttachedBit", bAttachedBit)
-                .add("bExternalBit", bExternalBit).add("bABRBit", bABRBit)
+                .add("bExternalBit", bExternalBit).add("bAbrBit", bAbrBit)
                 .toString();
     }
 }
