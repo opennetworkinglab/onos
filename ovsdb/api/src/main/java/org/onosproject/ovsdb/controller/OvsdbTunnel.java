@@ -23,7 +23,8 @@ import java.util.Objects;
 import org.onlab.packet.IpAddress;
 
 /**
- * The class representing a ovsdb tunnel. This class is immutable.
+ * The class representing an ovsdb tunnel.
+ * This class is immutable.
  */
 public final class OvsdbTunnel {
 
@@ -38,7 +39,7 @@ public final class OvsdbTunnel {
     private final OvsdbTunnelName tunnelName;
 
     /**
-     * Constructor from a IpAddress localIp, IpAddress remoteIp Type tunnelType,
+     * Constructor from an IpAddress localIp, IpAddress remoteIp Type tunnelType,
      * OvsdbTunnelName tunnelName.
      *
      * @param localIp the localIp to use
@@ -58,36 +59,36 @@ public final class OvsdbTunnel {
     }
 
     /**
-     * Gets the local IP of the tunnel.
+     * Gets the local IP of tunnel.
      *
-     * @return the local IP of the tunnel
+     * @return the local IP of tunnel
      */
     public IpAddress localIp() {
         return localIp;
     }
 
     /**
-     * Gets the remote IP of the tunnel.
+     * Gets the remote IP of tunnel.
      *
-     * @return the remote IP of the tunnel
+     * @return the remote IP of tunnel
      */
     public IpAddress remoteIp() {
         return remoteIp;
     }
 
     /**
-     * Gets the tunnel type of the tunnel.
+     * Gets the tunnel type of tunnel.
      *
-     * @return the tunnel type of the tunnel
+     * @return the tunnel type of tunnel
      */
     public Type tunnelType() {
         return tunnelType;
     }
 
     /**
-     * Gets the tunnel name of the tunnel.
+     * Gets the tunnel name of tunnel.
      *
-     * @return the tunnel name of the tunnel
+     * @return the tunnel name of tunnel
      */
     public OvsdbTunnelName tunnelName() {
         return tunnelName;
