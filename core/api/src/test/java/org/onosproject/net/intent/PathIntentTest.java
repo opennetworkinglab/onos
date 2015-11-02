@@ -62,12 +62,14 @@ public class PathIntentTest extends ConnectivityIntentTest {
         assertEquals("incorrect match", MATCH, intent.selector());
         assertEquals("incorrect action", NOP, intent.treatment());
         assertEquals("incorrect path", PATH1, intent.path());
+        assertEquals("incorrect key", KEY, intent.key());
     }
 
     @Override
     protected PathIntent createOne() {
         return PathIntent.builder()
                 .appId(APPID)
+                .key(KEY)
                 .selector(MATCH)
                 .treatment(NOP)
                 .path(PATH1)

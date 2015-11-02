@@ -42,6 +42,7 @@ public class PathIntent extends ConnectivityIntent {
      * ports and using the specified explicit path.
      *
      * @param appId     application identifier
+     * @param key       intent key
      * @param selector  traffic selector
      * @param treatment treatment
      * @param path      traversed links
@@ -50,12 +51,13 @@ public class PathIntent extends ConnectivityIntent {
      * @throws NullPointerException {@code path} is null
      */
     protected PathIntent(ApplicationId appId,
+                         Key key,
                          TrafficSelector selector,
                          TrafficTreatment treatment,
                          Path path,
                          List<Constraint> constraints,
                          int priority) {
-        super(appId, null, resources(path.links()), selector, treatment, constraints,
+        super(appId, key, resources(path.links()), selector, treatment, constraints,
                 priority);
         PathIntent.validate(path.links());
         this.path = path;
@@ -138,6 +140,7 @@ public class PathIntent extends ConnectivityIntent {
 
             return new PathIntent(
                     appId,
+                    key,
                     selector,
                     treatment,
                     path,
@@ -184,6 +187,7 @@ public class PathIntent extends ConnectivityIntent {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
+                .add("key", key())
                 .add("appId", appId())
                 .add("priority", priority())
                 .add("resources", resources())

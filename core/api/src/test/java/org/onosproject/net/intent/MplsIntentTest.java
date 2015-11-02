@@ -112,6 +112,5 @@ public class MplsIntentTest extends AbstractIntentTest {
         assertThat(intent1.selector(), equalTo(intent2.selector()));
         assertThat(intent1.treatment(), equalTo(intent2.treatment()));
         assertThat(intent1.priority(), is(PRIORITY));
-
     }
 }

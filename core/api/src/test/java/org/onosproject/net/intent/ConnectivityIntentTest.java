@@ -33,6 +33,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 public abstract class ConnectivityIntentTest extends IntentTest {
 
     public static final ApplicationId APPID = new TestApplicationId("foo");
+    public static final Key KEY = Key.of(1L, APPID);
 
     public static final IntentId IID = new IntentId(123);
     public static final TrafficSelector MATCH = DefaultTrafficSelector.emptySelector();

@@ -63,6 +63,7 @@ public class PropertyPanelTest {
     private static final String KEY_C = "C";
     private static final String SEP = "-";
     private static final String KEY_Z = "Z";
+
     private static final String VALUE_A = "Hay";
     private static final String VALUE_B = "Bee";
     private static final String VALUE_C = "Sea";
@@ -155,8 +156,8 @@ public class PropertyPanelTest {
     public void props() {
         basic();
         pp.addProp(KEY_A, VALUE_A)
-            .addProp(KEY_B, VALUE_B)
-            .addProp(KEY_C, VALUE_C);
+                .addProp(KEY_B, VALUE_B)
+                .addProp(KEY_C, VALUE_C);
         assertEquals("bad props", 3, pp.properties().size());
         validateProps(KEY_A, KEY_B, KEY_C);
     }
@@ -165,7 +166,7 @@ public class PropertyPanelTest {
     public void separator() {
         props();
         pp.addSeparator()
-            .addProp(KEY_Z, VALUE_Z);
+                .addProp(KEY_Z, VALUE_Z);
 
         assertEquals("bad props", 5, pp.properties().size());
         validateProps(KEY_A, KEY_B, KEY_C, SEP, KEY_Z);
@@ -191,8 +192,8 @@ public class PropertyPanelTest {
     public void intValues() {
         basic();
         pp.addProp(KEY_A, 200)
-          .addProp(KEY_B, 2000)
-          .addProp(KEY_C, 1234567);
+                .addProp(KEY_B, 2000)
+                .addProp(KEY_C, 1234567);
 
         validateProp(KEY_A, "200");
         validateProp(KEY_B, "2,000");
@@ -203,9 +204,9 @@ public class PropertyPanelTest {
     public void longValues() {
         basic();
         pp.addProp(KEY_A, 200L)
-          .addProp(KEY_B, 2000L)
-          .addProp(KEY_C, 1234567L)
-          .addProp(KEY_Z, Long.MAX_VALUE);
+                .addProp(KEY_B, 2000L)
+                .addProp(KEY_C, 1234567L)
+                .addProp(KEY_Z, Long.MAX_VALUE);
 
         validateProp(KEY_A, "200");
         validateProp(KEY_B, "2,000");
@@ -217,7 +218,7 @@ public class PropertyPanelTest {
     public void objectValue() {
         basic();
         pp.addProp(KEY_A, new FooClass("a"))
-            .addProp(KEY_B, new FooClass("bxyyzy"), "[xz]");
+                .addProp(KEY_B, new FooClass("bxyyzy"), "[xz]");
 
         validateProp(KEY_A, ">a<");
         validateProp(KEY_B, ">byyy<");
