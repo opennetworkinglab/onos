@@ -48,9 +48,9 @@ import org.onosproject.net.intent.PartitionEvent;
 import org.onosproject.net.intent.PartitionEventListener;
 import org.onosproject.net.intent.PartitionService;
 import org.onosproject.net.link.LinkEvent;
-import org.onosproject.net.resource.link.LinkResourceEvent;
-import org.onosproject.net.resource.link.LinkResourceListener;
-import org.onosproject.net.resource.link.LinkResourceService;
+import org.onosproject.net.newresource.ResourceEvent;
+import org.onosproject.net.newresource.ResourceListener;
+import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
@@ -60,6 +60,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -101,7 +102,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     protected TopologyService topologyService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkResourceService resourceManager;
+    protected ResourceService resourceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -122,8 +123,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
             .newScheduledThreadPool(1);
 
     private TopologyListener listener = new InternalTopologyListener();
-    private LinkResourceListener linkResourceListener =
-            new InternalLinkResourceListener();
+    private ResourceListener resourceListener = new InternalResourceListener();
     private DeviceListener deviceListener = new InternalDeviceListener();
     private HostListener hostListener = new InternalHostListener();
     private PartitionEventListener partitionListener = new InternalPartitionListener();
@@ -134,7 +134,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     @Activate
     public void activate() {
         topologyService.addListener(listener);
-        resourceManager.addListener(linkResourceListener);
+        resourceService.addListener(resourceListener);
         deviceService.addListener(deviceListener);
         hostService.addListener(hostListener);
         partitionService.addListener(partitionListener);
@@ -144,7 +144,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     @Deactivate
     public void deactivate() {
         topologyService.removeListener(listener);
-        resourceManager.removeListener(linkResourceListener);
+        resourceService.removeListener(resourceListener);
         deviceService.removeListener(deviceListener);
         hostService.removeListener(hostListener);
         partitionService.removeListener(partitionListener);
@@ -299,35 +299,22 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         }
     }
 
-    /**
-     * Internal re-actor to resource available events.
-     */
-    private class InternalLinkResourceListener implements LinkResourceListener {
+    private class InternalResourceListener implements ResourceListener {
         @Override
-        public void event(LinkResourceEvent event) {
-            executorService.execute(new ResourceAvailableHandler(event));
-        }
-    }
+        public void event(ResourceEvent event) {
+            Optional<Class<?>> linkEvent = event.subject().components().stream()
+                    .map(Object::getClass)
+                    .filter(x -> x == LinkKey.class)
+                    .findFirst();
+            if (linkEvent.isPresent()) {
+                executorService.execute(() -> {
+                    if (delegate == null) {
+                        return;
+                    }
 
-    /*
-     * Re-dispatcher of resource available events.
-     */
-    private class ResourceAvailableHandler implements Runnable {
-
-        private final LinkResourceEvent event;
-
-        ResourceAvailableHandler(LinkResourceEvent event) {
-            this.event = event;
-        }
-
-        @Override
-        public void run() {
-            // If there is no delegate, why bother? Just bail.
-            if (delegate == null) {
-                return;
+                    delegate.triggerCompile(Collections.emptySet(), true);
+                });
             }
-
-            delegate.triggerCompile(Collections.emptySet(), true);
         }
     }
 

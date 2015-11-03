@@ -16,7 +16,6 @@
 package org.onosproject.net.intent.impl;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -38,8 +37,9 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.link.LinkEvent;
-import org.onosproject.net.resource.link.LinkResourceEvent;
-import org.onosproject.net.resource.link.LinkResourceListener;
+import org.onosproject.net.newresource.ResourceEvent;
+import org.onosproject.net.newresource.ResourceListener;
+import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
@@ -52,6 +52,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.onosproject.net.LinkKey.linkKey;
+import static org.onosproject.net.newresource.ResourceEvent.Type.*;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.device;
 import static org.onosproject.net.NetTestTools.link;
@@ -67,7 +69,7 @@ public class ObjectiveTrackerTest {
     private List<Event> reasons;
     private TopologyListener listener;
     private DeviceListener deviceListener;
-    private LinkResourceListener linkResourceListener;
+    private ResourceListener resourceListener;
     private IdGenerator mockGenerator;
 
     /**
@@ -84,7 +86,7 @@ public class ObjectiveTrackerTest {
         reasons = new LinkedList<>();
         listener = TestUtils.getField(tracker, "listener");
         deviceListener = TestUtils.getField(tracker, "deviceListener");
-        linkResourceListener = TestUtils.getField(tracker, "linkResourceListener");
+        resourceListener = TestUtils.getField(tracker, "resourceListener");
         mockGenerator = new MockIdGenerator();
         Intent.bindIdGenerator(mockGenerator);
     }
@@ -228,10 +230,9 @@ public class ObjectiveTrackerTest {
      */
     @Test
     public void testResourceEvent() throws Exception {
-        LinkResourceEvent event = new LinkResourceEvent(
-                LinkResourceEvent.Type.ADDITIONAL_RESOURCES_AVAILABLE,
-                new HashSet<>());
-        linkResourceListener.event(event);
+        ResourceEvent event = new ResourceEvent(RESOURCE_ADDED,
+                new ResourcePath(linkKey(link("a", 1, "b", 1))));
+        resourceListener.event(event);
 
         assertThat(
                 delegate.latch.await(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS),
