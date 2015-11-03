@@ -15,6 +15,8 @@
  */
 package org.onosproject.vtnrsc;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.MoreObjects;
 
 import java.util.UUID;
@@ -33,6 +35,7 @@ public final class FlowClassifierId {
      * @param flowClassifierId flow classifier id.
      */
     private FlowClassifierId(final UUID flowClassifierId) {
+        checkNotNull(flowClassifierId, "Flow classifier id can not be null");
         this.flowClassifierId = flowClassifierId;
     }
 
@@ -42,7 +45,7 @@ public final class FlowClassifierId {
      * @param flowClassifierId flow classifier id
      * @return new flow classifier id
      */
-    public static FlowClassifierId flowClassifierId(final UUID flowClassifierId) {
+    public static FlowClassifierId of(final UUID flowClassifierId) {
         return new FlowClassifierId(flowClassifierId);
     }
 
@@ -52,7 +55,7 @@ public final class FlowClassifierId {
      * @param flowClassifierId flow classifier id
      * @return new flow classifier id
      */
-    public static FlowClassifierId flowClassifierId(final String flowClassifierId) {
+    public static FlowClassifierId of(final String flowClassifierId) {
         return new FlowClassifierId(UUID.fromString(flowClassifierId));
     }
 

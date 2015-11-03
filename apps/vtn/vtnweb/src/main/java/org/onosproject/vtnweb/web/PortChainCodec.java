@@ -83,7 +83,7 @@ public final class PortChainCodec extends JsonCodec<PortChain> {
         arrayNode = (ArrayNode) json.path(FLOW_CLASSIFIERS);
         if (arrayNode != null) {
             List<FlowClassifierId> list = Lists.newArrayList();
-            arrayNode.forEach(i -> list.add(FlowClassifierId.flowClassifierId(UUID.fromString(i.asText()))));
+            arrayNode.forEach(i -> list.add(FlowClassifierId.of(UUID.fromString(i.asText()))));
             resultBuilder.setFlowClassifiers(list);
         }
 

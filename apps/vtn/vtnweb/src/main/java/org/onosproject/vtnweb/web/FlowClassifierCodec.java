@@ -62,7 +62,7 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
 
         String flowClassifierId = nullIsIllegal(json.get(FLOW_CLASSIFIER_ID),
                 FLOW_CLASSIFIER_ID + MISSING_MEMBER_MESSAGE).asText();
-        resultBuilder.setFlowClassifierId(FlowClassifierId.flowClassifierId(UUID.fromString(flowClassifierId)));
+        resultBuilder.setFlowClassifierId(FlowClassifierId.of(UUID.fromString(flowClassifierId)));
 
         String tenantId = nullIsIllegal(json.get(TENANT_ID), TENANT_ID + MISSING_MEMBER_MESSAGE).asText();
         resultBuilder.setTenantId(TenantId.tenantId(tenantId));

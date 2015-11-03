@@ -32,11 +32,11 @@ import java.util.UUID;
 public class FlowClassifierIdTest {
 
     final FlowClassifierId flowClassifierId1 = FlowClassifierId
-            .flowClassifierId("78dcd363-fc23-aeb6-f44b-56dc5e2fb3ae");
+            .of("78dcd363-fc23-aeb6-f44b-56dc5e2fb3ae");
     final FlowClassifierId sameAsFlowClassifierId1 = FlowClassifierId
-            .flowClassifierId("78dcd363-fc23-aeb6-f44b-56dc5e2fb3ae");
+            .of("78dcd363-fc23-aeb6-f44b-56dc5e2fb3ae");
     final FlowClassifierId flowClassifierId2 = FlowClassifierId
-            .flowClassifierId("dace4513-24fc-4fae-af4b-321c5e2eb3d1");
+            .of("dace4513-24fc-4fae-af4b-321c5e2eb3d1");
 
     /**
      * Checks that the FlowClassifierId class is immutable.
@@ -61,7 +61,7 @@ public class FlowClassifierIdTest {
     @Test
     public void testConstruction() {
         final String flowClassifierIdValue = "dace4513-24fc-4fae-af4b-321c5e2eb3d1";
-        final FlowClassifierId flowClassifierId = FlowClassifierId.flowClassifierId(flowClassifierIdValue);
+        final FlowClassifierId flowClassifierId = FlowClassifierId.of(flowClassifierIdValue);
         assertThat(flowClassifierId, is(notNullValue()));
         assertThat(flowClassifierId.value(), is(UUID.fromString(flowClassifierIdValue)));
     }

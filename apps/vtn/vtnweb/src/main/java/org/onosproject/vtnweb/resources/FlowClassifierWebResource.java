@@ -82,11 +82,11 @@ public class FlowClassifierWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFlowClassifier(@PathParam("flow_id") String id) {
 
-        if (!service.hasFlowClassifier(FlowClassifierId.flowClassifierId(UUID.fromString(id)))) {
+        if (!service.hasFlowClassifier(FlowClassifierId.of(UUID.fromString(id)))) {
             return Response.status(NOT_FOUND).entity(FLOW_CLASSIFIER_NOT_FOUND).build();
         }
         FlowClassifier flowClassifier = nullIsNotFound(
-                service.getFlowClassifier(FlowClassifierId.flowClassifierId(UUID.fromString(id))),
+                service.getFlowClassifier(FlowClassifierId.of(UUID.fromString(id))),
                 FLOW_CLASSIFIER_NOT_FOUND);
 
         ObjectNode result = new ObjectMapper().createObjectNode();
@@ -182,7 +182,7 @@ public class FlowClassifierWebResource extends AbstractWebResource {
     @DELETE
     public Response deleteFlowClassifier(@PathParam("flow_id") String id) throws IOException {
         try {
-            FlowClassifierId flowClassifierId = FlowClassifierId.flowClassifierId(UUID.fromString(id));
+            FlowClassifierId flowClassifierId = FlowClassifierId.of(UUID.fromString(id));
             service.removeFlowClassifier(flowClassifierId);
             return Response.status(201).entity("SUCCESS").build();
         } catch (Exception e) {
