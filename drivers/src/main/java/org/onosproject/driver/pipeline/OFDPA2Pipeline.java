@@ -122,7 +122,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static final long OFPP_MAX = 0xffffff00L;
 
     private static final int HIGHEST_PRIORITY = 0xffff;
-    private static final int DEFAULT_PRIORITY = 0x8000;
+    protected static final int DEFAULT_PRIORITY = 0x8000;
     protected static final int LOWEST_PRIORITY = 0x0;
 
     /*
@@ -458,8 +458,9 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         if (vidCriterion.vlanId() == VlanId.NONE) {
             // untagged packets are assigned vlans
             treatment.pushVlan().setVlanId(assignedVlan);
-            // XXX ofdpa may require an additional vlan match on the assigned vlan
-            // and it may not require the push.
+            // XXX ofdpa will require an additional vlan match on the assigned vlan
+            // and it may not require the push. This is not in compliance with OF
+            // standard. Waiting on what the exact flows are going to look like.
         }
         treatment.transition(TMAC_TABLE);
 

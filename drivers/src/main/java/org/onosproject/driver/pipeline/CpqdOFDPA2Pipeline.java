@@ -17,6 +17,13 @@ package org.onosproject.driver.pipeline;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.onlab.packet.VlanId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -25,6 +32,8 @@ import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.slf4j.Logger;
 
 
@@ -37,16 +46,58 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
     private final Logger log = getLogger(getClass());
 
     @Override
+    protected List<FlowRule> processVlanIdFilter(PortCriterion portCriterion,
+                                                 VlanIdCriterion vidCriterion,
+                                                 VlanId assignedVlan,
+                                                 ApplicationId applicationId) {
+        List<FlowRule> rules = new ArrayList<FlowRule>();
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        selector.matchVlanId(vidCriterion.vlanId());
+        if (vidCriterion.vlanId() == VlanId.NONE) {
+            // untagged packets are assigned vlans
+            treatment.pushVlan().setVlanId(assignedVlan);
+        }
+        treatment.transition(TMAC_TABLE);
+
+        // ofdpa cannot match on ALL portnumber, so we need to use separate
+        // rules for each port.
+        List<PortNumber> portnums = new ArrayList<PortNumber>();
+        if (portCriterion.port() == PortNumber.ALL) {
+            for (Port port : deviceService.getPorts(deviceId)) {
+                if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
+                    portnums.add(port.number());
+                }
+            }
+        } else {
+            portnums.add(portCriterion.port());
+        }
+        for (PortNumber pnum : portnums) {
+            selector.matchInPort(pnum);
+            FlowRule rule = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(selector.build())
+                    .withTreatment(treatment.build())
+                    .withPriority(DEFAULT_PRIORITY)
+                    .fromApp(applicationId)
+                    .makePermanent()
+                    .forTable(VLAN_TABLE).build();
+            rules.add(rule);
+        }
+        return rules;
+    }
+
+
+    @Override
     protected void initializePipeline() {
         processPortTable();
+        // vlan table processing not required, as default is to drop packets
+        // which can be accomplished without a table-miss-entry.
         processTmacTable();
         processIpTable();
+        processMplsTable();
         processBridgingTable();
         processAclTable();
-        // XXX implement table miss entries and default groups
-        //processVlanTable();
-        //processMPLSTable();
-        //processGroupTable();
     }
 
     @Override
@@ -136,6 +187,49 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
             @Override
             public void onError(FlowRuleOperations ops) {
                 log.info("Failed to initialize unicast IP table");
+            }
+        }));
+    }
+
+    @Override
+    protected void processMplsTable() {
+        //table miss entry
+        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        selector = DefaultTrafficSelector.builder();
+        treatment = DefaultTrafficTreatment.builder();
+        treatment.transition(MPLS_TABLE_1);
+        FlowRule rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(LOWEST_PRIORITY)
+                .fromApp(driverId)
+                .makePermanent()
+                .forTable(MPLS_TABLE_0).build();
+        ops =  ops.add(rule);
+
+        treatment.transition(ACL_TABLE);
+        rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(LOWEST_PRIORITY)
+                .fromApp(driverId)
+                .makePermanent()
+                .forTable(MPLS_TABLE_1).build();
+        ops = ops.add(rule);
+
+        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                log.info("Initialized MPLS tables");
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                log.info("Failed to initialize MPLS tables");
             }
         }));
     }
