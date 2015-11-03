@@ -24,6 +24,11 @@ then
 else 
 	wget http://apache.fayea.com/karaf/3.0.2/apache-karaf-3.0.2.tar.gz
 	tar -xzf apache-karaf-3.0.2.tar.gz
+	echo "export KARAF_ROOT=/root/Applications/apache-karaf-3.0.2" >> /etc/profile
+	echo "export PATH=$PATH:$KARAF_ROOT/bin" >> /etc/profile
+	source /etc/profile
+	#in case of source failure.
+	export PATH=$PATH:$KARAF_ROOT/bin
 fi
 
 # Download and install apache-maven
@@ -90,11 +95,7 @@ else
 	# set environment of ONOS
 
 	echo "export ONOS_ROOT=/home/onos/onos-onos-$_version" >> /etc/profile
-	echo "export KARAF_ROOT=/root/Applications/apache-karaf-3.0.2" >> /etc/profile
-	echo "export PATH=$PATH:$KARAF_ROOT/bin" >> /etc/profile
 	source /etc/profile
-	#in case of source failure.
-	export PATH=$PATH:$KARAF_ROOT/bin
 	source $ONOS_ROOT/tools/dev/bash_profile
 fi
 # Build ONOS
