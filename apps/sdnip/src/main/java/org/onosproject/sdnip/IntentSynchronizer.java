@@ -49,9 +49,9 @@ public class IntentSynchronizer implements IntentSynchronizationService {
     private final Map<Key, Intent> intents;
 
     //
-    // State to deal with SDN-IP Leader election and pushing Intents
+    // State to deal with the Leader election and pushing Intents
     //
-    private final ExecutorService bgpIntentsSynchronizerExecutor;
+    private final ExecutorService intentsSynchronizerExecutor;
     private volatile boolean isElectedLeader = false;
     private volatile boolean isActivatedLeader = false;
 
@@ -61,9 +61,9 @@ public class IntentSynchronizer implements IntentSynchronizationService {
      * @param appId the Application ID
      * @param intentService the intent service
      */
-    IntentSynchronizer(ApplicationId appId, IntentService intentService) {
+    public IntentSynchronizer(ApplicationId appId, IntentService intentService) {
         this(appId, intentService,
-                newSingleThreadExecutor(groupedThreads("onos/sdnip", "sync")));
+                newSingleThreadExecutor(groupedThreads("onos/" + appId, "sync")));
     }
 
     /**
@@ -80,7 +80,7 @@ public class IntentSynchronizer implements IntentSynchronizationService {
 
         intents = new ConcurrentHashMap<>();
 
-        bgpIntentsSynchronizerExecutor = executorService;
+        intentsSynchronizerExecutor = executorService;
     }
 
     /**
@@ -96,10 +96,10 @@ public class IntentSynchronizer implements IntentSynchronizationService {
     public void stop() {
         synchronized (this) {
             // Stop the thread(s)
-            bgpIntentsSynchronizerExecutor.shutdownNow();
+            intentsSynchronizerExecutor.shutdownNow();
 
             //
-            // Withdraw all SDN-IP intents
+            // Withdraw all app related intents
             //
             if (!isElectedLeader) {
                 return;         // Nothing to do: not the leader anymore
@@ -115,7 +115,7 @@ public class IntentSynchronizer implements IntentSynchronizationService {
             // Build a batch operation to withdraw all intents from this
             // application.
             //
-            log.debug("SDN-IP Intent Synchronizer shutdown: " +
+            log.debug("Intent Synchronizer shutdown: " +
                       "withdrawing all intents...");
             IntentOperations.Builder builder = IntentOperations.builder(appId);
             for (Intent intent : intentService.getIntents()) {
@@ -133,7 +133,7 @@ public class IntentSynchronizer implements IntentSynchronizationService {
                     continue;
                 }
 
-                log.trace("SDN-IP Intent Synchronizer withdrawing intent: {}",
+                log.trace("Intent Synchronizer withdrawing intent: {}",
                           intent);
                 builder.addWithdrawOperation(intent.id());
             }
@@ -143,7 +143,7 @@ public class IntentSynchronizer implements IntentSynchronizationService {
 
             peerIntents.clear();
             routeIntents.clear();
-            log.debug("SDN-IP Intent Synchronizer shutdown completed");
+            log.debug("Intent Synchronizer shutdown completed");
             */
         }
     }
@@ -153,7 +153,7 @@ public class IntentSynchronizer implements IntentSynchronizationService {
         synchronized (this) {
             intents.put(intent.key(), intent);
             if (isElectedLeader && isActivatedLeader) {
-                log.trace("SDN-IP Submitting intent: {}", intent);
+                log.trace("Submitting intent: {}", intent);
                 intentService.submit(intent);
             }
         }
@@ -164,19 +164,19 @@ public class IntentSynchronizer implements IntentSynchronizationService {
         synchronized (this) {
             intents.remove(intent.key(), intent);
             if (isElectedLeader && isActivatedLeader) {
-                log.trace("SDN-IP Withdrawing intent: {}", intent);
+                log.trace("Withdrawing intent: {}", intent);
                 intentService.withdraw(intent);
             }
         }
     }
 
     /**
-     * Signals the synchronizer that the SDN-IP leadership has changed.
+     * Signals the synchronizer that the leadership has changed.
      *
      * @param isLeader true if this instance is now the leader, otherwise false
      */
     public void leaderChanged(boolean isLeader) {
-        log.debug("SDN-IP Leader changed: {}", isLeader);
+        log.debug("Leader changed: {}", isLeader);
 
         if (!isLeader) {
             this.isElectedLeader = false;
@@ -187,7 +187,7 @@ public class IntentSynchronizer implements IntentSynchronizationService {
         this.isElectedLeader = true;
 
         // Run the synchronization method off-thread
-        bgpIntentsSynchronizerExecutor.execute(this::synchronizeIntents);
+        intentsSynchronizerExecutor.execute(this::synchronizeIntents);
     }
 
     private void synchronizeIntents() {
@@ -225,17 +225,17 @@ public class IntentSynchronizer implements IntentSynchronizationService {
             }
         }
 
-        log.debug("SDN-IP Intent Synchronizer: submitting {}, withdrawing {}",
+        log.debug("Intent Synchronizer: submitting {}, withdrawing {}",
                 intentsToAdd.size(), intentsToRemove.size());
 
         // Withdraw Intents
         for (Intent intent : intentsToRemove) {
             intentService.withdraw(intent);
-            log.trace("SDN-IP Intent Synchronizer: withdrawing intent: {}",
+            log.trace("Intent Synchronizer: withdrawing intent: {}",
                     intent);
         }
         if (!isElectedLeader) {
-            log.debug("SDN-IP Intent Synchronizer: cannot withdraw intents: " +
+            log.debug("Intent Synchronizer: cannot withdraw intents: " +
                     "not elected leader anymore");
             isActivatedLeader = false;
             return;
@@ -244,11 +244,11 @@ public class IntentSynchronizer implements IntentSynchronizationService {
         // Add Intents
         for (Intent intent : intentsToAdd) {
             intentService.submit(intent);
-            log.trace("SDN-IP Intent Synchronizer: submitting intent: {}",
+            log.trace("Intent Synchronizer: submitting intent: {}",
                     intent);
         }
         if (!isElectedLeader) {
-            log.debug("SDN-IP Intent Synchronizer: cannot submit intents: " +
+            log.debug("Intent Synchronizer: cannot submit intents: " +
                     "not elected leader anymore");
             isActivatedLeader = false;
             return;
@@ -259,7 +259,7 @@ public class IntentSynchronizer implements IntentSynchronizationService {
         } else {
             isActivatedLeader = false;
         }
-        log.debug("SDN-IP intent synchronization completed");
+        log.debug("Intent synchronization completed");
     }
 
 }
