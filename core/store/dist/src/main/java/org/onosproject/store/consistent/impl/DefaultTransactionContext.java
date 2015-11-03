@@ -86,7 +86,7 @@ public class DefaultTransactionContext implements TransactionContext {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void commit() {
+    public boolean commit() {
         // TODO: rework commit implementation to be more intuitive
         checkState(isOpen, TX_NOT_OPEN_ERROR);
         CommitResponse response = null;
@@ -95,10 +95,11 @@ public class DefaultTransactionContext implements TransactionContext {
             txMaps.values().forEach(m -> updates.addAll(m.prepareDatabaseUpdates()));
             Transaction transaction = new DefaultTransaction(transactionId, updates);
             response = Futures.getUnchecked(database.prepareAndCommit(transaction));
+            return response.success();
+        } catch (Exception e) {
+            abort();
+            return false;
         } finally {
-            if (response != null && !response.success()) {
-                abort();
-            }
             isOpen = false;
         }
     }

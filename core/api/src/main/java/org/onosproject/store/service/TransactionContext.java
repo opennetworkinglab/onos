@@ -56,9 +56,9 @@ public interface TransactionContext {
      * Commits a transaction that was previously started thereby making its changes permanent
      * and externally visible.
      *
-     * @throws TransactionException if transaction fails to commit
+     * @return true if this transaction succeeded, otherwise false.
      */
-    void commit();
+    boolean commit();
 
     /**
      * Aborts any changes made in this transaction context and discarding all locally cached updates.
