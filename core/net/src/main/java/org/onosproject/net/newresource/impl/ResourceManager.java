@@ -55,9 +55,6 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
         checkNotNull(consumer);
         checkNotNull(resources);
 
-        // TODO: implement support of resource hierarchy
-        // allocation for a particular resource implies allocations for all of the sub-resources need to be done
-
         boolean success = store.allocate(resources, consumer);
         if (!success) {
             return ImmutableList.of();
