@@ -16,8 +16,7 @@
 package org.onosproject.ovsdb.controller;
 
 /**
- * Represents for a entity that carry important information for listener.
+ * Representation for an entity that carries important information for a listener.
  */
 public interface EventSubject {
-
 }

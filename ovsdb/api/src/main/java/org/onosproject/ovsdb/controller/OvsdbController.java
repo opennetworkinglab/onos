@@ -21,7 +21,7 @@ import org.onlab.packet.TpPort;
 import java.util.List;
 
 /**
- * Abstraction of an ovsdb controller. Serves as a one stop shop for obtaining
+ * Abstraction of an ovsdb controller. Serves as an one stop shop for obtaining
  * OvsdbNode and (un)register listeners on ovsdb events and ovsdb node events.
  */
 public interface OvsdbController {
@@ -62,7 +62,7 @@ public interface OvsdbController {
     List<OvsdbNodeId> getNodeIds();
 
     /**
-     * Gets a ovsdb client by node identifier.
+     * Gets an ovsdb client by node identifier.
      *
      * @param nodeId node identifier
      * @return OvsdbClient ovsdb node information

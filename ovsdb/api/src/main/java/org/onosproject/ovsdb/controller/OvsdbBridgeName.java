@@ -21,14 +21,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Objects;
 
 /**
- * The class representing a bridge name. This class is immutable.
+ * The class representing a bridge name.
+ * This class is immutable.
  */
 public final class OvsdbBridgeName {
 
     private final String value;
 
     /**
-     * Constructor from a String bridge name.
+     * Constructor from a String.
      *
      * @param value the bridge name to use
      */
@@ -38,7 +39,7 @@ public final class OvsdbBridgeName {
     }
 
     /**
-     * Gets the value of the bridge name.
+     * Gets the value of bridge name.
      *
      * @return the value of the bridge name
      */

@@ -43,7 +43,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     OvsdbNodeId nodeId();
 
     /**
-     * Creates the configuration for the tunnel.
+     * Creates the configuration for tunnel.
      *
      * @param srcIp source IP address
      * @param dstIp destination IP address
@@ -62,7 +62,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     boolean createTunnel(String bridgeName, String portName, String tunnelType, Map<String, String> options);
 
     /**
-     * Drops the configuration for the tunnel.
+     * Drops the configuration for tunnel.
      *
      * @param srcIp source IP address
      * @param dstIp destination IP address
@@ -70,7 +70,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     void dropTunnel(IpAddress srcIp, IpAddress dstIp);
 
     /**
-     * Gets tunnels of the node.
+     * Gets tunnels of node.
      *
      * @return set of tunnels; empty if no tunnel is find
      */
@@ -102,14 +102,14 @@ public interface OvsdbClientService extends OvsdbRPC {
     void dropBridge(String bridgeName);
 
     /**
-     * Gets bridges of the node.
+     * Gets bridges of node.
      *
      * @return set of bridges; empty if no bridge is find
      */
     Set<OvsdbBridge> getBridges();
 
     /**
-     * Gets controllers of the node.
+     * Gets controllers of node.
      *
      * @param openflowDeviceId target device id
      * @return set of controllers; empty if no controller is find
@@ -155,7 +155,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     void dropPort(String bridgeName, String portName);
 
     /**
-     * Gets ports of the bridge.
+     * Gets ports of bridge.
      *
      * @return set of ports; empty if no ports is find
      */
@@ -247,7 +247,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     DatabaseSchema getDatabaseSchema(String dbName);
 
     /**
-     * Gets the ovsdb row from the local ovsdb store.
+     * Gets the ovsdb row from local ovsdb store.
      *
      * @param dbName    database name
      * @param tableName table name
@@ -257,7 +257,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     Row getRow(String dbName, String tableName, String uuid);
 
     /**
-     * Removes the ovsdb row from the local ovsdb store.
+     * Removes the ovsdb row from local ovsdb store.
      *
      * @param dbName    database name
      * @param tableName table name
