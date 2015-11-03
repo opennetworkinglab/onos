@@ -26,10 +26,11 @@
     var $log, $window, $rootScope, fs, ps, bns;
 
     // constants
-    var pCls = 'topo-p',
+    var pCls = 'topo-p dialog',
         idDialog = 'topo-p-dialog',
         panelOpts = {
-            width: 300
+            width: 300,
+            edge: 'left'
         };
 
     // internal state

@@ -34,6 +34,10 @@
     border-radius: 6px;
 }
 
+.floatpanel.dialog {
+    top: 180px;
+}
+
 html[data-platform='iPad'] .floatpanel {
     top: 80px;
 }

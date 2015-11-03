@@ -171,7 +171,10 @@
     }
 
     angular.module('onosLayer')
-        .factory('PanelService', ['$log', 'FnService', function (_$log_, _fs_) {
+    .factory('PanelService',
+        ['$log', '$window', 'FnService',
+
+        function (_$log_, _$window_, _fs_) {
             $log = _$log_;
             fs = _fs_;
 
@@ -210,5 +213,4 @@
                 destroyPanel: destroyPanel
             };
         }]);
-
 }());
