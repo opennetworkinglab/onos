@@ -21,13 +21,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Objects;
 
 /**
- * The class representing a tunnel name. This class is immutable.
+ * The class representing a tunnel name.
+ * This class is immutable.
  */
 public final class OvsdbTunnelName {
     private final String value;
 
     /**
-     * Constructor from a String tunnel name.
+     * Constructor from a String.
      *
      * @param value the tunnel name to use
      */
@@ -37,9 +38,9 @@ public final class OvsdbTunnelName {
     }
 
     /**
-     * Gets the value of the tunnel name.
+     * Gets the value of tunnel name.
      *
-     * @return the value of the tunnel name
+     * @return the value of tunnel name
      */
     public String value() {
         return value;
