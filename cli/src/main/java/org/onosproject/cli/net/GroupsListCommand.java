@@ -46,7 +46,7 @@ import static com.google.common.collect.Lists.newArrayList;
 public class GroupsListCommand extends AbstractShellCommand {
 
     private static final String FORMAT =
-            "   id=%s, state=%s, bytes=%s, packets=%s, appId=%s";
+            "   id=%s, state=%s, type=%s, bytes=%s, packets=%s, appId=%s";
     private static final String BUCKET_FORMAT =
             "   id=%s, bucket=%s, bytes=%s, packets=%s, actions=%s";
 
@@ -121,7 +121,7 @@ public class GroupsListCommand extends AbstractShellCommand {
     private void printGroups(DeviceId deviceId, List<Group> groups) {
         print("deviceId=%s", deviceId);
         for (Group group : groups) {
-            print(FORMAT, group.id().id(), group.state(),
+            print(FORMAT, group.id().id(), group.state(), group.type(),
                   group.bytes(), group.packets(), group.appId().name());
             int i = 0;
             for (GroupBucket bucket:group.buckets().buckets()) {
