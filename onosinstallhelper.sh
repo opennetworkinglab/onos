@@ -91,8 +91,10 @@ else
 
 	echo "export ONOS_ROOT=/home/onos/onos-onos-$_version" >> /etc/profile
 	echo "export KARAF_ROOT=/root/Applications/apache-karaf-3.0.2" >> /etc/profile
-
+	echo "export PATH=$PATH:$KARAF_ROOT/bin" >> /etc/profile
 	source /etc/profile
+	#in case of source failure.
+	export PATH=$PATH:$KARAF_ROOT/bin
 	source $ONOS_ROOT/tools/dev/bash_profile
 fi
 # Build ONOS
