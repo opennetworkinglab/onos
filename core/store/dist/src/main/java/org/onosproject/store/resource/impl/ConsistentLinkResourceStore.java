@@ -59,7 +59,6 @@ import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContext;
-import org.onosproject.store.service.TransactionException;
 import org.onosproject.store.service.TransactionalMap;
 import org.onosproject.store.service.Versioned;
 
@@ -294,7 +293,7 @@ public class ConsistentLinkResourceStore extends
             intentAllocs.put(allocations.intentId(), allocations);
             allocations.links().forEach(link -> allocateLinkResource(tx, link, allocations));
             tx.commit();
-        } catch (TransactionException | ResourceAllocationException e) {
+        } catch (ResourceAllocationException e) {
             log.error("Exception thrown, rolling back", e);
             tx.abort();
         } catch (Exception e) {
@@ -407,12 +406,8 @@ public class ConsistentLinkResourceStore extends
                     after.remove(allocations);
                     linkAllocs.replace(linkId, before, after);
                 });
-                tx.commit();
-                success = true;
-            } catch (TransactionException e) {
-                log.debug("Transaction failed, retrying", e);
-                tx.abort();
-            } catch (Exception e) {
+                success = tx.commit();
+            }  catch (Exception e) {
                 log.error("Exception thrown during releaseResource {}", allocations, e);
                 tx.abort();
                 throw e;

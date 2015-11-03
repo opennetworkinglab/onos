@@ -29,7 +29,6 @@ import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContext;
-import org.onosproject.store.service.TransactionException;
 import org.onosproject.store.service.TransactionalMap;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
@@ -100,29 +99,24 @@ public class ConsistentResourceStore implements ResourceStore {
         TransactionContext tx = service.transactionContextBuilder().build();
         tx.begin();
 
-        try {
-            TransactionalMap<ResourcePath, List<ResourcePath>> childTxMap =
-                    tx.getTransactionalMap(CHILD_MAP, SERIALIZER);
+        TransactionalMap<ResourcePath, List<ResourcePath>> childTxMap =
+                tx.getTransactionalMap(CHILD_MAP, SERIALIZER);
 
-            Map<ResourcePath, List<ResourcePath>> resourceMap = resources.stream()
-                    .filter(x -> x.parent().isPresent())
-                    .collect(Collectors.groupingBy(x -> x.parent().get()));
+        Map<ResourcePath, List<ResourcePath>> resourceMap = resources.stream()
+                .filter(x -> x.parent().isPresent())
+                .collect(Collectors.groupingBy(x -> x.parent().get()));
 
-            for (Map.Entry<ResourcePath, List<ResourcePath>> entry: resourceMap.entrySet()) {
-                if (!isRegistered(childTxMap, entry.getKey())) {
-                    return abortTransaction(tx);
-                }
-
-                if (!appendValues(childTxMap, entry.getKey(), entry.getValue())) {
-                    return abortTransaction(tx);
-                }
+        for (Map.Entry<ResourcePath, List<ResourcePath>> entry: resourceMap.entrySet()) {
+            if (!isRegistered(childTxMap, entry.getKey())) {
+                return abortTransaction(tx);
             }
 
-            return commitTransaction(tx);
-        } catch (TransactionException e) {
-            log.error("Exception thrown, abort the transaction", e);
-            return abortTransaction(tx);
+            if (!appendValues(childTxMap, entry.getKey(), entry.getValue())) {
+                return abortTransaction(tx);
+            }
         }
+
+        return tx.commit();
     }
 
     @Override
@@ -132,33 +126,28 @@ public class ConsistentResourceStore implements ResourceStore {
         TransactionContext tx = service.transactionContextBuilder().build();
         tx.begin();
 
-        try {
-            TransactionalMap<ResourcePath, List<ResourcePath>> childTxMap =
-                    tx.getTransactionalMap(CHILD_MAP, SERIALIZER);
-            TransactionalMap<ResourcePath, ResourceConsumer> consumerTxMap =
-                    tx.getTransactionalMap(CONSUMER_MAP, SERIALIZER);
+        TransactionalMap<ResourcePath, List<ResourcePath>> childTxMap =
+                tx.getTransactionalMap(CHILD_MAP, SERIALIZER);
+        TransactionalMap<ResourcePath, ResourceConsumer> consumerTxMap =
+                tx.getTransactionalMap(CONSUMER_MAP, SERIALIZER);
 
-            Map<ResourcePath, List<ResourcePath>> resourceMap = resources.stream()
-                    .filter(x -> x.parent().isPresent())
-                    .collect(Collectors.groupingBy(x -> x.parent().get()));
+        Map<ResourcePath, List<ResourcePath>> resourceMap = resources.stream()
+                .filter(x -> x.parent().isPresent())
+                .collect(Collectors.groupingBy(x -> x.parent().get()));
 
-            // even if one of the resources is allocated to a consumer,
-            // all unregistrations are regarded as failure
-            for (Map.Entry<ResourcePath, List<ResourcePath>> entry: resourceMap.entrySet()) {
-                if (entry.getValue().stream().anyMatch(x -> consumerTxMap.get(x) != null)) {
-                    return abortTransaction(tx);
-                }
-
-                if (!removeValues(childTxMap, entry.getKey(), entry.getValue())) {
-                    return abortTransaction(tx);
-                }
+        // even if one of the resources is allocated to a consumer,
+        // all unregistrations are regarded as failure
+        for (Map.Entry<ResourcePath, List<ResourcePath>> entry: resourceMap.entrySet()) {
+            if (entry.getValue().stream().anyMatch(x -> consumerTxMap.get(x) != null)) {
+                return abortTransaction(tx);
             }
 
-            return commitTransaction(tx);
-        } catch (TransactionException e) {
-            log.error("Exception thrown, abort the transaction", e);
-            return abortTransaction(tx);
+            if (!removeValues(childTxMap, entry.getKey(), entry.getValue())) {
+                return abortTransaction(tx);
+            }
         }
+
+        return tx.commit();
     }
 
     @Override
@@ -169,28 +158,23 @@ public class ConsistentResourceStore implements ResourceStore {
         TransactionContext tx = service.transactionContextBuilder().build();
         tx.begin();
 
-        try {
-            TransactionalMap<ResourcePath, List<ResourcePath>> childTxMap =
-                    tx.getTransactionalMap(CHILD_MAP, SERIALIZER);
-            TransactionalMap<ResourcePath, ResourceConsumer> consumerTxMap =
-                    tx.getTransactionalMap(CONSUMER_MAP, SERIALIZER);
+        TransactionalMap<ResourcePath, List<ResourcePath>> childTxMap =
+                tx.getTransactionalMap(CHILD_MAP, SERIALIZER);
+        TransactionalMap<ResourcePath, ResourceConsumer> consumerTxMap =
+                tx.getTransactionalMap(CONSUMER_MAP, SERIALIZER);
 
-            for (ResourcePath resource: resources) {
-                if (!isRegistered(childTxMap, resource)) {
-                    return abortTransaction(tx);
-                }
-
-                ResourceConsumer oldValue = consumerTxMap.put(resource, consumer);
-                if (oldValue != null) {
-                    return abortTransaction(tx);
-                }
+        for (ResourcePath resource: resources) {
+            if (!isRegistered(childTxMap, resource)) {
+                return abortTransaction(tx);
             }
 
-            return commitTransaction(tx);
-        } catch (TransactionException e) {
-            log.error("Exception thrown, abort the transaction", e);
-            return abortTransaction(tx);
+            ResourceConsumer oldValue = consumerTxMap.put(resource, consumer);
+            if (oldValue != null) {
+                return abortTransaction(tx);
+            }
         }
+
+        return tx.commit();
     }
 
     @Override
@@ -202,28 +186,23 @@ public class ConsistentResourceStore implements ResourceStore {
         TransactionContext tx = service.transactionContextBuilder().build();
         tx.begin();
 
-        try {
-            TransactionalMap<ResourcePath, ResourceConsumer> consumerTxMap =
-                    tx.getTransactionalMap(CONSUMER_MAP, SERIALIZER);
-            Iterator<ResourcePath> resourceIte = resources.iterator();
-            Iterator<ResourceConsumer> consumerIte = consumers.iterator();
+        TransactionalMap<ResourcePath, ResourceConsumer> consumerTxMap =
+                tx.getTransactionalMap(CONSUMER_MAP, SERIALIZER);
+        Iterator<ResourcePath> resourceIte = resources.iterator();
+        Iterator<ResourceConsumer> consumerIte = consumers.iterator();
 
-            while (resourceIte.hasNext() && consumerIte.hasNext()) {
-                ResourcePath resource = resourceIte.next();
-                ResourceConsumer consumer = consumerIte.next();
+        while (resourceIte.hasNext() && consumerIte.hasNext()) {
+            ResourcePath resource = resourceIte.next();
+            ResourceConsumer consumer = consumerIte.next();
 
-                // if this single release fails (because the resource is allocated to another consumer,
-                // the whole release fails
-                if (!consumerTxMap.remove(resource, consumer)) {
-                    return abortTransaction(tx);
-                }
+            // if this single release fails (because the resource is allocated to another consumer,
+            // the whole release fails
+            if (!consumerTxMap.remove(resource, consumer)) {
+                return abortTransaction(tx);
             }
-
-            return commitTransaction(tx);
-        } catch (TransactionException e) {
-            log.error("Exception thrown, abort the transaction", e);
-            return abortTransaction(tx);
         }
+
+        return tx.commit();
     }
 
     @Override
@@ -275,17 +254,6 @@ public class ConsistentResourceStore implements ResourceStore {
     private boolean abortTransaction(TransactionContext tx) {
         tx.abort();
         return false;
-    }
-
-    /**
-     * Commit the transaction.
-     *
-     * @param tx transaction context
-     * @return always true
-     */
-    private boolean commitTransaction(TransactionContext tx) {
-        tx.commit();
-        return true;
     }
 
     /**
