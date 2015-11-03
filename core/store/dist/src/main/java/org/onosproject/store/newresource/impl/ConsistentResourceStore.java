@@ -22,8 +22,11 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.newresource.ResourceConsumer;
+import org.onosproject.net.newresource.ResourceEvent;
 import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.newresource.ResourceStore;
+import org.onosproject.net.newresource.ResourceStoreDelegate;
+import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
@@ -47,6 +50,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.newresource.ResourceEvent.Type.*;
 
 /**
  * Implementation of ResourceStore using TransactionalMap.
@@ -54,7 +58,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Component(immediate = true)
 @Service
 @Beta
-public class ConsistentResourceStore implements ResourceStore {
+public class ConsistentResourceStore extends AbstractStore<ResourceEvent, ResourceStoreDelegate>
+        implements ResourceStore {
     private static final Logger log = LoggerFactory.getLogger(ConsistentResourceStore.class);
 
     private static final String CONSUMER_MAP = "onos-resource-consumers";
@@ -116,7 +121,15 @@ public class ConsistentResourceStore implements ResourceStore {
             }
         }
 
-        return tx.commit();
+        boolean success = tx.commit();
+        if (success) {
+            List<ResourceEvent> events = resources.stream()
+                    .filter(x -> x.parent().isPresent())
+                    .map(x -> new ResourceEvent(RESOURCE_ADDED, x))
+                    .collect(Collectors.toList());
+            notifyDelegate(events);
+        }
+        return success;
     }
 
     @Override
@@ -147,7 +160,15 @@ public class ConsistentResourceStore implements ResourceStore {
             }
         }
 
-        return tx.commit();
+        boolean success = tx.commit();
+        if (success) {
+            List<ResourceEvent> events = resources.stream()
+                    .filter(x -> x.parent().isPresent())
+                    .map(x -> new ResourceEvent(RESOURCE_REMOVED, x))
+                    .collect(Collectors.toList());
+            notifyDelegate(events);
+        }
+        return success;
     }
 
     @Override

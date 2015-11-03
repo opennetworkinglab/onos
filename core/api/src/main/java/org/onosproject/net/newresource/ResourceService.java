@@ -17,6 +17,7 @@ package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
+import org.onosproject.event.ListenerService;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Service for allocating/releasing resource(s) and retrieving allocation(s) and availability.
  */
 @Beta
-public interface ResourceService {
+public interface ResourceService extends ListenerService<ResourceEvent, ResourceListener> {
     /**
      * Allocates the specified resource to the specified user.
      *

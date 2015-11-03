@@ -18,16 +18,22 @@ package org.onosproject.net.newresource.impl;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.newresource.ResourceAdminService;
 import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourceConsumer;
+import org.onosproject.net.newresource.ResourceEvent;
+import org.onosproject.net.newresource.ResourceListener;
 import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.newresource.ResourceStore;
+import org.onosproject.net.newresource.ResourceStoreDelegate;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,10 +50,25 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Component(immediate = true)
 @Service
 @Beta
-public final class ResourceManager implements ResourceService, ResourceAdminService {
+public final class ResourceManager extends AbstractListenerManager<ResourceEvent, ResourceListener>
+        implements ResourceService, ResourceAdminService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceStore store;
+
+    private final ResourceStoreDelegate delegate = new InternalStoreDelegate();
+
+    @Activate
+    public void activate() {
+        store.setDelegate(delegate);
+        eventDispatcher.addSink(ResourceEvent.class, listenerRegistry);
+    }
+
+    @Deactivate
+    public void deactivate() {
+        store.unsetDelegate(delegate);
+        eventDispatcher.addSink(ResourceEvent.class, listenerRegistry);
+    }
 
     @Override
     public List<ResourceAllocation> allocate(ResourceConsumer consumer,
@@ -160,5 +181,12 @@ public final class ResourceManager implements ResourceService, ResourceAdminServ
 
         List<ResourcePath> resources = Lists.transform(children, x -> ResourcePath.child(parent, x));
         return store.unregister(resources);
+    }
+
+    private class InternalStoreDelegate implements ResourceStoreDelegate {
+        @Override
+        public void notify(ResourceEvent event) {
+            post(event);
+        }
     }
 }

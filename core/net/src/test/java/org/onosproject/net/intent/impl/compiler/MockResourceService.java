@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.onlab.packet.MplsLabel;
 import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourceConsumer;
+import org.onosproject.net.newresource.ResourceListener;
 import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.newresource.ResourceService;
 
@@ -97,4 +98,10 @@ class MockResourceService implements ResourceService {
     public boolean isAvailable(ResourcePath resource) {
         return true;
     }
+
+    @Override
+    public void addListener(ResourceListener listener) {}
+
+    @Override
+    public void removeListener(ResourceListener listener) {}
 }

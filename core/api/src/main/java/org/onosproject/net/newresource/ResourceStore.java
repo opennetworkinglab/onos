@@ -16,6 +16,7 @@
 package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.store.Store;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.Optional;
  * Service for storing resource and consumer information.
  */
 @Beta
-public interface ResourceStore {
+public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegate> {
 
     /**
      * Registers the resources in transactional way.
