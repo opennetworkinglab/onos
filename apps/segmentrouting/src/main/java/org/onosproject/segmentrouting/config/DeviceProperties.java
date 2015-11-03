@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.segmentrouting.grouphandler;
+package org.onosproject.segmentrouting.config;
 
 import java.util.List;
 import java.util.Map;
 
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
@@ -30,28 +31,48 @@ import org.onosproject.net.PortNumber;
  */
 public interface DeviceProperties {
     /**
+     * Checks if the device is configured.
+     *
+     * @param deviceId device identifier
+     * @return true if the device is configured
+     */
+    boolean isConfigured(DeviceId deviceId);
+
+    /**
      * Returns the segment id of a device to be used in group creation.
      *
      * @param deviceId device identifier
+     * @throws DeviceConfigNotFoundException if the device configuration is not found
      * @return segment id of a device
      */
-    int getSegmentId(DeviceId deviceId);
+    int getSegmentId(DeviceId deviceId) throws DeviceConfigNotFoundException;
 
     /**
      * Returns the Mac address of a device to be used in group creation.
      *
      * @param deviceId device identifier
+     * @throws DeviceConfigNotFoundException if the device configuration is not found
      * @return mac address of a device
      */
-    MacAddress getDeviceMac(DeviceId deviceId);
+    MacAddress getDeviceMac(DeviceId deviceId) throws DeviceConfigNotFoundException;
+
+    /**
+     * Returns the router ip address of a segment router.
+     *
+     * @param deviceId device identifier
+     * @throws DeviceConfigNotFoundException if the device configuration is not found
+     * @return router ip address
+     */
+    Ip4Address getRouterIp(DeviceId deviceId) throws DeviceConfigNotFoundException;
 
     /**
      * Indicates whether a device is edge device or transit/core device.
      *
      * @param deviceId device identifier
+     * @throws DeviceConfigNotFoundException if the device configuration is not found
      * @return boolean
      */
-    boolean isEdgeDevice(DeviceId deviceId);
+    boolean isEdgeDevice(DeviceId deviceId) throws DeviceConfigNotFoundException;
 
     /**
      * Returns all segment IDs to be considered in building auto

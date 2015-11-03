@@ -23,6 +23,8 @@ import org.onlab.packet.IpPrefix;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -449,7 +451,20 @@ public class DefaultRoutingHandler {
 
         // If both target switch and dest switch are edge routers, then set IP
         // rule for both subnet and router IP.
-        if (config.isEdgeDevice(targetSw) && config.isEdgeDevice(destSw)) {
+        boolean targetIsEdge;
+        boolean destIsEdge;
+        Ip4Address destRouterIp;
+
+        try {
+            targetIsEdge = config.isEdgeDevice(targetSw);
+            destIsEdge = config.isEdgeDevice(destSw);
+            destRouterIp = config.getRouterIp(destSw);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting populateEcmpRoutingRulePartial.");
+            return false;
+        }
+
+        if (targetIsEdge && destIsEdge) {
             Set<Ip4Prefix> subnets = config.getSubnets(destSw);
             log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for subnets {}",
                     targetSw, destSw, subnets);
@@ -461,7 +476,7 @@ public class DefaultRoutingHandler {
                 return false;
             }
 
-            Ip4Address routerIp = config.getRouterIp(destSw);
+            Ip4Address routerIp = destRouterIp;
             IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
             log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
                     targetSw, destSw, routerIpPrefix);
@@ -471,8 +486,8 @@ public class DefaultRoutingHandler {
             }
 
         // If the target switch is an edge router, then set IP rules for the router IP.
-        } else if (config.isEdgeDevice(targetSw)) {
-            Ip4Address routerIp = config.getRouterIp(destSw);
+        } else if (targetIsEdge) {
+            Ip4Address routerIp = destRouterIp;
             IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
             log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
                     targetSw, destSw, routerIpPrefix);

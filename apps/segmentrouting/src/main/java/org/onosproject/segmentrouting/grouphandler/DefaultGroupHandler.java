@@ -48,6 +48,8 @@ import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceProperties;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.slf4j.Logger;
 
@@ -63,9 +65,9 @@ public class DefaultGroupHandler {
     protected final ApplicationId appId;
     protected final DeviceProperties deviceConfig;
     protected final List<Integer> allSegmentIds;
-    protected final int nodeSegmentId;
-    protected final boolean isEdgeRouter;
-    protected final MacAddress nodeMacAddr;
+    protected int nodeSegmentId = -1;
+    protected boolean isEdgeRouter = false;
+    protected MacAddress nodeMacAddr = null;
     protected LinkService linkService;
     protected FlowObjectiveService flowObjectiveService;
 
@@ -99,10 +101,15 @@ public class DefaultGroupHandler {
         this.appId = checkNotNull(appId);
         this.deviceConfig = checkNotNull(config);
         this.linkService = checkNotNull(linkService);
-        allSegmentIds = checkNotNull(config.getAllDeviceSegmentIds());
-        nodeSegmentId = config.getSegmentId(deviceId);
-        isEdgeRouter = config.isEdgeDevice(deviceId);
-        nodeMacAddr = checkNotNull(config.getDeviceMac(deviceId));
+        this.allSegmentIds = checkNotNull(config.getAllDeviceSegmentIds());
+        try {
+            this.nodeSegmentId = config.getSegmentId(deviceId);
+            this.isEdgeRouter = config.isEdgeDevice(deviceId);
+            this.nodeMacAddr = checkNotNull(config.getDeviceMac(deviceId));
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage()
+                    + " Skipping value assignment in DefaultGroupHandler");
+        }
         this.flowObjectiveService = flowObjService;
         this.nsNextObjStore = nsNextObjStore;
         this.subnetNextObjStore = subnetNextObjStore;
@@ -122,6 +129,7 @@ public class DefaultGroupHandler {
      * @param flowObjService flow objective service object
      * @param nsNextObjStore NeighborSet next objective store map
      * @param subnetNextObjStore subnet next objective store map
+     * @throws DeviceConfigNotFoundException if the device configuration is not found
      * @return default group handler type
      */
     public static DefaultGroupHandler createGroupHandler(DeviceId deviceId,
@@ -133,7 +141,9 @@ public class DefaultGroupHandler {
                                                                  NeighborSetNextObjectiveStoreKey,
                                                                  Integer> nsNextObjStore,
                                                          EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
-                                                                 Integer> subnetNextObjStore) {
+                                                                 Integer> subnetNextObjStore)
+                                                         throws DeviceConfigNotFoundException {
+        // handle possible exception in the caller
         if (config.isEdgeDevice(deviceId)) {
             return new DefaultEdgeGroupHandler(deviceId, appId, config,
                                                linkService,
@@ -176,6 +186,14 @@ public class DefaultGroupHandler {
             return;
         }
 
+        MacAddress dstMac;
+        try {
+            dstMac = deviceConfig.getDeviceMac(newLink.dst().deviceId());
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting linkUp.");
+            return;
+        }
+
         log.debug("Device {} linkUp at local port {} to neighbor {}", deviceId,
                   newLink.src().port(), newLink.dst().deviceId());
         addNeighborAtPort(newLink.dst().deviceId(),
@@ -202,8 +220,7 @@ public class DefaultGroupHandler {
             TrafficTreatment.Builder tBuilder =
                     DefaultTrafficTreatment.builder();
             tBuilder.setOutput(newLink.src().port())
-                    .setEthDst(deviceConfig.getDeviceMac(
-                          newLink.dst().deviceId()))
+                    .setEthDst(dstMac)
                     .setEthSrc(nodeMacAddr);
             if (ns.getEdgeLabel() != NeighborSet.NO_EDGE_LABEL) {
                 tBuilder.pushMpls()
@@ -242,6 +259,15 @@ public class DefaultGroupHandler {
             log.warn("portDown: unknown port");
             return;
         }
+
+        MacAddress dstMac;
+        try {
+            dstMac = deviceConfig.getDeviceMac(portDeviceMap.get(port));
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting portDown.");
+            return;
+        }
+
         log.debug("Device {} portDown {} to neighbor {}", deviceId, port,
                   portDeviceMap.get(port));
         /*Set<NeighborSet> nsSet = computeImpactedNeighborsetForPortEvent(portDeviceMap
@@ -263,8 +289,8 @@ public class DefaultGroupHandler {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment
                     .builder();
             tBuilder.setOutput(port)
-                    .setEthDst(deviceConfig.getDeviceMac(portDeviceMap
-                                       .get(port))).setEthSrc(nodeMacAddr);
+                    .setEthDst(dstMac)
+                    .setEthSrc(nodeMacAddr);
             if (ns.getEdgeLabel() != NeighborSet.NO_EDGE_LABEL) {
                 tBuilder.pushMpls().setMpls(MplsLabel.mplsLabel(ns
                                                     .getEdgeLabel()));
@@ -432,7 +458,15 @@ public class DefaultGroupHandler {
     }
 
     private boolean isSegmentIdSameAsNodeSegmentId(DeviceId deviceId, int sId) {
-        return (deviceConfig.getSegmentId(deviceId) == sId);
+        int segmentId;
+        try {
+            segmentId = deviceConfig.getSegmentId(deviceId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting isSegmentIdSameAsNodeSegmentId.");
+            return false;
+        }
+
+        return segmentId == sId;
     }
 
     protected List<Integer> getSegmentIdsTobePairedWithNeighborSet(Set<DeviceId> neighbors) {
@@ -487,11 +521,19 @@ public class DefaultGroupHandler {
                     return;
                 }
 
+                MacAddress deviceMac;
+                try {
+                    deviceMac = deviceConfig.getDeviceMac(d);
+                } catch (DeviceConfigNotFoundException e) {
+                    log.warn(e.getMessage() + " Aborting createGroupsFromNeighborsets.");
+                    return;
+                }
+
                 for (PortNumber sp : devicePortMap.get(d)) {
                     TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment
                             .builder();
                     tBuilder.setOutput(sp)
-                            .setEthDst(deviceConfig.getDeviceMac(d))
+                            .setEthDst(deviceMac)
                             .setEthSrc(nodeMacAddr);
                     if (ns.getEdgeLabel() != NeighborSet.NO_EDGE_LABEL) {
                         tBuilder.pushMpls().setMpls(MplsLabel.mplsLabel(ns

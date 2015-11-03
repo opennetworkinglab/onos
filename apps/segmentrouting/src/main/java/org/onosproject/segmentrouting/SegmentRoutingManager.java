@@ -38,6 +38,8 @@ import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.config.SegmentRoutingConfig;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
@@ -553,7 +555,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private void processLinkAdded(Link link) {
         log.debug("A new link {} was added", link.toString());
-
+        if (!deviceConfiguration.isConfigured(link.src().deviceId())) {
+            log.warn("Source device of this link is not configured.");
+            return;
+        }
         //Irrespective whether the local is a MASTER or not for this device,
         //create group handler instance and push default TTP flow rules.
         //Because in a multi-instance setup, instances can initiate
@@ -596,7 +601,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private void processDeviceAdded(Device device) {
         log.debug("A new device with ID {} was added", device.id());
-        if (deviceConfiguration == null) {
+        if (deviceConfiguration == null || !deviceConfiguration.isConfigured(device.id())) {
             log.warn("Device configuration uploading. Device {} will be "
                     + "processed after config completes.", device.id());
             return;
@@ -608,14 +613,20 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         // to the switch). To handle this, a default-group-handler instance is necessary
         // per switch.
         if (groupHandlerMap.get(device.id()) == null) {
-            DefaultGroupHandler groupHandler = DefaultGroupHandler.
-                    createGroupHandler(device.id(),
-                                       appId,
-                                       deviceConfiguration,
-                                       linkService,
-                                       flowObjectiveService,
-                                       nsNextObjStore,
-                                       subnetNextObjStore);
+            DefaultGroupHandler groupHandler;
+            try {
+                groupHandler = DefaultGroupHandler.
+                        createGroupHandler(device.id(),
+                                           appId,
+                                           deviceConfiguration,
+                                           linkService,
+                                           flowObjectiveService,
+                                           nsNextObjStore,
+                                           subnetNextObjStore);
+            } catch (DeviceConfigNotFoundException e) {
+                log.warn(e.getMessage() + " Aborting processDeviceAdded.");
+                return;
+            }
             groupHandlerMap.put(device.id(), groupHandler);
             // Also, in some cases, drivers may need extra
             // information to process rules (eg. Router IP/MAC); and so, we send
@@ -667,12 +678,20 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 // to the switch). To handle this, a default-group-handler instance is necessary
                 // per switch.
                 if (groupHandlerMap.get(device.id()) == null) {
-                    DefaultGroupHandler groupHandler = DefaultGroupHandler
-                            .createGroupHandler(device.id(), appId,
-                                                deviceConfiguration, linkService,
-                                                flowObjectiveService,
-                                                nsNextObjStore,
-                                                subnetNextObjStore);
+                    DefaultGroupHandler groupHandler;
+                    try {
+                        groupHandler = DefaultGroupHandler.
+                                createGroupHandler(device.id(),
+                                                   appId,
+                                                   deviceConfiguration,
+                                                   linkService,
+                                                   flowObjectiveService,
+                                                   nsNextObjStore,
+                                                   subnetNextObjStore);
+                    } catch (DeviceConfigNotFoundException e) {
+                        log.warn(e.getMessage() + " Aborting configureNetwork.");
+                        return;
+                    }
                     groupHandlerMap.put(device.id(), groupHandler);
 
                     // Also, in some cases, drivers may need extra

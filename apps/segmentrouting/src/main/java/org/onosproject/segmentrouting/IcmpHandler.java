@@ -28,6 +28,8 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +73,13 @@ public class IcmpHandler {
         Ip4Address destinationAddress =
                 Ip4Address.valueOf(ipv4.getDestinationAddress());
         Set<Ip4Address> gatewayIpAddresses = config.getPortIPs(deviceId);
-        Ip4Address routerIp = config.getRouterIp(deviceId);
+        Ip4Address routerIp;
+        try {
+            routerIp = config.getRouterIp(deviceId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting processPacketIn.");
+            return;
+        }
         IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
         Ip4Address routerIpAddress = routerIpPrefix.getIp4Prefix().address();
 

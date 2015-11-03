@@ -27,6 +27,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.slf4j.Logger;
 

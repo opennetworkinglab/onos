@@ -22,6 +22,8 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -103,6 +105,14 @@ public class RoutingRulePopulator {
      */
     public void populateIpRuleForHost(DeviceId deviceId, Ip4Address hostIp,
                                       MacAddress hostMac, PortNumber outPort) {
+        MacAddress deviceMac;
+        try {
+            deviceMac = config.getDeviceMac(deviceId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting populateIpRuleForHost.");
+            return;
+        }
+
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
 
@@ -111,7 +121,7 @@ public class RoutingRulePopulator {
 
         tbuilder.deferred()
                 .setEthDst(hostMac)
-                .setEthSrc(config.getDeviceMac(deviceId))
+                .setEthSrc(deviceMac)
                 .setOutput(outPort);
 
         TrafficTreatment treatment = tbuilder.build();
@@ -167,6 +177,13 @@ public class RoutingRulePopulator {
     public boolean populateIpRuleForRouter(DeviceId deviceId,
                                            IpPrefix ipPrefix, DeviceId destSw,
                                            Set<DeviceId> nextHops) {
+        int segmentId;
+        try {
+            segmentId = config.getSegmentId(destSw);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting populateIpRuleForRouter.");
+            return false;
+        }
 
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
@@ -183,7 +200,7 @@ public class RoutingRulePopulator {
             ns = new NeighborSet(nextHops);
         } else {
             tbuilder.deferred().copyTtlOut();
-            ns = new NeighborSet(nextHops, config.getSegmentId(destSw));
+            ns = new NeighborSet(nextHops, segmentId);
         }
 
         TrafficTreatment treatment = tbuilder.build();
@@ -227,19 +244,26 @@ public class RoutingRulePopulator {
      */
     public boolean populateMplsRule(DeviceId deviceId, DeviceId destSwId,
                                     Set<DeviceId> nextHops) {
+        int segmentId;
+        try {
+            segmentId = config.getSegmentId(destSwId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting populateMplsRule.");
+            return false;
+        }
 
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         List<ForwardingObjective.Builder> fwdObjBuilders = new ArrayList<>();
 
         // TODO Handle the case of Bos == false
-        sbuilder.matchMplsLabel(MplsLabel.mplsLabel(config.getSegmentId(destSwId)));
+        sbuilder.matchMplsLabel(MplsLabel.mplsLabel(segmentId));
         sbuilder.matchEthType(Ethernet.MPLS_UNICAST);
 
         // If the next hop is the destination router, do PHP
         if (nextHops.size() == 1 && destSwId.equals(nextHops.toArray()[0])) {
             log.debug("populateMplsRule: Installing MPLS forwarding objective for "
                     + "label {} in switch {} with PHP",
-                    config.getSegmentId(destSwId),
+                    segmentId,
                     deviceId);
 
             ForwardingObjective.Builder fwdObjBosBuilder =
@@ -264,7 +288,7 @@ public class RoutingRulePopulator {
         } else {
             log.debug("Installing MPLS forwarding objective for "
                     + "label {} in switch {} without PHP",
-                    config.getSegmentId(destSwId),
+                    segmentId,
                     deviceId);
 
             ForwardingObjective.Builder fwdObjBosBuilder =
@@ -310,9 +334,21 @@ public class RoutingRulePopulator {
                                                                    Set<DeviceId> nextHops,
                                                                    boolean phpRequired,
                                                                    boolean isBos) {
-
         ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
                 .builder().withFlag(ForwardingObjective.Flag.SPECIFIC);
+        DeviceId nextHop = (DeviceId) nextHops.toArray()[0];
+
+        boolean isEdge;
+        MacAddress srcMac;
+        MacAddress dstMac;
+        try {
+            isEdge = config.isEdgeDevice(deviceId);
+            srcMac = config.getDeviceMac(deviceId);
+            dstMac = config.getDeviceMac(nextHop);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting getMplsForwardingObjective");
+            return null;
+        }
 
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
 
@@ -329,16 +365,15 @@ public class RoutingRulePopulator {
             tbuilder.deferred().decMplsTtl();
         }
 
-        if (!isECMPSupportedInTransitRouter() && !config.isEdgeDevice(deviceId)) {
+        if (!isECMPSupportedInTransitRouter() && !isEdge) {
             PortNumber port = selectOnePort(deviceId, nextHops);
-            DeviceId nextHop = (DeviceId) nextHops.toArray()[0];
             if (port == null) {
                 log.warn("No link from {} to {}", deviceId, nextHops);
                 return null;
             }
             tbuilder.deferred()
-                    .setEthSrc(config.getDeviceMac(deviceId))
-                    .setEthDst(config.getDeviceMac(nextHop))
+                    .setEthSrc(srcMac)
+                    .setEthDst(dstMac)
                     .setOutput(port);
             fwdBuilder.withTreatment(tbuilder.build());
         } else {
@@ -372,15 +407,27 @@ public class RoutingRulePopulator {
     public void populateRouterMacVlanFilters(DeviceId deviceId) {
         log.debug("Installing per-port filtering objective for untagged "
                 + "packets in device {}", deviceId);
+
+        MacAddress deviceMac;
+        try {
+            deviceMac = config.getDeviceMac(deviceId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting populateRouterMacVlanFilters.");
+            return;
+        }
+
         for (Port port : srManager.deviceService.getPorts(deviceId)) {
             if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
                 Ip4Prefix portSubnet = config.getPortSubnet(deviceId, port.number());
                 VlanId assignedVlan = (portSubnet == null)
                         ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
                         : srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
+
+
+
                 FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
                 fob.withKey(Criteria.matchInPort(port.number()))
-                .addCondition(Criteria.matchEthDst(config.getDeviceMac(deviceId)))
+                .addCondition(Criteria.matchEthDst(deviceMac))
                 .addCondition(Criteria.matchVlanId(VlanId.NONE));
                 // vlan assignment is valid only if this instance is master
                 if (srManager.mastershipService.isLocalMaster(deviceId)) {
@@ -405,6 +452,14 @@ public class RoutingRulePopulator {
      * @param deviceId the switch dpid for the router
      */
     public void populateRouterIpPunts(DeviceId deviceId) {
+        Ip4Address routerIp;
+        try {
+            routerIp = config.getRouterIp(deviceId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting populateRouterIpPunts.");
+            return;
+        }
+
         if (!srManager.mastershipService.isLocalMaster(deviceId)) {
             log.debug("Not installing port-IP punts - not the master for dev:{} ",
                       deviceId);
@@ -412,7 +467,7 @@ public class RoutingRulePopulator {
         }
         ForwardingObjective.Builder puntIp = DefaultForwardingObjective.builder();
         Set<Ip4Address> allIps = new HashSet<Ip4Address>(config.getPortIPs(deviceId));
-        allIps.add(config.getRouterIp(deviceId));
+        allIps.add(routerIp);
         for (Ip4Address ipaddr : allIps) {
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
             TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();

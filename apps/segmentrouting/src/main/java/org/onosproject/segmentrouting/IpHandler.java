@@ -26,6 +26,8 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,13 +129,19 @@ public class IpHandler {
 
         for (IPv4 ipPacket : ipPacketQueue.get(destIpAddress)) {
             Ip4Address destAddress = Ip4Address.valueOf(ipPacket.getDestinationAddress());
-            if (ipPacket != null && config.inSameSubnet(deviceId, destAddress)) {
+            if (config.inSameSubnet(deviceId, destAddress)) {
                 ipPacket.setTtl((byte) (ipPacket.getTtl() - 1));
                 ipPacket.setChecksum((short) 0);
                 for (Host dest: srManager.hostService.getHostsByIp(destIpAddress)) {
                     Ethernet eth = new Ethernet();
                     eth.setDestinationMACAddress(dest.mac());
-                    eth.setSourceMACAddress(config.getDeviceMac(deviceId));
+                    try {
+                        eth.setSourceMACAddress(config.getDeviceMac(deviceId));
+                    } catch (DeviceConfigNotFoundException e) {
+                        log.warn(e.getMessage()
+                                + " Skipping forwardPackets for this destination.");
+                        continue;
+                    }
                     eth.setEtherType(Ethernet.TYPE_IPV4);
                     eth.setPayload(ipPacket);
 

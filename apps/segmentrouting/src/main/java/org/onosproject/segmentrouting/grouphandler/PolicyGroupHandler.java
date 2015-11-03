@@ -24,8 +24,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceProperties;
 import org.onosproject.segmentrouting.grouphandler.GroupBucketIdentifier.BucketOutputType;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.net.DeviceId;
@@ -105,11 +108,19 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                                     PolicyGroupIdentifier(id,
                                                           Collections.singletonList(param),
                                                           Collections.singletonList(bucketId));
+                            MacAddress neighborEthDst;
+                            try {
+                                neighborEthDst = deviceConfig.getDeviceMac(neighbor);
+                            } catch (DeviceConfigNotFoundException e) {
+                                log.warn(e.getMessage()
+                                        + " Skipping createPolicyGroupChain for this label.");
+                                continue;
+                            }
+
                             TrafficTreatment.Builder tBuilder =
                                     DefaultTrafficTreatment.builder();
                             tBuilder.setOutput(sp)
-                                    .setEthDst(deviceConfig.
-                                               getDeviceMac(neighbor))
+                                    .setEthDst(neighborEthDst)
                                     .setEthSrc(nodeMacAddr)
                                     .pushMpls()
                                     .setMpls(MplsLabel.mplsLabel(label));
@@ -168,14 +179,23 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
 
             if (fullyResolved) {
                 List<GroupBucket> outBuckets = new ArrayList<>();
-                for (GroupBucketIdentifier bucketId:bucketIds) {
+                for (GroupBucketIdentifier bucketId : bucketIds) {
                     DeviceId neighbor = portDeviceMap.
                             get(bucketId.outPort());
+
+                    MacAddress neighborEthDst;
+                    try {
+                        neighborEthDst = deviceConfig.getDeviceMac(neighbor);
+                    } catch (DeviceConfigNotFoundException e) {
+                        log.warn(e.getMessage()
+                                + " Skipping createPolicyGroupChain for this bucketId.");
+                        continue;
+                    }
+
                     TrafficTreatment.Builder tBuilder =
                             DefaultTrafficTreatment.builder();
                     tBuilder.setOutput(bucketId.outPort())
-                            .setEthDst(deviceConfig.
-                                       getDeviceMac(neighbor))
+                            .setEthDst(neighborEthDst)
                             .setEthSrc(nodeMacAddr);
                     if (bucketId.label() != NeighborSet.NO_EDGE_LABEL) {
                         tBuilder.pushMpls()

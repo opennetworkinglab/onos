@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.segmentrouting;
+package org.onosproject.segmentrouting.config;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -26,9 +26,7 @@ import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.host.InterfaceIpAddress;
-import org.onosproject.segmentrouting.config.SegmentRoutingConfig;
 import org.onosproject.segmentrouting.config.SegmentRoutingConfig.AdjacencySid;
-import org.onosproject.segmentrouting.grouphandler.DeviceProperties;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.slf4j.Logger;
@@ -126,23 +124,20 @@ public class DeviceConfiguration implements DeviceProperties {
         });
     }
 
-    /**
-     * Returns the Node segment id of a segment router.
-     *
-     * @param deviceId device identifier
-     * @return segment id
-     */
     @Override
-    public int getSegmentId(DeviceId deviceId) {
+    public boolean isConfigured(DeviceId deviceId) {
+        return deviceConfigMap.get(deviceId) != null;
+    }
+
+    @Override
+    public int getSegmentId(DeviceId deviceId) throws DeviceConfigNotFoundException {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null) {
             log.trace("getSegmentId for device{} is {}", deviceId, srinfo.nodeSid);
             return srinfo.nodeSid;
         } else {
-            log.warn("getSegmentId for device {} "
-                    + "throwing IllegalStateException "
-                    + "because device does not exist in config", deviceId);
-            throw new IllegalStateException();
+            String message = "getSegmentId fails for device: " + deviceId + ".";
+            throw new DeviceConfigNotFoundException(message);
         }
     }
 
@@ -180,71 +175,42 @@ public class DeviceConfiguration implements DeviceProperties {
         return -1;
     }
 
-    /**
-     * Returns the router mac of a segment router.
-     *
-     * @param deviceId device identifier
-     * @return router mac address
-     */
     @Override
-    public MacAddress getDeviceMac(DeviceId deviceId) {
+    public MacAddress getDeviceMac(DeviceId deviceId) throws DeviceConfigNotFoundException {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null) {
             log.trace("getDeviceMac for device{} is {}", deviceId, srinfo.mac);
             return srinfo.mac;
         } else {
-            log.warn("getDeviceMac for device {} "
-                    + "throwing IllegalStateException "
-                    + "because device does not exist in config", deviceId);
-            throw new IllegalStateException();
+            String message = "getDeviceMac fails for device: " + deviceId + ".";
+            throw new DeviceConfigNotFoundException(message);
         }
     }
 
-    /**
-     * Returns the router ip address of a segment router.
-     *
-     * @param deviceId device identifier
-     * @return router ip address
-     */
-    public Ip4Address getRouterIp(DeviceId deviceId) {
+    @Override
+    public Ip4Address getRouterIp(DeviceId deviceId) throws DeviceConfigNotFoundException {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null) {
             log.trace("getDeviceIp for device{} is {}", deviceId, srinfo.ip);
             return srinfo.ip;
         } else {
-            log.warn("getRouterIp for device {} "
-                    + "throwing IllegalStateException "
-                    + "because device does not exist in config", deviceId);
-            throw new IllegalStateException();
+            String message = "getRouterIp fails for device: " + deviceId + ".";
+            throw new DeviceConfigNotFoundException(message);
         }
     }
 
-    /**
-     * Indicates if the segment router is a edge router or
-     * a core/backbone router.
-     *
-     * @param deviceId device identifier
-     * @return boolean
-     */
     @Override
-    public boolean isEdgeDevice(DeviceId deviceId) {
+    public boolean isEdgeDevice(DeviceId deviceId) throws DeviceConfigNotFoundException {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null) {
             log.trace("isEdgeDevice for device{} is {}", deviceId, srinfo.isEdge);
             return srinfo.isEdge;
         } else {
-            log.warn("isEdgeDevice for device {} "
-                    + "throwing IllegalStateException "
-                    + "because device does not exist in config", deviceId);
-            throw new IllegalStateException();
+            String message = "isEdgeDevice fails for device: " + deviceId + ".";
+            throw new DeviceConfigNotFoundException(message);
         }
     }
 
-    /**
-     * Returns the node segment ids of all configured segment routers.
-     *
-     * @return list of node segment ids
-     */
     @Override
     public List<Integer> getAllDeviceSegmentIds() {
         return allSegmentIds;

@@ -31,6 +31,8 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.HostId;
 import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,9 +142,16 @@ public class ArpHandler {
      * @param inPort in-port
      */
     public void sendArpRequest(DeviceId deviceId, IpAddress targetAddress, ConnectPoint inPort) {
+        byte[] senderMacAddress;
+        byte[] senderIpAddress;
 
-        byte[] senderMacAddress = config.getDeviceMac(deviceId).toBytes();
-        byte[] senderIpAddress = config.getRouterIp(deviceId).toOctets();
+        try {
+            senderMacAddress = config.getDeviceMac(deviceId).toBytes();
+            senderIpAddress = config.getRouterIp(deviceId).toOctets();
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting sendArpRequest.");
+            return;
+        }
 
         ARP arpRequest = new ARP();
         arpRequest.setHardwareType(ARP.HW_TYPE_ETHERNET)

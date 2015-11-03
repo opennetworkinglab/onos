@@ -23,6 +23,8 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceProperties;
 import org.onosproject.store.service.EventuallyConsistentMap;
 
 /**
@@ -171,7 +173,15 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
             if (deviceSubSet.size() > 1) {
                 boolean avoidEdgeRouterPairing = true;
                 for (DeviceId device : deviceSubSet) {
-                    if (!deviceConfig.isEdgeDevice(device)) {
+                    boolean isEdge;
+                    try {
+                        isEdge = deviceConfig.isEdgeDevice(device);
+                    } catch (DeviceConfigNotFoundException e) {
+                        log.warn(e.getMessage() + " Skipping filterEdgeRouterOnlyPairings on this device.");
+                        continue;
+                    }
+
+                    if (!isEdge) {
                         avoidEdgeRouterPairing = false;
                         break;
                     }
