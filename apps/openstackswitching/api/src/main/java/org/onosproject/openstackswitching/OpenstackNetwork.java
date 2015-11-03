@@ -77,6 +77,11 @@ public final class OpenstackNetwork {
         return this.networkType;
     }
 
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+       return super.clone();
+    }
+
     public static final class Builder {
         private String name;
         private String tenantId;

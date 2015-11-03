@@ -37,8 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * It populates switching flow rules.
- *
+ * Populates switching flow rules.
  */
 public class OpenstackSwitchingRulePopulator {
 

@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstackswitching;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
@@ -33,6 +34,10 @@ import org.onosproject.dhcp.DhcpService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -43,17 +48,21 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Map;
+import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+
+import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 
 @SuppressWarnings("ALL")
 @Service
 @Component(immediate = true)
 /**
- * It populates forwarding rules for VMs created by Openstack.
+ * Populates forwarding rules for VMs created by Openstack.
  */
 public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
@@ -73,11 +82,15 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     protected FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry cfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DhcpService dhcpService;
 
     public static final int DHCP_PORT = 67;
 
     private ApplicationId appId;
+    private boolean doNotPushFlows;
     private OpenstackArpHandler arpHandler;
 
     private OpenstackSwitchingRulePopulator rulePopulator;
@@ -85,7 +98,17 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
     private InternalPacketProcessor internalPacketProcessor = new InternalPacketProcessor();
     private InternalDeviceListener internalDeviceListener = new InternalDeviceListener();
-
+    private InternalConfigListener internalConfigListener = new InternalConfigListener();
+    private final Set<ConfigFactory> factories = ImmutableSet.of(
+            new ConfigFactory<ApplicationId, OpenstackSwitchingConfig>(APP_SUBJECT_FACTORY,
+                    OpenstackSwitchingConfig.class,
+                    "openstackswitching") {
+                @Override
+                public OpenstackSwitchingConfig createConfig() {
+                    return new OpenstackSwitchingConfig();
+                }
+            }
+    );
     // Map <port_id, OpenstackPort>
     private Map<String, OpenstackPort> openstackPortMap;
     // Map <network_id, OpenstackNetwork>
@@ -101,17 +124,24 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     protected void activate() {
         appId = coreService
                 .registerApplication("org.onosproject.openstackswitching");
-        rulePopulator = new OpenstackSwitchingRulePopulator(appId, flowObjectiveService);
         packetService.addProcessor(internalPacketProcessor, PacketProcessor.director(1));
         deviceService.addListener(internalDeviceListener);
-
+        cfgService.addListener(internalConfigListener);
+        factories.forEach(cfgService::registerConfigFactory);
+        OpenstackSwitchingConfig cfg =
+                cfgService.getConfig(appId, OpenstackSwitchingConfig.class);
+        if (cfg != null) {
+            doNotPushFlows = cfg.doNotPushFlows();
+        }
         openstackPortMap = Maps.newHashMap();
         openstackNetworkMap = Maps.newHashMap();
         openstackSubnetMap = Maps.newHashMap();
 
         vniPortMap = Maps.newHashMap();
         tunnelPortMap = Maps.newHashMap();
+
         arpHandler = new OpenstackArpHandler(openstackPortMap, packetService);
+
         log.info("Started");
     }
 
@@ -119,6 +149,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     protected void deactivate() {
         packetService.removeProcessor(internalPacketProcessor);
         deviceService.removeListener(internalDeviceListener);
+        cfgService.removeListener(internalConfigListener);
 
         deviceEventExcutorService.shutdown();
 
@@ -127,42 +158,9 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
     @Override
     public void createPorts(OpenstackPort openstackPort) {
-        //For DHCP purpose
-        //registerDhcpInfo(openstackPort);
+        registerDhcpInfo(openstackPort);
         openstackPortMap.put(openstackPort.id(), openstackPort);
     }
-
-    /*
-    private void registerDhcpInfo(OpenstackPort openstackPort) {
-        Ip4Address ip4Address;
-        Ip4Address subnetMask;
-        Ip4Address dhcpServer;
-        Ip4Address gatewayIPAddress;
-        Ip4Address domainServer;
-        OpenstackSubnet openstackSubnet;
-
-        ip4Address = (Ip4Address) openstackPort.fixedIps().values().toArray()[0];
-
-        openstackSubnet = openstackSubnetMap.values().stream()
-                .filter(n -> n.networkId().equals(openstackPort.networkId()))
-                .findFirst().get();
-
-        int prefix;
-        String[] parts = openstackSubnet.cidr().split("/");
-        prefix = Integer.parseInt(parts[1]);
-        int mask = 0xffffffff << (32 - prefix);
-        byte[] bytes = new byte[]{(byte) (mask >>> 24),
-                (byte) (mask >> 16 & 0xff), (byte) (mask >> 8 & 0xff), (byte) (mask & 0xff)};
-
-        subnetMask = Ip4Address.valueOf(bytes);
-        gatewayIPAddress = Ip4Address.valueOf(openstackSubnet.gatewayIp());
-        dhcpServer = gatewayIPAddress;
-        domainServer = Ip4Address.valueOf("8.8.8.8");
-
-        dhcpService.setStaticMappingOpenstack(openstackPort.macAddress(),
-                ip4Address, subnetMask, dhcpServer, gatewayIPAddress, domainServer);
-    }
-    */
 
     @Override
     public void deletePorts() {
@@ -179,11 +177,39 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         openstackNetworkMap.put(openstackNetwork.id(), openstackNetwork);
     }
 
-
     @Override
     public void createSubnet(OpenstackSubnet openstackSubnet) {
         openstackSubnetMap.put(openstackSubnet.id(), openstackSubnet);
         log.debug("Added Subnet Info {}", openstackNetworkMap.get(openstackSubnet.id()));
+    }
+
+    @Override
+    public Collection<OpenstackPort> ports(String networkId) {
+
+        List<OpenstackPort> portList = openstackPortMap.values().stream()
+                .filter(p -> p.networkId().equals(networkId))
+                .collect(Collectors.toList());
+
+        return portList;
+    }
+
+    @Override
+    public OpenstackPort port(String portName) {
+        String uuid = portName.substring(3);
+        return (OpenstackPort) openstackPortMap.values().stream()
+                .filter(p -> p.id().startsWith(uuid))
+                .findFirst().get().clone();
+    }
+
+    @Override
+    public OpenstackNetwork network(String networkId) {
+        OpenstackNetwork on = null;
+        try {
+            on = (OpenstackNetwork) openstackNetworkMap.get(networkId).clone();
+        } catch (CloneNotSupportedException e) {
+            log.error("Cloning is not supported {}", e);
+        }
+        return on;
     }
 
     private void processDeviceAdded(Device device) {
@@ -209,6 +235,49 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     private void processPortRemoved(Device device, Port port) {
         log.debug("port {} is removed", port.toString());
         // TODO: need to update the vniPortMap
+    }
+
+    private void registerDhcpInfo(OpenstackPort openstackPort) {
+        Ip4Address ip4Address;
+        Ip4Address subnetMask;
+        Ip4Address dhcpServer;
+        Ip4Address gatewayIPAddress;
+        Ip4Address domainServer;
+        OpenstackSubnet openstackSubnet;
+
+        ip4Address = (Ip4Address) openstackPort.fixedIps().values().toArray()[0];
+
+        openstackSubnet = openstackSubnetMap.values().stream()
+                .filter(n -> n.networkId().equals(openstackPort.networkId()))
+                .findFirst().get();
+
+        subnetMask = Ip4Address.valueOf(buildSubnetMask(openstackSubnet.cidr()));
+        gatewayIPAddress = Ip4Address.valueOf(openstackSubnet.gatewayIp());
+        dhcpServer = gatewayIPAddress;
+        // TODO: supports multiple DNS servers
+        if (openstackSubnet.dnsNameservers().isEmpty()) {
+            domainServer = Ip4Address.valueOf("8.8.8.8");
+        } else {
+            domainServer = openstackSubnet.dnsNameservers().get(0);
+        }
+        List<Ip4Address> options = Lists.newArrayList();
+        options.add(subnetMask);
+        options.add(dhcpServer);
+        options.add(gatewayIPAddress);
+        options.add(domainServer);
+
+        dhcpService.setStaticMapping(openstackPort.macAddress(), ip4Address, true, options);
+    }
+
+    private byte[] buildSubnetMask(String cidr) {
+        int prefix;
+        String[] parts = cidr.split("/");
+        prefix = Integer.parseInt(parts[1]);
+        int mask = 0xffffffff << (32 - prefix);
+        byte[] bytes = new byte[]{(byte) (mask >>> 24),
+                (byte) (mask >> 16 & 0xff), (byte) (mask >> 8 & 0xff), (byte) (mask & 0xff)};
+
+        return bytes;
     }
 
     /**
@@ -407,8 +476,8 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     private class InternalDeviceListener implements DeviceListener {
 
         @Override
-        public void event(DeviceEvent event) {
-            deviceEventExcutorService.execute(new InternalEventHandler(event));
+        public void event(DeviceEvent deviceEvent) {
+            deviceEventExcutorService.execute(new InternalEventHandler(deviceEvent));
         }
     }
 
@@ -422,6 +491,11 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
         @Override
         public void run() {
+
+            if (doNotPushFlows) {
+                return;
+            }
+
             switch (deviceEvent.type()) {
                 case DEVICE_ADDED:
                     processDeviceAdded((Device) deviceEvent.subject());
@@ -452,6 +526,23 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
             }
         }
     }
+
+    private class InternalConfigListener implements NetworkConfigListener {
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            if (((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+            event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)) &&
+                    event.configClass().equals(OpenstackSwitchingConfig.class)) {
+                OpenstackSwitchingConfig cfg = cfgService.getConfig(appId,
+                        OpenstackSwitchingConfig.class);
+                if (cfg != null) {
+                    doNotPushFlows = cfg.doNotPushFlows();
+                    log.info("Switching mode reconfigured");
+                }
+            }
+        }
+   }
 
     private final class PortInfo {
         DeviceId deviceId;

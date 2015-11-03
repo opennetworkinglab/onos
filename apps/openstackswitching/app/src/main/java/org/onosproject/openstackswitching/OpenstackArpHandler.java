@@ -31,7 +31,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
- * It handles ARP packet from VMs.
+ * Handles ARP packet from VMs.
  */
 public class OpenstackArpHandler {
 

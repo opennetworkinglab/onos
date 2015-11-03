@@ -18,17 +18,21 @@ package org.onosproject.openstackswitching.web;
 import com.fasterxml.jackson.databind.JsonNode;
 
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
+import org.onlab.packet.Ip4Address;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.openstackswitching.OpenstackSubnet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * It encodes and decodes the OpenstackSubnet.
- */
+import java.util.List;
 
+/**
+ * Encodes and decodes the OpenstackSubnet.
+ */
 public class OpenstackSubnetCodec extends JsonCodec<OpenstackSubnet> {
     private static Logger log = LoggerFactory
             .getLogger(OpenstackSubnetCodec.class);
@@ -52,7 +56,11 @@ public class OpenstackSubnetCodec extends JsonCodec<OpenstackSubnet> {
         boolean enableDhcp = subnetInfo.path(ENABLE_DHCP).asBoolean();
         String networkId = subnetInfo.path(NETWORK_ID).asText();
         String tenantId = subnetInfo.path(TENANT_ID).asText();
-        String dnsNameservsers = subnetInfo.path(DNS_NAMESERVERS).asText();
+        ArrayNode dnsNameservsers = (ArrayNode) subnetInfo.path(DNS_NAMESERVERS);
+        List<Ip4Address> dnsList = Lists.newArrayList();
+        if (dnsNameservsers != null && !dnsNameservsers.isMissingNode()) {
+            dnsNameservsers.forEach(dns -> dnsList.add(Ip4Address.valueOf(dns.asText())));
+        }
         String gatewayIp = subnetInfo.path(GATEWAY_IP).asText();
         String cidr = subnetInfo.path(CIDR).asText();
         String id = subnetInfo.path(ID).asText();
@@ -62,7 +70,7 @@ public class OpenstackSubnetCodec extends JsonCodec<OpenstackSubnet> {
                 .setEnableDhcp(enableDhcp)
                 .setNetworkId(networkId)
                 .setTenantId(tenantId)
-                .setDnsNameservers(dnsNameservsers)
+                .setDnsNameservers(dnsList)
                 .setGatewayIp(gatewayIp)
                 .setCidr(cidr)
                 .setId(id)

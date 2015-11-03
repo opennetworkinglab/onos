@@ -15,6 +15,10 @@
  */
 package org.onosproject.openstackswitching;
 
+import org.onlab.packet.Ip4Address;
+
+import java.util.List;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -26,13 +30,13 @@ public final class OpenstackSubnet {
     private boolean enableHhcp;
     private String networkId;
     private String tenantId;
-    private String dnsNameservers;
+    private List<Ip4Address> dnsNameservers;
     private String gatewayIp;
     private String cidr;
     private String id;
 
     private OpenstackSubnet(String name, boolean enableHhcp, String networkId,
-                            String tenantId, String dnsNameservers, String gatewayIp,
+                            String tenantId, List<Ip4Address> dnsNameservers, String gatewayIp,
                             String cidr, String id) {
         this.name = name;
         this.enableHhcp = enableHhcp;
@@ -69,7 +73,7 @@ public final class OpenstackSubnet {
         return tenantId;
     }
 
-    public String dnsNameservers() {
+    public List<Ip4Address> dnsNameservers() {
         return dnsNameservers;
     }
 
@@ -85,8 +89,6 @@ public final class OpenstackSubnet {
         return id;
     }
 
-    // TODO : Implement the following functions when necessary
-
     /**
      * OpenstackSubnet Builder class.
      *
@@ -96,7 +98,7 @@ public final class OpenstackSubnet {
         private boolean enableDhcp;
         private String networkId;
         private String tenantId;
-        private String dnsNameservers;
+        private List<Ip4Address> dnsNameservers;
         private String gatewayIp;
         private String cidr;
         private String id;
@@ -127,7 +129,7 @@ public final class OpenstackSubnet {
             return this;
         }
 
-        public Builder setDnsNameservers(String dnsNameservers) {
+        public Builder setDnsNameservers(List<Ip4Address> dnsNameservers) {
             this.dnsNameservers = dnsNameservers;
 
             return this;

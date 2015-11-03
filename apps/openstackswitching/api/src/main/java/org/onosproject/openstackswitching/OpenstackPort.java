@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -178,6 +179,16 @@ public final class OpenstackPort {
     //public int hashCode() {
     //
     //}
+
+    @Override
+    public Object clone() {
+        OpenstackPort op = new OpenstackPort(this.status, this.name, this.adminStateUp,
+                this.networkId, this.tenantId, this.deviceOwner, this.macAddress,
+                (HashMap) this.fixedIps.clone(), this.id,
+                Collections.unmodifiableList(this.securityGroups), this.deviceId);
+
+        return op;
+    }
 
     /**
      * OpenstackPort Builder class.

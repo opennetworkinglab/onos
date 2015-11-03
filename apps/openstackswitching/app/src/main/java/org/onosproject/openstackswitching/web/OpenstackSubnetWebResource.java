@@ -51,7 +51,7 @@ public class OpenstackSubnetWebResource extends AbstractWebResource {
 
             OpenstackSwitchingService switchingService = get(OpenstackSwitchingService.class);
             switchingService.createSubnet(openstackSubnet);
-            log.info("REST API subnets is called with {}", subnetNode.toString());
+            log.debug("REST API subnets is called with {}", subnetNode.toString());
             return Response.status(Response.Status.OK).build();
         } catch (Exception e) {
             log.error("Creates VirtualSubnet failed because of exception {}",

@@ -15,8 +15,10 @@
  */
 package org.onosproject.openstackswitching;
 
+import java.util.Collection;
+
 /**
- * It handles port management REST API from Openstack for VMs.
+ * Handles port management REST API from Openstack for VMs.
  */
 public interface OpenstackSwitchingService {
 
@@ -40,16 +42,41 @@ public interface OpenstackSwitchingService {
     void updatePorts();
 
     /**
-     * Store the network information created by openstack.
+     * Stores the network information created by openstack.
      *
      * @param openstackNetwork network information
      */
     void createNetwork(OpenstackNetwork openstackNetwork);
 
     /**
-     * Store the subnet information created by openstack.
+     * Stores the subnet information created by openstack.
      *
      * @param openstackSubnet subnet information
      */
     void createSubnet(OpenstackSubnet openstackSubnet);
+
+    /**
+     * Returns port information list for the network ID given.
+     *
+     * @param networkId Network ID of the ports
+     * @return port information list
+     */
+    Collection<OpenstackPort> ports(String networkId);
+
+    /**
+     * Returns port information for the port ID given.
+     *
+     * @param portId Port ID
+     * @return port information
+     */
+    OpenstackPort port(String portId);
+
+    /**
+     * Returns network information list for the network ID given.
+     *
+     * @param networkId Network ID
+     * @return network information list
+     */
+    OpenstackNetwork network(String networkId);
+
 }

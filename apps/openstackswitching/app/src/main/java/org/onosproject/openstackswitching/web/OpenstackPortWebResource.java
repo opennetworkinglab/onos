@@ -53,7 +53,7 @@ public class OpenstackPortWebResource extends AbstractWebResource {
 
             OpenstackSwitchingService switchingService = get(OpenstackSwitchingService.class);
             switchingService.createPorts(openstackPort);
-            log.info("REST API ports is called with {}", portNode.toString());
+            log.debug("REST API ports is called with {}", portNode.toString());
             return Response.status(Response.Status.OK).build();
         } catch (Exception e) {
             log.error("Creates VirtualPort failed because of exception {}",

@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 
 /**
- * It encodes and decodes the OpenstackPort.
+ * Encodes and decodes the OpenstackPort.
  */
 public class OpenstackPortCodec extends JsonCodec<OpenstackPort> {
 
