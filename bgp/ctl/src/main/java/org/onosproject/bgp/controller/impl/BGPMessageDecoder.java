@@ -24,6 +24,9 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.frame.FrameDecoder;
 import org.onosproject.bgpio.protocol.BGPMessage;
 import org.onlab.util.HexDump;
+import org.onosproject.bgpio.protocol.BGPFactories;
+import org.onosproject.bgpio.protocol.BGPMessageReader;
+import org.onosproject.bgpio.types.BGPHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,9 +39,6 @@ public class BGPMessageDecoder extends FrameDecoder {
 
     @Override
     protected Object decode(ChannelHandlerContext ctx, Channel channel, ChannelBuffer buffer) throws Exception {
-
-        List<BGPMessage> msgList = new LinkedList<BGPMessage>();
-
         log.debug("MESSAGE IS RECEIVED.");
         if (!channel.isConnected()) {
             log.info("Channel is not connected.");
@@ -47,7 +47,14 @@ public class BGPMessageDecoder extends FrameDecoder {
 
         HexDump.dump(buffer);
 
-        // TODO: decode bgp messages
+        BGPMessageReader<BGPMessage> reader = BGPFactories.getGenericReader();
+        List<BGPMessage> msgList = new LinkedList<BGPMessage>();
+
+        while (buffer.readableBytes() > 0) {
+            BGPHeader bgpHeader = new BGPHeader();
+            BGPMessage message = reader.readFrom(buffer, bgpHeader);
+            msgList.add(message);
+        }
         return msgList;
     }
 }
