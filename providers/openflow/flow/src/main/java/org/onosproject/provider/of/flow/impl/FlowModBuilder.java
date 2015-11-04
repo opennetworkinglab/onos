@@ -26,6 +26,7 @@ import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.ArpHaCriterion;
@@ -53,6 +54,8 @@ import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.OduSignalIdCriterion;
+import org.onosproject.net.flow.criteria.OduSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -92,6 +95,7 @@ import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.projectfloodlight.openflow.types.VlanVid;
+import org.projectfloodlight.openflow.types.OduSignalID;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -408,7 +412,7 @@ public abstract class FlowModBuilder {
                     OchSignal signal = ochSignalCriterion.lambda();
                     byte gridType = OpenFlowValueMapper.lookupGridType(signal.gridType());
                     byte channelSpacing = OpenFlowValueMapper.lookupChannelSpacing(signal.channelSpacing());
-                    mBuilder.setExact(MatchField.OCH_SIGID,
+                    mBuilder.setExact(MatchField.EXP_OCH_SIG_ID,
                             new CircuitSignalID(gridType, channelSpacing,
                                     (short) signal.spacingMultiplier(), (short) signal.slotGranularity()));
                 } catch (NoMappingFoundException e) {
@@ -416,9 +420,30 @@ public abstract class FlowModBuilder {
                 }
                 break;
             case OCH_SIGTYPE:
-                OchSignalTypeCriterion sc = (OchSignalTypeCriterion) c;
-                byte signalType = OpenFlowValueMapper.lookupOchSignalType(sc.signalType());
-                mBuilder.setExact(MatchField.OCH_SIGTYPE, U8.of(signalType));
+                try {
+                    OchSignalTypeCriterion sc = (OchSignalTypeCriterion) c;
+                    byte signalType = OpenFlowValueMapper.lookupOchSignalType(sc.signalType());
+                    mBuilder.setExact(MatchField.EXP_OCH_SIGTYPE, U8.of(signalType));
+                } catch (NoMappingFoundException e) {
+                    log.warn(e.getMessage());
+                }
+                break;
+            case ODU_SIGID:
+                OduSignalIdCriterion oduSignalIdCriterion = (OduSignalIdCriterion) c;
+                OduSignalId oduSignalId = oduSignalIdCriterion.oduSignalId();
+                mBuilder.setExact(MatchField.EXP_ODU_SIG_ID,
+                        new OduSignalID((short) oduSignalId.tributaryPortNumber(),
+                                (short) oduSignalId.tributarySlotLength(),
+                                oduSignalId.tributarySlotBitmap()));
+                break;
+            case ODU_SIGTYPE:
+                try {
+                    OduSignalTypeCriterion oduSignalTypeCriterion = (OduSignalTypeCriterion) c;
+                    byte oduSigType = OpenFlowValueMapper.lookupOduSignalType(oduSignalTypeCriterion.signalType());
+                    mBuilder.setExact(MatchField.EXP_ODU_SIGTYPE, U8.of(oduSigType));
+                } catch (NoMappingFoundException e) {
+                    log.warn(e.getMessage());
+                }
                 break;
             case TUNNEL_ID:
                 TunnelIdCriterion tunnelId = (TunnelIdCriterion) c;

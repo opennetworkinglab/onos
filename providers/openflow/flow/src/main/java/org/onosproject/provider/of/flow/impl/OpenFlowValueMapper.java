@@ -20,6 +20,7 @@ import com.google.common.collect.EnumHashBiMap;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignalType;
+import org.onosproject.net.OduSignalType;
 
 /**
  * Collection of helper methods to convert protocol agnostic models to values used in OpenFlow spec.
@@ -52,6 +53,17 @@ final class OpenFlowValueMapper {
         // See ONF "Optical Transport Protocol Extensions Version 1.0" for the following values
         OCH_SIGNAL_TYPES.put(OchSignalType.FIXED_GRID, (byte) 1); // OFPOCHT_FIX_GRID of enum ofp_och_signal_type
         OCH_SIGNAL_TYPES.put(OchSignalType.FLEX_GRID, (byte) 2);  // OFPOCHT_FLEX_GRID of enum ofp_och_signal_type
+    }
+
+    private static final BiMap<OduSignalType, Byte> ODU_SIGNAL_TYPES = EnumHashBiMap.create(OduSignalType.class);
+    static {
+        // See ONF "Optical Transport Protocol Extensions Version 1.0" for the following values
+        ODU_SIGNAL_TYPES.put(OduSignalType.ODU1, (byte) 1);         // OFPODUT_ODU1 of enum ofp_odu_signal_type
+        ODU_SIGNAL_TYPES.put(OduSignalType.ODU2, (byte) 2);         // OFPODUT_ODU2 of enum ofp_odu_signal_type
+        ODU_SIGNAL_TYPES.put(OduSignalType.ODU3, (byte) 3);         // OFPODUT_ODU3 of enum ofp_odu_signal_type
+        ODU_SIGNAL_TYPES.put(OduSignalType.ODU4, (byte) 4);         // OFPODUT_ODU4 of enum ofp_odu_signal_type
+        ODU_SIGNAL_TYPES.put(OduSignalType.ODU0, (byte) 10);        // OFPODUT_ODU0 of enum ofp_odu_signal_type
+        ODU_SIGNAL_TYPES.put(OduSignalType.ODU2e, (byte) 11);       // OFPODUT_ODU2E of enum ofp_odu_signal_type
     }
 
     /**
@@ -148,5 +160,31 @@ final class OpenFlowValueMapper {
      */
     static OchSignalType lookupOchSignalType(byte signalType) {
         return lookup(OCH_SIGNAL_TYPES.inverse(), signalType, OchSignalType.class);
+    }
+
+    /**
+     * Looks up the corresponding byte value for ODU signal type defined in
+     * ONF "Optical Transport Protocol Extensions Version 1.0"
+     * from the specified {@link OchSignalType} instance.
+     *
+     * @param signalType ODU (Optical channel Data Unit) signal type
+     * @return byte value corresponding to the specified ODU signal type
+     * @throws NoMappingFoundException if the specified ODU signal type is not found
+     */
+    static byte lookupOduSignalType(OduSignalType signalType) {
+        return lookup(ODU_SIGNAL_TYPES, signalType, Byte.class);
+    }
+
+    /**
+     * Looks up the the corresponding {@link OchSignalType} instance
+     * from the specified byte value for ODU signal type defined in
+     * ONF "Optical Transport Protocol Extensions Version 1.0".
+     *
+     * @param signalType byte value as ODU (Optical channel Data Unit) signal type defined the spec
+     * @return the corresponding OchSignalType instance
+     * @throws NoMappingFoundException if the specified ODU signal type is not found
+     */
+    static OduSignalType lookupOduSignalType(byte signalType) {
+        return lookup(ODU_SIGNAL_TYPES.inverse(), signalType, OduSignalType.class);
     }
 }

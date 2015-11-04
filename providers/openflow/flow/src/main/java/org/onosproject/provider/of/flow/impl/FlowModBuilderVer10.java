@@ -181,6 +181,7 @@ public class FlowModBuilderVer10 extends FlowModBuilder {
                 acts.add(queueBuilder.build());
                 break;
             case L0MODIFICATION:
+            case L1MODIFICATION:
             case GROUP:
             case TABLE:
             case METADATA:

@@ -27,6 +27,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Lambda;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
@@ -83,15 +84,21 @@ import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
+import org.projectfloodlight.openflow.types.OduSignalID;
 import org.slf4j.Logger;
 
 import java.util.List;
 
 import static org.onosproject.net.flow.criteria.Criteria.matchLambda;
 import static org.onosproject.net.flow.criteria.Criteria.matchOchSignalType;
+import static org.onosproject.net.flow.criteria.Criteria.matchOduSignalType;
+import static org.onosproject.net.flow.criteria.Criteria.matchOduSignalId;
+import static org.onosproject.net.flow.instructions.Instructions.modL0Lambda;
+import static org.onosproject.net.flow.instructions.Instructions.modL1OduSignalId;
 import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupChannelSpacing;
 import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupGridType;
 import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOchSignalType;
+import static org.onosproject.provider.of.flow.impl.OpenFlowValueMapper.lookupOduSignalType;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class FlowEntryBuilder {
@@ -454,6 +461,29 @@ public class FlowEntryBuilder {
                 builder.extension(interpreter.mapAction(action), DeviceId.deviceId(Dpid.uri(dpid)));
             }
             break;
+       case EXP_ODU_SIG_ID:
+            @SuppressWarnings("unchecked")
+            OFOxm<OduSignalID> oduID = (OFOxm<OduSignalID>) oxm;
+            OduSignalID oduSignalID = oduID.getValue();
+            OduSignalId oduSignalId = OduSignalId.oduSignalId(oduSignalID.getTpn(),
+                    oduSignalID.getTslen(),
+                    oduSignalID.getTsmap());
+            builder.add(modL1OduSignalId(oduSignalId));
+            break;
+        case EXP_OCH_SIG_ID:
+            try {
+                @SuppressWarnings("unchecked")
+                OFOxm<CircuitSignalID> ochId = (OFOxm<CircuitSignalID>) oxm;
+                CircuitSignalID circuitSignalID = ochId.getValue();
+                builder.add(modL0Lambda(Lambda.ochSignal(
+                        lookupGridType(circuitSignalID.getGridType()),
+                        lookupChannelSpacing(circuitSignalID.getChannelSpacing()),
+                        circuitSignalID.getChannelNumber(), circuitSignalID.getSpectralWidth())));
+            } catch (NoMappingFoundException e) {
+                log.warn(e.getMessage());
+                break;
+            }
+            break;
         case ARP_OP:
         case ARP_SHA:
         case ARP_SPA:
@@ -501,6 +531,8 @@ public class FlowEntryBuilder {
         case OCH_SIGTYPE_BASIC:
         case SCTP_DST:
         case SCTP_SRC:
+        case EXP_ODU_SIGTYPE:
+        case EXP_OCH_SIGTYPE:
         default:
             log.warn("Set field type {} not yet implemented.", oxm.getMatchField().id);
             break;
@@ -703,6 +735,41 @@ public class FlowEntryBuilder {
             case OCH_SIGTYPE:
                 U8 sigType = match.get(MatchField.OCH_SIGTYPE);
                 builder.add(matchOchSignalType(lookupOchSignalType((byte) sigType.getValue())));
+                break;
+            case EXP_OCH_SIG_ID:
+                try {
+                    CircuitSignalID expSigId = match.get(MatchField.EXP_OCH_SIG_ID);
+                    builder.add(matchLambda(Lambda.ochSignal(
+                            lookupGridType(expSigId.getGridType()), lookupChannelSpacing(expSigId.getChannelSpacing()),
+                            expSigId.getChannelNumber(), expSigId.getSpectralWidth())));
+                } catch (NoMappingFoundException e) {
+                    log.warn(e.getMessage());
+                    break;
+                }
+                break;
+            case EXP_OCH_SIGTYPE:
+                try {
+                    U8 expOchSigType = match.get(MatchField.EXP_OCH_SIGTYPE);
+                    builder.add(matchOchSignalType(lookupOchSignalType((byte) expOchSigType.getValue())));
+                } catch (NoMappingFoundException e) {
+                    log.warn(e.getMessage());
+                    break;
+                }
+                break;
+            case EXP_ODU_SIG_ID:
+                OduSignalId oduSignalId = OduSignalId.oduSignalId(match.get(MatchField.EXP_ODU_SIG_ID).getTpn(),
+                        match.get(MatchField.EXP_ODU_SIG_ID).getTslen(),
+                        match.get(MatchField.EXP_ODU_SIG_ID).getTsmap());
+                builder.add(matchOduSignalId(oduSignalId));
+            break;
+            case EXP_ODU_SIGTYPE:
+                try {
+                    U8 oduSigType = match.get(MatchField.EXP_ODU_SIGTYPE);
+                    builder.add(matchOduSignalType(lookupOduSignalType((byte) oduSigType.getValue())));
+                } catch (NoMappingFoundException e) {
+                    log.warn(e.getMessage());
+                    break;
+                }
                 break;
             case TUNNEL_ID:
                 long tunnelId = match.get(MatchField.TUNNEL_ID).getValue();

@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
@@ -35,6 +36,8 @@ import org.onosproject.net.flow.instructions.Instructions.SetQueueInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModLambdaInstruction;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction.ModOchSignalInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction;
+import org.onosproject.net.flow.instructions.L1ModificationInstruction.ModOduSignalIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsBosInstruction;
@@ -76,6 +79,7 @@ import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.OduSignalID;
 import org.projectfloodlight.openflow.types.TableId;
 import org.projectfloodlight.openflow.types.TransportPort;
 import org.projectfloodlight.openflow.types.U32;
@@ -234,6 +238,9 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 case L0MODIFICATION:
                     actions.add(buildL0Modification(i));
                     break;
+                case L1MODIFICATION:
+                    actions.add(buildL1Modification(i));
+                    break;
                 case L2MODIFICATION:
                     actions.add(buildL2Modification(i));
                     break;
@@ -303,19 +310,30 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
 
     private OFAction buildL0Modification(Instruction i) {
         L0ModificationInstruction l0m = (L0ModificationInstruction) i;
+        OFOxm<?> oxm = null;
         switch (l0m.subtype()) {
             case LAMBDA:
                 return buildModLambdaInstruction((ModLambdaInstruction) i);
             case OCH:
                 try {
-                    return buildModOchSignalInstruction((ModOchSignalInstruction) i);
+                    ModOchSignalInstruction modOchSignalInstruction = (ModOchSignalInstruction) l0m;
+                    OchSignal signal = modOchSignalInstruction.lambda();
+                    byte gridType = OpenFlowValueMapper.lookupGridType(signal.gridType());
+                    byte channelSpacing = OpenFlowValueMapper.lookupChannelSpacing(signal.channelSpacing());
+                    oxm = factory().oxms().expOchSigId(
+                            new CircuitSignalID(gridType, channelSpacing,
+                                    (short) signal.spacingMultiplier(), (short) signal.slotGranularity()));
                 } catch (NoMappingFoundException e) {
                     log.warn(e.getMessage());
                     break;
                 }
+                break;
             default:
                 log.warn("Unimplemented action type {}.", l0m.subtype());
                 break;
+        }
+        if (oxm != null) {
+            return factory().actions().buildSetField().setField(oxm).build();
         }
         return null;
     }
@@ -334,6 +352,31 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 new CircuitSignalID(gridType, channelSpacing,
                         (short) signal.spacingMultiplier(), (short) signal.slotGranularity())
         ));
+    }
+
+    private OFAction buildL1Modification(Instruction i) {
+        L1ModificationInstruction l1m = (L1ModificationInstruction) i;
+        OFOxm<?> oxm = null;
+        switch (l1m.subtype()) {
+        case ODU_SIGID:
+            ModOduSignalIdInstruction modOduSignalIdInstruction = (ModOduSignalIdInstruction) l1m;
+            OduSignalId oduSignalId = modOduSignalIdInstruction.oduSignalId();
+
+            OduSignalID oduSignalID = new OduSignalID((short) oduSignalId.tributaryPortNumber(),
+                    (short) oduSignalId.tributarySlotLength(),
+                    oduSignalId.tributarySlotBitmap());
+
+            oxm = factory().oxms().expOduSigId(oduSignalID);
+            break;
+        default:
+            log.warn("Unimplemented action type {}.", l1m.subtype());
+            break;
+        }
+
+        if (oxm != null) {
+            return factory().actions().buildSetField().setField(oxm).build();
+        }
+        return null;
     }
 
     private OFAction buildL2Modification(Instruction i) {

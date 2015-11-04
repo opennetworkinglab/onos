@@ -74,7 +74,7 @@ public final class OduSignalTypeCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
+        return toStringHelper(this)
                 .add("signalType", signalType)
                 .toString();
     }
