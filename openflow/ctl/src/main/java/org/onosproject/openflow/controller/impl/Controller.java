@@ -114,23 +114,6 @@ public class Controller {
         return FACTORY13;
     }
 
-
-    public Map<String, String> getControllerNodeIPs() {
-        // We return a copy of the mapping so we can guarantee that
-        // the mapping return is the same as one that will be (or was)
-        // dispatched to IHAListeners
-        HashMap<String, String> retval = new HashMap<>();
-        synchronized (controllerNodeIPsCache) {
-            retval.putAll(controllerNodeIPsCache);
-        }
-        return retval;
-    }
-
-
-    public long getSystemStartTime() {
-        return (this.systemStartTime);
-    }
-
     // **************
     // Initialization
     // **************
@@ -281,9 +264,13 @@ public class Controller {
     }
 
 
-    public Long getUptime() {
+    public Long getSystemUptime() {
         RuntimeMXBean rb = ManagementFactory.getRuntimeMXBean();
         return rb.getUptime();
+    }
+
+    public long getSystemStartTime() {
+        return (this.systemStartTime);
     }
 
     /**
