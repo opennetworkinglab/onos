@@ -36,7 +36,7 @@ import static org.onlab.util.Tools.groupedThreads;
 /**
  * A class registering resources when they are detected.
  */
-@Component(immediate = true, enabled = false)
+@Component(immediate = true)
 @Beta
 public final class ResourceRegistrar {
 
