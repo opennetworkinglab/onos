@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>onlab-utils</artifactId>
+        <groupId>org.onosproject</groupId>
+        <version>1.4.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>utils.catalyst</artifactId>
+    <packaging>bundle</packaging>
+
+    <description>ONLab catalyst dependency</description>
+
+    <dependencies>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <createSourcesJar>true</createSourcesJar>
+                    <artifactSet>
+                        <includes>
+                            <include>io.atomix.catalyst.*</include>
+                        </includes>
+                    </artifactSet>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Export-Package>
+                            io.atomix.catalyst.serializer;version="1.0.0-rc4",
+                            io.atomix.catalyst.buffer;version="1.0.0-rc4",
+                            io.atomix.catalyst.transport;version="1.0.0-rc4",
+                        </Export-Package>
+                        <Private-Package>
+                            io.atomix.catalyst.*;version="1.0.0-rc4"
+                        </Private-Package>
+
+                    </instructions>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+</project>

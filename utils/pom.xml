@@ -41,7 +41,8 @@
         <module>thirdparty</module>
         <module>stc</module>
         <module>jdvue</module>
-        <module>jnc</module> <!-- FIXME publish and remove before release -->
+        <module>jnc</module>
+        <module>catalyst</module> <!-- FIXME publish and remove before release -->
     </modules>
 
     <dependencies>
