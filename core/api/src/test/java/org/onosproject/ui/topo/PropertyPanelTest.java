@@ -20,16 +20,37 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onosproject.ui.topo.PropertyPanel.Prop;
 
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 /**
  * Unit tests for {@link PropertyPanel}.
  */
 public class PropertyPanelTest {
+
+    // Modified property panel subclass to use ENGLISH locale formatter so
+    //  we know formatted numbers will use comma for the thousand separator.
+    private static final class EnglishPropertyPanel extends PropertyPanel {
+        private static final NumberFormat ENGLISH_FORMATTER =
+                NumberFormat.getInstance(Locale.ENGLISH);
+
+        public EnglishPropertyPanel(String title, String typeId) {
+            super(title, typeId);
+        }
+
+        @Override
+        protected NumberFormat formatter() {
+            return ENGLISH_FORMATTER;
+        }
+    }
 
     private static final String TITLE_ORIG = "Original Title";
     private static final String TYPE_ORIG = "Original type ID";
@@ -76,7 +97,7 @@ public class PropertyPanelTest {
 
     @Test
     public void basic() {
-        pp = new PropertyPanel(TITLE_ORIG, TYPE_ORIG);
+        pp = new EnglishPropertyPanel(TITLE_ORIG, TYPE_ORIG);
         assertEquals("wrong title", TITLE_ORIG, pp.title());
         assertEquals("wrong type", TYPE_ORIG, pp.typeId());
         assertNull("id?", pp.id());

@@ -18,7 +18,7 @@ package org.onosproject.ui.topo;
 
 import com.google.common.collect.Sets;
 
-import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -28,7 +28,7 @@ import java.util.Set;
  */
 public class PropertyPanel {
 
-    private static final DecimalFormat DF0 = new DecimalFormat("#,###");
+    private static final NumberFormat NF = NumberFormat.getInstance();
 
     private String title;
     private String typeId;
@@ -46,6 +46,24 @@ public class PropertyPanel {
     public PropertyPanel(String title, String typeId) {
         this.title = title;
         this.typeId = typeId;
+    }
+
+    /**
+     * Returns a number formatter to use for formatting integer and long
+     * property values.
+     * <p>
+     * This default implementation uses a formatter for the default
+     * locale. For example:
+     * <pre>
+     *     Locale.ENGLISH  :  1000 -&gt; "1,000"
+     *     Locale.FRENCH   :  1000 -&gt; "1 000"
+     *     Locale.GERMAN   :  1000 -&gt; "1.000"
+     * </pre>
+     *
+     * @return the number formatter
+     */
+    protected NumberFormat formatter() {
+        return NF;
     }
 
     /**
@@ -80,7 +98,7 @@ public class PropertyPanel {
      * @return self, for chaining
      */
     public PropertyPanel addProp(String key, int value) {
-        properties.add(new Prop(key, DF0.format(value)));
+        properties.add(new Prop(key, formatter().format(value)));
         return this;
     }
 
@@ -92,7 +110,7 @@ public class PropertyPanel {
      * @return self, for chaining
      */
     public PropertyPanel addProp(String key, long value) {
-        properties.add(new Prop(key, DF0.format(value)));
+        properties.add(new Prop(key, formatter().format(value)));
         return this;
     }
 
