@@ -16,6 +16,7 @@
 package org.onosproject.store.newresource.impl;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -83,6 +84,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 .withName(CHILD_MAP)
                 .withSerializer(SERIALIZER)
                 .build();
+
+        childMap.put(ResourcePath.ROOT, ImmutableList.of());
     }
 
     @Override
