@@ -29,6 +29,10 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.onosproject.bgp.controller.BGPController;
+import org.onosproject.bgpio.protocol.BGPFactories;
+import org.onosproject.bgpio.protocol.BGPFactory;
+import org.onosproject.bgpio.protocol.BGPVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,31 +42,41 @@ import org.slf4j.LoggerFactory;
  */
 public class Controller {
 
-    protected static final Logger log = LoggerFactory.getLogger(Controller.class);
+    private static final Logger log = LoggerFactory.getLogger(Controller.class);
+
+    private static final BGPFactory FACTORY4 = BGPFactories.getFactory(BGPVersion.BGP_4);
 
     private ChannelGroup cg;
 
     // Configuration options
     private static final short BGP_PORT_NUM = 179;
-    private int workerThreads = 16;
+    private final int workerThreads = 16;
 
     // Start time of the controller
-    protected long systemStartTime;
+    private long systemStartTime;
 
     private NioServerSocketChannelFactory serverExecFactory;
+    private BGPController bgpController;
 
     // Perf. related configuration
-    protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
-
-    BGPControllerImpl bgpCtrlImpl;
+    private static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
 
     /**
-     * Constructor to initialize parameter.
+     * Constructor to initialize the values.
      *
-     * @param bgpCtrlImpl BGP controller Impl instance
+     * @param bgpController bgp controller instance
      */
-    public Controller(BGPControllerImpl bgpCtrlImpl) {
-        this.bgpCtrlImpl = bgpCtrlImpl;
+    public Controller(BGPController bgpController) {
+        this.bgpController = bgpController;
+    }
+
+    /**
+     * Returns factory version for processing BGP messages.
+     *
+     * @return instance of factory version
+     */
+    static BGPFactory getBGPMessageFactory4() {
+        return FACTORY4;
     }
 
     // ***************
@@ -95,7 +109,7 @@ public class Controller {
             bootstrap.setOption("child.tcpNoDelay", true);
             bootstrap.setOption("child.sendBufferSize", Controller.SEND_BUFFER_SIZE);
 
-            ChannelPipelineFactory pfact = new BGPPipelineFactory(bgpCtrlImpl, true);
+            ChannelPipelineFactory pfact = new BGPPipelineFactory(bgpController, true);
 
             bootstrap.setPipelineFactory(pfact);
             InetSocketAddress sa = new InetSocketAddress(getBgpPortNum());

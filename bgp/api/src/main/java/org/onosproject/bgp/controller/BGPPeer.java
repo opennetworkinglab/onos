@@ -16,28 +16,14 @@
 package org.onosproject.bgp.controller;
 import java.util.List;
 import org.jboss.netty.channel.Channel;
+import org.onosproject.bgpio.protocol.BGPFactory;
 import org.onosproject.bgpio.protocol.BGPMessage;
-import org.onosproject.bgpio.protocol.BGPVersion;
 
 /**
- * Represents the peer side of an bgp peer.
+ * Represents the peer side of an BGP peer.
  *
  */
 public interface BGPPeer {
-
-    /**
-     * Sets the BGP version for this bgp peer.
-     *
-     * @param bgpVersion the version to set.
-     */
-    void setBgpPeerVersion(BGPVersion bgpVersion);
-
-    /**
-     * Gets the BGP version for this bgp peer.
-     *
-     * @return bgp identifier.
-     */
-    int getBgpPeerIdentifier();
 
     /**
      * Sets the associated Netty channel for this bgp peer.
@@ -54,41 +40,11 @@ public interface BGPPeer {
     Channel getChannel();
 
     /**
-     * Sets the AS Number for this bgp peer.
-     *
-     * @param peerASNum the autonomous system number value to set.
-     */
-    void setBgpPeerASNum(short peerASNum);
-
-    /**
-     * Sets the hold time for this bgp peer.
-     *
-     * @param peerHoldTime the hold timer value to set.
-     */
-    void setBgpPeerHoldTime(short peerHoldTime);
-
-    /**
-     * Sets the peer identifier value.
-     *
-     * @param peerIdentifier the bgp peer identifier value.
-     */
-    void setBgpPeerIdentifier(int peerIdentifier);
-
-    /**
      * Sets whether the bgp peer is connected.
      *
      * @param connected whether the bgp peer is connected
      */
     void setConnected(boolean connected);
-
-    /**
-     * Initialises the behaviour.
-     *
-     * @param bgpId id of bgp peer
-     * @param bgpVersion BGP version
-     * @param pktStats packet statistics
-     */
-    void init(BGPId bgpId, BGPVersion bgpVersion, BGPPacketStats pktStats);
 
     /**
      * Checks whether the handshake is complete.
@@ -112,18 +68,11 @@ public interface BGPPeer {
     void sendMessage(List<BGPMessage> msgs);
 
     /**
-     * Gets a string version of the ID for this bgp peer.
+     * Provides the factory for BGP version.
      *
-     * @return string version of the ID
+     * @return BGP version specific factory.
      */
-    String getStringId();
-
-    /**
-     * Gets the ipAddress of the peer.
-     *
-     * @return the peer bgpId in IPAddress format
-     */
-    BGPId getBGPId();
+    BGPFactory factory();
 
     /**
      * Checks if the bgp peer is still connected.
@@ -146,16 +95,9 @@ public interface BGPPeer {
     String channelId();
 
     /**
-     * Gets the negotiated hold time.
+     * Return the BGP session info.
      *
-     * @return the negotiated hold time
+     * @return sessionInfo bgp session info
      */
-    int getNegotiatedHoldTime();
-
-    /**
-     * Sets negotiated hold time for the peer.
-     *
-     * @param negotiatedHoldTime negotiated hold time
-     */
-    void setNegotiatedHoldTime(short negotiatedHoldTime);
+    BgpSessionInfo sessionInfo();
 }

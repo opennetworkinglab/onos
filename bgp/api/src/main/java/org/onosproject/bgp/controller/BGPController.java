@@ -16,6 +16,9 @@
 
 package org.onosproject.bgp.controller;
 
+import java.util.Map;
+
+import org.onosproject.bgpio.exceptions.BGPParseException;
 import org.onosproject.bgpio.protocol.BGPMessage;
 
 /**
@@ -52,8 +55,9 @@ public interface BGPController {
      *
      * @param bgpId id of the peer the message arrived on
      * @param msg the message to process.
+     * @throws BGPParseException on data processing error
      */
-    void processBGPPacket(BGPId bgpId, BGPMessage msg);
+    void processBGPPacket(BGPId bgpId, BGPMessage msg) throws BGPParseException;
 
     /**
      * Close all connected BGP peers.
@@ -73,5 +77,19 @@ public interface BGPController {
      *
      * @return the integer number
      */
-    int getBGPConnNumber();
+    int connectedPeerCount();
+
+    /**
+     * Return BGP peer manager.
+     *
+     * @return BGPPeerManager peer manager instance
+     */
+    BgpPeerManager peerManager();
+
+    /**
+     * Return BGP connected peers.
+     *
+     * @return connectedPeers connected peers
+     */
+    Map<BGPId, BGPPeer> connectedPeers();
 }

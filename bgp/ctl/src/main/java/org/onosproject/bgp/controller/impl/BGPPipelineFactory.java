@@ -23,6 +23,7 @@ import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
 import org.jboss.netty.util.ExternalResourceReleasable;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timer;
+import org.onosproject.bgp.controller.BGPController;
 
 /**
  * Creates a ChannelPipeline for a server-side bgp channel.
@@ -32,30 +33,36 @@ public class BGPPipelineFactory
 
     static final Timer TIMER = new HashedWheelTimer();
     protected ReadTimeoutHandler readTimeoutHandler;
-    BGPControllerImpl bgpCtrlImpl;
+    private boolean isBgpServ;
+    private BGPController bgpController;
 
     /**
      * Constructor to initialize the values.
      *
-     * @param ctrlImpl parent ctrlImpl
-     * @param isServBgp if it is a server or not
+     * @param bgpController parent controller
+     * @param isBgpServ if it is a server or remote peer
      */
-    public BGPPipelineFactory(BGPControllerImpl ctrlImpl, boolean isServBgp) {
+    public BGPPipelineFactory(BGPController bgpController, boolean isBgpServ) {
         super();
-        bgpCtrlImpl = ctrlImpl;
-        /* hold time*/
-        readTimeoutHandler = new ReadTimeoutHandler(TIMER, bgpCtrlImpl.getConfig().getHoldTime());
+        this.isBgpServ = isBgpServ;
+        this.bgpController = bgpController;
+        /* hold time */
+        this.readTimeoutHandler = new ReadTimeoutHandler(TIMER, bgpController.getConfig().getHoldTime());
     }
 
     @Override
     public ChannelPipeline getPipeline() throws Exception {
-        BGPChannelHandler handler = new BGPChannelHandler(bgpCtrlImpl);
+        BGPChannelHandler handler = new BGPChannelHandler(bgpController);
 
         ChannelPipeline pipeline = Channels.pipeline();
         pipeline.addLast("bgpmessagedecoder", new BGPMessageDecoder());
         pipeline.addLast("bgpmessageencoder", new BGPMessageEncoder());
         pipeline.addLast("holdTime", readTimeoutHandler);
-        pipeline.addLast("PassiveHandler", handler);
+        if (isBgpServ) {
+            pipeline.addLast("PassiveHandler", handler);
+        } else {
+            pipeline.addLast("ActiveHandler", handler);
+        }
 
         return pipeline;
     }

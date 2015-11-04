@@ -24,11 +24,12 @@ import java.util.concurrent.RejectedExecutionException;
 
 import org.jboss.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
-import org.onosproject.bgp.controller.BGPId;
-import org.onosproject.bgp.controller.BGPPacketStats;
+import org.onosproject.bgp.controller.BGPController;
 import org.onosproject.bgp.controller.BGPPeer;
+import org.onosproject.bgp.controller.BgpSessionInfo;
+import org.onosproject.bgpio.protocol.BGPFactories;
+import org.onosproject.bgpio.protocol.BGPFactory;
 import org.onosproject.bgpio.protocol.BGPMessage;
-import org.onosproject.bgpio.protocol.BGPVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,19 +44,31 @@ public class BGPPeerImpl implements BGPPeer {
 
     private static final String SHUTDOWN_MSG = "Worker has already been shutdown";
 
+    private BGPController bgpController;
     private Channel channel;
     protected String channelId;
     private boolean connected;
     protected boolean isHandShakeComplete = false;
-    public BGPSessionInfo sessionInfo;
+    private BgpSessionInfo sessionInfo;
     private BGPPacketStatsImpl pktStats;
 
+
     @Override
-    public void init(BGPId bgpId, BGPVersion bgpVersion, BGPPacketStats pktStats) {
-        this.sessionInfo.setRemoteBgpId(bgpId);
-        this.sessionInfo.setRemoteBgpVersion(bgpVersion);
-        this.pktStats = (BGPPacketStatsImpl) pktStats;
-        this.sessionInfo = new BGPSessionInfo();
+    public BgpSessionInfo sessionInfo() {
+        return sessionInfo;
+    }
+
+    /**
+     * Initialize peer.
+     *
+     *@param bgpController controller instance
+     *@param sessionInfo bgp session info
+     *@param pktStats packet statistics
+     */
+    public BGPPeerImpl(BGPController bgpController, BgpSessionInfo sessionInfo, BGPPacketStatsImpl pktStats) {
+        this.bgpController = bgpController;
+        this.sessionInfo = sessionInfo;
+        this.pktStats = pktStats;
     }
 
     // ************************
@@ -129,53 +142,9 @@ public class BGPPeerImpl implements BGPPeer {
         return channelId;
     }
 
-    // ************************
-    // BGP Peer features related
-    // ************************
-
     @Override
-    public final BGPId getBGPId() {
-        return this.sessionInfo.getRemoteBgpId();
-    };
-
-    @Override
-    public final String getStringId() {
-        return this.sessionInfo.getRemoteBgpId().toString();
-    }
-
-    @Override
-    public final void setBgpPeerVersion(BGPVersion peerVersion) {
-        this.sessionInfo.setRemoteBgpVersion(peerVersion);
-    }
-
-    @Override
-    public void setBgpPeerASNum(short peerASNum) {
-        this.sessionInfo.setRemoteBgpASNum(peerASNum);
-    }
-
-    @Override
-    public void setBgpPeerHoldTime(short peerHoldTime) {
-        this.sessionInfo.setRemoteBgpHoldTime(peerHoldTime);
-    }
-
-    @Override
-    public void setBgpPeerIdentifier(int peerIdentifier) {
-        this.sessionInfo.setRemoteBgpIdentifier(peerIdentifier);
-    }
-
-    @Override
-    public int getBgpPeerIdentifier() {
-        return this.sessionInfo.getRemoteBgpIdentifier();
-    }
-
-    @Override
-    public int getNegotiatedHoldTime() {
-        return this.sessionInfo.getNegotiatedholdTime();
-    }
-
-    @Override
-    public void setNegotiatedHoldTime(short negotiatedHoldTime) {
-        this.sessionInfo.setNegotiatedholdTime(negotiatedHoldTime);
+    public BGPFactory factory() {
+        return BGPFactories.getFactory(sessionInfo.remoteBgpVersion());
     }
 
     @Override
@@ -185,7 +154,8 @@ public class BGPPeerImpl implements BGPPeer {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass()).omitNullValues().add("channel", channelId())
-                .add("bgpId", getBGPId()).toString();
+        return MoreObjects.toStringHelper(getClass()).omitNullValues()
+                                       .add("channel", channelId())
+                                       .add("bgpId", sessionInfo().remoteBgpId()).toString();
     }
 }

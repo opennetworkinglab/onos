@@ -16,25 +16,21 @@
 
 package org.onosproject.bgp.controller.impl;
 
-import static org.onlab.util.Tools.groupedThreads;
-
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.packet.IpAddress;
 import org.onosproject.bgp.controller.BGPCfg;
 import org.onosproject.bgp.controller.BGPController;
 import org.onosproject.bgp.controller.BGPId;
-import org.onosproject.bgp.controller.BGPPacketStats;
 import org.onosproject.bgp.controller.BGPPeer;
+import org.onosproject.bgp.controller.BgpPeerManager;
+import org.onosproject.bgpio.exceptions.BGPParseException;
 import org.onosproject.bgpio.protocol.BGPMessage;
-import org.onosproject.bgpio.protocol.BGPVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,16 +40,9 @@ public class BGPControllerImpl implements BGPController {
 
     private static final Logger log = LoggerFactory.getLogger(BGPControllerImpl.class);
 
-    private final ExecutorService executorMsgs = Executors.newFixedThreadPool(32,
-                                                                              groupedThreads("onos/bgp",
-                                                                                      "event-stats-%d"));
-
-    private final ExecutorService executorBarrier = Executors.newFixedThreadPool(4,
-                                                                                 groupedThreads("onos/bgp",
-                                                                                                "event-barrier-%d"));
     protected ConcurrentHashMap<BGPId, BGPPeer> connectedPeers = new ConcurrentHashMap<BGPId, BGPPeer>();
 
-    protected BGPPeerManager peerManager = new BGPPeerManager();
+    protected BGPPeerManagerImpl peerManager = new BGPPeerManagerImpl();
     final Controller ctrl = new Controller(this);
 
     private BGPConfig bgpconfig = new BGPConfig();
@@ -84,11 +73,11 @@ public class BGPControllerImpl implements BGPController {
 
     @Override
     public void writeMsg(BGPId bgpId, BGPMessage msg) {
-        // TODO: Send message
+        this.getPeer(bgpId).sendMessage(msg);
     }
 
     @Override
-    public void processBGPPacket(BGPId bgpId, BGPMessage msg) {
+    public void processBGPPacket(BGPId bgpId, BGPMessage msg) throws BGPParseException {
 
         switch (msg.getType()) {
         case OPEN:
@@ -122,18 +111,12 @@ public class BGPControllerImpl implements BGPController {
      * Implementation of an BGP Peer which is responsible for keeping track of connected peers and the state in which
      * they are.
      */
-    public class BGPPeerManager {
+    public class BGPPeerManagerImpl implements BgpPeerManager {
 
-        private final Logger log = LoggerFactory.getLogger(BGPPeerManager.class);
+        private final Logger log = LoggerFactory.getLogger(BGPPeerManagerImpl.class);
         private final Lock peerLock = new ReentrantLock();
 
-        /**
-         * Add a BGP peer that has just connected to the system.
-         *
-         * @param bgpId the id of bgp peer to add
-         * @param bgpPeer the actual bgp peer object.
-         * @return true if added, false otherwise.
-         */
+        @Override
         public boolean addConnectedPeer(BGPId bgpId, BGPPeer bgpPeer) {
 
             if (connectedPeers.get(bgpId) != null) {
@@ -147,119 +130,49 @@ public class BGPControllerImpl implements BGPController {
             }
         }
 
-        /**
-         * Checks if the activation for this bgp peer is valid.
-         *
-         * @param bgpId the id of bgp peer to check
-         * @return true if valid, false otherwise
-         */
+        @Override
         public boolean isPeerConnected(BGPId bgpId) {
             if (connectedPeers.get(bgpId) == null) {
-                this.log.error("Trying to activate peer but is not in " + "connected peer: bgpIp {}. Aborting ..",
-                               bgpId.toString());
+                this.log.error("Is peer connected: bgpIp {}.", bgpId.toString());
                 return false;
             }
 
             return true;
         }
 
-        /**
-         * Checks if the activation for this bgp peer is valid.
-         *
-         * @param routerid the routerid of bgp peer to check
-         * @return true if valid, false otherwise
-         */
-        public boolean isPeerConnected(String routerid) {
-
-            final BGPId bgpId;
-            bgpId = BGPId.bgpId(IpAddress.valueOf(routerid));
-
-            if (connectedPeers.get(bgpId) != null) {
-                this.log.info("Peer connection exist ");
-                return true;
-            }
-            this.log.info("Initiate connect request to " + "peer: bgpIp {}", bgpId.toString());
-
-            return false;
-        }
-
-        /**
-         * Clear all state in controller peer maps for a bgp peer that has
-         * disconnected from the local controller.
-         *
-         * @param bgpId the id of bgp peer to remove.
-         */
+        @Override
         public void removeConnectedPeer(BGPId bgpId) {
             connectedPeers.remove(bgpId);
         }
 
-        /**
-         * Clear all state in controller peer maps for a bgp peer that has
-         * disconnected from the local controller.
-         *
-         * @param routerid the router id of bgp peer to remove.
-         */
-        public void removeConnectedPeer(String routerid) {
-            final BGPId bgpId;
-
-            bgpId = BGPId.bgpId(IpAddress.valueOf(routerid));
-
-            connectedPeers.remove(bgpId);
-        }
-
-        /**
-          * Gets bgp peer for connected peer map.
-          *
-          * @param routerid router id
-          * @return peer if available, null otherwise
-          */
-        public BGPPeer getPeer(String routerid) {
-            final BGPId bgpId;
-            bgpId = BGPId.bgpId(IpAddress.valueOf(routerid));
-
+        @Override
+        public BGPPeer getPeer(BGPId bgpId) {
             return connectedPeers.get(bgpId);
         }
 
         /**
-          * Gets bgp peer instance.
-          *
-          * @param bgpId bgp identifier.
-          * @param pv bgp version.
-          * @param pktStats packet statistics.
-          * @return BGPPeer peer instance.
-          */
-        public BGPPeer getBGPPeerInstance(BGPId bgpId, BGPVersion pv, BGPPacketStats pktStats) {
-            BGPPeer bgpPeer = new BGPPeerImpl();
-            bgpPeer.init(bgpId, pv, pktStats);
+         * Gets bgp peer instance.
+         *
+         * @param bgpController controller instance.
+         * @param sessionInfo bgp session info.
+         * @param pktStats packet statistics.
+         * @return BGPPeer peer instance.
+         */
+        public BGPPeer getBGPPeerInstance(BGPController bgpController, BgpSessionInfoImpl sessionInfo,
+                                          BGPPacketStatsImpl pktStats) {
+            BGPPeer bgpPeer = new BGPPeerImpl(bgpController, sessionInfo, pktStats);
             return bgpPeer;
         }
 
     }
 
-    /**
-      * Gets controller instance.
-      *
-      * @return Controller instance.
-      */
-    public Controller getController() {
-        return ctrl;
-    }
-
-    /**
-      * Gets connected peers.
-      *
-      * @return connectedPeers from connected Peers Map.
-      */
-    public ConcurrentHashMap<BGPId, BGPPeer> getConnectedPeers() {
+    @Override
+    public ConcurrentHashMap<BGPId, BGPPeer> connectedPeers() {
         return connectedPeers;
     }
 
-    /**
-      * Gets peer manager.
-      *
-      * @return peerManager.
-      */
-    public BGPPeerManager getPeerManager() {
+    @Override
+    public BGPPeerManagerImpl peerManager() {
         return peerManager;
     }
 
@@ -269,7 +182,7 @@ public class BGPControllerImpl implements BGPController {
     }
 
     @Override
-    public int getBGPConnNumber() {
+    public int connectedPeerCount() {
         return connectedPeers.size();
     }
 }

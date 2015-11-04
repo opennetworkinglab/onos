@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.channels.ClosedChannelException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
@@ -32,15 +33,18 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
 import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onosproject.bgp.controller.BGPCfg;
+import org.onosproject.bgp.controller.BGPController;
 import org.onosproject.bgp.controller.BGPId;
 import org.onosproject.bgp.controller.BGPPeer;
 import org.onosproject.bgp.controller.BGPPeerCfg;
-import org.onosproject.bgp.controller.impl.BGPControllerImpl.BGPPeerManager;
+import org.onosproject.bgp.controller.impl.BGPControllerImpl.BGPPeerManagerImpl;
 import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.protocol.BGPFactory;
 import org.onosproject.bgpio.protocol.BGPMessage;
-//import org.onosproject.bgpio.protocol.BGPOpenMsg;
+import org.onosproject.bgpio.protocol.BGPOpenMsg;
 import org.onosproject.bgpio.protocol.BGPType;
 import org.onosproject.bgpio.protocol.BGPVersion;
 import org.slf4j.Logger;
@@ -56,11 +60,11 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
     static final int BGP_MAX_KEEPALIVE_INTERVAL = 3;
     private BGPPeer bgpPeer;
     private BGPId thisbgpId;
-    Channel channel;
+    private Channel channel;
     private BGPKeepAliveTimer keepAliveTimer = null;
     private short peerHoldTime = 0;
     private short negotiatedHoldTime = 0;
-    private short peerAsNum;
+    private long peerAsNum;
     private int peerIdentifier;
     private BGPPacketStatsImpl bgpPacketStats;
     static final int MAX_WRONG_COUNT_PACKET = 5;
@@ -72,13 +76,17 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
     // When a bgp peer with a ip addresss is found (i.e we already have a
     // connected peer with the same ip), the new peer is immediately
     // disconnected. At that point netty callsback channelDisconnected() which
-    // proceeds to cleaup peer state - we need to ensure that it does not cleanup
+    // proceeds to cleaup peer state - we need to ensure that it does not
+    // cleanup
     // peer state for the older (still connected) peer
     private volatile Boolean duplicateBGPIdFound;
     // Indicates the bgp version used by this bgp peer
     protected BGPVersion bgpVersion;
-    private BGPControllerImpl bgpControllerImpl;
-    private BGPPeerManager peerManager;
+    private BGPController bgpController;
+    protected BGPFactory factory4;
+    private boolean isIbgpSession;
+    private BgpSessionInfoImpl sessionInfo;
+    private BGPPeerManagerImpl peerManager;
     private InetSocketAddress inetAddress;
     private IpAddress ipAddress;
     private SocketAddress address;
@@ -88,15 +96,16 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
     /**
      * Create a new unconnected BGPChannelHandler.
      *
-     * @param bgpCtrlImpl bgp controller implementation object
+     * @param bgpController bgp controller
      */
-    BGPChannelHandler(BGPControllerImpl bgpCtrlImpl) {
-        this.bgpControllerImpl = bgpCtrlImpl;
-        this.peerManager = bgpCtrlImpl.getPeerManager();
+    BGPChannelHandler(BGPController bgpController) {
+        this.bgpController = bgpController;
+        this.peerManager = (BGPPeerManagerImpl) bgpController.peerManager();
         this.state = ChannelState.IDLE;
+        this.factory4 = Controller.getBGPMessageFactory4();
         this.duplicateBGPIdFound = Boolean.FALSE;
         this.bgpPacketStats = new BGPPacketStatsImpl();
-        this.bgpconfig = bgpCtrlImpl.getConfig();
+        this.bgpconfig = bgpController.getConfig();
     }
 
     // To disconnect peer session.
@@ -133,11 +142,11 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                     log.debug("Sending keep alive message in OPENSENT state");
                     h.bgpPacketStats.addInPacket();
 
-                    // TODO: initialize openmessage BGPOpenMsg pOpenmsg = (BGPOpenMsg) m;
-                    // TODO: initialize identifier from open messgae h.peerIdentifier = pOpenmsg.getBgpId();
+                    BGPOpenMsg pOpenmsg = (BGPOpenMsg) m;
+                    h.peerIdentifier = pOpenmsg.getBgpId();
 
                     // validate capabilities and open msg
-                    if (h.openMsgValidation(h)) {
+                    if (h.openMsgValidation(h, pOpenmsg)) {
                         log.debug("Sending handshake OPEN message");
 
                         /*
@@ -145,7 +154,7 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                          * value of the Hold Timer by using the smaller of its configured Hold Time and the Hold Time
                          * received in the OPEN message
                          */
-                        // TODO: initialize holdtime from open message h.peerHoldTime = pOpenmsg.getHoldTime();
+                        h.peerHoldTime = pOpenmsg.getHoldTime();
                         if (h.peerHoldTime < h.bgpconfig.getHoldTime()) {
                             h.channel.getPipeline().replace("holdTime",
                                                             "holdTime",
@@ -155,7 +164,8 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
 
                         log.info("Hold Time : " + h.peerHoldTime);
 
-                        // TODO: get AS number for open message update AS number
+                        // update AS number
+                        h.peerAsNum = pOpenmsg.getAsNumber();
                     }
 
                     // Send keepalive message to peer.
@@ -180,10 +190,11 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                 } else {
                     h.bgpPacketStats.addInPacket();
 
-                    // TODO: initialize open message BGPOpenMsg pOpenmsg = (BGPOpenMsg) m;
+                    BGPOpenMsg pOpenmsg = (BGPOpenMsg) m;
+                    h.peerIdentifier = pOpenmsg.getBgpId();
 
                     // Validate open message
-                    if (h.openMsgValidation(h)) {
+                    if (h.openMsgValidation(h, pOpenmsg)) {
                         log.debug("Sending handshake OPEN message");
 
                         /*
@@ -191,7 +202,7 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                          * value of the Hold Timer by using the smaller of its configured Hold Time and the Hold Time
                          * received in the OPEN message
                          */
-                        // TODO: get hold time from open message h.peerHoldTime = pOpenmsg.getHoldTime();
+                        h.peerHoldTime = pOpenmsg.getHoldTime();
                         if (h.peerHoldTime < h.bgpconfig.getHoldTime()) {
                             h.channel.getPipeline().replace("holdTime",
                                                             "holdTime",
@@ -201,7 +212,8 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
 
                         log.debug("Hold Time : " + h.peerHoldTime);
 
-                        //TODO: update AS number form open messsage update AS number
+                        // update AS number
+                        h.peerAsNum = pOpenmsg.getAsNumber();
 
                         h.sendHandshakeOpenMessage();
                         h.bgpPacketStats.addOutPacket();
@@ -229,20 +241,17 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                     final InetSocketAddress inetAddress = (InetSocketAddress) h.address;
                     h.thisbgpId = BGPId.bgpId(IpAddress.valueOf(inetAddress.getAddress()));
 
-                    h.bgpPeer = h.peerManager.getBGPPeerInstance(h.thisbgpId, h.bgpVersion, h.bgpPacketStats);
-                    // set the status fo bgp as connected
+                    // set session parameters
+                    h.negotiatedHoldTime = (h.peerHoldTime < h.bgpconfig.getHoldTime()) ? h.peerHoldTime
+                                                                                        : h.bgpconfig.getHoldTime();
+                    h.sessionInfo = new BgpSessionInfoImpl(h.thisbgpId, h.bgpVersion, h.peerAsNum, h.peerHoldTime,
+                                                           h.peerIdentifier, h.negotiatedHoldTime, h.isIbgpSession);
+
+                    h.bgpPeer = h.peerManager.getBGPPeerInstance(h.bgpController, h.sessionInfo, h.bgpPacketStats);
+                    // set the status of bgp as connected
                     h.bgpPeer.setConnected(true);
                     h.bgpPeer.setChannel(h.channel);
 
-                    // set specific parameters to bgp peer
-                    h.bgpPeer.setBgpPeerVersion(h.bgpVersion);
-                    h.bgpPeer.setBgpPeerASNum(h.peerAsNum);
-                    h.bgpPeer.setBgpPeerHoldTime(h.peerHoldTime);
-                    h.bgpPeer.setBgpPeerIdentifier(h.peerIdentifier);
-
-                    h.negotiatedHoldTime = (h.peerHoldTime < h.bgpconfig.getHoldTime()) ? h.peerHoldTime : h.bgpconfig
-                            .getHoldTime();
-                    h.bgpPeer.setNegotiatedHoldTime(h.negotiatedHoldTime);
                     /*
                      * RFC 4271, When an OPEN message is received, sends a KEEPALIVE message, If the negotiated hold
                      * time value is zero, then the HoldTimer and KeepaliveTimer are not started. A reasonable maximum
@@ -251,8 +260,8 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                     h.sendKeepAliveMessage();
 
                     if (h.negotiatedHoldTime != 0) {
-                        h.keepAliveTimer
-                            = new BGPKeepAliveTimer(h, (h.negotiatedHoldTime / BGP_MAX_KEEPALIVE_INTERVAL));
+                        h.keepAliveTimer = new BGPKeepAliveTimer(h,
+                                                                 (h.negotiatedHoldTime / BGP_MAX_KEEPALIVE_INTERVAL));
                     }
 
                     h.bgpPacketStats.addOutPacket();
@@ -360,7 +369,7 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
         }
 
         // if connection is already established close channel
-        if (peerManager.isPeerConnected(peerAddr)) {
+        if (peerManager.isPeerConnected(BGPId.bgpId(IpAddress.valueOf(peerAddr)))) {
             log.debug("Duplicate connection received, peer {}", peerAddr);
             channel.close();
             return;
@@ -507,11 +516,12 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
     /**
      * To handle the BGP message.
      *
-     * @param m BGP message
+     * @param m bgp message
+     * @throws BGPParseException throw exception
      */
     private void dispatchMessage(BGPMessage m) throws BGPParseException {
         bgpPacketStats.addInPacket();
-        bgpControllerImpl.processBGPPacket(thisbgpId, m);
+        bgpController.processBGPPacket(thisbgpId, m);
     }
 
     /**
@@ -557,10 +567,16 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
     /**
      * Send handshake open message to the peer.
      *
-     * @throws IOException ,BGPParseException
+     * @throws IOException, BGPParseException
      */
     private void sendHandshakeOpenMessage() throws IOException, BGPParseException {
-        // TODO: send open message.
+        int bgpId;
+
+        bgpId = Ip4Address.valueOf(bgpconfig.getRouterId()).toInt();
+        BGPMessage msg = factory4.openMessageBuilder().setAsNumber((short) bgpconfig.getAsNumber())
+                .setHoldTime(bgpconfig.getHoldTime()).setBgpId(bgpId).build();
+        log.debug("Sending open message to {}", channel.getRemoteAddress());
+        channel.write(Collections.singletonList(msg));
 
     }
 
@@ -572,7 +588,9 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
      */
     synchronized void sendKeepAliveMessage() throws IOException, BGPParseException {
 
-        // TODO: send keep alive message.
+        BGPMessage msg = factory4.keepaliveMessageBuilder().build();
+        log.debug("Sending keepalive message to {}", channel.getRemoteAddress());
+        channel.write(Collections.singletonList(msg));
     }
 
     /**
@@ -621,10 +639,11 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
      * Open message validation.
      *
      * @param h channel handler
+     * @param pOpenmsg open message
      * @return true if validation succeed, otherwise false
      * @throws BGPParseException when received invalid message
      */
-    public boolean openMsgValidation(BGPChannelHandler h) throws BGPParseException {
+    public boolean openMsgValidation(BGPChannelHandler h, BGPOpenMsg pOpenmsg) throws BGPParseException {
         // TODO: Open message validation.
         return true;
     }
