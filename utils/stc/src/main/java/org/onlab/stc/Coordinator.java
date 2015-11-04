@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +42,7 @@ import static org.onlab.stc.Coordinator.Status.*;
  */
 public class Coordinator {
 
-    private static final int MAX_THREADS = 16;
+    private static final int MAX_THREADS = 64;
 
     private final ExecutorService executor = newFixedThreadPool(MAX_THREADS);
 
@@ -143,13 +144,15 @@ public class Coordinator {
     }
 
     /**
-     * Wants for completion of the entire process flow.
+     * Waits for completion of the entire process flow.
      *
      * @return exit code to use
      * @throws InterruptedException if interrupted while waiting for completion
      */
     public int waitFor() throws InterruptedException {
-        latch.await();
+        while (!store.isComplete()) {
+            latch.await(1, TimeUnit.SECONDS);
+        }
         return store.hasFailures() ? 1 : 0;
     }
 
@@ -234,12 +237,23 @@ public class Coordinator {
                                                    substitute(step.command())));
             }
         } else if (directive == SKIP) {
-            if (step instanceof Group) {
-                Group group = (Group) step;
-                group.children().forEach(child -> delegate.onCompletion(child, SKIPPED));
-            }
-            delegate.onCompletion(step, SKIPPED);
+            skipStep(step);
         }
+    }
+
+    /**
+     * Recursively skips the specified step or group and any steps/groups within.
+     *
+     * @param step step or group
+     */
+    private void skipStep(Step step) {
+        if (step instanceof Group) {
+            Group group = (Group) step;
+            store.markComplete(step, SKIPPED);
+            group.children().forEach(this::skipStep);
+        }
+        delegate.onCompletion(step, SKIPPED);
+
     }
 
     /**
@@ -258,8 +272,8 @@ public class Coordinator {
             Status depStatus = store.getStatus(dependency.dst());
             if (depStatus == WAITING || depStatus == IN_PROGRESS) {
                 return NOOP;
-            } else if ((depStatus == FAILED || depStatus == SKIPPED) &&
-                    !dependency.isSoft()) {
+            } else if (((depStatus == FAILED || depStatus == SKIPPED) && !dependency.isSoft()) ||
+                    (step.group() != null && store.getStatus(step.group()) == SKIPPED)) {
                 return SKIP;
             }
         }

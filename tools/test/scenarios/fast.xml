@@ -26,5 +26,5 @@
     <dependency name="Archetypes" requires="Setup"/>
 
     <import file="${ONOS_SCENARIOS}/wrapup.xml"/>
-    <dependency name="Wrapup" requires="~Archetypes,~Setup,~Net-Fast"/>
+    <dependency name="Wrapup" requires="Prerequisites,~Archetypes,~Setup,~Net-Fast"/>
 </scenario>
