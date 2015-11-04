@@ -35,6 +35,7 @@
         <module>api</module>
         <module>net</module>
         <module>store</module>
+        <module>rpc</module>
     </modules>
 
     <dependencies>
