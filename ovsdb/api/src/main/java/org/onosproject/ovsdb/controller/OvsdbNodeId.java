@@ -22,8 +22,8 @@ import java.util.Objects;
 import org.onlab.packet.IpAddress;
 
 /**
- * The class representing a OpenStack Compute or Network nodeId. This class is
- * immutable.
+ * The class representing a OpenStack Compute or Network nodeId.
+ * This class is immutable.
  */
 public final class OvsdbNodeId {
     private static final String SCHEME = "ovsdb";
@@ -31,7 +31,7 @@ public final class OvsdbNodeId {
     private final String ipAddress;
 
     /**
-     * Creates a new node identifier from a IpAddress ipAddress, a long port.
+     * Creates a new node identifier from an IpAddress ipAddress, a long port.
      *
      * @param ipAddress node IP address
      * @param port node port

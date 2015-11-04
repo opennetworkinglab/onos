@@ -48,7 +48,7 @@ public final class OvsdbEvent<S> {
     }
 
     /**
-     * Returns the type of the event.
+     * Returns the type of event.
      *
      * @return event type
      */
@@ -57,7 +57,7 @@ public final class OvsdbEvent<S> {
     }
 
     /**
-     * Returns the subject of the event.
+     * Returns the subject of event.
      *
      * @return subject to which this event pertains
      */

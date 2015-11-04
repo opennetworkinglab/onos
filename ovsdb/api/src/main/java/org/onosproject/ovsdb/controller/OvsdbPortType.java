@@ -21,14 +21,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Objects;
 
 /**
- * The class representing a port type. This class is immutable.
+ * The class representing a port type.
+ * This class is immutable.
  */
 public class OvsdbPortType {
 
     private final String value;
 
     /**
-     * Constructor from a String port type.
+     * Constructor from a String.
      *
      * @param value the port type to use
      */
@@ -38,9 +39,9 @@ public class OvsdbPortType {
     }
 
     /**
-     * Gets the value of the port type.
+     * Gets the value of port type.
      *
-     * @return the value of the port type
+     * @return the value of port type
      */
     public String value() {
         return value;
