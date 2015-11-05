@@ -19,8 +19,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.UUID;
-
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 /**
  * Representation of a Port Pair Group ID.
@@ -40,22 +39,22 @@ public final class PortPairGroupId {
     }
 
     /**
-     * Constructor to create port pair group id from UUID.
+     * Returns newly created port pair group id object.
      *
-     * @param id UUID of port pair group id
+     * @param id port pair group id in UUID
      * @return object of port pair group id
      */
-    public static PortPairGroupId portPairGroupId(UUID id) {
+    public static PortPairGroupId of(UUID id) {
         return new PortPairGroupId(id);
     }
 
     /**
-     * Constructor to create port pair group id from string.
+     * Returns newly created port pair group id object.
      *
      * @param id port pair group id in string
      * @return object of port pair group id
      */
-    public static PortPairGroupId portPairGroupId(String id) {
+    public static PortPairGroupId of(String id) {
         return new PortPairGroupId(UUID.fromString(id));
     }
 
@@ -73,10 +72,9 @@ public final class PortPairGroupId {
         if (this == obj) {
             return true;
         }
-
-        if (obj.getClass()  == this.getClass()) {
-            PortPairGroupId that = (PortPairGroupId) obj;
-            return Objects.equal(this.portPairGroupId, that.portPairGroupId);
+        if (obj instanceof PortPairGroupId) {
+            final PortPairGroupId other = (PortPairGroupId) obj;
+            return Objects.equals(this.portPairGroupId, other.portPairGroupId);
         }
         return false;
     }
@@ -88,8 +86,7 @@ public final class PortPairGroupId {
 
     @Override
     public String toString() {
-        return toStringHelper(this)
-                .add("portPairGroupId", portPairGroupId.toString())
+        return toStringHelper(this).add("portPairGroupId", portPairGroupId)
                 .toString();
     }
 }

@@ -83,11 +83,11 @@ public class PortPairGroupWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortPairGroup(@PathParam("group_id") String id) {
 
-        if (!service.exists(PortPairGroupId.portPairGroupId(id))) {
+        if (!service.exists(PortPairGroupId.of(id))) {
             return Response.status(NOT_FOUND)
                     .entity(PORT_PAIR_GROUP_NOT_FOUND).build();
         }
-        PortPairGroup portPairGroup = nullIsNotFound(service.getPortPairGroup(PortPairGroupId.portPairGroupId(id)),
+        PortPairGroup portPairGroup = nullIsNotFound(service.getPortPairGroup(PortPairGroupId.of(id)),
                                                      PORT_PAIR_GROUP_NOT_FOUND);
 
         ObjectNode result = new ObjectMapper().createObjectNode();
@@ -153,7 +153,7 @@ public class PortPairGroupWebResource extends AbstractWebResource {
     @DELETE
     public void deletePortPairGroup(@PathParam("group_id") String id) {
         log.debug("Deletes port pair group by identifier {}.", id);
-        PortPairGroupId portPairGroupId = PortPairGroupId.portPairGroupId(id);
+        PortPairGroupId portPairGroupId = PortPairGroupId.of(id);
         Boolean issuccess = nullIsNotFound(service.removePortPairGroup(portPairGroupId),
                                            PORT_PAIR_GROUP_NOT_FOUND);
         if (!issuccess) {
