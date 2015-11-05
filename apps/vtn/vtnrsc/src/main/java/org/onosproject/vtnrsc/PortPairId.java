@@ -16,6 +16,7 @@
 package org.onosproject.vtnrsc;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.UUID;
 import java.util.Objects;
@@ -32,27 +33,28 @@ public final class PortPairId {
      *
      * @param id UUID id of port pair
      */
-    private PortPairId(final UUID id) {
+    private PortPairId(UUID id) {
+        checkNotNull(id, "Port chain id can not be null");
         this.portPairId = id;
     }
 
     /**
-     * Constructor to create port pair id from UUID.
+     * Returns newly created port pair id object.
      *
      * @param id UUID of port pair id
      * @return object of port pair id
      */
-    public static PortPairId portPairId(final UUID id) {
+    public static PortPairId of(UUID id) {
         return new PortPairId(id);
     }
 
     /**
-     * Constructor to create port pair id from string.
+     * Returns newly created port pair id object.
      *
      * @param id port pair id in string
      * @return object of port pair id
      */
-    public static PortPairId portPairId(final String id) {
+    public static PortPairId of(String id) {
         return new PortPairId(UUID.fromString(id));
     }
 
@@ -84,6 +86,8 @@ public final class PortPairId {
 
     @Override
     public String toString() {
-        return toStringHelper(this).add("portPairId", portPairId.toString()).toString();
+        return toStringHelper(this)
+                .add("portPairId", portPairId)
+                .toString();
     }
 }

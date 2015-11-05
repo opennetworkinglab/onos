@@ -82,11 +82,11 @@ public class PortPairWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortPair(@PathParam("portPairId") String id) {
 
-        if (!service.exists(PortPairId.portPairId(id))) {
+        if (!service.exists(PortPairId.of(id))) {
             return Response.status(NOT_FOUND)
                     .entity(PORT_PAIR_NOT_FOUND).build();
         }
-        PortPair portPair = nullIsNotFound(service.getPortPair(PortPairId.portPairId(id)),
+        PortPair portPair = nullIsNotFound(service.getPortPair(PortPairId.of(id)),
                                            PORT_PAIR_NOT_FOUND);
 
         ObjectNode result = new ObjectMapper().createObjectNode();
@@ -151,7 +151,7 @@ public class PortPairWebResource extends AbstractWebResource {
     @DELETE
     public void deletePortPair(@PathParam("pair_id") String id) {
 
-        PortPairId portPairId = PortPairId.portPairId(id);
+        PortPairId portPairId = PortPairId.of(id);
         Boolean isSuccess = nullIsNotFound(service.removePortPair(portPairId),
                                            PORT_PAIR_NOT_FOUND);
         if (!isSuccess) {

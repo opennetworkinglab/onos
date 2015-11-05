@@ -54,7 +54,7 @@ public final class PortPairCodec extends JsonCodec<PortPair> {
 
         String id = nullIsIllegal(json.get(ID),
                                   ID + MISSING_MEMBER_MESSAGE).asText();
-        resultBuilder.setId(PortPairId.portPairId(id));
+        resultBuilder.setId(PortPairId.of(id));
 
         String tenantId = nullIsIllegal(json.get(TENANT_ID),
                                         TENANT_ID + MISSING_MEMBER_MESSAGE).asText();

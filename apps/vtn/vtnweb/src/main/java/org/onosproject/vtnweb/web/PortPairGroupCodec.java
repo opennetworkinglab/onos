@@ -75,7 +75,7 @@ public final class PortPairGroupCodec extends JsonCodec<PortPairGroup> {
 
         List<PortPairId> list = Lists.newArrayList();
         ArrayNode arrayNode = (ArrayNode) json.path(PORT_PAIRS);
-        arrayNode.forEach(i -> list.add(PortPairId.portPairId(i.asText())));
+        arrayNode.forEach(i -> list.add(PortPairId.of(i.asText())));
         resultBuilder.setPortPairs(list);
 
         return resultBuilder.build();
