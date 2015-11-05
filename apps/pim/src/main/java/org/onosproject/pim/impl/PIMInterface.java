@@ -65,6 +65,8 @@ public class PIMInterface {
 
     /**
      * Create a PIMInterface.
+     *
+     * @param intf the network interface configuration
      */
     public PIMInterface(Interface intf) {
 

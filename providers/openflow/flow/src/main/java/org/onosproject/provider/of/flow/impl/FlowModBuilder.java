@@ -105,6 +105,7 @@ public abstract class FlowModBuilder {
      * @param flowRule the flow rule to transform into a flow mod
      * @param factory the OpenFlow factory to use to build the flow mod
      * @param xid the transaction ID
+     * @param driverService the device driver service
      * @return the new flow mod builder
      */
     public static FlowModBuilder builder(FlowRule flowRule,
@@ -127,6 +128,7 @@ public abstract class FlowModBuilder {
      *
      * @param flowRule the flow rule to transform into a flow mod
      * @param factory the OpenFlow factory to use to build the flow mod
+     * @param driverService the device driver service
      * @param xid the transaction ID
      */
     protected FlowModBuilder(FlowRule flowRule, OFFactory factory, Optional<Long> xid,

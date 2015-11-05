@@ -49,6 +49,8 @@ public class NiciraSetTunnelDst extends AbstractExtensionInstruction {
     /**
      * Creates a new set tunnel destination instruction with a particular IPv4
      * address.
+     *
+     * @param tunnelDst tunnel destination IPv4 address
      */
     NiciraSetTunnelDst(Ip4Address tunnelDst) {
         checkNotNull(tunnelDst);
