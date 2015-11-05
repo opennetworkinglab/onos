@@ -33,6 +33,10 @@
                 org.onosproject.vtnweb.resources.TenantNetworkWebResource,
                 org.onosproject.vtnweb.resources.SubnetWebResource,
                 org.onosproject.vtnweb.resources.VirtualPortWebResource
+                org.onosproject.vtnweb.resources.FlowClassifierWebResource
+                org.onosproject.vtnweb.resources.PortChainWebResource
+                org.onosproject.vtnweb.resources.PortPairGroupWebResource
+                org.onosproject.vtnweb.resources.PortPairWebResource
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
