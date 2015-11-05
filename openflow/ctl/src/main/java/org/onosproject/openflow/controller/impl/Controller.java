@@ -94,7 +94,7 @@ public class Controller {
     protected String tsLocation;
     protected char[] ksPwd;
     protected char[] tsPwd;
-    private SSLEngine serverSSLEngine;
+    protected SSLEngine serverSSLEngine;
 
     // Perf. related configuration
     protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;

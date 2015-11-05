@@ -20,6 +20,7 @@ import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.List;
 import java.util.Random;
 
@@ -206,5 +207,21 @@ public final class TestTools {
             data[start + random.nextInt(len)] = (byte) random.nextInt();
         }
     }
+
+    /*
+     * Finds an available port that a test can bind to.
+     */
+    public static int findAvailablePort(int defaultPort) {
+        try {
+            ServerSocket socket = new ServerSocket(0);
+            socket.setReuseAddress(true);
+            int port = socket.getLocalPort();
+            socket.close();
+            return port;
+        } catch (IOException ex) {
+            return defaultPort;
+        }
+    }
+
 
 }
