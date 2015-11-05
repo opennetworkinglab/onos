@@ -121,11 +121,11 @@ public class GroupsListCommand extends AbstractShellCommand {
     private void printGroups(DeviceId deviceId, List<Group> groups) {
         print("deviceId=%s", deviceId);
         for (Group group : groups) {
-            print(FORMAT, group.id().id(), group.state(), group.type(),
+            print(FORMAT, Integer.toHexString(group.id().id()), group.state(), group.type(),
                   group.bytes(), group.packets(), group.appId().name());
             int i = 0;
             for (GroupBucket bucket:group.buckets().buckets()) {
-                print(BUCKET_FORMAT, group.id().id(), ++i,
+                print(BUCKET_FORMAT, Integer.toHexString(group.id().id()), ++i,
                       bucket.bytes(), bucket.packets(),
                       bucket.treatment().allInstructions());
             }

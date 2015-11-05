@@ -18,7 +18,10 @@ package org.onosproject.driver.pipeline;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
@@ -54,11 +57,16 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         selector.matchVlanId(vidCriterion.vlanId());
+        treatment.transition(TMAC_TABLE);
+
+        VlanId storeVlan = null;
         if (vidCriterion.vlanId() == VlanId.NONE) {
             // untagged packets are assigned vlans
             treatment.pushVlan().setVlanId(assignedVlan);
+            storeVlan = assignedVlan;
+        } else {
+            storeVlan = vidCriterion.vlanId();
         }
-        treatment.transition(TMAC_TABLE);
 
         // ofdpa cannot match on ALL portnumber, so we need to use separate
         // rules for each port.
@@ -72,7 +80,20 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         } else {
             portnums.add(portCriterion.port());
         }
+
         for (PortNumber pnum : portnums) {
+            // update storage
+            port2Vlan.put(pnum, storeVlan);
+            Set<PortNumber> vlanPorts = vlan2Port.get(storeVlan);
+            if (vlanPorts == null) {
+                vlanPorts = Collections.newSetFromMap(
+                                    new ConcurrentHashMap<PortNumber, Boolean>());
+                vlanPorts.add(pnum);
+                vlan2Port.put(storeVlan, vlanPorts);
+            } else {
+                vlanPorts.add(pnum);
+            }
+            // create rest of flowrule
             selector.matchInPort(pnum);
             FlowRule rule = DefaultFlowRule.builder()
                     .forDevice(deviceId)

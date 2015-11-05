@@ -630,7 +630,8 @@ public final class Instructions {
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("group ID", groupId.id()).toString();
+                    .addValue("group ID=0x" + Integer.toHexString(groupId.id()))
+                    .toString();
         }
 
         @Override

@@ -577,6 +577,7 @@ public class DefaultGroupHandler {
 
             ports.forEach(port -> {
                 TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+                tBuilder.popVlan();
                 tBuilder.setOutput(port);
                 nextObjBuilder.addTreatment(tBuilder.build());
             });
