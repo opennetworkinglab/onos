@@ -15,6 +15,8 @@
  */
 package org.onosproject.cordvtn;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -23,6 +25,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.ItemNotFoundException;
+import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
@@ -31,9 +34,11 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
 import org.onosproject.net.Port;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeName;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.DefaultTunnelDescription;
 import org.onosproject.net.behaviour.TunnelConfig;
@@ -45,9 +50,13 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
+import org.onosproject.openstackswitching.OpenstackNetwork;
+import org.onosproject.openstackswitching.OpenstackPort;
+import org.onosproject.openstackswitching.OpenstackSwitchingService;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
@@ -62,8 +71,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
@@ -72,8 +83,8 @@ import static org.onosproject.net.behaviour.TunnelDescription.Type.VXLAN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Provides initial setup or cleanup for provisioning virtual tenant networks
- * on ovsdb, integration bridge and vm when they are added or deleted.
+ * Provisions virtual tenant networks with service chaining capability
+ * in OpenStack environment.
  */
 @Component(immediate = true)
 @Service
@@ -86,7 +97,8 @@ public class CordVtn implements CordVtnService {
             .register(KryoNamespaces.API)
             .register(CordVtnNode.class)
             .register(NodeState.class);
-    private static final String DEFAULT_BRIDGE_NAME = "br-int";
+    private static final String DEFAULT_BRIDGE = "br-int";
+    private static final String VPORT_PREFIX = "tap";
     private static final String DEFAULT_TUNNEL = "vxlan";
     private static final Map<String, String> DEFAULT_TUNNEL_OPTIONS = new HashMap<String, String>() {
         {
@@ -116,10 +128,16 @@ public class CordVtn implements CordVtnService {
     protected DeviceAdminService adminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowObjectiveService flowObjectiveService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OvsdbController controller;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackSwitchingService openstackService;
 
     private final ExecutorService eventExecutor = Executors
             .newFixedThreadPool(NUM_THREADS, groupedThreads("onos/cordvtn", "event-handler"));
@@ -132,6 +150,8 @@ public class CordVtn implements CordVtnService {
     private final VmHandler vmHandler = new VmHandler();
 
     private ConsistentMap<CordVtnNode, NodeState> nodeStore;
+    private Map<HostId, String> hostNetworkMap = Maps.newHashMap();
+    private CordVtnRuleInstaller ruleInstaller;
 
     private enum NodeState {
 
@@ -185,6 +205,8 @@ public class CordVtn implements CordVtnService {
                 .withApplicationId(appId)
                 .build();
 
+        ruleInstaller = new CordVtnRuleInstaller(appId, flowObjectiveService,
+                                                 driverService, DEFAULT_TUNNEL);
         deviceService.addListener(deviceListener);
         hostService.addListener(hostListener);
 
@@ -314,11 +336,27 @@ public class CordVtn implements CordVtnService {
 
     /**
      * Performs tasks after node initialization.
+     * First disconnect unnecessary OVSDB connection and then installs flow rules
+     * for existing VMs if there are any.
      *
      * @param node cordvtn node
      */
     private void postInit(CordVtnNode node) {
         disconnect(node);
+
+        Set<OpenstackNetwork> vNets = Sets.newHashSet();
+        hostService.getConnectedHosts(node.intBrId())
+                .stream()
+                .forEach(host -> {
+                    OpenstackNetwork vNet = getOpenstackNetworkByHost(host);
+                    if (vNet != null) {
+                        log.info("VM {} is detected", host.id());
+
+                        hostNetworkMap.put(host.id(), vNet.id());
+                        vNets.add(vNet);
+                    }
+                });
+        vNets.stream().forEach(this::installFlowRules);
     }
 
     /**
@@ -443,7 +481,7 @@ public class CordVtn implements CordVtnService {
         }
 
         List<ControllerInfo> controllers = new ArrayList<>();
-        Sets.newHashSet(clusterService.getNodes())
+        Sets.newHashSet(clusterService.getNodes()).stream()
                 .forEach(controller -> {
                     ControllerInfo ctrlInfo = new ControllerInfo(controller.ip(), OFPORT, "tcp");
                     controllers.add(ctrlInfo);
@@ -453,7 +491,7 @@ public class CordVtn implements CordVtnService {
         try {
             DriverHandler handler = driverService.createHandler(node.ovsdbId());
             BridgeConfig bridgeConfig =  handler.behaviour(BridgeConfig.class);
-            bridgeConfig.addBridge(BridgeName.bridgeName(DEFAULT_BRIDGE_NAME), dpid, controllers);
+            bridgeConfig.addBridge(BridgeName.bridgeName(DEFAULT_BRIDGE), dpid, controllers);
         } catch (ItemNotFoundException e) {
             log.warn("Failed to create integration bridge on {}", node.ovsdbId());
         }
@@ -474,13 +512,12 @@ public class CordVtn implements CordVtnService {
             optionBuilder.set(key, DEFAULT_TUNNEL_OPTIONS.get(key));
         }
         TunnelDescription description =
-                new DefaultTunnelDescription(null, null, VXLAN,
-                                             TunnelName.tunnelName(DEFAULT_TUNNEL),
+                new DefaultTunnelDescription(null, null, VXLAN, TunnelName.tunnelName(DEFAULT_TUNNEL),
                                              optionBuilder.build());
         try {
             DriverHandler handler = driverService.createHandler(node.ovsdbId());
             TunnelConfig tunnelConfig =  handler.behaviour(TunnelConfig.class);
-            tunnelConfig.createTunnelInterface(BridgeName.bridgeName(DEFAULT_BRIDGE_NAME), description);
+            tunnelConfig.createTunnelInterface(BridgeName.bridgeName(DEFAULT_BRIDGE), description);
         } catch (ItemNotFoundException e) {
             log.warn("Failed to create tunnel interface on {}", node.ovsdbId());
         }
@@ -513,6 +550,212 @@ public class CordVtn implements CordVtnService {
             return true;
         } catch (NoSuchElementException e) {
             return false;
+        }
+    }
+
+    /**
+     * Returns tunnel port of the device.
+     *
+     * @param bridgeId device id
+     * @return port, null if no tunnel port exists on a given device
+     */
+    private Port getTunnelPort(DeviceId bridgeId) {
+        try {
+            return deviceService.getPorts(bridgeId).stream()
+                    .filter(p -> p.annotations().value("portName").contains(DEFAULT_TUNNEL)
+                            && p.isEnabled())
+                    .findFirst().get();
+        } catch (NoSuchElementException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns remote ip address for tunneling.
+     *
+     * @param bridgeId device id
+     * @return ip address, null if no such device exists
+     */
+    private IpAddress getRemoteIp(DeviceId bridgeId) {
+        CordVtnNode node = getNodeByBridgeId(bridgeId);
+        if (node != null) {
+            // TODO get data plane IP for tunneling
+            return node.ovsdbIp();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns destination information of all ports associated with a given
+     * OpenStack network. Output of the destination information is set to local
+     * port or tunnel port according to a given device id.
+     *
+     * @param deviceId device id to install flow rules
+     * @param vNet OpenStack network
+     * @return list of flow information, empty list if no flow information exists
+     */
+    private List<DestinationInfo> getSameNetworkPortsInfo(DeviceId deviceId, OpenstackNetwork vNet) {
+        List<DestinationInfo> dstInfos = Lists.newArrayList();
+        long tunnelId = Long.valueOf(vNet.segmentId());
+
+        for (OpenstackPort vPort : openstackService.ports(vNet.id())) {
+            ConnectPoint cp = getConnectPoint(vPort);
+            if (cp == null) {
+                log.debug("Couldn't find connection point for OpenStack port {}", vPort.id());
+                continue;
+            }
+
+            DestinationInfo.Builder dBuilder = cp.deviceId().equals(deviceId) ?
+                    DestinationInfo.builder(deviceService.getPort(cp.deviceId(), cp.port())) :
+                    DestinationInfo.builder(getTunnelPort(deviceId))
+                            .setRemoteIp(getRemoteIp(cp.deviceId()));
+
+            dBuilder.setMac(vPort.macAddress())
+                    .setTunnelId(tunnelId);
+            dstInfos.add(dBuilder.build());
+        }
+        return dstInfos;
+    }
+
+    /**
+     * Returns local ports associated with a given OpenStack network.
+     *
+     * @param bridgeId device id
+     * @param vNet OpenStack network
+     * @return port list, empty list if no port exists
+     */
+    private List<Port> getLocalSameNetworkPorts(DeviceId bridgeId, OpenstackNetwork vNet) {
+        List<Port> ports = new ArrayList<>();
+        openstackService.ports(vNet.id()).stream().forEach(port -> {
+            ConnectPoint cp = getConnectPoint(port);
+            if (cp != null && cp.deviceId().equals(bridgeId)) {
+                ports.add(deviceService.getPort(cp.deviceId(), cp.port()));
+            }
+        });
+        return ports;
+    }
+
+    /**
+     * Returns OpenStack port associated with a given host.
+     *
+     * @param host host
+     * @return OpenStack port, or null if no port has been found
+     */
+    private OpenstackPort getOpenstackPortByHost(Host host) {
+        Port port = deviceService.getPort(host.location().deviceId(),
+                                          host.location().port());
+        return openstackService.port(port);
+    }
+
+    /**
+     * Returns OpenStack network associated with a given host.
+     *
+     * @param host host
+     * @return OpenStack network, or null if no network has been found
+     */
+    private OpenstackNetwork getOpenstackNetworkByHost(Host host) {
+        OpenstackPort vPort = getOpenstackPortByHost(host);
+        if (vPort != null) {
+            return openstackService.network(vPort.networkId());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns port name with OpenStack port information.
+     *
+     * @param vPort OpenStack port
+     * @return port name
+     */
+    private String getPortName(OpenstackPort vPort) {
+        checkNotNull(vPort);
+        return VPORT_PREFIX + vPort.id().substring(0, 10);
+    }
+
+    /**
+     * Returns connect point of a given OpenStack port.
+     * It assumes there's only one physical port associated with an OpenStack port.
+     *
+     * @param vPort openstack port
+     * @return connect point, null if no such port exists
+     */
+    private ConnectPoint getConnectPoint(OpenstackPort vPort) {
+        try {
+            Host host = hostService.getHostsByMac(vPort.macAddress())
+                    .stream()
+                    .findFirst()
+                    .get();
+            return new ConnectPoint(host.location().deviceId(), host.location().port());
+        } catch (NoSuchElementException e) {
+            log.debug("Not a valid host with {}", vPort.macAddress());
+            return null;
+        }
+    }
+
+    /**
+     * Installs flow rules for a given OpenStack network.
+     *
+     * @param vNet OpenStack network
+     */
+    private void installFlowRules(OpenstackNetwork vNet) {
+        checkNotNull(vNet, "Tenant network should not be null");
+
+        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
+            List<DestinationInfo> dstInfos = getSameNetworkPortsInfo(device.id(), vNet);
+
+            for (Port inPort : getLocalSameNetworkPorts(device.id(), vNet)) {
+                List<DestinationInfo> localInInfos = dstInfos.stream()
+                        .filter(info -> !info.output().equals(inPort))
+                        .collect(Collectors.toList());
+                ruleInstaller.installFlowRulesLocalIn(device.id(), inPort, localInInfos);
+            }
+
+            Port tunPort = getTunnelPort(device.id());
+            List<DestinationInfo> tunnelInInfos = dstInfos.stream()
+                    .filter(info -> !info.output().equals(tunPort))
+                    .collect(Collectors.toList());
+            ruleInstaller.installFlowRulesTunnelIn(device.id(), tunPort, tunnelInInfos);
+        }
+    }
+
+    /**
+     * Uninstalls flow rules associated with a given host for a given OpenStack network.
+     *
+     * @param vNet OpenStack network
+     * @param host removed host
+     */
+    private void uninstallFlowRules(OpenstackNetwork vNet, Host host) {
+        checkNotNull(vNet, "Tenant network should not be null");
+
+        Port removedPort = deviceService.getPort(host.location().deviceId(),
+                                                 host.location().port());
+
+        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
+            List<DestinationInfo> dstInfos = getSameNetworkPortsInfo(device.id(), vNet);
+
+            for (Port inPort : getLocalSameNetworkPorts(device.id(), vNet)) {
+                List<DestinationInfo> localInInfos = Lists.newArrayList(
+                        DestinationInfo.builder(getTunnelPort(device.id()))
+                                .setTunnelId(Long.valueOf(vNet.segmentId()))
+                                .setMac(host.mac())
+                                .setRemoteIp(getRemoteIp(host.location().deviceId()))
+                                .build());
+                ruleInstaller.uninstallFlowRules(device.id(), inPort, localInInfos);
+            }
+
+            if (device.id().equals(host.location().deviceId())) {
+                Port tunPort = getTunnelPort(device.id());
+                List<DestinationInfo> tunnelInInfo = Lists.newArrayList(
+                        DestinationInfo.builder(removedPort)
+                                .setTunnelId(Long.valueOf(vNet.segmentId()))
+                                .setMac(host.mac())
+                                .build());
+
+                ruleInstaller.uninstallFlowRules(device.id(), tunPort, tunnelInInfo);
+                ruleInstaller.uninstallFlowRules(device.id(), removedPort, dstInfos);
+            }
         }
     }
 
@@ -644,12 +887,40 @@ public class CordVtn implements CordVtnService {
 
         @Override
         public void connected(Host host) {
+            CordVtnNode node = getNodeByBridgeId(host.location().deviceId());
+            if (node == null || !getNodeState(node).equals(NodeState.COMPLETE)) {
+                // do nothing for the host on unregistered or unprepared device
+                return;
+            }
+
+            OpenstackNetwork vNet = getOpenstackNetworkByHost(host);
+            if (vNet == null) {
+                return;
+            }
+
             log.info("VM {} is detected", host.id());
+
+            hostNetworkMap.put(host.id(), vNet.id());
+            installFlowRules(vNet);
         }
 
         @Override
         public void disconnected(Host host) {
+            CordVtnNode node = getNodeByBridgeId(host.location().deviceId());
+            if (node == null || !getNodeState(node).equals(NodeState.COMPLETE)) {
+                // do nothing for the host on unregistered or unprepared device
+                return;
+            }
+
+            OpenstackNetwork vNet = openstackService.network(hostNetworkMap.get(host.id()));
+            if (vNet == null) {
+                return;
+            }
+
             log.info("VM {} is vanished", host.id());
+
+            uninstallFlowRules(vNet, host);
+            hostNetworkMap.remove(host.id());
         }
     }
 }

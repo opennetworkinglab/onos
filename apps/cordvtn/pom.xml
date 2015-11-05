@@ -33,6 +33,10 @@
 
     <properties>
         <onos.app.name>org.onosproject.cordvtn</onos.app.name>
+        <onos.app.requires>
+            org.onosproject.ovsdb,
+            org.onosproject.openstackswitching
+        </onos.app.requires>
     </properties>
 
     <dependencies>
@@ -63,6 +67,11 @@
             <groupId>org.apache.karaf.shell</groupId>
             <artifactId>org.apache.karaf.shell.console</artifactId>
             <version>3.0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-openstackswitching-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
