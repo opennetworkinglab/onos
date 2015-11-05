@@ -15,6 +15,7 @@
  */
 package org.onosproject.app.impl;
 
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -30,20 +31,21 @@ import org.onosproject.app.ApplicationService;
 import org.onosproject.app.ApplicationState;
 import org.onosproject.app.ApplicationStore;
 import org.onosproject.app.ApplicationStoreDelegate;
-import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.security.Permission;
 import org.onosproject.security.SecurityUtil;
 import org.slf4j.Logger;
 
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.app.ApplicationEvent.Type.*;
-import static org.onosproject.security.AppPermission.Type.*;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.APP_READ;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -68,6 +70,9 @@ public class ApplicationManager
     protected FeaturesService featuresService;
 
     private boolean initializing;
+
+    // Application supplied hooks for pre-activation processing.
+    private final Map<String, Runnable> deactivateHooks = Maps.newConcurrentMap();
 
     @Activate
     public void activate() {
@@ -119,6 +124,14 @@ public class ApplicationManager
         checkPermission(APP_READ);
         checkNotNull(appId, APP_ID_NULL);
         return store.getPermissions(appId);
+    }
+
+    @Override
+    public void registerDeactivateHook(ApplicationId appId, Runnable hook) {
+        checkPermission(APP_READ);
+        checkNotNull(appId, APP_ID_NULL);
+        checkNotNull(hook, "Hook cannot be null");
+        deactivateHooks.put(appId.name(), hook);
     }
 
     @Override
@@ -235,6 +248,7 @@ public class ApplicationManager
 
     private synchronized boolean uninstallAppFeatures(Application app) throws Exception {
         boolean changed = false;
+        invokeHook(deactivateHooks.get(app.id().name()), app.id());
         for (String name : app.features()) {
             Feature feature = featuresService.getFeature(name);
             if (feature != null && featuresService.isInstalled(feature)) {
@@ -245,6 +259,18 @@ public class ApplicationManager
             }
         }
         return changed;
+    }
+
+    // Invokes the specified function, if not null.
+    private void invokeHook(Runnable hook, ApplicationId appId) {
+        if (hook != null) {
+            try {
+                hook.run();
+            } catch (Exception e) {
+                log.warn("Deactivate hook for application {} encountered an error",
+                         appId.name(), e);
+            }
+        }
     }
 
 }

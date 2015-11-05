@@ -24,11 +24,11 @@ import org.onosproject.app.ApplicationListener;
 import org.onosproject.app.ApplicationState;
 import org.onosproject.app.ApplicationStoreAdapter;
 import org.onosproject.common.app.ApplicationArchive;
+import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
-import org.onosproject.common.event.impl.TestEventDispatcher;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -36,7 +36,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.onosproject.app.ApplicationEvent.Type.*;
 import static org.onosproject.app.ApplicationState.ACTIVE;
 import static org.onosproject.app.ApplicationState.INSTALLED;
@@ -52,6 +52,8 @@ public class ApplicationManagerTest {
 
     private ApplicationManager mgr = new ApplicationManager();
     private ApplicationListener listener = new TestListener();
+
+    private boolean deactivated = false;
 
     @Before
     public void setUp() {
@@ -88,6 +90,11 @@ public class ApplicationManagerTest {
         assertEquals("incorrect app count", 1, mgr.getApplications().size());
         assertEquals("incorrect app", app, mgr.getApplication(APP_ID));
         assertEquals("incorrect app state", INSTALLED, mgr.getState(APP_ID));
+        mgr.registerDeactivateHook(app.id(), this::deactivateHook);
+    }
+
+    private void deactivateHook() {
+        deactivated = true;
     }
 
     @Test
@@ -102,6 +109,7 @@ public class ApplicationManagerTest {
         install();
         mgr.activate(APP_ID);
         assertEquals("incorrect app state", ACTIVE, mgr.getState(APP_ID));
+        assertFalse("preDeactivate hook wrongly called", deactivated);
     }
 
     @Test
@@ -109,6 +117,7 @@ public class ApplicationManagerTest {
         activate();
         mgr.deactivate(APP_ID);
         assertEquals("incorrect app state", INSTALLED, mgr.getState(APP_ID));
+        assertTrue("preDeactivate hook not called", deactivated);
     }
 
 

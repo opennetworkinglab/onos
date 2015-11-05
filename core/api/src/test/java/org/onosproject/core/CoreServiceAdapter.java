@@ -43,7 +43,12 @@ public class CoreServiceAdapter implements CoreService {
     }
 
     @Override
-    public ApplicationId registerApplication(String identifier) {
+    public ApplicationId registerApplication(String name) {
+        return null;
+    }
+
+    @Override
+    public ApplicationId registerApplication(String name, Runnable preDeactivate) {
         return null;
     }
 

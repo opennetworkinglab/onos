@@ -23,10 +23,8 @@ import org.onlab.junit.TestUtils;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
+import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
-import org.onosproject.core.IdGenerator;
-import org.onosproject.core.Version;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.mcast.McastEvent;
@@ -35,7 +33,6 @@ import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.store.service.TestStorageService;
 
 import java.util.List;
-import java.util.Set;
 
 import static junit.framework.Assert.fail;
 import static junit.framework.TestCase.assertEquals;
@@ -48,16 +45,16 @@ import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 public class MulticastRouteManagerTest {
 
     McastRoute r1 = new McastRoute(IpPrefix.valueOf("1.1.1.1/8"),
-                                          IpPrefix.valueOf("1.1.1.2/8"),
-                                          McastRoute.Type.IGMP);
+                                   IpPrefix.valueOf("1.1.1.2/8"),
+                                   McastRoute.Type.IGMP);
 
     McastRoute r11 = new McastRoute(IpPrefix.valueOf("1.1.1.1/8"),
-                                          IpPrefix.valueOf("1.1.1.2/8"),
-                                          McastRoute.Type.STATIC);
+                                    IpPrefix.valueOf("1.1.1.2/8"),
+                                    McastRoute.Type.STATIC);
 
     McastRoute r2 = new McastRoute(IpPrefix.valueOf("2.2.2.1/8"),
-                                          IpPrefix.valueOf("2.2.2.2/8"),
-                                          McastRoute.Type.PIM);
+                                   IpPrefix.valueOf("2.2.2.2/8"),
+                                   McastRoute.Type.PIM);
 
     ConnectPoint cp1 = new ConnectPoint(did("1"), PortNumber.portNumber(1));
 
@@ -75,7 +72,7 @@ public class MulticastRouteManagerTest {
         injectEventDispatcher(manager, new TestEventDispatcher());
         TestUtils.setField(manager, "storageService", new TestStorageService());
         TestUtils.setField(manager, "coreService", new TestCoreService());
-        events  = Lists.newArrayList();
+        events = Lists.newArrayList();
         manager.activate();
         manager.addListener(listener);
     }
@@ -152,49 +149,23 @@ public class MulticastRouteManagerTest {
 
         for (int i = 0; i < evs.length; i++) {
             if (evs[i] != events.get(i).type()) {
-                fail(String.format("Mismtached events# obtained -> %s : expected %s",
+                fail(String.format("Mismatched events# obtained -> %s : expected %s",
                                    events, evs));
             }
         }
     }
 
     class TestMulticastListener implements McastListener {
-
         @Override
         public void event(McastEvent event) {
             events.add(event);
         }
     }
 
-    private class TestCoreService implements CoreService {
+    private class TestCoreService extends CoreServiceAdapter {
         @Override
-        public Version version() {
-            return null;
-        }
-
-        @Override
-        public Set<ApplicationId> getAppIds() {
-            return null;
-        }
-
-        @Override
-        public ApplicationId getAppId(Short id) {
-            return null;
-        }
-
-        @Override
-        public ApplicationId getAppId(String name) {
-            return null;
-        }
-
-        @Override
-        public ApplicationId registerApplication(String identifier) {
-            return new DefaultApplicationId(0, identifier);
-        }
-
-        @Override
-        public IdGenerator getIdGenerator(String topic) {
-            return null;
+        public ApplicationId registerApplication(String name) {
+            return new DefaultApplicationId(0, name);
         }
     }
 }

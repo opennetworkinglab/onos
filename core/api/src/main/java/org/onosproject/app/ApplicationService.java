@@ -67,4 +67,11 @@ public interface ApplicationService
      */
     Set<Permission> getPermissions(ApplicationId appId);
 
+    /**
+     * Registers application pre-deactivation processing hook.
+     *
+     * @param appId application identifier
+     * @param hook  pre-deactivation hook
+     */
+    void registerDeactivateHook(ApplicationId appId, Runnable hook);
 }

@@ -50,6 +50,7 @@ public interface CoreService {
 
     /**
      * Returns an existing application id from a given id.
+     *
      * @param id the short value of the id
      * @return an application id
      */
@@ -57,6 +58,7 @@ public interface CoreService {
 
     /**
      * Returns an existing application id from a given id.
+     *
      * @param name the name portion of the ID to look up
      * @return an application id
      */
@@ -67,10 +69,21 @@ public interface CoreService {
      * to follow the reverse DNS convention, e.g.
      * {@code org.flying.circus.app}
      *
-     * @param identifier string identifier
+     * @param name string identifier
      * @return the application id
      */
-    ApplicationId registerApplication(String identifier);
+    ApplicationId registerApplication(String name);
+
+    /**
+     * Registers a new application by its name, which is expected
+     * to follow the reverse DNS convention, e.g.
+     * {@code org.flying.circus.app}, along with its pre-deactivation hook.
+     *
+     * @param name          string identifier
+     * @param preDeactivate pre-deactivation hook
+     * @return the application id
+     */
+    ApplicationId registerApplication(String name, Runnable preDeactivate);
 
     /**
      * Returns an id generator for a given topic.

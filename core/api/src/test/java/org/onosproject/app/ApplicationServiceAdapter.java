@@ -51,6 +51,10 @@ public class ApplicationServiceAdapter implements ApplicationService {
     }
 
     @Override
+    public void registerDeactivateHook(ApplicationId appId, Runnable hook) {
+    }
+
+    @Override
     public void addListener(ApplicationListener listener) {
     }
 

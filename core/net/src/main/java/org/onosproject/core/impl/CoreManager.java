@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.SharedExecutors;
+import org.onosproject.app.ApplicationService;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.ApplicationIdStore;
@@ -48,7 +49,7 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.*;
+import static org.onosproject.security.AppPermission.Type.APP_READ;
 
 
 
@@ -69,6 +70,9 @@ public class CoreManager implements CoreService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IdBlockStore idBlockStore;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ApplicationService appService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
@@ -111,28 +115,24 @@ public class CoreManager implements CoreService {
     @Override
     public Version version() {
         checkPermission(APP_READ);
-
         return version;
     }
 
     @Override
     public Set<ApplicationId> getAppIds() {
         checkPermission(APP_READ);
-
         return applicationIdStore.getAppIds();
     }
 
     @Override
     public ApplicationId getAppId(Short id) {
         checkPermission(APP_READ);
-
         return applicationIdStore.getAppId(id);
     }
 
     @Override
     public ApplicationId getAppId(String name) {
         checkPermission(APP_READ);
-
         return applicationIdStore.getAppId(name);
     }
 
@@ -141,6 +141,13 @@ public class CoreManager implements CoreService {
     public ApplicationId registerApplication(String name) {
         checkNotNull(name, "Application ID cannot be null");
         return applicationIdStore.registerApplication(name);
+    }
+
+    @Override
+    public ApplicationId registerApplication(String name, Runnable preDeactivate) {
+        ApplicationId id = registerApplication(name);
+        appService.registerDeactivateHook(id, preDeactivate);
+        return id;
     }
 
     @Override
@@ -185,10 +192,10 @@ public class CoreManager implements CoreService {
      */
     private static Integer getIntegerProperty(Dictionary<?, ?> properties,
                                               String propertyName) {
-        Integer value = null;
+        Integer value;
         try {
             String s = (String) properties.get(propertyName);
-            value = isNullOrEmpty(s) ? value : Integer.parseInt(s.trim());
+            value = isNullOrEmpty(s) ? null : Integer.parseInt(s.trim());
         } catch (NumberFormatException | ClassCastException e) {
             value = null;
         }
