@@ -1,0 +1,9 @@
+{
+   "id": "78dcd363-fc23-aeb6-f44b-56dc5e2fb3ae",
+   "name": "PP1",
+   "tenant_id": "d382007aa9904763a801f68ecf065cf5",
+   "description": "SF-A",
+   "ingress": "dace4513-24fc-4fae-af4b-321c5e2eb3d1",
+   "egress": "aef3478a-4a56-2a6e-cd3a-9dee4e2ec345"
+}
+
