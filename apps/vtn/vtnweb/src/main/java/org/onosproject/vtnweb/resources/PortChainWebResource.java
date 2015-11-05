@@ -82,10 +82,10 @@ public class PortChainWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortPain(@PathParam("chain_id") String id) {
 
-        if (!service.exists(PortChainId.portChainId(id))) {
+        if (!service.exists(PortChainId.of(id))) {
             return Response.status(NOT_FOUND).entity(PORT_CHAIN_NOT_FOUND).build();
         }
-        PortChain portChain = nullIsNotFound(service.getPortChain(PortChainId.portChainId(id)),
+        PortChain portChain = nullIsNotFound(service.getPortChain(PortChainId.of(id)),
                                              PORT_CHAIN_NOT_FOUND);
         ObjectNode result = new ObjectMapper().createObjectNode();
         result.set("port_chain", new PortChainCodec().encode(portChain, this));
@@ -147,7 +147,7 @@ public class PortChainWebResource extends AbstractWebResource {
     @DELETE
     public void deletePortPain(@PathParam("chain_id") String id) {
         log.debug("Deletes port chain by identifier {}.", id);
-        PortChainId portChainId = PortChainId.portChainId(id);
+        PortChainId portChainId = PortChainId.of(id);
 
         Boolean issuccess = nullIsNotFound(service.removePortChain(portChainId), PORT_CHAIN_NOT_FOUND);
         if (!issuccess) {

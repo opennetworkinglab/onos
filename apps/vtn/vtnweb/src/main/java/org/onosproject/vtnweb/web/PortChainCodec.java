@@ -59,7 +59,7 @@ public final class PortChainCodec extends JsonCodec<PortChain> {
 
         String id = nullIsIllegal(json.get(ID),
                                   ID + MISSING_MEMBER_MESSAGE).asText();
-        resultBuilder.setId(PortChainId.portChainId(id));
+        resultBuilder.setId(PortChainId.of(id));
 
         String tenantId = nullIsIllegal(json.get(TENANT_ID),
                                         TENANT_ID + MISSING_MEMBER_MESSAGE).asText();

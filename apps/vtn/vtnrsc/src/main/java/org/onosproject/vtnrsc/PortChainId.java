@@ -19,8 +19,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.UUID;
-
-import com.google.common.base.Objects;
+import java.util.Objects;
 
 /**
  * Representation of a Port Chain ID.
@@ -40,22 +39,22 @@ public final class PortChainId {
     }
 
     /**
-     * Constructor to create port chain id from UUID.
+     * Returns newly created port chain id object.
      *
      * @param id UUID of port chain
      * @return object of port chain id
      */
-    public static PortChainId portChainId(UUID id) {
+    public static PortChainId of(UUID id) {
         return new PortChainId(id);
     }
 
     /**
-     * Constructor to create port chain id from string.
+     * Returns newly created port chain id object.
      *
      * @param id port chain id in string
      * @return object of port chain id
      */
-    public static PortChainId portChainId(String id) {
+    public static PortChainId of(String id) {
         return new PortChainId(UUID.fromString(id));
     }
 
@@ -73,10 +72,9 @@ public final class PortChainId {
         if (this == obj) {
             return true;
         }
-
-        if (obj.getClass()  == this.getClass()) {
-            PortChainId that = (PortChainId) obj;
-            return Objects.equal(this.portChainId, that.portChainId);
+        if (obj instanceof PortChainId) {
+            final PortChainId other = (PortChainId) obj;
+            return Objects.equals(this.portChainId, other.portChainId);
         }
         return false;
     }
@@ -88,8 +86,6 @@ public final class PortChainId {
 
     @Override
     public String toString() {
-        return toStringHelper(this)
-                .add("portChainId", portChainId.toString())
-                .toString();
+        return toStringHelper(this).add("portChainId", portChainId).toString();
     }
 }
