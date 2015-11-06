@@ -55,6 +55,10 @@ public class StaticClusterMetadataStore
     implements ClusterMetadataStore {
 
     private final Logger log = getLogger(getClass());
+
+    private static final String ONOS_IP = "ONOS_IP";
+    private static final String ONOS_INTERFACE = "ONOS_INTERFACE";
+    private static final String DEFAULT_ONOS_INTERFACE = "eth0";
     private static final String CLUSTER_METADATA_FILE = "../config/cluster.json";
     private static final int DEFAULT_ONOS_PORT = 9876;
     private final File metadataFile = new File(CLUSTER_METADATA_FILE);
@@ -194,6 +198,22 @@ public class StaticClusterMetadataStore
 
 
     private static String getSiteLocalAddress() {
+
+        /*
+         * If the IP ONOS should use is set via the environment variable we will assume it is valid and should be used.
+         * Setting the IP address takes presidence over setting the interface via the environment.
+         */
+        String useOnosIp = System.getenv(ONOS_IP);
+        if (useOnosIp != null) {
+            return useOnosIp;
+        }
+
+        // Read environment variables for IP interface information or set to default
+        String useOnosInterface = System.getenv(ONOS_INTERFACE);
+        if (useOnosInterface == null) {
+            useOnosInterface = DEFAULT_ONOS_INTERFACE;
+        }
+
         Function<NetworkInterface, IpAddress> ipLookup = nif -> {
             for (InetAddress address : Collections.list(nif.getInetAddresses())) {
                 if (address.isSiteLocalAddress()) {
@@ -203,7 +223,7 @@ public class StaticClusterMetadataStore
             return null;
         };
         try {
-            IpAddress ip = ipLookup.apply(NetworkInterface.getByName("eth0"));
+            IpAddress ip = ipLookup.apply(NetworkInterface.getByName(useOnosInterface));
             if (ip != null) {
                 return ip.toString();
             }
