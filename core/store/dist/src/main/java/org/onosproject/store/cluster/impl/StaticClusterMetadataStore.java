@@ -7,6 +7,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Inet4Address;
 import java.net.NetworkInterface;
 import java.util.Arrays;
 import java.util.Collection;
@@ -58,6 +59,7 @@ public class StaticClusterMetadataStore
 
     private static final String ONOS_IP = "ONOS_IP";
     private static final String ONOS_INTERFACE = "ONOS_INTERFACE";
+    private static final String ONOS_ALLOW_IPV6 = "ONOS_ALLOW_IPV6";
     private static final String DEFAULT_ONOS_INTERFACE = "eth0";
     private static final String CLUSTER_METADATA_FILE = "../config/cluster.json";
     private static final int DEFAULT_ONOS_PORT = 9876;
@@ -214,13 +216,25 @@ public class StaticClusterMetadataStore
             useOnosInterface = DEFAULT_ONOS_INTERFACE;
         }
 
+        // Capture if they want to limit IP address selection to only IPv4 (default).
+        boolean allowIPv6 = (System.getenv(ONOS_ALLOW_IPV6) != null);
+
         Function<NetworkInterface, IpAddress> ipLookup = nif -> {
-            for (InetAddress address : Collections.list(nif.getInetAddresses())) {
-                if (address.isSiteLocalAddress()) {
-                    return IpAddress.valueOf(address);
+            IpAddress fallback = null;
+
+            // nif can be null if the interface name specified doesn't exist on the node's host
+            if (nif != null) {
+                for (InetAddress address : Collections.list(nif.getInetAddresses())) {
+                    if (address.isSiteLocalAddress() && (allowIPv6 || address instanceof Inet4Address)) {
+                        return IpAddress.valueOf(address);
+                    }
+                    if (fallback == null && !address.isLoopbackAddress() && !address.isMulticastAddress()
+                        && (allowIPv6 || address instanceof Inet4Address)) {
+                        fallback = IpAddress.valueOf(address);
+                    }
                 }
             }
-            return null;
+            return fallback;
         };
         try {
             IpAddress ip = ipLookup.apply(NetworkInterface.getByName(useOnosInterface));
@@ -228,14 +242,17 @@ public class StaticClusterMetadataStore
                 return ip.toString();
             }
             for (NetworkInterface nif : Collections.list(getNetworkInterfaces())) {
-                ip = ipLookup.apply(nif);
-                if (ip != null) {
-                    return ip.toString();
+                if (!nif.getName().equals(useOnosInterface)) {
+                    ip = ipLookup.apply(nif);
+                    if (ip != null) {
+                        return ip.toString();
+                    }
                 }
             }
         } catch (Exception e) {
             throw new IllegalStateException("Unable to get network interfaces", e);
         }
+
         return IpAddress.valueOf(InetAddress.getLoopbackAddress()).toString();
     }
 }
