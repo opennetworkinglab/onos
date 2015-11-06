@@ -498,10 +498,10 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                     activeEqualSwitches.get(dpid) != null) {
                 log.error("Trying to activate switch but it is already "
                         + "activated: dpid {}. Found in activeMaster: {} "
-                        + "Found in activeEqual: {}. Aborting ..", new Object[]{
-                                dpid,
-                                (activeMasterSwitches.get(dpid) == null) ? 'N' : 'Y',
-                                        (activeEqualSwitches.get(dpid) == null) ? 'N' : 'Y'});
+                        + "Found in activeEqual: {}. Aborting ..",
+                          dpid,
+                          (activeMasterSwitches.get(dpid) == null) ? 'N' : 'Y',
+                          (activeEqualSwitches.get(dpid) == null) ? 'N' : 'Y');
                 return false;
             }
             return true;

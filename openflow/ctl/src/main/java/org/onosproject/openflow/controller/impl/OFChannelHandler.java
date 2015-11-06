@@ -445,7 +445,7 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
 
 
                 log.debug("Switch {} bound to class {}, description {}",
-                        new Object[] {h.sw, h.sw.getClass(), drep });
+                        h.sw, h.sw.getClass(), drep);
                 //Put switch in EQUAL mode until we hear back from the global registry
                 //log.debug("Setting new switch {} to EQUAL and sending Role request",
                 //        h.sw.getStringId());
@@ -730,10 +730,9 @@ class OFChannelHandler extends IdleStateAwareChannelHandler {
          */
         protected void logError(OFChannelHandler h, OFErrorMsg error) {
             log.error("{} from switch {} in state {}",
-                    new Object[] {
                     error,
                     h.getSwitchInfoString(),
-                    this.toString()});
+                    this.toString());
         }
 
         /**
