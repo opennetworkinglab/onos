@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.As4Path;
 
 import com.google.common.testing.EqualsTester;
 

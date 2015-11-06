@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.LinkLocalRemoteIdentifiersTlv;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for LinkLocalRemoteIdentifiers Tlv.
+ * Test for IPReachabilityInformation Tlv.
  */
-public class LinkLocalRemoteIdentifiersTest {
-    private final int value1 = 0x12101010;
-    private final int value2 = 0x12101012;
-    private final LinkLocalRemoteIdentifiersTlv tlv1 = LinkLocalRemoteIdentifiersTlv.of(value1, value2);
-    private final LinkLocalRemoteIdentifiersTlv sameAsTlv1 = LinkLocalRemoteIdentifiersTlv.of(value1, value2);
-    private final LinkLocalRemoteIdentifiersTlv tlv2 = LinkLocalRemoteIdentifiersTlv.of(value2, value1);
+public class IPReachabilityInformationTest {
+    private final byte[] value1 = new byte[] {(byte) 0xc0, (byte) 0xa8, 0x4d, 0x01};
+    private final byte[] value2 = new byte[] {(byte) 0xc0};
+    private final IPReachabilityInformationTlv tlv1 = IPReachabilityInformationTlv.of((byte) 0x17, value1, (short) 4);
+    private final IPReachabilityInformationTlv sameAsTlv1 = IPReachabilityInformationTlv
+                                                             .of((byte) 0x17, value1, (short) 4);
+    private final IPReachabilityInformationTlv tlv2 = IPReachabilityInformationTlv.of((byte) 0x05, value2, (short) 1);
 
     @Test
-    public void testEquality() {
+    public void basics() {
         new EqualsTester()
         .addEqualityGroup(tlv1, sameAsTlv1)
         .addEqualityGroup(tlv2)

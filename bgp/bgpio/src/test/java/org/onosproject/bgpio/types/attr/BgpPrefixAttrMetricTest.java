@@ -13,28 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types.attr;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.OSPFRouteTypeTlv;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for OSPFRouteType Tlv.
+ * Test for BGP prefix metric attribute.
  */
-public class OspfRouteTypeTest {
-    private final byte value1 = 5;
-    private final byte value2 = 4;
-    private final OSPFRouteTypeTlv tlv1 = OSPFRouteTypeTlv.of(value1);
-    private final OSPFRouteTypeTlv sameAsTlv1 = OSPFRouteTypeTlv.of(value1);
-    private final OSPFRouteTypeTlv tlv2 = OSPFRouteTypeTlv.of(value2);
+public class BgpPrefixAttrMetricTest {
+    private final int val = 1111;
+    private final int val1 = 2222;
+
+    private final BgpPrefixAttrMetric data = BgpPrefixAttrMetric.of(val);
+    private final BgpPrefixAttrMetric sameAsData = BgpPrefixAttrMetric.of(val);
+    private final BgpPrefixAttrMetric diffData = BgpPrefixAttrMetric.of(val1);
 
     @Test
-    public void testEquality() {
-        new EqualsTester()
-        .addEqualityGroup(tlv1, sameAsTlv1)
-        .addEqualityGroup(tlv2)
-        .testEquals();
+    public void basics() {
+
+        new EqualsTester().addEqualityGroup(data, sameAsData)
+        .addEqualityGroup(diffData).testEquals();
     }
 }

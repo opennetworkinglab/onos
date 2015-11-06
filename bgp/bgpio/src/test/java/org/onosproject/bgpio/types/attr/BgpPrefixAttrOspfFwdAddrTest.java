@@ -13,37 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types.attr;
 
 import org.junit.Test;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
-import org.onosproject.bgpio.types.attr.BgpAttrRouterIdV6;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for BGP attribute node router ID.
+ * Test for BGP prefix metric attribute.
  */
-public class BgpAttrRouterIdV6Test {
+public class BgpPrefixAttrOspfFwdAddrTest {
 
-    private final short sType = 1;
+    private final short lsAttrLength = 4;
+    private final Ip4Address ip4RouterId = Ip4Address.valueOf("192.168.1.1");
     private final Ip6Address ip6RouterId = Ip6Address
             .valueOf("2001:0db8:0a0b:12f0:0000:0000:0000:0001");
 
-    private final short sType1 = 2;
+    private final short lsAttrLength1 = 16;
+    private final Ip4Address ip4RouterId1 = Ip4Address.valueOf("192.168.1.2");
     private final Ip6Address ip6RouterId1 = Ip6Address
-            .valueOf("2004:0db8:0a0b:12f0:0000:0000:0000:0004");
+            .valueOf("1002:0db8:0a0b:12f0:0000:0000:0000:0002");
 
-    private final BgpAttrRouterIdV6 data = BgpAttrRouterIdV6.of(ip6RouterId,
-                                                                sType);
-    private final BgpAttrRouterIdV6 sameAsData = BgpAttrRouterIdV6
-            .of(ip6RouterId, sType);
-    private final BgpAttrRouterIdV6 diffData = BgpAttrRouterIdV6
-            .of(ip6RouterId1, sType1);
+    private final BgpPrefixAttrOspfFwdAddr data = BgpPrefixAttrOspfFwdAddr
+            .of(lsAttrLength, ip4RouterId, ip6RouterId);
+    private final BgpPrefixAttrOspfFwdAddr sameAsData = BgpPrefixAttrOspfFwdAddr
+            .of(lsAttrLength, ip4RouterId, ip6RouterId);
+    private final BgpPrefixAttrOspfFwdAddr diffData = BgpPrefixAttrOspfFwdAddr
+            .of(lsAttrLength1, ip4RouterId1, ip6RouterId1);
 
     @Test
     public void basics() {
-
         new EqualsTester().addEqualityGroup(data, sameAsData)
         .addEqualityGroup(diffData).testEquals();
     }

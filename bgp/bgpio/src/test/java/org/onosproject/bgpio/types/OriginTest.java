@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.IsIsNonPseudonode;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for IsIsNonPseudonode Tlv.
+ * Test for Origin BGP Path Attribute.
  */
-public class IsIsNonPseudonodeTest {
-    private final byte[] value1 = new byte[] {0x19, 0x00, (byte) 0x95, 0x01, (byte) 0x90, 0x58};
-    private final byte[] value2 = new byte[] {0x19, 0x00, (byte) 0x95, 0x01, (byte) 0x90, 0x59};
-    private final IsIsNonPseudonode tlv1 = IsIsNonPseudonode.of(value1);
-    private final IsIsNonPseudonode sameAsTlv1 = IsIsNonPseudonode.of(value1);
-    private final IsIsNonPseudonode tlv2 = IsIsNonPseudonode.of(value2);
+public class OriginTest {
+    private final byte value1 = 0x01;
+    private final byte value2 = 0x02;
+    private final Origin attr1 = new Origin(value1);
+    private final Origin sameAsAttr1 = new Origin(value1);
+    private final Origin attr2 = new Origin(value2);
 
     @Test
     public void basics() {
         new EqualsTester()
-        .addEqualityGroup(tlv1, sameAsTlv1)
-        .addEqualityGroup(tlv2)
+        .addEqualityGroup(attr1, sameAsAttr1)
+        .addEqualityGroup(attr2)
         .testEquals();
     }
 }

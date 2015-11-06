@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.core.Is.is;
+package org.onosproject.bgpio.protocol;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
 import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.protocol.BGPFactories;
-import org.onosproject.bgpio.protocol.BGPMessage;
-import org.onosproject.bgpio.protocol.BGPMessageReader;
-import org.onosproject.bgpio.protocol.BGPOpenMsg;
 import org.onosproject.bgpio.types.BGPHeader;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.core.Is.is;
 
 /**
  * Test cases for BGP Open Message.

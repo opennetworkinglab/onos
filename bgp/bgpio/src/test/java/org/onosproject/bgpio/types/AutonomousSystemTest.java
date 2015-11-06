@@ -13,29 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types;
 
 import org.junit.Test;
-import org.onlab.packet.Ip4Address;
-import org.onosproject.bgpio.types.NextHop;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for NextHop BGP Path Attribute.
+ * Test for AutonomousSystem Tlv.
  */
-public class NextHopTest {
-    private final Ip4Address value1 = Ip4Address.valueOf("12.12.12.12");
-    private final Ip4Address value2 = Ip4Address.valueOf("12.12.12.13");
-    private final NextHop attr1 = new NextHop(value1);
-    private final NextHop sameAsAttr1 = new NextHop(value1);
-    private final NextHop attr2 = new NextHop(value2);
+public class AutonomousSystemTest {
+    private final int value1 = 101;
+    private final int value2 = 201;
+    private final AutonomousSystemTlv tlv1 = AutonomousSystemTlv.of(value1);
+    private final AutonomousSystemTlv sameAsTlv1 = AutonomousSystemTlv.of(value1);
+    private final AutonomousSystemTlv tlv2 = AutonomousSystemTlv.of(value2);
 
     @Test
-    public void basics() {
+    public void testEquality() {
         new EqualsTester()
-        .addEqualityGroup(attr1, sameAsAttr1)
-        .addEqualityGroup(attr2)
+        .addEqualityGroup(tlv1, sameAsTlv1)
+        .addEqualityGroup(tlv2)
         .testEquals();
     }
 }

@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types.attr;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.attr.BgpLinkAttrMplsProtocolMask;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for MPLS protocol mask attribute.
+ * Test for BGP link IGP metric attribute.
  */
-public class BgpLinkAttrMplsProtocolMaskTest {
-    private final boolean val = true;
-    private final boolean val1 = false;
+public class BgpLinkAttrIgpMetricTest {
+    private final int val = 0x010203;
+    private final int valLen = 3;
+    private final int val1 = 0x01020304;
+    private final int val1Len = 4;
 
-    private final BgpLinkAttrMplsProtocolMask data = BgpLinkAttrMplsProtocolMask
-            .of(val, val);
-    private final BgpLinkAttrMplsProtocolMask sameAsData = BgpLinkAttrMplsProtocolMask
-            .of(val, val);
-    private final BgpLinkAttrMplsProtocolMask diffData = BgpLinkAttrMplsProtocolMask
-            .of(val, val1);
+    private final BgpLinkAttrIgpMetric data = BgpLinkAttrIgpMetric.of(val,
+                                                                      valLen);
+    private final BgpLinkAttrIgpMetric sameAsData = BgpLinkAttrIgpMetric
+            .of(val, valLen);
+    private final BgpLinkAttrIgpMetric diffData = BgpLinkAttrIgpMetric
+            .of(val1, val1Len);
 
     @Test
     public void basics() {
-
         new EqualsTester().addEqualityGroup(data, sameAsData)
         .addEqualityGroup(diffData).testEquals();
     }

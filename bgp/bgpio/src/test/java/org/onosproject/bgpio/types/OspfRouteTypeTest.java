@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types;
+
+import org.junit.Test;
 
 import com.google.common.testing.EqualsTester;
 
-import org.junit.Test;
-import org.onosproject.bgpio.types.AreaIDTlv;
-
 /**
- * Test for AreaID Tlv.
+ * Test for OSPFRouteType Tlv.
  */
-public class AreaIdTest {
-    private final int value1 = 10;
-    private final int value2 = 20;
-    private final AreaIDTlv tlv1 = AreaIDTlv.of(value1);
-    private final AreaIDTlv sameAsTlv1 = AreaIDTlv.of(value1);
-    private final AreaIDTlv tlv2 = AreaIDTlv.of(value2);
+public class OspfRouteTypeTest {
+    private final byte value1 = 5;
+    private final byte value2 = 4;
+    private final OSPFRouteTypeTlv tlv1 = OSPFRouteTypeTlv.of(value1);
+    private final OSPFRouteTypeTlv sameAsTlv1 = OSPFRouteTypeTlv.of(value1);
+    private final OSPFRouteTypeTlv tlv2 = OSPFRouteTypeTlv.of(value2);
 
     @Test
     public void testEquality() {

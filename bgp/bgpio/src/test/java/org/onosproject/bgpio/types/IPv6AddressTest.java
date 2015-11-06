@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.OSPFNonPseudonode;
+import org.onlab.packet.Ip6Address;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for OSPFNonPseudonode Tlv.
+ * Test for IPv6Address Tlv.
  */
-public class OspfNonPseudonodeTest {
-    private final int value1 = 0x12121212;
-    private final int value2 = 0x12121211;
-    private final OSPFNonPseudonode tlv1 = OSPFNonPseudonode.of(value1);
-    private final OSPFNonPseudonode sameAsTlv1 = OSPFNonPseudonode.of(value1);
-    private final OSPFNonPseudonode tlv2 = OSPFNonPseudonode.of(value2);
+public class IPv6AddressTest {
+    private final Ip6Address value1 = Ip6Address.valueOf("2001:db8:0:0:0:0:2:1");
+    private final Ip6Address value2 = Ip6Address.valueOf("2001:db8:0:0:0:0:2:1");
+    private final IPv6AddressTlv tlv1 = IPv6AddressTlv.of(value1, (short) 261);
+    private final IPv6AddressTlv sameAsTlv1 = IPv6AddressTlv.of(value1, (short) 261);
+    private final IPv6AddressTlv tlv2 = IPv6AddressTlv.of(value2, (short) 262);
 
     @Test
     public void basics() {

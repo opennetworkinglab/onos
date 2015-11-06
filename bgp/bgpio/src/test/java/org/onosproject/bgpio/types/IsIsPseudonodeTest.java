@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types;
 
 import org.junit.Test;
-import org.onlab.packet.Ip4Address;
-import org.onosproject.bgpio.types.OSPFPseudonode;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for OSPFPseudonode Tlv.
+ * Test for IsIsPseudonode Tlv.
  */
-public class OspfPseudonodeTest {
-    private final int value1 = 0xc3223409;
-    private final int value2 = 0xc3223406;
-    private final Ip4Address drInterface1 = Ip4Address.valueOf(0xaf91e01);
-    private final Ip4Address drInterface2 = Ip4Address.valueOf(0xaf91e02);
-    private final OSPFPseudonode tlv1 = OSPFPseudonode.of(value1, drInterface1);
-    private final OSPFPseudonode sameAsTlv1 = OSPFPseudonode.of(value1, drInterface1);
-    private final OSPFPseudonode tlv2 = OSPFPseudonode.of(value2, drInterface2);
+public class IsIsPseudonodeTest {
+    private final byte[] value1 = new byte[] {0x01, 0x02, 0x01, 0x02, 0x01, 0x02};
+    private final byte[] value2 = new byte[] {0x01, 0x02, 0x01, 0x02, 0x01, 0x03};
+    private final IsIsPseudonode tlv1 = IsIsPseudonode.of(value1, (byte) 1);
+    private final IsIsPseudonode sameAsTlv1 = IsIsPseudonode.of(value1, (byte) 1);
+    private final IsIsPseudonode tlv2 = IsIsPseudonode.of(value2, (byte) 1);
 
     @Test
     public void testEquality() {

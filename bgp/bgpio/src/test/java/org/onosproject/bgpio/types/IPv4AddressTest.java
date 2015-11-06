@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.IsIsPseudonode;
+import org.onlab.packet.Ip4Address;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for IsIsPseudonode Tlv.
+ * Test for IPv4Address Tlv.
  */
-public class IsIsPseudonodeTest {
-    private final byte[] value1 = new byte[] {0x01, 0x02, 0x01, 0x02, 0x01, 0x02};
-    private final byte[] value2 = new byte[] {0x01, 0x02, 0x01, 0x02, 0x01, 0x03};
-    private final IsIsPseudonode tlv1 = IsIsPseudonode.of(value1, (byte) 1);
-    private final IsIsPseudonode sameAsTlv1 = IsIsPseudonode.of(value1, (byte) 1);
-    private final IsIsPseudonode tlv2 = IsIsPseudonode.of(value2, (byte) 1);
+public class IPv4AddressTest {
+    private final Ip4Address value1 = Ip4Address.valueOf("127.0.0.1");
+    private final Ip4Address value2 = Ip4Address.valueOf("127.0.0.1");
+    private final IPv4AddressTlv tlv1 = IPv4AddressTlv.of(value1, (short) 259);
+    private final IPv4AddressTlv sameAsTlv1 = IPv4AddressTlv.of(value1, (short) 259);
+    private final IPv4AddressTlv tlv2 = IPv4AddressTlv.of(value2, (short) 260);
 
     @Test
-    public void testEquality() {
+    public void basics() {
         new EqualsTester()
         .addEqualityGroup(tlv1, sameAsTlv1)
         .addEqualityGroup(tlv2)

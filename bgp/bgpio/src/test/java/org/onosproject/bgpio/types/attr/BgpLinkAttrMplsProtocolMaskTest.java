@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types.attr;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.attr.BgpPrefixAttrMetric;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for BGP prefix metric attribute.
+ * Test for MPLS protocol mask attribute.
  */
-public class BgpPrefixAttrMetricTest {
-    private final int val = 1111;
-    private final int val1 = 2222;
+public class BgpLinkAttrMplsProtocolMaskTest {
+    private final boolean val = true;
+    private final boolean val1 = false;
 
-    private final BgpPrefixAttrMetric data = BgpPrefixAttrMetric.of(val);
-    private final BgpPrefixAttrMetric sameAsData = BgpPrefixAttrMetric.of(val);
-    private final BgpPrefixAttrMetric diffData = BgpPrefixAttrMetric.of(val1);
+    private final BgpLinkAttrMplsProtocolMask data = BgpLinkAttrMplsProtocolMask
+            .of(val, val);
+    private final BgpLinkAttrMplsProtocolMask sameAsData = BgpLinkAttrMplsProtocolMask
+            .of(val, val);
+    private final BgpLinkAttrMplsProtocolMask diffData = BgpLinkAttrMplsProtocolMask
+            .of(val, val1);
 
     @Test
     public void basics() {

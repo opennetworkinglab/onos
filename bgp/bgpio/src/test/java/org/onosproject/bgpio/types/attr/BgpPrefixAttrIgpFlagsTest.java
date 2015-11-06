@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types.attr;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.attr.BgpPrefixAttrIgpFlags;
 
 import com.google.common.testing.EqualsTester;
 

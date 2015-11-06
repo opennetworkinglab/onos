@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.IPReachabilityInformationTlv;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for IPReachabilityInformation Tlv.
+ * Test for BGPLSIdentifier Tlv.
  */
-public class IPReachabilityInformationTest {
-    private final byte[] value1 = new byte[] {(byte) 0xc0, (byte) 0xa8, 0x4d, 0x01};
-    private final byte[] value2 = new byte[] {(byte) 0xc0};
-    private final IPReachabilityInformationTlv tlv1 = IPReachabilityInformationTlv.of((byte) 0x17, value1, (short) 4);
-    private final IPReachabilityInformationTlv sameAsTlv1 = IPReachabilityInformationTlv
-                                                             .of((byte) 0x17, value1, (short) 4);
-    private final IPReachabilityInformationTlv tlv2 = IPReachabilityInformationTlv.of((byte) 0x05, value2, (short) 1);
+public class BGPLSIdentifierTest {
+    private final int value1 = 8738;
+    private final int value2 = 13107;
+    private final BGPLSIdentifierTlv tlv1 = BGPLSIdentifierTlv.of(value1);
+    private final BGPLSIdentifierTlv sameAsTlv1 = new BGPLSIdentifierTlv(value1);
+    private final BGPLSIdentifierTlv tlv2 = new BGPLSIdentifierTlv(value2);
 
     @Test
     public void basics() {

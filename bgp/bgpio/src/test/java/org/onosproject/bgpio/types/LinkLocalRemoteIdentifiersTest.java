@@ -13,28 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.Origin;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for Origin BGP Path Attribute.
+ * Test for LinkLocalRemoteIdentifiers Tlv.
  */
-public class OriginTest {
-    private final byte value1 = 0x01;
-    private final byte value2 = 0x02;
-    private final Origin attr1 = new Origin(value1);
-    private final Origin sameAsAttr1 = new Origin(value1);
-    private final Origin attr2 = new Origin(value2);
+public class LinkLocalRemoteIdentifiersTest {
+    private final int value1 = 0x12101010;
+    private final int value2 = 0x12101012;
+    private final LinkLocalRemoteIdentifiersTlv tlv1 = LinkLocalRemoteIdentifiersTlv.of(value1, value2);
+    private final LinkLocalRemoteIdentifiersTlv sameAsTlv1 = LinkLocalRemoteIdentifiersTlv.of(value1, value2);
+    private final LinkLocalRemoteIdentifiersTlv tlv2 = LinkLocalRemoteIdentifiersTlv.of(value2, value1);
 
     @Test
-    public void basics() {
+    public void testEquality() {
         new EqualsTester()
-        .addEqualityGroup(attr1, sameAsAttr1)
-        .addEqualityGroup(attr2)
+        .addEqualityGroup(tlv1, sameAsTlv1)
+        .addEqualityGroup(tlv2)
         .testEquals();
     }
 }

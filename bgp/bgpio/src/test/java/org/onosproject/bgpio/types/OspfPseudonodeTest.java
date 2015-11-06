@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.BGPLSIdentifierTlv;
+import org.onlab.packet.Ip4Address;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for BGPLSIdentifier Tlv.
+ * Test for OSPFPseudonode Tlv.
  */
-public class BGPLSIdentifierTest {
-    private final int value1 = 8738;
-    private final int value2 = 13107;
-    private final BGPLSIdentifierTlv tlv1 = BGPLSIdentifierTlv.of(value1);
-    private final BGPLSIdentifierTlv sameAsTlv1 = new BGPLSIdentifierTlv(value1);
-    private final BGPLSIdentifierTlv tlv2 = new BGPLSIdentifierTlv(value2);
+public class OspfPseudonodeTest {
+    private final int value1 = 0xc3223409;
+    private final int value2 = 0xc3223406;
+    private final Ip4Address drInterface1 = Ip4Address.valueOf(0xaf91e01);
+    private final Ip4Address drInterface2 = Ip4Address.valueOf(0xaf91e02);
+    private final OSPFPseudonode tlv1 = OSPFPseudonode.of(value1, drInterface1);
+    private final OSPFPseudonode sameAsTlv1 = OSPFPseudonode.of(value1, drInterface1);
+    private final OSPFPseudonode tlv2 = OSPFPseudonode.of(value2, drInterface2);
 
     @Test
-    public void basics() {
+    public void testEquality() {
         new EqualsTester()
         .addEqualityGroup(tlv1, sameAsTlv1)
         .addEqualityGroup(tlv2)

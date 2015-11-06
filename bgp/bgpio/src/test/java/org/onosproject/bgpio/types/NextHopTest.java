@@ -13,29 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types;
 
 import org.junit.Test;
-import org.onlab.packet.Ip6Address;
-import org.onosproject.bgpio.types.IPv6AddressTlv;
+import org.onlab.packet.Ip4Address;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for IPv6Address Tlv.
+ * Test for NextHop BGP Path Attribute.
  */
-public class IPv6AddressTest {
-    private final Ip6Address value1 = Ip6Address.valueOf("2001:db8:0:0:0:0:2:1");
-    private final Ip6Address value2 = Ip6Address.valueOf("2001:db8:0:0:0:0:2:1");
-    private final IPv6AddressTlv tlv1 = IPv6AddressTlv.of(value1, (short) 261);
-    private final IPv6AddressTlv sameAsTlv1 = IPv6AddressTlv.of(value1, (short) 261);
-    private final IPv6AddressTlv tlv2 = IPv6AddressTlv.of(value2, (short) 262);
+public class NextHopTest {
+    private final Ip4Address value1 = Ip4Address.valueOf("12.12.12.12");
+    private final Ip4Address value2 = Ip4Address.valueOf("12.12.12.13");
+    private final NextHop attr1 = new NextHop(value1);
+    private final NextHop sameAsAttr1 = new NextHop(value1);
+    private final NextHop attr2 = new NextHop(value2);
 
     @Test
     public void basics() {
         new EqualsTester()
-        .addEqualityGroup(tlv1, sameAsTlv1)
-        .addEqualityGroup(tlv2)
+        .addEqualityGroup(attr1, sameAsAttr1)
+        .addEqualityGroup(attr2)
         .testEquals();
     }
 }

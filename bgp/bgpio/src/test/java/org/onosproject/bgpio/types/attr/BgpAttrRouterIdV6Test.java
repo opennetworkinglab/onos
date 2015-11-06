@@ -13,31 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgp;
+package org.onosproject.bgpio.types.attr;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.attr.BgpLinkAttrIgpMetric;
+import org.onlab.packet.Ip6Address;
 
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for BGP link IGP metric attribute.
+ * Test for BGP attribute node router ID.
  */
-public class BgpLinkAttrIgpMetricTest {
-    private final int val = 0x010203;
-    private final int valLen = 3;
-    private final int val1 = 0x01020304;
-    private final int val1Len = 4;
+public class BgpAttrRouterIdV6Test {
 
-    private final BgpLinkAttrIgpMetric data = BgpLinkAttrIgpMetric.of(val,
-                                                                      valLen);
-    private final BgpLinkAttrIgpMetric sameAsData = BgpLinkAttrIgpMetric
-            .of(val, valLen);
-    private final BgpLinkAttrIgpMetric diffData = BgpLinkAttrIgpMetric
-            .of(val1, val1Len);
+    private final short sType = 1;
+    private final Ip6Address ip6RouterId = Ip6Address
+            .valueOf("2001:0db8:0a0b:12f0:0000:0000:0000:0001");
+
+    private final short sType1 = 2;
+    private final Ip6Address ip6RouterId1 = Ip6Address
+            .valueOf("2004:0db8:0a0b:12f0:0000:0000:0000:0004");
+
+    private final BgpAttrRouterIdV6 data = BgpAttrRouterIdV6.of(ip6RouterId,
+                                                                sType);
+    private final BgpAttrRouterIdV6 sameAsData = BgpAttrRouterIdV6
+            .of(ip6RouterId, sType);
+    private final BgpAttrRouterIdV6 diffData = BgpAttrRouterIdV6
+            .of(ip6RouterId1, sType1);
 
     @Test
     public void basics() {
+
         new EqualsTester().addEqualityGroup(data, sameAsData)
         .addEqualityGroup(diffData).testEquals();
     }
