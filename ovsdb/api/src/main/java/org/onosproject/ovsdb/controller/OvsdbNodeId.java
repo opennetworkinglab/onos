@@ -22,7 +22,7 @@ import java.util.Objects;
 import org.onlab.packet.IpAddress;
 
 /**
- * The class representing a OpenStack Compute or Network nodeId.
+ * The class representing a nodeId of node which using ovsdb connection.
  * This class is immutable.
  */
 public final class OvsdbNodeId {

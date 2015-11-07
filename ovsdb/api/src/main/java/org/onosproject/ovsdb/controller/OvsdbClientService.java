@@ -204,7 +204,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     String getControllerUuid(String controllerName, String controllerTarget);
 
     /**
-     * Gets the Ovs uuid.
+     * Gets the OVS uuid.
      *
      * @param dbName database name
      * @return ovs uuid, empty if no uuid is find
@@ -212,7 +212,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     String getOvsUuid(String dbName);
 
     /**
-     * Gets the ovsdb database schema.
+     * Gets the OVSDB database schema.
      *
      * @param dbName database name
      * @return database schema
@@ -220,7 +220,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     ListenableFuture<DatabaseSchema> getOvsdbSchema(String dbName);
 
     /**
-     * Gets the ovsdb table updates.
+     * Gets the OVSDB table updates.
      *
      * @param dbName database name
      * @param id     random uuid
@@ -229,7 +229,7 @@ public interface OvsdbClientService extends OvsdbRPC {
     ListenableFuture<TableUpdates> monitorTables(String dbName, String id);
 
     /**
-     * Gets the ovsdb config operation result.
+     * Gets the OVSDB config operation result.
      *
      * @param dbName     database name
      * @param operations the list of operations
@@ -239,7 +239,7 @@ public interface OvsdbClientService extends OvsdbRPC {
                                                            List<Operation> operations);
 
     /**
-     * Gets the ovsdb database schema from local.
+     * Gets the OVSDB database schema from local.
      *
      * @param dbName database name
      * @return database schema
@@ -247,17 +247,17 @@ public interface OvsdbClientService extends OvsdbRPC {
     DatabaseSchema getDatabaseSchema(String dbName);
 
     /**
-     * Gets the ovsdb row from local ovsdb store.
+     * Gets the OVSDB row from local OVSDB store.
      *
      * @param dbName    database name
      * @param tableName table name
      * @param uuid      row uuid
-     * @return row ovsdb row
+     * @return row OVSDB row
      */
     Row getRow(String dbName, String tableName, String uuid);
 
     /**
-     * Removes the ovsdb row from local ovsdb store.
+     * Removes the OVSDB row from local OVSDB store.
      *
      * @param dbName    database name
      * @param tableName table name
@@ -266,25 +266,25 @@ public interface OvsdbClientService extends OvsdbRPC {
     void removeRow(String dbName, String tableName, String uuid);
 
     /**
-     * Updates the local ovsdb store.
+     * Updates the local OVSDB store.
      *
      * @param dbName    database name
      * @param tableName table name
      * @param uuid      row uuid
-     * @param row       ovsdb row
+     * @param row       OVSDB row
      */
     void updateOvsdbStore(String dbName, String tableName, String uuid, Row row);
 
     /**
-     * Gets ovsdb local ports.
+     * Gets OVSDB local ports.
      *
      * @param ifaceids the ifaceid that needed
-     * @return ovsdb ports
+     * @return OVSDB ports
      */
     Set<OvsdbPort> getLocalPorts(Iterable<String> ifaceids);
 
     /**
-     * Disconnects the ovsdb server.
+     * Disconnects the OVSDB server.
      */
     void disconnect();
 }
