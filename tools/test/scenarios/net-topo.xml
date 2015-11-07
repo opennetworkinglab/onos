@@ -38,7 +38,7 @@
         <step name="Net-Topo.Verify-Cluster0-LinkCount" requires="Net-Topo.Query-Cluster0"
               exec="test ${clusterTopo0LinkCount} == 140"/>
         <step name="Net-Topo.Verify-Cluster0-Root" requires="Net-Topo.Query-Cluster0"
-              exec="test '${clusterTopo0Root}' == 'of:000000000000000a'"/>
+              exec="test '${clusterTopo0Root}' == 'of:000000000000000a' -o '${clusterTopo0Root}' == 'of:000000000000000c'"/>
 
         <!-- Verify the list of devices for the cluster -->
         <step name="Net-Topo.Verify-Cluster0-Devices"
