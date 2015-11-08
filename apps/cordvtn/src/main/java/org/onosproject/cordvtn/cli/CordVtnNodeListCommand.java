@@ -22,53 +22,53 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cordvtn.CordVtnService;
-import org.onosproject.cordvtn.OvsdbNode;
+import org.onosproject.cordvtn.CordVtnNode;
 
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Lists all OVSDB nodes.
+ * Lists all nodes registered to the service.
  */
-@Command(scope = "onos", name = "ovsdbs",
-        description = "Lists all OVSDB nodes registered in cordvtn application")
-public class OvsdbNodeListCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "cordvtn-nodes",
+        description = "Lists all nodes registered in CORD VTN service")
+public class CordVtnNodeListCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
         CordVtnService service = AbstractShellCommand.get(CordVtnService.class);
-        List<OvsdbNode> ovsdbs = service.getNodes();
-        Collections.sort(ovsdbs, OvsdbNode.OVSDB_NODE_COMPARATOR);
+        List<CordVtnNode> nodes = service.getNodes();
+        Collections.sort(nodes, CordVtnNode.CORDVTN_NODE_COMPARATOR);
 
         if (outputJson()) {
-            print("%s", json(service, ovsdbs));
+            print("%s", json(service, nodes));
         } else {
-            for (OvsdbNode ovsdb : ovsdbs) {
-                print("host=%s, address=%s, br-int=%s, state=%s",
-                      ovsdb.host(),
-                      ovsdb.ip().toString() + ":" + ovsdb.port().toString(),
-                      ovsdb.intBrId().toString(),
-                      getState(service, ovsdb));
+            for (CordVtnNode node : nodes) {
+                print("hostname=%s, ovsdb=%s, br-int=%s, init=%s",
+                      node.hostname(),
+                      node.ovsdbIp().toString() + ":" + node.ovsdbPort().toString(),
+                      node.intBrId().toString(),
+                      getState(service, node));
             }
             print("Total %s nodes", service.getNodeCount());
         }
     }
 
-    private JsonNode json(CordVtnService service, List<OvsdbNode> ovsdbs) {
+    private JsonNode json(CordVtnService service, List<CordVtnNode> nodes) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
-        for (OvsdbNode ovsdb : ovsdbs) {
-            String ipPort = ovsdb.ip().toString() + ":" + ovsdb.port().toString();
+        for (CordVtnNode node : nodes) {
+            String ipPort = node.ovsdbIp().toString() + ":" + node.ovsdbPort().toString();
             result.add(mapper.createObjectNode()
-                               .put("host", ovsdb.host())
-                               .put("address", ipPort)
-                               .put("brInt", ovsdb.intBrId().toString())
-                               .put("state", getState(service, ovsdb)));
+                               .put("hostname", node.hostname())
+                               .put("ovsdb", ipPort)
+                               .put("brInt", node.intBrId().toString())
+                               .put("init", getState(service, node)));
         }
         return result;
     }
 
-    private String getState(CordVtnService service, OvsdbNode ovsdb) {
-        return service.isNodeConnected(ovsdb) ? "CONNECTED" : "DISCONNECTED";
+    private String getState(CordVtnService service, CordVtnNode node) {
+        return service.getNodeInitState(node) ? "COMPLETE" : "INCOMPLETE";
     }
 }

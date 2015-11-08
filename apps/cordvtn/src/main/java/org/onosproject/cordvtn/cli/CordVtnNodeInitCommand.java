@@ -20,38 +20,38 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cordvtn.CordVtnService;
-import org.onosproject.cordvtn.OvsdbNode;
+import org.onosproject.cordvtn.CordVtnNode;
 
 import java.util.NoSuchElementException;
 
 /**
- * Deletes OVSDB nodes from cordvtn.
+ * Initializes nodes for CordVtn service.
  */
-@Command(scope = "onos", name = "ovsdb-delete",
-        description = "Deletes OVSDB nodes from cordvtn")
-public class OvsdbNodeDeleteCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "cordvtn-node-init",
+        description = "Initializes nodes for CORD VTN service")
+public class CordVtnNodeInitCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "hosts", description = "Hostname(s) or IP(s)",
+    @Argument(index = 0, name = "hostnames", description = "Hostname(s)",
             required = true, multiValued = true)
-    private String[] hosts = null;
+    private String[] hostnames = null;
 
     @Override
     protected void execute() {
         CordVtnService service = AbstractShellCommand.get(CordVtnService.class);
 
-        for (String host : hosts) {
-            OvsdbNode ovsdb;
+        for (String hostname : hostnames) {
+            CordVtnNode node;
             try {
-                ovsdb = service.getNodes().stream()
-                        .filter(node -> node.host().equals(host))
+                node = service.getNodes()
+                        .stream()
+                        .filter(n -> n.hostname().equals(hostname))
                         .findFirst().get();
-
             } catch (NoSuchElementException e) {
-                print("Unable to find %s", host);
+                print("Unable to find %s", hostname);
                 continue;
             }
 
-            service.deleteNode(ovsdb);
+            service.initNode(node);
         }
     }
 }

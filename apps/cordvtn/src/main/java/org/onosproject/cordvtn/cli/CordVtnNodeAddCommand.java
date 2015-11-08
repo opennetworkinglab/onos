@@ -22,27 +22,26 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cordvtn.CordVtnService;
-import org.onosproject.cordvtn.DefaultOvsdbNode;
-import org.onosproject.cordvtn.OvsdbNode;
+import org.onosproject.cordvtn.CordVtnNode;
 import org.onosproject.net.DeviceId;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * Adds a new OVSDB nodes.
+ * Adds a new node to the service.
  */
-@Command(scope = "onos", name = "ovsdb-add",
-        description = "Adds a new OVSDB node to cordvtn")
-public class OvsdbNodeAddCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "cordvtn-node-add",
+        description = "Adds a new node to CORD VTN service")
+public class CordVtnNodeAddCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "host", description = "Hostname or IP",
+    @Argument(index = 0, name = "hostname", description = "Hostname",
             required = true, multiValued = false)
-    private String host = null;
+    private String hostname = null;
 
-    @Argument(index = 1, name = "address",
+    @Argument(index = 1, name = "ovsdb",
             description = "OVSDB server listening address (ip:port)",
             required = true, multiValued = false)
-    private String address = null;
+    private String ovsdb = null;
 
     @Argument(index = 2, name = "bridgeId",
             description = "Device ID of integration bridge",
@@ -51,15 +50,15 @@ public class OvsdbNodeAddCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        checkArgument(address.contains(":"), "address should be ip:port format");
+        checkArgument(ovsdb.contains(":"), "OVSDB address should be ip:port format");
         checkArgument(bridgeId.startsWith("of:"), "bridgeId should be of:dpid format");
 
         CordVtnService service = AbstractShellCommand.get(CordVtnService.class);
-        String[] ipPort = address.split(":");
-        OvsdbNode ovsdb = new DefaultOvsdbNode(host,
-                                               IpAddress.valueOf(ipPort[0]),
-                                               TpPort.tpPort(Integer.parseInt(ipPort[1])),
-                                               DeviceId.deviceId(bridgeId));
-        service.addNode(ovsdb);
+        String[] ipPort = ovsdb.split(":");
+        CordVtnNode node = new CordVtnNode(hostname,
+                                           IpAddress.valueOf(ipPort[0]),
+                                           TpPort.tpPort(Integer.parseInt(ipPort[1])),
+                                           DeviceId.deviceId(bridgeId));
+        service.addNode(node);
     }
 }

@@ -17,19 +17,16 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
-            <action class="org.onosproject.cordvtn.cli.OvsdbNodeListCommand"/>
+            <action class="org.onosproject.cordvtn.cli.CordVtnNodeListCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cordvtn.cli.OvsdbNodeAddCommand"/>
+            <action class="org.onosproject.cordvtn.cli.CordVtnNodeAddCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cordvtn.cli.OvsdbNodeDeleteCommand"/>
+            <action class="org.onosproject.cordvtn.cli.CordVtnNodeDeleteCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.cordvtn.cli.OvsdbNodeConnectCommand"/>
-        </command>
-        <command>
-            <action class="org.onosproject.cordvtn.cli.OvsdbNodeDisconnectCommand"/>
+            <action class="org.onosproject.cordvtn.cli.CordVtnNodeInitCommand"/>
         </command>
     </command-bundle>
 </blueprint>

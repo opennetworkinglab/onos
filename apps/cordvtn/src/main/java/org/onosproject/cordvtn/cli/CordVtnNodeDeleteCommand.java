@@ -20,41 +20,38 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cordvtn.CordVtnService;
-import org.onosproject.cordvtn.OvsdbNode;
+import org.onosproject.cordvtn.CordVtnNode;
 
 import java.util.NoSuchElementException;
 
 /**
- * Disconnects OVSDBs.
+ * Deletes nodes from the service.
  */
-@Command(scope = "onos", name = "ovsdb-disconnect",
-        description = "Disconnects OVSDBs")
-public class OvsdbNodeDisconnectCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "cordvtn-node-delete",
+        description = "Deletes nodes from CORD VTN service")
+public class CordVtnNodeDeleteCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "hosts", description = "Hostname(s) or IP(s)",
+    @Argument(index = 0, name = "hostnames", description = "Hostname(s)",
             required = true, multiValued = true)
-    private String[] hosts = null;
+    private String[] hostnames = null;
 
     @Override
     protected void execute() {
         CordVtnService service = AbstractShellCommand.get(CordVtnService.class);
 
-        for (String host : hosts) {
-            OvsdbNode ovsdb;
+        for (String hostname : hostnames) {
+            CordVtnNode node;
             try {
-                ovsdb = service.getNodes().stream()
-                        .filter(node -> node.host().equals(host))
+                node = service.getNodes()
+                        .stream()
+                        .filter(n -> n.hostname().equals(hostname))
                         .findFirst().get();
             } catch (NoSuchElementException e) {
-                print("Unable to find %s", host);
+                print("Unable to find %s", hostname);
                 continue;
             }
 
-            if (!service.isNodeConnected(ovsdb)) {
-                print("OVSDB %s is already in disconnected state, do nothing", host);
-            } else {
-                service.disconnect(ovsdb);
-            }
+            service.deleteNode(node);
         }
     }
 }

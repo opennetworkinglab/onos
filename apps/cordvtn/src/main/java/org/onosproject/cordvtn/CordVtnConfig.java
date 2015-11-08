@@ -32,77 +32,82 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class CordVtnConfig extends Config<ApplicationId> {
 
-    public static final String OVSDB_NODES = "ovsdbNodes";
-    public static final String HOST = "host";
-    public static final String IP = "ip";
-    public static final String PORT = "port";
+    public static final String CORDVTN_NODES = "nodes";
+    public static final String HOSTNAME = "hostname";
+    public static final String OVSDB_IP = "ovsdbIp";
+    public static final String OVSDB_PORT = "ovsdbPort";
     public static final String BRIDGE_ID = "bridgeId";
 
     /**
-     * Returns the set of ovsdb nodes read from network config.
+     * Returns the set of nodes read from network config.
      *
-     * @return set of OvsdbNodeConfig or null
+     * @return set of CordVtnNodeConfig or null
      */
-    public Set<OvsdbNodeConfig> ovsdbNodes() {
-        Set<OvsdbNodeConfig> ovsdbNodes = Sets.newHashSet();
+    public Set<CordVtnNodeConfig> cordVtnNodes() {
+        Set<CordVtnNodeConfig> nodes = Sets.newHashSet();
 
-        JsonNode nodes = object.get(OVSDB_NODES);
-        if (nodes == null) {
+        JsonNode jsonNodes = object.get(CORDVTN_NODES);
+        if (jsonNodes == null) {
             return null;
         }
-        nodes.forEach(jsonNode -> ovsdbNodes.add(new OvsdbNodeConfig(
-            jsonNode.path(HOST).asText(),
-            IpAddress.valueOf(jsonNode.path(IP).asText()),
-            TpPort.tpPort(jsonNode.path(PORT).asInt()),
+        jsonNodes.forEach(jsonNode -> nodes.add(new CordVtnNodeConfig(
+            jsonNode.path(HOSTNAME).asText(),
+            IpAddress.valueOf(jsonNode.path(OVSDB_IP).asText()),
+            TpPort.tpPort(jsonNode.path(OVSDB_PORT).asInt()),
             DeviceId.deviceId(jsonNode.path(BRIDGE_ID).asText()))));
 
-        return ovsdbNodes;
+        return nodes;
     }
 
     /**
-     * Configuration for an ovsdb node.
+     * Configuration for CordVtn node.
      */
-    public static class OvsdbNodeConfig {
+    public static class CordVtnNodeConfig {
 
-        private final String host;
-        private final IpAddress ip;
-        private final TpPort port;
+        private final String hostname;
+        private final IpAddress ovsdbIp;
+        private final TpPort ovsdbPort;
         private final DeviceId bridgeId;
 
-        public OvsdbNodeConfig(String host, IpAddress ip, TpPort port, DeviceId bridgeId) {
-            this.host = checkNotNull(host);
-            this.ip = checkNotNull(ip);
-            this.port = checkNotNull(port);
+        public CordVtnNodeConfig(String hostname, IpAddress ovsdbIp, TpPort ovsdbPort, DeviceId bridgeId) {
+            this.hostname = checkNotNull(hostname);
+            this.ovsdbIp = checkNotNull(ovsdbIp);
+            this.ovsdbPort = checkNotNull(ovsdbPort);
             this.bridgeId = checkNotNull(bridgeId);
         }
 
         /**
-         * Returns host information of the node.
+         * Returns hostname of the node.
          *
-         * @return host
+         * @return hostname
          */
-        public String host() {
-            return this.host;
+        public String hostname() {
+            return this.hostname;
         }
 
         /**
-         * Returns ip address to access ovsdb-server of the node.
+         * Returns OVSDB ip address of the node.
          *
-         * @return ip address
+         * @return OVSDB server IP address
          */
-        public IpAddress ip() {
-            return this.ip;
+        public IpAddress ovsdbIp() {
+            return this.ovsdbIp;
         }
 
         /**
-         * Returns port number to access ovsdb-server of the node.
+         * Returns OVSDB port number of the node.
          *
          * @return port number
          */
-        public TpPort port() {
-            return this.port;
+        public TpPort ovsdbPort() {
+            return this.ovsdbPort;
         }
 
+        /**
+         * Returns integration bridge id of the node.
+         *
+         * @return device id
+         */
         public DeviceId bridgeId() {
             return this.bridgeId;
         }

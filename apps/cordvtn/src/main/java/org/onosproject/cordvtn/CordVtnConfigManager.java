@@ -88,10 +88,10 @@ public class CordVtnConfigManager {
             return;
         }
 
-        config.ovsdbNodes().forEach(node -> {
-            DefaultOvsdbNode ovsdb = new DefaultOvsdbNode(
-                    node.host(), node.ip(), node.port(), node.bridgeId());
-            cordVtnService.addNode(ovsdb);
+        config.cordVtnNodes().forEach(node -> {
+            CordVtnNode cordVtnNode = new CordVtnNode(
+                    node.hostname(), node.ovsdbIp(), node.ovsdbPort(), node.bridgeId());
+            cordVtnService.addNode(cordVtnNode);
         });
     }
 
