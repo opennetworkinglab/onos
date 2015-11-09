@@ -294,7 +294,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     private <K, V> boolean appendValues(TransactionalMap<K, List<V>> map, K key, List<V> values) {
         List<V> oldValues = map.get(key);
         if (oldValues == null) {
-            return map.replace(key, oldValues, new ArrayList<>(values));
+            map.put(key, new ArrayList<>(values));
+            return true;
         }
 
         LinkedHashSet<V> oldSet = new LinkedHashSet<>(oldValues);
@@ -321,7 +322,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     private <K, V> boolean removeValues(TransactionalMap<K, List<V>> map, K key, List<V> values) {
         List<V> oldValues = map.get(key);
         if (oldValues == null) {
-            return map.replace(key, oldValues, new ArrayList<>());
+            map.put(key, new ArrayList<>());
+            return true;
         }
 
         LinkedHashSet<V> oldSet = new LinkedHashSet<>(oldValues);
