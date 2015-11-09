@@ -36,6 +36,7 @@
         <module>net</module>
         <module>store</module>
         <module>rpc</module>
+        <module>rpc-grpc</module>
     </modules>
 
     <dependencies>

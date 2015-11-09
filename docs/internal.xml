@@ -51,8 +51,11 @@
                     <show>package</show>
                     <docfilessubdirs>true</docfilessubdirs>
                     <doctitle>ONOS Java API (1.4.0-SNAPSHOT)</doctitle>
-                    <excludePackageNames>@internal-excludes
-                    </excludePackageNames>
+                    <excludePackageNames>@internal-excludes</excludePackageNames>
+                    <sourceFileExcludes>
+                        <sourceFileExclude>**/generated-sources/**</sourceFileExclude>
+                    </sourceFileExcludes>
+
                     <groups>
                         <group>
                             <title>Network Model &amp; Services</title>

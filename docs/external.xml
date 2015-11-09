@@ -46,11 +46,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.1</version>
+                <version>2.10.3</version>
                 <configuration>
                     <show>package</show>
-                    <excludePackageNames>@external-excludes
-                    </excludePackageNames>
+                    <excludePackageNames>@external-excludes</excludePackageNames>
+                    <sourceFileExcludes>
+                        <sourceFileExclude>**/generated-sources/**</sourceFileExclude>
+                    </sourceFileExcludes>
                     <docfilessubdirs>true</docfilessubdirs>
                     <doctitle>ONOS Java API (1.4.0-SNAPSHOT)</doctitle>
                     <groups>
