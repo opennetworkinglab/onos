@@ -30,7 +30,7 @@
 
     // references to injected services etc.
     var $scope, $log, $cookies, fs, ks, zs, gs, ms, sus, flash, wss, ps,
-        tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, ttip, tov;
+        tds, tes, tfs, tps, tis, tss, tls, tts, tos, fltr, ttbs, ttip, tov;
 
     // DOM elements
     var ovtopo, svg, defs, zoomLayer, mapG, spriteG, forceG, noDevsLayer;
@@ -425,7 +425,7 @@
         .controller('OvTopoCtrl', ['$scope', '$log', '$location', '$timeout',
             '$cookies', 'FnService', 'MastService', 'KeyService', 'ZoomService',
             'GlyphService', 'MapService', 'SvgUtilService', 'FlashService',
-            'WebSocketService', 'PrefsService',
+            'WebSocketService', 'PrefsService', 'TopoDialogService',
             'TopoEventService', 'TopoForceService', 'TopoPanelService',
             'TopoInstService', 'TopoSelectService', 'TopoLinkService',
             'TopoTrafficService', 'TopoObliqueService', 'TopoFilterService',
@@ -433,9 +433,9 @@
             'TopoOverlayService',
 
         function (_$scope_, _$log_, $loc, $timeout, _$cookies_, _fs_, mast, _ks_,
-                  _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _tes_, _tfs_,
-                  _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_, _ttbs_, tspr,
-                  _ttip_, _tov_) {
+                  _zs_, _gs_, _ms_, _sus_, _flash_, _wss_, _ps_, _tds_, _tes_,
+                  _tfs_, _tps_, _tis_, _tss_, _tls_, _tts_, _tos_, _fltr_,
+                  _ttbs_, tspr, _ttip_, _tov_) {
             var params = $loc.search(),
                 projection,
                 dim,
@@ -461,6 +461,7 @@
             flash = _flash_;
             wss = _wss_;
             ps = _ps_;
+            tds = _tds_;
             tes = _tes_;
             tfs = _tfs_;
             // TODO: consider funnelling actions through TopoForceService...
@@ -495,6 +496,7 @@
                 tes.stop();
                 ks.unbindKeys();
                 tps.destroyPanels();
+                tds.closeDialog();
                 tis.destroyInst();
                 tfs.destroyForce();
                 ttbs.destroyToolbar();

@@ -23,7 +23,7 @@
     'use strict';
 
     // injected references
-    var $log, fs, tbs, ps, tov, api;
+    var $log, fs, tbs, ps, tov, tds, api;
 
     // API:
     //  getActionEntry
@@ -192,6 +192,8 @@
             });
         }
 
+        // ensure dialog has closed (if opened by outgoing overlay)
+        tds.closeDialog();
         thirdRow.clear();
 
         if (!order.length) {
@@ -271,14 +273,15 @@
     angular.module('ovTopo')
         .factory('TopoToolbarService',
         ['$log', 'FnService', 'ToolbarService', 'PrefsService',
-            'TopoOverlayService',
+            'TopoOverlayService', 'TopoDialogService',
 
-        function (_$log_, _fs_, _tbs_, _ps_, _tov_) {
+        function (_$log_, _fs_, _tbs_, _ps_, _tov_, _tds_) {
             $log = _$log_;
             fs = _fs_;
             tbs = _tbs_;
             ps = _ps_;
             tov = _tov_;
+            tds = _tds_;
 
             return {
                 init: init,

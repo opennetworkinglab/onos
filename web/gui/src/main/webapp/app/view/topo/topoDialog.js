@@ -106,6 +106,13 @@
             .on('click', invoke);
     }
 
+    function setTitle(title) {
+        if (pApi) {
+            pApi.appendHeader('h2').text(title);
+        }
+        return dApi;
+    }
+
     function addContent(content) {
         if (pApi) {
             pApi.appendBody(content);
@@ -127,11 +134,11 @@
             pApi = createDialog();
         }
         pApi.reset();
-        pApi.appendHeader('h2').text('=dialog=');
         panel.show();
 
         // return the dialog object API
         dApi = {
+            setTitle: setTitle,
             addContent: addContent,
             addButton: addButton
         };
