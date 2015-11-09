@@ -67,7 +67,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     @Deactivate
     public void deactivate() {
         store.unsetDelegate(delegate);
-        eventDispatcher.addSink(ResourceEvent.class, listenerRegistry);
+        eventDispatcher.removeSink(ResourceEvent.class);
     }
 
     @Override
