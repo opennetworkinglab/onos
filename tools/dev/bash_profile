@@ -67,7 +67,6 @@ alias pub='onos-push-update-bundle'
 
 # Short-hand for tailing and searching the ONOS (karaf) log
 alias tl='$ONOS_ROOT/tools/dev/bin/onos-local-log'
-alias ll='less $KARAF_LOG'
 alias gl='grep $KARAF_LOG --colour=auto -E -e '
 
 function filterLocalLog {
