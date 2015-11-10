@@ -292,9 +292,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
      * @return true if the operation succeeds, false otherwise.
      */
     private <K, V> boolean appendValues(TransactionalMap<K, List<V>> map, K key, List<V> values) {
-        List<V> oldValues = map.get(key);
+        List<V> oldValues = map.putIfAbsent(key, new ArrayList<>(values));
         if (oldValues == null) {
-            map.put(key, new ArrayList<>(values));
             return true;
         }
 
