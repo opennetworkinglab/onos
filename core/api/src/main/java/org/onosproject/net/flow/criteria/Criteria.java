@@ -519,6 +519,16 @@ public final class Criteria {
         return new ArpPaCriterion(ip, Type.ARP_TPA);
     }
 
+    /**
+     * Creates a match on MAC source field using the specified value.
+     *
+     * @param mac MAC source value
+     * @return match criterion
+     */
+    public static Criterion matchArpTha(MacAddress mac) {
+        return new ArpHaCriterion(mac, Type.ARP_THA);
+    }
+
     public static Criterion dummy() {
         return new DummyCriterion();
     }
