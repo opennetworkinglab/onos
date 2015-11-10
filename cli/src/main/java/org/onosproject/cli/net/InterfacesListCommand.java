@@ -17,6 +17,8 @@ package org.onosproject.cli.net;
 
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Command;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.Comparators;
 import org.onosproject.incubator.net.intf.Interface;
@@ -32,11 +34,12 @@ import java.util.List;
         description = "Lists all configured interfaces.")
 public class InterfacesListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT =
-            "port=%s/%s, ips=%s, mac=%s, vlan=%s";
+    private static final String FORMAT = "%s: port=%s/%s";
+    private static final String IP_FORMAT = " ips=";
+    private static final String MAC_FORMAT = " mac=";
+    private static final String VLAN_FORMAT = " vlan=";
 
-    private static final String NAME_FORMAT =
-            "%s: port=%s/%s, ips=%s, mac=%s, vlan=%s";
+    private static final String NO_NAME = "(unamed)";
 
     @Override
     protected void execute() {
@@ -46,16 +49,32 @@ public class InterfacesListCommand extends AbstractShellCommand {
 
         Collections.sort(interfaces, Comparators.INTERFACES_COMPARATOR);
 
-        for (Interface intf : interfaces) {
-            if (intf.name().equals(Interface.NO_INTERFACE_NAME)) {
-                print(FORMAT, intf.connectPoint().deviceId(), intf.connectPoint().port(),
-                        intf.ipAddresses(), intf.mac(), intf.vlan());
-            } else {
-                print(NAME_FORMAT, intf.name(), intf.connectPoint().deviceId(),
-                        intf.connectPoint().port(), intf.ipAddresses(),
-                        intf.mac(), intf.vlan());
-            }
+        interfaces.forEach(this::printInterface);
+    }
+
+    private void printInterface(Interface intf) {
+        StringBuilder formatStringBuilder = new StringBuilder(FORMAT);
+
+        if (!intf.ipAddresses().isEmpty()) {
+            formatStringBuilder.append(IP_FORMAT);
+            formatStringBuilder.append(intf.ipAddresses().toString());
         }
+
+        if (!intf.mac().equals(MacAddress.NONE)) {
+            formatStringBuilder.append(MAC_FORMAT);
+            formatStringBuilder.append(intf.mac().toString());
+        }
+
+        if (!intf.vlan().equals(VlanId.NONE)) {
+            formatStringBuilder.append(VLAN_FORMAT);
+            formatStringBuilder.append(intf.vlan().toString());
+        }
+
+        String name = (intf.name().equals(Interface.NO_INTERFACE_NAME)) ?
+                      NO_NAME : intf.name();
+
+        print(formatStringBuilder.toString(), name, intf.connectPoint().deviceId(),
+                intf.connectPoint().port());
     }
 
 }
