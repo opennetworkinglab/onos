@@ -30,15 +30,36 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An Interface maps network configuration information (such as addresses and
- * vlans) to a port in the network. This is considered a L2/L3 network
- * interface.
+ * vlans) to a port in the network.
  */
 @Beta
 public class Interface {
+    public static final String NO_INTERFACE_NAME = "";
+
+    private final String name;
     private final ConnectPoint connectPoint;
     private final Set<InterfaceIpAddress> ipAddresses;
     private final MacAddress macAddress;
     private final VlanId vlan;
+
+    /**
+     * Creates new Interface with the provided configuration.
+     *
+     * @param name name of the interface
+     * @param connectPoint the connect point this interface maps to
+     * @param ipAddresses Set of IP addresses
+     * @param macAddress MAC address
+     * @param vlan VLAN ID
+     */
+    public Interface(String name, ConnectPoint connectPoint,
+                     Set<InterfaceIpAddress> ipAddresses,
+                     MacAddress macAddress, VlanId vlan) {
+        this.name = name == null ? NO_INTERFACE_NAME : name;
+        this.connectPoint = checkNotNull(connectPoint);
+        this.ipAddresses = ipAddresses == null ? Sets.newHashSet() : ipAddresses;
+        this.macAddress = macAddress == null ? MacAddress.NONE : macAddress;
+        this.vlan = vlan == null ? VlanId.NONE : vlan;
+    }
 
     /**
      * Creates new Interface with the provided configuration.
@@ -51,10 +72,16 @@ public class Interface {
     public Interface(ConnectPoint connectPoint,
                      Set<InterfaceIpAddress> ipAddresses,
                      MacAddress macAddress, VlanId vlan) {
-        this.connectPoint = checkNotNull(connectPoint);
-        this.ipAddresses = ipAddresses == null ? Sets.newHashSet() : ipAddresses;
-        this.macAddress = macAddress == null ? MacAddress.NONE : macAddress;
-        this.vlan = vlan == null ? VlanId.NONE : vlan;
+        this(NO_INTERFACE_NAME, connectPoint, ipAddresses, macAddress, vlan);
+    }
+
+    /**
+     * Retrieves the name of the interface.
+     *
+     * @return name
+     */
+    public String name() {
+        return name;
     }
 
     /**
@@ -101,7 +128,8 @@ public class Interface {
 
         Interface otherInterface = (Interface) other;
 
-        return Objects.equals(connectPoint, otherInterface.connectPoint) &&
+        return Objects.equals(name, otherInterface.name) &&
+                Objects.equals(connectPoint, otherInterface.connectPoint) &&
                 Objects.equals(ipAddresses, otherInterface.ipAddresses) &&
                 Objects.equals(macAddress, otherInterface.macAddress) &&
                 Objects.equals(vlan, otherInterface.vlan);
@@ -109,12 +137,13 @@ public class Interface {
 
     @Override
     public int hashCode() {
-        return Objects.hash(connectPoint, ipAddresses, macAddress, vlan);
+        return Objects.hash(connectPoint, name, ipAddresses, macAddress, vlan);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
+                .add("name", name)
                 .add("connectPoint", connectPoint)
                 .add("ipAddresses", ipAddresses)
                 .add("macAddress", macAddress)

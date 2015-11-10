@@ -16,13 +16,13 @@
 
 package org.onosproject.incubator.net.intf;
 
-import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 
 /**
  * Provides a means to modify the interfaces configuration.
  */
 public interface InterfaceAdminService {
+
     /**
      * Adds a new interface configuration to the system.
      *
@@ -34,7 +34,7 @@ public interface InterfaceAdminService {
      * Removes an interface configuration from the system.
      *
      * @param connectPoint connect point of the interface
-     * @param vlanId vlan id
+     * @param name name of the interface
      */
-    void remove(ConnectPoint connectPoint, VlanId vlanId);
+    boolean remove(ConnectPoint connectPoint, String name);
 }

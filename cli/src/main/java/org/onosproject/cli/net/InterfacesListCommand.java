@@ -35,6 +35,9 @@ public class InterfacesListCommand extends AbstractShellCommand {
     private static final String FORMAT =
             "port=%s/%s, ips=%s, mac=%s, vlan=%s";
 
+    private static final String NAME_FORMAT =
+            "%s: port=%s/%s, ips=%s, mac=%s, vlan=%s";
+
     @Override
     protected void execute() {
         InterfaceService interfaceService = get(InterfaceService.class);
@@ -44,8 +47,14 @@ public class InterfacesListCommand extends AbstractShellCommand {
         Collections.sort(interfaces, Comparators.INTERFACES_COMPARATOR);
 
         for (Interface intf : interfaces) {
-            print(FORMAT, intf.connectPoint().deviceId(), intf.connectPoint().port(),
-                    intf.ipAddresses(), intf.mac(), intf.vlan());
+            if (intf.name().equals(Interface.NO_INTERFACE_NAME)) {
+                print(FORMAT, intf.connectPoint().deviceId(), intf.connectPoint().port(),
+                        intf.ipAddresses(), intf.mac(), intf.vlan());
+            } else {
+                print(NAME_FORMAT, intf.name(), intf.connectPoint().deviceId(),
+                        intf.connectPoint().port(), intf.ipAddresses(),
+                        intf.mac(), intf.vlan());
+            }
         }
     }
 

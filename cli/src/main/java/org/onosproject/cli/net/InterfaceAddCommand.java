@@ -17,6 +17,7 @@
 package org.onosproject.cli.net;
 
 import com.google.common.collect.Sets;
+import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.MacAddress;
@@ -36,10 +37,14 @@ import java.util.Set;
         description = "Adds a new configured interface")
 public class InterfaceAddCommand extends AbstractShellCommand {
 
-    @Option(name = "-c", aliases = "--connectPoint",
+    @Argument(index = 0, name = "port",
             description = "Device port that the interface is associated with",
             required = true, multiValued = false)
     private String connectPoint = null;
+
+    @Argument(index = 1, name = "name", description = "Interface name",
+            required = true, multiValued = false)
+    private String name = null;
 
     @Option(name = "-m", aliases = "--mac",
             description = "MAC address of the interface",
@@ -72,10 +77,13 @@ public class InterfaceAddCommand extends AbstractShellCommand {
 
         VlanId vlanId = vlan == null ? VlanId.NONE : VlanId.vlanId(Short.parseShort(vlan));
 
-        Interface intf = new Interface(ConnectPoint.deviceConnectPoint(connectPoint),
+        Interface intf = new Interface(name,
+                ConnectPoint.deviceConnectPoint(connectPoint),
                 ipAddresses, macAddr, vlanId);
 
         interfaceService.add(intf);
+
+        print("Interface added");
     }
 
 }

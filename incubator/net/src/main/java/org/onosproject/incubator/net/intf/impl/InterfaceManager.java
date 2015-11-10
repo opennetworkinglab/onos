@@ -18,6 +18,7 @@ package org.onosproject.incubator.net.intf.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -39,9 +40,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toSet;
@@ -145,7 +148,7 @@ public class InterfaceManager implements InterfaceService,
 
     private void updateInterfaces(InterfaceConfig intfConfig) {
         try {
-            interfaces.put(intfConfig.subject(), intfConfig.getInterfaces());
+            interfaces.put(intfConfig.subject(), Sets.newHashSet(intfConfig.getInterfaces()));
         } catch (ConfigException e) {
             log.error("Error in interface config", e);
         }
@@ -157,18 +160,7 @@ public class InterfaceManager implements InterfaceService,
 
     @Override
     public void add(Interface intf) {
-        if (interfaces.containsKey(intf.connectPoint())) {
-            boolean conflict = interfaces.get(intf.connectPoint()).stream()
-                    .filter(i -> i.connectPoint().equals(intf.connectPoint()))
-                    .filter(i -> i.mac().equals(intf.mac()))
-                    .filter(i -> i.vlan().equals(intf.vlan()))
-                    .findAny().isPresent();
-
-            if (conflict) {
-                log.error("Can't add interface because it conflicts with existing config");
-                return;
-            }
-        }
+        addInternal(intf);
 
         InterfaceConfig config =
                 configService.addConfig(intf.connectPoint(), CONFIG_CLASS);
@@ -178,29 +170,72 @@ public class InterfaceManager implements InterfaceService,
         configService.applyConfig(intf.connectPoint(), CONFIG_CLASS, config.node());
     }
 
+    private void addInternal(Interface intf) {
+        interfaces.compute(intf.connectPoint(), (cp, current) -> {
+            if (current == null) {
+                return Sets.newHashSet(intf);
+            }
+
+            Iterator<Interface> it = current.iterator();
+            while (it.hasNext()) {
+                Interface i = it.next();
+                if (i.name().equals(intf.name())) {
+                    it.remove();
+                    break;
+                }
+            }
+
+            current.add(intf);
+            return current;
+        });
+    }
+
     @Override
-    public void remove(ConnectPoint connectPoint, VlanId vlanId) {
-        Optional<Interface> intf = interfaces.get(connectPoint).stream()
-                .filter(i -> i.vlan().equals(vlanId))
-                .findAny();
+    public boolean remove(ConnectPoint connectPoint, String name) {
+        boolean success = removeInternal(name, connectPoint);
 
-        if (!intf.isPresent()) {
-            log.error("Can't find interface {}/{} to remove", connectPoint, vlanId);
-            return;
-        }
-
-        InterfaceConfig config = configService.addConfig(intf.get().connectPoint(), CONFIG_CLASS);
-        config.removeInterface(intf.get());
+        InterfaceConfig config = configService.addConfig(connectPoint, CONFIG_CLASS);
+        config.removeInterface(name);
 
         try {
             if (config.getInterfaces().isEmpty()) {
                 configService.removeConfig(connectPoint, CONFIG_CLASS);
             } else {
-                configService.applyConfig(intf.get().connectPoint(), CONFIG_CLASS, config.node());
+                configService.applyConfig(connectPoint, CONFIG_CLASS, config.node());
             }
         } catch (ConfigException e) {
             log.error("Error reading interfaces JSON", e);
         }
+
+        return success;
+    }
+
+    public boolean removeInternal(String name, ConnectPoint connectPoint) {
+        AtomicBoolean removed = new AtomicBoolean(false);
+
+        interfaces.compute(connectPoint, (cp, current) -> {
+            if (current == null) {
+                return null;
+            }
+
+            Iterator<Interface> it = current.iterator();
+            while (it.hasNext()) {
+                Interface i = it.next();
+                if (i.name().equals(name)) {
+                    it.remove();
+                    removed.set(true);
+                    break;
+                }
+            }
+
+            if (current.isEmpty()) {
+                return null;
+            } else {
+                return current;
+            }
+        });
+
+        return removed.get();
     }
 
     /**

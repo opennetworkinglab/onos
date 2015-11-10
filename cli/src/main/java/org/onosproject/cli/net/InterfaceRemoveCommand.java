@@ -18,7 +18,6 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.intf.InterfaceAdminService;
 import org.onosproject.net.ConnectPoint;
@@ -35,17 +34,23 @@ public class InterfaceRemoveCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     private String connectPoint = null;
 
-    @Argument(index = 1, name = "vlan",
-            description = "Interface vlan",
+    @Argument(index = 1, name = "name",
+            description = "Interface name",
             required = true, multiValued = false)
-    private String vlan = null;
+    private String name = null;
 
     @Override
     protected void execute() {
         InterfaceAdminService interfaceService = get(InterfaceAdminService.class);
 
-        interfaceService.remove(ConnectPoint.deviceConnectPoint(connectPoint),
-                VlanId.vlanId(Short.parseShort(vlan)));
+        boolean success = interfaceService.remove(
+                ConnectPoint.deviceConnectPoint(connectPoint), name);
+
+        if (success) {
+            print("Interface removed");
+        } else {
+            print("Unable to remove interface");
+        }
     }
 
 }

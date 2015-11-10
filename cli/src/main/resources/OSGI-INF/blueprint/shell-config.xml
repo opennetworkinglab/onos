@@ -358,15 +358,16 @@
         </command>
         <command>
             <action class="org.onosproject.cli.net.InterfaceAddCommand"/>
-            <optional-completers>
-                <entry key="-c" value-ref="connectPointCompleter"/>
-                <entry key="--connectPoint" value-ref="connectPointCompleter"/>
-            </optional-completers>
+            <completers>
+                <ref component-id="connectPointCompleter" />
+                <ref component-id="placeholderCompleter" />
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.cli.net.InterfaceRemoveCommand"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>
+                <ref component-id="placeholderCompleter" />
             </completers>
         </command>
         <command>
@@ -504,5 +505,7 @@
     <bean id="metricNameCompleter" class="org.onosproject.cli.MetricNameCompleter"/>
     <bean id="upDownCompleter" class="org.onosproject.cli.UpDownCompleter"/>
     <bean id="encapTypeCompleter" class="org.onosproject.cli.net.EncapTypeCompleter"/>
+
+    <bean id="placeholderCompleter" class="org.onosproject.cli.PlaceholderCompleter"/>
 
 </blueprint>
