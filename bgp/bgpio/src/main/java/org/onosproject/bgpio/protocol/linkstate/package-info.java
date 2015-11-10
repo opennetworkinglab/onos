@@ -15,6 +15,6 @@
  */
 
 /**
- * Provides implementation of the flow Classifier service.
+ * BGP Protocol specific link state details.
  */
-package org.onosproject.vtnrsc.flowClassifier.impl;
+package org.onosproject.bgpio.protocol.linkstate;

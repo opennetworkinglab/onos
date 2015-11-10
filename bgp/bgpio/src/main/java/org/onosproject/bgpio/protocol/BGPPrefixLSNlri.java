@@ -18,7 +18,7 @@ package org.onosproject.bgpio.protocol;
 import java.util.LinkedList;
 
 import org.onosproject.bgpio.types.BGPValueType;
-import org.onosproject.bgpio.protocol.link_state.NodeDescriptors;
+import org.onosproject.bgpio.protocol.linkstate.NodeDescriptors;
 
 /**
  * Abstraction of an entity providing BGP-LS Prefix NLRI.

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtnrsc.flowClassifier.impl;
+package org.onosproject.vtnrsc.flowclassifier.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -29,7 +29,7 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.vtnrsc.FlowClassifierId;
 import org.onosproject.vtnrsc.FlowClassifier;
-import org.onosproject.vtnrsc.flowClassifier.FlowClassifierService;
+import org.onosproject.vtnrsc.flowclassifier.FlowClassifierService;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;

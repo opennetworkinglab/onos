@@ -16,7 +16,7 @@
 package org.onosproject.bgpio.protocol;
 
 import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.protocol.link_state.BGPNodeLSNlriVer4.PROTOCOLTYPE;
+import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4.PROTOCOLTYPE;
 import org.onosproject.bgpio.types.RouteDistinguisher;
 
 /**

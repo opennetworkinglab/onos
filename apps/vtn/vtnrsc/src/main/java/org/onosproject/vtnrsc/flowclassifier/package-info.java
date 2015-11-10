@@ -15,6 +15,6 @@
  */
 
 /**
- * BGP Protocol specific link state details.
+ * Service for interacting with flow Classifier of SFC.
  */
-package org.onosproject.bgpio.protocol.link_state;
+package org.onosproject.vtnrsc.flowclassifier;

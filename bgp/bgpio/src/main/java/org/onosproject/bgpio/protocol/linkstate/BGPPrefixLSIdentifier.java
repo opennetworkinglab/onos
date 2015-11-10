@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.bgpio.protocol.link_state;
+package org.onosproject.bgpio.protocol.linkstate;
 
 import java.util.Iterator;
 import java.util.LinkedList;

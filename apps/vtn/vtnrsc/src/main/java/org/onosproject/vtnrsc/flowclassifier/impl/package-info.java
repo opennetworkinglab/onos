@@ -15,6 +15,6 @@
  */
 
 /**
- * Service for interacting with flow Classifier of SFC.
+ * Provides implementation of the flow Classifier service.
  */
-package org.onosproject.vtnrsc.flowClassifier;
+package org.onosproject.vtnrsc.flowclassifier.impl;

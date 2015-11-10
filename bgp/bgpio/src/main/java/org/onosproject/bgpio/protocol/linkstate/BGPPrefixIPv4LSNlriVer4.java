@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgpio.protocol.link_state;
+package org.onosproject.bgpio.protocol.linkstate;
 
 import java.util.LinkedList;
 
@@ -21,7 +21,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.exceptions.BGPParseException;
 import org.onosproject.bgpio.protocol.BGPPrefixLSNlri;
 import org.onosproject.bgpio.protocol.NlriType;
-import org.onosproject.bgpio.protocol.link_state.BGPNodeLSNlriVer4.PROTOCOLTYPE;
+import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4.PROTOCOLTYPE;
 import org.onosproject.bgpio.types.BGPValueType;
 import org.onosproject.bgpio.types.RouteDistinguisher;
 import org.onosproject.bgpio.util.Constants;

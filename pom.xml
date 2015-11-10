@@ -48,6 +48,7 @@
         <module>ovsdb</module>
         <module>netconf</module>
         <module>pcep</module>
+        <module>bgp</module>
 
         <module>providers</module>
         <module>drivers</module>
@@ -59,7 +60,6 @@
         <module>tools/package/archetypes</module>
         <module>tools/package/branding</module>
         <module>tools/build/conf</module>
-        <module>bgp</module>
     </modules>
 
     <url>http://onosproject.org/</url>

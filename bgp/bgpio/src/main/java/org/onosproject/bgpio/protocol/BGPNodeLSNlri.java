@@ -15,7 +15,7 @@
  */
 package org.onosproject.bgpio.protocol;
 
-import org.onosproject.bgpio.protocol.link_state.BGPNodeLSIdentifier;
+import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSIdentifier;
 
 /**
  * Abstraction of an entity providing BGP-LS Node NLRI.

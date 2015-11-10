@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgpio.protocol.link_state;
+package org.onosproject.bgpio.protocol.linkstate;
 
 import java.util.Objects;
 
