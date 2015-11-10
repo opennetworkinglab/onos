@@ -76,7 +76,7 @@ public class ResourcePathTest {
         LinkKey linkKey = LinkKey.linkKey(CP1_1, CP2_1);
         ResourcePath path = new ResourcePath(linkKey);
 
-        LinkKey child = (LinkKey) path.lastComponent();
+        LinkKey child = (LinkKey) path.last();
         assertThat(child, is(linkKey));
     }
 }

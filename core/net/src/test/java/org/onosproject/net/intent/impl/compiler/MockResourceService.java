@@ -90,7 +90,7 @@ class MockResourceService implements ResourceService {
 
     @Override
     public Collection<ResourcePath> getAvailableResources(ResourcePath parent) {
-        ResourcePath resource = ResourcePath.child(parent, MplsLabel.mplsLabel(10));
+        ResourcePath resource = parent.child(MplsLabel.mplsLabel(10));
         return ImmutableList.of(resource);
     }
 

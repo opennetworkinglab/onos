@@ -146,8 +146,8 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
 
     private Optional<MplsLabel> findMplsLabel(LinkKey link) {
         return resourceService.getAvailableResources(new ResourcePath(link)).stream()
-                .filter(x -> x.lastComponent() instanceof MplsLabel)
-                .map(x -> (MplsLabel) x.lastComponent())
+                .filter(x -> x.last() instanceof MplsLabel)
+                .map(x -> (MplsLabel) x.last())
                 .findFirst();
     }
 

@@ -264,7 +264,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         }
 
         return children.value().stream()
-                .filter(x -> x.lastComponent().getClass().equals(cls))
+                .filter(x -> x.last().getClass().equals(cls))
                 .filter(consumerMap::containsKey)
                 .collect(Collectors.toList());
     }
@@ -344,7 +344,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
      */
     private boolean isRegistered(TransactionalMap<ResourcePath, List<ResourcePath>> map, ResourcePath resource) {
         // root is always regarded to be registered
-        if (resource.isRoot()) {
+        if (!resource.parent().isPresent()) {
             return true;
         }
 

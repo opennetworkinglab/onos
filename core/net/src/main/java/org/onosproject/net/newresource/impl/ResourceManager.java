@@ -169,7 +169,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
         checkNotNull(children);
         checkArgument(!children.isEmpty());
 
-        List<ResourcePath> resources = Lists.transform(children, x -> ResourcePath.child(parent, x));
+        List<ResourcePath> resources = Lists.transform(children, parent::child);
         return store.register(resources);
     }
 
@@ -179,7 +179,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
         checkNotNull(children);
         checkArgument(!children.isEmpty());
 
-        List<ResourcePath> resources = Lists.transform(children, x -> ResourcePath.child(parent, x));
+        List<ResourcePath> resources = Lists.transform(children, parent::child);
         return store.unregister(resources);
     }
 

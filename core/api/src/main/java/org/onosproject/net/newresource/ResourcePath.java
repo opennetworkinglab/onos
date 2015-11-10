@@ -20,6 +20,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,17 +40,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Beta
 public final class ResourcePath {
 
-    private final List<Object> resources;
+    private final ResourcePath parent;
+    private final Object last;
 
     public static final ResourcePath ROOT = new ResourcePath(ImmutableList.of());
-
-    public static ResourcePath child(ResourcePath parent, Object child) {
-        ImmutableList<Object> components = ImmutableList.builder()
-                .addAll(parent.components())
-                .add(child)
-                .build();
-        return new ResourcePath(components);
-    }
 
     /**
      * Creates an resource path from the specified components.
@@ -67,13 +61,32 @@ public final class ResourcePath {
      */
     public ResourcePath(List<Object> components) {
         checkNotNull(components);
+        if (components.isEmpty()) {
+            this.parent = null;
+            this.last = null;
+            return;
+        }
 
-        this.resources = ImmutableList.copyOf(components);
+        LinkedList<Object> children = new LinkedList<>(components);
+        this.last = children.pollLast();
+        this.parent = new ResourcePath(children);
+    }
+
+    /**
+     * Creates an resource path from the specified parent and child.
+     *
+     * @param parent the parent of this resource
+     * @param last a child of the parent
+     */
+    public ResourcePath(ResourcePath parent, Object last) {
+        this.parent = checkNotNull(parent);
+        this.last = checkNotNull(last);
     }
 
     // for serialization
     private ResourcePath() {
-        this.resources = null;
+        this.parent = null;
+        this.last = null;
     }
 
     /**
@@ -82,7 +95,15 @@ public final class ResourcePath {
      * @return the components of this resource path
      */
     public List<Object> components() {
-        return resources;
+        LinkedList<Object> components = new LinkedList<>();
+
+        ResourcePath parentPath = parent;
+        while (parentPath != null) {
+            components.addFirst(last);
+            parentPath = parent.parent;
+        }
+
+        return components;
     }
 
     /**
@@ -93,20 +114,11 @@ public final class ResourcePath {
      * If there is no parent, empty instance will be returned.
      */
     public Optional<ResourcePath> parent() {
-        if (!isRoot()) {
-            return Optional.of(new ResourcePath(resources.subList(0, resources.size() - 1)));
-        }
-
-        return Optional.empty();
+        return Optional.ofNullable(parent);
     }
 
-    /**
-     * Returns true if the path represents root.
-     *
-     * @return true if the path represents root, false otherwise.
-     */
-    public boolean isRoot() {
-        return resources.size() == 0;
+    public ResourcePath child(Object child) {
+        return new ResourcePath(this, child);
     }
 
     /**
@@ -115,14 +127,13 @@ public final class ResourcePath {
      * @return the last component of this instance.
      * The return value is equal to the last object of {@code components()}.
      */
-    public Object lastComponent() {
-        int last = resources.size() - 1;
-        return resources.get(last);
+    public Object last() {
+        return last;
     }
 
     @Override
     public int hashCode() {
-        return resources.hashCode();
+        return Objects.hash(this.parent, this.last);
     }
 
     @Override
@@ -134,13 +145,15 @@ public final class ResourcePath {
             return false;
         }
         final ResourcePath that = (ResourcePath) obj;
-        return Objects.equals(this.resources, that.resources);
+        return Objects.equals(this.parent, that.parent)
+                && Objects.equals(this.last, that.last);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("resources", resources)
+                .add("parent", parent)
+                .add("last", last)
                 .toString();
     }
 }

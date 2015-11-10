@@ -183,7 +183,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         IndexedLambda minLambda = findFirstLambda(lambdas);
         List<ResourcePath> lambdaResources = path.links().stream()
                 .map(x -> new ResourcePath(linkKey(x.src(), x.dst())))
-                .map(x -> ResourcePath.child(x, minLambda))
+                .map(x -> x.child(minLambda))
                 .collect(Collectors.toList());
 
         List<ResourceAllocation> allocations = resourceService.allocate(intent.id(), lambdaResources);
@@ -198,8 +198,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         return links.stream()
                 .map(x -> new ResourcePath(linkKey(x.src(), x.dst())))
                 .map(resourceService::getAvailableResources)
-                .map(x -> Iterables.filter(x, r -> r.lastComponent() instanceof IndexedLambda))
-                .map(x -> Iterables.transform(x, r -> (IndexedLambda) r.lastComponent()))
+                .map(x -> Iterables.filter(x, r -> r.last() instanceof IndexedLambda))
+                .map(x -> Iterables.transform(x, r -> (IndexedLambda) r.last()))
                 .map(x -> (Set<IndexedLambda>) ImmutableSet.copyOf(x))
                 .reduce(Sets::intersection)
                 .orElse(Collections.emptySet());
