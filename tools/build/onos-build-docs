@@ -34,11 +34,11 @@ rm -fr $ONOS_ROOT/docs/target
 
 cd $ONOS_ROOT/docs
 processPom external.xml
-mvn -f aux-external.xml javadoc:aggregate
+mvn -f aux-external.xml javadoc:aggregate "$@"
 
 cd target && mv site/apidocs $apidocs
 tar zcf $apidocs.tar.gz $apidocs && cp $apidocs.tar.gz /tmp
 
 cd $ONOS_ROOT/docs
 processPom internal.xml
-mvn -f aux-internal.xml javadoc:aggregate
+mvn -f aux-internal.xml javadoc:aggregate "$@"
