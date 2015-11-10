@@ -58,11 +58,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * The main controller class. Handles all setup and network listeners -
- * Distributed ovsdbClient.
+ * distributed OVSDBClient.
  */
-public class Controller {
+public class OVSDBController {
     protected static final Logger log = LoggerFactory
-            .getLogger(Controller.class);
+            .getLogger(OVSDBController.class);
 
     private int ovsdbPort = OvsdbConstant.OVSDBPORT;
 
@@ -105,7 +105,7 @@ public class Controller {
     }
 
     /**
-     * Tells controller that we're ready to accept ovsdb node loop.
+     * Tells controller that we're ready to accept OVSDB node loop.
      * @throws InterruptedException if thread is interrupted
      */
     public void run() throws InterruptedException {
@@ -114,7 +114,7 @@ public class Controller {
     }
 
     /**
-     * Adds channel pipiline to handle a new connected node.
+     * Adds channel pipeline to handle a new connected node.
      */
     private class OnosCommunicationChannelInitializer
             extends ChannelInitializer<SocketChannel> {
@@ -128,7 +128,7 @@ public class Controller {
     }
 
     /**
-     * Handles the new connection of a node.
+     * Handles the new connection of node.
      *
      * @param channel the channel to use.
      */
@@ -169,9 +169,9 @@ public class Controller {
     }
 
     /**
-     * Gets an ovsdb client instance.
+     * Gets an OVSDB client instance.
      *
-     * @param nodeId data ovsdb node id
+     * @param nodeId data OVSDB node id
      * @param agent OvsdbAgent
      * @param monitorCallback Callback
      * @param channel Channel
@@ -251,12 +251,12 @@ public class Controller {
     }
 
     private class ConnectionListener implements ChannelFutureListener {
-        private Controller controller;
+        private OVSDBController controller;
         private IpAddress ip;
         private TpPort port;
         private AtomicInteger count = new AtomicInteger();
 
-        public ConnectionListener(Controller controller,
+        public ConnectionListener(OVSDBController controller,
                                   IpAddress ip,
                                   TpPort port) {
             this.controller = controller;

@@ -94,7 +94,7 @@ public class OvsdbControllerImpl implements OvsdbController {
 
     protected ConcurrentHashMap<String, String> requestDbName = new ConcurrentHashMap<String, String>();
 
-    private final Controller controller = new Controller();
+    private final OVSDBController controller = new OVSDBController();
 
     @Activate
     public void activate(ComponentContext context) {
