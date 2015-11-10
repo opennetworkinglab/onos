@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -34,6 +35,7 @@ import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
@@ -175,12 +177,13 @@ public class SpringOpenTTPDell extends SpringOpenTTP {
     //Dell switches need ETH_DST based match condition in all IP table entries.
     //So while processing the ETH_DST based filtering objective, store
     //the device MAC to be used locally to use it while pushing the IP rules.
-    protected List<FlowRule> processEthDstFilter(Criterion c,
+    protected List<FlowRule> processEthDstFilter(EthCriterion ethCriterion,
+                                                 VlanIdCriterion vlanIdCriterion,
                                                  FilteringObjective filt,
+                                                 VlanId assignedVlan,
                                                  ApplicationId applicationId) {
         // Store device termination Mac to be used in IP flow entries
-        EthCriterion e = (EthCriterion) c;
-        deviceTMac = e.mac();
+        deviceTMac = ethCriterion.mac();
 
         log.debug("For now not adding any TMAC rules "
                 + "into Dell switches as it is ignoring");
@@ -189,8 +192,9 @@ public class SpringOpenTTPDell extends SpringOpenTTP {
     }
 
     @Override
-    protected List<FlowRule> processVlanIdFilter(Criterion c,
+    protected List<FlowRule> processVlanIdFilter(VlanIdCriterion vlanIdCriterion,
                                                  FilteringObjective filt,
+                                                 VlanId assignedVlan,
                                                  ApplicationId applicationId) {
         log.debug("For now not adding any VLAN rules "
                 + "into Dell switches as it is ignoring");

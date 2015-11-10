@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
@@ -33,11 +34,23 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.basics.SubjectFactories;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.config.SegmentRoutingConfig;
@@ -139,11 +152,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private static ScheduledFuture<?> eventHandlerFuture = null;
     private ConcurrentLinkedQueue<Event> eventQueue = new ConcurrentLinkedQueue<Event>();
-    private Map<DeviceId, DefaultGroupHandler> groupHandlerMap = new ConcurrentHashMap<DeviceId, DefaultGroupHandler>();
+    private Map<DeviceId, DefaultGroupHandler> groupHandlerMap =
+            new ConcurrentHashMap<DeviceId, DefaultGroupHandler>();
     // Per device next objective ID store with (device id + neighbor set) as key
-    private EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey,
-        Integer> nsNextObjStore = null;
-    private EventuallyConsistentMap<SubnetNextObjectiveStoreKey, Integer> subnetNextObjStore = null;
+    private EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey, Integer>
+            nsNextObjStore = null;
+    private EventuallyConsistentMap<SubnetNextObjectiveStoreKey, Integer>
+            subnetNextObjStore = null;
     private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
     private EventuallyConsistentMap<String, Policy> policyStore = null;
     // Per device, per-subnet assigned-vlans store, with (device id + subnet
@@ -169,6 +184,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     return new SegmentRoutingConfig();
                 }
             };
+
+    private final HostListener hostListener = new InternalHostListener();
 
     private Object threadSchedulerLock = new Object();
     private static int numOfEventsQueued = 0;
@@ -258,6 +275,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         cfgService.addListener(cfgListener);
         cfgService.registerConfigFactory(cfgFactory);
+
+        hostService.addListener(hostListener);
 
         processor = new InternalPacketProcessor();
         linkListener = new InternalLinkListener();
@@ -637,6 +656,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (mastershipService.isLocalMaster(device.id())) {
             DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
             groupHandler.createGroupsFromSubnetConfig();
+            routingRulePopulator.populateSubnetBroadcastRule(device.id());
         }
     }
 
@@ -703,6 +723,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 if (mastershipService.isLocalMaster(device.id())) {
                     DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
                     groupHandler.createGroupsFromSubnetConfig();
+                    routingRulePopulator.populateSubnetBroadcastRule(device.id());
                 }
             }
 
@@ -720,6 +741,207 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     log.info("Network configuration updated.");
                     // TODO support dynamic configuration
                 }
+            }
+        }
+    }
+
+    private class InternalHostListener implements HostListener {
+        private ForwardingObjective.Builder getForwardingObjectiveBuilder(
+                MacAddress mac, VlanId vlanId, PortNumber port) {
+            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+            sbuilder.matchEthDst(mac);
+            sbuilder.matchVlanId(vlanId);
+
+            TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+            // TODO Move popVlan from flow action to group action
+            tbuilder.immediate().popVlan();
+            tbuilder.immediate().setOutput(port);
+
+            return DefaultForwardingObjective.builder()
+                    .withFlag(ForwardingObjective.Flag.SPECIFIC)
+                    .withSelector(sbuilder.build())
+                    .withTreatment(tbuilder.build())
+                    .withPriority(100)
+                    .fromApp(appId)
+                    .makePermanent();
+        }
+
+        private void processHostAddedEvent(HostEvent event) {
+            MacAddress mac = event.subject().mac();
+            VlanId vlanId = event.subject().vlan();
+            DeviceId deviceId = event.subject().location().deviceId();
+            PortNumber port = event.subject().location().port();
+            Set<IpAddress> ips = event.subject().ipAddresses();
+            log.debug("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
+
+            // TODO Move bridging table population to a separate class
+            // Populate bridging table entry
+            ForwardingObjective.Builder fob =
+                    getForwardingObjectiveBuilder(mac, vlanId, port);
+            flowObjectiveService.forward(deviceId, fob.add(
+                    new BridgingTableObjectiveContext(mac, vlanId)
+            ));
+
+            // Populate IP table entry
+            ips.forEach(ip -> {
+                if (ip.isIp4()) {
+                    routingRulePopulator.populateIpRuleForHost(
+                            deviceId, ip.getIp4Address(), mac, port);
+                }
+            });
+        }
+
+        private void processHostRemoveEvent(HostEvent event) {
+            MacAddress mac = event.subject().mac();
+            VlanId vlanId = event.subject().vlan();
+            DeviceId deviceId = event.subject().location().deviceId();
+            PortNumber port = event.subject().location().port();
+            Set<IpAddress> ips = event.subject().ipAddresses();
+            log.debug("Host {}/{} is removed from {}:{}", mac, vlanId, deviceId, port);
+
+            // Revoke bridging table entry
+            ForwardingObjective.Builder fob =
+                    getForwardingObjectiveBuilder(mac, vlanId, port);
+            flowObjectiveService.forward(deviceId, fob.remove(
+                    new BridgingTableObjectiveContext(mac, vlanId)
+            ));
+
+            // Revoke IP table entry
+            ips.forEach(ip -> {
+                if (ip.isIp4()) {
+                    routingRulePopulator.revokeIpRuleForHost(
+                            deviceId, ip.getIp4Address(), mac, port);
+                }
+            });
+        }
+
+        private void processHostMovedEvent(HostEvent event) {
+            MacAddress mac = event.subject().mac();
+            VlanId vlanId = event.subject().vlan();
+            DeviceId prevDeviceId = event.prevSubject().location().deviceId();
+            PortNumber prevPort = event.prevSubject().location().port();
+            Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
+            DeviceId newDeviceId = event.subject().location().deviceId();
+            PortNumber newPort = event.subject().location().port();
+            Set<IpAddress> newIps = event.subject().ipAddresses();
+            log.debug("Host {}/{} is moved from {}:{} to {}:{}",
+                    mac, vlanId, prevDeviceId, prevPort, newDeviceId, newPort);
+
+            // Revoke previous bridging table entry
+            ForwardingObjective.Builder prevFob =
+                    getForwardingObjectiveBuilder(mac, vlanId, prevPort);
+            flowObjectiveService.forward(prevDeviceId, prevFob.remove(
+                    new BridgingTableObjectiveContext(mac, vlanId)
+            ));
+
+            // Revoke previous IP table entry
+            prevIps.forEach(ip -> {
+                if (ip.isIp4()) {
+                    routingRulePopulator.revokeIpRuleForHost(
+                            prevDeviceId, ip.getIp4Address(), mac, prevPort);
+                }
+            });
+
+            // Populate new bridging table entry
+            ForwardingObjective.Builder newFob =
+                    getForwardingObjectiveBuilder(mac, vlanId, prevPort);
+            flowObjectiveService.forward(newDeviceId, newFob.add(
+                    new BridgingTableObjectiveContext(mac, vlanId)
+            ));
+
+            // Populate new IP table entry
+            newIps.forEach(ip -> {
+                if (ip.isIp4()) {
+                    routingRulePopulator.populateIpRuleForHost(
+                            newDeviceId, ip.getIp4Address(), mac, newPort);
+                }
+            });
+        }
+
+        private void processHostUpdatedEvent(HostEvent event) {
+            MacAddress mac = event.subject().mac();
+            VlanId vlanId = event.subject().vlan();
+            DeviceId prevDeviceId = event.prevSubject().location().deviceId();
+            PortNumber prevPort = event.prevSubject().location().port();
+            Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
+            DeviceId newDeviceId = event.subject().location().deviceId();
+            PortNumber newPort = event.subject().location().port();
+            Set<IpAddress> newIps = event.subject().ipAddresses();
+            log.debug("Host {}/{} is updated", mac, vlanId);
+
+            // Revoke previous IP table entry
+            prevIps.forEach(ip -> {
+                if (ip.isIp4()) {
+                    routingRulePopulator.revokeIpRuleForHost(
+                            prevDeviceId, ip.getIp4Address(), mac, prevPort);
+                }
+            });
+
+            // Populate new IP table entry
+            newIps.forEach(ip -> {
+                if (ip.isIp4()) {
+                    routingRulePopulator.populateIpRuleForHost(
+                            newDeviceId, ip.getIp4Address(), mac, newPort);
+                }
+            });
+        }
+
+        @Override
+        public void event(HostEvent event) {
+            // Do not proceed without mastership
+            DeviceId deviceId = event.subject().location().deviceId();
+            if (!mastershipService.isLocalMaster(deviceId)) {
+                return;
+            }
+
+            switch (event.type()) {
+                case HOST_ADDED:
+                    processHostAddedEvent(event);
+                    break;
+                case HOST_MOVED:
+                    processHostMovedEvent(event);
+                    break;
+                case HOST_REMOVED:
+                    processHostRemoveEvent(event);
+                    break;
+                case HOST_UPDATED:
+                    processHostUpdatedEvent(event);
+                    break;
+                default:
+                    log.warn("Unsupported host event type: {}", event.type());
+                    break;
+            }
+        }
+    }
+
+    private static class BridgingTableObjectiveContext implements ObjectiveContext {
+        final MacAddress mac;
+        final VlanId vlanId;
+
+        BridgingTableObjectiveContext(MacAddress mac, VlanId vlanId) {
+            this.mac = mac;
+            this.vlanId = vlanId;
+        }
+
+        @Override
+        public void onSuccess(Objective objective) {
+            if (objective.op() == Objective.Operation.ADD) {
+                log.debug("Successfully populate bridging table entry for {}/{}",
+                        mac, vlanId);
+            } else {
+                log.debug("Successfully revoke bridging table entry for {}/{}",
+                        mac, vlanId);
+            }
+        }
+
+        @Override
+        public void onError(Objective objective, ObjectiveError error) {
+            if (objective.op() == Objective.Operation.ADD) {
+                log.debug("Fail to populate bridging table entry for {}/{}. {}",
+                        mac, vlanId, error);
+            } else {
+                log.debug("Fail to revoke bridging table entry for {}/{}. {}",
+                         mac, vlanId, error);
             }
         }
     }

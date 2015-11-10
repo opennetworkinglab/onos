@@ -25,6 +25,7 @@ import com.google.common.cache.RemovalNotification;
 
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -54,6 +55,7 @@ import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.ForwardingObjective;
@@ -94,7 +96,9 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     private static final int TABLE_TMAC = 1;
     private static final int TABLE_IPV4_UNICAST = 2;
     private static final int TABLE_MPLS = 3;
+    private static final int TABLE_DMAC = 4;
     private static final int TABLE_ACL = 5;
+    private static final int TABLE_SMAC = 6;
 
     /**
      * Set the default values. These variables will get overwritten based on the
@@ -104,7 +108,9 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     protected int tmacTableId = TABLE_TMAC;
     protected int ipv4UnicastTableId = TABLE_IPV4_UNICAST;
     protected int mplsTableId = TABLE_MPLS;
+    protected int dstMacTableId = TABLE_DMAC;
     protected int aclTableId = TABLE_ACL;
+    protected int srcMacTableId = TABLE_SMAC;
 
     protected final Logger log = getLogger(getClass());
 
@@ -448,12 +454,14 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     fwd.treatment().allInstructions().get(0).type() == Instruction.Type.OUTPUT) {
                 OutputInstruction o = (OutputInstruction) fwd.treatment().allInstructions().get(0);
                 if (o.port() == PortNumber.CONTROLLER) {
-                    log.warn("Punts to the controller are handled by misses in"
-                            + " the TMAC, IP and MPLS tables.");
-                    return Collections.emptySet();
+                    treatmentBuilder.punt();
+                    treatment = treatmentBuilder.build();
+                } else {
+                    treatment = fwd.treatment();
                 }
+            } else {
+                treatment = fwd.treatment();
             }
-            treatment = fwd.treatment();
         } else {
             log.warn("VERSATILE forwarding objective needs next objective ID "
                     + "or treatment.");
@@ -475,19 +483,52 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         return Collections.singletonList(ruleBuilder.build());
     }
 
-    protected Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
-        log.debug("Processing specific");
+    private boolean isSupportedEthTypeObjective(ForwardingObjective fwd) {
         TrafficSelector selector = fwd.selector();
         EthTypeCriterion ethType = (EthTypeCriterion) selector
                 .getCriterion(Criterion.Type.ETH_TYPE);
         if ((ethType == null) ||
-                (ethType.ethType().toShort() != Ethernet.TYPE_IPV4) &&
-                (ethType.ethType().toShort() != Ethernet.MPLS_UNICAST)) {
+                ((ethType.ethType().toShort() != Ethernet.TYPE_IPV4) &&
+                        (ethType.ethType().toShort() != Ethernet.MPLS_UNICAST))) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isSupportedEthDstObjective(ForwardingObjective fwd) {
+        TrafficSelector selector = fwd.selector();
+        EthCriterion ethDst = (EthCriterion) selector
+                .getCriterion(Criterion.Type.ETH_DST);
+        VlanIdCriterion vlanId = (VlanIdCriterion) selector
+                .getCriterion(Criterion.Type.VLAN_VID);
+        if (ethDst == null && vlanId == null) {
+            return false;
+        }
+        return true;
+    }
+
+    protected Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
+        log.debug("Processing specific");
+        boolean isEthTypeObj = isSupportedEthTypeObjective(fwd);
+        boolean isEthDstObj = isSupportedEthDstObjective(fwd);
+
+        if (isEthTypeObj) {
+            return processEthTypeSpecificObjective(fwd);
+        } else if (isEthDstObj) {
+            return processEthDstSpecificObjective(fwd);
+        } else {
             log.warn("processSpecific: Unsupported "
                     + "forwarding objective criteraia");
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
         }
+    }
+
+    protected Collection<FlowRule>
+    processEthTypeSpecificObjective(ForwardingObjective fwd) {
+        TrafficSelector selector = fwd.selector();
+        EthTypeCriterion ethType = (EthTypeCriterion) selector
+                .getCriterion(Criterion.Type.ETH_TYPE);
 
         TrafficSelector.Builder filteredSelectorBuilder =
                 DefaultTrafficSelector.builder();
@@ -565,59 +606,167 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
 
     }
 
-    protected List<FlowRule> processEthDstFilter(Criterion c,
-                                       FilteringObjective filt,
-                                       ApplicationId applicationId) {
+    protected Collection<FlowRule>
+    processEthDstSpecificObjective(ForwardingObjective fwd) {
         List<FlowRule> rules = new ArrayList<>();
-        EthCriterion e = (EthCriterion) c;
+
+        // Build filtered selector
+        TrafficSelector selector = fwd.selector();
+        EthCriterion ethCriterion = (EthCriterion) selector
+                .getCriterion(Criterion.Type.ETH_DST);
+        VlanIdCriterion vlanIdCriterion = (VlanIdCriterion) selector
+                .getCriterion(Criterion.Type.VLAN_VID);
+        TrafficSelector.Builder filteredSelectorBuilder =
+                DefaultTrafficSelector.builder();
+        // Do not match MacAddress for subnet broadcast entry
+        if (!ethCriterion.mac().equals(MacAddress.NONE)) {
+            filteredSelectorBuilder.matchEthDst(ethCriterion.mac());
+        }
+        filteredSelectorBuilder.matchVlanId(vlanIdCriterion.vlanId());
+        TrafficSelector filteredSelector = filteredSelectorBuilder.build();
+
+        // Build filtered treatment
+        TrafficTreatment.Builder treatmentBuilder =
+                DefaultTrafficTreatment.builder();
+        if (fwd.treatment() != null) {
+            treatmentBuilder.deferred();
+            fwd.treatment().allInstructions().forEach(treatmentBuilder::add);
+        }
+        if (fwd.nextId() != null) {
+            NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
+            if (next != null) {
+                GroupKey key = appKryo.deserialize(next.data());
+                Group group = groupService.getGroup(deviceId, key);
+                if (group != null) {
+                    treatmentBuilder.deferred().group(group.id());
+                } else {
+                    log.warn("Group Missing");
+                    fail(fwd, ObjectiveError.GROUPMISSING);
+                    return Collections.emptySet();
+                }
+            }
+        }
+        treatmentBuilder.immediate().transition(aclTableId);
+        TrafficTreatment filteredTreatment = treatmentBuilder.build();
+
+        // Build bridging table entries
+        FlowRule.Builder flowRuleBuilder = DefaultFlowRule.builder();
+        flowRuleBuilder.fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .forDevice(deviceId)
+                .withSelector(filteredSelector)
+                .withTreatment(filteredTreatment)
+                .forTable(dstMacTableId);
+        if (fwd.permanent()) {
+            flowRuleBuilder.makePermanent();
+        } else {
+            flowRuleBuilder.makeTemporary(fwd.timeout());
+        }
+        rules.add(flowRuleBuilder.build());
+
+        /*
+        // TODO Emulate source MAC table behavior
+        // Do not install source MAC table entry for subnet broadcast
+        if (!ethCriterion.mac().equals(MacAddress.NONE)) {
+            // Build filtered selector
+            selector = fwd.selector();
+            ethCriterion = (EthCriterion) selector.getCriterion(Criterion.Type.ETH_DST);
+            filteredSelectorBuilder = DefaultTrafficSelector.builder();
+            filteredSelectorBuilder.matchEthSrc(ethCriterion.mac());
+            filteredSelector = filteredSelectorBuilder.build();
+
+            // Build empty treatment. Apply existing instruction if match.
+            treatmentBuilder = DefaultTrafficTreatment.builder();
+            filteredTreatment = treatmentBuilder.build();
+
+            // Build bridging table entries
+            flowRuleBuilder = DefaultFlowRule.builder();
+            flowRuleBuilder.fromApp(fwd.appId())
+                    .withPriority(fwd.priority())
+                    .forDevice(deviceId)
+                    .withSelector(filteredSelector)
+                    .withTreatment(filteredTreatment)
+                    .forTable(srcMacTableId)
+                    .makePermanent();
+            rules.add(flowRuleBuilder.build());
+        }
+        */
+
+        return rules;
+    }
+
+    protected List<FlowRule> processEthDstFilter(EthCriterion ethCriterion,
+                                       VlanIdCriterion vlanIdCriterion,
+                                       FilteringObjective filt,
+                                       VlanId assignedVlan,
+                                       ApplicationId applicationId) {
+        //handling untagged packets via assigned VLAN
+        if (vlanIdCriterion.vlanId() == VlanId.NONE) {
+            vlanIdCriterion = (VlanIdCriterion) Criteria.matchVlanId(assignedVlan);
+        }
+
+        /*
+         * Note: CpqD switches do not handle MPLS-related operation properly
+         * for a packet with VLAN tag. We pop VLAN here as a workaround.
+         * Side effect: HostService learns redundant hosts with same MAC but
+         * different VLAN. No known side effect on the network reachability.
+         */
+        List<FlowRule> rules = new ArrayList<>();
         TrafficSelector.Builder selectorIp = DefaultTrafficSelector
                 .builder();
         TrafficTreatment.Builder treatmentIp = DefaultTrafficTreatment
                 .builder();
-        selectorIp.matchEthDst(e.mac());
+        selectorIp.matchEthDst(ethCriterion.mac());
         selectorIp.matchEthType(Ethernet.TYPE_IPV4);
+        selectorIp.matchVlanId(vlanIdCriterion.vlanId());
+        treatmentIp.popVlan();
         treatmentIp.transition(ipv4UnicastTableId);
         FlowRule ruleIp = DefaultFlowRule.builder().forDevice(deviceId)
                 .withSelector(selectorIp.build())
                 .withTreatment(treatmentIp.build())
                 .withPriority(filt.priority()).fromApp(applicationId)
                 .makePermanent().forTable(tmacTableId).build();
-        log.debug("adding IP ETH rule for MAC: {}", e.mac());
+        log.debug("adding IP ETH rule for MAC: {}", ethCriterion.mac());
         rules.add(ruleIp);
 
         TrafficSelector.Builder selectorMpls = DefaultTrafficSelector
                 .builder();
         TrafficTreatment.Builder treatmentMpls = DefaultTrafficTreatment
                 .builder();
-        selectorMpls.matchEthDst(e.mac());
+        selectorMpls.matchEthDst(ethCriterion.mac());
         selectorMpls.matchEthType(Ethernet.MPLS_UNICAST);
+        selectorMpls.matchVlanId(vlanIdCriterion.vlanId());
+        treatmentMpls.popVlan();
         treatmentMpls.transition(mplsTableId);
         FlowRule ruleMpls = DefaultFlowRule.builder()
                 .forDevice(deviceId).withSelector(selectorMpls.build())
                 .withTreatment(treatmentMpls.build())
                 .withPriority(filt.priority()).fromApp(applicationId)
                 .makePermanent().forTable(tmacTableId).build();
-        log.debug("adding MPLS ETH rule for MAC: {}", e.mac());
+        log.debug("adding MPLS ETH rule for MAC: {}", ethCriterion.mac());
         rules.add(ruleMpls);
 
         return rules;
     }
 
-    protected List<FlowRule> processVlanIdFilter(Criterion c,
+    protected List<FlowRule> processVlanIdFilter(VlanIdCriterion vlanIdCriterion,
                                                  FilteringObjective filt,
+                                                 VlanId assignedVlan,
                                                  ApplicationId applicationId) {
         List<FlowRule> rules = new ArrayList<>();
-        VlanIdCriterion v = (VlanIdCriterion) c;
-        log.debug("adding rule for VLAN: {}", v.vlanId());
+        log.debug("adding rule for VLAN: {}", vlanIdCriterion.vlanId());
         TrafficSelector.Builder selector = DefaultTrafficSelector
                 .builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment
                 .builder();
         PortCriterion p = (PortCriterion) filt.key();
-        if (v.vlanId() != VlanId.NONE) {
-            selector.matchVlanId(v.vlanId());
+        if (vlanIdCriterion.vlanId() != VlanId.NONE) {
+            selector.matchVlanId(vlanIdCriterion.vlanId());
             selector.matchInPort(p.port());
             treatment.deferred().popVlan();
+        } else {
+            selector.matchInPort(p.port());
+            treatment.immediate().pushVlan().setVlanId(assignedVlan);
         }
         treatment.transition(tmacTableId);
         FlowRule rule = DefaultFlowRule.builder().forDevice(deviceId)
@@ -641,30 +790,79 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             fail(filt, ObjectiveError.UNKNOWN);
             return;
         }
+
+        EthCriterion ethCriterion = null;
+        VlanIdCriterion vlanIdCriterion = null;
+
         // convert filtering conditions for switch-intfs into flowrules
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        for (Criterion c : filt.conditions()) {
-            if (c.type() == Criterion.Type.ETH_DST) {
-                for (FlowRule rule : processEthDstFilter(c,
-                                                         filt,
-                                                         applicationId)) {
-                    ops = install ? ops.add(rule) : ops.remove(rule);
-                }
-            } else if (c.type() == Criterion.Type.VLAN_VID) {
-                for (FlowRule rule : processVlanIdFilter(c,
-                                                         filt,
-                                                         applicationId)) {
-                    ops = install ? ops.add(rule) : ops.remove(rule);
-                }
-            } else if (c.type() == Criterion.Type.IPV4_DST) {
+
+        for (Criterion criterion : filt.conditions()) {
+            if (criterion.type() == Criterion.Type.ETH_DST) {
+                ethCriterion = (EthCriterion) criterion;
+            } else if (criterion.type() == Criterion.Type.VLAN_VID) {
+                vlanIdCriterion = (VlanIdCriterion) criterion;
+            } else if (criterion.type() == Criterion.Type.IPV4_DST) {
                 log.debug("driver does not process IP filtering rules as it " +
                         "sends all misses in the IP table to the controller");
             } else {
                 log.warn("Driver does not currently process filtering condition"
-                                 + " of type: {}", c.type());
+                                 + " of type: {}", criterion.type());
                 fail(filt, ObjectiveError.UNSUPPORTED);
             }
         }
+
+        VlanId assignedVlan = null;
+        if (vlanIdCriterion != null && vlanIdCriterion.vlanId() == VlanId.NONE) {
+            // Assign a VLAN ID to untagged packets
+            if (filt.meta() == null) {
+                log.error("Missing metadata in filtering objective required "
+                                  + "for vlan assignment in dev {}", deviceId);
+                fail(filt, ObjectiveError.BADPARAMS);
+                return;
+            }
+            for (Instruction i : filt.meta().allInstructions()) {
+                if (i instanceof ModVlanIdInstruction) {
+                    assignedVlan = ((ModVlanIdInstruction) i).vlanId();
+                }
+            }
+            if (assignedVlan == null) {
+                log.error("Driver requires an assigned vlan-id to tag incoming "
+                                  + "untagged packets. Not processing vlan filters on "
+                                  + "device {}", deviceId);
+                fail(filt, ObjectiveError.BADPARAMS);
+                return;
+            }
+        }
+
+        if (ethCriterion == null) {
+            log.debug("filtering objective missing dstMac, cannot program TMAC table");
+        } else {
+            for (FlowRule tmacRule : processEthDstFilter(ethCriterion,
+                                                         vlanIdCriterion,
+                                                         filt,
+                                                         assignedVlan,
+                                                         applicationId)) {
+                log.debug("adding MAC filtering rules in TMAC table: {} for dev: {}",
+                          tmacRule, deviceId);
+                ops = install ? ops.add(tmacRule) : ops.remove(tmacRule);
+            }
+        }
+
+        if (ethCriterion == null || vlanIdCriterion == null) {
+            log.debug("filtering objective missing dstMac or vlan, cannot program"
+                              + "Vlan Table");
+        } else {
+            for (FlowRule vlanRule : processVlanIdFilter(vlanIdCriterion,
+                                                         filt,
+                                                         assignedVlan,
+                                                         applicationId)) {
+                log.debug("adding VLAN filtering rule in VLAN table: {} for dev: {}",
+                          vlanRule, deviceId);
+                ops = install ? ops.add(vlanRule) : ops.remove(vlanRule);
+            }
+        }
+
         // apply filtering flow rules
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
@@ -686,10 +884,10 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     protected void setTableMissEntries() {
         // set all table-miss-entries
         populateTableMissEntry(vlanTableId, true, false, false, -1);
-        populateTableMissEntry(tmacTableId, true, false, false, -1);
-        populateTableMissEntry(ipv4UnicastTableId, false, true, true,
-                               aclTableId);
+        populateTableMissEntry(tmacTableId, false, false, true, dstMacTableId);
+        populateTableMissEntry(ipv4UnicastTableId, false, true, true, aclTableId);
         populateTableMissEntry(mplsTableId, false, true, true, aclTableId);
+        populateTableMissEntry(dstMacTableId, false, false, true, aclTableId);
         populateTableMissEntry(aclTableId, false, false, false, -1);
     }
 

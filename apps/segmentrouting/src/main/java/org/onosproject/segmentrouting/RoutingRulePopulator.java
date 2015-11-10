@@ -55,7 +55,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RoutingRulePopulator {
-
     private static final Logger log = LoggerFactory
             .getLogger(RoutingRulePopulator.class);
 
@@ -105,13 +104,45 @@ public class RoutingRulePopulator {
      */
     public void populateIpRuleForHost(DeviceId deviceId, Ip4Address hostIp,
                                       MacAddress hostMac, PortNumber outPort) {
-        MacAddress deviceMac;
+        log.debug("Populate IP table entry for host {} at {}:{}",
+                hostIp, deviceId, outPort);
+        ForwardingObjective.Builder fwdBuilder;
         try {
-            deviceMac = config.getDeviceMac(deviceId);
+            fwdBuilder = getForwardingObjectiveBuilder(
+                    deviceId, hostIp, hostMac, outPort);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateIpRuleForHost.");
             return;
         }
+        srManager.flowObjectiveService.
+            forward(deviceId, fwdBuilder.add(new SRObjectiveContext(deviceId,
+                    SRObjectiveContext.ObjectiveType.FORWARDING)));
+        rulePopulationCounter.incrementAndGet();
+    }
+
+    public void revokeIpRuleForHost(DeviceId deviceId, Ip4Address hostIp,
+            MacAddress hostMac, PortNumber outPort) {
+        log.debug("Revoke IP table entry for host {} at {}:{}",
+                hostIp, deviceId, outPort);
+        ForwardingObjective.Builder fwdBuilder;
+        try {
+            fwdBuilder = getForwardingObjectiveBuilder(
+                    deviceId, hostIp, hostMac, outPort);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting revokeIpRuleForHost.");
+            return;
+        }
+        srManager.flowObjectiveService.
+                forward(deviceId, fwdBuilder.remove(new SRObjectiveContext(deviceId,
+                        SRObjectiveContext.ObjectiveType.FORWARDING)));
+    }
+
+    private ForwardingObjective.Builder getForwardingObjectiveBuilder(
+            DeviceId deviceId, Ip4Address hostIp,
+            MacAddress hostMac, PortNumber outPort)
+            throws DeviceConfigNotFoundException {
+        MacAddress deviceMac;
+        deviceMac = config.getDeviceMac(deviceId);
 
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
@@ -127,19 +158,10 @@ public class RoutingRulePopulator {
         TrafficTreatment treatment = tbuilder.build();
         TrafficSelector selector = sbuilder.build();
 
-        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
-                .builder().fromApp(srManager.appId).makePermanent()
+        return DefaultForwardingObjective.builder()
+                .fromApp(srManager.appId).makePermanent()
                 .withSelector(selector).withTreatment(treatment)
                 .withPriority(100).withFlag(ForwardingObjective.Flag.SPECIFIC);
-
-        log.debug("Installing IPv4 forwarding objective "
-                + "for host {} in switch {}", hostIp, deviceId);
-        srManager.flowObjectiveService.
-            forward(deviceId,
-                    fwdBuilder.
-                    add(new SRObjectiveContext(deviceId,
-                                           SRObjectiveContext.ObjectiveType.FORWARDING)));
-        rulePopulationCounter.incrementAndGet();
     }
 
     /**
@@ -186,25 +208,24 @@ public class RoutingRulePopulator {
         }
 
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-
         sbuilder.matchIPDst(ipPrefix);
         sbuilder.matchEthType(Ethernet.TYPE_IPV4);
+        TrafficSelector selector = sbuilder.build();
 
-        NeighborSet ns = null;
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+        NeighborSet ns;
+        TrafficTreatment treatment;
 
         // If the next hop is the same as the final destination, then MPLS label
         // is not set.
         if (nextHops.size() == 1 && nextHops.toArray()[0].equals(destSw)) {
-            tbuilder.deferred().decNwTtl();
+            tbuilder.immediate().decNwTtl();
             ns = new NeighborSet(nextHops);
+            treatment = tbuilder.build();
         } else {
-            tbuilder.deferred().copyTtlOut();
             ns = new NeighborSet(nextHops, segmentId);
+            treatment = null;
         }
-
-        TrafficTreatment treatment = tbuilder.build();
-        TrafficSelector selector = sbuilder.build();
 
         if (srManager.getNextObjectiveId(deviceId, ns) <= 0) {
             log.warn("No next objective in {} for ns: {}", deviceId, ns);
@@ -216,10 +237,12 @@ public class RoutingRulePopulator {
                 .fromApp(srManager.appId)
                 .makePermanent()
                 .nextStep(srManager.getNextObjectiveId(deviceId, ns))
-                .withTreatment(treatment)
                 .withSelector(selector)
                 .withPriority(100)
                 .withFlag(ForwardingObjective.Flag.SPECIFIC);
+        if (treatment != null) {
+            fwdBuilder.withTreatment(treatment);
+        }
         log.debug("Installing IPv4 forwarding objective "
                         + "for router IP/subnet {} in switch {}",
                 ipPrefix,
@@ -423,8 +446,6 @@ public class RoutingRulePopulator {
                         ? VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET)
                         : srManager.getSubnetAssignedVlanId(deviceId, portSubnet);
 
-
-
                 FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
                 fob.withKey(Criteria.matchInPort(port.number()))
                 .addCondition(Criteria.matchEthDst(deviceMac))
@@ -469,14 +490,14 @@ public class RoutingRulePopulator {
         Set<Ip4Address> allIps = new HashSet<Ip4Address>(config.getPortIPs(deviceId));
         allIps.add(routerIp);
         for (Ip4Address ipaddr : allIps) {
-            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-            selector.matchEthType(Ethernet.TYPE_IPV4);
-            selector.matchIPDst(IpPrefix.valueOf(ipaddr,
+            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+            TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+            sbuilder.matchEthType(Ethernet.TYPE_IPV4);
+            sbuilder.matchIPDst(IpPrefix.valueOf(ipaddr,
                                                  IpPrefix.MAX_INET_MASK_LENGTH));
-            treatment.setOutput(PortNumber.CONTROLLER);
-            puntIp.withSelector(selector.build());
-            puntIp.withTreatment(treatment.build());
+            tbuilder.setOutput(PortNumber.CONTROLLER);
+            puntIp.withSelector(sbuilder.build());
+            puntIp.withTreatment(tbuilder.build());
             puntIp.withFlag(Flag.VERSATILE)
                 .withPriority(HIGHEST_PRIORITY)
                 .makePermanent()
@@ -488,6 +509,48 @@ public class RoutingRulePopulator {
                                            SRObjectiveContext.ObjectiveType.FORWARDING)));
         }
     }
+
+    /**
+     * Populates a forwarding objective to send packets that miss other high
+     * priority Bridging Table entries to a group that contains all ports of
+     * its subnet.
+     *
+     * Note: We assume that packets sending from the edge switches to the hosts
+     * have untagged VLAN.
+     * The VLAN tag will be popped later in the flooding group.
+     *
+     * @param deviceId switch ID to set the rules
+     */
+    public void populateSubnetBroadcastRule(DeviceId deviceId) {
+        config.getSubnets(deviceId).forEach(subnet -> {
+            int nextId = srManager.getSubnetNextObjectiveId(deviceId, subnet);
+            VlanId vlanId = srManager.getSubnetAssignedVlanId(deviceId, subnet);
+
+            /* Driver should treat objective with MacAddress.NONE as the
+             * subnet broadcast rule
+             */
+            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+            sbuilder.matchVlanId(vlanId);
+            sbuilder.matchEthDst(MacAddress.NONE);
+
+            ForwardingObjective.Builder fob = DefaultForwardingObjective.builder();
+            fob.withFlag(Flag.SPECIFIC)
+                    .withSelector(sbuilder.build())
+                    .nextStep(nextId)
+                    .withPriority(5)
+                    .fromApp(srManager.appId)
+                    .makePermanent();
+
+            srManager.flowObjectiveService.forward(
+                    deviceId,
+                    fob.add(new SRObjectiveContext(
+                                    deviceId,
+                                    SRObjectiveContext.ObjectiveType.FORWARDING)
+                    )
+            );
+        });
+    }
+
 
     private PortNumber selectOnePort(DeviceId srcId, Set<DeviceId> destIds) {
 

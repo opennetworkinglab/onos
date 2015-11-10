@@ -224,8 +224,8 @@ public class DefaultGroupHandler {
                     .setEthSrc(nodeMacAddr);
             if (ns.getEdgeLabel() != NeighborSet.NO_EDGE_LABEL) {
                 tBuilder.pushMpls()
-                        .setMpls(MplsLabel.
-                                 mplsLabel(ns.getEdgeLabel()));
+                        .copyTtlOut()
+                        .setMpls(MplsLabel.mplsLabel(ns.getEdgeLabel()));
             }
 
             Integer nextId = nsNextObjStore.
@@ -292,8 +292,9 @@ public class DefaultGroupHandler {
                     .setEthDst(dstMac)
                     .setEthSrc(nodeMacAddr);
             if (ns.getEdgeLabel() != NeighborSet.NO_EDGE_LABEL) {
-                tBuilder.pushMpls().setMpls(MplsLabel.mplsLabel(ns
-                                                    .getEdgeLabel()));
+                tBuilder.pushMpls()
+                        .copyTtlOut()
+                        .setMpls(MplsLabel.mplsLabel(ns.getEdgeLabel()));
             }
 
             Integer nextId = nsNextObjStore.
@@ -536,8 +537,9 @@ public class DefaultGroupHandler {
                             .setEthDst(deviceMac)
                             .setEthSrc(nodeMacAddr);
                     if (ns.getEdgeLabel() != NeighborSet.NO_EDGE_LABEL) {
-                        tBuilder.pushMpls().setMpls(MplsLabel.mplsLabel(ns
-                                .getEdgeLabel()));
+                        tBuilder.pushMpls()
+                                .copyTtlOut()
+                                .setMpls(MplsLabel.mplsLabel(ns.getEdgeLabel()));
                     }
                     nextObjBuilder.addTreatment(tBuilder.build());
                 }

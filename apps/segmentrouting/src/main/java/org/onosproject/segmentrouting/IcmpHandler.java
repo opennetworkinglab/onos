@@ -105,8 +105,17 @@ public class IcmpHandler {
         }
     }
 
+    /**
+     * Sends an ICMP reply message.
+     *
+     * Note: we assume that packets sending from the edge switches to the hosts
+     * have untagged VLAN.
+     * @param icmpRequest the original ICMP request
+     * @param outport the output port where the ICMP reply should be sent to
+     */
     private void sendICMPResponse(Ethernet icmpRequest, ConnectPoint outport) {
-
+        // Note: We assume that packets arrive at the edge switches have
+        // untagged VLAN.
         Ethernet icmpReplyEth = new Ethernet();
 
         IPv4 icmpRequestIpv4 = (IPv4) icmpRequest.getPayload();
@@ -129,7 +138,6 @@ public class IcmpHandler {
         icmpReplyEth.setEtherType(Ethernet.TYPE_IPV4);
         icmpReplyEth.setDestinationMACAddress(icmpRequest.getSourceMACAddress());
         icmpReplyEth.setSourceMACAddress(icmpRequest.getDestinationMACAddress());
-        icmpReplyEth.setVlanID(icmpRequest.getVlanID());
 
         Ip4Address destIpAddress = Ip4Address.valueOf(icmpReplyIpv4.getDestinationAddress());
         Ip4Address destRouterAddress = config.getRouterIpAddressForASubnetHost(destIpAddress);
