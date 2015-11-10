@@ -41,6 +41,9 @@ import org.projectfloodlight.openflow.protocol.OFVersion;
  * Testing adapter for the OpenFlow switch driver class.
  */
 public class OpenflowSwitchDriverAdapter implements OpenFlowSwitchDriver {
+
+    RoleState role = RoleState.MASTER;
+
     @Override
     public void setAgent(OpenFlowAgent agent) {
 
@@ -218,12 +221,12 @@ public class OpenflowSwitchDriverAdapter implements OpenFlowSwitchDriver {
 
     @Override
     public void setRole(RoleState role) {
-
+        this.role = role;
     }
 
     @Override
     public RoleState getRole() {
-        return null;
+        return role;
     }
 
     @Override
