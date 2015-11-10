@@ -309,94 +309,104 @@ final class BgpOpen {
             case BgpConstants.Open.Capabilities.TYPE:
                 // Optional Parameter Type: Capabilities
                 if (paramLen < BgpConstants.Open.Capabilities.MIN_LENGTH) {
-                    // ERROR: Malformed Capability
-                    String errorMsg = "Malformed Capability Type " + paramType;
+                    // ERROR: Malformed Param Type
+                    String errorMsg = "Malformed Capabilities Optional "
+                            + "Parameter Type " + paramType;
                     throw new BgpMessage.BgpParseException(errorMsg);
                 }
-                int capabEnd = message.readerIndex() + paramLen;
-                int capabCode = message.readUnsignedByte();
-                int capabLen = message.readUnsignedByte();
-                if (message.readerIndex() + capabLen > capabEnd) {
-                    // ERROR: Malformed Capability
-                    String errorMsg = "Malformed Capability Type " + paramType;
-                    throw new BgpMessage.BgpParseException(errorMsg);
-                }
-
-                switch (capabCode) {
-                case BgpConstants.Open.Capabilities.MultiprotocolExtensions.CODE:
-                    // Multiprotocol Extensions Capabilities (RFC 4760)
-                    if (capabLen != BgpConstants.Open.Capabilities.MultiprotocolExtensions.LENGTH) {
-                        // ERROR: Multiprotocol Extension Length Error
-                        String errorMsg = "Multiprotocol Extension Length Error";
+                int paramEnd = message.readerIndex() + paramLen;
+                // Parse Capabilities
+                while (message.readerIndex() < paramEnd) {
+                    if (paramEnd - message.readerIndex() <
+                            BgpConstants.Open.Capabilities.MIN_LENGTH) {
+                        String errorMsg = "Malformed Capabilities";
                         throw new BgpMessage.BgpParseException(errorMsg);
                     }
-                    // Decode the AFI (2 octets) and SAFI (1 octet)
-                    int afi = message.readUnsignedShort();
-                    int reserved = message.readUnsignedByte();
-                    int safi = message.readUnsignedByte();
-                    log.debug("BGP RX OPEN Capability: AFI = {} SAFI = {}",
-                              afi, safi);
-                    //
-                    // Setup the AFI/SAFI in the BgpSession
-                    //
-                    // NOTE: For now we just copy the remote AFI/SAFI setting
-                    // to the local configuration.
-                    //
-                    if (afi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.AFI_IPV4 &&
-                        safi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.SAFI_UNICAST) {
-                        bgpSession.remoteInfo().setIpv4Unicast();
-                        bgpSession.localInfo().setIpv4Unicast();
-                    } else if (afi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.AFI_IPV4 &&
-                               safi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.SAFI_MULTICAST) {
-                        bgpSession.remoteInfo().setIpv4Multicast();
-                        bgpSession.localInfo().setIpv4Multicast();
-                    } else if (afi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.AFI_IPV6 &&
-                               safi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.SAFI_UNICAST) {
-                        bgpSession.remoteInfo().setIpv6Unicast();
-                        bgpSession.localInfo().setIpv6Unicast();
-                    } else if (afi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.AFI_IPV6 &&
-                               safi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.SAFI_MULTICAST) {
-                        bgpSession.remoteInfo().setIpv6Multicast();
-                        bgpSession.localInfo().setIpv6Multicast();
-                    } else {
-                        log.debug("BGP RX OPEN Capability: Unknown AFI = {} SAFI = {}",
+                    int capabCode = message.readUnsignedByte();
+                    int capabLen = message.readUnsignedByte();
+                    if (message.readerIndex() + capabLen > paramEnd) {
+                        // ERROR: Malformed Capability
+                        String errorMsg = "Malformed Capability instance with "
+                                + "code " + capabCode;
+                        throw new BgpMessage.BgpParseException(errorMsg);
+                    }
+
+                    switch (capabCode) {
+                    case BgpConstants.Open.Capabilities.MultiprotocolExtensions.CODE:
+                        // Multiprotocol Extensions Capabilities (RFC 4760)
+                        if (capabLen != BgpConstants.Open.Capabilities.MultiprotocolExtensions.LENGTH) {
+                            // ERROR: Multiprotocol Extension Length Error
+                            String errorMsg = "Multiprotocol Extension Length Error";
+                            throw new BgpMessage.BgpParseException(errorMsg);
+                        }
+                        // Decode the AFI (2 octets) and SAFI (1 octet)
+                        int afi = message.readUnsignedShort();
+                        int reserved = message.readUnsignedByte();
+                        int safi = message.readUnsignedByte();
+                        log.debug("BGP RX OPEN Capability: AFI = {} SAFI = {}",
                                   afi, safi);
+                        //
+                        // Setup the AFI/SAFI in the BgpSession
+                        //
+                        // NOTE: For now we just copy the remote AFI/SAFI setting
+                        // to the local configuration.
+                        //
+                        if (afi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.AFI_IPV4 &&
+                            safi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.SAFI_UNICAST) {
+                            bgpSession.remoteInfo().setIpv4Unicast();
+                            bgpSession.localInfo().setIpv4Unicast();
+                        } else if (afi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.AFI_IPV4 &&
+                                   safi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.SAFI_MULTICAST) {
+                            bgpSession.remoteInfo().setIpv4Multicast();
+                            bgpSession.localInfo().setIpv4Multicast();
+                        } else if (afi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.AFI_IPV6 &&
+                                   safi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.SAFI_UNICAST) {
+                            bgpSession.remoteInfo().setIpv6Unicast();
+                            bgpSession.localInfo().setIpv6Unicast();
+                        } else if (afi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.AFI_IPV6 &&
+                                   safi == BgpConstants.Open.Capabilities.MultiprotocolExtensions.SAFI_MULTICAST) {
+                            bgpSession.remoteInfo().setIpv6Multicast();
+                            bgpSession.localInfo().setIpv6Multicast();
+                        } else {
+                            log.debug("BGP RX OPEN Capability: Unknown AFI = {} SAFI = {}",
+                                      afi, safi);
+                        }
+                        break;
+
+                    case BgpConstants.Open.Capabilities.As4Octet.CODE:
+                        // Support for 4-octet AS Number Capabilities (RFC 6793)
+                        if (capabLen != BgpConstants.Open.Capabilities.As4Octet.LENGTH) {
+                            // ERROR: 4-octet AS Number Capability Length Error
+                            String errorMsg = "4-octet AS Number Capability Length Error";
+                            throw new BgpMessage.BgpParseException(errorMsg);
+                        }
+                        long as4Number = message.readUnsignedInt();
+
+                        bgpSession.remoteInfo().setAs4OctetCapability();
+                        bgpSession.remoteInfo().setAs4Number(as4Number);
+
+                        //
+                        // Copy remote 4-octet AS Number Capabilities and AS
+                        // Number. This is a temporary setting until local AS
+                        // number configuration is supported.
+                        //
+                        bgpSession.localInfo().setAs4OctetCapability();
+                        bgpSession.localInfo().setAs4Number(as4Number);
+                        log.debug("BGP RX OPEN Capability: AS4 Number = {}",
+                                  as4Number);
+                        break;
+
+                    default:
+                        // Unknown Capability: ignore it
+                        log.debug("BGP RX OPEN Capability Code = {} Length = {}",
+                                  capabCode, capabLen);
+                        message.readBytes(capabLen);
+                        break;
                     }
-                    break;
 
-                case BgpConstants.Open.Capabilities.As4Octet.CODE:
-                    // Support for 4-octet AS Number Capabilities (RFC 6793)
-                    if (capabLen != BgpConstants.Open.Capabilities.As4Octet.LENGTH) {
-                        // ERROR: 4-octet AS Number Capability Length Error
-                        String errorMsg = "4-octet AS Number Capability Length Error";
-                        throw new BgpMessage.BgpParseException(errorMsg);
-                    }
-                    long as4Number = message.readUnsignedInt();
 
-                    bgpSession.remoteInfo().setAs4OctetCapability();
-                    bgpSession.remoteInfo().setAs4Number(as4Number);
-
-                    //
-                    // Copy remote 4-octet AS Number Capabilities and AS
-                    // Number. This is a temporary setting until local AS
-                    // number configuration is supported.
-                    //
-                    bgpSession.localInfo().setAs4OctetCapability();
-                    bgpSession.localInfo().setAs4Number(as4Number);
-                    log.debug("BGP RX OPEN Capability: AS4 Number = {}",
-                              as4Number);
-                    break;
-
-                default:
-                    // Unknown Capability: ignore it
-                    log.debug("BGP RX OPEN Capability Code = {} Length = {}",
-                              capabCode, capabLen);
-                    message.readBytes(capabLen);
-                    break;
                 }
-
                 break;
-
             default:
                 // Unknown Parameter Type: ignore it
                 log.debug("BGP RX OPEN Parameter Type = {} Length = {}",
