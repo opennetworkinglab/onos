@@ -289,6 +289,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
         @Override
         public void process(long sid, ObjectNode payload) {
+            removeListeners();
             stopSummaryMonitoring();
             traffic.stopMonitoring();
         }
