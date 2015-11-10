@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.junit.TestTools;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -129,13 +130,15 @@ public class HostManagerTest {
     }
 
     private void validateEvents(Enum... types) {
-        int i = 0;
-        assertEquals("wrong events received", types.length, listener.events.size());
-        for (Event event : listener.events) {
-            assertEquals("incorrect event type", types[i], event.type());
-            i++;
-        }
-        listener.events.clear();
+        TestTools.assertAfter(100, () -> {
+            int i = 0;
+            assertEquals("wrong events received", types.length, listener.events.size());
+            for (Event event : listener.events) {
+                assertEquals("incorrect event type", types[i], event.type());
+                i++;
+            }
+            listener.events.clear();
+        });
     }
 
     @Test
