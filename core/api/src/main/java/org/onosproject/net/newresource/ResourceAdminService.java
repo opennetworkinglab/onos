@@ -26,7 +26,7 @@ import java.util.List;
 @Beta
 public interface ResourceAdminService {
     /**
-     * Register resources as the children of the parent resource path.
+     * Registers resources as the children of the parent resource path.
      *
      * @param parent parent resource path under which the resource are registered
      * @param children resources to be registered as the children of the parent
@@ -39,7 +39,7 @@ public interface ResourceAdminService {
     }
 
     /**
-     * Register resources as the children of the parent resource path.
+     * Registers resources as the children of the parent resource path.
      *
      * @param parent parent resource path under which the resource are registered
      * @param children resources to be registered as the children of the parent
@@ -50,7 +50,7 @@ public interface ResourceAdminService {
     <T> boolean registerResources(ResourcePath parent, List<T> children);
 
     /**
-     * Unregister resources as the children of the parent resource path.
+     * Unregisters resources as the children of the parent resource path.
      *
      * @param parent parent resource path under which the resource are unregistered
      * @param children resources to be unregistered as the children of the parent
@@ -63,7 +63,7 @@ public interface ResourceAdminService {
     }
 
     /**
-     * Unregister resources as the children of the parent resource path.
+     * Unregisters resources as the children of the parent resource path.
      *
      * @param parent parent resource path under which the resource are unregistered
      * @param children resources to be unregistered as the children of the parent
