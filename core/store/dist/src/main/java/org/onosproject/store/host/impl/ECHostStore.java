@@ -20,7 +20,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
-import static org.onosproject.net.host.HostEvent.Type.HOST_MOVED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_UPDATED;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.REMOVE;
@@ -89,7 +88,7 @@ public class ECHostStore
 
     private EventuallyConsistentMap<HostId, DefaultHost> hosts;
 
-    private final ConcurrentHashMap<HostId, ConnectPoint> locations =
+    private final ConcurrentHashMap<HostId, HostLocation> locations =
             new ConcurrentHashMap<>();
 
     private EventuallyConsistentMapListener<HostId, DefaultHost> hostLocationTracker =
@@ -254,11 +253,11 @@ public class ECHostStore
         public void event(EventuallyConsistentMapEvent<HostId, DefaultHost> event) {
             DefaultHost host = checkNotNull(event.value());
             if (event.type() == PUT) {
-                ConnectPoint prevLocation = locations.put(host.id(), host.location());
+                HostLocation prevLocation = locations.put(host.id(), host.location());
                 if (prevLocation == null) {
                     notifyDelegate(new HostEvent(HOST_ADDED, host));
                 } else if (!Objects.equals(prevLocation, host.location())) {
-                    notifyDelegate(new HostEvent(HOST_MOVED, host));
+                    notifyDelegate(new HostEvent(host, prevLocation));
                 } else {
                     notifyDelegate(new HostEvent(HOST_UPDATED, host));
                 }

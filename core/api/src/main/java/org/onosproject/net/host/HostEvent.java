@@ -15,8 +15,12 @@
  */
 package org.onosproject.net.host;
 
+import org.joda.time.LocalDateTime;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.Host;
+import org.onosproject.net.HostLocation;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Describes end-station host event.
@@ -48,6 +52,8 @@ public class HostEvent extends AbstractEvent<HostEvent.Type, Host> {
         HOST_MOVED
     }
 
+    private HostLocation prevLocation;
+
     /**
      * Creates an event of a given type and for the specified host and the
      * current time.
@@ -70,4 +76,35 @@ public class HostEvent extends AbstractEvent<HostEvent.Type, Host> {
         super(type, host, time);
     }
 
+    /**
+     * Creates an event with HOST_MOVED type along with the previous location
+     * of the host.
+     *
+     * @param host event host subject
+     * @param prevLocation previous location of the host
+     */
+    public HostEvent(Host host, HostLocation prevLocation) {
+        super(Type.HOST_MOVED, host);
+        this.prevLocation = prevLocation;
+    }
+
+    /**
+     * Gets the previous location information in this host event.
+     *
+     * @return the previous location, or null if previous location is not
+     *         specified.
+     */
+    public HostLocation prevLocation() {
+        return this.prevLocation;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("time", new LocalDateTime(time()))
+                .add("type", type())
+                .add("subject", subject())
+                .add("prevLocation", prevLocation())
+                .toString();
+    }
 }
