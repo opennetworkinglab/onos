@@ -217,7 +217,7 @@ public class IntentCodecTest extends AbstractIntentTest {
      * @throws IOException if processing the resource fails
      */
     private Intent getIntent(String resourceName, JsonCodec intentCodec) throws IOException {
-        InputStream jsonStream = FlowRuleCodecTest.class
+        InputStream jsonStream = IntentCodecTest.class
                 .getResourceAsStream(resourceName);
         JsonNode json = context.mapper().readTree(jsonStream);
         assertThat(json, notNullValue());

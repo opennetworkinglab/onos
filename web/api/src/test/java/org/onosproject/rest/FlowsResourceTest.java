@@ -585,7 +585,7 @@ public class FlowsResourceTest extends ResourceTest {
         replay(mockFlowService);
 
         WebResource rs = resource();
-        InputStream jsonStream = IntentsResourceTest.class
+        InputStream jsonStream = FlowsResourceTest.class
                 .getResourceAsStream("post-flow.json");
 
         ClientResponse response = rs.path("flows/of:0000000000000001")

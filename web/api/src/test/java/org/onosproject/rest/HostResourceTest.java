@@ -375,7 +375,7 @@ public class HostResourceTest extends ResourceTest {
 
         replay(mockHostService);
 
-        InputStream jsonStream = IntentsResourceTest.class
+        InputStream jsonStream = HostResourceTest.class
                 .getResourceAsStream("post-host.json");
         WebResource rs = resource();
 
