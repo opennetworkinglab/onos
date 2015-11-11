@@ -340,15 +340,15 @@ public class PeerConnectivityManager {
     private TrafficSelector buildSelector(byte ipProto, IpAddress srcIp,
                                           IpAddress dstIp, Short srcTcpPort,
                                           Short dstTcpPort) {
-        TrafficSelector.Builder builder = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(ipProto);
+        TrafficSelector.Builder builder = DefaultTrafficSelector.builder().matchIPProtocol(ipProto);
 
         if (dstIp.isIp4()) {
-            builder.matchIPSrc(IpPrefix.valueOf(srcIp, IpPrefix.MAX_INET_MASK_LENGTH))
+            builder.matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPSrc(IpPrefix.valueOf(srcIp, IpPrefix.MAX_INET_MASK_LENGTH))
                     .matchIPDst(IpPrefix.valueOf(dstIp, IpPrefix.MAX_INET_MASK_LENGTH));
         } else {
-            builder.matchIPv6Src(IpPrefix.valueOf(srcIp, IpPrefix.MAX_INET6_MASK_LENGTH))
+            builder.matchEthType(Ethernet.TYPE_IPV6)
+                    .matchIPv6Src(IpPrefix.valueOf(srcIp, IpPrefix.MAX_INET6_MASK_LENGTH))
                     .matchIPv6Dst(IpPrefix.valueOf(dstIp, IpPrefix.MAX_INET6_MASK_LENGTH));
         }
 
