@@ -52,6 +52,7 @@ import org.slf4j.Logger;
 
 import java.util.Dictionary;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -247,15 +248,17 @@ public class OLT implements AccessDeviceService {
             return;
         }
 
-        provisionVlans(olt.deviceId(), olt.uplink(), port.port(), vlan, olt.vlan());
+        provisionVlans(olt.deviceId(), olt.uplink(), port.port(), vlan, olt.vlan(),
+                olt.defaultVlan());
     }
 
     private void provisionVlans(DeviceId deviceId, PortNumber uplinkPort,
                                 PortNumber subscriberPort,
-                                VlanId subscriberVlan, VlanId deviceVlan) {
+                                VlanId subscriberVlan, VlanId deviceVlan,
+                                Optional<VlanId> defaultVlan) {
 
         TrafficSelector upstream = DefaultTrafficSelector.builder()
-                .matchVlanId(DEFAULT_VLAN)
+                .matchVlanId((defaultVlan.isPresent()) ? defaultVlan.get() : DEFAULT_VLAN)
                 .matchInPort(subscriberPort)
                 .build();
 
@@ -273,7 +276,7 @@ public class OLT implements AccessDeviceService {
 
         TrafficTreatment downstreamTreatment = DefaultTrafficTreatment.builder()
                 .popVlan()
-                .setVlanId(DEFAULT_VLAN)
+                .setVlanId((defaultVlan.isPresent()) ? defaultVlan.get() : DEFAULT_VLAN)
                 .setOutput(subscriberPort)
                 .build();
 

@@ -20,6 +20,8 @@ import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
+import java.util.Optional;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -33,6 +35,7 @@ public class AccessDeviceData {
     private final DeviceId deviceId;
     private final PortNumber uplink;
     private final VlanId vlan;
+    private final Optional<VlanId> defaultVlan;
 
     /**
      * Class constructor.
@@ -41,10 +44,12 @@ public class AccessDeviceData {
      * @param uplink uplink port number
      * @param vlan device VLAN ID
      */
-    public AccessDeviceData(DeviceId deviceId, PortNumber uplink, VlanId vlan) {
+    public AccessDeviceData(DeviceId deviceId, PortNumber uplink, VlanId vlan,
+                            Optional<VlanId> defaultVlan) {
         this.deviceId = checkNotNull(deviceId, DEVICE_ID_MISSING);
         this.uplink = checkNotNull(uplink, UPLINK_MISSING);
         this.vlan = checkNotNull(vlan, VLAN_MISSING);
+        this.defaultVlan = checkNotNull(defaultVlan);
     }
 
     /**
@@ -68,9 +73,18 @@ public class AccessDeviceData {
     /**
      * Retrieves the VLAN ID assigned to the device.
      *
-     * @return vlan ID
+     * @return VLAN ID
      */
     public VlanId vlan() {
         return vlan;
+    }
+
+    /**
+     * Retrieves the default VLAN ID that will be used for this device.
+     *
+     * @return default VLAN ID
+     */
+    public Optional<VlanId> defaultVlan() {
+        return defaultVlan;
     }
 }

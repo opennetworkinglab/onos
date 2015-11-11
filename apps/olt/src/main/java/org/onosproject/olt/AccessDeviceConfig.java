@@ -16,10 +16,13 @@
 
 package org.onosproject.olt;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.Config;
+
+import java.util.Optional;
 
 /**
  * Config object for access device data.
@@ -28,6 +31,7 @@ public class AccessDeviceConfig extends Config<DeviceId> {
 
     private static final String UPLINK = "uplink";
     private static final String VLAN = "vlan";
+    private static final String DEFAULT_VLAN = "defaultVlan";
 
     /**
      * Gets the access device configuration for this device.
@@ -37,7 +41,15 @@ public class AccessDeviceConfig extends Config<DeviceId> {
     public AccessDeviceData getOlt() {
         PortNumber uplink = PortNumber.portNumber(node.path(UPLINK).asText());
         VlanId vlan = VlanId.vlanId(Short.parseShort(node.path(VLAN).asText()));
+        JsonNode defaultVlanNode = node.path(DEFAULT_VLAN);
 
-        return new AccessDeviceData(subject(), uplink, vlan);
+        Optional<VlanId> defaultVlan;
+        if (defaultVlanNode.isMissingNode()) {
+            defaultVlan = Optional.empty();
+        } else {
+            defaultVlan = Optional.of(VlanId.vlanId(Short.parseShort(defaultVlanNode.asText())));
+        }
+
+        return new AccessDeviceData(subject(), uplink, vlan, defaultVlan);
     }
 }
