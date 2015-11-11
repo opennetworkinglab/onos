@@ -16,7 +16,12 @@
 
 package org.onosproject.provider.of.group.impl;
 
-import com.google.common.collect.Maps;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -26,6 +31,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.group.DefaultGroup;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBuckets;
@@ -60,12 +66,7 @@ import org.projectfloodlight.openflow.protocol.OFStatsType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.Maps;
 
 /**
  * Provider which uses an OpenFlow controller to handle Group.
@@ -80,6 +81,9 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected GroupProviderRegistry providerRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
 
     private GroupProviderService providerService;
 
@@ -139,12 +143,21 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                 return;
             }
             final Long groupModXid = XID_COUNTER.getAndIncrement();
-            GroupModBuilder builder =
-                    GroupModBuilder.builder(groupOperation.buckets(),
-                            groupOperation.groupId(),
-                            groupOperation.groupType(),
-                            sw.factory(),
-                            Optional.of(groupModXid));
+            GroupModBuilder builder = null;
+            if (driverService == null) {
+                builder = GroupModBuilder.builder(groupOperation.buckets(),
+                                                groupOperation.groupId(),
+                                                groupOperation.groupType(),
+                                                sw.factory(),
+                                                Optional.of(groupModXid));
+            } else {
+                builder = GroupModBuilder.builder(groupOperation.buckets(),
+                                                  groupOperation.groupId(),
+                                                  groupOperation.groupType(),
+                                                  sw.factory(),
+                                                  Optional.of(groupModXid),
+                                                  Optional.of(driverService));
+            }
             OFGroupMod groupMod = null;
             switch (groupOperation.opType()) {
                 case ADD:

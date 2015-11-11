@@ -15,11 +15,25 @@
  */
 package org.onosproject.provider.of.group.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.ExtensionInstruction;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
@@ -28,6 +42,7 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
+import org.onosproject.openflow.controller.ExtensionInterpreter;
 import org.projectfloodlight.openflow.protocol.OFBucket;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFGroupAdd;
@@ -52,14 +67,6 @@ import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.slf4j.LoggerFactory.getLogger;
-
 /*
  * Builder for GroupMod.
  */
@@ -70,6 +77,7 @@ public final class GroupModBuilder {
     private GroupDescription.Type type;
     private OFFactory factory;
     private Long xid;
+    private Optional<DriverService> driverService;
 
     private final Logger log = getLogger(getClass());
 
@@ -85,6 +93,16 @@ public final class GroupModBuilder {
         this.xid = xid.orElse((long) 0);
     }
 
+    private GroupModBuilder(GroupBuckets buckets, GroupId groupId,
+                            GroupDescription.Type type, OFFactory factory,
+                            Optional<Long> xid, Optional<DriverService> driverService) {
+       this.buckets = buckets;
+       this.groupId = groupId;
+       this.type = type;
+       this.factory = factory;
+       this.xid = xid.orElse((long) 0);
+       this.driverService = driverService;
+   }
     /**
      * Creates a builder for GroupMod.
      *
@@ -100,6 +118,24 @@ public final class GroupModBuilder {
                                           Optional<Long> xid) {
 
         return new GroupModBuilder(buckets, groupId, type, factory, xid);
+    }
+
+    /**
+     * Creates a builder for GroupMod.
+     *
+     * @param buckets GroupBuckets object
+     * @param groupId Group Id to create
+     * @param type Group type
+     * @param factory OFFactory object
+     * @param xid transaction ID
+     * @param driverService driver Service
+     * @return GroupModBuilder object
+     */
+    public static GroupModBuilder builder(GroupBuckets buckets, GroupId groupId,
+                                          GroupDescription.Type type, OFFactory factory,
+                                          Optional<Long> xid, Optional<DriverService> driverService) {
+
+        return new GroupModBuilder(buckets, groupId, type, factory, xid, driverService);
     }
 
     /**
@@ -217,6 +253,12 @@ public final class GroupModBuilder {
                     OFActionGroup.Builder actgrp = factory.actions().buildGroup()
                             .setGroup(OFGroup.of(grp.groupId().id()));
                     actions.add(actgrp.build());
+                    break;
+                case EXTENSION:
+                    Instructions.ExtensionInstructionWrapper wrapper =
+                    (Instructions.ExtensionInstructionWrapper) i;
+                    actions.add(buildExtensionAction(
+                            wrapper.extensionInstruction(), wrapper.deviceId()));
                     break;
                 default:
                     log.warn("Instruction type {} not yet implemented.", i.type());
@@ -370,6 +412,22 @@ public final class GroupModBuilder {
                 log.error("Unsupported group type : {}", groupType);
                 break;
         }
+        return null;
+    }
+
+    private OFAction buildExtensionAction(ExtensionInstruction i, DeviceId deviceId) {
+        if (!driverService.isPresent()) {
+            log.error("No driver service present");
+            return null;
+        }
+        Driver driver = driverService.get().getDriver(deviceId);
+        if (driver.hasBehaviour(ExtensionInterpreter.class)) {
+            DefaultDriverHandler handler =
+                    new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
+            ExtensionInterpreter interpreter = handler.behaviour(ExtensionInterpreter.class);
+            return interpreter.mapInstruction(factory, i);
+        }
+
         return null;
     }
 }
