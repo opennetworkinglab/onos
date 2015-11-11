@@ -46,9 +46,9 @@ import static com.google.common.collect.Lists.newArrayList;
 public class GroupsListCommand extends AbstractShellCommand {
 
     private static final String FORMAT =
-            "   id=%s, state=%s, type=%s, bytes=%s, packets=%s, appId=%s";
+            "   id=0x%s, state=%s, type=%s, bytes=%s, packets=%s, appId=%s";
     private static final String BUCKET_FORMAT =
-            "   id=%s, bucket=%s, bytes=%s, packets=%s, actions=%s";
+            "   id=0x%s, bucket=%s, bytes=%s, packets=%s, actions=%s";
 
     @Argument(index = 1, name = "uri", description = "Device ID",
             required = false, multiValued = false)
