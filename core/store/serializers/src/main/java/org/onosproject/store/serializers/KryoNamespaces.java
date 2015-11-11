@@ -416,6 +416,8 @@ public final class KryoNamespaces {
                     BandwidthResourceAllocation.class,
                     LambdaResourceAllocation.class,
                     ResourcePath.class,
+                    ResourcePath.Discrete.class,
+                    ResourcePath.Continuous.class,
                     ResourceAllocation.class,
                     // Constraints
                     LambdaConstraint.class,

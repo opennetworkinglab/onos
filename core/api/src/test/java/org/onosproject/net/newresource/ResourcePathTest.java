@@ -18,6 +18,7 @@ package org.onosproject.net.newresource;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Bandwidth;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.LinkKey;
@@ -36,37 +37,42 @@ public class ResourcePathTest {
     private static final ConnectPoint CP1_1 = new ConnectPoint(D1, P1);
     private static final ConnectPoint CP2_1 = new ConnectPoint(D2, P1);
     private static final VlanId VLAN1 = VlanId.vlanId((short) 100);
+    private static final Bandwidth BW1 = Bandwidth.gbps(2);
+    private static final Bandwidth BW2 = Bandwidth.gbps(1);
 
     @Test
     public void testEquals() {
-        ResourcePath resource1 = new ResourcePath(LinkKey.linkKey(CP1_1, CP2_1), VLAN1);
-        ResourcePath sameAsResource1 = new ResourcePath(LinkKey.linkKey(CP1_1, CP2_1), VLAN1);
-        ResourcePath resource2 = new ResourcePath(LinkKey.linkKey(CP2_1, CP1_1), VLAN1);
+        ResourcePath resource1 = ResourcePath.discrete(LinkKey.linkKey(CP1_1, CP2_1), VLAN1);
+        ResourcePath sameAsResource1 = ResourcePath.discrete(LinkKey.linkKey(CP1_1, CP2_1), VLAN1);
+        ResourcePath resource2 = ResourcePath.discrete(LinkKey.linkKey(CP2_1, CP1_1), VLAN1);
+        ResourcePath resource3 = ResourcePath.continuous(BW1.bps(), LinkKey.linkKey(CP1_1, CP2_1), BW1);
+        ResourcePath sameAsResource3 = ResourcePath.continuous(BW2.bps(), LinkKey.linkKey(CP1_1, CP2_1), BW1);
 
         new EqualsTester()
                 .addEqualityGroup(resource1, sameAsResource1)
                 .addEqualityGroup(resource2)
+                .addEqualityGroup(resource3, sameAsResource3)   // this is intentional
                 .testEquals();
     }
 
     @Test
     public void testCreateWithZeroComponent() {
-        ResourcePath path = new ResourcePath();
+        ResourcePath path = ResourcePath.discrete();
 
         assertThat(path, is(ResourcePath.ROOT));
     }
 
     @Test
     public void testThereIsParent() {
-        ResourcePath path = new ResourcePath(LinkKey.linkKey(CP1_1, CP2_1), VLAN1);
-        ResourcePath parent = new ResourcePath(LinkKey.linkKey(CP1_1, CP2_1));
+        ResourcePath path = ResourcePath.discrete(LinkKey.linkKey(CP1_1, CP2_1), VLAN1);
+        ResourcePath parent = ResourcePath.discrete(LinkKey.linkKey(CP1_1, CP2_1));
 
         assertThat(path.parent(), is(Optional.of(parent)));
     }
 
     @Test
     public void testNoParent() {
-        ResourcePath path = new ResourcePath(LinkKey.linkKey(CP1_1, CP2_1));
+        ResourcePath path = ResourcePath.discrete(LinkKey.linkKey(CP1_1, CP2_1));
 
         assertThat(path.parent(), is(Optional.of(ResourcePath.ROOT)));
     }
@@ -74,7 +80,7 @@ public class ResourcePathTest {
     @Test
     public void testBase() {
         LinkKey linkKey = LinkKey.linkKey(CP1_1, CP2_1);
-        ResourcePath path = new ResourcePath(linkKey);
+        ResourcePath path = ResourcePath.discrete(linkKey);
 
         LinkKey child = (LinkKey) path.last();
         assertThat(child, is(linkKey));

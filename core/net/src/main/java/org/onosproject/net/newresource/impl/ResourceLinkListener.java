@@ -87,7 +87,7 @@ final class ResourceLinkListener implements LinkListener {
             LinkKey linkKey = LinkKey.linkKey(link);
             adminService.registerResources(ResourcePath.ROOT, linkKey);
 
-            ResourcePath linkPath = new ResourcePath(linkKey);
+            ResourcePath linkPath = ResourcePath.discrete(linkKey);
             // register VLAN IDs against the link
             if (isEnabled(link, this::isVlanEnabled)) {
                 adminService.registerResources(linkPath, ENTIRE_VLAN_IDS);

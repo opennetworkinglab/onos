@@ -19,13 +19,14 @@ import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * An object that is used to locate a resource in a network.
@@ -33,25 +34,45 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * of elementary resources that are not globally identifiable. A ResourcePath can be a globally
  * unique resource identifier.
  *
+ * Two types of resource are considered. One is discrete type and the other is continuous type.
+ * Discrete type resource is a resource whose amount is measured as a discrete unit. VLAN ID and
+ * MPLS label are examples of discrete type resource. Continuous type resource is a resource whose
+ * amount is measured as a continuous value. Bandwidth is an example of continuous type resource.
+ * A double value is associated with a continuous type value.
+ *
  * Users of this class must keep the semantics of resources regarding the hierarchical structure.
  * For example, resource path, Link:1/VLAN ID:100, is valid, but resource path, VLAN ID:100/Link:1
  * is not valid because a link is not a sub-component of a VLAN ID.
  */
 @Beta
-public final class ResourcePath {
+public abstract class ResourcePath {
 
-    private final ResourcePath parent;
+    private final Discrete parent;
     private final Object last;
 
-    public static final ResourcePath ROOT = new ResourcePath(ImmutableList.of());
+    public static final Discrete ROOT = new Discrete();
 
     /**
-     * Creates an resource path from the specified components.
+     * Creates an resource path which represents a discrete-type resource from the specified components.
      *
      * @param components components of the path. The order represents hierarchical structure of the resource.
      */
-    public ResourcePath(Object... components) {
-        this(Arrays.asList(components));
+    public static ResourcePath discrete(Object... components) {
+        if (components.length == 0) {
+            return ROOT;
+        } else {
+            return new Discrete(ImmutableList.copyOf(components));
+        }
+    }
+
+    /**
+     * Creates an resource path which represents a continuous-type resource from the specified components.
+     *
+     * @param value amount of the resource
+     * @param components components of the path. The order represents hierarchical structure of the resource.
+     */
+    public static ResourcePath continuous(double value, Object... components) {
+        return new Continuous(ImmutableList.copyOf(components), value);
     }
 
     /**
@@ -59,17 +80,17 @@ public final class ResourcePath {
      *
      * @param components components of the path. The order represents hierarchical structure of the resource.
      */
-    public ResourcePath(List<Object> components) {
+    ResourcePath(List<Object> components) {
         checkNotNull(components);
-        if (components.isEmpty()) {
-            this.parent = null;
-            this.last = null;
-            return;
-        }
+        checkArgument(!components.isEmpty());
 
         LinkedList<Object> children = new LinkedList<>(components);
         this.last = children.pollLast();
-        this.parent = new ResourcePath(children);
+        if (children.isEmpty()) {
+            this.parent = ROOT;
+        } else {
+            this.parent = new Discrete(children);
+        }
     }
 
     /**
@@ -78,9 +99,12 @@ public final class ResourcePath {
      * @param parent the parent of this resource
      * @param last a child of the parent
      */
-    public ResourcePath(ResourcePath parent, Object last) {
-        this.parent = checkNotNull(parent);
-        this.last = checkNotNull(last);
+    ResourcePath(Discrete parent, Object last) {
+        checkNotNull(parent);
+        checkNotNull(last);
+
+        this.parent = parent;
+        this.last = last;
     }
 
     // for serialization
@@ -97,10 +121,10 @@ public final class ResourcePath {
     public List<Object> components() {
         LinkedList<Object> components = new LinkedList<>();
 
-        ResourcePath parentPath = parent;
-        while (parentPath != null) {
+        Optional<Discrete> parentPath = Optional.ofNullable(parent);
+        while (parentPath.isPresent()) {
             components.addFirst(last);
-            parentPath = parent.parent;
+            parentPath = parent.parent();
         }
 
         return components;
@@ -113,12 +137,20 @@ public final class ResourcePath {
      * @return the parent resource path of this instance.
      * If there is no parent, empty instance will be returned.
      */
-    public Optional<ResourcePath> parent() {
+    public Optional<Discrete> parent() {
         return Optional.ofNullable(parent);
     }
 
     public ResourcePath child(Object child) {
-        return new ResourcePath(this, child);
+        checkState(this instanceof Discrete);
+
+        return new Discrete((Discrete) this, child);
+    }
+
+    public ResourcePath child(Object child, double value) {
+        checkState(this instanceof Discrete);
+
+        return new Continuous((Discrete) this, child, value);
     }
 
     /**
@@ -155,5 +187,58 @@ public final class ResourcePath {
                 .add("parent", parent)
                 .add("last", last)
                 .toString();
+    }
+
+    /**
+     * Represents a resource path which specifies a resource which can be measured
+     * as a discrete unit. A VLAN ID and a MPLS label of a link are examples of the resource.
+     * <p>
+     * Note: This class is exposed to the public, but intended to be used in the resource API
+     * implementation only. It is not for resource API user.
+     * </p>
+     */
+    public static final class Discrete extends ResourcePath {
+        private Discrete() {
+            super();
+        }
+
+        private Discrete(List<Object> components) {
+            super(components);
+        }
+
+        private Discrete(Discrete parent, Object last) {
+            super(parent, last);
+        }
+    }
+
+    /**
+     * Represents a resource path which specifies a resource which can be measured
+     * as continuous value. Bandwidth of a link is an example of the resource.
+     * <p>
+     * Note: This class is exposed to the public, but intended to be used in the resource API
+     * implementation only. It is not for resource API user.
+     */
+    public static final class Continuous extends ResourcePath {
+        // Note: value is not taken into account for equality
+        private final double value;
+
+        private Continuous(List<Object> components, double value) {
+            super(components);
+            this.value = value;
+        }
+
+        public Continuous(Discrete parent, Object last, double value) {
+            super(parent, last);
+            this.value = value;
+        }
+
+        /**
+         * Returns the value of the resource amount.
+         *
+         * @return the value of the resource amount
+         */
+        public double value() {
+            return value;
+        }
     }
 }

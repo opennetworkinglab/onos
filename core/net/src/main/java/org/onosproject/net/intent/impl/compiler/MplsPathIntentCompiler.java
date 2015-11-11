@@ -121,7 +121,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
         }
 
         List<ResourcePath> resources = labels.entrySet().stream()
-                .map(x -> new ResourcePath(linkKey(x.getKey().src(), x.getKey().src()), x.getValue()))
+                .map(x -> ResourcePath.discrete(linkKey(x.getKey().src(), x.getKey().src()), x.getValue()))
                 .collect(Collectors.toList());
         List<org.onosproject.net.newresource.ResourceAllocation> allocations =
                 resourceService.allocate(intent.id(), resources);
@@ -145,7 +145,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
     }
 
     private Optional<MplsLabel> findMplsLabel(LinkKey link) {
-        return resourceService.getAvailableResources(new ResourcePath(link)).stream()
+        return resourceService.getAvailableResources(ResourcePath.discrete(link)).stream()
                 .filter(x -> x.last() instanceof MplsLabel)
                 .map(x -> (MplsLabel) x.last())
                 .findFirst();

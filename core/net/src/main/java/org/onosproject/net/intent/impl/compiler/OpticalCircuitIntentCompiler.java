@@ -160,8 +160,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         log.debug("Compiling optical circuit intent between {} and {}", src, dst);
 
         // Reserve OduClt ports
-        ResourcePath srcPortPath = new ResourcePath(src.deviceId(), src.port());
-        ResourcePath dstPortPath = new ResourcePath(dst.deviceId(), dst.port());
+        ResourcePath srcPortPath = ResourcePath.discrete(src.deviceId(), src.port());
+        ResourcePath dstPortPath = ResourcePath.discrete(dst.deviceId(), dst.port());
         List<ResourceAllocation> allocation = resourceService.allocate(intent.id(), srcPortPath, dstPortPath);
         if (allocation.isEmpty()) {
             throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
@@ -312,7 +312,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         if (ochCP != null) {
             OchPort ochPort = (OchPort) deviceService.getPort(ochCP.deviceId(), ochCP.port());
             Optional<IntentId> intentId =
-                    resourceService.getResourceAllocation(new ResourcePath(ochCP.deviceId(), ochCP.port()))
+                    resourceService.getResourceAllocation(ResourcePath.discrete(ochCP.deviceId(), ochCP.port()))
                             .map(ResourceAllocation::consumer)
                             .filter(x -> x instanceof IntentId)
                             .map(x -> (IntentId) x);
@@ -331,7 +331,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             }
 
             Optional<IntentId> intentId =
-                    resourceService.getResourceAllocation(new ResourcePath(oduPort.deviceId(), port.number()))
+                    resourceService.getResourceAllocation(ResourcePath.discrete(oduPort.deviceId(), port.number()))
                             .map(ResourceAllocation::consumer)
                             .filter(x -> x instanceof IntentId)
                             .map(x -> (IntentId) x);

@@ -231,7 +231,7 @@ public class ObjectiveTrackerTest {
     @Test
     public void testResourceEvent() throws Exception {
         ResourceEvent event = new ResourceEvent(RESOURCE_ADDED,
-                new ResourcePath(linkKey(link("a", 1, "b", 1))));
+                ResourcePath.discrete(linkKey(link("a", 1, "b", 1))));
         resourceListener.event(event);
 
         assertThat(

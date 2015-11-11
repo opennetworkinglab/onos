@@ -373,13 +373,13 @@ public class KryoSerializerTest {
 
     @Test
     public void testResourcePath() {
-        testSerializedEquals(new ResourcePath(LinkKey.linkKey(CP1, CP2), VLAN1));
+        testSerializedEquals(ResourcePath.discrete(LinkKey.linkKey(CP1, CP2), VLAN1));
     }
 
     @Test
     public void testResourceAllocation() {
         testSerializedEquals(new org.onosproject.net.newresource.ResourceAllocation(
-                new ResourcePath(LinkKey.linkKey(CP1, CP2), VLAN1),
+                ResourcePath.discrete(LinkKey.linkKey(CP1, CP2), VLAN1),
                 IntentId.valueOf(30)));
     }
 

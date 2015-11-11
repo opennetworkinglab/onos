@@ -75,12 +75,12 @@ final class ResourceDeviceListener implements DeviceListener {
     }
 
     private void registerPortResource(Device device, Port port) {
-        ResourcePath parent = new ResourcePath(device.id());
+        ResourcePath parent = ResourcePath.discrete(device.id());
         executor.submit(() -> adminService.registerResources(parent, port.number()));
     }
 
     private void unregisterPortResource(Device device, Port port) {
-        ResourcePath parent = new ResourcePath(device.id());
+        ResourcePath parent = ResourcePath.discrete(device.id());
         executor.submit(() -> adminService.unregisterResources(parent, port.number()));
     }
 }
