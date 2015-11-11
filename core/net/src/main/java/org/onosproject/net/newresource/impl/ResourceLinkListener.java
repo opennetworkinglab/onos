@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.newresource.impl;
 
+import com.google.common.collect.Lists;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.ItemNotFoundException;
@@ -85,24 +86,24 @@ final class ResourceLinkListener implements LinkListener {
         executor.submit(() -> {
             // register the link
             LinkKey linkKey = LinkKey.linkKey(link);
-            adminService.registerResources(ResourcePath.ROOT, linkKey);
+            adminService.registerResources(ResourcePath.discrete(linkKey));
 
             ResourcePath linkPath = ResourcePath.discrete(linkKey);
             // register VLAN IDs against the link
             if (isEnabled(link, this::isVlanEnabled)) {
-                adminService.registerResources(linkPath, ENTIRE_VLAN_IDS);
+                adminService.registerResources(Lists.transform(ENTIRE_VLAN_IDS, linkPath::child));
             }
 
             // register MPLS labels against the link
             if (isEnabled(link, this::isMplsEnabled)) {
-                adminService.registerResources(linkPath, ENTIRE_MPLS_LABELS);
+                adminService.registerResources(Lists.transform(ENTIRE_MPLS_LABELS, linkPath::child));
             }
         });
     }
 
     private void unregisterLinkResource(Link link) {
         LinkKey linkKey = LinkKey.linkKey(link);
-        executor.submit(() -> adminService.unregisterResources(ResourcePath.ROOT, linkKey));
+        executor.submit(() -> adminService.unregisterResources(ResourcePath.discrete(linkKey)));
     }
 
     private boolean isEnabled(Link link, Predicate<ConnectPoint> predicate) {

@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.newresource.impl;
 
+import com.google.common.collect.Lists;
 import org.onosproject.net.Device;
 import org.onosproject.net.Port;
 import org.onosproject.net.OchPort;
@@ -82,39 +83,36 @@ final class ResourceDeviceListener implements DeviceListener {
     }
 
     private void registerDeviceResource(Device device) {
-        executor.submit(() -> adminService.registerResources(ResourcePath.ROOT, device.id()));
+        executor.submit(() -> adminService.registerResources(ResourcePath.discrete(device.id())));
     }
 
     private void unregisterDeviceResource(Device device) {
-        executor.submit(() -> adminService.unregisterResources(ResourcePath.ROOT, device.id()));
+        executor.submit(() -> adminService.unregisterResources(ResourcePath.discrete(device.id())));
     }
 
     private void registerPortResource(Device device, Port port) {
-        ResourcePath parent = ResourcePath.discrete(device.id());
-        executor.submit(() -> registerPortResource(device, port, parent));
-    }
-
-    private void registerPortResource(Device device, Port port, ResourcePath parent) {
-        adminService.registerResources(parent, port.number());
         ResourcePath portPath = ResourcePath.discrete(device.id(), port.number());
+        executor.submit(() -> {
+            adminService.registerResources(portPath);
 
-        switch (port.type()) {
-            case OCH:
-                // register ODU TributarySlots against the OCH port
-                registerTributarySlotsResources(((OchPort) port).signalType(), portPath);
-                break;
-            default:
-                break;
-        }
+            switch (port.type()) {
+                case OCH:
+                    // register ODU TributarySlots against the OCH port
+                    registerTributarySlotsResources(((OchPort) port).signalType(), portPath);
+                    break;
+                default:
+                    break;
+            }
+        });
     }
 
     private void registerTributarySlotsResources(OduSignalType oduSignalType, ResourcePath portPath) {
         switch (oduSignalType) {
             case ODU2:
-                adminService.registerResources(portPath, ENTIRE_ODU2_TRIBUTARY_SLOTS);
+                adminService.registerResources(Lists.transform(ENTIRE_ODU2_TRIBUTARY_SLOTS, portPath::child));
                 break;
             case ODU4:
-                adminService.registerResources(portPath, ENTIRE_ODU4_TRIBUTARY_SLOTS);
+                adminService.registerResources(Lists.transform(ENTIRE_ODU4_TRIBUTARY_SLOTS, portPath::child));
                 break;
             default:
                 break;
@@ -122,8 +120,8 @@ final class ResourceDeviceListener implements DeviceListener {
     }
 
     private void unregisterPortResource(Device device, Port port) {
-        ResourcePath parent = ResourcePath.discrete(device.id());
-        executor.submit(() -> adminService.unregisterResources(parent, port.number()));
+        ResourcePath resource = ResourcePath.discrete(device.id(), port.number());
+        executor.submit(() -> adminService.unregisterResources(resource));
     }
 
     private static List<TributarySlot> getEntireOdu2TributarySlots() {

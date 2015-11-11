@@ -16,8 +16,8 @@
 package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableList;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -26,50 +26,42 @@ import java.util.List;
 @Beta
 public interface ResourceAdminService {
     /**
-     * Registers resources as the children of the parent resource path.
+     * Registers the specified resources.
      *
-     * @param parent parent resource path under which the resource are registered
-     * @param children resources to be registered as the children of the parent
-     * @param <T> type of resources
+     * @param resources resources to be registered
      * @return true if registration is successfully done, false otherwise. Registration
      * succeeds when each resource is not registered or unallocated.
      */
-    default <T> boolean registerResources(ResourcePath parent, T... children) {
-        return registerResources(parent, Arrays.asList(children));
+    default boolean registerResources(ResourcePath... resources) {
+        return registerResources(ImmutableList.copyOf(resources));
     }
 
     /**
-     * Registers resources as the children of the parent resource path.
+     * Registers the specified resources.
      *
-     * @param parent parent resource path under which the resource are registered
-     * @param children resources to be registered as the children of the parent
-     * @param <T> type of resources
+     * @param resources resources to be registered
      * @return true if registration is successfully done, false otherwise. Registration
      * succeeds when each resource is not registered or unallocated.
      */
-    <T> boolean registerResources(ResourcePath parent, List<T> children);
+    boolean registerResources(List<ResourcePath> resources);
 
     /**
-     * Unregisters resources as the children of the parent resource path.
+     * Unregisters the specified resources.
      *
-     * @param parent parent resource path under which the resource are unregistered
-     * @param children resources to be unregistered as the children of the parent
-     * @param <T> type of resources
+     * @param resources resources to be unregistered
      * @return true if unregistration is successfully done, false otherwise. Unregistration
      * succeeds when each resource is not registered or unallocated.
      */
-    default <T> boolean unregisterResources(ResourcePath parent, T... children) {
-        return unregisterResources(parent, Arrays.asList(children));
+    default boolean unregisterResources(ResourcePath... resources) {
+        return unregisterResources(ImmutableList.copyOf(resources));
     }
 
     /**
-     * Unregisters resources as the children of the parent resource path.
+     * Unregisters the specified resources.
      *
-     * @param parent parent resource path under which the resource are unregistered
-     * @param children resources to be unregistered as the children of the parent
-     * @param <T> type of resources
+     * @param resources resources to be unregistered
      * @return true if unregistration is successfully done, false otherwise. Unregistration
      * succeeds when each resource is not registered or unallocated.
      */
-    <T> boolean unregisterResources(ResourcePath parent, List<T> children);
+    boolean unregisterResources(List<ResourcePath> resources);
 }

@@ -17,7 +17,6 @@ package org.onosproject.net.newresource.impl;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -41,7 +40,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -164,23 +162,17 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     }
 
     @Override
-    public <T> boolean registerResources(ResourcePath parent, List<T> children) {
-        checkNotNull(parent);
-        checkNotNull(children);
-        checkArgument(!children.isEmpty());
+    public boolean registerResources(List<ResourcePath> resources) {
+        checkNotNull(resources);
 
-        List<ResourcePath> resources = Lists.transform(children, parent::child);
         return store.register(resources);
     }
 
     @Override
-    public <T> boolean unregisterResources(ResourcePath parent, List<T> children) {
-        checkNotNull(parent);
-        checkNotNull(children);
-        checkArgument(!children.isEmpty());
+    public boolean unregisterResources(List<ResourcePath> resources) {
+        checkNotNull(resources);
 
-        List<ResourcePath> resources = Lists.transform(children, parent::child);
-        return store.unregister(resources);
+        return store.register(resources);
     }
 
     private class InternalStoreDelegate implements ResourceStoreDelegate {
