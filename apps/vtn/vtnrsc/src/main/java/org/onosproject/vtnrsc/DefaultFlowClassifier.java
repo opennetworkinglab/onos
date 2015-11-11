@@ -43,6 +43,8 @@ public final class DefaultFlowClassifier implements FlowClassifier {
     private static final int NULL_PORT = 0;
     private static final String FLOW_CLASSIFIER_ID_NOT_NULL = "FlowClassifier id can not be null.";
     private static final String TENANT_ID_NOT_NULL = "Tenant id can not be null.";
+    private static final String NAME_NOT_NULL = "Name can not be null.";
+    private static final String ETHER_TYPE_NOT_NULL = "Ether Type can not be null.";
 
     /**
      * Constructor to create default flow classifier.
@@ -160,11 +162,9 @@ public final class DefaultFlowClassifier implements FlowClassifier {
         private FlowClassifierId flowClassifierId;
         private TenantId tenantId;
         private String name;
-        private boolean isFlowClassifierNameSet = false;
         private String description;
         private boolean isFlowClassifierDescriptionSet = false;
         private String etherType;
-        private boolean isEtherTypeSet = false;
         private String protocol;
         private boolean isProtocolSet = false;
         private int minSrcPortRange;
@@ -189,9 +189,9 @@ public final class DefaultFlowClassifier implements FlowClassifier {
 
             checkNotNull(flowClassifierId, FLOW_CLASSIFIER_ID_NOT_NULL);
             checkNotNull(tenantId, TENANT_ID_NOT_NULL);
-            String name = null;
+            checkNotNull(name, NAME_NOT_NULL);
+            checkNotNull(etherType, ETHER_TYPE_NOT_NULL);
             String description = null;
-            String etherType = null;
             String protocol = null;
             int minSrcPortRange = NULL_PORT;
             int maxSrcPortRange = NULL_PORT;
@@ -202,14 +202,8 @@ public final class DefaultFlowClassifier implements FlowClassifier {
             VirtualPortId srcPort = null;
             VirtualPortId dstPort = null;
 
-            if (isFlowClassifierNameSet) {
-                name = this.name;
-            }
             if (isFlowClassifierDescriptionSet) {
                 description = this.description;
-            }
-            if (isEtherTypeSet) {
-                etherType = this.etherType;
             }
             if (isProtocolSet) {
                 protocol = this.protocol;
@@ -259,7 +253,6 @@ public final class DefaultFlowClassifier implements FlowClassifier {
         @Override
         public Builder setName(String name) {
             this.name = name;
-            this.isFlowClassifierNameSet = true;
             return this;
         }
 
@@ -273,7 +266,6 @@ public final class DefaultFlowClassifier implements FlowClassifier {
         @Override
         public Builder setEtherType(String etherType) {
             this.etherType = etherType;
-            this.isEtherTypeSet = true;
             return this;
         }
 
