@@ -15,6 +15,8 @@
  */
 package org.onosproject.openstackswitching;
 
+import org.onosproject.net.Port;
+
 import java.util.Collection;
 
 /**
@@ -62,6 +64,14 @@ public interface OpenstackSwitchingService {
      * @return port information list
      */
     Collection<OpenstackPort> ports(String networkId);
+
+    /**
+     * Returns port information for the port given.
+     *
+     * @param port port reference
+     * @return port information
+     */
+    OpenstackPort port(Port port);
 
     /**
      * Returns port information for the port ID given.

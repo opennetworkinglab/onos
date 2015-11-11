@@ -58,6 +58,9 @@ public class OpenstackPortCodec extends JsonCodec<OpenstackPort> {
 
         HashMap<String, Ip4Address> fixedIpMap = new HashMap<>();
         JsonNode portInfo = json.get(PORT);
+        if (portInfo == null) {
+            portInfo = json;
+        }
 
         String status = portInfo.path(STATUS).asText();
         String name = portInfo.path(NAME).asText();

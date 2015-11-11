@@ -43,6 +43,9 @@ public class OpenstackNetworkCodec extends JsonCodec<OpenstackNetwork> {
     public OpenstackNetwork decode(ObjectNode json, CodecContext context) {
 
         JsonNode networkInfo = json.get(NETWORK);
+        if (networkInfo == null) {
+            networkInfo = json;
+        }
 
         String name = networkInfo.path(NAME).asText();
         String tenantId = networkInfo.path(TENANT_ID).asText();

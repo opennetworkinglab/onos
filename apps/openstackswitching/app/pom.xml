@@ -90,6 +90,11 @@
             <artifactId>onos-app-dhcp-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>1.19</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -110,6 +115,7 @@
                             javax.ws.rs,
                             javax.ws.rs.core,
                             com.sun.jersey.api.core,
+                            com.sun.jersey.api.client,
                             com.sun.jersey.spi.container.servlet,
                             com.sun.jersey.server.impl.container.servlet,
                             com.fasterxml.jackson.databind,

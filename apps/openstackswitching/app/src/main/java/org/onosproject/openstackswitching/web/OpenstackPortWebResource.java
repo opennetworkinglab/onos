@@ -33,6 +33,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
+/**
+ * Handles Rest API call from Neutron ML2 plugin.
+ */
 @Path("ports")
 public class OpenstackPortWebResource extends AbstractWebResource {
 
@@ -50,13 +53,15 @@ public class OpenstackPortWebResource extends AbstractWebResource {
             ObjectNode portNode = (ObjectNode) mapper.readTree(input);
 
             OpenstackPort openstackPort = PORT_CODEC.decode(portNode, this);
-
-            OpenstackSwitchingService switchingService = get(OpenstackSwitchingService.class);
+            OpenstackSwitchingService switchingService =
+                    getService(OpenstackSwitchingService.class);
             switchingService.createPorts(openstackPort);
+
             log.debug("REST API ports is called with {}", portNode.toString());
             return Response.status(Response.Status.OK).build();
+
         } catch (Exception e) {
-            log.error("Creates VirtualPort failed because of exception {}",
+            log.error("Creates Port failed because of exception {}",
                     e.toString());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString())
                     .build();
@@ -64,23 +69,12 @@ public class OpenstackPortWebResource extends AbstractWebResource {
     }
 
     @DELETE
+    @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deletesPorts(InputStream input) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode portNode = (ObjectNode) mapper.readTree(input);
-
-            OpenstackSwitchingService switchingService = get(OpenstackSwitchingService.class);
-            switchingService.deletePorts();
-            log.info("REST API ports is called with {}", portNode.toString());
-            return Response.status(Response.Status.OK).build();
-        } catch (Exception e) {
-            log.error("Delete VirtualPort failed because of exception {}",
-                    e.toString());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString())
-                    .build();
-        }
+        log.debug("REST API ports is called with {}", input.toString());
+        return Response.status(Response.Status.OK).build();
     }
 
     @PUT
@@ -88,19 +82,7 @@ public class OpenstackPortWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updatePorts(InputStream input) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode portNode = (ObjectNode) mapper.readTree(input);
-
-            OpenstackSwitchingService switchingService = get(OpenstackSwitchingService.class);
-            switchingService.updatePorts();
-            log.info("REST API ports is called with {}", portNode.toString());
-            return Response.status(Response.Status.OK).build();
-        } catch (Exception e) {
-            log.error("Update VirtualPort failed because of exception {}",
-                    e.toString());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString())
-                    .build();
-        }
+        log.info("REST API ports is called with {}", input.toString());
+        return Response.status(Response.Status.OK).build();
     }
 }

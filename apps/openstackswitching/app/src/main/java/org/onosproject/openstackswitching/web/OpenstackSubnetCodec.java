@@ -51,6 +51,9 @@ public class OpenstackSubnetCodec extends JsonCodec<OpenstackSubnet> {
     @Override
     public OpenstackSubnet decode(ObjectNode json, CodecContext context) {
         JsonNode subnetInfo = json.get(SUBNET);
+        if (subnetInfo == null) {
+            subnetInfo = json;
+        }
 
         String name = subnetInfo.path(NAME).asText();
         boolean enableDhcp = subnetInfo.path(ENABLE_DHCP).asBoolean();

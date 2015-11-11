@@ -28,7 +28,8 @@ import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
-import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Handles ARP packet from VMs.
@@ -38,16 +39,16 @@ public class OpenstackArpHandler {
     private static Logger log = LoggerFactory
             .getLogger(OpenstackArpHandler.class);
     private PacketService packetService;
-    private Map<String, OpenstackPort> openstackPortMap;
+    private OpenstackRestHandler restHandler;
 
     /**
      * Returns OpenstackArpHandler reference.
      *
-     * @param openstackPortMap
-     * @param packetService
+     * @param restHandler rest API handler reference
+     * @param packetService PacketService reference
      */
-    public OpenstackArpHandler(Map<String, OpenstackPort> openstackPortMap, PacketService packetService) {
-        this.openstackPortMap = openstackPortMap;
+    public OpenstackArpHandler(OpenstackRestHandler restHandler, PacketService packetService) {
+        this.restHandler = checkNotNull(restHandler);
         this.packetService = packetService;
     }
 
@@ -68,8 +69,9 @@ public class OpenstackArpHandler {
             //Searches the Dst MAC Address based on openstackPortMap
             MacAddress macAddress = null;
 
-            OpenstackPort openstackPort = openstackPortMap.values().stream().filter(e -> e.fixedIps().
-                    containsValue(Ip4Address.valueOf(dstIPAddress))).findAny().orElse(null);
+            OpenstackPort openstackPort = restHandler.getPorts().stream().
+                    filter(e -> e.fixedIps().containsValue(Ip4Address.valueOf(
+                            dstIPAddress))).findAny().orElse(null);
 
             if (openstackPort != null) {
                 macAddress = openstackPort.macAddress();

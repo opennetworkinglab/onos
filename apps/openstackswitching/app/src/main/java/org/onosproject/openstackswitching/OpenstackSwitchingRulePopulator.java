@@ -17,24 +17,34 @@
 package org.onosproject.openstackswitching;
 
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
-import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
-import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
+import org.onosproject.net.flow.instructions.ExtensionPropertyException;
+import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
 
 /**
  * Populates switching flow rules.
@@ -43,123 +53,168 @@ public class OpenstackSwitchingRulePopulator {
 
     private static Logger log = LoggerFactory
             .getLogger(OpenstackSwitchingRulePopulator.class);
+    private static final int SWITCHING_RULE_PRIORITY = 50000;
 
     private FlowObjectiveService flowObjectiveService;
+    private DriverService driverService;
+    private DeviceService deviceService;
+    private OpenstackRestHandler restHandler;
     private ApplicationId appId;
+
+    private Collection<OpenstackNetwork> openstackNetworkList;
+    private Collection<OpenstackPort> openstackPortList;
 
     /**
      * Creates OpenstackSwitchingRulPopulator.
      *
      * @param appId application id
      * @param flowObjectiveService FlowObjectiveService reference
+     * @param deviceService DeviceService reference
+     * @param driverService DriverService reference
      */
     public OpenstackSwitchingRulePopulator(ApplicationId appId,
-                                           FlowObjectiveService flowObjectiveService) {
+                                           FlowObjectiveService flowObjectiveService,
+                                           DeviceService deviceService,
+                                           OpenstackRestHandler restHandler,
+                                           DriverService driverService) {
         this.flowObjectiveService = flowObjectiveService;
+        this.deviceService = deviceService;
+        this.driverService = driverService;
+        this.restHandler = restHandler;
         this.appId = appId;
+
+        openstackNetworkList = restHandler.getNetworks();
+        openstackPortList = restHandler.getPorts();
     }
 
     /**
-     * Populates flows rules for forwarding packets to and from VMs.
+     * Populates flow rules for the VM created.
      *
-     * @param ip v4 IP Address
-     * @param  id device ID
-     * @param port port
-     * @param cidr v4 IP prefix
-     * @return true if it succeeds to populate rules, false otherwise.
+     * @param device device to populate rules to
+     * @param port port for the VM created
      */
-    public boolean populateForwardingRule(Ip4Address ip, DeviceId id, Port port, Ip4Prefix cidr) {
-
-
-        setFlowRuleForVMsInSameCnode(ip, id, port, cidr);
-
-        return true;
+    public void populateSwitchingRules(Device device, Port port) {
+        populateFlowRulesForTrafficToSameCnode(device, port);
+        populateFlowRulesForTrafficToDifferentCnode(device, port);
     }
 
     /**
-     * Populates the common flows rules for all VMs.
+     * Populates the flow rules for traffic to VMs in the same Cnode as the sender.
      *
-     * - Send ARP packets to the controller
-     * - Send DHCP packets to the controller
-     *
-     * @param id Device ID to populates rules to
+     * @param device device to put the rules
+     * @param port port info of the VM
      */
-    public void populateDefaultRules(DeviceId id) {
-
-        setFlowRuleForArp(id);
-
-        log.warn("Default rule has been set");
+    private void populateFlowRulesForTrafficToSameCnode(Device device, Port port) {
+        Ip4Address vmIp = getFixedIpAddressForPort(port.annotations().value("portName"));
+        if (vmIp != null) {
+            setFlowRuleForVMsInSameCnode(vmIp, device.id(), port);
+        }
     }
 
     /**
-     * Populates the forwarding rules for VMs with the same VNI but in other Code.
+     * Populates the flow rules for traffic to VMs in different Cnode using
+     * Nicira extention.
      *
-     * @param vni VNI for the networks
-     * @param id device ID to populates the flow rules
-     * @param hostIp host IP address of the VM
-     * @param vmIp fixed IP address for the VM
-     * @param vmMac MAC address for the VM
-     * @param tunnelPort tunnel port number for the VM
-     * @param idx device ID for OVS of the other VM
-     * @param hostIpx host IP address of the other VM
-     * @param vmIpx fixed IP address of the other VM
-     * @param vmMacx MAC address for the other VM
-     * @param tunnelPortx x tunnel port number for other VM
+     * @param device device to put rules
+     * @param port port information of the VM
      */
-    public void populateForwardingRuleForOtherCnode(String vni, DeviceId id, Ip4Address hostIp,
-                                                    Ip4Address vmIp, MacAddress vmMac, PortNumber tunnelPort,
-                                                    DeviceId idx, Ip4Address hostIpx,
-                                                    Ip4Address vmIpx, MacAddress vmMacx, PortNumber tunnelPortx) {
-        setVxLanFlowRule(vni, id, hostIp, vmIp, vmMac, tunnelPort);
-        setVxLanFlowRule(vni, idx, hostIpx, vmIpx, vmMacx, tunnelPortx);
+    private void populateFlowRulesForTrafficToDifferentCnode(Device device, Port port) {
+        String portName = port.annotations().value("portName");
+        String channelId = device.annotations().value("channelId");
+        Ip4Address hostIpAddress = Ip4Address.valueOf(channelId.split(":")[0]);
+        Ip4Address fixedIp = getFixedIpAddressForPort(portName);
+        MacAddress vmMac = getVmMacAddressForPort(portName);
+        String vni = getVniForPort(portName);
+        deviceService.getAvailableDevices().forEach(d -> {
+            if (!d.equals(device)) {
+                deviceService.getPorts(d.id()).forEach(p -> {
+                    String pName = p.annotations().value("portName");
+                    if (!p.equals(port) && vni.equals(getVniForPort(pName))) {
+                        String cidx = d.annotations().value("channelId");
+                        Ip4Address hostIpx = Ip4Address.valueOf(cidx.split(":")[0]);
+                        MacAddress vmMacx = getVmMacAddressForPort(pName);
+                        Ip4Address fixedIpx = getFixedIpAddressForPort(pName);
+
+                        setVxLanFlowRule(vni, device.id(), hostIpx, fixedIpx, vmMacx);
+                        setVxLanFlowRule(vni, d.id(), hostIpAddress, fixedIp, vmMac);
+                    }
+                });
+            }
+        });
     }
 
     /**
-     * Populates the flow rules for DHCP packets from VMs.
+     * Returns the VNI of the VM of the port.
      *
-     * @param id device ID to set the rules
+     * @param portName VM port
+     * @return VNI
      */
-    private void setFlowRuleForDhcp(DeviceId id) {
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+    private String getVniForPort(String portName) {
+        String uuid = portName.substring(3);
+        OpenstackPort port = openstackPortList.stream()
+                .filter(p -> p.id().startsWith(uuid))
+                .findAny().orElse(null);
+        if (port == null) {
+            log.warn("No port information for port {}", portName);
+            return null;
+        }
 
-        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpDst(TpPort.tpPort(OpenstackSwitchingManager.DHCP_PORT));
-        tBuilder.setOutput(PortNumber.CONTROLLER);
+        OpenstackNetwork network = openstackNetworkList.stream()
+                .filter(n -> n.id().equals(port.networkId()))
+                .findAny().orElse(null);
+        if (network == null) {
+            log.warn("No VNI information for network {}", network.id());
+            return null;
+        }
 
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(tBuilder.build())
-                .withPriority(5000)
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .fromApp(appId)
-                .add();
-
-        flowObjectiveService.forward(id, fo);
+        return network.segmentId();
     }
 
     /**
-     * Populates the flow rules for ARP packets from VMs.
+     * Returns the Fixed IP address of the VM.
      *
-     * @param id device ID to put rules.
+     * @param portName VM port info
+     * @return IP address of the VM
      */
-    private void setFlowRuleForArp(DeviceId id) {
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+    private Ip4Address getFixedIpAddressForPort(String portName) {
 
-        sBuilder.matchEthType(Ethernet.TYPE_ARP);
-        tBuilder.setOutput(PortNumber.CONTROLLER);
+        String uuid = portName.substring(3);
+        OpenstackPort port = openstackPortList.stream()
+                .filter(p -> p.id().startsWith(uuid))
+                .findFirst().orElse(null);
 
-        ForwardingObjective fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(tBuilder.build())
-                .withPriority(5000)
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .fromApp(appId)
-                .add();
+        if (port == null) {
+            log.error("There is no port information for port name {}", portName);
+            return null;
+        }
 
-        flowObjectiveService.forward(id, fo);
+        if (port.fixedIps().isEmpty()) {
+            log.error("There is no fixed IP info in the port information");
+            return null;
+        }
+
+        return (Ip4Address) port.fixedIps().values().toArray()[0];
+    }
+
+    /**
+     * Returns the MAC address of the VM of the port.
+     *
+     * @param portName VM port
+     * @return MAC address of the VM
+     */
+    private MacAddress getVmMacAddressForPort(String portName) {
+
+        String uuid = portName.substring(3);
+        OpenstackPort port = openstackPortList.stream()
+                .filter(p -> p.id().startsWith(uuid))
+                .findFirst().orElse(null);
+
+        if (port == null) {
+            log.error("There is port information for port name {}", portName);
+            return null;
+        }
+
+        return port.macAddress();
     }
 
     /**
@@ -168,22 +223,20 @@ public class OpenstackSwitchingRulePopulator {
      * @param ip4Address VM IP address
      * @param id device ID to put rules
      * @param port VM port
-     * @param cidr subnet info of the VMs
      */
     private void setFlowRuleForVMsInSameCnode(Ip4Address ip4Address, DeviceId id,
-                                              Port port, Ip4Prefix cidr) {
+                                              Port port) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(ip4Address.toIpPrefix())
-                .matchIPSrc(cidr);
+                .matchIPDst(ip4Address.toIpPrefix());
         tBuilder.setOutput(port.number());
 
         ForwardingObjective fo = DefaultForwardingObjective.builder()
                 .withSelector(sBuilder.build())
                 .withTreatment(tBuilder.build())
-                .withPriority(5000)
+                .withPriority(SWITCHING_RULE_PRIORITY)
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .fromApp(appId)
                 .add();
@@ -199,28 +252,56 @@ public class OpenstackSwitchingRulePopulator {
      * @param hostIp host IP of the VM
      * @param vmIp fixed IP of the VM
      * @param vmMac MAC address of the VM
-     * @param tunnelPort tunnel port to forward traffic to
      */
     private void setVxLanFlowRule(String vni, DeviceId id, Ip4Address hostIp,
-                                  Ip4Address vmIp, MacAddress vmMac, PortNumber tunnelPort) {
+                                  Ip4Address vmIp, MacAddress vmMac) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(vmIp.toIpPrefix());
         tBuilder.setTunnelId(Long.parseLong(vni))
-                //.setTunnelDst() <- for Nicira ext
-                //.setEthDst(vmMac)
-                .setOutput(tunnelPort);
+                .extension(buildNiciraExtenstion(id, hostIp), id)
+                .setOutput(getTunnelPort(id));
 
         ForwardingObjective fo = DefaultForwardingObjective.builder()
                 .withSelector(sBuilder.build())
                 .withTreatment(tBuilder.build())
-                .withPriority(5000)
+                .withPriority(SWITCHING_RULE_PRIORITY)
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .fromApp(appId)
                 .add();
 
         flowObjectiveService.forward(id, fo);
+    }
+
+    private ExtensionTreatment buildNiciraExtenstion(DeviceId id, Ip4Address hostIp) {
+        Driver driver = driverService.getDriver(id);
+        DriverHandler driverHandler = new DefaultDriverHandler(new DefaultDriverData(driver, id));
+        ExtensionTreatmentResolver resolver = driverHandler.behaviour(ExtensionTreatmentResolver.class);
+
+        ExtensionTreatment extensionInstruction =
+                resolver.getExtensionInstruction(
+                        ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST.type());
+
+        try {
+            extensionInstruction.setPropertyValue("tunnelDst", hostIp);
+        } catch (ExtensionPropertyException e) {
+            log.error("Error setting Nicira extension setting {}", e);
+        }
+
+        return  extensionInstruction;
+    }
+
+    private PortNumber getTunnelPort(DeviceId id) {
+        Port port = deviceService.getPorts(id).stream()
+                .filter(p -> p.annotations().value("portName").equals("vxlan"))
+                .findAny().orElse(null);
+
+        if (port == null) {
+            log.error("No TunnelPort was created.");
+            return null;
+        }
+        return port.number();
     }
 }

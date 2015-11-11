@@ -1,0 +1,55 @@
+{
+    "apps" : {
+        "org.onosproject.openstackswitching" : {
+            "openstackswitching" : {
+                 "do_not_push_flows" : "false",
+                 "neutron_server" : "http://127.0.0.1:9696/v2.0/",
+                 "keystone_server" : "http://127.0.0.1:5000/v2.0/",
+		 "user_name" : "admin",
+                 "password" : "nova"
+             }
+        },
+        "org.onosproject.dhcp" : {
+            "dhcp" : {
+            "ip": "10.0.0.1",
+            "mac": "1a:2b:3c:4e:5e:6f",
+            "subnet": "255.0.0.0",
+            "broadcast": "10.255.255.255",
+            "router": "10.0.0.1",
+            "domain": "10.0.0.1",
+            "ttl": "63",
+            "lease": "300",
+            "renew": "150",
+            "rebind": "200",
+            "delay": "3",
+            "timeout": "150",
+            "startip": "10.0.0.110",
+            "endip": "10.0.0.130"
+          }
+        },
+        "org.onosproject.cordvtn" : {
+            "cordvtn" : {
+                "ovsdbNodes" : [
+                    {
+                        "host" : "compute-01",
+                        "ip" : "128.199.162.106",
+                        "port" : "6640",
+                        "bridgeId" : "of:0000000000000001"
+                     },
+                     {
+                        "host" : "compute-02",
+                        "ip" : "103.253.145.133",
+                        "port" : "6640",
+                        "bridgeId" : "of:0000000000000002"
+                     },
+                     {
+                         "host" : "network",
+                         "ip" : "128.199.125.11",
+                         "port" : "6640",
+                         "bridgeId" : "of:0000000000000003"
+                     }
+                ]
+            }
+        }
+    }
+}

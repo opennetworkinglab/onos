@@ -32,7 +32,8 @@ public final class OpenstackPort {
 
     public enum PortStatus {
         UP,
-        DOWN
+        DOWN,
+        ACTIVE
     }
 
     private PortStatus status;
