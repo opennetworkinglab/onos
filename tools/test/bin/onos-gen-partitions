@@ -1,19 +1,21 @@
-#!/usr/bin/env python 
-'''
+#!/usr/bin/env python
+"""
   Generate the partitions json file from the $OC* environment variables
-  
+
   Usage: onos-gen-partitions [output file]
   If output file is not provided, the json is written to stdout.
-'''
+"""
 
 from os import environ
 from collections import deque, OrderedDict
 import re
 import json
 import sys
+import random
+import string
 
-convert = lambda text: int(text) if text.isdigit() else text.lower() 
-alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)] 
+convert = lambda text: int(text) if text.isdigit() else text.lower()
+alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
 
 def get_OC_vars():
   vars = []
@@ -42,10 +44,13 @@ if __name__ == '__main__':
   vars = get_OC_vars()
   nodes = get_nodes(vars)
   partitions = generate_permutations([v.get('id') for v in nodes], 3)
+  name = 0
+  for node in nodes:
+      name = name ^ node['ip']
   data = {
-           'name': 'default',
+           'name': name,
            'nodes': nodes,
-           'partitions': partitions 
+           'partitions': partitions
          }
   output = json.dumps(data, indent=4)
 

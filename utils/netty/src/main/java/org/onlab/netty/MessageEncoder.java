@@ -36,6 +36,13 @@ import com.google.common.base.Charsets;
 @Sharable
 public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
 
+    private final int preamble;
+
+    public MessageEncoder(int preamble) {
+        super();
+        this.preamble = preamble;
+    }
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
@@ -43,6 +50,8 @@ public class MessageEncoder extends MessageToByteEncoder<InternalMessage> {
             ChannelHandlerContext context,
             InternalMessage message,
             ByteBuf out) throws Exception {
+
+        out.writeInt(this.preamble);
 
         // write message id
         out.writeLong(message.id());

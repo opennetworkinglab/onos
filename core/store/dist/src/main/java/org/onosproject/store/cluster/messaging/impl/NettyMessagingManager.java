@@ -48,7 +48,8 @@ public class NettyMessagingManager extends NettyMessaging {
     public void activate() throws Exception {
         ControllerNode localNode = clusterMetadataService.getLocalNode();
         getTlsParameters();
-        super.start(new Endpoint(localNode.ip(), localNode.tcpPort()));
+        super.start(clusterMetadataService.getClusterMetadata().getName().hashCode(),
+                    new Endpoint(localNode.ip(), localNode.tcpPort()));
         log.info("Started");
     }
 
