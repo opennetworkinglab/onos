@@ -232,7 +232,7 @@ public class GossipDeviceStoreTest {
         if (expected == actual) {
             return;
         }
-        assertEquals(expected.deviceURI(), actual.deviceURI());
+        assertEquals(expected.deviceUri(), actual.deviceUri());
         assertEquals(expected.hwVersion(), actual.hwVersion());
         assertEquals(expected.manufacturer(), actual.manufacturer());
         assertEquals(expected.serialNumber(), actual.serialNumber());
@@ -247,7 +247,7 @@ public class GossipDeviceStoreTest {
         if (expected == actual) {
             return;
         }
-        assertEquals(expected.deviceURI(), actual.deviceURI());
+        assertEquals(expected.deviceUri(), actual.deviceUri());
         assertEquals(expected.hwVersion(), actual.hwVersion());
         assertEquals(expected.manufacturer(), actual.manufacturer());
         assertEquals(expected.serialNumber(), actual.serialNumber());

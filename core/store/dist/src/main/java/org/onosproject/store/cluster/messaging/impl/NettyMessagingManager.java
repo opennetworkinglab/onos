@@ -47,7 +47,7 @@ public class NettyMessagingManager extends NettyMessaging {
     @Activate
     public void activate() throws Exception {
         ControllerNode localNode = clusterMetadataService.getLocalNode();
-        getTLSParameters();
+        getTlsParameters();
         super.start(new Endpoint(localNode.ip(), localNode.tcpPort()));
         log.info("Started");
     }
@@ -58,29 +58,29 @@ public class NettyMessagingManager extends NettyMessaging {
         log.info("Stopped");
     }
 
-    private void getTLSParameters() {
+    private void getTlsParameters() {
         String tempString = System.getProperty("enableNettyTLS");
-        enableNettyTLS = Strings.isNullOrEmpty(tempString) ? TLS_DISABLED : Boolean.parseBoolean(tempString);
-        log.info("enableNettyTLS = {}", enableNettyTLS);
-        if (enableNettyTLS) {
+        enableNettyTls = Strings.isNullOrEmpty(tempString) ? TLS_DISABLED : Boolean.parseBoolean(tempString);
+        log.info("enableNettyTLS = {}", enableNettyTls);
+        if (enableNettyTls) {
             ksLocation = System.getProperty("javax.net.ssl.keyStore");
             if (Strings.isNullOrEmpty(ksLocation)) {
-                enableNettyTLS = TLS_DISABLED;
+                enableNettyTls = TLS_DISABLED;
                 return;
             }
             tsLocation = System.getProperty("javax.net.ssl.trustStore");
             if (Strings.isNullOrEmpty(tsLocation)) {
-                enableNettyTLS = TLS_DISABLED;
+                enableNettyTls = TLS_DISABLED;
                 return;
             }
             ksPwd = System.getProperty("javax.net.ssl.keyStorePassword").toCharArray();
             if (MIN_KS_LENGTH > ksPwd.length) {
-                enableNettyTLS = TLS_DISABLED;
+                enableNettyTls = TLS_DISABLED;
                 return;
             }
             tsPwd = System.getProperty("javax.net.ssl.trustStorePassword").toCharArray();
             if (MIN_KS_LENGTH > tsPwd.length) {
-                enableNettyTLS = TLS_DISABLED;
+                enableNettyTls = TLS_DISABLED;
                 return;
             }
         }

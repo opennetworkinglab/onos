@@ -15,24 +15,23 @@
  */
 package org.onosproject.cli.net;
 
-import java.util.Set;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link;
+import org.onosproject.net.Path;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.resource.link.DefaultLinkResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.resource.link.LinkResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.topology.PathService;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.Link;
-import org.onosproject.net.Path;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Commands to test out LinkResourceManager directly.
@@ -44,7 +43,7 @@ public class LinkResourceTestCommand extends AbstractShellCommand {
     // default is bandwidth.
     @Option(name = "-m", aliases = "--mpls", description = "MPLS resource",
             required = false, multiValued = false)
-    private boolean isMPLS = false;
+    private boolean isMpls = false;
 
     @Option(name = "-o", aliases = "--optical", description = "Optical resource",
             required = false, multiValued = false)
@@ -96,7 +95,7 @@ public class LinkResourceTestCommand extends AbstractShellCommand {
         for (Path p : paths) {
             List<Link> links = p.links();
             LinkResourceRequest.Builder request = null;
-            if (isMPLS) {
+            if (isMpls) {
                 List<Link> nlinks = Lists.newArrayList();
                 try {
                     nlinks.addAll(links.subList(1, links.size() - 2));

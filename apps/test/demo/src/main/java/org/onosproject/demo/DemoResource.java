@@ -51,7 +51,7 @@ public class DemoResource extends BaseResource {
     public Response flowTest(InputStream input) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode cfg = mapper.readTree(input);
-        DemoAPI demo = get(DemoAPI.class);
+        DemoApi demo = get(DemoApi.class);
         return Response.ok(demo.flowTest(Optional.ofNullable(cfg)).toString()).build();
     }
 
@@ -75,9 +75,9 @@ public class DemoResource extends BaseResource {
         }
 
 
-        DemoAPI.InstallType type = DemoAPI.InstallType.valueOf(
+        DemoApi.InstallType type = DemoApi.InstallType.valueOf(
                 cfg.get("type").asText().toUpperCase());
-        DemoAPI demo = get(DemoAPI.class);
+        DemoApi demo = get(DemoApi.class);
         demo.setup(type, Optional.ofNullable(cfg.get("runParams")));
 
         return Response.ok(mapper.createObjectNode().toString()).build();
@@ -93,7 +93,7 @@ public class DemoResource extends BaseResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response tearDown() {
         ObjectMapper mapper = new ObjectMapper();
-        DemoAPI demo = get(DemoAPI.class);
+        DemoApi demo = get(DemoApi.class);
         demo.tearDown();
         return Response.ok(mapper.createObjectNode().toString()).build();
     }

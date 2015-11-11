@@ -82,15 +82,15 @@ public class GetFlowStatistics extends AbstractShellCommand {
         DeviceService deviceService = get(DeviceService.class);
         FlowStatisticService flowStatsService = get(FlowStatisticService.class);
 
-        String deviceURI = getDeviceId(devicePort);
-        String portURI = getPortNumber(devicePort);
+        String deviceUri = getDeviceId(devicePort);
+        String portUri = getPortNumber(devicePort);
 
-        DeviceId ingressDeviceId = deviceId(deviceURI);
+        DeviceId ingressDeviceId = deviceId(deviceUri);
         PortNumber ingressPortNumber;
-        if (portURI.length() == 0) {
+        if (portUri.length() == 0) {
             ingressPortNumber = null;
         } else {
-            ingressPortNumber = portNumber(portURI);
+            ingressPortNumber = portNumber(portUri);
         }
 
         Device device = deviceService.getDevice(ingressDeviceId);
@@ -102,7 +102,7 @@ public class GetFlowStatistics extends AbstractShellCommand {
         if (ingressPortNumber != null) {
             Port port = deviceService.getPort(ingressDeviceId, ingressPortNumber);
             if (port == null) {
-                error("No such port %s on device %s", portURI, ingressDeviceId.uri());
+                error("No such port %s on device %s", portUri, ingressDeviceId.uri());
                 return;
             }
         }
@@ -148,7 +148,7 @@ public class GetFlowStatistics extends AbstractShellCommand {
 
             // print show topn head line with type
             print("deviceId=%s, show TOPN=%s flows, live type=%s, instruction type=%s",
-                    deviceURI,
+                    deviceUri,
                     Integer.toString(topn),
                     flowLiveType == null ? "ALL" : flowLiveType,
                     instructionType == null ? "ALL" : instructionType);
@@ -169,7 +169,7 @@ public class GetFlowStatistics extends AbstractShellCommand {
         } else if (showAll) { // is true?
             // print show all head line with type
             print("deviceId=%s, show ALL flows, live type=%s, instruction type=%s",
-                    deviceURI,
+                    deviceUri,
                     flowLiveType == null ? "ALL" : flowLiveType,
                     instructionType == null ? "ALL" : instructionType);
             if (ingressPortNumber == null) {
@@ -188,7 +188,7 @@ public class GetFlowStatistics extends AbstractShellCommand {
             }
         } else { // if (showSummary == true) //always is true
             // print show summary head line
-            print("deviceId=%s, show SUMMARY flows", deviceURI);
+            print("deviceId=%s, show SUMMARY flows", deviceUri);
             if (ingressPortNumber == null) {
                 Map<ConnectPoint, SummaryFlowEntryWithLoad> summaryFlowLoadMap =
                         flowStatsService.loadSummary(device);

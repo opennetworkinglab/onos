@@ -31,11 +31,11 @@ import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
 /**
  * Test of the Suurballe backup path algorithm.
  */
-public class SRLGGraphSearchTest extends BreadthFirstSearchTest {
+public class SrlgGraphSearchTest extends BreadthFirstSearchTest {
 
     @Override
     protected AbstractGraphPathSearch<TestVertex, TestEdge> graphSearch() {
-        return new SRLGGraphSearch<>(null);
+        return new SrlgGraphSearch<>(null);
     }
 
     public void setDefaultWeights() {
@@ -64,7 +64,7 @@ public class SRLGGraphSearchTest extends BreadthFirstSearchTest {
         riskProfile.put(bC, 0);
         riskProfile.put(aD, 1);
         riskProfile.put(dC, 1);
-        SRLGGraphSearch<TestVertex, TestEdge> search = new SRLGGraphSearch<>(2, riskProfile);
+        SrlgGraphSearch<TestVertex, TestEdge> search = new SrlgGraphSearch<>(2, riskProfile);
         Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, C, weight, ALL_PATHS).paths();
         System.out.println("\n\n\n" + paths + "\n\n\n");
         assertEquals("one disjoint path pair found", 1, paths.size());
@@ -105,7 +105,7 @@ public class SRLGGraphSearchTest extends BreadthFirstSearchTest {
         riskProfile.put(dC, 1);
         riskProfile.put(cE, 2);
         riskProfile.put(bE, 3);
-        SRLGGraphSearch<TestVertex, TestEdge> search = new SRLGGraphSearch<>(4, riskProfile);
+        SrlgGraphSearch<TestVertex, TestEdge> search = new SrlgGraphSearch<>(4, riskProfile);
         search.search(graph, A, E, weight, ALL_PATHS).paths();
     }
 
@@ -127,7 +127,7 @@ public class SRLGGraphSearchTest extends BreadthFirstSearchTest {
         riskProfile.put(dE, 3);
         riskProfile.put(aC, 4);
         riskProfile.put(cE, 5);
-        SRLGGraphSearch<TestVertex, TestEdge> search = new SRLGGraphSearch<>(6, riskProfile);
+        SrlgGraphSearch<TestVertex, TestEdge> search = new SrlgGraphSearch<>(6, riskProfile);
         Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, E, weight, ALL_PATHS).paths();
         assertTrue("> one disjoint path pair found", paths.size() >= 1);
         checkIsDisjoint(paths.iterator().next(), riskProfile);
@@ -147,7 +147,7 @@ public class SRLGGraphSearchTest extends BreadthFirstSearchTest {
         riskProfile.put(bC, 0);
         riskProfile.put(aD, 1);
         riskProfile.put(dC, 0);
-        SRLGGraphSearch<TestVertex, TestEdge> search = new SRLGGraphSearch<>(2, riskProfile);
+        SrlgGraphSearch<TestVertex, TestEdge> search = new SrlgGraphSearch<>(2, riskProfile);
         Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, C, weight, ALL_PATHS).paths();
         System.out.println(paths);
         assertTrue("no disjoint path pairs found", paths.size() == 0);
@@ -167,7 +167,7 @@ public class SRLGGraphSearchTest extends BreadthFirstSearchTest {
         riskProfile.put(bC, 0);
         riskProfile.put(aD, 1);
         riskProfile.put(dC, 0);
-        SRLGGraphSearch<TestVertex, TestEdge> search = new SRLGGraphSearch<>(2, riskProfile);
+        SrlgGraphSearch<TestVertex, TestEdge> search = new SrlgGraphSearch<>(2, riskProfile);
         Set<Path<TestVertex, TestEdge>> paths = search.search(graph, A, E, weight, ALL_PATHS).paths();
         assertTrue("no disjoint path pairs found", paths.size() == 0);
     }

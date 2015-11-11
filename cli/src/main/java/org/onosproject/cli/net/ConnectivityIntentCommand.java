@@ -15,12 +15,6 @@
  */
 package org.onosproject.cli.net;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
-
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
@@ -46,6 +40,12 @@ import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.net.resource.link.BandwidthResource;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 
 /**
  * Base class for command line operations for connectivity based intents.
@@ -99,11 +99,11 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
     @Option(name = "--ndSLL", description = "IPv6 Neighbor Discovery Source Link-Layer",
             required = false, multiValued = false)
-    private String ndSLLString = null;
+    private String ndSllString = null;
 
     @Option(name = "--ndTLL", description = "IPv6 Neighbor Discovery Target Link-Layer",
             required = false, multiValued = false)
-    private String ndTLLString = null;
+    private String ndTllString = null;
 
     @Option(name = "--tcpSrc", description = "Source TCP Port",
             required = false, multiValued = false)
@@ -264,12 +264,12 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             selectorBuilder.matchIPv6NDTargetAddress(Ip6Address.valueOf(ndTargetString));
         }
 
-        if (!isNullOrEmpty(ndSLLString)) {
-            selectorBuilder.matchIPv6NDSourceLinkLayerAddress(MacAddress.valueOf(ndSLLString));
+        if (!isNullOrEmpty(ndSllString)) {
+            selectorBuilder.matchIPv6NDSourceLinkLayerAddress(MacAddress.valueOf(ndSllString));
         }
 
-        if (!isNullOrEmpty(ndTLLString)) {
-            selectorBuilder.matchIPv6NDTargetLinkLayerAddress(MacAddress.valueOf(ndTLLString));
+        if (!isNullOrEmpty(ndTllString)) {
+            selectorBuilder.matchIPv6NDTargetLinkLayerAddress(MacAddress.valueOf(ndTllString));
         }
 
         if (!isNullOrEmpty(srcTcpString)) {

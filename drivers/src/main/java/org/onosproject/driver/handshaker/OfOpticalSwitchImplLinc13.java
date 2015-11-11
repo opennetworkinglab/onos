@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * while it sends *all* ports (both tap and WDM ports, i.e., OCh and OMS) in the experimenter port desc stats reply.
  *
  */
-public class OFOpticalSwitchImplLINC13
+public class OfOpticalSwitchImplLinc13
  extends AbstractOpenFlowSwitch implements OpenFlowOpticalSwitch {
 
     private final AtomicBoolean driverHandshakeComplete = new AtomicBoolean(false);

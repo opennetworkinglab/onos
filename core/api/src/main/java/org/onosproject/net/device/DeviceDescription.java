@@ -33,7 +33,7 @@ public interface DeviceDescription extends Description {
      *
      * @return provider specific URI for the device
      */
-    URI deviceURI();
+    URI deviceUri();
 
     /**
      * Returns the type of the infrastructure device.

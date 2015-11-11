@@ -495,15 +495,15 @@ public class ProxyArpManagerTest {
         replay(hostService);
         replay(interfaceService);
 
-        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
-                                       MAC4, SOLICITED_MAC3,
-                                       IP4, IP3);
+        Ethernet ndpRequest = buildNdp(ICMP6.NEIGHBOR_SOLICITATION,
+                MAC4, SOLICITED_MAC3,
+                IP4, IP3);
 
         proxyArp.reply(ndpRequest, getLocation(5));
 
         assertEquals(1, packetService.packets.size());
-        Ethernet ndpReply = buildNDP(ICMP6.NEIGHBOR_ADVERTISEMENT,
-                                     MAC3, MAC4, IP3, IP4);
+        Ethernet ndpReply = buildNdp(ICMP6.NEIGHBOR_ADVERTISEMENT,
+                MAC3, MAC4, IP3, IP4);
         verifyPacketOut(ndpReply, getLocation(5), packetService.packets.get(0));
     }
 
@@ -556,9 +556,9 @@ public class ProxyArpManagerTest {
         replay(hostService);
         replay(interfaceService);
 
-        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
-                                       MAC4, SOLICITED_MAC3,
-                                       IP4, IP3);
+        Ethernet ndpRequest = buildNdp(ICMP6.NEIGHBOR_SOLICITATION,
+                MAC4, SOLICITED_MAC3,
+                IP4, IP3);
 
         proxyArp.reply(ndpRequest, getLocation(NUM_DEVICES));
 
@@ -686,9 +686,9 @@ public class ProxyArpManagerTest {
         replay(hostService);
         replay(interfaceService);
 
-        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
-                                       MAC4, SOLICITED_MAC3,
-                                       IP4, IP3);
+        Ethernet ndpRequest = buildNdp(ICMP6.NEIGHBOR_SOLICITATION,
+                MAC4, SOLICITED_MAC3,
+                IP4, IP3);
 
         proxyArp.reply(ndpRequest, getLocation(NUM_DEVICES));
 
@@ -752,37 +752,37 @@ public class ProxyArpManagerTest {
         replay(hostService);
         replay(interfaceService);
 
-        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
-                                       MAC2,
-                                       MacAddress.valueOf("33:33:ff:00:00:01"),
-                                       theirIp,
-                                       ourFirstIp);
+        Ethernet ndpRequest = buildNdp(ICMP6.NEIGHBOR_SOLICITATION,
+                MAC2,
+                MacAddress.valueOf("33:33:ff:00:00:01"),
+                theirIp,
+                ourFirstIp);
 
         proxyArp.reply(ndpRequest, LOC1);
         assertEquals(1, packetService.packets.size());
 
-        Ethernet ndpReply = buildNDP(ICMP6.NEIGHBOR_ADVERTISEMENT,
-                                     firstMac,
-                                     MAC2,
-                                     ourFirstIp,
-                                     theirIp);
+        Ethernet ndpReply = buildNdp(ICMP6.NEIGHBOR_ADVERTISEMENT,
+                firstMac,
+                MAC2,
+                ourFirstIp,
+                theirIp);
         verifyPacketOut(ndpReply, LOC1, packetService.packets.get(0));
 
         // Test a request for the second address on that port
         packetService.packets.clear();
-        ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
-                              MAC2,
-                              MacAddress.valueOf("33:33:ff:00:00:01"),
-                              theirIp,
-                              ourSecondIp);
+        ndpRequest = buildNdp(ICMP6.NEIGHBOR_SOLICITATION,
+                MAC2,
+                MacAddress.valueOf("33:33:ff:00:00:01"),
+                theirIp,
+                ourSecondIp);
         proxyArp.reply(ndpRequest, LOC1);
         assertEquals(1, packetService.packets.size());
 
-        ndpReply = buildNDP(ICMP6.NEIGHBOR_ADVERTISEMENT,
-                                     secondMac,
-                                     MAC2,
-                                     ourSecondIp,
-                                     theirIp);
+        ndpReply = buildNdp(ICMP6.NEIGHBOR_ADVERTISEMENT,
+                secondMac,
+                MAC2,
+                ourSecondIp,
+                theirIp);
         verifyPacketOut(ndpReply, LOC1, packetService.packets.get(0));
     }
 
@@ -819,21 +819,21 @@ public class ProxyArpManagerTest {
 
         Ip6Address theirIp = Ip6Address.valueOf("1000::ffff");
 
-        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
-                              MAC1,
-                              MacAddress.valueOf("33:33:ff:00:00:01"),
-                              theirIp,
-                              Ip6Address.valueOf("3000::1"));
+        Ethernet ndpRequest = buildNdp(ICMP6.NEIGHBOR_SOLICITATION,
+                MAC1,
+                MacAddress.valueOf("33:33:ff:00:00:01"),
+                theirIp,
+                Ip6Address.valueOf("3000::1"));
         proxyArp.reply(ndpRequest, LOC1);
         assertEquals(0, packetService.packets.size());
 
         // Request for a valid internal IP address but coming in an external port
         packetService.packets.clear();
-        ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
-                              MAC1,
-                              MacAddress.valueOf("33:33:ff:00:00:01"),
-                              theirIp,
-                              IP3);
+        ndpRequest = buildNdp(ICMP6.NEIGHBOR_SOLICITATION,
+                MAC1,
+                MacAddress.valueOf("33:33:ff:00:00:01"),
+                theirIp,
+                IP3);
         proxyArp.reply(ndpRequest, LOC1);
         assertEquals(0, packetService.packets.size());
     }
@@ -894,11 +894,11 @@ public class ProxyArpManagerTest {
 
         // This is a request from something inside our network (like a BGP
         // daemon) to an external host.
-        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
-                                       ourMac,
-                                       MacAddress.valueOf("33:33:ff:00:00:01"),
-                                       ourIp,
-                                       theirIp);
+        Ethernet ndpRequest = buildNdp(ICMP6.NEIGHBOR_SOLICITATION,
+                ourMac,
+                MacAddress.valueOf("33:33:ff:00:00:01"),
+                ourIp,
+                theirIp);
 
         proxyArp.reply(ndpRequest, getLocation(5));
         assertEquals(1, packetService.packets.size());
@@ -954,9 +954,9 @@ public class ProxyArpManagerTest {
         replay(hostService);
         replay(interfaceService);
 
-        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
-                                       MAC4, SOLICITED_MAC3,
-                                       IP4, IP3);
+        Ethernet ndpRequest = buildNdp(ICMP6.NEIGHBOR_SOLICITATION,
+                MAC4, SOLICITED_MAC3,
+                IP4, IP3);
 
         proxyArp.forward(ndpRequest, LOC2);
 
@@ -995,9 +995,9 @@ public class ProxyArpManagerTest {
         replay(hostService);
         replay(interfaceService);
 
-        Ethernet ndpRequest = buildNDP(ICMP6.NEIGHBOR_SOLICITATION,
-                                       MAC4, SOLICITED_MAC3,
-                                       IP4, IP3);
+        Ethernet ndpRequest = buildNdp(ICMP6.NEIGHBOR_SOLICITATION,
+                MAC4, SOLICITED_MAC3,
+                IP4, IP3);
 
         proxyArp.forward(ndpRequest, getLocation(NUM_DEVICES));
 
@@ -1113,7 +1113,7 @@ public class ProxyArpManagerTest {
      * @param dstIp  destination IP address
      * @return the NDP packet
      */
-    private Ethernet buildNDP(byte type, MacAddress srcMac, MacAddress dstMac,
+    private Ethernet buildNdp(byte type, MacAddress srcMac, MacAddress dstMac,
                               Ip6Address srcIp, Ip6Address dstIp) {
         assertThat(type, anyOf(
                 is(ICMP6.NEIGHBOR_SOLICITATION),

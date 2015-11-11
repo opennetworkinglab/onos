@@ -15,22 +15,22 @@
  */
 package org.onosproject.store.serializers;
 
-import java.net.URI;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
+import java.net.URI;
+
 /**
  * Serializer for {@link URI}.
  */
-public class URISerializer extends Serializer<URI> {
+public class UriSerializer extends Serializer<URI> {
 
     /**
      * Creates {@link URI} serializer instance.
      */
-    public URISerializer() {
+    public UriSerializer() {
         super(false);
     }
 

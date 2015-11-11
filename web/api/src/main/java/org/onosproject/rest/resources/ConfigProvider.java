@@ -327,7 +327,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
             String value = annotations.value("optical.waves").trim();
             try {
                 int numChls = Integer.parseInt(value);
-                updateOMSPorts(numChls, src, dst);
+                updateOmsPorts(numChls, src, dst);
             } catch (NumberFormatException e) {
                 log.warn("Invalid channel ({}), can't configure port(s)", value);
                 return;
@@ -373,7 +373,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
         }
     }
 
-    private void updateOMSPorts(int numChls, ConnectPoint srcCp, ConnectPoint dstCp) {
+    private void updateOmsPorts(int numChls, ConnectPoint srcCp, ConnectPoint dstCp) {
         // round down to largest slot that allows numChl channels to fit into C band range
         ChannelSpacing chl = null;
         Frequency perChl = TOTAL.floorDivision(numChls);

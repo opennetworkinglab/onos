@@ -532,7 +532,7 @@ public class SimpleDeviceStore
 
         checkArgument(!providerDescs.isEmpty(), "No Device descriptions supplied");
 
-        ProviderId primary = pickPrimaryPID(providerDescs);
+        ProviderId primary = pickPrimaryPid(providerDescs);
 
         DeviceDescriptions desc = providerDescs.get(primary);
 
@@ -575,7 +575,7 @@ public class SimpleDeviceStore
     private Port composePort(Device device, PortNumber number,
                              Map<ProviderId, DeviceDescriptions> descsMap) {
 
-        ProviderId primary = pickPrimaryPID(descsMap);
+        ProviderId primary = pickPrimaryPid(descsMap);
         DeviceDescriptions primDescs = descsMap.get(primary);
         // if no primary, assume not enabled
         // TODO: revisit this default port enabled/disabled behavior
@@ -613,7 +613,7 @@ public class SimpleDeviceStore
     /**
      * @return primary ProviderID, or randomly chosen one if none exists
      */
-    private ProviderId pickPrimaryPID(Map<ProviderId, DeviceDescriptions> descsMap) {
+    private ProviderId pickPrimaryPid(Map<ProviderId, DeviceDescriptions> descsMap) {
         ProviderId fallBackPrimary = null;
         for (Entry<ProviderId, DeviceDescriptions> e : descsMap.entrySet()) {
             if (!e.getKey().isAncillary()) {

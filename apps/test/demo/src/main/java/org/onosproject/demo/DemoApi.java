@@ -22,7 +22,7 @@ import java.util.Optional;
 /**
  * Simple demo api interface.
  */
-public interface DemoAPI {
+public interface DemoApi {
 
     enum InstallType { MESH, RANDOM }
 

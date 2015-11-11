@@ -115,19 +115,19 @@ public class DefaultCellComparatorTest {
     }
 
     @Test
-    public void swEpisodeII() {
+    public void swEpisodeIi() {
         assertTrue("r2d2 c3po",
                    cmp.compare(SmallStarWars.R2D2, SmallStarWars.C3PO) > 0);
     }
 
     @Test
-    public void swEpisodeIII() {
+    public void swEpisodeIii() {
         assertTrue("luke c3po",
                    cmp.compare(SmallStarWars.LUKE, SmallStarWars.C3PO) > 0);
     }
 
     @Test
-    public void swEpisodeIV() {
+    public void swEpisodeIv() {
         assertTrue("c3po luke",
                    cmp.compare(SmallStarWars.C3PO, SmallStarWars.LUKE) < 0);
     }
@@ -139,7 +139,7 @@ public class DefaultCellComparatorTest {
     }
 
     @Test
-    public void swEpisodeVI() {
+    public void swEpisodeVi() {
         assertTrue("r2d2 luke",
                    cmp.compare(SmallStarWars.R2D2, SmallStarWars.LUKE) < 0);
     }

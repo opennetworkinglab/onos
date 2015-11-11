@@ -15,15 +15,12 @@
  */
 package org.onosproject.optical.testapp;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Device;
@@ -39,15 +36,18 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onlab.packet.Ethernet;
-import org.onlab.packet.MplsLabel;
 import org.slf4j.Logger;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Sample reactive forwarding application.
  */
 //@Component(immediate = true)
-public class MPLSForwarding {
+public class MplsForwarding {
 
     private final Logger log = getLogger(getClass());
 

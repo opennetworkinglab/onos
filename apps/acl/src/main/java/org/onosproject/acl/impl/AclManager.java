@@ -90,7 +90,7 @@ public class AclManager implements AclService {
     /**
      * Checks if the given IP address is in the given CIDR address.
      */
-    private boolean checkIpInCIDR(Ip4Address ip, Ip4Prefix cidr) {
+    private boolean checkIpInCidr(Ip4Address ip, Ip4Prefix cidr) {
         int offset = 32 - cidr.prefixLength();
         int cidrPrefix = cidr.address().toInt();
         int ipIntValue = ip.toInt();
@@ -111,17 +111,17 @@ public class AclManager implements AclService {
             DeviceId deviceId = event.subject().location().deviceId();
             for (IpAddress address : event.subject().ipAddresses()) {
                 if ((rule.srcIp() != null) ?
-                        (checkIpInCIDR(address.getIp4Address(), rule.srcIp())) :
-                        (checkIpInCIDR(address.getIp4Address(), rule.dstIp()))) {
+                        (checkIpInCidr(address.getIp4Address(), rule.srcIp())) :
+                        (checkIpInCidr(address.getIp4Address(), rule.dstIp()))) {
                     if (!aclStore.checkIfRuleWorksInDevice(rule.id(), deviceId)) {
                         List<RuleId> allowingRuleList = aclStore
                                 .getAllowingRuleByDenyingRule(rule.id());
                         if (allowingRuleList != null) {
                             for (RuleId allowingRuleId : allowingRuleList) {
-                                generateACLFlow(aclStore.getAclRule(allowingRuleId), deviceId);
+                                generateAclFlow(aclStore.getAclRule(allowingRuleId), deviceId);
                             }
                         }
-                        generateACLFlow(rule, deviceId);
+                        generateAclFlow(rule, deviceId);
                     }
                 }
             }
@@ -212,7 +212,7 @@ public class AclManager implements AclService {
         if (cidrAddr.prefixLength() != 32) {
             for (Host h : hosts) {
                 for (IpAddress a : h.ipAddresses()) {
-                    if (checkIpInCIDR(a.getIp4Address(), cidrAddr)) {
+                    if (checkIpInCidr(a.getIp4Address(), cidrAddr)) {
                         deviceIdSet.add(h.location().deviceId());
                     }
                 }
@@ -220,7 +220,7 @@ public class AclManager implements AclService {
         } else {
             for (Host h : hosts) {
                 for (IpAddress a : h.ipAddresses()) {
-                    if (checkIpInCIDR(a.getIp4Address(), cidrAddr)) {
+                    if (checkIpInCidr(a.getIp4Address(), cidrAddr)) {
                         deviceIdSet.add(h.location().deviceId());
                         return deviceIdSet;
                     }
@@ -245,10 +245,10 @@ public class AclManager implements AclService {
             List<RuleId> allowingRuleList = aclStore.getAllowingRuleByDenyingRule(rule.id());
             if (allowingRuleList != null) {
                 for (RuleId allowingRuleId : allowingRuleList) {
-                    generateACLFlow(aclStore.getAclRule(allowingRuleId), deviceId);
+                    generateAclFlow(aclStore.getAclRule(allowingRuleId), deviceId);
                 }
             }
-            generateACLFlow(rule, deviceId);
+            generateAclFlow(rule, deviceId);
         }
     }
 
@@ -256,7 +256,7 @@ public class AclManager implements AclService {
      * Generates ACL flow rule according to ACL rule
      * and install it into related device.
      */
-    private void generateACLFlow(AclRule rule, DeviceId deviceId) {
+    private void generateAclFlow(AclRule rule, DeviceId deviceId) {
         if (rule == null || aclStore.checkIfRuleWorksInDevice(rule.id(), deviceId)) {
             return;
         }

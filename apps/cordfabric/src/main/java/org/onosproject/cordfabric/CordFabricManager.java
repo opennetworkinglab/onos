@@ -268,7 +268,7 @@ public class CordFabricManager implements FabricService {
         removeVlan(vlan.vlan());
 
         if (vlan.iptv()) {
-            provisionIPTV();
+            provisionIpTv();
         }
 
         vlan.ports().forEach(cp -> {
@@ -283,7 +283,7 @@ public class CordFabricManager implements FabricService {
     }
 
     //FIXME: pass iptv vlan in here.
-    private void provisionIPTV() {
+    private void provisionIpTv() {
         TrafficSelector ipTvUp = DefaultTrafficSelector.builder()
                 .matchVlanId(VlanId.vlanId((short) 7))
                 .matchInPort(PortNumber.portNumber(2))

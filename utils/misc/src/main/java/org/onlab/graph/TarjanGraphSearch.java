@@ -42,8 +42,8 @@ public class TarjanGraphSearch<V extends Vertex, E extends Edge<V>>
      * </p>
      */
     @Override
-    public SCCResult<V, E> search(Graph<V, E> graph, EdgeWeight<V, E> weight) {
-        SCCResult<V, E> result = new SCCResult<>(graph);
+    public SccResult<V, E> search(Graph<V, E> graph, EdgeWeight<V, E> weight) {
+        SccResult<V, E> result = new SccResult<>(graph);
         for (V vertex : graph.getVertexes()) {
             VertexData data = result.data(vertex);
             if (data == null) {
@@ -64,7 +64,7 @@ public class TarjanGraphSearch<V extends Vertex, E extends Edge<V>>
      */
     private VertexData<V> connect(Graph<V, E> graph, V vertex,
                                   EdgeWeight<V, E> weight,
-                                  SCCResult<V, E> result) {
+                                  SccResult<V, E> result) {
         VertexData<V> data = result.addData(vertex);
 
         // Scan through all egress edges of the current vertex.
@@ -99,7 +99,7 @@ public class TarjanGraphSearch<V extends Vertex, E extends Edge<V>>
     /**
      * Graph search result augmented with SCC vertexData.
      */
-    public static final class SCCResult<V extends Vertex, E extends Edge<V>>
+    public static final class SccResult<V extends Vertex, E extends Edge<V>>
             implements Result {
 
         private final Graph<V, E> graph;
@@ -110,7 +110,7 @@ public class TarjanGraphSearch<V extends Vertex, E extends Edge<V>>
         private final Map<V, VertexData<V>> vertexData = new HashMap<>();
         private final List<VertexData<V>> visited = new ArrayList<>();
 
-        private SCCResult(Graph<V, E> graph) {
+        private SccResult(Graph<V, E> graph) {
             this.graph = graph;
         }
 
@@ -189,7 +189,7 @@ public class TarjanGraphSearch<V extends Vertex, E extends Edge<V>>
             return Collections.unmodifiableSet(edges);
         }
 
-        public SCCResult<V, E> build() {
+        public SccResult<V, E> build() {
             clusterVertexes = Collections.unmodifiableList(clusterVertexes);
             clusterEdges = Collections.unmodifiableList(clusterEdges);
             return this;

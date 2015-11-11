@@ -31,7 +31,7 @@ import java.util.Random;
  * if one path goes through an edge in risk group 1, the other path will go
  * through no edges in risk group 1.
  */
-public class SRLGGraphSearch<V extends Vertex, E extends Edge<V>>
+public class SrlgGraphSearch<V extends Vertex, E extends Edge<V>>
         extends AbstractGraphPathSearch<V, E> {
 
     static final int ITERATIONS = 100;
@@ -55,7 +55,7 @@ public class SRLGGraphSearch<V extends Vertex, E extends Edge<V>>
      * @param   groups      the number of disjoint risk groups
      * @param   grouping    map linking edges to integral group assignments
      */
-    public SRLGGraphSearch(int groups, Map<E, Integer> grouping) {
+    public SrlgGraphSearch(int groups, Map<E, Integer> grouping) {
         numGroups = groups;
         riskGrouping = grouping;
     }
@@ -67,7 +67,7 @@ public class SRLGGraphSearch<V extends Vertex, E extends Edge<V>>
      * @param   grouping    map linking edges to object group assignments,
      *                      with same-group status linked to equality
      */
-    public SRLGGraphSearch(Map<E, Object> grouping) {
+    public SrlgGraphSearch(Map<E, Object> grouping) {
         if (grouping == null) {
             useSuurballe = true;
             return;

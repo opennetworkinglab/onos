@@ -57,7 +57,7 @@ public class XmlDriverLoaderTest {
     }
 
     @Test(expected = IOException.class)
-    public void badXML() throws IOException {
+    public void badXml() throws IOException {
         XmlDriverLoader loader = new XmlDriverLoader(getClass().getClassLoader());
         loader.loadDrivers(getClass().getResourceAsStream("drivers.bad.xml"), null);
     }

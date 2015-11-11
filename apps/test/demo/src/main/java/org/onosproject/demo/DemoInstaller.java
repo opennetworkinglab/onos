@@ -87,7 +87,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class DemoInstaller implements DemoAPI {
+public class DemoInstaller implements DemoApi {
 
     private final Logger log = getLogger(getClass());
 

@@ -255,7 +255,7 @@ public class FlowStatisticManager implements FlowStatisticService {
                                                              Instruction.Type instType) {
         checkPermission(STATISTIC_READ);
 
-        List<TypedFlowEntryWithLoad> retTFEL = new ArrayList<>();
+        List<TypedFlowEntryWithLoad> retTfel = new ArrayList<>();
 
         Set<FlowEntry> currentStats;
         Set<FlowEntry> previousStats;
@@ -264,11 +264,11 @@ public class FlowStatisticManager implements FlowStatisticService {
         synchronized (flowStatisticStore) {
             currentStats = flowStatisticStore.getCurrentFlowStatistic(cp);
             if (currentStats == null) {
-                return retTFEL;
+                return retTfel;
             }
             previousStats = flowStatisticStore.getPreviousFlowStatistic(cp);
             if (previousStats == null) {
-                return retTFEL;
+                return retTfel;
             }
             // copy to local flow entry set
             typedStatistics = new TypedStatistics(currentStats, previousStats);
@@ -291,7 +291,7 @@ public class FlowStatisticManager implements FlowStatisticService {
             List<TypedFlowEntryWithLoad> fel = typedFlowEntryLoadByInstInternal(cp, currentMap, previousMap,
                     isAllInstType, instType, TypedFlowEntryWithLoad.shortPollInterval());
             if (fel.size() > 0) {
-                retTFEL.addAll(fel);
+                retTfel.addAll(fel);
             }
         }
 
@@ -302,7 +302,7 @@ public class FlowStatisticManager implements FlowStatisticService {
             List<TypedFlowEntryWithLoad> fel = typedFlowEntryLoadByInstInternal(cp, currentMap, previousMap,
                     isAllInstType, instType, TypedFlowEntryWithLoad.shortPollInterval());
             if (fel.size() > 0) {
-                retTFEL.addAll(fel);
+                retTfel.addAll(fel);
             }
         }
 
@@ -313,7 +313,7 @@ public class FlowStatisticManager implements FlowStatisticService {
             List<TypedFlowEntryWithLoad> fel = typedFlowEntryLoadByInstInternal(cp, currentMap, previousMap,
                     isAllInstType, instType, TypedFlowEntryWithLoad.midPollInterval());
             if (fel.size() > 0) {
-                retTFEL.addAll(fel);
+                retTfel.addAll(fel);
             }
         }
 
@@ -324,7 +324,7 @@ public class FlowStatisticManager implements FlowStatisticService {
             List<TypedFlowEntryWithLoad> fel = typedFlowEntryLoadByInstInternal(cp, currentMap, previousMap,
                     isAllInstType, instType, TypedFlowEntryWithLoad.longPollInterval());
             if (fel.size() > 0) {
-                retTFEL.addAll(fel);
+                retTfel.addAll(fel);
             }
         }
 
@@ -335,11 +335,11 @@ public class FlowStatisticManager implements FlowStatisticService {
             List<TypedFlowEntryWithLoad> fel = typedFlowEntryLoadByInstInternal(cp, currentMap, previousMap,
                     isAllInstType, instType, TypedFlowEntryWithLoad.avgPollInterval());
             if (fel.size() > 0) {
-                retTFEL.addAll(fel);
+                retTfel.addAll(fel);
             }
         }
 
-        return retTFEL;
+        return retTfel;
     }
 
     private List<TypedFlowEntryWithLoad> typedFlowEntryLoadByInstInternal(ConnectPoint cp,

@@ -438,7 +438,7 @@ public final class KryoNamespaces {
                     DefaultTableStatisticsEntry.class
             )
             .register(new DefaultApplicationIdSerializer(), DefaultApplicationId.class)
-            .register(new URISerializer(), URI.class)
+            .register(new UriSerializer(), URI.class)
             .register(new NodeIdSerializer(), NodeId.class)
             .register(new ProviderIdSerializer(), ProviderId.class)
             .register(new DeviceIdSerializer(), DeviceId.class)

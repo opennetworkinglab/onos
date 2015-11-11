@@ -1040,7 +1040,7 @@ public class GossipDeviceStore
 
         checkArgument(!providerDescs.isEmpty(), "No device descriptions supplied");
 
-        ProviderId primary = pickPrimaryPID(providerDescs);
+        ProviderId primary = pickPrimaryPid(providerDescs);
 
         DeviceDescriptions desc = providerDescs.get(primary);
 
@@ -1103,7 +1103,7 @@ public class GossipDeviceStore
     private Port composePort(Device device, PortNumber number,
                              Map<ProviderId, DeviceDescriptions> descsMap) {
 
-        ProviderId primary = pickPrimaryPID(descsMap);
+        ProviderId primary = pickPrimaryPid(descsMap);
         DeviceDescriptions primDescs = descsMap.get(primary);
         // if no primary, assume not enabled
         boolean isEnabled = false;
@@ -1149,7 +1149,7 @@ public class GossipDeviceStore
     /**
      * @return primary ProviderID, or randomly chosen one if none exists
      */
-    private ProviderId pickPrimaryPID(
+    private ProviderId pickPrimaryPid(
             Map<ProviderId, DeviceDescriptions> providerDescs) {
         ProviderId fallBackPrimary = null;
         for (Entry<ProviderId, DeviceDescriptions> e : providerDescs.entrySet()) {
@@ -1165,7 +1165,7 @@ public class GossipDeviceStore
 
     private DeviceDescriptions getPrimaryDescriptions(
             Map<ProviderId, DeviceDescriptions> providerDescs) {
-        ProviderId pid = pickPrimaryPID(providerDescs);
+        ProviderId pid = pickPrimaryPid(providerDescs);
         return providerDescs.get(pid);
     }
 

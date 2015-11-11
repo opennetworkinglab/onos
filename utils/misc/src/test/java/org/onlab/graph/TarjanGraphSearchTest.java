@@ -19,20 +19,20 @@ import org.junit.Test;
 
 import static com.google.common.collect.ImmutableSet.of;
 import static org.junit.Assert.assertEquals;
-import static org.onlab.graph.TarjanGraphSearch.SCCResult;
+import static org.onlab.graph.TarjanGraphSearch.SccResult;
 
 /**
  * Tarjan graph search tests.
  */
 public class TarjanGraphSearchTest extends GraphTest {
 
-    private void validate(SCCResult<TestVertex, TestEdge> result, int cc) {
+    private void validate(SccResult<TestVertex, TestEdge> result, int cc) {
         System.out.println("Cluster count: " + result.clusterVertexes().size());
         System.out.println("Clusters: " + result.clusterVertexes());
         assertEquals("incorrect cluster count", cc, result.clusterCount());
     }
 
-    private void validate(SCCResult<TestVertex, TestEdge> result,
+    private void validate(SccResult<TestVertex, TestEdge> result,
                           int i, int vc, int ec) {
         assertEquals("incorrect cluster count", vc, result.clusterVertexes().get(i).size());
         assertEquals("incorrect edge count", ec, result.clusterEdges().get(i).size());
@@ -42,7 +42,7 @@ public class TarjanGraphSearchTest extends GraphTest {
     public void basic() {
         graph = new AdjacencyListsGraph<>(vertexes(), edges());
         TarjanGraphSearch<TestVertex, TestEdge> gs = new TarjanGraphSearch<>();
-        SCCResult<TestVertex, TestEdge> result = gs.search(graph, null);
+        SccResult<TestVertex, TestEdge> result = gs.search(graph, null);
         validate(result, 6);
     }
 
@@ -59,7 +59,7 @@ public class TarjanGraphSearchTest extends GraphTest {
                                              new TestEdge(H, A, 1)));
 
         TarjanGraphSearch<TestVertex, TestEdge> gs = new TarjanGraphSearch<>();
-        SCCResult<TestVertex, TestEdge> result = gs.search(graph, null);
+        SccResult<TestVertex, TestEdge> result = gs.search(graph, null);
         validate(result, 1);
         validate(result, 0, 8, 8);
     }
@@ -76,7 +76,7 @@ public class TarjanGraphSearchTest extends GraphTest {
                                              new TestEdge(G, H, 1),
                                              new TestEdge(H, E, 1)));
         TarjanGraphSearch<TestVertex, TestEdge> gs = new TarjanGraphSearch<>();
-        SCCResult<TestVertex, TestEdge> result = gs.search(graph, null);
+        SccResult<TestVertex, TestEdge> result = gs.search(graph, null);
         validate(result, 2);
         validate(result, 0, 4, 4);
         validate(result, 1, 4, 4);
@@ -95,7 +95,7 @@ public class TarjanGraphSearchTest extends GraphTest {
                                              new TestEdge(H, E, 1),
                                              new TestEdge(B, E, 1)));
         TarjanGraphSearch<TestVertex, TestEdge> gs = new TarjanGraphSearch<>();
-        SCCResult<TestVertex, TestEdge> result = gs.search(graph, null);
+        SccResult<TestVertex, TestEdge> result = gs.search(graph, null);
         validate(result, 2);
         validate(result, 0, 4, 4);
         validate(result, 1, 4, 4);
@@ -116,7 +116,7 @@ public class TarjanGraphSearchTest extends GraphTest {
                                              new TestEdge(E, B, -1)));
 
         TarjanGraphSearch<TestVertex, TestEdge> gs = new TarjanGraphSearch<>();
-        SCCResult<TestVertex, TestEdge> result = gs.search(graph, weight);
+        SccResult<TestVertex, TestEdge> result = gs.search(graph, weight);
         validate(result, 2);
         validate(result, 0, 4, 4);
         validate(result, 1, 4, 4);

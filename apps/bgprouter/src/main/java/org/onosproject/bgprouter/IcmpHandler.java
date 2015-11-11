@@ -83,11 +83,11 @@ public class IcmpHandler {
 
         if (((ICMP) ipv4.getPayload()).getIcmpType() == ICMP.TYPE_ECHO_REQUEST &&
                 ipMatches) {
-            sendICMPResponse(ethernet, connectPoint);
+            sendIcmpResponse(ethernet, connectPoint);
         }
     }
 
-    private void sendICMPResponse(Ethernet icmpRequest, ConnectPoint outport) {
+    private void sendIcmpResponse(Ethernet icmpRequest, ConnectPoint outport) {
 
         Ethernet icmpReplyEth = new Ethernet();
 

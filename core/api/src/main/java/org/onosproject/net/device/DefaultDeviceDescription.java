@@ -71,7 +71,7 @@ public class DefaultDeviceDescription extends AbstractDescription
      */
     public DefaultDeviceDescription(DeviceDescription base,
                                     SparseAnnotations... annotations) {
-        this(base.deviceURI(), base.type(), base.manufacturer(),
+        this(base.deviceUri(), base.type(), base.manufacturer(),
              base.hwVersion(), base.swVersion(), base.serialNumber(),
              base.chassisId(), annotations);
     }
@@ -83,13 +83,13 @@ public class DefaultDeviceDescription extends AbstractDescription
      * @param annotations Annotations to use.
      */
     public DefaultDeviceDescription(DeviceDescription base, Type type, SparseAnnotations... annotations) {
-        this(base.deviceURI(), type, base.manufacturer(),
+        this(base.deviceUri(), type, base.manufacturer(),
                 base.hwVersion(), base.swVersion(), base.serialNumber(),
                 base.chassisId(), annotations);
     }
 
     @Override
-    public URI deviceURI() {
+    public URI deviceUri() {
         return uri;
     }
 

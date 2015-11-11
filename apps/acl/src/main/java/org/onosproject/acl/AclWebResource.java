@@ -129,7 +129,7 @@ public class AclWebResource extends AbstractWebResource {
      * @return 200 OK
      */
     @DELETE
-    public Response clearACL() {
+    public Response clearAcl() {
         get(AclService.class).clearAcl();
         return Response.ok().build();
     }

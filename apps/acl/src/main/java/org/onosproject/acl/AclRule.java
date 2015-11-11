@@ -86,7 +86,7 @@ public final class AclRule {
     /**
      * Check if the first CIDR address is in (or the same as) the second CIDR address.
      */
-    private boolean checkCIDRinCIDR(Ip4Prefix cidrAddr1, Ip4Prefix cidrAddr2) {
+    private boolean checkCidrInCidr(Ip4Prefix cidrAddr1, Ip4Prefix cidrAddr2) {
         if (cidrAddr2 == null) {
             return true;
         } else if (cidrAddr1 == null) {
@@ -116,8 +116,8 @@ public final class AclRule {
     public boolean checkMatch(AclRule r) {
         return (this.dstTpPort == r.dstTpPort || r.dstTpPort == 0)
                 && (this.ipProto == r.ipProto || r.ipProto == 0)
-                && (checkCIDRinCIDR(this.srcIp(), r.srcIp()))
-                && (checkCIDRinCIDR(this.dstIp(), r.dstIp()));
+                && (checkCidrInCidr(this.srcIp(), r.srcIp()))
+                && (checkCidrInCidr(this.dstIp(), r.dstIp()));
     }
 
     /**

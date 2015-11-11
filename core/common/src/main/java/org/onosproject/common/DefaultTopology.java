@@ -26,10 +26,10 @@ import org.onlab.graph.DijkstraGraphSearch;
 import org.onlab.graph.DisjointPathPair;
 import org.onlab.graph.GraphPathSearch;
 import org.onlab.graph.GraphPathSearch.Result;
-import org.onlab.graph.SRLGGraphSearch;
+import org.onlab.graph.SrlgGraphSearch;
 import org.onlab.graph.SuurballeGraphSearch;
 import org.onlab.graph.TarjanGraphSearch;
-import org.onlab.graph.TarjanGraphSearch.SCCResult;
+import org.onlab.graph.TarjanGraphSearch.SccResult;
 import org.onosproject.net.AbstractModel;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDisjointPath;
@@ -83,7 +83,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private final TopologyGraph graph;
 
     private final LinkWeight weight;
-    private final Supplier<SCCResult<TopologyVertex, TopologyEdge>> clusterResults;
+    private final Supplier<SccResult<TopologyVertex, TopologyEdge>> clusterResults;
     private final Supplier<ImmutableMap<ClusterId, TopologyCluster>> clusters;
     private final Supplier<ImmutableSet<ConnectPoint>> infrastructurePoints;
     private final Supplier<ImmutableSetMultimap<ClusterId, ConnectPoint>> broadcastSets;
@@ -385,7 +385,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
             return ImmutableSet.of();
         }
 
-        SRLGGraphSearch<TopologyVertex, TopologyEdge> srlg = new SRLGGraphSearch<>(riskProfile);
+        SrlgGraphSearch<TopologyVertex, TopologyEdge> srlg = new SrlgGraphSearch<>(riskProfile);
         GraphPathSearch.Result<TopologyVertex, TopologyEdge> result =
                 srlg.search(graph, srcV, dstV, weight, ALL_PATHS);
         ImmutableSet.Builder<DisjointPath> builder = ImmutableSet.builder();
@@ -455,14 +455,14 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
     // Searches for SCC clusters in the network topology graph using Tarjan
     // algorithm.
-    private SCCResult<TopologyVertex, TopologyEdge> searchForClusters() {
+    private SccResult<TopologyVertex, TopologyEdge> searchForClusters() {
         return TARJAN.search(graph, new NoIndirectLinksWeight());
     }
 
     // Builds the topology clusters and returns the id-cluster bindings.
     private ImmutableMap<ClusterId, TopologyCluster> buildTopologyClusters() {
         ImmutableMap.Builder<ClusterId, TopologyCluster> clusterBuilder = ImmutableMap.builder();
-        SCCResult<TopologyVertex, TopologyEdge> results = clusterResults.get();
+        SccResult<TopologyVertex, TopologyEdge> results = clusterResults.get();
 
         // Extract both vertexes and edges from the results; the lists form
         // pairs along the same index.

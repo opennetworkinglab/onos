@@ -15,6 +15,10 @@
  */
 package org.onlab.netty;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -34,11 +38,20 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.apache.commons.pool.KeyedPoolableObjectFactory;
+import org.apache.commons.pool.impl.GenericKeyedObjectPool;
+import org.onosproject.store.cluster.messaging.Endpoint;
+import org.onosproject.store.cluster.messaging.MessagingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
-
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,23 +63,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import org.apache.commons.pool.KeyedPoolableObjectFactory;
-import org.apache.commons.pool.impl.GenericKeyedObjectPool;
-import org.onosproject.store.cluster.messaging.Endpoint;
-import org.onosproject.store.cluster.messaging.MessagingService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.TrustManagerFactory;
 
 /**
  * Implementation of MessagingService based on <a href="http://netty.io/">Netty</a> framework.
@@ -102,7 +98,7 @@ public class NettyMessaging implements MessagingService {
     private Class<? extends Channel> clientChannelClass;
 
     protected static final boolean TLS_DISABLED = false;
-    protected boolean enableNettyTLS = TLS_DISABLED;
+    protected boolean enableNettyTls = TLS_DISABLED;
 
     protected String ksLocation;
     protected String tsLocation;
@@ -259,8 +255,8 @@ public class NettyMessaging implements MessagingService {
         b.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
         b.group(serverGroup, clientGroup);
         b.channel(serverChannelClass);
-        if (enableNettyTLS) {
-            b.childHandler(new SSLServerCommunicationChannelInitializer());
+        if (enableNettyTls) {
+            b.childHandler(new SslServerCommunicationChannelInitializer());
         } else {
             b.childHandler(new OnosCommunicationChannelInitializer());
         }
@@ -303,8 +299,8 @@ public class NettyMessaging implements MessagingService {
             // http://normanmaurer.me/presentations/2014-facebook-eng-netty/slides.html#37.0
             bootstrap.channel(clientChannelClass);
             bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
-            if (enableNettyTLS) {
-                bootstrap.handler(new SSLClientCommunicationChannelInitializer());
+            if (enableNettyTls) {
+                bootstrap.handler(new SslClientCommunicationChannelInitializer());
             } else {
                 bootstrap.handler(new OnosCommunicationChannelInitializer());
             }
@@ -325,7 +321,7 @@ public class NettyMessaging implements MessagingService {
         }
     }
 
-    private class SSLServerCommunicationChannelInitializer extends ChannelInitializer<SocketChannel> {
+    private class SslServerCommunicationChannelInitializer extends ChannelInitializer<SocketChannel> {
 
         private final ChannelHandler dispatcher = new InboundMessageDispatcher();
         private final ChannelHandler encoder = new MessageEncoder();
@@ -345,15 +341,15 @@ public class NettyMessaging implements MessagingService {
             SSLContext serverContext = SSLContext.getInstance("TLS");
             serverContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
 
-            SSLEngine serverSSLEngine = serverContext.createSSLEngine();
+            SSLEngine serverSslEngine = serverContext.createSSLEngine();
 
-            serverSSLEngine.setNeedClientAuth(true);
-            serverSSLEngine.setUseClientMode(false);
-            serverSSLEngine.setEnabledProtocols(serverSSLEngine.getSupportedProtocols());
-            serverSSLEngine.setEnabledCipherSuites(serverSSLEngine.getSupportedCipherSuites());
-            serverSSLEngine.setEnableSessionCreation(true);
+            serverSslEngine.setNeedClientAuth(true);
+            serverSslEngine.setUseClientMode(false);
+            serverSslEngine.setEnabledProtocols(serverSslEngine.getSupportedProtocols());
+            serverSslEngine.setEnabledCipherSuites(serverSslEngine.getSupportedCipherSuites());
+            serverSslEngine.setEnableSessionCreation(true);
 
-            channel.pipeline().addLast("ssl", new io.netty.handler.ssl.SslHandler(serverSSLEngine))
+            channel.pipeline().addLast("ssl", new io.netty.handler.ssl.SslHandler(serverSslEngine))
                     .addLast("encoder", encoder)
                     .addLast("decoder", new MessageDecoder())
                     .addLast("handler", dispatcher);
@@ -361,7 +357,7 @@ public class NettyMessaging implements MessagingService {
 
     }
 
-    private class SSLClientCommunicationChannelInitializer extends ChannelInitializer<SocketChannel> {
+    private class SslClientCommunicationChannelInitializer extends ChannelInitializer<SocketChannel> {
 
         private final ChannelHandler dispatcher = new InboundMessageDispatcher();
         private final ChannelHandler encoder = new MessageEncoder();
@@ -381,14 +377,14 @@ public class NettyMessaging implements MessagingService {
             SSLContext clientContext = SSLContext.getInstance("TLS");
             clientContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
 
-            SSLEngine clientSSLEngine = clientContext.createSSLEngine();
+            SSLEngine clientSslEngine = clientContext.createSSLEngine();
 
-            clientSSLEngine.setUseClientMode(true);
-            clientSSLEngine.setEnabledProtocols(clientSSLEngine.getSupportedProtocols());
-            clientSSLEngine.setEnabledCipherSuites(clientSSLEngine.getSupportedCipherSuites());
-            clientSSLEngine.setEnableSessionCreation(true);
+            clientSslEngine.setUseClientMode(true);
+            clientSslEngine.setEnabledProtocols(clientSslEngine.getSupportedProtocols());
+            clientSslEngine.setEnabledCipherSuites(clientSslEngine.getSupportedCipherSuites());
+            clientSslEngine.setEnableSessionCreation(true);
 
-            channel.pipeline().addLast("ssl", new io.netty.handler.ssl.SslHandler(clientSSLEngine))
+            channel.pipeline().addLast("ssl", new io.netty.handler.ssl.SslHandler(clientSslEngine))
                     .addLast("encoder", encoder)
                     .addLast("decoder", new MessageDecoder())
                     .addLast("handler", dispatcher);

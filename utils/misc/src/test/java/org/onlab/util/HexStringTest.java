@@ -47,7 +47,7 @@ public class HexStringTest {
     }
 
     @Test
-    public void testToLongMSB() {
+    public void testToLongMsb() {
         String dpidStr = "ca:7c:5e:d1:64:7a:95:9b";
         long valid = -3856102927509056101L;
         long testLong = HexString.toLong(dpidStr);

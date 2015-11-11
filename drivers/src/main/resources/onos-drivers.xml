@@ -61,7 +61,7 @@
             manufacturer="FlowForwarding.org" hwVersion="Unknown"
             swVersion="LINC-OE OpenFlow Software Switch 1.1">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
-                   impl="org.onosproject.driver.handshaker.OFOpticalSwitchImplLINC13"/>
+                   impl="org.onosproject.driver.handshaker.OfOpticalSwitchImplLinc13"/>
     </driver>
     <driver name="corsa"
             manufacturer="Corsa" hwVersion="Corsa Element" swVersion="2.3.1">

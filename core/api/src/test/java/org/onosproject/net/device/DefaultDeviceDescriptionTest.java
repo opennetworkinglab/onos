@@ -41,7 +41,7 @@ public class DefaultDeviceDescriptionTest {
     public void basics() {
         DeviceDescription device =
                 new DefaultDeviceDescription(DURI, SWITCH, MFR, HW, SW, SN, CID);
-        assertEquals("incorrect uri", DURI, device.deviceURI());
+        assertEquals("incorrect uri", DURI, device.deviceUri());
         assertEquals("incorrect type", SWITCH, device.type());
         assertEquals("incorrect manufacturer", MFR, device.manufacturer());
         assertEquals("incorrect hw", HW, device.hwVersion());
