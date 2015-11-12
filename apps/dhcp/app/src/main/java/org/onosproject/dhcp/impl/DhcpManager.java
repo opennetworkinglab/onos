@@ -241,12 +241,12 @@ public class DhcpManager implements DhcpService {
     }
 
     @Override
-    public boolean setStaticMapping(MacAddress macID, Ip4Address ipAddress, boolean fromOpenStack,
+    public boolean setStaticMapping(MacAddress macID, Ip4Address ipAddress, boolean rangeNotEnforced,
                                     List<Ip4Address> addressList) {
         log.debug("setStaticMapping is called with Mac: {}, Ip: {} addressList: {}",
                 macID.toString(), ipAddress.toString(), addressList.toString());
 
-        return dhcpStore.assignStaticIP(macID, ipAddress, fromOpenStack, addressList);
+        return dhcpStore.assignStaticIP(macID, ipAddress, rangeNotEnforced, addressList);
     }
 
     @Override
@@ -279,7 +279,7 @@ public class DhcpManager implements DhcpService {
 
             ipAssignment = dhcpStore.getIpAssignmentFromAllocationMap(HostId.hostId(packet.getSourceMAC()));
 
-            if (ipAssignment != null && ipAssignment.fromOpenStack()) {
+            if (ipAssignment != null && ipAssignment.rangeNotEnforced()) {
                 subnetMaskReply = ipAssignment.subnetMask();
                 dhcpServerReply = ipAssignment.dhcpServer();
                 domainServerReply = ipAssignment.domainServer();
@@ -484,8 +484,9 @@ public class DhcpManager implements DhcpService {
                     if (flagIfServerIP && flagIfRequestedIP) {
                         // SELECTING state
 
+
                         if (dhcpStore.getIpAssignmentFromAllocationMap(HostId.hostId(clientMac))
-                                .fromOpenStack()) {
+                                .rangeNotEnforced()) {
                             outgoingPacketType = DHCPPacketType.DHCPACK;
                             Ethernet ethReply = buildReply(packet, requestedIP, (byte) outgoingPacketType.getValue());
                             sendReply(context, ethReply);

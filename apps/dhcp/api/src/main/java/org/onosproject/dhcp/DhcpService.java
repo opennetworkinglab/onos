@@ -58,15 +58,15 @@ public interface DhcpService {
 
     /**
      * Registers a static IP mapping with the DHCP Server.
-     * Supports the request from OpenStack
+     * Supports rangeNotEnforced option
      *
      * @param macID macID of the client
      * @param ipAddress IP Address requested for the client
-     * @param fromOpenStack true if the request is from OpenStack
-     * @param addressList subnetMask, DHCP/Router/Domain Server IP Address if the request from OpenStack
+     * @param rangeNotEnforced true if rangeNotEnforced was set and the mapping will be eternal
+     * @param addressList subnetMask, DHCP/Router/DNS IP Addresses if rangeNotEnforced was set
      * @return true if the mapping was successfully added, false otherwise
      */
-    boolean setStaticMapping(MacAddress macID, Ip4Address ipAddress, boolean fromOpenStack,
+    boolean setStaticMapping(MacAddress macID, Ip4Address ipAddress, boolean rangeNotEnforced,
                              List<Ip4Address> addressList);
 
     /**

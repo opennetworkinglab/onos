@@ -106,7 +106,7 @@ public class DistributedDhcpStore implements DhcpStore {
             IpAssignment.AssignmentStatus status = assignmentInfo.assignmentStatus();
             Ip4Address ipAddr = assignmentInfo.ipAddress();
 
-            if (assignmentInfo.fromOpenStack()) {
+            if (assignmentInfo.rangeNotEnforced()) {
                 return assignmentInfo.ipAddress();
             } else if (status == IpAssignment.AssignmentStatus.Option_Assigned ||
                     status == IpAssignment.AssignmentStatus.Option_Requested) {
@@ -163,12 +163,15 @@ public class DistributedDhcpStore implements DhcpStore {
     }
 
     @Override
-    public boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime, boolean fromOpenStack,
+    public boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime, boolean rangeNotEnforced,
                             List<Ip4Address> addressList) {
 
         IpAssignment assignmentInfo;
 
+        log.debug("Assign IP Called w/ Ip4Address: {}, HostId: {}", ipAddr.toString(), hostId.mac().toString());
+
         if (allocationMap.containsKey(hostId)) {
+
             assignmentInfo = allocationMap.get(hostId).value();
             IpAssignment.AssignmentStatus status = assignmentInfo.assignmentStatus();
 
@@ -212,17 +215,17 @@ public class DistributedDhcpStore implements DhcpStore {
                 allocationMap.put(hostId, assignmentInfo);
                 return true;
             }
-        } else if (fromOpenStack) {
+        } else if (rangeNotEnforced) {
             assignmentInfo = IpAssignment.builder()
                                     .ipAddress(ipAddr)
                                     .timestamp(new Date())
                                     .leasePeriod(leaseTime)
-                                    .fromOpenStack(true)
-                                    .assignmentStatus(IpAssignment.AssignmentStatus.Option_Requested_From_OpenStack)
+                                    .rangeNotEnforced(true)
+                                    .assignmentStatus(IpAssignment.AssignmentStatus.Option_RangeNotEnforced)
                                     .subnetMask((Ip4Address) addressList.toArray()[0])
                                     .dhcpServer((Ip4Address) addressList.toArray()[1])
-                                    .domainServer((Ip4Address) addressList.toArray()[2])
-                                    .routerAddress((Ip4Address) addressList.toArray()[3])
+                                    .routerAddress((Ip4Address) addressList.toArray()[2])
+                                    .domainServer((Ip4Address) addressList.toArray()[3])
                                     .build();
             allocationMap.put(hostId, assignmentInfo);
             return true;
@@ -259,7 +262,7 @@ public class DistributedDhcpStore implements DhcpStore {
         for (Map.Entry<HostId, Versioned<IpAssignment>> entry: allocationMap.entrySet()) {
             assignment = entry.getValue().value();
             if (assignment.assignmentStatus() == IpAssignment.AssignmentStatus.Option_Assigned
-                    || assignment.assignmentStatus() == IpAssignment.AssignmentStatus.Option_Requested_From_OpenStack) {
+                    || assignment.assignmentStatus() == IpAssignment.AssignmentStatus.Option_RangeNotEnforced) {
                 validMapping.put(entry.getKey(), assignment);
             }
         }
@@ -276,10 +279,10 @@ public class DistributedDhcpStore implements DhcpStore {
     }
 
     @Override
-    public boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr, boolean fromOpenStack,
+    public boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr, boolean rangeNotEnforced,
                                   List<Ip4Address> addressList) {
         HostId host = HostId.hostId(macID);
-        return assignIP(host, ipAddr, -1, fromOpenStack, addressList);
+        return assignIP(host, ipAddr, -1, rangeNotEnforced, addressList);
     }
 
     @Override
@@ -287,6 +290,12 @@ public class DistributedDhcpStore implements DhcpStore {
         HostId host = HostId.hostId(macID);
         if (allocationMap.containsKey(host)) {
             IpAssignment assignment = allocationMap.get(host).value();
+
+            if (assignment.rangeNotEnforced()) {
+                allocationMap.remove(host);
+                return true;
+            }
+
             Ip4Address freeIP = assignment.ipAddress();
             if (assignment.leasePeriod() < 0) {
                 allocationMap.remove(host);

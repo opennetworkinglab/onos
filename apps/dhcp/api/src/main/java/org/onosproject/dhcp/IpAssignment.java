@@ -41,7 +41,7 @@ public final class IpAssignment {
 
     private final Ip4Address domainServer;
 
-    private final boolean fromOpenStack;
+    private final boolean rangeNotEnforced;
 
     private final AssignmentStatus assignmentStatus;
 
@@ -54,7 +54,7 @@ public final class IpAssignment {
         /**
          * IP Assignment has been requested by a OpenStack.
          */
-        Option_Requested_From_OpenStack,
+        Option_RangeNotEnforced,
         /**
          * IP has been assigned to a host.
          */
@@ -78,13 +78,13 @@ public final class IpAssignment {
      * @param dhcpServer
      * @param routerAddress
      * @param domainServer
-     * @param fromOpenStack
+     * @param rangeNotEnforced
      */
     private IpAssignment(Ip4Address ipAddress,
                          long leasePeriod,
                          Date timestamp,
                          AssignmentStatus assignmentStatus, Ip4Address subnetMask, Ip4Address dhcpServer,
-                         Ip4Address routerAddress, Ip4Address domainServer, boolean fromOpenStack) {
+                         Ip4Address routerAddress, Ip4Address domainServer, boolean rangeNotEnforced) {
         this.ipAddress = ipAddress;
         this.leasePeriod = leasePeriod;
         this.timestamp = timestamp;
@@ -93,7 +93,7 @@ public final class IpAssignment {
         this.dhcpServer = dhcpServer;
         this.routerAddress = routerAddress;
         this.domainServer = domainServer;
-        this.fromOpenStack = fromOpenStack;
+        this.rangeNotEnforced = rangeNotEnforced;
     }
 
     /**
@@ -157,8 +157,8 @@ public final class IpAssignment {
         return domainServer;
     }
 
-    public boolean fromOpenStack() {
-        return fromOpenStack;
+    public boolean rangeNotEnforced() {
+        return rangeNotEnforced;
     }
 
     @Override
@@ -172,7 +172,7 @@ public final class IpAssignment {
                 .add("dhcpServer", dhcpServer)
                 .add("routerAddress", routerAddress)
                 .add("domainServer", domainServer)
-                .add("fromOpenStack", fromOpenStack)
+                .add("rangeNotEnforced", rangeNotEnforced)
                 .toString();
     }
 
@@ -216,7 +216,7 @@ public final class IpAssignment {
 
         private Ip4Address routerAddress;
 
-        private boolean fromOpenStack = false;
+        private boolean rangeNotEnforced = false;
 
         private Builder() {
 
@@ -232,7 +232,7 @@ public final class IpAssignment {
         public IpAssignment build() {
             validateInputs();
             return new IpAssignment(ipAddress, leasePeriod, timeStamp, assignmentStatus, subnetMask,
-                    dhcpServer, domainServer, routerAddress, fromOpenStack);
+                    dhcpServer, domainServer, routerAddress, rangeNotEnforced);
         }
 
         public Builder ipAddress(Ip4Address addr) {
@@ -275,8 +275,8 @@ public final class IpAssignment {
             return this;
         }
 
-        public Builder fromOpenStack(boolean fromOpenStack) {
-            this.fromOpenStack = fromOpenStack;
+        public Builder rangeNotEnforced(boolean rangeNotEnforced) {
+            this.rangeNotEnforced = rangeNotEnforced;
             return this;
         }
 
@@ -287,16 +287,16 @@ public final class IpAssignment {
             checkNotNull(leasePeriod, "Lease Period must be specified");
             checkNotNull(timeStamp, "Timestamp must be specified");
 
-            if (fromOpenStack) {
-                checkNotNull(subnetMask, "subnetMask must be specified in case of OpenStack");
-                checkNotNull(dhcpServer, "dhcpServer must be specified in case of OpenStack");
-                checkNotNull(domainServer, "domainServer must be specified in case of OpenStack");
-                checkNotNull(routerAddress, "routerAddress must be specified in case of OpenStack");
+            if (rangeNotEnforced) {
+                checkNotNull(subnetMask, "subnetMask must be specified in case of rangeNotEnforced");
+                checkNotNull(dhcpServer, "dhcpServer must be specified in case of rangeNotEnforced");
+                checkNotNull(domainServer, "domainServer must be specified in case of rangeNotEnforced");
+                checkNotNull(routerAddress, "routerAddress must be specified in case of rangeNotEnforced");
             }
 
             switch (assignmentStatus) {
                 case Option_Requested:
-                case Option_Requested_From_OpenStack:
+                case Option_RangeNotEnforced:
                 case Option_Assigned:
                 case Option_Expired:
                     break;

@@ -52,12 +52,11 @@ public interface DhcpStore {
      * @param hostId Host Id of the client requesting an IP
      * @param ipAddr IP Address being requested
      * @param leaseTime Lease time offered by the server for this mapping
-     * @param fromOpenStack true if the request is from Openstack
-     * @param addressList subnetMask, DHCP IP Address, Router IP Address, Domain Server IP Address if the request
-     *                    from OpenStack
+     * @param rangeNotEnforced true if rangeNotEnforced was set
+     * @param addressList subnetMask, DHCP/Router/DNS IP Addresses if rangeNotEnforced was set
      * @return returns true if the assignment was successful, false otherwise
      */
-    boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime, boolean fromOpenStack,
+    boolean assignIP(HostId hostId, Ip4Address ipAddr, int leaseTime, boolean rangeNotEnforced,
                      List<Ip4Address> addressList);
 
 
@@ -95,11 +94,11 @@ public interface DhcpStore {
      *
      * @param macID macID of the client
      * @param ipAddr IP Address requested for the client
-     * @param fromOpenStack true if the request is from Openstack
-     * @param addressList subnetMask, DHCP/Router/Domain Server IP Address if the request from OpenStack
+     * @param rangeNotEnforced true if rangeNotEnforced was set
+     * @param addressList subnetMask, DHCP/Router/DNS IP Addresses rangeNotEnforced was set
      * @return true if the mapping was successfully registered, false otherwise
      */
-    boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr, boolean fromOpenStack, List<Ip4Address> addressList);
+    boolean assignStaticIP(MacAddress macID, Ip4Address ipAddr, boolean rangeNotEnforced, List<Ip4Address> addressList);
 
     /**
      * Removes a static IP mapping associated with the given MAC ID from the DHCP Server.
