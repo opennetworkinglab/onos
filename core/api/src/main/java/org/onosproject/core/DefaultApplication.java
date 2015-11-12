@@ -40,6 +40,7 @@ public class DefaultApplication implements Application {
     private final Set<Permission> permissions;
     private final Optional<URI> featuresRepo;
     private final List<String> features;
+    private final List<String> requiredApps;
 
     /**
      * Creates a new application descriptor using the supplied data.
@@ -52,11 +53,13 @@ public class DefaultApplication implements Application {
      * @param permissions  requested permissions
      * @param featuresRepo optional features repo URI
      * @param features     application features
+     * @param requiredApps list of required application names
      */
     public DefaultApplication(ApplicationId appId, Version version,
                               String description, String origin,
                               ApplicationRole role, Set<Permission> permissions,
-                              Optional<URI> featuresRepo, List<String> features) {
+                              Optional<URI> featuresRepo, List<String> features,
+                              List<String> requiredApps) {
         this.appId = checkNotNull(appId, "ID cannot be null");
         this.version = checkNotNull(version, "Version cannot be null");
         this.description = checkNotNull(description, "Description cannot be null");
@@ -65,6 +68,7 @@ public class DefaultApplication implements Application {
         this.permissions = checkNotNull(permissions, "Permissions cannot be null");
         this.featuresRepo = checkNotNull(featuresRepo, "Features repo cannot be null");
         this.features = checkNotNull(features, "Features cannot be null");
+        this.requiredApps = checkNotNull(requiredApps, "Required apps cannot be null");
         checkArgument(!features.isEmpty(), "There must be at least one feature");
     }
 
@@ -109,9 +113,14 @@ public class DefaultApplication implements Application {
     }
 
     @Override
+    public List<String> requiredApps() {
+        return requiredApps;
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(appId, version, description, origin, role, permissions,
-                            featuresRepo, features);
+                            featuresRepo, features, requiredApps);
     }
 
     @Override
@@ -130,7 +139,8 @@ public class DefaultApplication implements Application {
                 Objects.equals(this.role, other.role) &&
                 Objects.equals(this.permissions, other.permissions) &&
                 Objects.equals(this.featuresRepo, other.featuresRepo) &&
-                Objects.equals(this.features, other.features);
+                Objects.equals(this.features, other.features) &&
+                Objects.equals(this.requiredApps, other.requiredApps);
     }
 
     @Override
@@ -144,6 +154,7 @@ public class DefaultApplication implements Application {
                 .add("permissions", permissions)
                 .add("featuresRepo", featuresRepo)
                 .add("features", features)
+                .add("requiredApps", requiredApps)
                 .toString();
     }
 }

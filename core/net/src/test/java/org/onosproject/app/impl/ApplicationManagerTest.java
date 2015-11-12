@@ -15,6 +15,7 @@
  */
 package org.onosproject.app.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
@@ -138,7 +139,7 @@ public class ApplicationManagerTest {
         @Override
         public Application create(InputStream appDescStream) {
             app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE, PERMS,
-                                         Optional.of(FURL), FEATURES);
+                                         Optional.of(FURL), FEATURES, ImmutableList.of());
             state = INSTALLED;
             delegate.notify(new ApplicationEvent(APP_INSTALLED, app));
             return app;
@@ -176,6 +177,11 @@ public class ApplicationManagerTest {
         public void deactivate(ApplicationId appId) {
             state = INSTALLED;
             delegate.notify(new ApplicationEvent(APP_DEACTIVATED, app));
+        }
+
+        @Override
+        public ApplicationId getId(String name) {
+            return new DefaultApplicationId(0, name);
         }
     }
 

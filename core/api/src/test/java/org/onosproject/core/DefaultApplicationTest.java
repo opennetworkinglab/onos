@@ -34,7 +34,7 @@ public class DefaultApplicationTest {
     @Test
     public void basics() {
         Application app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
-                                                 PERMS, Optional.of(FURL), FEATURES);
+                                                 PERMS, Optional.of(FURL), FEATURES, APPS);
         assertEquals("incorrect id", APP_ID, app.id());
         assertEquals("incorrect version", VER, app.version());
         assertEquals("incorrect description", DESC, app.description());
@@ -43,19 +43,20 @@ public class DefaultApplicationTest {
         assertEquals("incorrect permissions", PERMS, app.permissions());
         assertEquals("incorrect features repo", FURL, app.featuresRepo().get());
         assertEquals("incorrect features", FEATURES, app.features());
+        assertEquals("incorrect apps", APPS, app.requiredApps());
         assertTrue("incorrect toString", app.toString().contains(APP_NAME));
     }
 
     @Test
     public void testEquality() {
         Application a1 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
-                                                PERMS, Optional.of(FURL), FEATURES);
+                                                PERMS, Optional.of(FURL), FEATURES, APPS);
         Application a2 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
-                                                PERMS, Optional.of(FURL), FEATURES);
+                                                PERMS, Optional.of(FURL), FEATURES, APPS);
         Application a3 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
-                                                PERMS, Optional.empty(), FEATURES);
+                                                PERMS, Optional.empty(), FEATURES, APPS);
         Application a4 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN + "asd", ROLE,
-                                                PERMS, Optional.of(FURL), FEATURES);
+                                                PERMS, Optional.of(FURL), FEATURES, APPS);
         new EqualsTester().addEqualityGroup(a1, a2)
                 .addEqualityGroup(a3).addEqualityGroup(a4).testEquals();
     }

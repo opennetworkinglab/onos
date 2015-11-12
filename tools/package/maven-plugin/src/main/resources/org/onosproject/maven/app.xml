@@ -16,7 +16,7 @@
   -->
 <app name="${onos.app.name}" origin="${onos.app.origin}" version="${project.version}"
         featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
-        features="${project.artifactId}">
+        features="${project.artifactId}" apps="${onos.app.requires}">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
 </app>

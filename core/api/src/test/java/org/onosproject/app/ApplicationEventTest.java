@@ -33,7 +33,7 @@ public class ApplicationEventTest extends AbstractEventTest {
 
     private Application createApp() {
         return new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
-                                      PERMS, Optional.of(FURL), FEATURES);
+                                      PERMS, Optional.of(FURL), FEATURES, APPS);
     }
 
     @Test

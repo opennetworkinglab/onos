@@ -212,6 +212,7 @@ public class ApplicationManager
     // The following methods are fully synchronized to guard against remote vs.
     // locally induced feature service interactions.
 
+    // Installs all feature repositories required by the specified app.
     private synchronized boolean installAppArtifacts(Application app) throws Exception {
         if (app.featuresRepo().isPresent() &&
                 featuresService.getRepository(app.featuresRepo().get()) == null) {
@@ -221,6 +222,7 @@ public class ApplicationManager
         return false;
     }
 
+    // Uninstalls all the feature repositories required by the specified app.
     private synchronized boolean uninstallAppArtifacts(Application app) throws Exception {
         if (app.featuresRepo().isPresent() &&
                 featuresService.getRepository(app.featuresRepo().get()) != null) {
@@ -230,6 +232,7 @@ public class ApplicationManager
         return false;
     }
 
+    // Installs all features that define the specified app.
     private synchronized boolean installAppFeatures(Application app) throws Exception {
         boolean changed = false;
         for (String name : app.features()) {
@@ -246,6 +249,7 @@ public class ApplicationManager
         return changed;
     }
 
+    // Uninstalls all features that define the specified app.
     private synchronized boolean uninstallAppFeatures(Application app) throws Exception {
         boolean changed = false;
         invokeHook(deactivateHooks.get(app.id().name()), app.id());

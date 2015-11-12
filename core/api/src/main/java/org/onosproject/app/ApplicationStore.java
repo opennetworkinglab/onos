@@ -76,7 +76,7 @@ public interface ApplicationStore extends Store<ApplicationEvent, ApplicationSto
     void remove(ApplicationId appId);
 
     /**
-     * Mark the application as actived.
+     * Mark the application as active.
      *
      * @param appId application identifier
      */

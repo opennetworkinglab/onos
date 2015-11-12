@@ -84,4 +84,11 @@ public interface Application {
      * @return application features
      */
     List<String> features();
+
+    /**
+     * Returns list of required application names.
+     *
+     * @return list of application names
+     */
+    List<String> requiredApps();
 }

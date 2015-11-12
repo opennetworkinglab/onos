@@ -41,7 +41,7 @@ public class ApplicationsListCommand extends AbstractShellCommand {
 
     private static final String FMT =
             "%s id=%d, name=%s, version=%s, origin=%s, description=%s, " +
-                    "features=%s, featuresRepo=%s, permissions=%s";
+                    "features=%s, featuresRepo=%s, apps=%s, permissions=%s";
 
     private static final String SHORT_FMT =
             "%s %3d %-32s %-8s %s";
@@ -76,7 +76,7 @@ public class ApplicationsListCommand extends AbstractShellCommand {
                               app.id().id(), app.id().name(), app.version(), app.origin(),
                               app.description(), app.features(),
                               app.featuresRepo().isPresent() ? app.featuresRepo().get().toString() : "",
-                              app.permissions());
+                              app.requiredApps(), app.permissions());
                     }
                 }
             }

@@ -17,7 +17,9 @@ package org.onosproject.store.app;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
-
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -37,6 +39,7 @@ import org.onosproject.common.app.ApplicationArchive;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.ApplicationIdStore;
+import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplication;
 import org.onosproject.security.Permission;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
@@ -61,6 +64,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 
+import static com.google.common.collect.Multimaps.newSetMultimap;
+import static com.google.common.collect.Multimaps.synchronizedSetMultimap;
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.onlab.util.Tools.groupedThreads;
@@ -115,6 +120,14 @@ public class GossipApplicationStore extends ApplicationArchive
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ApplicationIdStore idStore;
 
+    // Multimap to track which apps are required by others apps
+    // app -> { required-by, ... }
+    // Apps explicitly activated will be required by the CORE app
+    private final Multimap<ApplicationId, ApplicationId> requiredBy =
+            synchronizedSetMultimap(newSetMultimap(Maps.newHashMap(), Sets::newHashSet));
+
+    private ApplicationId coreAppId;
+
     @Activate
     public void activate() {
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
@@ -128,16 +141,16 @@ public class GossipApplicationStore extends ApplicationArchive
                 groupedThreads("onos/store/app", "message-handler"));
 
         clusterCommunicator.<String, byte[]>addSubscriber(APP_BITS_REQUEST,
-                bytes -> new String(bytes, Charsets.UTF_8),
-                name -> {
-                    try {
-                        return toByteArray(getApplicationInputStream(name));
-                    } catch (IOException e) {
-                        throw new StorageException(e);
-                    }
-                },
-                Function.identity(),
-                messageHandlingExecutor);
+                                                          bytes -> new String(bytes, Charsets.UTF_8),
+                                                          name -> {
+                                                              try {
+                                                                  return toByteArray(getApplicationInputStream(name));
+                                                              } catch (IOException e) {
+                                                                  throw new StorageException(e);
+                                                              }
+                                                          },
+                                                          Function.identity(),
+                                                          messageHandlingExecutor);
 
         // FIXME: Consider consolidating into a single map.
 
@@ -161,6 +174,7 @@ public class GossipApplicationStore extends ApplicationArchive
                 .withTimestampProvider((k, v) -> clockService.getTimestamp())
                 .build();
 
+        coreAppId = getId(CoreService.CORE_APP_NAME);
         log.info("Started");
     }
 
@@ -174,6 +188,7 @@ public class GossipApplicationStore extends ApplicationArchive
                 try {
                     Application app = create(getApplicationDescription(name), false);
                     if (app != null && isActive(app.id().name())) {
+                        requiredBy.put(app.id(), coreAppId);
                         activate(app.id(), false);
                         // load app permissions
                     }
@@ -200,7 +215,6 @@ public class GossipApplicationStore extends ApplicationArchive
     public void setDelegate(ApplicationStoreDelegate delegate) {
         super.setDelegate(delegate);
         loadFromDisk();
-//        executor.schedule(this::pruneUninstalledApps, LOAD_TIMEOUT_MS, MILLISECONDS);
     }
 
     @Override
@@ -229,7 +243,15 @@ public class GossipApplicationStore extends ApplicationArchive
     @Override
     public Application create(InputStream appDescStream) {
         ApplicationDescription appDesc = saveApplication(appDescStream);
-        return create(appDesc, true);
+        if (hasPrerequisites(appDesc)) {
+            return create(appDesc, true);
+        }
+        throw new ApplicationException("Missing dependencies for app " + appDesc.name());
+    }
+
+    private boolean hasPrerequisites(ApplicationDescription app) {
+        return !app.requiredApps().stream().map(n -> getId(n))
+                .anyMatch(id -> id == null || getApplication(id) == null);
     }
 
     private Application create(ApplicationDescription appDesc, boolean updateTime) {
@@ -246,16 +268,30 @@ public class GossipApplicationStore extends ApplicationArchive
     public void remove(ApplicationId appId) {
         Application app = apps.get(appId);
         if (app != null) {
+            uninstallDependentApps(app);
             apps.remove(appId);
             states.remove(app);
             permissions.remove(app);
         }
     }
 
+    // Uninstalls all apps that depend on the given app.
+    private void uninstallDependentApps(Application app) {
+        getApplications().stream()
+                .filter(a -> a.requiredApps().contains(app.id().name()))
+                .forEach(a -> remove(a.id()));
+    }
+
     @Override
     public void activate(ApplicationId appId) {
+        activate(appId, coreAppId);
+    }
+
+    private void activate(ApplicationId appId, ApplicationId forAppId) {
+        requiredBy.put(appId, forAppId);
         activate(appId, true);
     }
+
 
     private void activate(ApplicationId appId, boolean updateTime) {
         Application app = apps.get(appId);
@@ -263,17 +299,47 @@ public class GossipApplicationStore extends ApplicationArchive
             if (updateTime) {
                 updateTime(appId.name());
             }
+            activateRequiredApps(app);
             states.put(app, ACTIVATED);
         }
     }
 
+    // Activates all apps required by this application.
+    private void activateRequiredApps(Application app) {
+        app.requiredApps().stream().map(this::getId).forEach(id -> activate(id, app.id()));
+    }
+
     @Override
     public void deactivate(ApplicationId appId) {
-        Application app = apps.get(appId);
-        if (app != null) {
-            updateTime(appId.name());
-            states.put(app, DEACTIVATED);
+        deactivateDependentApps(getApplication(appId));
+        deactivate(appId, coreAppId);
+    }
+
+    private void deactivate(ApplicationId appId, ApplicationId forAppId) {
+        requiredBy.remove(appId, forAppId);
+        if (requiredBy.get(appId).isEmpty()) {
+            Application app = apps.get(appId);
+            if (app != null) {
+                updateTime(appId.name());
+                states.put(app, DEACTIVATED);
+                deactivateRequiredApps(app);
+            }
         }
+    }
+
+    // Deactivates all apps that require this application.
+    private void deactivateDependentApps(Application app) {
+        getApplications().stream()
+                .filter(a -> states.get(a) == ACTIVATED)
+                .filter(a -> a.requiredApps().contains(app.id().name()))
+                .forEach(a -> deactivate(a.id()));
+    }
+
+    // Deactivates all apps required by this application.
+    private void deactivateRequiredApps(Application app) {
+        app.requiredApps().stream().map(this::getId).map(this::getApplication)
+                .filter(a -> states.get(a) == ACTIVATED)
+                .forEach(a -> deactivate(a.id(), app.id()));
     }
 
     @Override
@@ -424,6 +490,7 @@ public class GossipApplicationStore extends ApplicationArchive
         ApplicationId appId = idStore.registerApplication(appDesc.name());
         return new DefaultApplication(appId, appDesc.version(), appDesc.description(),
                                       appDesc.origin(), appDesc.role(), appDesc.permissions(),
-                                      appDesc.featuresRepo(), appDesc.features());
+                                      appDesc.featuresRepo(), appDesc.features(),
+                                      appDesc.requiredApps());
     }
 }

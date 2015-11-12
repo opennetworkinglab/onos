@@ -85,19 +85,19 @@ public class ApplicationsResourceTest extends ResourceTest {
     private Application app1 =
             new DefaultApplication(id1, VER,
                                    "app1", "origin1", ApplicationRole.ADMIN, ImmutableSet.of(), Optional.of(FURL),
-                                   ImmutableList.of("My Feature"));
+                                   ImmutableList.of("My Feature"), ImmutableList.of());
     private Application app2 =
             new DefaultApplication(id2, VER,
                                    "app2", "origin2", ApplicationRole.ADMIN, ImmutableSet.of(), Optional.of(FURL),
-                                   ImmutableList.of("My Feature"));
+                                   ImmutableList.of("My Feature"), ImmutableList.of());
     private Application app3 =
             new DefaultApplication(id3, VER,
                                    "app3", "origin3", ApplicationRole.ADMIN, ImmutableSet.of(), Optional.of(FURL),
-                                   ImmutableList.of("My Feature"));
+                                   ImmutableList.of("My Feature"), ImmutableList.of());
     private Application app4 =
             new DefaultApplication(id4, VER,
                                    "app4", "origin4", ApplicationRole.ADMIN, ImmutableSet.of(), Optional.of(FURL),
-                                   ImmutableList.of("My Feature"));
+                                   ImmutableList.of("My Feature"), ImmutableList.of());
 
     /**
      * Hamcrest matcher to check that an application representation in JSON matches

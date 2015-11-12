@@ -75,7 +75,8 @@ public class SimpleApplicationStore extends ApplicationArchive implements Applic
                     new DefaultApplication(appId, appDesc.version(),
                                            appDesc.description(), appDesc.origin(),
                                            appDesc.role(), appDesc.permissions(),
-                                           appDesc.featuresRepo(), appDesc.features());
+                                           appDesc.featuresRepo(), appDesc.features(),
+                                           appDesc.requiredApps());
             apps.put(appId, app);
             states.put(appId, isActive(name) ? INSTALLED : ACTIVE);
             // load app permissions
@@ -117,7 +118,8 @@ public class SimpleApplicationStore extends ApplicationArchive implements Applic
         DefaultApplication app =
                 new DefaultApplication(appId, appDesc.version(), appDesc.description(),
                                        appDesc.origin(), appDesc.role(), appDesc.permissions(),
-                                       appDesc.featuresRepo(), appDesc.features());
+                                       appDesc.featuresRepo(), appDesc.features(),
+                                       appDesc.requiredApps());
         apps.put(appId, app);
         states.put(appId, INSTALLED);
         delegate.notify(new ApplicationEvent(APP_INSTALLED, app));

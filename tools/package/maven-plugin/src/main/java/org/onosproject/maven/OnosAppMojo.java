@@ -62,6 +62,7 @@ public class OnosAppMojo extends AbstractMojo {
 
     private static final String ONOS_APP_NAME = "onos.app.name";
     private static final String ONOS_APP_ORIGIN = "onos.app.origin";
+    private static final String ONOS_APP_REQUIRES = "onos.app.requires";
 
     private static final String JAR = "jar";
     private static final String XML = "xml";
@@ -80,6 +81,7 @@ public class OnosAppMojo extends AbstractMojo {
 
     private String name;
     private String origin;
+    private String requiredApps;
     private String version = DEFAULT_VERSION;
     private String featuresRepo = DEFAULT_FEATURES_REPO;
     private List<String> artifacts;
@@ -159,6 +161,9 @@ public class OnosAppMojo extends AbstractMojo {
 
         origin = (String) project.getProperties().get(ONOS_APP_ORIGIN);
         origin = origin != null ? origin : DEFAULT_ORIGIN;
+
+        requiredApps = (String) project.getProperties().get(ONOS_APP_REQUIRES);
+        requiredApps = requiredApps == null ? "" : requiredApps;
 
         if (appFile.exists()) {
             loadAppFile(appFile);
@@ -338,6 +343,7 @@ public class OnosAppMojo extends AbstractMojo {
         return string == null ? null :
                 string.replaceAll("\\$\\{onos.app.name\\}", name)
                         .replaceAll("\\$\\{onos.app.origin\\}", origin)
+                        .replaceAll("\\$\\{onos.app.requires\\}", requiredApps)
                         .replaceAll("\\$\\{project.groupId\\}", projectGroupId)
                         .replaceAll("\\$\\{project.artifactId\\}", projectArtifactId)
                         .replaceAll("\\$\\{project.version\\}", projectVersion)

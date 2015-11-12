@@ -46,12 +46,13 @@ public class DefaultApplicationDescriptionTest {
                             new Permission(AppPermission.class.getName(), "FLOWRULE_READ"));
     public static final URI FURL = URI.create("mvn:org.foo-features/1.2a/xml/features");
     public static final List<String> FEATURES = ImmutableList.of("foo", "bar");
+    public static final List<String> APPS = ImmutableList.of("fifi");
 
     @Test
     public void basics() {
         ApplicationDescription app =
                 new DefaultApplicationDescription(APP_NAME, VER, DESC, ORIGIN,
-                                                  ROLE, PERMS, FURL, FEATURES);
+                                                  ROLE, PERMS, FURL, FEATURES, APPS);
         assertEquals("incorrect id", APP_NAME, app.name());
         assertEquals("incorrect version", VER, app.version());
         assertEquals("incorrect description", DESC, app.description());
@@ -60,6 +61,7 @@ public class DefaultApplicationDescriptionTest {
         assertEquals("incorrect permissions", PERMS, app.permissions());
         assertEquals("incorrect features repo", FURL, app.featuresRepo().get());
         assertEquals("incorrect features", FEATURES, app.features());
+        assertEquals("incorrect apps", APPS, app.requiredApps());
         assertTrue("incorrect toString", app.toString().contains(APP_NAME));
     }
 

@@ -41,6 +41,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
     private final Set<Permission> permissions;
     private final Optional<URI> featuresRepo;
     private final List<String> features;
+    private final List<String> requiredApps;
 
     /**
      * Creates a new application descriptor using the supplied data.
@@ -53,11 +54,13 @@ public class DefaultApplicationDescription implements ApplicationDescription {
      * @param permissions  requested permissions
      * @param featuresRepo optional features repo URI
      * @param features     application features
+     * @param requiredApps list of required application names
      */
     public DefaultApplicationDescription(String name, Version version,
                                          String description, String origin,
                                          ApplicationRole role, Set<Permission> permissions,
-                                         URI featuresRepo, List<String> features) {
+                                         URI featuresRepo, List<String> features,
+                                         List<String> requiredApps) {
         this.name = checkNotNull(name, "Name cannot be null");
         this.version = checkNotNull(version, "Version cannot be null");
         this.description = checkNotNull(description, "Description cannot be null");
@@ -66,6 +69,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
         this.permissions = checkNotNull(permissions, "Permissions cannot be null");
         this.featuresRepo = Optional.ofNullable(featuresRepo);
         this.features = checkNotNull(features, "Features cannot be null");
+        this.requiredApps = checkNotNull(requiredApps, "Required apps cannot be null");
         checkArgument(!features.isEmpty(), "There must be at least one feature");
     }
 
@@ -110,6 +114,11 @@ public class DefaultApplicationDescription implements ApplicationDescription {
     }
 
     @Override
+    public List<String> requiredApps() {
+        return requiredApps;
+    }
+
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("name", name)
@@ -120,6 +129,7 @@ public class DefaultApplicationDescription implements ApplicationDescription {
                 .add("permissions", permissions)
                 .add("featuresRepo", featuresRepo)
                 .add("features", features)
+                .add("requiredApps", requiredApps)
                 .toString();
     }
 }

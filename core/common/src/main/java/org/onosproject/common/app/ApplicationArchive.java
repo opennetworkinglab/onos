@@ -17,6 +17,7 @@ package org.onosproject.common.app;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import org.apache.commons.configuration.ConfigurationException;
@@ -33,7 +34,6 @@ import org.onosproject.core.Version;
 import org.onosproject.security.AppPermission;
 import org.onosproject.security.Permission;
 import org.onosproject.store.AbstractStore;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +46,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.file.NoSuchFileException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -79,6 +78,7 @@ public class ApplicationArchive
     private static final String VERSION = "[@version]";
     private static final String FEATURES_REPO = "[@featuresRepo]";
     private static final String FEATURES = "[@features]";
+    private static final String APPS = "[@apps]";
     private static final String DESCRIPTION = "description";
 
     private static final String ROLE = "security.role";
@@ -291,8 +291,13 @@ public class ApplicationArchive
         URI featuresRepo = featRepo != null ? URI.create(featRepo) : null;
         List<String> features = ImmutableList.copyOf(cfg.getString(FEATURES).split(","));
 
+        String apps = cfg.getString(APPS, "");
+        List<String> requiredApps = apps.isEmpty() ?
+                ImmutableList.of() : ImmutableList.copyOf(apps.split(","));
+
         return new DefaultApplicationDescription(name, version, desc, origin, role,
-                                                 perms, featuresRepo, features);
+                                                 perms, featuresRepo, features,
+                                                 requiredApps);
     }
 
     // Expands the specified ZIP stream into app-specific directory.
@@ -390,7 +395,7 @@ public class ApplicationArchive
 
     // Returns the set of Permissions specified in the app.xml file
     private ImmutableSet<Permission> getPermissions(XMLConfiguration cfg) {
-        List<Permission> permissionList = new ArrayList();
+        List<Permission> permissionList = Lists.newArrayList();
 
         for (Object o : cfg.getList(APP_PERMISSIONS)) {
             String name = (String) o;

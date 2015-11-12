@@ -32,18 +32,18 @@ public final class ApplicationCodec extends JsonCodec<Application> {
     public ObjectNode encode(Application app, CodecContext context) {
         checkNotNull(app, "Application cannot be null");
         ApplicationService service = context.getService(ApplicationService.class);
-        ObjectNode result = context.mapper().createObjectNode()
+        return context.mapper().createObjectNode()
                 .put("name", app.id().name())
                 .put("id", app.id().id())
                 .put("version", app.version().toString())
                 .put("description", app.description())
                 .put("origin", app.origin())
-                .put("permissions", app.permissions().toString())
+                .put("permissions", app.permissions().toString()) // FIXME: change to an array
                 .put("featuresRepo", app.featuresRepo().isPresent() ?
                         app.featuresRepo().get().toString() : "")
-                .put("features", app.features().toString())
+                .put("features", app.features().toString()) // FIXME: change to an array
+                .put("requiredApps", app.requiredApps().toString()) // FIXME: change to an array
                 .put("state", service.getState(app.id()).toString());
-        return result;
     }
 
 }
