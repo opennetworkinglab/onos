@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
+import org.onlab.util.DefaultHashMap;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
@@ -80,17 +81,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ADDED;
-import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_REMOVED;
 import static org.onosproject.cluster.ControllerNode.State.ACTIVE;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.PortNumber.portNumber;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
-import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
-import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
-import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
 import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
 import static org.onosproject.ui.topo.TopoConstants.Properties;
 import static org.onosproject.ui.topo.TopoUtils.compactLinkString;
@@ -99,6 +92,33 @@ import static org.onosproject.ui.topo.TopoUtils.compactLinkString;
  * Facility for creating messages bound for the topology viewer.
  */
 public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
+
+    // default to an "add" event...
+    private static final DefaultHashMap<ClusterEvent.Type, String> CLUSTER_EVENT =
+            new DefaultHashMap<>("addInstance");
+
+    // default to an "update" event...
+    private static final DefaultHashMap<DeviceEvent.Type, String> DEVICE_EVENT =
+            new DefaultHashMap<>("updateDevice");
+    private static final DefaultHashMap<LinkEvent.Type, String> LINK_EVENT =
+            new DefaultHashMap<>("updateLink");
+    private static final DefaultHashMap<HostEvent.Type, String> HOST_EVENT =
+            new DefaultHashMap<>("updateHost");
+
+    // but call out specific events that we care to differentiate...
+    static {
+        CLUSTER_EVENT.put(ClusterEvent.Type.INSTANCE_REMOVED, "removeInstance");
+
+        DEVICE_EVENT.put(DeviceEvent.Type.DEVICE_ADDED, "addDevice");
+        DEVICE_EVENT.put(DeviceEvent.Type.DEVICE_REMOVED, "removeDevice");
+
+        LINK_EVENT.put(LinkEvent.Type.LINK_ADDED, "addLink");
+        LINK_EVENT.put(LinkEvent.Type.LINK_REMOVED, "removeLink");
+
+        HOST_EVENT.put(HostEvent.Type.HOST_ADDED, "addHost");
+        HOST_EVENT.put(HostEvent.Type.HOST_REMOVED, "removeHost");
+        HOST_EVENT.put(HostEvent.Type.HOST_MOVED, "moveHost");
+    }
 
     protected static final Logger log =
             LoggerFactory.getLogger(TopologyViewMessageHandlerBase.class);
@@ -204,7 +224,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Produces a cluster instance message to the client.
-    protected ObjectNode instanceMessage(ClusterEvent event, String messageType) {
+    protected ObjectNode instanceMessage(ClusterEvent event, String msgType) {
         ControllerNode node = event.subject();
         int switchCount = mastershipService.getDevicesOf(node.id()).size();
         ObjectNode payload = objectNode()
@@ -222,10 +242,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         payload.set("labels", labels);
         addMetaUi(node.id().toString(), payload);
 
-        String type = messageType != null ? messageType :
-                ((event.type() == INSTANCE_ADDED) ? "addInstance" :
-                        ((event.type() == INSTANCE_REMOVED ? "removeInstance" :
-                                "addInstance")));
+        String type = msgType != null ? msgType : CLUSTER_EVENT.get(event.type());
         return JsonUtils.envelope(type, 0, payload);
     }
 
@@ -251,8 +268,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         addGeoLocation(device, payload);
         addMetaUi(device.id().toString(), payload);
 
-        String type = (event.type() == DEVICE_ADDED) ? "addDevice" :
-                ((event.type() == DEVICE_REMOVED) ? "removeDevice" : "updateDevice");
+        String type = DEVICE_EVENT.get(event.type());
         return JsonUtils.envelope(type, 0, payload);
     }
 
@@ -268,8 +284,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 .put("srcPort", link.src().port().toString())
                 .put("dst", link.dst().deviceId().toString())
                 .put("dstPort", link.dst().port().toString());
-        String type = (event.type() == LINK_ADDED) ? "addLink" :
-                ((event.type() == LINK_REMOVED) ? "removeLink" : "updateLink");
+        String type = LINK_EVENT.get(event.type());
         return JsonUtils.envelope(type, 0, payload);
     }
 
@@ -277,20 +292,24 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     protected ObjectNode hostMessage(HostEvent event) {
         Host host = event.subject();
         String hostType = host.annotations().value(AnnotationKeys.TYPE);
+        HostLocation prevLoc = event.prevLocation();
+
         ObjectNode payload = objectNode()
                 .put("id", host.id().toString())
                 .put("type", isNullOrEmpty(hostType) ? "endstation" : hostType)
                 .put("ingress", compactLinkString(edgeLink(host, true)))
                 .put("egress", compactLinkString(edgeLink(host, false)));
         payload.set("cp", hostConnect(host.location()));
+        if (prevLoc != null) {
+            payload.set("prevCp", hostConnect(event.prevLocation()));
+        }
         payload.set("labels", labels(ip(host.ipAddresses()),
                                      host.mac().toString()));
         payload.set("props", props(host.annotations()));
         addGeoLocation(host, payload);
         addMetaUi(host.id().toString(), payload);
 
-        String type = (event.type() == HOST_ADDED) ? "addHost" :
-                ((event.type() == HOST_REMOVED) ? "removeHost" : "updateHost");
+        String type = HOST_EVENT.get(event.type());
         return JsonUtils.envelope(type, 0, payload);
     }
 

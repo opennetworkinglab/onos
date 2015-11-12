@@ -55,6 +55,7 @@
             removeDevice: tfs,
             addHost: tfs,
             updateHost: tfs,
+            moveHost: tfs,
             removeHost: tfs,
             addLink: tfs,
             updateLink: tfs,

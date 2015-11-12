@@ -187,6 +187,35 @@
         }
     }
 
+    function moveHost(data) {
+        var id = data.id,
+            d = lu[id],
+            lnk;
+        if (d) {
+            // first remove the old host link
+            removeLinkElement(d.linkData);
+
+            // merge new data
+            angular.extend(d, data);
+            if (tms.positionNode(d, true)) {
+                sendUpdateMeta(d);
+            }
+
+            // now create a new host link
+            lnk = tms.createHostLink(data);
+            if (lnk) {
+                d.linkData = lnk;
+                network.links.push(lnk);
+                lu[d.ingress] = lnk;
+                lu[d.egress] = lnk;
+            }
+
+            updateNodes();
+            updateLinks();
+            fResume();
+        }
+    }
+
     function removeHost(data) {
         var id = data.id,
             d = lu[id];
@@ -1142,6 +1171,7 @@
                 removeDevice: removeDevice,
                 addHost: addHost,
                 updateHost: updateHost,
+                moveHost: moveHost,
                 removeHost: removeHost,
                 addLink: addLink,
                 updateLink: updateLink,
