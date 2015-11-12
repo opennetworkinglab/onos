@@ -118,8 +118,21 @@ public final class GroupModBuilder {
             if (type == GroupDescription.Type.SELECT) {
                 bucketBuilder.setWeight(1);
             }
-            bucketBuilder.setWatchGroup(OFGroup.ANY);
-            bucketBuilder.setWatchPort(OFPort.ANY);
+            if (type == GroupDescription.Type.FAILOVER) {
+                if (bucket.watchPort() != null) {
+                    bucketBuilder.setWatchPort(OFPort.of((int) bucket.watchPort().toLong()));
+                } else {
+                    bucketBuilder.setWatchPort(OFPort.ZERO);
+                }
+                if (bucket.watchGroup() != null) {
+                    bucketBuilder.setWatchGroup(OFGroup.of(bucket.watchGroup().id()));
+                } else {
+                    bucketBuilder.setWatchGroup(OFGroup.ZERO);
+                }
+            } else {
+                bucketBuilder.setWatchGroup(OFGroup.ANY);
+                bucketBuilder.setWatchPort(OFPort.ANY);
+            }
             OFBucket ofBucket = bucketBuilder.build();
             ofBuckets.add(ofBucket);
         }
