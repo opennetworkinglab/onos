@@ -15,11 +15,16 @@
  */
 package org.onosproject.net;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
+import org.onosproject.net.PortNumber.Logical;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.onosproject.net.PortNumber.portNumber;
+
+import java.util.List;
 
 /**
  * Test of the port number.
@@ -39,5 +44,37 @@ public class PortNumberTest {
         assertEquals("incorrect long value", 12345, portNumber(12345).toLong());
     }
 
+    @Test
+    public void decimalPortNumberIsReconstructableFromString() {
+        List<PortNumber> ps = ImmutableList.<PortNumber>builder()
+                                .add(portNumber(0))
+                                .add(portNumber(1))
+                                .add(portNumber(6653))
+                                .add(portNumber(PortNumber.MAX_NUMBER))
+                                .build();
+        ps.forEach(p -> assertEquals(p, PortNumber.fromString(p.toString())));
+    }
+
+    @Test
+    public void logicalPortNumberIsReconstructableFromString() {
+        List<PortNumber> ps = ImmutableList.copyOf(Logical.values())
+                                .stream().map(Logical::instance).collect(toList());
+
+        ps.forEach(p -> assertEquals(p, PortNumber.fromString(p.toString())));
+
+        PortNumber unknown = portNumber(-42);
+        assertEquals(unknown, PortNumber.fromString(unknown.toString()));
+    }
+
+    @Test
+    public void namedPortNumberIsReconstructableFromString() {
+        List<PortNumber> ps = ImmutableList.<PortNumber>builder()
+                                .add(portNumber(0, "Zero"))
+                                .add(portNumber(1, "[ONE]"))
+                                .add(portNumber(6653, "OpenFlow (1.3+)"))
+                                .add(portNumber(PortNumber.MAX_NUMBER, "(大)"))
+                                .build();
+        ps.forEach(p -> assertEquals(p, PortNumber.fromString(p.toString())));
+    }
 
 }

@@ -15,6 +15,16 @@
  */
 package org.onosproject.net;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.primitives.UnsignedLongs;
 
 /**
@@ -26,8 +36,7 @@ public final class PortNumber {
 
     // TODO: revisit the max and the logical port value assignments
 
-    private static final long MAX_NUMBER = (2L * Integer.MAX_VALUE) + 1;
-
+    static final long MAX_NUMBER = (2L * Integer.MAX_VALUE) + 1;
 
     static final long IN_PORT_NUMBER = -8L;
     static final long TABLE_NUMBER = -7L;
@@ -37,6 +46,39 @@ public final class PortNumber {
     static final long LOCAL_NUMBER = -2L;
     static final long CONTROLLER_NUMBER = -3L;
 
+    /**
+     * Logical PortNumbers.
+     */
+    public static enum Logical {
+        IN_PORT(IN_PORT_NUMBER),
+        TABLE(TABLE_NUMBER),
+        NORMAL(NORMAL_NUMBER),
+        FLOOD(FLOOD_NUMBER),
+        ALL(ALL_NUMBER),
+        LOCAL(LOCAL_NUMBER),
+        CONTROLLER(CONTROLLER_NUMBER);
+
+        private final long number;
+        private final PortNumber instance;
+
+        public long number() {
+            return number;
+        }
+
+        /**
+         * PortNumber instance for the logical port.
+         * @return {@link PortNumber}
+         */
+        public PortNumber instance() {
+            return instance;
+        }
+
+        Logical(long number) {
+            this.number = number;
+            this.instance = new PortNumber(number);
+        }
+    }
+
     public static final PortNumber IN_PORT = new PortNumber(IN_PORT_NUMBER);
     public static final PortNumber TABLE = new PortNumber(TABLE_NUMBER);
     public static final PortNumber NORMAL = new PortNumber(NORMAL_NUMBER);
@@ -44,6 +86,15 @@ public final class PortNumber {
     public static final PortNumber ALL = new PortNumber(ALL_NUMBER);
     public static final PortNumber LOCAL = new PortNumber(LOCAL_NUMBER);
     public static final PortNumber CONTROLLER = new PortNumber(CONTROLLER_NUMBER);
+
+    // lazily populated Logical port number to PortNumber
+    static final Supplier<Map<Long, Logical>> LOGICAL = Suppliers.memoize(() -> {
+            Builder<Long, Logical> builder = ImmutableMap.<Long, Logical>builder();
+            for (Logical lp : Logical.values()) {
+                builder.put(lp.number(), lp);
+            }
+            return builder.build();
+        });
 
     private final long number;
     private final String name;
@@ -136,30 +187,68 @@ public final class PortNumber {
     }
 
     private String decodeLogicalPort() {
-        if (number == CONTROLLER_NUMBER) {
-            return "CONTROLLER";
-        } else if (number == LOCAL_NUMBER) {
-            return "LOCAL";
-        } else if (number == ALL_NUMBER) {
-            return "ALL";
-        } else if (number == FLOOD_NUMBER) {
-            return "FLOOD";
-        } else if (number == NORMAL_NUMBER) {
-            return "NORMAL";
-        } else if (number == TABLE_NUMBER) {
-            return "TABLE";
-        } else if (number == IN_PORT_NUMBER) {
-            return "IN_PORT";
+        Logical logical = LOGICAL.get().get(number);
+        if (logical != null) {
+            // enum name
+            return logical.toString();
         }
-        return "UNKNOWN";
+        return String.format("UNKNOWN(%s)", UnsignedLongs.toString(number));
+    }
+
+
+    /**
+     * Regular expression to match String representation of named PortNumber.
+     *
+     * Format: "[name](num:unsigned decimal string)"
+     */
+    private static final Pattern NAMED = Pattern.compile("^\\[(?<name>.*)\\]\\((?<num>\\d+)\\)$");
+
+    private static boolean isAsciiDecimal(char c) {
+        return '0' <= c  && c <= '9';
+    }
+
+    /**
+     * Returns PortNumber instance from String representation.
+     *
+     * @param s String representation equivalent to {@link PortNumber#toString()}
+     * @return {@link PortNumber} instance
+     * @throws IllegalArgumentException if given String was malformed
+     */
+    public static PortNumber fromString(String s) {
+        checkNotNull(s);
+        checkArgument(!s.isEmpty(), "cannot be empty");
+
+        if (isAsciiDecimal(s.charAt(0))) {
+            // unsigned decimal string
+            return portNumber(s);
+        } else if (s.startsWith("[")) {
+            // named PortNumber
+            Matcher matcher = NAMED.matcher(s);
+            checkArgument(matcher.matches(), "Invalid named PortNumber %s", s);
+
+            String name = matcher.group("name");
+            String num = matcher.group("num");
+            return portNumber(UnsignedLongs.parseUnsignedLong(num), name);
+        }
+
+        // Logical
+        if (s.startsWith("UNKNOWN(") && s.endsWith(")")) {
+            return portNumber(s.substring("UNKNOWN(".length(), s.length() - 1));
+        } else {
+            return Logical.valueOf(s).instance;
+        }
     }
 
     @Override
     public String toString() {
-        if (!isLogical()) {
-            return name;
-        } else {
+        if (isLogical()) {
             return decodeLogicalPort();
+        } else if (hasName()) {
+            // named port
+            return String.format("[%s](%d)", name, number);
+        } else {
+            // unsigned decimal string
+            return name;
         }
     }
 
