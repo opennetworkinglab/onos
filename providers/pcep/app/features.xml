@@ -20,8 +20,8 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <bundle>mvn:${project.groupId}/onos-app-pcep-api/${project.version}</bundle>
-	<bundle>mvn:${project.groupId}/onos-pcepio/${project.version}</bundle>     
-        <bundle>mvn:${project.groupId}/onos-pcep-controller-api/${project.version}</bundle>     
+    <bundle>mvn:${project.groupId}/onos-pcepio/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-pcep-controller-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-controller-impl/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-provider-topology/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-provider-tunnel/${project.version}</bundle>

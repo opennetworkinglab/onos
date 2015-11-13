@@ -34,7 +34,7 @@
     <modules>
         <module>dist</module>
         <module>persistence</module>
-	<module>serializers</module>
+    <module>serializers</module>
     </modules>
 
     <dependencies>

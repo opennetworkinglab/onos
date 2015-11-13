@@ -43,7 +43,7 @@
             <version>${project.version}</version>
         </dependency>
 
-	    <dependency>
+        <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-thirdparty</artifactId>
         </dependency>

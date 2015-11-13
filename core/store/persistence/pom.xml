@@ -50,7 +50,7 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
         </dependency>-->
-	    <dependency>
+        <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
             <classifier>tests</classifier>

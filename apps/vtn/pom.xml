@@ -36,9 +36,9 @@
         <module>vtnmgr</module>
         <module>vtnweb</module>
         <module>app</module>
-  	</modules>
-  	<dependencies>
-  	    <dependency>
+    </modules>
+    <dependencies>
+        <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>
             <scope>test</scope>

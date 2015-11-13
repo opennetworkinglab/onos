@@ -25,8 +25,8 @@
   <packaging>pom</packaging>
   <description>PCEP protocol providers root</description>
   <modules>
-  	<module>topology</module>
-  	<module>tunnel</module>
-  	<module>app</module>
+        <module>topology</module>
+        <module>tunnel</module>
+        <module>app</module>
   </modules>
 </project>
