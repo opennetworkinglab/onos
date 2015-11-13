@@ -14,33 +14,32 @@
  * limitations under the License.
  */
 
-package org.onosproject.vtnrsc.virtualport;
+package org.onosproject.vtnrsc;
+
+import org.junit.Test;
+
+import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
-import org.junit.Test;
-import org.onosproject.vtnrsc.VirtualPortId;
-
-import com.google.common.testing.EqualsTester;
-
 /**
- * Unit tests for VirtualPortId class.
+ * Unit tests for SecurityGroup class.
  */
-public class VirtualPortIdTest {
+public class SecurityGroupTest {
 
-    final VirtualPortId virtualPortId1 = VirtualPortId.portId("1");
-    final VirtualPortId sameAsVirtualPortId1 = VirtualPortId.portId("1");
-    final VirtualPortId virtualPortId2 = VirtualPortId.portId("2");
+    final SecurityGroup securityGroup1 = SecurityGroup.securityGroup("1");
+    final SecurityGroup sameAssecurityGroup = SecurityGroup.securityGroup("1");
+    final SecurityGroup securityGroup2 = SecurityGroup.securityGroup("2");
 
     /**
-     * Checks that the VirtualPortId class is immutable.
+     * Checks that the SecurityGroup class is immutable.
      */
     @Test
     public void testImmutability() {
-        assertThatClassIsImmutable(VirtualPortId.class);
+        assertThatClassIsImmutable(SecurityGroup.class);
     }
 
     /**
@@ -48,19 +47,19 @@ public class VirtualPortIdTest {
      */
     @Test
     public void testEquals() {
-        new EqualsTester().addEqualityGroup(virtualPortId1, sameAsVirtualPortId1)
-                .addEqualityGroup(virtualPortId2).testEquals();
+        new EqualsTester().addEqualityGroup(securityGroup1, sameAssecurityGroup)
+                .addEqualityGroup(securityGroup2).testEquals();
     }
 
     /**
-     * Checks the construction of a VirtualPortId object.
+     * Checks the construction of a SecurityGroup object.
      */
     @Test
     public void testConstruction() {
-        final String vPortIdValue = "aaa";
-        final VirtualPortId virtualPortId = VirtualPortId.portId(vPortIdValue);
-        assertThat(virtualPortId, is(notNullValue()));
-        assertThat(virtualPortId.portId(), is(vPortIdValue));
+        final String securityGroupValue = "1";
+        final SecurityGroup securityGroup = SecurityGroup.securityGroup(securityGroupValue);
+        assertThat(securityGroup, is(notNullValue()));
+        assertThat(securityGroup.securityGroup(), is(securityGroupValue));
 
     }
 }

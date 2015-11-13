@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtnrsc.router;
+package org.onosproject.vtnrsc;
+
+import org.junit.Test;
+
+import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-
-import org.junit.Test;
-import org.onosproject.vtnrsc.RouterId;
-
-import com.google.common.testing.EqualsTester;
 
 /**
  * Unit tests for RouterId class.

@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtnrsc.tenantnetwork;
-
-import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+package org.onosproject.vtnrsc;
 
 import org.junit.Test;
-import org.onosproject.vtnrsc.DefaultTenantNetwork;
-import org.onosproject.vtnrsc.PhysicalNetwork;
-import org.onosproject.vtnrsc.SegmentationId;
-import org.onosproject.vtnrsc.TenantId;
-import org.onosproject.vtnrsc.TenantNetwork;
-import org.onosproject.vtnrsc.TenantNetworkId;
 
 import com.google.common.testing.EqualsTester;
+
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
  * Unit tests for DefaultNeutronNetwork class.

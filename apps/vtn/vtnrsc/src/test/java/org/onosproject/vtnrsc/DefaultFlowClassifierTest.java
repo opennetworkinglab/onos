@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtnrsc.flowclassifier;
+package org.onosproject.vtnrsc;
+
+import org.junit.Test;
+import org.onlab.packet.IpPrefix;
+
+import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-
-import org.junit.Test;
-import org.onlab.packet.IpPrefix;
-import org.onosproject.vtnrsc.TenantId;
-import org.onosproject.vtnrsc.DefaultFlowClassifier;
-import org.onosproject.vtnrsc.FlowClassifierId;
-import org.onosproject.vtnrsc.VirtualPortId;
-import org.onosproject.vtnrsc.FlowClassifier;
-
-import com.google.common.testing.EqualsTester;
 
 /**
  * Unit tests for DefaultFlowClassifier class.

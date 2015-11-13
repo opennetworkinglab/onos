@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package org.onosproject.vtnrsc.virtualport;
+package org.onosproject.vtnrsc;
+
+import org.junit.Test;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+
+import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-
-import org.junit.Test;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onosproject.vtnrsc.AllowedAddressPair;
-
-import com.google.common.testing.EqualsTester;
 
 /**
  * Unit tests for AllowedAddressPair class.

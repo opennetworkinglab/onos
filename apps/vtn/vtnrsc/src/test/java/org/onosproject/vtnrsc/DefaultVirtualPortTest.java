@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.vtnrsc.virtualport;
-
-import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+package org.onosproject.vtnrsc;
 
 import java.util.Map;
 import java.util.Set;
@@ -25,20 +23,12 @@ import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
-import org.onosproject.vtnrsc.AllowedAddressPair;
-import org.onosproject.vtnrsc.BindingHostId;
-import org.onosproject.vtnrsc.DefaultVirtualPort;
-import org.onosproject.vtnrsc.FixedIp;
-import org.onosproject.vtnrsc.SecurityGroup;
-import org.onosproject.vtnrsc.SubnetId;
-import org.onosproject.vtnrsc.TenantId;
-import org.onosproject.vtnrsc.TenantNetworkId;
-import org.onosproject.vtnrsc.VirtualPort;
-import org.onosproject.vtnrsc.VirtualPortId;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.testing.EqualsTester;
+
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
  * Unit tests for DefaultVirtualPort class.

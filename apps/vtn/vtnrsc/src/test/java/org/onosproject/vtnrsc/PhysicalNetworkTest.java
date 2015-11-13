@@ -13,33 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtnrsc.tenantnetwork;
+package org.onosproject.vtnrsc;
+
+import org.junit.Test;
+
+import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
-import org.junit.Test;
-import org.onosproject.vtnrsc.SegmentationId;
-
-import com.google.common.testing.EqualsTester;
-
 /**
- * Unit tests for SegmentationId class.
+ * Unit tests for PhysicalNetwork class.
  */
-public class SegmentationIdTest {
+public class PhysicalNetworkTest {
 
-    final SegmentationId segmentationID1 = SegmentationId.segmentationId("1");
-    final SegmentationId sameAsSegmentationID1 = SegmentationId.segmentationId("1");
-    final SegmentationId segmentationID2 = SegmentationId.segmentationId("2");
+    final PhysicalNetwork physicalNetwork1 = PhysicalNetwork.physicalNetwork("1");
+    final PhysicalNetwork sameAsPhysicalNetwork1 = PhysicalNetwork.physicalNetwork("1");
+    final PhysicalNetwork physicalNetwork2 = PhysicalNetwork.physicalNetwork("2");
 
     /**
-     * Checks that the SegmentationId class is immutable.
+     * Checks that the PhysicalNetwork class is immutable.
      */
     @Test
     public void testImmutability() {
-        assertThatClassIsImmutable(SegmentationId.class);
+        assertThatClassIsImmutable(PhysicalNetwork.class);
     }
 
     /**
@@ -47,18 +46,19 @@ public class SegmentationIdTest {
      */
     @Test
     public void testEquals() {
-        new EqualsTester().addEqualityGroup(segmentationID1, sameAsSegmentationID1)
-                .addEqualityGroup(segmentationID2).testEquals();
+        new EqualsTester().addEqualityGroup(physicalNetwork1, sameAsPhysicalNetwork1)
+                .addEqualityGroup(physicalNetwork2).testEquals();
     }
 
     /**
-     * Checks the construction of a segmentationId object.
+     * Checks the construction of a PhysicalNetwork object.
      */
     @Test
     public void testConstruction() {
-        final String segmentationIdValue = "s";
-        final SegmentationId segmentationId = SegmentationId.segmentationId(segmentationIdValue);
-        assertThat(segmentationId, is(notNullValue()));
-        assertThat(segmentationId.segmentationId(), is(segmentationIdValue));
+        final String physicalNetworkValue = "s";
+        final PhysicalNetwork physicalNetwork = PhysicalNetwork
+                .physicalNetwork(physicalNetworkValue);
+        assertThat(physicalNetwork, is(notNullValue()));
+        assertThat(physicalNetwork.physicalNetwork(), is(physicalNetworkValue));
     }
 }

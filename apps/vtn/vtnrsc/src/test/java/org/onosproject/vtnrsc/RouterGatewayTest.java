@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtnrsc.router;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+package org.onosproject.vtnrsc;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
-import org.onosproject.vtnrsc.RouterGateway;
-import org.onosproject.vtnrsc.TenantNetworkId;
-import org.onosproject.vtnrsc.FixedIp;
 
 import com.google.common.testing.EqualsTester;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
  * Unit tests for RouterGateway class.

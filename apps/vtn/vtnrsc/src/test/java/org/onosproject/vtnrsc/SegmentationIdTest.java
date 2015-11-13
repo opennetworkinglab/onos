@@ -13,33 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtnrsc.tenantnetwork;
+package org.onosproject.vtnrsc;
+
+import org.junit.Test;
+
+import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
-import org.junit.Test;
-import org.onosproject.vtnrsc.TenantId;
-
-import com.google.common.testing.EqualsTester;
-
 /**
- * Unit tests for TenantId class.
+ * Unit tests for SegmentationId class.
  */
-public class TenantIdTest {
+public class SegmentationIdTest {
 
-    final TenantId tenantId1 = TenantId.tenantId("1");
-    final TenantId sameAsTenantId1 = TenantId.tenantId("1");
-    final TenantId tenantId2 = TenantId.tenantId("2");
+    final SegmentationId segmentationID1 = SegmentationId.segmentationId("1");
+    final SegmentationId sameAsSegmentationID1 = SegmentationId.segmentationId("1");
+    final SegmentationId segmentationID2 = SegmentationId.segmentationId("2");
 
     /**
-     * Checks that the TenantId class is immutable.
+     * Checks that the SegmentationId class is immutable.
      */
     @Test
     public void testImmutability() {
-        assertThatClassIsImmutable(TenantId.class);
+        assertThatClassIsImmutable(SegmentationId.class);
     }
 
     /**
@@ -47,18 +46,18 @@ public class TenantIdTest {
      */
     @Test
     public void testEquals() {
-        new EqualsTester().addEqualityGroup(tenantId1, sameAsTenantId1).addEqualityGroup(tenantId2)
-                .testEquals();
+        new EqualsTester().addEqualityGroup(segmentationID1, sameAsSegmentationID1)
+                .addEqualityGroup(segmentationID2).testEquals();
     }
 
     /**
-     * Checks the construction of a TenantId object.
+     * Checks the construction of a segmentationId object.
      */
     @Test
     public void testConstruction() {
-        final String tenantIdValue = "s";
-        final TenantId tenantId = TenantId.tenantId(tenantIdValue);
-        assertThat(tenantId, is(notNullValue()));
-        assertThat(tenantId.tenantId(), is(tenantIdValue));
+        final String segmentationIdValue = "s";
+        final SegmentationId segmentationId = SegmentationId.segmentationId(segmentationIdValue);
+        assertThat(segmentationId, is(notNullValue()));
+        assertThat(segmentationId.segmentationId(), is(segmentationIdValue));
     }
 }

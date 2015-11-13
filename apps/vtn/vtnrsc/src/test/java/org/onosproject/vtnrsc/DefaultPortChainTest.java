@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtnrsc.flowclassifier;
+package org.onosproject.vtnrsc;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import org.junit.Test;
+
+import com.google.common.testing.EqualsTester;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-
-import org.junit.Test;
-import java.util.List;
-import java.util.LinkedList;
-
-import org.onosproject.vtnrsc.PortChainId;
-import org.onosproject.vtnrsc.PortPairGroupId;
-import org.onosproject.vtnrsc.TenantId;
-import org.onosproject.vtnrsc.FlowClassifierId;
-import org.onosproject.vtnrsc.PortChain;
-import org.onosproject.vtnrsc.DefaultPortChain;
-
-import com.google.common.testing.EqualsTester;
 
 /**
  * Unit tests for DefaultPortChain class.

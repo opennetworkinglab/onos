@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtnrsc.subnet;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+package org.onosproject.vtnrsc;
 
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onosproject.vtnrsc.DefaultHostRoute;
-import org.onosproject.vtnrsc.HostRoute;
 
 import com.google.common.testing.EqualsTester;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
  * Unit tests for DefaultHostRoute class.
