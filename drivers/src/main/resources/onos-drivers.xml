@@ -134,5 +134,8 @@
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.OFOpticalSwitch13"/>
     </driver>
+    <driver name="aos" extends="ofdpa"
+            manufacturer="Accton" hwVersion=".*" swVersion="1.*">
+    </driver>
 </drivers>
 
