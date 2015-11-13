@@ -51,7 +51,7 @@ public final class BasicDeviceOperator implements ConfigOperator {
      * @return DeviceDescription based on both sources
      */
     public static DeviceDescription combine(BasicDeviceConfig bdc, DeviceDescription descr) {
-        if (bdc == null) {
+        if (bdc == null || descr == null) {
             return descr;
         }
 

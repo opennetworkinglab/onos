@@ -740,7 +740,7 @@ public class DeviceManager
                     Device dev = getDevice(did);
                     DeviceDescription desc = (dev == null) ? null : BasicDeviceOperator.descriptionOf(dev);
                     desc = BasicDeviceOperator.combine(cfg, desc);
-                    if (getProvider(did) != null) {
+                    if (desc != null && getProvider(did) != null) {
                         de = store.createOrUpdateDevice(getProvider(did).id(), did, desc);
                     }
                 }
@@ -754,7 +754,7 @@ public class DeviceManager
                     OpticalPortConfig opc = networkConfigService.getConfig(cpt, OpticalPortConfig.class);
                     PortDescription desc = OpticalPortOperator.descriptionOf(dpt);
                     desc = OpticalPortOperator.combine(opc, desc);
-                    if (getProvider(did) != null) {
+                    if (desc != null && getProvider(did) != null) {
                         de = store.updatePortStatus(getProvider(did).id(), did, desc);
                     }
                 }
