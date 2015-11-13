@@ -15,48 +15,31 @@
  */
 package org.onosproject.openflow;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.OFPortReason;
+import org.projectfloodlight.openflow.protocol.OFPortStatus;
 import org.projectfloodlight.openflow.protocol.OFType;
-import org.projectfloodlight.openflow.protocol.OFVersion;
-
-import com.google.common.hash.PrimitiveSink;
 
 /**
- * Adapter for testing against an OpenFlow message.
+ * Mocked open flow port status message.
  */
-public class OfMessageAdapter implements OFMessage {
-    OFType type;
-
-    private OfMessageAdapter() {}
-
-    public OfMessageAdapter(OFType type) {
-        this.type = type;
+public class MockOfPortStatus extends OfMessageAdapter implements OFPortStatus {
+    public MockOfPortStatus() {
+        super(OFType.PORT_STATUS);
     }
 
     @Override
-    public OFType getType() {
-        return type;
-    }
-
-    @Override
-    public OFVersion getVersion() {
+    public OFPortReason getReason() {
         return null;
     }
 
     @Override
-    public long getXid() {
-        return 0;
-    }
-
-    @Override
-    public void writeTo(ChannelBuffer channelBuffer) { }
-
-    @Override
-    public Builder createBuilder() {
+    public OFPortDesc getDesc() {
         return null;
     }
 
     @Override
-    public void putTo(PrimitiveSink sink) { }
+    public OFPortStatus.Builder createBuilder() {
+        return null;
+    }
 }

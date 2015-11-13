@@ -107,7 +107,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             label = "Number of controller worker threads; default is 16")
     private int workerThreads = DEFAULT_WORKER_THREADS;
 
-    private final ExecutorService executorMsgs =
+    protected ExecutorService executorMsgs =
         Executors.newFixedThreadPool(32, groupedThreads("onos/of", "event-stats-%d"));
 
     private final ExecutorService executorBarrier =
@@ -611,10 +611,10 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         }
     }
 
-    private final class OFMessageHandler implements Runnable {
+    protected final class OFMessageHandler implements Runnable {
 
-        private final OFMessage msg;
-        private final Dpid dpid;
+        protected final OFMessage msg;
+        protected final Dpid dpid;
 
         public OFMessageHandler(Dpid dpid, OFMessage msg) {
             this.msg = msg;

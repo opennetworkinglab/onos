@@ -22,6 +22,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.junit.Test;
 import org.onosproject.openflow.OfMessageAdapter;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFType;
 
 import com.google.common.collect.ImmutableList;
 
@@ -39,6 +40,7 @@ public class OFMessageEncoderTest {
         final int id;
 
         MockOfMessage() {
+            super(OFType.ERROR);
             id = nextId++;
         }
 
