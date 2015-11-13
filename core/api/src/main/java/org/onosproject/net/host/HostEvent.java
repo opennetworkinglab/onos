@@ -18,7 +18,6 @@ package org.onosproject.net.host;
 import org.joda.time.LocalDateTime;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.Host;
-import org.onosproject.net.HostLocation;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -52,7 +51,7 @@ public class HostEvent extends AbstractEvent<HostEvent.Type, Host> {
         HOST_MOVED
     }
 
-    private HostLocation prevLocation;
+    private Host prevSubject;
 
     /**
      * Creates an event of a given type and for the specified host and the
@@ -77,25 +76,29 @@ public class HostEvent extends AbstractEvent<HostEvent.Type, Host> {
     }
 
     /**
-     * Creates an event with HOST_MOVED type along with the previous location
-     * of the host.
+     * Creates an event with previous subject.
      *
+     * The previous subject is ignored if the type is not moved or updated
+     *
+     * @param type host event type
      * @param host event host subject
-     * @param prevLocation previous location of the host
+     * @param prevSubject previous host subject
      */
-    public HostEvent(Host host, HostLocation prevLocation) {
-        super(Type.HOST_MOVED, host);
-        this.prevLocation = prevLocation;
+    public HostEvent(Type type, Host host, Host prevSubject) {
+        super(type, host);
+        if (type == Type.HOST_MOVED || type == Type.HOST_UPDATED) {
+            this.prevSubject = prevSubject;
+        }
     }
 
     /**
-     * Gets the previous location information in this host event.
+     * Gets the previous subject in this host event.
      *
-     * @return the previous location, or null if previous location is not
+     * @return the previous subject, or null if previous subject is not
      *         specified.
      */
-    public HostLocation prevLocation() {
-        return this.prevLocation;
+    public Host prevSubject() {
+        return this.prevSubject;
     }
 
     @Override
@@ -104,7 +107,7 @@ public class HostEvent extends AbstractEvent<HostEvent.Type, Host> {
                 .add("time", new LocalDateTime(time()))
                 .add("type", type())
                 .add("subject", subject())
-                .add("prevLocation", prevLocation())
+                .add("prevSubject", prevSubject())
                 .toString();
     }
 }

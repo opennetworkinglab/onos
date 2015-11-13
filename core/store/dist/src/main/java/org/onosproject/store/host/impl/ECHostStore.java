@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.onosproject.net.DefaultAnnotations.merge;
 import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
+import static org.onosproject.net.host.HostEvent.Type.HOST_MOVED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
 import static org.onosproject.net.host.HostEvent.Type.HOST_UPDATED;
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
@@ -88,7 +89,7 @@ public class ECHostStore
 
     private EventuallyConsistentMap<HostId, DefaultHost> hosts;
 
-    private final ConcurrentHashMap<HostId, HostLocation> locations =
+    private final ConcurrentHashMap<HostId, DefaultHost> prevHosts =
             new ConcurrentHashMap<>();
 
     private EventuallyConsistentMapListener<HostId, DefaultHost> hostLocationTracker =
@@ -114,7 +115,7 @@ public class ECHostStore
     public void deactivate() {
         hosts.removeListener(hostLocationTracker);
         hosts.destroy();
-        locations.clear();
+        prevHosts.clear();
 
         log.info("Stopped");
     }
@@ -253,16 +254,16 @@ public class ECHostStore
         public void event(EventuallyConsistentMapEvent<HostId, DefaultHost> event) {
             DefaultHost host = checkNotNull(event.value());
             if (event.type() == PUT) {
-                HostLocation prevLocation = locations.put(host.id(), host.location());
-                if (prevLocation == null) {
+                Host prevHost = prevHosts.put(host.id(), host);
+                if (prevHost == null) {
                     notifyDelegate(new HostEvent(HOST_ADDED, host));
-                } else if (!Objects.equals(prevLocation, host.location())) {
-                    notifyDelegate(new HostEvent(host, prevLocation));
-                } else {
-                    notifyDelegate(new HostEvent(HOST_UPDATED, host));
+                } else if (!Objects.equals(prevHost.location(), host.location())) {
+                    notifyDelegate(new HostEvent(HOST_MOVED, host, prevHost));
+                } else if (!Objects.equals(prevHost, host)) {
+                    notifyDelegate(new HostEvent(HOST_UPDATED, host, prevHost));
                 }
             } else if (event.type() == REMOVE) {
-                if (locations.remove(host.id()) != null) {
+                if (prevHosts.remove(host.id()) != null) {
                     notifyDelegate(new HostEvent(HOST_REMOVED, host));
                 }
             }

@@ -291,8 +291,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     // Produces a host event message to the client.
     protected ObjectNode hostMessage(HostEvent event) {
         Host host = event.subject();
+        Host prevHost = event.prevSubject();
         String hostType = host.annotations().value(AnnotationKeys.TYPE);
-        HostLocation prevLoc = event.prevLocation();
 
         ObjectNode payload = objectNode()
                 .put("id", host.id().toString())
@@ -300,8 +300,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 .put("ingress", compactLinkString(edgeLink(host, true)))
                 .put("egress", compactLinkString(edgeLink(host, false)));
         payload.set("cp", hostConnect(host.location()));
-        if (prevLoc != null) {
-            payload.set("prevCp", hostConnect(event.prevLocation()));
+        if (prevHost != null && prevHost.location() != null) {
+            payload.set("prevCp", hostConnect(prevHost.location()));
         }
         payload.set("labels", labels(ip(host.ipAddresses()),
                                      host.mac().toString()));

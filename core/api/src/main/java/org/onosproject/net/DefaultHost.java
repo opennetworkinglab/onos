@@ -98,7 +98,8 @@ public class DefaultHost extends AbstractElement implements Host {
             return Objects.equals(this.id, other.id) &&
                     Objects.equals(this.mac, other.mac) &&
                     Objects.equals(this.vlan, other.vlan) &&
-                    Objects.equals(this.location, other.location);
+                    Objects.equals(this.location, other.location) &&
+                    Objects.equals(this.ipAddresses(), other.ipAddresses());
         }
         return false;
     }
