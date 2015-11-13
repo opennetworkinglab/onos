@@ -986,6 +986,10 @@ public class GossipDeviceStore
             // accept removal request if given timestamp is newer than
             // the latest Timestamp from Primary provider
             DeviceDescriptions primDescs = getPrimaryDescriptions(descs);
+            if (primDescs == null) {
+                return null;
+            }
+
             Timestamp lastTimestamp = primDescs.getLatestTimestamp();
             if (timestamp.compareTo(lastTimestamp) <= 0) {
                 // outdated event ignore
