@@ -29,19 +29,19 @@ public interface BgpLinkLsNlri extends BGPLSNlri {
      *
      * @return local node descriptors
      */
-    NodeDescriptors getLocalNodeDescriptors();
+    NodeDescriptors localNodeDescriptors();
 
     /**
      * Returns remote node descriptors.
      *
      * @return remote node descriptors
      */
-    NodeDescriptors getRemoteNodeDescriptors();
+    NodeDescriptors remoteNodeDescriptors();
 
     /**
      * Returns link descriptors.
      *
      * @return link descriptors
      */
-    List<BGPValueType> getLinkDescriptors();
+    List<BGPValueType> linkDescriptors();
 }
