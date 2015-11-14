@@ -18,16 +18,14 @@ package org.onosproject.vtnweb.web;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
 
-import java.util.UUID;
-
 import org.onlab.packet.IpPrefix;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.vtnrsc.DefaultFlowClassifier;
 import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.FlowClassifierId;
-import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.TenantId;
+import org.onosproject.vtnrsc.VirtualPortId;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -40,7 +38,7 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
     private static final String TENANT_ID = "tenant_id";
     private static final String NAME = "name";
     private static final String DESCRIPTION = "description";
-    private static final String ETHER_TYPE = "etherType";
+    private static final String ETHER_TYPE = "ethertype";
     private static final String PROTOCOL = "protocol";
     private static final String MIN_SRC_PORT_RANGE = "source_port_range_min";
     private static final String MAX_SRC_PORT_RANGE = "source_port_range_max";
@@ -62,7 +60,7 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
 
         String flowClassifierId = nullIsIllegal(json.get(FLOW_CLASSIFIER_ID),
                 FLOW_CLASSIFIER_ID + MISSING_MEMBER_MESSAGE).asText();
-        resultBuilder.setFlowClassifierId(FlowClassifierId.of(UUID.fromString(flowClassifierId)));
+        resultBuilder.setFlowClassifierId(FlowClassifierId.of(flowClassifierId));
 
         String tenantId = nullIsIllegal(json.get(TENANT_ID), TENANT_ID + MISSING_MEMBER_MESSAGE).asText();
         resultBuilder.setTenantId(TenantId.tenantId(tenantId));
@@ -70,44 +68,46 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
         String flowClassiferName = nullIsIllegal(json.get(NAME), NAME + MISSING_MEMBER_MESSAGE).asText();
         resultBuilder.setName(flowClassiferName);
 
-        String flowClassiferDescription = nullIsIllegal(json.get(DESCRIPTION), DESCRIPTION + MISSING_MEMBER_MESSAGE)
-                .asText();
+        String flowClassiferDescription = (json.get(DESCRIPTION)).asText();
         resultBuilder.setDescription(flowClassiferDescription);
 
         String etherType = nullIsIllegal(json.get(ETHER_TYPE), ETHER_TYPE + MISSING_MEMBER_MESSAGE).asText();
         resultBuilder.setEtherType(etherType);
 
-        String protocol = nullIsIllegal(json.get(PROTOCOL), PROTOCOL + MISSING_MEMBER_MESSAGE).asText();
+        String protocol = (json.get(PROTOCOL)).asText();
         resultBuilder.setProtocol(protocol);
 
-        int minSrcPortRange = nullIsIllegal(json.get(MIN_SRC_PORT_RANGE), MIN_SRC_PORT_RANGE + MISSING_MEMBER_MESSAGE)
-                .asInt();
+        int minSrcPortRange = (json.get(MIN_SRC_PORT_RANGE)).asInt();
         resultBuilder.setMinSrcPortRange(minSrcPortRange);
 
-        int maxSrcPortRange = nullIsIllegal(json.get(MAX_SRC_PORT_RANGE), MAX_SRC_PORT_RANGE + MISSING_MEMBER_MESSAGE)
-                .asInt();
+        int maxSrcPortRange = (json.get(MAX_SRC_PORT_RANGE)).asInt();
         resultBuilder.setMaxSrcPortRange(maxSrcPortRange);
 
-        int minDstPortRange = nullIsIllegal(json.get(MIN_DST_PORT_RANGE), MIN_DST_PORT_RANGE + MISSING_MEMBER_MESSAGE)
-                .asInt();
+        int minDstPortRange = (json.get(MIN_DST_PORT_RANGE)).asInt();
         resultBuilder.setMinDstPortRange(minDstPortRange);
 
-        int maxDstPortRange = nullIsIllegal(json.get(MAX_DST_PORT_RANGE), MAX_DST_PORT_RANGE + MISSING_MEMBER_MESSAGE)
-                .asInt();
+        int maxDstPortRange = (json.get(MAX_DST_PORT_RANGE)).asInt();
         resultBuilder.setMaxDstPortRange(maxDstPortRange);
 
-        String srcIpPrefix = nullIsIllegal(json.get(SRC_IP_PREFIX), SRC_IP_PREFIX + MISSING_MEMBER_MESSAGE).asText();
-        resultBuilder.setSrcIpPrefix(IpPrefix.valueOf(srcIpPrefix));
+        String srcIpPrefix = (json.get(SRC_IP_PREFIX)).asText();
+        if (!srcIpPrefix.isEmpty()) {
+            resultBuilder.setSrcIpPrefix(IpPrefix.valueOf(srcIpPrefix));
+        }
 
-        String dstIpPrefix = nullIsIllegal(json.get(DST_IP_PREFIX), DST_IP_PREFIX + MISSING_MEMBER_MESSAGE).asText();
-        resultBuilder.setDstIpPrefix(IpPrefix.valueOf(dstIpPrefix));
+        String dstIpPrefix = (json.get(DST_IP_PREFIX)).asText();
+        if (!dstIpPrefix.isEmpty()) {
+            resultBuilder.setDstIpPrefix(IpPrefix.valueOf(dstIpPrefix));
+        }
 
-        String srcPort = nullIsIllegal(json.get(SRC_PORT), SRC_PORT + MISSING_MEMBER_MESSAGE).asText();
-        resultBuilder.setSrcPort(VirtualPortId.portId(srcPort));
+        String srcPort = json.get(SRC_PORT) != null ? (json.get(SRC_PORT)).asText() : "";
+        if (!srcPort.isEmpty()) {
+            resultBuilder.setSrcPort(VirtualPortId.portId(srcPort));
+        }
 
-        String dstPort = nullIsIllegal(json.get(DST_PORT), DST_PORT + MISSING_MEMBER_MESSAGE).asText();
-        resultBuilder.setDstPort(VirtualPortId.portId(dstPort));
-
+        String dstPort = json.get(DST_PORT) != null ? (json.get(DST_PORT)).asText() : "";
+        if (!dstPort.isEmpty()) {
+            resultBuilder.setDstPort(VirtualPortId.portId(dstPort));
+        }
         return resultBuilder.build();
     }
 
@@ -115,20 +115,20 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
     public ObjectNode encode(FlowClassifier flowClassifier, CodecContext context) {
         checkNotNull(flowClassifier, "flowClassifier cannot be null");
         ObjectNode result = context.mapper().createObjectNode()
-                .put("FLOW_CLASSIFIER_ID", flowClassifier.flowClassifierId().toString())
-                .put("TENANT_ID", flowClassifier.tenantId().toString())
-                .put("NAME", flowClassifier.name())
-                .put("DESCRIPTION", flowClassifier.description())
-                .put("ETHER_TYPE", flowClassifier.etherType())
-                .put("PROTOCOL", flowClassifier.protocol())
-                .put("MIN_SRC_PORT_RANGE", flowClassifier.minSrcPortRange())
-                .put("MAX_SRC_PORT_RANGE", flowClassifier.maxSrcPortRange())
-                .put("MIN_DST_PORT_RANGE", flowClassifier.minDstPortRange())
-                .put("MAX_DST_PORT_RANGE", flowClassifier.maxDstPortRange())
-                .put("SRC_IP_PREFIX", flowClassifier.srcIpPrefix().toString())
-                .put("DST_IP_PREFIX", flowClassifier.dstIpPrefix().toString())
-                .put("SRC_PORT", flowClassifier.srcPort().toString())
-                .put("DST_PORT", flowClassifier.dstPort().toString());
+                .put(FLOW_CLASSIFIER_ID, flowClassifier.flowClassifierId().toString())
+                .put(TENANT_ID, flowClassifier.tenantId().toString())
+                .put(NAME, flowClassifier.name())
+                .put(DESCRIPTION, flowClassifier.description())
+                .put(ETHER_TYPE, flowClassifier.etherType())
+                .put(PROTOCOL, flowClassifier.protocol())
+                .put(MIN_SRC_PORT_RANGE, flowClassifier.minSrcPortRange())
+                .put(MAX_SRC_PORT_RANGE, flowClassifier.maxSrcPortRange())
+                .put(MIN_DST_PORT_RANGE, flowClassifier.minDstPortRange())
+                .put(MAX_DST_PORT_RANGE, flowClassifier.maxDstPortRange())
+                .put(SRC_IP_PREFIX, flowClassifier.srcIpPrefix().toString())
+                .put(DST_IP_PREFIX, flowClassifier.dstIpPrefix().toString())
+                .put(SRC_PORT, flowClassifier.srcPort().toString())
+                .put(DST_PORT, flowClassifier.dstPort().toString());
         return result;
     }
 }
