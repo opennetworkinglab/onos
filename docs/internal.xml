@@ -51,14 +51,16 @@
                     <show>package</show>
                     <docfilessubdirs>true</docfilessubdirs>
                     <doctitle>ONOS Java API (1.4.0-SNAPSHOT)</doctitle>
-                    <excludePackageNames>@internal-excludes</excludePackageNames>
+                    <excludePackageNames>@internal-excludes
+                    </excludePackageNames>
                     <groups>
                         <group>
                             <title>Network Model &amp; Services</title>
                             <packages>@internal-apis</packages>
                         </group>
                         <group>
-                            <title>Incubator for Network Model &amp; Services</title>
+                            <title>Incubator for Network Model &amp; Services
+                            </title>
                             <packages>@internal-incubator-apis</packages>
                         </group>
                         <group>
@@ -70,7 +72,9 @@
                             <packages>@internal-stores</packages>
                         </group>
                         <group>
-                            <title>Incubator for Core Subsystems &amp; Distributed Stores</title>
+                            <title>Incubator for Core Subsystems &amp;
+                                Distributed Stores
+                            </title>
                             <packages>@internal-incubator</packages>
                         </group>
                         <group>
@@ -114,10 +118,18 @@
                             <packages>@internal-apps</packages>
                         </group>
                         <group>
-                            <title>Test Instrumentation &amp; Applications</title>
+                            <title>Test Instrumentation &amp; Applications
+                            </title>
                             <packages>@internal-test-apps</packages>
                         </group>
                     </groups>
+                    <tags>
+                        <tag>
+                            <name>rsModel</name>
+                            <placement>m</placement>
+                            <head>Json model for REST api:</head>
+                        </tag>
+                    </tags>
                 </configuration>
             </plugin>
         </plugins>

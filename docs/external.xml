@@ -49,7 +49,8 @@
                 <version>2.10.1</version>
                 <configuration>
                     <show>package</show>
-                    <excludePackageNames>@external-excludes</excludePackageNames>
+                    <excludePackageNames>@external-excludes
+                    </excludePackageNames>
                     <docfilessubdirs>true</docfilessubdirs>
                     <doctitle>ONOS Java API (1.4.0-SNAPSHOT)</doctitle>
                     <groups>
@@ -58,7 +59,8 @@
                             <packages>@external-apis</packages>
                         </group>
                         <group>
-                            <title>Incubator for Network Model &amp; Services</title>
+                            <title>Incubator for Network Model &amp; Services
+                            </title>
                             <packages>@external-incubator-apis</packages>
                         </group>
                         <group>
@@ -66,6 +68,13 @@
                             <packages>@utils</packages>
                         </group>
                     </groups>
+                    <tags>
+                        <tag>
+                            <name>rsModel</name>
+                            <placement>m</placement>
+                            <head>Json model for REST api:</head>
+                        </tag>
+                    </tags>
                 </configuration>
             </plugin>
         </plugins>

@@ -51,6 +51,7 @@ public class DhcpWebResource extends AbstractWebResource {
      * Shows lease, renewal and rebinding times in seconds.
      *
      * @return 200 OK
+     * @rsModel DhcpConfigGet
      */
     @GET
     @Path("config")
@@ -77,12 +78,11 @@ public class DhcpWebResource extends AbstractWebResource {
         final Map<HostId, IpAssignment> intents = service.listMapping();
         ArrayNode arrayNode = root.putArray("mappings");
         intents.entrySet().forEach(i -> arrayNode.add(mapper().createObjectNode()
-                .put("host", i.getKey().toString())
-                .put("ip", i.getValue().ipAddress().toString())));
+                                                              .put("host", i.getKey().toString())
+                                                              .put("ip", i.getValue().ipAddress().toString())));
 
         return ok(root.toString()).build();
     }
-
 
 
     /**
@@ -106,6 +106,7 @@ public class DhcpWebResource extends AbstractWebResource {
      * Post a new static MAC/IP binding.
      * Registers a static binding to the DHCP server, and displays the current set of bindings.
      *
+     * @rsModel DhcpConfigPut
      * @param stream JSON stream
      * @return 200 OK
      */
@@ -114,7 +115,6 @@ public class DhcpWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setMapping(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
-
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             JsonNode macID = jsonTree.get("mac");
@@ -122,16 +122,18 @@ public class DhcpWebResource extends AbstractWebResource {
             if (macID != null && ip != null) {
 
                 if (!service.setStaticMapping(MacAddress.valueOf(macID.asText()),
-                        Ip4Address.valueOf(ip.asText()), false, Lists.newArrayList())) {
-                    throw new IllegalArgumentException("Static Mapping Failed. The IP maybe unavailable.");
+                                              Ip4Address.valueOf(ip.asText()),
+                                              false, Lists.newArrayList())) {
+                    throw new IllegalArgumentException("Static Mapping Failed. " +
+                                                               "The IP maybe unavailable.");
                 }
             }
 
             final Map<HostId, IpAssignment> intents = service.listMapping();
             ArrayNode arrayNode = root.putArray("mappings");
             intents.entrySet().forEach(i -> arrayNode.add(mapper().createObjectNode()
-                    .put("host", i.getKey().toString())
-                    .put("ip", i.getValue().ipAddress().toString())));
+                                                                  .put("host", i.getKey().toString())
+                                                                  .put("ip", i.getValue().ipAddress().toString())));
         } catch (IOException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -157,8 +159,8 @@ public class DhcpWebResource extends AbstractWebResource {
         final Map<HostId, IpAssignment> intents = service.listMapping();
         ArrayNode arrayNode = root.putArray("mappings");
         intents.entrySet().forEach(i -> arrayNode.add(mapper().createObjectNode()
-                .put("host", i.getKey().toString())
-                .put("ip", i.getValue().ipAddress().toString())));
+                                                              .put("host", i.getKey().toString())
+                                                              .put("ip", i.getValue().ipAddress().toString())));
 
         return ok(root.toString()).build();
     }

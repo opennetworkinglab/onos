@@ -39,6 +39,7 @@
     <description>Open Network Operating System root project</description>
 
     <modules>
+        <module>tools/package/maven-plugin</module>
         <module>utils</module>
         <module>core</module>
         <module>web</module>
@@ -545,7 +546,20 @@
                         <rerunFailingTestsCount>1</rerunFailingTestsCount>
                     </configuration>
                 </plugin>
-
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.10.3</version>
+                    <configuration>
+                        <tags>
+                            <tag>
+                                <name>rsModel</name>
+                                <placement>m</placement>
+                                <head>Json model for REST api:</head>
+                            </tag>
+                        </tags>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
@@ -631,8 +645,8 @@
                 <plugin>
                     <groupId>org.onosproject</groupId>
                     <artifactId>onos-maven-plugin</artifactId>
-                    <version>1.5</version>
-                      <executions>
+                    <version>1.6-SNAPSHOT</version>
+                    <executions>
                         <execution>
                             <id>cfg</id>
                             <phase>generate-resources</phase>
