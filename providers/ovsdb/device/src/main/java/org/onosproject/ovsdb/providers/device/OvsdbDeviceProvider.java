@@ -89,8 +89,14 @@ public class OvsdbDeviceProvider extends AbstractProvider
 
     @Override
     public void triggerProbe(DeviceId deviceId) {
-        // TODO: This will be implemented later.
         log.info("Triggering probe on device {}", deviceId);
+        if (!isReachable(deviceId)) {
+            log.error("Failed to probe device {}", deviceId);
+            providerService.deviceDisconnected(deviceId);
+            return;
+        } else {
+            log.trace("Confirmed device {} connection", deviceId);
+        }
     }
 
     @Override
