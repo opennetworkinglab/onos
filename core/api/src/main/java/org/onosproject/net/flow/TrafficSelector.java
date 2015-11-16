@@ -386,6 +386,14 @@ public interface TrafficSelector {
         Builder matchIPv6ExthdrFlags(short exthdrFlags);
 
         /**
+         * Matches a arp_eth_dst address.
+         *
+         * @param addr a arp_eth_dst address
+         * @return a selection builder
+         */
+        Builder matchArpTha(MacAddress addr);
+
+        /**
          * Builds an immutable traffic selector.
          *
          * @return traffic selector
