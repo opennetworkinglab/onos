@@ -107,7 +107,7 @@ public class PacketManager
     @Activate
     public void activate() {
         eventHandlingExecutor = Executors.newSingleThreadExecutor(
-                        groupedThreads("onos/net/packet", "event-handler"));
+                groupedThreads("onos/net/packet", "event-handler"));
         appId = coreService.getAppId(CoreService.CORE_APP_NAME);
         store.setDelegate(delegate);
         deviceService.addListener(deviceListener);
@@ -281,7 +281,11 @@ public class PacketManager
         public void processPacket(PacketContext context) {
             // TODO filter packets sent to processors based on registrations
             for (PacketProcessor processor : processors.values()) {
-                processor.process(context);
+                try {
+                    processor.process(context);
+                } catch (Exception e) {
+                    log.warn("Packet processor {} threw an exception", processor, e);
+                }
             }
         }
 
