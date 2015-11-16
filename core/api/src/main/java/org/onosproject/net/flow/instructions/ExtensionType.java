@@ -32,7 +32,8 @@ public final class ExtensionType {
      */
     public enum ExtensionTypes {
         // TODO fix type numbers to include experimenter id
-        NICIRA_SET_TUNNEL_DST(31);
+        NICIRA_SET_TUNNEL_DST(31),
+        NICIRA_RESUBMIT(32);
 
         private ExtensionType type;
 

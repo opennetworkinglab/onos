@@ -41,7 +41,9 @@ public class NiciraExtensionInterpreter extends AbstractHandlerBehaviour
         if (extensionType.equals(ExtensionType.ExtensionTypes.NICIRA_SET_TUNNEL_DST)) {
             return true;
         }
-
+        if (extensionType.equals(ExtensionType.ExtensionTypes.NICIRA_RESUBMIT)) {
+            return true;
+        }
         return false;
     }
 
@@ -52,6 +54,9 @@ public class NiciraExtensionInterpreter extends AbstractHandlerBehaviour
             NiciraSetTunnelDst tunnelDst = (NiciraSetTunnelDst) extensionInstruction;
             return factory.actions().setField(factory.oxms().tunnelIpv4Dst(
                     IPv4Address.of(tunnelDst.tunnelDst().toInt())));
+        }
+        if (type.equals(ExtensionType.ExtensionTypes.NICIRA_RESUBMIT.type())) {
+          // TODO this will be implemented later
         }
         return null;
     }
@@ -77,6 +82,9 @@ public class NiciraExtensionInterpreter extends AbstractHandlerBehaviour
     public ExtensionInstruction getExtensionInstruction(ExtensionType type) {
         if (type.equals(ExtensionType.ExtensionTypes.NICIRA_SET_TUNNEL_DST.type())) {
             return new NiciraSetTunnelDst();
+        }
+        if (type.equals(ExtensionType.ExtensionTypes.NICIRA_RESUBMIT.type())) {
+            return new NiciraResubmit();
         }
         throw new UnsupportedOperationException(
                 "Driver does not support extension type " + type.toString());
