@@ -37,6 +37,7 @@
             fs = _fs_;
             tbs = _tbs_;
             ns = _ns_;
+            $scope.deviceTip = 'Show device table';
             $scope.portTip = 'Show port view for this device';
             $scope.groupTip = 'Show group view for this device';
 

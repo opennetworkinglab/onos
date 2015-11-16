@@ -9,6 +9,9 @@
                  ng-click="toggleRefresh()"></div>
             <div class="separator"></div>
 
+            <div ng-class="{'current-view': !!selId}"
+                 icon icon-id="query" icon-size="36"></div>
+
             <div ng-class="{active: !!selId}"
                  icon icon-id="flowTable" icon-size="36"
                  tooltip tt-msg="flowTip"

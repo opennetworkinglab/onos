@@ -23,7 +23,20 @@
 }
 
 #ov-device div.ctrl-btns {
-    width: 240px;
+}
+
+.light #ov-device .current-view use {
+    fill: white;
+}
+.dark #ov-device .current-view use {
+    fill: #304860;
+}
+
+.light #ov-device .current-view rect {
+    fill: deepskyblue;
+}
+.dark #ov-device .current-view rect {
+    fill: #eee;
 }
 
 /* More in generic panel.css */
