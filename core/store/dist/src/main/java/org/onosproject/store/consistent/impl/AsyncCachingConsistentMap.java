@@ -26,8 +26,12 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
 /**
- * Extension of DefaultAsyncConsistentMap that provides a weaker read consistency
+ * Extension of {@link DefaultAsyncConsistentMap} that provides a weaker read consistency
  * guarantee in return for better read performance.
+ * <p>
+ * For read/write operations that are local to a node this map implementation provides
+ * guarantees similar to a ConsistentMap. However for read/write operations executed
+ * across multiple nodes this implementation only provides eventual consistency.
  *
  * @param <K> key type
  * @param <V> value type
@@ -67,5 +71,11 @@ public class AsyncCachingConsistentMap<K, V> extends DefaultAsyncConsistentMap<K
             }
         }
         return cache.getUnchecked(key);
+    }
+
+    @Override
+    protected void beforeUpdate(K key) {
+        super.beforeUpdate(key);
+        cache.invalidate(key);
     }
 }

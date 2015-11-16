@@ -405,6 +405,14 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
                 .thenApply(v -> v.updated());
     }
 
+    /**
+     * Pre-update hook for performing required checks/actions before going forward with an update operation.
+     * @param key map key.
+     */
+    protected void beforeUpdate(K key) {
+        checkIfUnmodifiable();
+    }
+
     private Map.Entry<K, Versioned<V>> mapRawEntry(Map.Entry<String, Versioned<byte[]>> e) {
         return Maps.immutableEntry(dK(e.getKey()), e.getValue().<V>map(serializer::decode));
     }
@@ -413,7 +421,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
                                                                Match<V> oldValueMatch,
                                                                Match<Long> oldVersionMatch,
                                                                V value) {
-        checkIfUnmodifiable();
+        beforeUpdate(key);
         return database.mapUpdate(name,
                 keyCache.getUnchecked(key),
                 oldValueMatch.map(serializer::encode),
