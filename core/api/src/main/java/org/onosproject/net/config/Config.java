@@ -333,6 +333,26 @@ public abstract class Config<S> {
     }
 
     /**
+     * Gets the specified array property as a list of items.
+     *
+     * @param name     property name
+     * @param function mapper from string to item
+     * @param defaultValue default value if property not set
+     * @param <T>      type of item
+     * @return list of items
+     */
+    protected <T> List<T> getList(String name, Function<String, T> function, List<T> defaultValue) {
+        List<T> list = Lists.newArrayList();
+        JsonNode jsonNode = object.path(name);
+        if (jsonNode.isMissingNode()) {
+            return defaultValue;
+        }
+        ArrayNode arrayNode = (ArrayNode) jsonNode;
+        arrayNode.forEach(i -> list.add(function.apply(i.asText())));
+        return list;
+    }
+
+    /**
      * Sets the specified property as an array of items in a given collection or
      * clears it if null is given.
      *

@@ -38,6 +38,9 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.Port;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -58,12 +61,12 @@ import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.Dictionary;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -75,6 +78,7 @@ import static org.onlab.packet.Ethernet.TYPE_LLDP;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.Link.Type.DIRECT;
+import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -87,11 +91,10 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
     private static final String FORMAT =
             "Settings: enabled={}, useBDDP={}, probeRate={}, " +
-                    "staleLinkAge={}, lldpSuppression={}";
+                    "staleLinkAge={}";
 
     // When a Device/Port has this annotation, do not send out LLDP/BDDP
     public static final String NO_LLDP = "no-lldp";
-
 
     private final Logger log = getLogger(getClass());
 
@@ -152,13 +155,6 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
             label = "Number of millis beyond which links will be considered stale")
     private int staleLinkAge = DEFAULT_STALE_LINK_AGE;
 
-    // FIXME: convert to use network config subsystem instead
-    private static final String PROP_LLDP_SUPPRESSION = "lldpSuppression";
-    private static final String DEFAULT_LLDP_SUPPRESSION_CONFIG = "../config/lldp_suppression.json";
-    @Property(name = PROP_LLDP_SUPPRESSION, value = DEFAULT_LLDP_SUPPRESSION_CONFIG,
-            label = "Path to LLDP suppression configuration file")
-    private String lldpSuppression = DEFAULT_LLDP_SUPPRESSION_CONFIG;
-
     private final DiscoveryContext context = new InternalDiscoveryContext();
     private final InternalRoleListener roleListener = new InternalRoleListener();
     private final InternalDeviceListener deviceListener = new InternalDeviceListener();
@@ -171,8 +167,30 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
     // destination connection point is mastered by this controller instance.
     private final Map<LinkKey, Long> linkTimes = Maps.newConcurrentMap();
 
-    private SuppressionRules rules;
     private ApplicationId appId;
+
+    static final SuppressionRules DEFAULT_RULES
+        = new SuppressionRules(ImmutableSet.of(),
+                               EnumSet.of(Device.Type.ROADM),
+                               ImmutableMap.of(NO_LLDP, SuppressionRules.ANY_VALUE));
+
+    private SuppressionRules rules = LldpLinkProvider.DEFAULT_RULES;
+
+    public static final String CONFIG_KEY = "suppression";
+
+    private final Set<ConfigFactory> factories = ImmutableSet.of(
+            new ConfigFactory<ApplicationId, SuppressionConfig>(APP_SUBJECT_FACTORY,
+                    SuppressionConfig.class,
+                    CONFIG_KEY) {
+                @Override
+                public SuppressionConfig createConfig() {
+                    return new SuppressionConfig();
+                }
+            }
+    );
+
+    private final InternalConfigListener cfgListener = new InternalConfigListener();
+
 
     /**
      * Creates an OpenFlow link provider.
@@ -185,12 +203,30 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication(PROVIDER_NAME);
+
+        cfgRegistry.addListener(cfgListener);
+        factories.forEach(cfgRegistry::registerConfigFactory);
+
+        SuppressionConfig cfg = cfgRegistry.getConfig(appId, SuppressionConfig.class);
+        if (cfg == null) {
+            // If no configuration is found, register default.
+            cfg = cfgRegistry.addConfig(appId, SuppressionConfig.class);
+            cfg.deviceIds(DEFAULT_RULES.getSuppressedDevice())
+               .deviceTypes(DEFAULT_RULES.getSuppressedDeviceType())
+               .annotation(DEFAULT_RULES.getSuppressedAnnotation())
+               .apply();
+        }
+        cfgListener.reconfigureSuppressionRules(cfg);
+
         modified(context);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        cfgRegistry.removeListener(cfgListener);
+        factories.forEach(cfgRegistry::unregisterConfigFactory);
+
         cfgService.unregisterProperties(getClass(), false);
         disable();
         log.info("Stopped");
@@ -202,7 +238,6 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
         boolean newEnabled, newUseBddp;
         int newProbeRate, newStaleLinkAge;
-        String newLldpSuppression;
         try {
             String s = get(properties, PROP_ENABLED);
             newEnabled = isNullOrEmpty(s) || Boolean.parseBoolean(s.trim());
@@ -216,16 +251,12 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
             s = get(properties, PROP_STALE_LINK_AGE);
             newStaleLinkAge = isNullOrEmpty(s) ? staleLinkAge : Integer.parseInt(s.trim());
 
-            s = get(properties, PROP_LLDP_SUPPRESSION);
-            newLldpSuppression = isNullOrEmpty(s) ? DEFAULT_LLDP_SUPPRESSION_CONFIG : s;
-
         } catch (NumberFormatException e) {
             log.warn("Component configuration had invalid values", e);
             newEnabled = enabled;
             newUseBddp = useBddp;
             newProbeRate = probeRate;
             newStaleLinkAge = staleLinkAge;
-            newLldpSuppression = lldpSuppression;
         }
 
         boolean wasEnabled = enabled;
@@ -234,23 +265,19 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         useBddp = newUseBddp;
         probeRate = newProbeRate;
         staleLinkAge = newStaleLinkAge;
-        lldpSuppression = newLldpSuppression;
 
         if (!wasEnabled && enabled) {
             enable();
         } else if (wasEnabled && !enabled) {
             disable();
         } else {
-            // reflect changes in suppression rules to discovery helpers
-            // FIXME: After migrating to Network Configuration Subsystem,
-            //        it should be possible to update only changed subset
             if (enabled) {
                 // update all discovery helper state
                 loadDevices();
             }
         }
 
-        log.info(FORMAT, enabled, useBddp, probeRate, staleLinkAge, lldpSuppression);
+        log.info(FORMAT, enabled, useBddp, probeRate, staleLinkAge);
     }
 
     /**
@@ -262,7 +289,6 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         deviceService.addListener(deviceListener);
         packetService.addProcessor(packetProcessor, PacketProcessor.advisor(0));
 
-        loadSuppressionRules();
         loadDevices();
 
         executor = newSingleThreadScheduledExecutor(groupedThreads("onos/link", "discovery-%d"));
@@ -285,6 +311,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         deviceService.removeListener(deviceListener);
         packetService.removeProcessor(packetProcessor);
 
+
         if (executor != null) {
             executor.shutdownNow();
         }
@@ -298,6 +325,9 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
      * Loads available devices and registers their ports to be probed.
      */
     private void loadDevices() {
+        if (!enabled) {
+            return;
+        }
         deviceService.getAvailableDevices()
                 .forEach(d -> updateDevice(d)
                                .ifPresent(ld -> updatePorts(ld, d.id())));
@@ -333,7 +363,6 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
     private void removeDevice(final DeviceId deviceId) {
         discoverers.computeIfPresent(deviceId, (did, ld) -> {
             ld.stop();
-            providerService.linksVanished(deviceId);
             return null;
         });
 
@@ -357,6 +386,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
             // silently ignore logical ports
             return;
         }
+
         if (rules.isSuppressed(port)) {
             log.trace("LinkDiscovery from {} disabled by configuration", port);
             removePort(port);
@@ -383,32 +413,9 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
             if (ld != null) {
                 ld.removePort(port.number());
             }
-
-            ConnectPoint point = new ConnectPoint(d.id(), port.number());
-            providerService.linksVanished(point);
         } else {
             log.warn("Attempted to remove non-Device port", port);
         }
-    }
-
-    /**
-     * Loads LLDP suppression rules.
-     */
-    private void loadSuppressionRules() {
-        // FIXME: convert to use network configuration
-        SuppressionRulesStore store = new SuppressionRulesStore(lldpSuppression);
-        try {
-            log.info("Reading suppression rules from {}", lldpSuppression);
-            rules = store.read();
-        } catch (IOException e) {
-            log.info("Failed to load {}, using built-in rules", lldpSuppression);
-            // default rule to suppress ROADM to maintain compatibility
-            rules = new SuppressionRules(ImmutableSet.of(),
-                                         EnumSet.of(Device.Type.ROADM),
-                                         ImmutableMap.of(NO_LLDP, SuppressionRules.ANY_VALUE));
-        }
-
-        // should refresh discoverers when we need dynamic reconfiguration
     }
 
     /**
@@ -438,6 +445,17 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
     }
 
+    protected SuppressionRules rules() {
+        return rules;
+    }
+
+    protected void updateRules(SuppressionRules newRules) {
+        if (!rules.equals(newRules)) {
+            rules = newRules;
+            loadDevices();
+        }
+    }
+
     /**
      * Processes device mastership role changes.
      */
@@ -459,7 +477,6 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
                 updateDevice(device).ifPresent(ld -> updatePorts(ld, device.id()));
             }
         }
-
     }
 
     /**
@@ -488,16 +505,21 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
                     } else {
                         log.debug("Port down {}", port);
                         removePort(port);
+                        providerService.linksVanished(new ConnectPoint(port.element().id(),
+                                                                       port.number()));
                     }
                     break;
                 case PORT_REMOVED:
                     log.debug("Port removed {}", port);
                     removePort(port);
+                    providerService.linksVanished(new ConnectPoint(port.element().id(),
+                                                                   port.number()));
                     break;
                 case DEVICE_REMOVED:
                 case DEVICE_SUSPENDED:
                     log.debug("Device removed {}", deviceId);
                     removeDevice(deviceId);
+                    providerService.linksVanished(deviceId);
                     break;
                 case DEVICE_AVAILABILITY_CHANGED:
                     if (deviceService.isAvailable(deviceId)) {
@@ -506,6 +528,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
                     } else {
                         log.debug("Device down {}", deviceId);
                         removeDevice(deviceId);
+                        providerService.linksVanished(deviceId);
                     }
                     break;
                 case PORT_STATS_UPDATED:
@@ -636,4 +659,30 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         }
     }
 
+    private class InternalConfigListener implements NetworkConfigListener {
+
+        private synchronized void reconfigureSuppressionRules(SuppressionConfig cfg) {
+            if (cfg == null) {
+                log.error("Suppression Config is null.");
+                return;
+            }
+
+            SuppressionRules newRules = new SuppressionRules(cfg.deviceIds(),
+                                                             cfg.deviceTypes(),
+                                                             cfg.annotation());
+
+            updateRules(newRules);
+        }
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            if (event.configClass().equals(SuppressionConfig.class) &&
+                (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                 event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)) {
+                SuppressionConfig cfg = cfgRegistry.getConfig(appId, SuppressionConfig.class);
+                reconfigureSuppressionRules(cfg);
+                log.trace("Network config reconfigured");
+            }
+        }
+    }
 }

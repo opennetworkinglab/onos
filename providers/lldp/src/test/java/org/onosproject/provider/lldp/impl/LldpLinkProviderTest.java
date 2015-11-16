@@ -15,8 +15,11 @@
  */
 package org.onosproject.provider.lldp.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.After;
@@ -43,6 +46,11 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.ConfigApplyDelegate;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceServiceAdapter;
@@ -62,15 +70,25 @@ import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
 
 import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.onosproject.provider.lldp.impl.LldpLinkProvider.DEFAULT_RULES;
+import static org.junit.Assert.assertFalse;
+
 
 public class LldpLinkProviderTest {
 
@@ -89,18 +107,23 @@ public class LldpLinkProviderTest {
     private final TestPacketService packetService = new TestPacketService();
     private final TestDeviceService deviceService = new TestDeviceService();
     private final TestMasterShipService masterService = new TestMasterShipService();
+    private final TestNetworkConfigRegistry configRegistry = new TestNetworkConfigRegistry();
 
     private CoreService coreService;
     private TestLinkProviderService providerService;
 
     private PacketProcessor testProcessor;
     private DeviceListener deviceListener;
+    private NetworkConfigListener configListener;
 
     private ApplicationId appId =
             new DefaultApplicationId(100, "org.onosproject.provider.lldp");
 
+    private TestSuppressionConfig cfg;
+
     @Before
     public void setUp() {
+        cfg = new TestSuppressionConfig();
         coreService = createMock(CoreService.class);
         expect(coreService.registerApplication(appId.name()))
             .andReturn(appId).anyTimes();
@@ -108,6 +131,7 @@ public class LldpLinkProviderTest {
 
         provider.cfgService = new ComponentConfigAdapter();
         provider.coreService = coreService;
+        provider.cfgRegistry = configRegistry;
 
         provider.deviceService = deviceService;
         provider.linkService = linkService;
@@ -151,6 +175,7 @@ public class LldpLinkProviderTest {
      */
     @Test
     public void switchSuppressed() {
+
         // add device to stub DeviceService
         deviceService.putDevice(device(DID3));
         deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID3));
@@ -163,7 +188,11 @@ public class LldpLinkProviderTest {
                                               .build()));
         deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_UPDATED, DID3));
 
-        assertTrue("Links on suppressed Device was expected to vanish.", vanishedDpid(DID3));
+        // discovery on device is expected to be gone or stopped
+        LinkDiscovery linkDiscovery = provider.discoverers.get(DID3);
+        if (linkDiscovery != null) {
+            assertTrue("Discovery expected to be stopped", linkDiscovery.isStopped());
+        }
     }
 
     @Test
@@ -201,7 +230,7 @@ public class LldpLinkProviderTest {
      * Checks that discovery on reconfigured switch are properly restarted.
      */
     @Test
-    public void portSuppressedByDeviceConfig() {
+    public void portSuppressedByDeviceAnnotationConfig() {
 
         /// When Device is configured with suppression:ON, Port also is same
 
@@ -237,10 +266,91 @@ public class LldpLinkProviderTest {
     }
 
     /**
+     * Checks that discovery on reconfigured switch are properly restarted.
+     */
+    @Test
+    public void portSuppressedByDeviceIdConfig() {
+
+        /// When Device is configured without suppression:OFF,
+        /// Port should be included for discovery
+
+        // add device in stub DeviceService without suppression configured
+        deviceService.putDevice(device(DID3));
+        deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID3));
+
+        // non-suppressed port added to suppressed device
+        final long portno3 = 3L;
+        deviceService.putPorts(DID3, port(DID3, portno3, true));
+        deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID3, port(DID3, portno3, true)));
+
+        // discovery should succeed
+        assertFalse("Discoverer is expected to start", provider.discoverers.get(DID3).isStopped());
+        assertTrue("Discoverer should contain the port there", provider.discoverers.get(DID3).containsPort(portno3));
+
+        // add suppression rule for "deviceId: "of:0000000000000003""
+        provider.updateRules(new SuppressionRules(ImmutableSet.of(DID3),
+                                                  ImmutableSet.of(),
+                                                  ImmutableMap.of()));
+
+        /// When Device is reconfigured with suppression:ON, Port also is same
+
+        // update device in stub DeviceService with suppression configured
+        deviceService.putDevice(device(DID3));
+        // update the Port in stub DeviceService. (Port has reference to Device)
+        deviceService.putPorts(DID3, port(DID3, portno3, true));
+        deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_UPDATED, DID3));
+
+        // discovery on device is expected to be stopped
+        LinkDiscovery linkDiscovery = provider.discoverers.get(DID3);
+        if (linkDiscovery != null) {
+            assertTrue("Discovery expected to be stopped", linkDiscovery.isStopped());
+        }
+    }
+
+    /**
+     * Checks that discovery on reconfigured switch are properly restarted.
+     */
+    @Test
+    public void portSuppressedByDeviceTypeConfig() {
+
+        /// When Device is configured without suppression:OFF,
+        /// Port should be included for discovery
+
+        // add device in stub DeviceService without suppression configured
+        deviceService.putDevice(device(DID1, Device.Type.SWITCH));
+        deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID1));
+
+        // non-suppressed port added to suppressed device
+        final long portno3 = 3L;
+        deviceService.putPorts(DID1, port(DID1, portno3, true));
+        deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID1, port(DID1, portno3, true)));
+
+        // add device in stub DeviceService with suppression configured
+        deviceService.putDevice(device(DID2, Device.Type.ROADM));
+        deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID2));
+
+        // non-suppressed port added to suppressed device
+        final long portno4 = 4L;
+        deviceService.putPorts(DID2, port(DID2, portno4, true));
+        deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID2, port(DID2, portno4, true)));
+
+        // discovery should succeed for this device
+        assertFalse("Discoverer is expected to start", provider.discoverers.get(DID1).isStopped());
+        assertTrue("Discoverer should contain the port there", provider.discoverers.get(DID1).containsPort(portno3));
+
+        // discovery on device is expected to be stopped for this device
+        LinkDiscovery linkDiscovery = provider.discoverers.get(DID2);
+        if (linkDiscovery != null) {
+            assertTrue("Discovery expected to be stopped", linkDiscovery.isStopped());
+        }
+    }
+
+    /**
      * Checks that discovery on reconfigured port are properly restarted.
      */
     @Test
     public void portSuppressedByPortConfig() {
+
         // add device in stub DeviceService without suppression configured
         deviceService.putDevice(device(DID3));
         deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID3));
@@ -314,6 +424,11 @@ public class LldpLinkProviderTest {
                              "TESTMF", "TESTHW", "TESTSW", "TESTSN", new ChassisId());
     }
 
+    private DefaultDevice device(DeviceId did, Device.Type type) {
+        return new DefaultDevice(ProviderId.NONE, did, type,
+                "TESTMF", "TESTHW", "TESTSW", "TESTSN", new ChassisId());
+    }
+
     private DefaultDevice device(DeviceId did, Annotations annotations) {
         return new DefaultDevice(ProviderId.NONE, did, Device.Type.SWITCH,
                              "TESTMF", "TESTHW", "TESTSW", "TESTSN", new ChassisId(), annotations);
@@ -364,6 +479,127 @@ public class LldpLinkProviderTest {
             }
         }
         return false;
+    }
+
+
+    @Test
+    public void addDeviceIdRule() {
+        DeviceId deviceId1 = DeviceId.deviceId("of:0000000000000001");
+        DeviceId deviceId2 = DeviceId.deviceId("of:0000000000000002");
+        Set<DeviceId> deviceIds = new HashSet<>();
+
+        deviceIds.add(deviceId1);
+        cfg.deviceIds(deviceIds);
+
+        configEvent(NetworkConfigEvent.Type.CONFIG_ADDED);
+
+        assertTrue(provider.rules().getSuppressedDevice().contains(deviceId1));
+        assertFalse(provider.rules().getSuppressedDevice().contains(deviceId2));
+    }
+
+    @Test
+    public void updateDeviceIdRule() {
+        DeviceId deviceId1 = DeviceId.deviceId("of:0000000000000001");
+        DeviceId deviceId2 = DeviceId.deviceId("of:0000000000000002");
+        Set<DeviceId> deviceIds = new HashSet<>();
+
+        deviceIds.add(deviceId1);
+        cfg.deviceIds(deviceIds);
+
+        configEvent(NetworkConfigEvent.Type.CONFIG_ADDED);
+
+        deviceIds.add(deviceId2);
+        cfg.deviceIds(deviceIds);
+
+        configEvent(NetworkConfigEvent.Type.CONFIG_UPDATED);
+
+        assertTrue(provider.rules().getSuppressedDevice().contains(deviceId1));
+        assertTrue(provider.rules().getSuppressedDevice().contains(deviceId2));
+    }
+
+    @Test
+    public void addDeviceTypeRule() {
+        Device.Type deviceType1 = Device.Type.ROADM;
+        Device.Type deviceType2 = Device.Type.SWITCH;
+
+        Set<Device.Type> deviceTypes = new HashSet<>();
+        deviceTypes.add(deviceType1);
+
+        cfg.deviceTypes(deviceTypes);
+
+        configEvent(NetworkConfigEvent.Type.CONFIG_ADDED);
+
+        assertTrue(provider.rules().getSuppressedDeviceType().contains(deviceType1));
+        assertFalse(provider.rules().getSuppressedDeviceType().contains(deviceType2));
+    }
+
+    @Test
+    public void updateDeviceTypeRule() {
+        Device.Type deviceType1 = Device.Type.ROADM;
+        Device.Type deviceType2 = Device.Type.SWITCH;
+        Set<Device.Type> deviceTypes = new HashSet<>();
+
+        deviceTypes.add(deviceType1);
+        cfg.deviceTypes(deviceTypes);
+
+        configEvent(NetworkConfigEvent.Type.CONFIG_ADDED);
+
+        deviceTypes.add(deviceType2);
+        cfg.deviceTypes(deviceTypes);
+
+        configEvent(NetworkConfigEvent.Type.CONFIG_UPDATED);
+
+        assertTrue(provider.rules().getSuppressedDeviceType().contains(deviceType1));
+        assertTrue(provider.rules().getSuppressedDeviceType().contains(deviceType2));
+    }
+
+    @Test
+    public void addAnnotationRule() {
+        final String key1 = "key1", key2 = "key2";
+        final String value1 = "value1";
+
+        Map<String, String> annotation = new HashMap<>();
+        annotation.put(key1, value1);
+
+        cfg.annotation(annotation);
+
+        configEvent(NetworkConfigEvent.Type.CONFIG_ADDED);
+
+        assertTrue(provider.rules().getSuppressedAnnotation().containsKey(key1));
+        assertEquals(value1, provider.rules().getSuppressedAnnotation().get(key1));
+        assertFalse(provider.rules().getSuppressedAnnotation().containsKey(key2));
+    }
+
+    @Test
+    public void updateAnnotationRule() {
+        final String key1 = "key1", key2 = "key2";
+        final String value1 = "value1", value2 = "value2";
+        Map<String, String> annotation = new HashMap<>();
+
+        annotation.put(key1, value1);
+        cfg.annotation(annotation);
+
+        configEvent(NetworkConfigEvent.Type.CONFIG_ADDED);
+
+        assertTrue(provider.rules().getSuppressedAnnotation().containsKey(key1));
+        assertEquals(value1, provider.rules().getSuppressedAnnotation().get(key1));
+        assertFalse(provider.rules().getSuppressedAnnotation().containsKey(key2));
+
+        annotation.put(key2, value2);
+        cfg.annotation(annotation);
+
+        configEvent(NetworkConfigEvent.Type.CONFIG_UPDATED);
+
+        assertTrue(provider.rules().getSuppressedAnnotation().containsKey(key1));
+        assertEquals(value1, provider.rules().getSuppressedAnnotation().get(key1));
+        assertTrue(provider.rules().getSuppressedAnnotation().containsKey(key2));
+        assertEquals(value2, provider.rules().getSuppressedAnnotation().get(key2));
+    }
+
+    private void configEvent(NetworkConfigEvent.Type evType) {
+        configListener.event(new NetworkConfigEvent(evType,
+                appId,
+                SuppressionConfig.class));
     }
 
 
@@ -626,5 +862,59 @@ public class LldpLinkProviderTest {
 
 
     private class TestLinkService extends LinkServiceAdapter {
+    }
+
+    private final class TestNetworkConfigRegistry
+        extends NetworkConfigRegistryAdapter {
+        @Override
+        public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
+            ConfigApplyDelegate delegate = config -> { };
+            ObjectMapper mapper = new ObjectMapper();
+            return (C) cfg;
+        }
+
+        @Override
+        public void addListener(NetworkConfigListener listener) {
+            configListener = listener;
+        }
+    }
+
+    private final class TestSuppressionConfig extends SuppressionConfig {
+        private Set<DeviceId> deviceIds = new HashSet<>(DEFAULT_RULES.getSuppressedDevice());
+        private Set<Device.Type> deviceTypes = new HashSet<>(DEFAULT_RULES.getSuppressedDeviceType());
+        private Map<String, String> annotation = new HashMap<>(DEFAULT_RULES.getSuppressedAnnotation());
+
+        @Override
+        public Set<DeviceId> deviceIds() {
+            return ImmutableSet.copyOf(deviceIds);
+        }
+
+        @Override
+        public SuppressionConfig deviceIds(Set<DeviceId> deviceIds) {
+            this.deviceIds = ImmutableSet.copyOf(deviceIds);
+            return this;
+        }
+
+        @Override
+        public Set<Device.Type> deviceTypes() {
+            return ImmutableSet.copyOf(deviceTypes);
+        }
+
+        @Override
+        public SuppressionConfig deviceTypes(Set<Device.Type> deviceTypes) {
+            this.deviceTypes = ImmutableSet.copyOf(deviceTypes);
+            return this;
+        }
+
+        @Override
+        public Map<String, String> annotation() {
+            return ImmutableMap.copyOf(annotation);
+        }
+
+        @Override
+        public SuppressionConfig annotation(Map<String, String> annotation) {
+            this.annotation = ImmutableMap.copyOf(annotation);
+            return this;
+        }
     }
 }

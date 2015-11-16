@@ -18,6 +18,7 @@ package org.onosproject.provider.lldp.impl;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 import org.onosproject.net.Annotations;
@@ -28,6 +29,7 @@ import org.onosproject.net.Port;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.base.MoreObjects;
 
 public class SuppressionRules {
 
@@ -102,5 +104,35 @@ public class SuppressionRules {
 
     Map<String, String> getSuppressedAnnotation() {
         return suppressedAnnotation;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(suppressedDevice,
+                            suppressedDeviceType,
+                            suppressedAnnotation);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object != null && getClass() == object.getClass()) {
+            SuppressionRules that = (SuppressionRules) object;
+            return Objects.equals(this.suppressedDevice,
+                                  that.suppressedDevice)
+                    && Objects.equals(this.suppressedDeviceType,
+                                      that.suppressedDeviceType)
+                    && Objects.equals(this.suppressedAnnotation,
+                                      that.suppressedAnnotation);
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("suppressedDevice", suppressedDevice)
+                .add("suppressedDeviceType", suppressedDeviceType)
+                .add("suppressedAnnotation", suppressedAnnotation)
+                .toString();
     }
 }
