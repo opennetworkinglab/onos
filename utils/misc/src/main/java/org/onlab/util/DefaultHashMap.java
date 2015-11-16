@@ -21,10 +21,10 @@ import java.util.HashMap;
 /**
  * HashMap that returns a default value for unmapped keys.
  */
-public class DefaultHashMap<K, V> extends HashMap<K, V> {
+public final class DefaultHashMap<K, V> extends HashMap<K, V> {
 
     /** Default value to return when no key binding exists. */
-    protected V defaultValue;
+    protected final V defaultValue;
 
     /**
      * Constructs an empty map with the given default value.
