@@ -78,12 +78,12 @@
     <driver name="pmc-olt" extends="default"
             manufacturer="Big Switch Networks" hwVersion="ivs 0.5" swVersion="ivs 0.5">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.OLTPipeline"/>
+                   impl="org.onosproject.driver.pipeline.OltPipeline"/>
     </driver>
     <driver name="g.fast" extends="default"
             manufacturer="TEST1" hwVersion="TEST2" swVersion="TEST3">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.OLTPipeline"/>
+                   impl="org.onosproject.driver.pipeline.OltPipeline"/>
     </driver>
     <!--  The SoftRouter driver is meant to be used by any software/NPU based
        ~  switch that wishes to implement a simple 2-table router. To use this

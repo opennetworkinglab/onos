@@ -62,7 +62,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Service
 @Component(immediate = true)
-public class OLT implements AccessDeviceService {
+public class Olt implements AccessDeviceService {
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)

@@ -15,14 +15,7 @@
  */
 package org.onosproject.aaa;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -58,7 +51,13 @@ import org.onosproject.net.packet.PacketService;
 import org.onosproject.xosintegration.VoltTenantService;
 import org.slf4j.Logger;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.onosproject.net.packet.PacketPriority.CONTROL;
@@ -68,7 +67,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * AAA application for ONOS.
  */
 @Component(immediate = true)
-public class AAA {
+public class AaaManager {
 
     // for verbose output
     private final Logger log = getLogger(getClass());
@@ -122,12 +121,12 @@ public class AAA {
 
     // Configuration properties factory
     private final ConfigFactory factory =
-            new ConfigFactory<ApplicationId, AAAConfig>(APP_SUBJECT_FACTORY,
-                                                         AAAConfig.class,
+            new ConfigFactory<ApplicationId, AaaConfig>(APP_SUBJECT_FACTORY,
+                                                         AaaConfig.class,
                                                          "AAA") {
                 @Override
-                public AAAConfig createConfig() {
-                    return new AAAConfig();
+                public AaaConfig createConfig() {
+                    return new AaaConfig();
                 }
             };
 
@@ -175,7 +174,7 @@ public class AAA {
         // "org.onosproject.aaa" is the FQDN of our app
         appId = coreService.registerApplication("org.onosproject.aaa");
 
-        cfgListener.reconfigureNetwork(netCfgService.getConfig(appId, AAAConfig.class));
+        cfgListener.reconfigureNetwork(netCfgService.getConfig(appId, AaaConfig.class));
 
         // register our event handler
         packetService.addProcessor(processor, PacketProcessor.director(2));
@@ -207,7 +206,7 @@ public class AAA {
         executor.shutdownNow();
     }
 
-    protected void sendRADIUSPacket(RADIUS radiusPacket) {
+    protected void sendRadiusPacket(RADIUS radiusPacket) {
 
         try {
             final byte[] data = radiusPacket.serialize();
@@ -305,7 +304,7 @@ public class AAA {
                                        stateMachine.username());
 
             radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP,
-                                       AAA.this.nasIpAddress.getAddress());
+                    AaaManager.this.nasIpAddress.getAddress());
 
             radiusPayload.encapsulateMessage(eapPacket);
 
@@ -320,7 +319,7 @@ public class AAA {
         private void handleSupplicantPacket(InboundPacket inPacket) throws StateMachineException {
             Ethernet ethPkt = inPacket.parsed();
             // Where does it come from?
-            MacAddress srcMAC = ethPkt.getSourceMAC();
+            MacAddress srcMac = ethPkt.getSourceMAC();
 
             DeviceId deviceId = inPacket.receivedFrom().deviceId();
             PortNumber portNumber = inPacket.receivedFrom().port();
@@ -340,10 +339,10 @@ public class AAA {
 
                     //send an EAP Request/Identify to the supplicant
                     EAP eapPayload = new EAP(EAP.REQUEST, stateMachine.identifier(), EAP.ATTR_IDENTITY, null);
-                    Ethernet eth = buildEapolResponse(srcMAC, MacAddress.valueOf(nasMacAddress),
+                    Ethernet eth = buildEapolResponse(srcMac, MacAddress.valueOf(nasMacAddress),
                                                       ethPkt.getVlanID(), EAPOL.EAPOL_PACKET,
                                                       eapPayload);
-                    stateMachine.setSupplicantAddress(srcMAC);
+                    stateMachine.setSupplicantAddress(srcMac);
                     stateMachine.setVlanId(ethPkt.getVlanID());
 
                     sendPacketToSupplicant(eth, stateMachine.supplicantConnectpoint());
@@ -362,9 +361,9 @@ public class AAA {
                             stateMachine.setUsername(eapPacket.getData());
 
                             radiusPayload = getRadiusPayload(stateMachine, stateMachine.identifier(), eapPacket);
-                            radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
+                            radiusPayload.addMessageAuthenticator(AaaManager.this.radiusSecret);
 
-                            sendRADIUSPacket(radiusPayload);
+                            sendRadiusPacket(radiusPayload);
 
                             // change the state to "PENDING"
                             stateMachine.requestAccess();
@@ -382,8 +381,8 @@ public class AAA {
 
                                 radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_STATE,
                                                            stateMachine.challengeState());
-                                radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
-                                sendRADIUSPacket(radiusPayload);
+                                radiusPayload.addMessageAuthenticator(AaaManager.this.radiusSecret);
+                                sendRadiusPacket(radiusPayload);
                             }
                             break;
                         case EAP.ATTR_TLS:
@@ -391,11 +390,11 @@ public class AAA {
                             radiusPayload = getRadiusPayload(stateMachine, stateMachine.identifier(), eapPacket);
 
                             radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_STATE,
-                                                       stateMachine.challengeState());
+                                    stateMachine.challengeState());
                             stateMachine.setRequestAuthenticator(radiusPayload.generateAuthCode());
 
-                            radiusPayload.addMessageAuthenticator(AAA.this.radiusSecret);
-                            sendRADIUSPacket(radiusPayload);
+                            radiusPayload.addMessageAuthenticator(AaaManager.this.radiusSecret);
+                            sendRadiusPacket(radiusPayload);
 
                             if (stateMachine.state() != StateMachine.STATE_PENDING) {
                                 stateMachine.requestAccess();
@@ -512,10 +511,10 @@ public class AAA {
          *
          * @param cfg configuration object
          */
-        private void reconfigureNetwork(AAAConfig cfg) {
-            AAAConfig newCfg;
+        private void reconfigureNetwork(AaaConfig cfg) {
+            AaaConfig newCfg;
             if (cfg == null) {
-                newCfg = new AAAConfig();
+                newCfg = new AaaConfig();
             } else {
                 newCfg = cfg;
             }
@@ -540,8 +539,8 @@ public class AAA {
             if (newCfg.radiusPort() != -1) {
                 radiusPort = newCfg.radiusPort();
             }
-            if (newCfg.radiusServerUDPPort() != -1) {
-                radiusServerPort = newCfg.radiusServerUDPPort();
+            if (newCfg.radiusServerUdpPort() != -1) {
+                radiusServerPort = newCfg.radiusServerUdpPort();
             }
         }
 
@@ -550,9 +549,9 @@ public class AAA {
 
             if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
                     event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
-                    event.configClass().equals(AAAConfig.class)) {
+                    event.configClass().equals(AaaConfig.class)) {
 
-                AAAConfig cfg = netCfgService.getConfig(appId, AAAConfig.class);
+                AaaConfig cfg = netCfgService.getConfig(appId, AaaConfig.class);
                 reconfigureNetwork(cfg);
                 log.info("Reconfigured");
             }

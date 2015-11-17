@@ -34,9 +34,9 @@ import static org.junit.Assert.assertThat;
  * server and sends live packets over the network to it.
  */
 @Ignore ("This should not be run as part of the standard build")
-public class AAAIntegrationTest extends AAATestBase {
+public class AaaIntegrationTest extends AaaTestBase {
 
-    private AAA aaa;
+    private AaaManager aaa;
 
     /**
      * Mocks the network config registry.
@@ -46,7 +46,7 @@ public class AAAIntegrationTest extends AAATestBase {
             extends NetworkConfigRegistryAdapter {
         @Override
         public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
-            return (C) new AAAConfig();
+            return (C) new AaaConfig();
         }
     }
 
@@ -55,7 +55,7 @@ public class AAAIntegrationTest extends AAATestBase {
      */
     @Before
     public void setUp() {
-        aaa = new AAA();
+        aaa = new AaaManager();
         aaa.netCfgService = new TestNetworkConfigRegistry();
         aaa.coreService = new CoreServiceAdapter();
         aaa.packetService = new MockPacketService();
@@ -136,9 +136,9 @@ public class AAAIntegrationTest extends AAATestBase {
 
         Ethernet successRadiusPacket = fetchPacket(2);
         assertThat(successRadiusPacket, notNullValue());
-        EAPOL successEAPOL = (EAPOL) successRadiusPacket.getPayload();
-        EAP successEAP = (EAP) successEAPOL.getPayload();
-        assertThat(successEAP.getCode(), is(EAP.SUCCESS));
+        EAPOL successEapol = (EAPOL) successRadiusPacket.getPayload();
+        EAP successEap = (EAP) successEapol.getPayload();
+        assertThat(successEap.getCode(), is(EAP.SUCCESS));
 
         //  State machine should be in authorized state
 

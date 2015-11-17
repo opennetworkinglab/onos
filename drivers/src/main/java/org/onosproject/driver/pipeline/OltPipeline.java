@@ -57,7 +57,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Pipeliner for OLT device.
  */
-public class OLTPipeline extends AbstractHandlerBehaviour implements Pipeliner {
+public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private final Logger log = getLogger(getClass());
 

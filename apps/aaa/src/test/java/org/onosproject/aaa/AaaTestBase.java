@@ -15,11 +15,6 @@
  */
 package org.onosproject.aaa;
 
-import java.nio.ByteBuffer;
-import java.security.MessageDigest;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.onlab.packet.BasePacket;
 import org.onlab.packet.EAP;
 import org.onlab.packet.EAPOL;
@@ -34,6 +29,11 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketServiceAdapter;
 
+import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.util.LinkedList;
+import java.util.List;
+
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -44,7 +44,7 @@ import static org.onosproject.net.NetTestTools.connectPoint;
 /**
  * Common methods for AAA app testing.
  */
-public class AAATestBase {
+public class AaaTestBase {
 
     MacAddress clientMac = MacAddress.valueOf("1a:1a:1a:1a:1a:1a");
     MacAddress serverMac = MacAddress.valueOf("2a:2a:2a:2a:2a:2a");
@@ -204,10 +204,10 @@ public class AAATestBase {
      * @param radiusPacket packet to check
      * @param code expected code
      */
-    void checkRadiusPacket(AAA aaa, Ethernet radiusPacket, byte code) {
+    void checkRadiusPacket(AaaManager aaaManager, Ethernet radiusPacket, byte code) {
 
         assertThat(radiusPacket.getSourceMAC(),
-                   is(MacAddress.valueOf(aaa.nasMacAddress)));
+                   is(MacAddress.valueOf(aaaManager.nasMacAddress)));
         assertThat(radiusPacket.getDestinationMAC(), is(serverMac));
 
         assertThat(radiusPacket.getPayload(), instanceOf(EAPOL.class));

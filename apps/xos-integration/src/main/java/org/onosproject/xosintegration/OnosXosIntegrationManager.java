@@ -68,7 +68,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class OnosXOSIntegrationManager implements VoltTenantService {
+public class OnosXosIntegrationManager implements VoltTenantService {
     private static final String XOS_SERVER_ADDRESS_PROPERTY_NAME =
             "xosServerAddress";
     private static final String XOS_SERVER_PORT_PROPERTY_NAME =
@@ -355,12 +355,12 @@ public class OnosXOSIntegrationManager implements VoltTenantService {
 
         String retJson = postRest(json);
 
-        fetchCPELocation(tenantToCreate, retJson);
+        fetchCpeLocation(tenantToCreate, retJson);
 
         return newTenant;
     }
 
-    private void fetchCPELocation(VoltTenant newTenant, String jsonString) {
+    private void fetchCpeLocation(VoltTenant newTenant, String jsonString) {
         JsonObject json = JsonObject.readFrom(jsonString);
 
         if (json.get("computeNodeName") != null) {

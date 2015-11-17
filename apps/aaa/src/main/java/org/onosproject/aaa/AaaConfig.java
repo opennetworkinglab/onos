@@ -15,17 +15,17 @@
  */
 package org.onosproject.aaa;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.basics.BasicElementConfig;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 /**
  * Network config for the AAA app.
  */
-public class AAAConfig extends Config<ApplicationId> {
+public class AaaConfig extends Config<ApplicationId> {
 
     private static final String RADIUS_IP = "radiusIp";
     private static final String RADIUS_SERVER_PORT = "1812";
@@ -221,7 +221,7 @@ public class AAAConfig extends Config<ApplicationId> {
      *
      * @return radius server UDP port.
      */
-    public short radiusServerUDPPort() {
+    public short radiusServerUdpPort() {
         return Short.parseShort(getStringProperty(RADIUS_SERVER_PORT,
                                                   DEFAULT_RADIUS_SERVER_PORT));
     }
@@ -232,7 +232,7 @@ public class AAAConfig extends Config<ApplicationId> {
      * @param port new RADIUS UDP port; -1 to clear
      * @return self
      */
-    public BasicElementConfig radiusServerUDPPort(short port) {
+    public BasicElementConfig radiusServerUdpPort(short port) {
         return (BasicElementConfig) setOrClear(RADIUS_SERVER_PORT, (long) port);
     }
 

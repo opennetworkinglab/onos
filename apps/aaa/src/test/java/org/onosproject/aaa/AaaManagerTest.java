@@ -15,9 +15,7 @@
  */
 package org.onosproject.aaa;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
+import com.google.common.base.Charsets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +30,8 @@ import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 
-import com.google.common.base.Charsets;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -41,14 +40,14 @@ import static org.junit.Assert.assertThat;
 /**
  * Set of tests of the ONOS application component.
  */
-public class AAATest extends AAATestBase {
+public class AaaManagerTest extends AaaTestBase {
 
     static final String BAD_IP_ADDRESS = "198.51.100.0";
 
-    private AAA aaa;
+    private AaaManager aaaManager;
 
-    class AAAWithoutRadiusServer extends AAA {
-        protected void sendRADIUSPacket(RADIUS radiusPacket) {
+    class AaaManagerWithoutRadiusServer extends AaaManager {
+        protected void sendRadiusPacket(RADIUS radiusPacket) {
             savePacket(radiusPacket);
         }
     }
@@ -57,7 +56,7 @@ public class AAATest extends AAATestBase {
      * Mocks the AAAConfig class to force usage of an unroutable address for the
      * RADIUS server.
      */
-    static class MockAAAConfig extends AAAConfig {
+    static class MockAaaConfig extends AaaConfig {
         @Override
         public InetAddress radiusIp() {
             try {
@@ -77,7 +76,7 @@ public class AAATest extends AAATestBase {
             extends NetworkConfigRegistryAdapter {
         @Override
         public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
-            AAAConfig aaaConfig = new MockAAAConfig();
+            AaaConfig aaaConfig = new MockAaaConfig();
             return (C) aaaConfig;
         }
     }
@@ -90,7 +89,7 @@ public class AAATest extends AAATestBase {
      * @param challengeType type to use in challenge packet
      * @return Ethernet packet
      */
-    private RADIUS constructRADIUSCodeAccessChallengePacket(byte challengeCode, byte challengeType) {
+    private RADIUS constructRadiusCodeAccessChallengePacket(byte challengeCode, byte challengeType) {
 
         String challenge = "12345678901234567";
 
@@ -116,11 +115,11 @@ public class AAATest extends AAATestBase {
      */
     @Before
     public void setUp() {
-        aaa = new AAAWithoutRadiusServer();
-        aaa.netCfgService = new TestNetworkConfigRegistry();
-        aaa.coreService = new CoreServiceAdapter();
-        aaa.packetService = new MockPacketService();
-        aaa.activate();
+        aaaManager = new AaaManagerWithoutRadiusServer();
+        aaaManager.netCfgService = new TestNetworkConfigRegistry();
+        aaaManager.coreService = new CoreServiceAdapter();
+        aaaManager.packetService = new MockPacketService();
+        aaaManager.activate();
     }
 
     /**
@@ -128,7 +127,7 @@ public class AAATest extends AAATestBase {
      */
     @After
     public void tearDown() {
-        aaa.deactivate();
+        aaaManager.deactivate();
     }
 
     /**
@@ -138,7 +137,7 @@ public class AAATest extends AAATestBase {
      * @throws DeserializationException if deserialization of the packet contents
      *         fails.
      */
-    private void checkRADIUSPacketFromSupplicant(RADIUS radius)
+    private void checkRadiusPacketFromSupplicant(RADIUS radius)
             throws DeserializationException {
         assertThat(radius, notNullValue());
 
@@ -173,7 +172,7 @@ public class AAATest extends AAATestBase {
         sendPacket(startPacket);
 
         Ethernet responsePacket = (Ethernet) fetchPacket(0);
-        checkRadiusPacket(aaa, responsePacket, EAP.ATTR_IDENTITY);
+        checkRadiusPacket(aaaManager, responsePacket, EAP.ATTR_IDENTITY);
 
         //  (2) Supplicant identify
 
@@ -182,7 +181,7 @@ public class AAATest extends AAATestBase {
 
         RADIUS radiusIdentifyPacket = (RADIUS) fetchPacket(1);
 
-        checkRADIUSPacketFromSupplicant(radiusIdentifyPacket);
+        checkRadiusPacketFromSupplicant(radiusIdentifyPacket);
 
         assertThat(radiusIdentifyPacket.getCode(), is(RADIUS.RADIUS_CODE_ACCESS_REQUEST));
         assertThat(new String(radiusIdentifyPacket.getAttribute(RADIUSAttribute.RADIUS_ATTR_USERNAME).getValue()),
@@ -192,7 +191,7 @@ public class AAATest extends AAATestBase {
                 IpAddress.valueOf(IpAddress.Version.INET,
                                   radiusIdentifyPacket.getAttribute(RADIUSAttribute.RADIUS_ATTR_NAS_IP)
                                           .getValue());
-        assertThat(nasIp.toString(), is(aaa.nasIpAddress.getHostAddress()));
+        assertThat(nasIp.toString(), is(aaaManager.nasIpAddress.getHostAddress()));
 
         //  State machine should have been created by now
 
@@ -204,11 +203,11 @@ public class AAATest extends AAATestBase {
         // (3) RADIUS MD5 challenge
 
         RADIUS radiusCodeAccessChallengePacket =
-                constructRADIUSCodeAccessChallengePacket(RADIUS.RADIUS_CODE_ACCESS_CHALLENGE, EAP.ATTR_MD5);
-        aaa.radiusListener.handleRadiusPacket(radiusCodeAccessChallengePacket);
+                constructRadiusCodeAccessChallengePacket(RADIUS.RADIUS_CODE_ACCESS_CHALLENGE, EAP.ATTR_MD5);
+        aaaManager.radiusListener.handleRadiusPacket(radiusCodeAccessChallengePacket);
 
         Ethernet radiusChallengeMD5Packet = (Ethernet) fetchPacket(2);
-        checkRadiusPacket(aaa, radiusChallengeMD5Packet, EAP.ATTR_MD5);
+        checkRadiusPacket(aaaManager, radiusChallengeMD5Packet, EAP.ATTR_MD5);
 
         // (4) Supplicant MD5 response
 
@@ -221,7 +220,7 @@ public class AAATest extends AAATestBase {
 
         RADIUS responseMd5RadiusPacket = (RADIUS) fetchPacket(3);
 
-        checkRADIUSPacketFromSupplicant(responseMd5RadiusPacket);
+        checkRadiusPacketFromSupplicant(responseMd5RadiusPacket);
         assertThat(responseMd5RadiusPacket.getIdentifier(), is((byte) 0));
         assertThat(responseMd5RadiusPacket.getCode(), is(RADIUS.RADIUS_CODE_ACCESS_REQUEST));
 
@@ -233,11 +232,11 @@ public class AAATest extends AAATestBase {
         // (5) RADIUS Success
 
         RADIUS successPacket =
-                constructRADIUSCodeAccessChallengePacket(RADIUS.RADIUS_CODE_ACCESS_ACCEPT, EAP.SUCCESS);
-        aaa.radiusListener.handleRadiusPacket((successPacket));
+                constructRadiusCodeAccessChallengePacket(RADIUS.RADIUS_CODE_ACCESS_ACCEPT, EAP.SUCCESS);
+        aaaManager.radiusListener.handleRadiusPacket((successPacket));
         Ethernet supplicantSuccessPacket = (Ethernet) fetchPacket(4);
 
-        checkRadiusPacket(aaa, supplicantSuccessPacket, EAP.SUCCESS);
+        checkRadiusPacket(aaaManager, supplicantSuccessPacket, EAP.SUCCESS);
 
         //  State machine should be in authorized state
 
@@ -251,9 +250,9 @@ public class AAATest extends AAATestBase {
      */
     @Test
     public void testConfig() {
-        assertThat(aaa.nasIpAddress.getHostAddress(), is(AAAConfig.DEFAULT_NAS_IP));
-        assertThat(aaa.nasMacAddress, is(AAAConfig.DEFAULT_NAS_MAC));
-        assertThat(aaa.radiusIpAddress.getHostAddress(), is(BAD_IP_ADDRESS));
-        assertThat(aaa.radiusMacAddress, is(AAAConfig.DEFAULT_RADIUS_MAC));
+        assertThat(aaaManager.nasIpAddress.getHostAddress(), is(AaaConfig.DEFAULT_NAS_IP));
+        assertThat(aaaManager.nasMacAddress, is(AaaConfig.DEFAULT_NAS_MAC));
+        assertThat(aaaManager.radiusIpAddress.getHostAddress(), is(BAD_IP_ADDRESS));
+        assertThat(aaaManager.radiusMacAddress, is(AaaConfig.DEFAULT_RADIUS_MAC));
     }
 }
