@@ -41,6 +41,7 @@
         <module>pcep</module>
         <module>ovsdb</module>
         <module>bgp</module>
+        <module>snmp</module>
     </modules>
 
     <dependencies>

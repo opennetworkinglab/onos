@@ -1,0 +1,15 @@
+{
+  "id": 10,
+  "deviceId": "of:123",
+  "description": "NE is not reachable",
+  "source": "none:none",
+  "timeRaised": 999,
+  "timeUpdated": 1111,
+  "timeUpdated": 1111,
+  "timeCleared": 2222,
+  "severity": "MAJOR",
+  "serviceAffecting": true,
+  "acknowledged": false,
+  "manuallyClearable": true,
+  "assignedUser": "foo"
+}
