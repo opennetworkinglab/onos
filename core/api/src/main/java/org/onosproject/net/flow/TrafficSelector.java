@@ -17,6 +17,7 @@ package org.onosproject.net.flow;
 
 import java.util.Set;
 
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -384,6 +385,14 @@ public interface TrafficSelector {
          * @return a selection builder
          */
         Builder matchIPv6ExthdrFlags(short exthdrFlags);
+
+        /**
+         * Matches a arp IPv4 destination address.
+         *
+         * @param addr a arp IPv4 destination address
+         * @return a selection builder
+         */
+        Builder matchArpTpa(Ip4Address addr);
 
         /**
          * Matches a arp_eth_dst address.
