@@ -58,7 +58,7 @@ interface DiscoveryContext {
      *
      * @return true to emit BDDP
      */
-    boolean useBDDP();
+    boolean useBddp();
 
     /**
      * Touches the link identified by the given key to indicate that it's active.

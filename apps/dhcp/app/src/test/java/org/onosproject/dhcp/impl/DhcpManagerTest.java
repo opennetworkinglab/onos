@@ -106,7 +106,7 @@ public class DhcpManagerTest {
      */
     @Test
     public void testDiscover() {
-        Ethernet reply = constructDHCPPacket(DHCPPacketType.DHCPDISCOVER);
+        Ethernet reply = constructDhcpPacket(DHCPPacketType.DHCPDISCOVER);
         sendPacket(reply);
     }
 
@@ -115,7 +115,7 @@ public class DhcpManagerTest {
      */
     @Test
     public void testRequest() {
-        Ethernet reply = constructDHCPPacket(DHCPPacketType.DHCPREQUEST);
+        Ethernet reply = constructDhcpPacket(DHCPPacketType.DHCPREQUEST);
         sendPacket(reply);
     }
 
@@ -138,7 +138,7 @@ public class DhcpManagerTest {
      * @param packetType DHCP Message Type
      * @return Ethernet packet
      */
-    private Ethernet constructDHCPPacket(DHCPPacketType packetType) {
+    private Ethernet constructDhcpPacket(DHCPPacketType packetType) {
 
         // Ethernet Frame.
         Ethernet ethReply = new Ethernet();

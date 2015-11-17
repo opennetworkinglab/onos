@@ -120,7 +120,7 @@ public class OpenstackSwitchingRulePopulator {
      *
      * @param id device ID to set the rules
      */
-    private void setFlowRuleForDHCP(DeviceId id) {
+    private void setFlowRuleForDhcp(DeviceId id) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 

@@ -196,16 +196,16 @@ public class HostLocationProviderTest {
         providerService.clear();
 
         // new host
-        testProcessor.process(new TestNAPacketContext(DEV4));
+        testProcessor.process(new TestNaPacketContext(DEV4));
         assertNotNull("new host expected", providerService.added);
         assertNull("host motion unexpected", providerService.moved);
 
         // the host moved to new switch
-        testProcessor.process(new TestNAPacketContext(DEV5));
+        testProcessor.process(new TestNaPacketContext(DEV5));
         assertNotNull("host motion expected", providerService.moved);
 
         // the host was misheard on a spine
-        testProcessor.process(new TestNAPacketContext(DEV6));
+        testProcessor.process(new TestNaPacketContext(DEV6));
         assertNull("host misheard on spine switch", providerService.spine);
     }
 
@@ -213,7 +213,7 @@ public class HostLocationProviderTest {
     public void removeHostByDeviceRemove() {
         provider.modified(CTX_FOR_REMOVE);
         testProcessor.process(new TestArpPacketContext(DEV1));
-        testProcessor.process(new TestNAPacketContext(DEV4));
+        testProcessor.process(new TestNaPacketContext(DEV4));
 
         Device device = new DefaultDevice(ProviderId.NONE, deviceId(DEV1), SWITCH,
                                           "m", "h", "s", "n", new ChassisId(0L));
@@ -292,8 +292,8 @@ public class HostLocationProviderTest {
      * When receiving NeighborAdvertisement, updates location and IP.
      */
     @Test
-    public void testReceiveNA() {
-        testProcessor.process(new TestNAPacketContext(DEV4));
+    public void testReceiveNa() {
+        testProcessor.process(new TestNaPacketContext(DEV4));
         assertNotNull(providerService.added);
         HostDescription descr = providerService.added;
         assertThat(descr.location(), is(LOCATION2));
@@ -306,8 +306,8 @@ public class HostLocationProviderTest {
      * When receiving NeighborSolicitation, updates location and IP.
      */
     @Test
-    public void testReceiveNS() {
-        testProcessor.process(new TestNSPacketContext(DEV4));
+    public void testReceiveNs() {
+        testProcessor.process(new TestNsPacketContext(DEV4));
         HostDescription descr = providerService.added;
         assertThat(descr.location(), is(LOCATION2));
         assertThat(descr.hwAddress(), is(MAC2));
@@ -319,7 +319,7 @@ public class HostLocationProviderTest {
      * When receiving RouterAdvertisement, ignores it.
      */
     @Test
-    public void testReceivesRA() {
+    public void testReceivesRa() {
         testProcessor.process(new TestRAPacketContext(DEV4));
         assertNull(providerService.added);
     }
@@ -328,7 +328,7 @@ public class HostLocationProviderTest {
      * When receiving RouterSolicitation, ignores it.
      */
     @Test
-    public void testReceiveRS() {
+    public void testReceiveRs() {
         testProcessor.process(new TestRSPacketContext(DEV4));
         assertNull(providerService.added);
     }
@@ -337,8 +337,8 @@ public class HostLocationProviderTest {
      * When receiving Duplicate Address Detection (DAD), ignores it.
      */
     @Test
-    public void testReceiveDAD() {
-        testProcessor.process(new TestDADPacketContext(DEV4));
+    public void testReceiveDad() {
+        testProcessor.process(new TestDadPacketContext(DEV4));
         assertNull(providerService.added);
     }
 
@@ -575,10 +575,10 @@ public class HostLocationProviderTest {
     /**
      * Generates NeighborAdvertisement packet.
      */
-    private class TestNAPacketContext implements PacketContext {
+    private class TestNaPacketContext implements PacketContext {
         private final String deviceId;
 
-        public TestNAPacketContext(String deviceId) {
+        public TestNaPacketContext(String deviceId) {
             this.deviceId = deviceId;
         }
 
@@ -637,10 +637,10 @@ public class HostLocationProviderTest {
     /**
      * Generates NeighborSolicitation packet.
      */
-    private class TestNSPacketContext implements PacketContext {
+    private class TestNsPacketContext implements PacketContext {
         private final String deviceId;
 
-        public TestNSPacketContext(String deviceId) {
+        public TestNsPacketContext(String deviceId) {
             this.deviceId = deviceId;
         }
 
@@ -699,10 +699,10 @@ public class HostLocationProviderTest {
     /**
      * Generates Duplicate Address Detection packet.
      */
-    private class TestDADPacketContext implements PacketContext {
+    private class TestDadPacketContext implements PacketContext {
         private final String deviceId;
 
-        public TestDADPacketContext(String deviceId) {
+        public TestDadPacketContext(String deviceId) {
             this.deviceId = deviceId;
         }
 

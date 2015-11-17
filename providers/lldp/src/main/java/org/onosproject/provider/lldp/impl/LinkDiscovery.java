@@ -155,7 +155,7 @@ class LinkDiscovery implements TimerTask {
      * @param packetContext packet context
      * @return true if handled
      */
-    boolean handleLLDP(PacketContext packetContext) {
+    boolean handleLldp(PacketContext packetContext) {
         Ethernet eth = packetContext.inPacket().parsed();
         if (eth == null) {
             return false;
@@ -216,7 +216,7 @@ class LinkDiscovery implements TimerTask {
      * @param port the port
      * @return Packet_out message with LLDP data
      */
-    private OutboundPacket createOutBoundLLDP(Long port) {
+    private OutboundPacket createOutBoundLldp(Long port) {
         if (port == null) {
             return null;
         }
@@ -233,7 +233,7 @@ class LinkDiscovery implements TimerTask {
      * @param port the port
      * @return Packet_out message with LLDP data
      */
-    private OutboundPacket createOutBoundBDDP(Long port) {
+    private OutboundPacket createOutBoundBddp(Long port) {
         if (port == null) {
             return null;
         }
@@ -246,10 +246,10 @@ class LinkDiscovery implements TimerTask {
 
     private void sendProbes(Long portNumber) {
         log.trace("Sending probes out to {}@{}", portNumber, device.id());
-        OutboundPacket pkt = createOutBoundLLDP(portNumber);
+        OutboundPacket pkt = createOutBoundLldp(portNumber);
         context.packetService().emit(pkt);
-        if (context.useBDDP()) {
-            OutboundPacket bpkt = createOutBoundBDDP(portNumber);
+        if (context.useBddp()) {
+            OutboundPacket bpkt = createOutBoundBddp(portNumber);
             context.packetService().emit(bpkt);
         }
     }

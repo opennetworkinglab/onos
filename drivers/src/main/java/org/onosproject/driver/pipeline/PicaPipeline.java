@@ -462,10 +462,10 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
 
     private void initializePipeline() {
         //processIpUnicastTable(true);
-        processACLTable(true);
+        processAclTable(true);
     }
 
-    private void processACLTable(boolean install) {
+    private void processAclTable(boolean install) {
         TrafficSelector.Builder selector;
         TrafficTreatment.Builder treatment;
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();

@@ -94,12 +94,12 @@ public class Controller {
     protected String tsLocation;
     protected char[] ksPwd;
     protected char[] tsPwd;
-    protected SSLEngine serverSSLEngine;
+    protected SSLEngine serverSslEngine;
 
     // Perf. related configuration
     protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
     private DriverService driverService;
-    private boolean enableOFTLS = TLS_DISABLED;
+    private boolean enableOfTls = TLS_DISABLED;
 
     // ***************
     // Getters/Setters
@@ -132,7 +132,7 @@ public class Controller {
             bootstrap.setOption("child.sendBufferSize", Controller.SEND_BUFFER_SIZE);
 
             ChannelPipelineFactory pfact =
-                    new OpenflowPipelineFactory(this, null, serverSSLEngine);
+                    new OpenflowPipelineFactory(this, null, serverSslEngine);
             bootstrap.setPipelineFactory(pfact);
             cg = new DefaultChannelGroup();
             openFlowPorts.forEach(port -> {
@@ -189,9 +189,9 @@ public class Controller {
         this.systemStartTime = System.currentTimeMillis();
 
         try {
-            getTLSParameters();
-            if (enableOFTLS) {
-                initSSL();
+            getTlsParameters();
+            if (enableOfTls) {
+                initSsl();
             }
         } catch (Exception ex) {
             log.error("SSL init failed: {}", ex.getMessage());
@@ -199,35 +199,35 @@ public class Controller {
 
     }
 
-    private void getTLSParameters() {
+    private void getTlsParameters() {
         String tempString = System.getProperty("enableOFTLS");
-        enableOFTLS = Strings.isNullOrEmpty(tempString) ? TLS_DISABLED : Boolean.parseBoolean(tempString);
-        log.info("OpenFlow Security is {}", enableOFTLS ? "enabled" : "disabled");
-        if (enableOFTLS) {
+        enableOfTls = Strings.isNullOrEmpty(tempString) ? TLS_DISABLED : Boolean.parseBoolean(tempString);
+        log.info("OpenFlow Security is {}", enableOfTls ? "enabled" : "disabled");
+        if (enableOfTls) {
             ksLocation = System.getProperty("javax.net.ssl.keyStore");
             if (Strings.isNullOrEmpty(ksLocation)) {
-                enableOFTLS = TLS_DISABLED;
+                enableOfTls = TLS_DISABLED;
                 return;
             }
             tsLocation = System.getProperty("javax.net.ssl.trustStore");
             if (Strings.isNullOrEmpty(tsLocation)) {
-                enableOFTLS = TLS_DISABLED;
+                enableOfTls = TLS_DISABLED;
                 return;
             }
             ksPwd = System.getProperty("javax.net.ssl.keyStorePassword").toCharArray();
             if (MIN_KS_LENGTH > ksPwd.length) {
-                enableOFTLS = TLS_DISABLED;
+                enableOfTls = TLS_DISABLED;
                 return;
             }
             tsPwd = System.getProperty("javax.net.ssl.trustStorePassword").toCharArray();
             if (MIN_KS_LENGTH > tsPwd.length) {
-                enableOFTLS = TLS_DISABLED;
+                enableOfTls = TLS_DISABLED;
                 return;
             }
         }
     }
 
-    private void initSSL() throws Exception {
+    private void initSsl() throws Exception {
 
         TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         KeyStore ts = KeyStore.getInstance("JKS");
@@ -242,13 +242,13 @@ public class Controller {
         SSLContext serverContext = SSLContext.getInstance("TLS");
         serverContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
 
-        serverSSLEngine = serverContext.createSSLEngine();
+        serverSslEngine = serverContext.createSSLEngine();
 
-        serverSSLEngine.setNeedClientAuth(true);
-        serverSSLEngine.setUseClientMode(false);
-        serverSSLEngine.setEnabledProtocols(serverSSLEngine.getSupportedProtocols());
-        serverSSLEngine.setEnabledCipherSuites(serverSSLEngine.getSupportedCipherSuites());
-        serverSSLEngine.setEnableSessionCreation(true);
+        serverSslEngine.setNeedClientAuth(true);
+        serverSslEngine.setUseClientMode(false);
+        serverSslEngine.setEnabledProtocols(serverSslEngine.getSupportedProtocols());
+        serverSslEngine.setEnabledCipherSuites(serverSslEngine.getSupportedCipherSuites());
+        serverSslEngine.setEnableSessionCreation(true);
     }
 
     // **************

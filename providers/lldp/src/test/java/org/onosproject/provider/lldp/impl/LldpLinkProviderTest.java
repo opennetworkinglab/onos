@@ -72,7 +72,7 @@ import java.util.concurrent.CompletableFuture;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
-public class LLDPLinkProviderTest {
+public class LldpLinkProviderTest {
 
     private static final DeviceId DID1 = DeviceId.deviceId("of:0000000000000001");
     private static final DeviceId DID2 = DeviceId.deviceId("of:0000000000000002");
@@ -83,7 +83,7 @@ public class LLDPLinkProviderTest {
     private static Port pd3;
     private static Port pd4;
 
-    private final LLDPLinkProvider provider = new LLDPLinkProvider();
+    private final LldpLinkProvider provider = new LldpLinkProvider();
     private final TestLinkRegistry linkRegistry = new TestLinkRegistry();
     private final TestLinkService linkService = new TestLinkService();
     private final TestPacketService packetService = new TestPacketService();
@@ -159,7 +159,7 @@ public class LLDPLinkProviderTest {
 
         // update device in stub DeviceService with suppression config
         deviceService.putDevice(device(DID3, DefaultAnnotations.builder()
-                                              .set(LLDPLinkProvider.NO_LLDP, "true")
+                                              .set(LldpLinkProvider.NO_LLDP, "true")
                                               .build()));
         deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_UPDATED, DID3));
 
@@ -207,7 +207,7 @@ public class LLDPLinkProviderTest {
 
         // add device in stub DeviceService with suppression configured
         deviceService.putDevice(device(DID3, DefaultAnnotations.builder()
-                                              .set(LLDPLinkProvider.NO_LLDP, "true")
+                                              .set(LldpLinkProvider.NO_LLDP, "true")
                                               .build()));
         deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID3));
 
@@ -249,7 +249,7 @@ public class LLDPLinkProviderTest {
         final long portno3 = 3L;
         final Port port3 = port(DID3, portno3, true,
                                           DefaultAnnotations.builder()
-                                          .set(LLDPLinkProvider.NO_LLDP, "true")
+                                          .set(LldpLinkProvider.NO_LLDP, "true")
                                           .build());
         deviceService.putPorts(DID3, port3);
         deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID3, port3));

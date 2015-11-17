@@ -42,7 +42,7 @@ import java.util.Map;
  * Manage DHCP address assignments.
  */
 @Path("dhcp")
-public class DHCPWebResource extends AbstractWebResource {
+public class DhcpWebResource extends AbstractWebResource {
 
     final DhcpService service = get(DhcpService.class);
 

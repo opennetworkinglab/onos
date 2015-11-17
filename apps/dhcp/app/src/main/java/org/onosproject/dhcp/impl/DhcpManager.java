@@ -109,7 +109,7 @@ public class DhcpManager implements DhcpService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
 
-    private DHCPPacketProcessor processor = new DHCPPacketProcessor();
+    private DhcpPacketProcessor processor = new DhcpPacketProcessor();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -259,7 +259,7 @@ public class DhcpManager implements DhcpService {
         return dhcpStore.getAvailableIPs();
     }
 
-    private class DHCPPacketProcessor implements PacketProcessor {
+    private class DhcpPacketProcessor implements PacketProcessor {
 
         /**
          * Builds the DHCP Reply packet.
@@ -437,7 +437,7 @@ public class DhcpManager implements DhcpService {
          * @param context context of the incoming message
          * @param dhcpPayload the extracted DHCP payload
          */
-        private void processDHCPPacket(PacketContext context, DHCP dhcpPayload) {
+        private void processDhcpPacket(PacketContext context, DHCP dhcpPayload) {
             Ethernet packet = context.inPacket().parsed();
             boolean flagIfRequestedIP = false;
             boolean flagIfServerIP = false;
@@ -464,9 +464,9 @@ public class DhcpManager implements DhcpService {
                     }
                 }
                 DHCPPacketType outgoingPacketType;
-                MacAddress clientMAC = new MacAddress(dhcpPayload.getClientHardwareAddress());
+                MacAddress clientMac = new MacAddress(dhcpPayload.getClientHardwareAddress());
                 VlanId vlanId = VlanId.vlanId(packet.getVlanID());
-                HostId hostId = HostId.hostId(clientMAC, vlanId);
+                HostId hostId = HostId.hostId(clientMac, vlanId);
 
                 if (incomingPacketType.getValue() == DHCPPacketType.DHCPDISCOVER.getValue()) {
 
@@ -484,7 +484,7 @@ public class DhcpManager implements DhcpService {
                     if (flagIfServerIP && flagIfRequestedIP) {
                         // SELECTING state
 
-                        if (dhcpStore.getIpAssignmentFromAllocationMap(HostId.hostId(clientMAC))
+                        if (dhcpStore.getIpAssignmentFromAllocationMap(HostId.hostId(clientMac))
                                 .fromOpenStack()) {
                             outgoingPacketType = DHCPPacketType.DHCPACK;
                             Ethernet ethReply = buildReply(packet, requestedIP, (byte) outgoingPacketType.getValue());
@@ -544,7 +544,7 @@ public class DhcpManager implements DhcpService {
          * @param context context of the incoming message
          * @param packet the ethernet payload
          */
-        private void processARPPacket(PacketContext context, Ethernet packet) {
+        private void processArpPacket(PacketContext context, Ethernet packet) {
 
             ARP arpPacket = (ARP) packet.getPayload();
 
@@ -605,7 +605,7 @@ public class DhcpManager implements DhcpService {
                         // This is meant for the dhcp server so process the packet here.
 
                         DHCP dhcpPayload = (DHCP) udpPacket.getPayload();
-                        processDHCPPacket(context, dhcpPayload);
+                        processDhcpPacket(context, dhcpPayload);
                     }
                 }
             } else if (packet.getEtherType() == Ethernet.TYPE_ARP) {
@@ -614,7 +614,7 @@ public class DhcpManager implements DhcpService {
                 if ((arpPacket.getOpCode() == ARP.OP_REQUEST) &&
                         Objects.equals(myIP, Ip4Address.valueOf(arpPacket.getTargetProtocolAddress()))) {
 
-                    processARPPacket(context, packet);
+                    processArpPacket(context, packet);
 
                 }
             }

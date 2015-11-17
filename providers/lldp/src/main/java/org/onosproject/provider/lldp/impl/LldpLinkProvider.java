@@ -81,7 +81,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provider which uses LLDP and BDDP packets to detect network infrastructure links.
  */
 @Component(immediate = true)
-public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
+public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
     private static final String PROVIDER_NAME = "org.onosproject.provider.lldp";
 
@@ -138,7 +138,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
     private static final String PROP_USE_BDDP = "useBDDP";
     @Property(name = PROP_USE_BDDP, boolValue = true,
             label = "Use BDDP for link discovery")
-    private boolean useBDDP = true;
+    private boolean useBddp = true;
 
     private static final String PROP_PROBE_RATE = "probeRate";
     private static final int DEFAULT_PROBE_RATE = 3_000;
@@ -177,7 +177,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
     /**
      * Creates an OpenFlow link provider.
      */
-    public LLDPLinkProvider() {
+    public LldpLinkProvider() {
         super(new ProviderId("lldp", PROVIDER_NAME));
     }
 
@@ -222,7 +222,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         } catch (NumberFormatException e) {
             log.warn("Component configuration had invalid values", e);
             newEnabled = enabled;
-            newUseBddp = useBDDP;
+            newUseBddp = useBddp;
             newProbeRate = probeRate;
             newStaleLinkAge = staleLinkAge;
             newLldpSuppression = lldpSuppression;
@@ -231,7 +231,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         boolean wasEnabled = enabled;
 
         enabled = newEnabled;
-        useBDDP = newUseBddp;
+        useBddp = newUseBddp;
         probeRate = newProbeRate;
         staleLinkAge = newStaleLinkAge;
         lldpSuppression = newLldpSuppression;
@@ -250,7 +250,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
             }
         }
 
-        log.info(FORMAT, enabled, useBDDP, probeRate, staleLinkAge, lldpSuppression);
+        log.info(FORMAT, enabled, useBddp, probeRate, staleLinkAge, lldpSuppression);
     }
 
     /**
@@ -418,7 +418,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
 
         selector.matchEthType(TYPE_BSN);
-        if (useBDDP) {
+        if (useBddp) {
             packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
         } else {
             packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
@@ -534,7 +534,7 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
                 return;
             }
 
-            if (ld.handleLLDP(context)) {
+            if (ld.handleLldp(context)) {
                 context.block();
             }
         }
@@ -624,8 +624,8 @@ public class LLDPLinkProvider extends AbstractProvider implements LinkProvider {
         }
 
         @Override
-        public boolean useBDDP() {
-            return useBDDP;
+        public boolean useBddp() {
+            return useBddp;
         }
 
         @Override
