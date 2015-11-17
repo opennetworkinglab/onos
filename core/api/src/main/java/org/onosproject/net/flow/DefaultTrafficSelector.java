@@ -358,6 +358,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchArpSha(MacAddress addr) {
+            return add(Criteria.matchArpSha(addr));
+        }
+
+        @Override
         public TrafficSelector build() {
             return new DefaultTrafficSelector(ImmutableSet.copyOf(selector.values()));
         }

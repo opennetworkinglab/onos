@@ -510,13 +510,23 @@ public final class Criteria {
     }
 
     /**
-     * Creates a match on IPv4 source field using the specified value.
+     * Creates a match on IPv4 destination field using the specified value.
      *
-     * @param ip ipv4 source value
+     * @param ip ipv4 destination value
      * @return match criterion
      */
     public static Criterion matchArpTpa(Ip4Address ip) {
         return new ArpPaCriterion(ip, Type.ARP_TPA);
+    }
+
+    /**
+     * Creates a match on MAC destination field using the specified value.
+     *
+     * @param mac MAC destination value
+     * @return match criterion
+     */
+    public static Criterion matchArpTha(MacAddress mac) {
+        return new ArpHaCriterion(mac, Type.ARP_THA);
     }
 
     /**
@@ -525,8 +535,8 @@ public final class Criteria {
      * @param mac MAC source value
      * @return match criterion
      */
-    public static Criterion matchArpTha(MacAddress mac) {
-        return new ArpHaCriterion(mac, Type.ARP_THA);
+    public static Criterion matchArpSha(MacAddress mac) {
+        return new ArpHaCriterion(mac, Type.ARP_SHA);
     }
 
     public static Criterion dummy() {

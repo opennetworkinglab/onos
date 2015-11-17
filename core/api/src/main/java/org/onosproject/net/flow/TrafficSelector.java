@@ -394,6 +394,14 @@ public interface TrafficSelector {
         Builder matchArpTha(MacAddress addr);
 
         /**
+         * Matches a arp_eth_src address.
+         *
+         * @param addr a arp_eth_src address
+         * @return a selection builder
+         */
+        Builder matchArpSha(MacAddress addr);
+
+        /**
          * Builds an immutable traffic selector.
          *
          * @return traffic selector
