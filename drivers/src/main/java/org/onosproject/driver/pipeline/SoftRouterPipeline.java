@@ -15,13 +15,6 @@
  */
 package org.onosproject.driver.pipeline;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
@@ -57,8 +50,15 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
-import org.slf4j.Logger;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  *  Simple 2-Table Pipeline for Software/NPU based routers. This pipeline
@@ -100,7 +100,7 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
         flowObjectiveStore = context.store();
         driverId = coreService.registerApplication(
-                "org.onosproject.driver.OVSCorsaPipeline");
+                "org.onosproject.driver.SoftRouterPipeline");
         filters = Collections.newSetFromMap(new ConcurrentHashMap<Filter, Boolean>());
         pendingVersatiles = Collections.newSetFromMap(
                                 new ConcurrentHashMap<ForwardingObjective, Boolean>());
