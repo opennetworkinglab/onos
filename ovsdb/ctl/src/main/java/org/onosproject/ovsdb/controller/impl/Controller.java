@@ -60,9 +60,9 @@ import org.slf4j.LoggerFactory;
  * The main controller class. Handles all setup and network listeners -
  * distributed OVSDBClient.
  */
-public class OVSDBController {
+public class Controller {
     protected static final Logger log = LoggerFactory
-            .getLogger(OVSDBController.class);
+            .getLogger(Controller.class);
 
     private int ovsdbPort = OvsdbConstant.OVSDBPORT;
 
@@ -251,12 +251,12 @@ public class OVSDBController {
     }
 
     private class ConnectionListener implements ChannelFutureListener {
-        private OVSDBController controller;
+        private Controller controller;
         private IpAddress ip;
         private TpPort port;
         private AtomicInteger count = new AtomicInteger();
 
-        public ConnectionListener(OVSDBController controller,
+        public ConnectionListener(Controller controller,
                                   IpAddress ip,
                                   TpPort port) {
             this.controller = controller;
