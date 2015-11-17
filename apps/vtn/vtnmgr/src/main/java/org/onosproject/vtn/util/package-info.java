@@ -17,4 +17,4 @@
 /**
  * VTN application that applies configuration and flows to the device.
  */
-package org.onosproject.vtn.impl;
+package org.onosproject.vtn.util;

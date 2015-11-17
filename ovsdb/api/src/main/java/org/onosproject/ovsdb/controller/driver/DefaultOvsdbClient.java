@@ -24,7 +24,9 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+
 import io.netty.channel.Channel;
+
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerInfo;
@@ -482,6 +484,76 @@ public class DefaultOvsdbClient
         } else {
             log.info("Update a bridge");
             updateConfig(OvsdbConstant.BRIDGE, "_uuid", bridgeUuid, bridge.getRow());
+        }
+
+        setControllerAuto(bridgeUuid);
+        log.info("Create bridge success");
+    }
+
+    @Override
+    public void createBridge(String bridgeName, String dpid, String exPortName) {
+        log.debug("create bridge {}", bridgeName);
+
+        DatabaseSchema dbSchema = schema.get(OvsdbConstant.DATABASENAME);
+        if (dbSchema == null) {
+            log.warn("The schema is null");
+            return;
+        }
+
+        Bridge bridge = (Bridge) TableGenerator.createTable(dbSchema,
+                                                            OvsdbTable.BRIDGE);
+        if (bridge == null) {
+            log.debug("Can not create bridge");
+            return;
+        }
+
+        Set<String> failModes = new HashSet<>();
+        failModes.add("secure");
+        bridge.setFailMode(failModes);
+
+        Set<String> protocols = new HashSet<>();
+        protocols.add(OvsdbConstant.OPENFLOW13);
+        bridge.setProtocols(protocols);
+
+        String ovsUuid = getOvsUuid(OvsdbConstant.DATABASENAME);
+        if (ovsUuid == null) {
+            log.warn("The Open_vSwitch is null");
+            return;
+        }
+
+        String bridgeUuid = getBridgeUuid(bridgeName);
+        if (bridgeUuid == null) {
+            log.debug("Create a new bridge");
+
+            bridge.setName(bridgeName);
+            if (dpid != null) {
+                Map<String, String> options = new HashMap<>();
+                options.put("datapath-id", dpid);
+                bridge.setOtherConfig(options);
+            }
+            bridgeUuid = insertConfig(OvsdbConstant.BRIDGE, "_uuid",
+                                      OvsdbConstant.DATABASENAME, "bridges",
+                                      ovsUuid, bridge.getRow());
+
+            if (bridgeUuid != null) {
+                Port port = (Port) TableGenerator.createTable(dbSchema,
+                                                              OvsdbTable.PORT);
+                if (port != null) {
+                    log.debug("the port is not null");
+                    port.setName(bridgeName);
+
+                    insertConfig(OvsdbConstant.PORT, "_uuid", "Bridge", "ports", bridgeUuid,
+                                 port.getRow());
+                }
+            }
+
+        } else {
+            log.info("Update a bridge");
+            updateConfig(OvsdbConstant.BRIDGE, "_uuid", bridgeUuid, bridge.getRow());
+        }
+        // Create external port
+        if (exPortName != null) {
+            createPort(bridgeName, exPortName);
         }
 
         setControllerAuto(bridgeUuid);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.vtn;
+package org.onosproject.vtn.manager;
 
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
@@ -24,18 +24,20 @@ import org.onosproject.net.Host;
 public interface VTNService {
 
     /**
-     * Creates a vxlan tunnel and creates the ovs when a ovs controller node is detected.
+     * Creates a vxlan tunnel and creates the ovs when a ovs controller node is
+     * detected.
      *
      * @param device controller-type device
      */
-    void onServerDetected(Device device);
+    void onControllerDetected(Device device);
 
     /**
-     * Drops a vxlan tunnel and drops the ovs when a ovs controller node is vanished.
+     * Drops a vxlan tunnel and drops the ovs when a ovs controller node is
+     * vanished.
      *
      * @param device controller-type device
      */
-    void onServerVanished(Device device);
+    void onControllerVanished(Device device);
 
     /**
      * Applies default forwarding flows when a ovs is detected.

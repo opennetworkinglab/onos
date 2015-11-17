@@ -18,6 +18,7 @@ package org.onosproject.ovsdb.controller.driver;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
+
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerInfo;
@@ -215,5 +216,10 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     @Override
     public ListenableFuture<List<JsonNode>> transact(DatabaseSchema dbSchema, List<Operation> operations) {
         return null;
+    }
+
+    @Override
+    public void createBridge(String bridgeName, String dpid, String exPortName) {
+
     }
 }

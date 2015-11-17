@@ -54,6 +54,13 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
     }
 
     @Override
+    public void addBridge(BridgeName bridgeName, String dpid, String exPortName) {
+        DriverHandler handler = handler();
+        OvsdbClientService clientService = getOvsdbClientService(handler);
+        clientService.createBridge(bridgeName.name(), dpid, exPortName);
+    }
+
+    @Override
     public boolean addBridge(BridgeName bridgeName, String dpid, List<ControllerInfo> controllers) {
         DriverHandler handler = handler();
         OvsdbClientService clientService = getOvsdbClientService(handler);

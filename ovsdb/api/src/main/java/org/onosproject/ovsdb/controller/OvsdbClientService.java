@@ -16,6 +16,7 @@
 package org.onosproject.ovsdb.controller;
 
 import com.google.common.util.concurrent.ListenableFuture;
+
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerInfo;
@@ -82,6 +83,15 @@ public interface OvsdbClientService extends OvsdbRPC {
      * @param bridgeName bridge name
      */
     void createBridge(String bridgeName);
+
+    /**
+     * Creates a bridge.
+     *
+     * @param bridgeName bridge name
+     * @param dpid data path id
+     * @param exPortName external port name
+     */
+    void createBridge(String bridgeName, String dpid, String exPortName);
 
     /**
      * Creates a bridge with given name and dpid.

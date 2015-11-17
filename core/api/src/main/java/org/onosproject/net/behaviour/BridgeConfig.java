@@ -36,6 +36,15 @@ public interface BridgeConfig extends HandlerBehaviour {
     void addBridge(BridgeName bridgeName);
 
     /**
+     * Adds a bridge with given bridge name, dpid and exPortName.
+     *
+     * @param bridgeName bridge name
+     * @param dpid dpid
+     * @param exPortName external port name
+     */
+    void addBridge(BridgeName bridgeName, String dpid, String exPortName);
+
+    /**
      * Adds a bridge with given bridge name and dpid, and sets the controller
      * of the bridge with given controllers.
      *
