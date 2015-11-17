@@ -27,55 +27,23 @@
     </parent>
 
     <artifactId>onos-openflow</artifactId>
-    <packaging>pom</packaging>
+    <packaging>bundle</packaging>
 
-    <description>OpenFlow protocol southbound providers</description>
+    <properties>
+        <onos.app.name>org.onosproject.openflow</onos.app.name>
+        <onos.app.requires>
+            org.onosproject.openflow-base,
+            org.onosproject.hostprovider,
+            org.onosproject.lldpprovider
+        </onos.app.requires>
+    </properties>
+
+    <description>OpenFlow southbound meta application</description>
 
     <dependencies>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-of-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-of-ctl</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-drivers</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-of-provider-device</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-of-provider-packet</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-of-provider-flow</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-of-provider-group</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-lldp-provider</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-host-provider</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+    <dependency>
+        <groupId>org.onosproject</groupId>
+        <artifactId>onos-of-api</artifactId>
+    </dependency>
     </dependencies>
-
 </project>

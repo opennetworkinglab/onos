@@ -183,21 +183,34 @@ public class GossipApplicationStore extends ApplicationArchive
      * they are marked to be active.
      */
     private void loadFromDisk() {
-        for (String name : getApplicationNames()) {
-            for (int i = 0; i < MAX_LOAD_RETRIES; i++) {
-                try {
-                    Application app = create(getApplicationDescription(name), false);
-                    if (app != null && isActive(app.id().name())) {
-                        requiredBy.put(app.id(), coreAppId);
-                        activate(app.id(), false);
-                        // load app permissions
-                    }
-                } catch (Exception e) {
-                    log.warn("Unable to load application {} from disk; retrying", name);
-                    randomDelay(RETRY_DELAY_MS);  // FIXME: This is a deliberate hack; fix in Drake
+        getApplicationNames().forEach(appName -> {
+            Application app = loadFromDisk(appName);
+            if (app != null && isActive(app.id().name())) {
+                activate(app.id(), false);
+                // TODO Load app permissions
+            }
+        });
+    }
+
+    private Application loadFromDisk(String appName) {
+        for (int i = 0; i < MAX_LOAD_RETRIES; i++) {
+            try {
+                // Directly return if app already exists
+                ApplicationId appId = getId(appName);
+                if (appId != null) {
+                    return getApplication(appId);
                 }
+
+                ApplicationDescription appDesc = getApplicationDescription(appName);
+                boolean success = appDesc.requiredApps().stream()
+                        .noneMatch(requiredApp -> loadFromDisk(requiredApp) == null);
+                return success ? create(appDesc, false) : null;
+            } catch (Exception e) {
+                log.warn("Unable to load application {} from disk; retrying", appName);
+                randomDelay(RETRY_DELAY_MS); //FIXME: This is a deliberate hack; fix in Falcon
             }
         }
+        return null;
     }
 
     @Deactivate

@@ -29,7 +29,11 @@
     <artifactId>onos-host-provider</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ONOS host tracking provider</description>
+    <properties>
+        <onos.app.name>org.onosproject.hostprovider</onos.app.name>
+    </properties>
+
+    <description>ONOS host location provider</description>
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
