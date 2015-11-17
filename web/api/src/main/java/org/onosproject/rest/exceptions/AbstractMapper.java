@@ -29,6 +29,11 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public abstract class AbstractMapper<E extends Throwable> implements ExceptionMapper<E> {
 
     /**
+     * Holds the current exception for use in subclasses.
+     */
+    protected Throwable error;
+
+    /**
      * Returns the response status to be given when the exception occurs.
      *
      * @return response status
@@ -37,6 +42,7 @@ public abstract class AbstractMapper<E extends Throwable> implements ExceptionMa
 
     @Override
     public Response toResponse(E exception) {
+        error = exception;
         return response(responseStatus(), exception).build();
     }
 
@@ -50,6 +56,7 @@ public abstract class AbstractMapper<E extends Throwable> implements ExceptionMa
      */
     protected Response.ResponseBuilder response(Response.Status status,
                                                 Throwable exception) {
+        error = exception;
         ObjectMapper mapper = new ObjectMapper();
         String message = messageFrom(exception);
         ObjectNode result = mapper.createObjectNode()

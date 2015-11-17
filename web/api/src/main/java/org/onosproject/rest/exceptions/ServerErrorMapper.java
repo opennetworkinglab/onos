@@ -18,13 +18,19 @@ package org.onosproject.rest.exceptions;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
+import org.slf4j.Logger;
+
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Mapper for service not found exceptions to the INTERNAL_SERVER_ERROR response code.
  */
 @Provider
 public class ServerErrorMapper extends AbstractMapper<RuntimeException> {
+    private static final Logger log = getLogger(ServerErrorMapper.class);
     @Override
     protected Response.Status responseStatus() {
+        log.warn("Unhandled REST exception", error);
         return Response.Status.INTERNAL_SERVER_ERROR;
     }
 }
