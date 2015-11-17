@@ -29,14 +29,10 @@ public interface OpenFlowSwitch {
 
     /**
      * Writes the message to the driver.
-     *
-     * Note:
-     * Calling {@link #sendMsg(OFMessage)} does NOT guarantee the messages to be
-     * transmitted on the wire in order, especially during role transition.
-     * The messages may be reordered at the switch side.
-     *
-     * Calling {@link #sendMsg(List)} guarantee the messages inside the list
-     * to be transmitted on the wire in order.
+     * <p>
+     * Note: Messages may be silently dropped/lost due to IOExceptions or
+     * role. If this is a concern, then a caller should use barriers.
+     * </p>
      *
      * @param msg the message to write
      */
@@ -44,6 +40,10 @@ public interface OpenFlowSwitch {
 
     /**
      * Writes the OFMessage list to the driver.
+     * <p>
+     * Note: Messages may be silently dropped/lost due to IOExceptions or
+     * role. If this is a concern, then a caller should use barriers.
+     * </p>
      *
      * @param msgs the messages to be written
      */
