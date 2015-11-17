@@ -131,6 +131,21 @@ public class OpenstackSwitchingRulePopulator {
     }
 
     /**
+     * Remove flows rules for the VM removed.
+     *
+     * @param deviceId device to remove rules
+     * @param vmIp IP address of the VM removed
+     */
+    public void removeSwitchingRules(DeviceId deviceId, Ip4Address vmIp) {
+        removeFlowRuleForVMsInSameCnode(deviceId, vmIp);
+        deviceService.getAvailableDevices().forEach(device -> {
+            if (!device.id().equals(deviceId)) {
+                removeVxLanFlowRule(device.id(), vmIp);
+            }
+        });
+    }
+
+    /**
      * Populates the flow rules for traffic to VMs in the same Cnode as the sender.
      *
      * @param device device to put the rules
@@ -170,9 +185,10 @@ public class OpenstackSwitchingRulePopulator {
                         Ip4Address hostIpx = Ip4Address.valueOf(cidx.split(":")[0]);
                         MacAddress vmMacx = getVmMacAddressForPort(pName);
                         Ip4Address fixedIpx = getFixedIpAddressForPort(pName);
-
-                        setVxLanFlowRule(vni, device.id(), hostIpx, fixedIpx, vmMacx);
-                        setVxLanFlowRule(vni, d.id(), hostIpAddress, fixedIp, vmMac);
+                        if (port.isEnabled()) {
+                            setVxLanFlowRule(vni, device.id(), hostIpx, fixedIpx, vmMacx);
+                            setVxLanFlowRule(vni, d.id(), hostIpAddress, fixedIp, vmMac);
+                        }
                     }
                 });
             }
@@ -246,7 +262,7 @@ public class OpenstackSwitchingRulePopulator {
                 .findFirst().orElse(null);
 
         if (port == null) {
-            log.error("There is port information for port name {}", portName);
+            log.error("There is no port information for port name {}", portName);
             return null;
         }
 
@@ -337,6 +353,40 @@ public class OpenstackSwitchingRulePopulator {
                 .withFlag(ForwardingObjective.Flag.SPECIFIC)
                 .fromApp(appId)
                 .add();
+
+        flowObjectiveService.forward(id, fo);
+    }
+
+    private void removeFlowRuleForVMsInSameCnode(DeviceId id, Ip4Address vmIp) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+
+        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(vmIp.toIpPrefix());
+
+        ForwardingObjective fo = DefaultForwardingObjective.builder()
+                .withSelector(sBuilder.build())
+                .withTreatment(DefaultTrafficTreatment.builder().build())
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(SWITCHING_RULE_PRIORITY)
+                .fromApp(appId)
+                .remove();
+
+        flowObjectiveService.forward(id, fo);
+    }
+
+    private void removeVxLanFlowRule(DeviceId id, Ip4Address vmIp) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        // XXX: Later, more matches will be added when multiple table is implemented.
+        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(vmIp.toIpPrefix());
+
+        ForwardingObjective fo = DefaultForwardingObjective.builder()
+                .withSelector(sBuilder.build())
+                .withTreatment(DefaultTrafficTreatment.builder().build())
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withPriority(SWITCHING_RULE_PRIORITY)
+                .fromApp(appId)
+                .remove();
 
         flowObjectiveService.forward(id, fo);
     }

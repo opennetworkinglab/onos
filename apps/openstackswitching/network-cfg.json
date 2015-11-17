@@ -32,19 +32,31 @@
                 "nodes" : [
                     {
                         "hostname" : "compute-01",
+<<<<<<< HEAD
                         "ovsdbIp" : "10.40.101.208",
+=======
+                        "ovsdbIp" : "127.0.0.1",
+>>>>>>> 6a78e2e... SONA: OpenstackSwitching - remove flows
                         "ovsdbPort" : "6640",
                         "bridgeId" : "of:0000000000000001"
                      },
                      {
                         "hostname" : "compute-02",
+<<<<<<< HEAD
                         "ovsdbIp" : "10.40.101.227",
+=======
+                        "ovsdbIp" : "127.0.0.1",
+>>>>>>> 6a78e2e... SONA: OpenstackSwitching - remove flows
                         "ovsdbPort" : "6640",
                         "bridgeId" : "of:0000000000000002"
                      },
                      {
                          "hostname" : "network",
+<<<<<<< HEAD
                          "ovsdbIp" : "10.40.101.209",
+=======
+                         "ovsdbIp" : "127.0.0.1",
+>>>>>>> 6a78e2e... SONA: OpenstackSwitching - remove flows
                          "ovsdbPort" : "6640",
                          "bridgeId" : "of:0000000000000003"
                      }

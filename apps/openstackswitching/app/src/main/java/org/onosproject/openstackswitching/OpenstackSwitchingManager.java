@@ -25,11 +25,14 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.dhcp.DhcpService;
+import org.onosproject.event.AbstractEvent;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.net.Port;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -39,7 +42,16 @@ import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
@@ -48,6 +60,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Collection;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -76,6 +89,9 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowObjectiveService flowObjectiveService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -86,6 +102,8 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
+
+    protected FlowRuleService flowRuleService;
 
     private ApplicationId appId;
     private boolean doNotPushFlows;
@@ -101,6 +119,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     private InternalPacketProcessor internalPacketProcessor = new InternalPacketProcessor();
     private InternalDeviceListener internalDeviceListener = new InternalDeviceListener();
     private InternalConfigListener internalConfigListener = new InternalConfigListener();
+    private InternalHostListener internalHostListener = new InternalHostListener();
     private final Set<ConfigFactory> factories = ImmutableSet.of(
             new ConfigFactory<ApplicationId, OpenstackSwitchingConfig>(APP_SUBJECT_FACTORY,
                     OpenstackSwitchingConfig.class,
@@ -120,6 +139,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         factories.forEach(cfgService::registerConfigFactory);
         packetService.addProcessor(internalPacketProcessor, PacketProcessor.director(1));
         deviceService.addListener(internalDeviceListener);
+        hostService.addListener(internalHostListener);
         cfgService.addListener(internalConfigListener);
 
         internalConfigListener.configureNetwork();
@@ -132,6 +152,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         packetService.removeProcessor(internalPacketProcessor);
         deviceService.removeListener(internalDeviceListener);
         cfgService.removeListener(internalConfigListener);
+        factories.forEach(cfgService::unregisterConfigFactory);
 
         deviceEventExcutorService.shutdown();
 
@@ -144,13 +165,12 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     }
 
     @Override
-    public void deletePorts() {
+    public void deletePort(String uuid) {
 
     }
 
     @Override
-    public void updatePorts() {
-
+    public void updatePort(OpenstackPort openstackPort) {
     }
 
     @Override
@@ -201,7 +221,8 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     }
 
     private void processPortAdded(Device device, Port port) {
-        if (!port.annotations().value("portName").equals("vxlan")) {
+        if (!port.annotations().value("portName").equals("vxlan")
+            && port.isEnabled() && !doNotPushFlows) {
             OpenstackSwitchingRulePopulator rulePopulator =
                     new OpenstackSwitchingRulePopulator(appId, flowObjectiveService,
                             deviceService, restHandler, driverService);
@@ -210,7 +231,6 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     }
 
     private void processPortRemoved(Device device, Port port) {
-        // TODO: Remove flow rules for the VM removed
         log.debug("port {} is removed", port.toString());
     }
 
@@ -236,6 +256,50 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                             );
                 }
         );
+    }
+
+    private void processHostRemoved(Host host) {
+        log.debug("host {} was removed", host.toString());
+
+        try {
+            if (!doNotPushFlows) {
+                IpAddress hostIp = host.ipAddresses().stream().
+                        filter(ip -> ip.isIp4()).findAny().orElse(null);
+                OpenstackSwitchingRulePopulator rulePopulator =
+                        new OpenstackSwitchingRulePopulator(appId, flowObjectiveService,
+                                deviceService, restHandler, driverService);
+                rulePopulator.removeSwitchingRules(host.location().deviceId(),
+                        hostIp.getIp4Address());
+            }
+
+            dhcpService.removeStaticMapping(host.mac());
+        } catch (NoSuchElementException e) {
+            log.error("No IP address is assigned.");
+        }
+    }
+
+    private long getVniFromFlowRules(DeviceId deviceId, Ip4Address hostIp) {
+
+        for (FlowEntry flowEntry: flowRuleService.getFlowEntries(deviceId)) {
+            Criterion c = flowEntry.selector().getCriterion(Criterion.Type.IPV4_DST);
+            if (c != null) {
+                IPCriterion destIpCriterion = (IPCriterion) c;
+                if (destIpCriterion.ip().getIp4Prefix().address().equals(hostIp)) {
+                    for (Instruction i : flowEntry.treatment().immediate()) {
+                        if (i.type().equals(Instruction.Type.L2MODIFICATION)) {
+                            L2ModificationInstruction l2m = (L2ModificationInstruction) i;
+                            if (l2m.subtype().equals(L2ModificationInstruction.L2SubType.TUNNEL_ID)) {
+                                L2ModificationInstruction.ModTunnelIdInstruction setTunnelInstr =
+                                        (L2ModificationInstruction.ModTunnelIdInstruction) l2m;
+                                return setTunnelInstr.tunnelId();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return 0;
     }
 
     private void registerDhcpInfo(OpenstackPort openstackPort) {
@@ -301,6 +365,14 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         }
     }
 
+    private class InternalHostListener implements HostListener {
+
+        @Override
+        public void event(HostEvent hostEvent) {
+            deviceEventExcutorService.execute(new InternalEventHandler(hostEvent));
+        }
+    }
+
     private class InternalDeviceListener implements DeviceListener {
 
         @Override
@@ -311,46 +383,56 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
     private class InternalEventHandler implements Runnable {
 
-        volatile DeviceEvent deviceEvent;
+        volatile AbstractEvent event;
 
-        InternalEventHandler(DeviceEvent deviceEvent) {
-            this.deviceEvent = deviceEvent;
+        InternalEventHandler(AbstractEvent event) {
+            this.event = event;
         }
 
         @Override
         public void run() {
 
-            if (doNotPushFlows) {
-                return;
-            }
+            if (event instanceof  DeviceEvent) {
+                DeviceEvent deviceEvent = (DeviceEvent) event;
 
-            switch (deviceEvent.type()) {
-                case DEVICE_ADDED:
-                    processDeviceAdded((Device) deviceEvent.subject());
-                    break;
-                case DEVICE_UPDATED:
-                    Port port = (Port) deviceEvent.subject();
-                    if (port.isEnabled()) {
+                switch (deviceEvent.type()) {
+                    case DEVICE_ADDED:
+                        processDeviceAdded((Device) deviceEvent.subject());
+                        break;
+                    case DEVICE_UPDATED:
+                        Port port = (Port) deviceEvent.subject();
+                        if (port.isEnabled()) {
+                            processPortAdded((Device) deviceEvent.subject(), deviceEvent.port());
+                        }
+                        break;
+                    case DEVICE_AVAILABILITY_CHANGED:
+                        Device device = (Device) deviceEvent.subject();
+                        if (deviceService.isAvailable(device.id())) {
+                            processDeviceAdded(device);
+                        }
+                        break;
+                    case PORT_ADDED:
                         processPortAdded((Device) deviceEvent.subject(), deviceEvent.port());
-                    }
-                    break;
-                case DEVICE_AVAILABILITY_CHANGED:
-                    Device device = (Device) deviceEvent.subject();
-                    if (deviceService.isAvailable(device.id())) {
-                        processDeviceAdded(device);
-                    }
-                    break;
-                case PORT_ADDED:
-                    processPortAdded((Device) deviceEvent.subject(), deviceEvent.port());
-                    break;
-                case PORT_UPDATED:
-                    processPortAdded((Device) deviceEvent.subject(), deviceEvent.port());
-                    break;
-                case PORT_REMOVED:
-                    processPortRemoved((Device) deviceEvent.subject(), deviceEvent.port());
-                    break;
-                default:
-                    break;
+                        break;
+                    case PORT_UPDATED:
+                        processPortAdded((Device) deviceEvent.subject(), deviceEvent.port());
+                        break;
+                    case PORT_REMOVED:
+                        processPortRemoved((Device) deviceEvent.subject(), deviceEvent.port());
+                        break;
+                    default:
+                        break;
+                }
+            } else if (event instanceof HostEvent) {
+                HostEvent hostEvent = (HostEvent) event;
+
+                switch (hostEvent.type()) {
+                    case HOST_REMOVED:
+                        processHostRemoved((Host) hostEvent.subject());
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
@@ -395,5 +477,4 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
             this.hostIp = hostIp;
         }
     }
-
 }
