@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -138,6 +139,23 @@ public abstract class Tools {
      */
     public static <T> T nullIsNotFound(T item, String message) {
         if (item == null) {
+            throw new ItemNotFoundException(message);
+        }
+        return item;
+    }
+
+    /**
+     * Returns the specified set if the set is not null and not empty;
+     * otherwise throws a not found exception.
+     *
+     * @param item set to check
+     * @param message not found message
+     * @param <T> Set item type
+     * @return item if not null and not empty
+     * @throws org.onlab.util.ItemNotFoundException if set is null or empty
+     */
+    public static <T> Set<T> emptyIsNotFound(Set<T> item, String message) {
+        if (item == null || item.isEmpty()) {
             throw new ItemNotFoundException(message);
         }
         return item;
