@@ -47,14 +47,8 @@
                 <configuration>
                     <instructions>
                         <Export-Package>
-                            io.atomix.catalyst.serializer;version="1.0.0-rc4",
-                            io.atomix.catalyst.buffer;version="1.0.0-rc4",
-                            io.atomix.catalyst.transport;version="1.0.0-rc4",
+                            io.atomix.catalyst.*
                         </Export-Package>
-                        <Private-Package>
-                            io.atomix.catalyst.*;version="1.0.0-rc4"
-                        </Private-Package>
-
                     </instructions>
                 </configuration>
             </plugin>
