@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.bgpio.types.attr;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -39,15 +40,25 @@ public class BgpAttrNodeMultiTopologyId implements BGPValueType {
     public static final int ATTRNODE_MULTITOPOLOGY = 263;
 
     /* Opaque Node Attribute */
-    private short[] multiTopologyId;
+    private List<Short> multiTopologyId = new ArrayList<Short>();
 
     /**
      * Constructor to initialize the Node attribute multi-topology ID.
      *
      * @param multiTopologyId multi-topology ID
      */
-    BgpAttrNodeMultiTopologyId(short[] multiTopologyId) {
+    public BgpAttrNodeMultiTopologyId(List<Short> multiTopologyId) {
         this.multiTopologyId = multiTopologyId;
+    }
+
+    /**
+     * Returns object of this class with specified values.
+     *
+     * @param multiTopologyId Prefix Metric
+     * @return object of BgpAttrNodeMultiTopologyId
+     */
+    public static BgpAttrNodeMultiTopologyId of(ArrayList<Short> multiTopologyId) {
+        return new BgpAttrNodeMultiTopologyId(multiTopologyId);
     }
 
     /**
@@ -59,21 +70,20 @@ public class BgpAttrNodeMultiTopologyId implements BGPValueType {
      */
     public static BgpAttrNodeMultiTopologyId read(ChannelBuffer cb)
             throws BGPParseException {
-
-        log.debug("BgpAttrNodeMultiTopologyId");
+        ArrayList<Short> multiTopologyId = new ArrayList<Short>();
+        short tempMultiTopologyId;
         short lsAttrLength = cb.readShort();
         int len = lsAttrLength / 2; // Length is 2*n and n is the number of MT-IDs
 
         if (cb.readableBytes() < lsAttrLength) {
             Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
                                    BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
-                                   cb.readableBytes());
+                                   lsAttrLength);
         }
 
-        short[] multiTopologyId;
-        multiTopologyId = new short[len];
         for (int i = 0; i < len; i++) {
-            multiTopologyId[i] = cb.readShort();
+            tempMultiTopologyId = cb.readShort();
+            multiTopologyId.add(new Short(tempMultiTopologyId));
         }
 
         return new BgpAttrNodeMultiTopologyId(multiTopologyId);
@@ -84,7 +94,7 @@ public class BgpAttrNodeMultiTopologyId implements BGPValueType {
      *
      * @return multitopology ID
      */
-    short[] getAttrMultiTopologyId() {
+    public List<Short> attrMultiTopologyId() {
         return multiTopologyId;
     }
 
@@ -113,7 +123,7 @@ public class BgpAttrNodeMultiTopologyId implements BGPValueType {
 
     @Override
     public int write(ChannelBuffer cb) {
-        // TODO Auto-generated method stub
+        // TODO This will be implemented in the next version
         return 0;
     }
 
