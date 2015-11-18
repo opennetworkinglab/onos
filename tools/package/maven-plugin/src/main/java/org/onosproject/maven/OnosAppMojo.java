@@ -163,7 +163,7 @@ public class OnosAppMojo extends AbstractMojo {
         origin = origin != null ? origin : DEFAULT_ORIGIN;
 
         requiredApps = (String) project.getProperties().get(ONOS_APP_REQUIRES);
-        requiredApps = requiredApps == null ? "" : requiredApps;
+        requiredApps = requiredApps == null ? "" : requiredApps.replaceAll("[\\s]", "");
 
         if (appFile.exists()) {
             loadAppFile(appFile);
