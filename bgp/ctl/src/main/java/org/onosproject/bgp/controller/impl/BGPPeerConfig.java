@@ -16,6 +16,7 @@
 package org.onosproject.bgp.controller.impl;
 
 import org.onlab.packet.Ip4Address;
+import org.onosproject.bgp.controller.BgpConnectPeer;
 import org.onosproject.bgp.controller.BGPPeerCfg;
 
 /**
@@ -28,6 +29,7 @@ public class BGPPeerConfig  implements BGPPeerCfg {
     private Ip4Address peerId = null;
     private State state;
     private boolean selfInitiated;
+    private BgpConnectPeer connectPeer;
 
     /**
      * Constructor to initialize the values.
@@ -105,5 +107,15 @@ public class BGPPeerConfig  implements BGPPeerCfg {
     @Override
     public void setSelfInnitConnection(boolean selfInit) {
         this.selfInitiated = selfInit;
+    }
+
+    @Override
+    public BgpConnectPeer connectPeer() {
+        return this.connectPeer;
+    }
+
+    @Override
+    public void setConnectPeer(BgpConnectPeer connectPeer) {
+        this.connectPeer = connectPeer;
     }
 }

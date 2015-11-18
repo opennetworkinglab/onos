@@ -163,4 +163,18 @@ public interface BGPPeerCfg {
      *          AS number
      */
     void setPeerRouterId(String peerId, int asNumber);
+
+    /**
+     * Set the peer connect instance.
+     *
+     * @param connectpeer connect peer instance
+     */
+    void setConnectPeer(BgpConnectPeer connectpeer);
+
+    /**
+     * Get the peer connect instance.
+     *
+     * @return peer connect instance
+     */
+    BgpConnectPeer connectPeer();
 }

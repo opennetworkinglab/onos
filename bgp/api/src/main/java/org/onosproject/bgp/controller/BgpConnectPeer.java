@@ -12,17 +12,17 @@
  */
 package org.onosproject.bgp.controller;
 
-import java.util.concurrent.ExecutorService;
-
 /**
  * Abstraction of an BGP connect peer, initiate remote connection to BGP peer on configuration.
  */
-public interface BGPConnectPeer {
+public interface BgpConnectPeer {
+    /**
+    * Initiate bgp peer connection.
+    */
+    void connectPeer();
 
     /**
-     * Returns the executor initialized to connect peer.
-     *
-     * @return connectExecutor the connection executor
-     */
-    ExecutorService connectExecutor();
+    * End bgp peer connection.
+    */
+    void disconnectPeer();
 }
