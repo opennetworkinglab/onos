@@ -40,7 +40,7 @@
             <step name="Check-Components-${#}"
                   exec="onos-check-components ${OC#}"
                   requires="~Wait-for-Start-${#},"/>
-            <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#}"
+            <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#} ${ONOS_APPS} includes"
                   requires="~Wait-for-Start-${#}"/>
         </parallel>
     </group>

@@ -24,7 +24,7 @@ for attempt in {1..3}; do
     # Check for differences
     case ${3:-equals} in
     equals) diff $aux.1 $aux.2;;
-    includes) [ $(egrep -c -f $aux.2 $aux.1) -eq $(wc -l $aux.2 | sed "s|$aux.2||g") ];;
+    includes) [ $(egrep -c -f $aux.2 $aux.1) -ge $(wc -l $aux.2 | sed "s|$aux.2||g") ];;
     excludes) ! egrep -f $aux.2 $aux.1;;
     esac
 
