@@ -16,7 +16,6 @@
 package org.onosproject.bgpio.types.attr;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.exceptions.BGPParseException;
@@ -46,8 +45,18 @@ public class BgpLinkAttrName implements BGPValueType {
      *
      * @param linkName link name
      */
-    BgpLinkAttrName(byte[] linkName) {
+    public BgpLinkAttrName(byte[] linkName) {
         this.linkName = Arrays.copyOf(linkName, linkName.length);
+    }
+
+    /**
+     * Returns object of this class with specified values.
+     *
+     * @param linkName Prefix Metric
+     * @return object of BgpLinkAttrName
+     */
+    public static BgpLinkAttrName of(byte[] linkName) {
+        return new BgpLinkAttrName(linkName);
     }
 
     /**
@@ -70,7 +79,7 @@ public class BgpLinkAttrName implements BGPValueType {
 
         linkName = new byte[lsAttrLength];
         cb.readBytes(linkName);
-        return new BgpLinkAttrName(linkName);
+        return BgpLinkAttrName.of(linkName);
     }
 
     /**
@@ -78,7 +87,7 @@ public class BgpLinkAttrName implements BGPValueType {
      *
      * @return link name
      */
-    byte[] getAttrLinkName() {
+    public byte[] attrLinkName() {
         return linkName;
     }
 
@@ -89,7 +98,7 @@ public class BgpLinkAttrName implements BGPValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(linkName);
+        return Arrays.hashCode(linkName);
     }
 
     @Override
@@ -100,7 +109,7 @@ public class BgpLinkAttrName implements BGPValueType {
 
         if (obj instanceof BgpLinkAttrName) {
             BgpLinkAttrName other = (BgpLinkAttrName) obj;
-            return Objects.equals(linkName, other.linkName);
+            return Arrays.equals(linkName, other.linkName);
         }
         return false;
     }
