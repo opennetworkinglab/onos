@@ -353,6 +353,10 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
      * or calls {@link #removePort(Port)} otherwise.
      */
     private void updatePort(LinkDiscovery discoverer, Port port) {
+        if (port.number().isLogical()) {
+            // silently ignore logical ports
+            return;
+        }
         if (rules.isSuppressed(port)) {
             log.trace("LinkDiscovery from {} disabled by configuration", port);
             removePort(port);
@@ -365,9 +369,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
             return;
         }
 
-        if (!port.number().isLogical()) {
-            discoverer.addPort(port);
-        }
+        discoverer.addPort(port);
     }
 
     /**
