@@ -15,15 +15,12 @@
  */
 package org.onosproject.vtnweb.resources;
 
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static org.onlab.util.Tools.nullIsNotFound;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.OK;
+import static org.onlab.util.Tools.nullIsNotFound;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.UUID;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -36,13 +33,17 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.FlowClassifierId;
-import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.vtnrsc.flowclassifier.FlowClassifierService;
 import org.onosproject.vtnweb.web.FlowClassifierCodec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -51,106 +52,84 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Path("flow_classifiers")
 public class FlowClassifierWebResource extends AbstractWebResource {
 
+    private final Logger log = LoggerFactory.getLogger(FlowClassifierWebResource.class);
+
     final FlowClassifierService service = get(FlowClassifierService.class);
-    final ObjectNode root = mapper().createObjectNode();
     public static final String FLOW_CLASSIFIER_NOT_FOUND = "Flow classifier not found";
 
     /**
-     * Get all flow classifiers created. Returns list of all flow classifiers
-     * created.
+     * Get all flow classifiers created.
      *
-     * @return 200 OK
+     * @return 200 OK, 404 if given flow classifier does not exist
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFlowClassifiers() {
-        Iterable<FlowClassifier> flowClassifiers = service.getFlowClassifiers();
+        final Iterable<FlowClassifier> flowClassifiers = service.getFlowClassifiers();
         ObjectNode result = new ObjectMapper().createObjectNode();
-        result.set("flow_classifiers", new FlowClassifierCodec().encode(flowClassifiers, this));
+        ArrayNode flowClassifierEntry = result.putArray("flow_classifiers");
+        if (flowClassifiers != null) {
+            for (final FlowClassifier flowClassifier : flowClassifiers) {
+                flowClassifierEntry.add(new FlowClassifierCodec().encode(flowClassifier, this));
+            }
+        }
         return ok(result.toString()).build();
     }
 
     /**
-     * Get details of a flow classifier. Returns details of a specified flow
-     * classifier id.
+     * Get details of a flow classifier.
      *
      * @param id flow classifier id
-     * @return 200 OK
+     * @return 200 OK , 404 if given identifier does not exist
      */
     @GET
     @Path("{flow_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFlowClassifier(@PathParam("flow_id") String id) {
 
-        if (!service.hasFlowClassifier(FlowClassifierId.of(UUID.fromString(id)))) {
+        if (!service.hasFlowClassifier(FlowClassifierId.of(id))) {
             return Response.status(NOT_FOUND).entity(FLOW_CLASSIFIER_NOT_FOUND).build();
         }
-        FlowClassifier flowClassifier = nullIsNotFound(
-                service.getFlowClassifier(FlowClassifierId.of(UUID.fromString(id))),
+        FlowClassifier flowClassifier = nullIsNotFound(service.getFlowClassifier(FlowClassifierId.of(id)),
                 FLOW_CLASSIFIER_NOT_FOUND);
 
         ObjectNode result = new ObjectMapper().createObjectNode();
         result.set("flow_classifier", new FlowClassifierCodec().encode(flowClassifier, this));
+
         return ok(result.toString()).build();
     }
 
     /**
      * Creates and stores a new flow classifier.
      *
-     * @param flowClassifierId flow classifier identifier
      * @param stream flow classifier from JSON
      * @return status of the request - CREATED if the JSON is correct,
-     *         BAD_REQUEST if the JSON is invalid
-     */
-    @POST
-    @Path("{flow_id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response createFlowClassifier(@PathParam("flow_id") String flowClassifierId, InputStream stream) {
-        URI location;
-        try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-
-            FlowClassifier flowClassifier = codec(FlowClassifier.class).decode(jsonTree, this);
-            service.createFlowClassifier(flowClassifier);
-            location = new URI(flowClassifierId);
-        } catch (IOException | URISyntaxException ex) {
-            throw new IllegalArgumentException(ex);
-        }
-        return Response.created(location).build();
-    }
-
-    /**
-     * Creates and stores a new flow classifier.
-     *
-     * @param stream flow classifier from JSON
-     * @return status of the request - CREATED if the JSON is correct,
-     *         BAD_REQUEST if the JSON is invalid
+     * BAD_REQUEST if the JSON is invalid
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createFlowClassifier(InputStream stream) {
-        URI location;
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode jsonTree = (ObjectNode) mapper.readTree(stream);
+            JsonNode flow = jsonTree.get("flow_classifier");
 
-            FlowClassifier flowClassifier = codec(FlowClassifier.class).decode(jsonTree, this);
-            service.createFlowClassifier(flowClassifier);
-            location = new URI(flowClassifier.flowClassifierId().toString());
-        } catch (IOException | URISyntaxException ex) {
+            FlowClassifier flowClassifier = new FlowClassifierCodec().decode((ObjectNode) flow, this);
+            Boolean issuccess = nullIsNotFound(service.createFlowClassifier(flowClassifier), FLOW_CLASSIFIER_NOT_FOUND);
+            return Response.status(OK).entity(issuccess.toString()).build();
+        } catch (IOException ex) {
+            log.error("Exception while creating flow classifier {}.", ex.toString());
             throw new IllegalArgumentException(ex);
         }
-        return Response.created(location).build();
     }
 
     /**
-     * Update details of a flow classifier. Update details of a specified flow
-     * classifier id.
+     * Update details of a flow classifier.
      *
      * @param id flow classifier id
      * @param stream InputStream
-     * @return 200 OK
+     * @return 200 OK, 404 if given identifier does not exist
      */
     @PUT
     @Path("{flow_id}")
@@ -158,35 +137,29 @@ public class FlowClassifierWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateFlowClassifier(@PathParam("flow_id") String id, final InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            FlowClassifier flowClassifier = codec(FlowClassifier.class).decode(jsonTree, this);
+
+            JsonNode jsonTree = mapper().readTree(stream);
+            JsonNode flow = jsonTree.get("flow_classifier");
+            FlowClassifier flowClassifier = new FlowClassifierCodec().decode((ObjectNode) flow, this);
             Boolean result = nullIsNotFound(service.updateFlowClassifier(flowClassifier), FLOW_CLASSIFIER_NOT_FOUND);
-            if (!result) {
-                return Response.status(204).entity(FLOW_CLASSIFIER_NOT_FOUND).build();
-            }
-            return Response.status(203).entity(result.toString()).build();
-        } catch (Exception e) {
-            return Response.status(INTERNAL_SERVER_ERROR).entity(e.toString()).build();
+            return Response.status(OK).entity(result.toString()).build();
+        } catch (IOException e) {
+            log.error("Update flow classifier failed because of exception {}.", e.toString());
+            throw new IllegalArgumentException(e);
         }
     }
 
     /**
-     * Delete details of a flow classifier. Delete details of a specified flow
-     * classifier id.
+     * Delete details of a flow classifier.
      *
      * @param id flow classifier id
-     * @return 200 OK
-     * @throws IOException when input doesn't match.
      */
     @Path("{flow_id}")
     @DELETE
-    public Response deleteFlowClassifier(@PathParam("flow_id") String id) throws IOException {
-        try {
-            FlowClassifierId flowClassifierId = FlowClassifierId.of(UUID.fromString(id));
-            service.removeFlowClassifier(flowClassifierId);
-            return Response.status(201).entity("SUCCESS").build();
-        } catch (Exception e) {
-            return Response.status(INTERNAL_SERVER_ERROR).entity(e.toString()).build();
-        }
+    public void deleteFlowClassifier(@PathParam("flow_id") String id) {
+        log.debug("Deletes flow classifier by identifier {}.", id);
+        FlowClassifierId flowClassifierId = FlowClassifierId.of(id);
+        Boolean issuccess = nullIsNotFound(service.removeFlowClassifier(flowClassifierId), FLOW_CLASSIFIER_NOT_FOUND);
+
     }
 }
