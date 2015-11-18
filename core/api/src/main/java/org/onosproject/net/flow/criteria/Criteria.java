@@ -520,6 +520,16 @@ public final class Criteria {
     }
 
     /**
+     * Creates a match on IPv4 source field using the specified value.
+     *
+     * @param ip ipv4 source value
+     * @return match criterion
+     */
+    public static Criterion matchArpSpa(Ip4Address ip) {
+        return new ArpPaCriterion(ip, Type.ARP_SPA);
+    }
+
+    /**
      * Creates a match on MAC destination field using the specified value.
      *
      * @param mac MAC destination value

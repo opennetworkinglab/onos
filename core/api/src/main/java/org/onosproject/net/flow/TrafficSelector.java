@@ -395,6 +395,14 @@ public interface TrafficSelector {
         Builder matchArpTpa(Ip4Address addr);
 
         /**
+         * Matches a arp IPv4 source address.
+         *
+         * @param addr a arp IPv4 source address
+         * @return a selection builder
+         */
+        Builder matchArpSpa(Ip4Address addr);
+
+        /**
          * Matches a arp_eth_dst address.
          *
          * @param addr a arp_eth_dst address

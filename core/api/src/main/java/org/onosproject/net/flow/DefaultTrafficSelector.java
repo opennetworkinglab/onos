@@ -359,6 +359,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchArpSpa(Ip4Address addr) {
+            return add(Criteria.matchArpSpa(addr));
+        }
+
+        @Override
         public Builder matchArpTha(MacAddress addr) {
             return add(Criteria.matchArpTha(addr));
         }
