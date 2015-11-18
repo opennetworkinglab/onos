@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,57 @@
  */
 package org.onosproject.incubator.rpc.impl;
 
+import static org.junit.Assert.*;
+
+import java.net.URI;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.incubator.rpc.RemoteServiceContext;
+import org.onosproject.incubator.rpc.RemoteServiceDirectory;
+import org.onosproject.incubator.rpc.impl.LocalRemoteServiceProvider.SomeOtherService;
 
 /**
- * Set of tests of the ONOS application component.
+ * Set of tests of the RemoteServiceManager component.
  */
 public class RemoteServiceManagerTest {
 
-    private RemoteServiceManager component;
+    private static final URI LOCAL_URI = URI.create("local://whateverIgnored");
+
+    private RemoteServiceManager rpcManager;
+    private RemoteServiceDirectory rpcDirectory;
+
+    private LocalRemoteServiceProvider rpcProvider;
 
     @Before
     public void setUp() {
-        component = new RemoteServiceManager();
-        component.activate();
+        rpcManager = new RemoteServiceManager();
+        rpcManager.activate();
+        rpcDirectory = rpcManager;
+
+        rpcProvider = new LocalRemoteServiceProvider();
+        rpcProvider.rpcRegistry = rpcManager;
+        rpcProvider.activate();
 
     }
 
     @After
     public void tearDown() {
-        component.deactivate();
+        rpcProvider.deactivate();
+
+        rpcManager.deactivate();
     }
 
     @Test
     public void basics() {
+        RemoteServiceContext remoteServiceContext = rpcDirectory.get(LOCAL_URI);
+        assertNotNull("Expecting valid RPC context", remoteServiceContext);
 
+        SomeOtherService someService = remoteServiceContext.get(SomeOtherService.class);
+        assertNotNull("Expecting reference to sample service", someService);
+
+        assertEquals("Goodbye", someService.hello());
     }
 
 }
