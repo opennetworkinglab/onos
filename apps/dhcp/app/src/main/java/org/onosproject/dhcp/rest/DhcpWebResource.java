@@ -68,6 +68,7 @@ public class DhcpWebResource extends AbstractWebResource {
      * Get all MAC/IP mappings.
      * Shows all MAC/IP mappings held by the DHCP server.
      *
+     * @rsModel DhcpConfigGetMappings
      * @return 200 OK
      */
     @GET
@@ -89,6 +90,7 @@ public class DhcpWebResource extends AbstractWebResource {
      * Get all available IPs.
      * Shows all the IPs in the free pool of the DHCP Server.
      *
+     * @rsModel DhcpConfigGetAvailable
      * @return 200 OK
      */
     @GET

@@ -46,6 +46,7 @@ public class DevicesWebResource extends AbstractWebResource {
      * Returns array of all discovered infrastructure devices.
      *
      * @return 200 OK
+     * @rsModel DevicesGet
      */
     @GET
     public Response getDevices() {
@@ -59,6 +60,7 @@ public class DevicesWebResource extends AbstractWebResource {
      *
      * @param id device identifier
      * @return 200 OK
+     * @rsModel DeviceGet
      */
     @GET
     @Path("{id}")
@@ -89,6 +91,7 @@ public class DevicesWebResource extends AbstractWebResource {
      * Get ports of infrastructure device.
      * Returns details of the specified infrastructure device.
      *
+     * @rsModel DeviceGetPorts
      * @param id device identifier
      * @return 200 OK
      */

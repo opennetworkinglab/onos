@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "required": [
+    "mappings"
+  ],
+  "properties": {
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "example": "[]"
+    }
+  }
+}
+
