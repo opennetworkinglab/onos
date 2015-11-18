@@ -23,12 +23,16 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.incubator.component.ComponentService;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.routing.IntentSynchronizationAdminService;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.routing.RoutingService;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -59,12 +63,24 @@ public class SdnIp {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentSynchronizationAdminService intentSynchronizerAdmin;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentService componentService;
+
     private PeerConnectivityManager peerConnectivity;
 
     private ApplicationId appId;
 
+    private static List<String> components = new ArrayList<>();
+    static {
+        components.add("org.onosproject.routing.bgp.BgpSessionManager");
+        components.add("org.onosproject.routing.impl.Router");
+        components.add(org.onosproject.sdnip.SdnIpFib.class.getName());
+    }
+
     @Activate
     protected void activate() {
+        components.forEach(name -> componentService.activate(appId, name));
+
         appId = coreService.registerApplication(SDN_IP_APP);
 
         peerConnectivity = new PeerConnectivityManager(appId,
@@ -83,6 +99,8 @@ public class SdnIp {
 
     @Deactivate
     protected void deactivate() {
+        components.forEach(name -> componentService.deactivate(appId, name));
+
         peerConnectivity.stop();
 
         log.info("SDN-IP Stopped");

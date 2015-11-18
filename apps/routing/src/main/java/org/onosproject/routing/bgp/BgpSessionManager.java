@@ -55,7 +55,7 @@ import static org.onlab.util.Tools.groupedThreads;
 /**
  * BGP Session Manager class.
  */
-@Component(immediate = true)
+@Component(immediate = true, enabled = false)
 @Service
 public class BgpSessionManager implements BgpInfoService, BgpService {
     private static final Logger log =

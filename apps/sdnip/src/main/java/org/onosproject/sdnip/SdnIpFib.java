@@ -58,7 +58,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * FIB component of SDN-IP.
  */
-@Component(immediate = true)
+@Component(immediate = true, enabled = false)
 public class SdnIpFib {
     private Logger log = LoggerFactory.getLogger(getClass());
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.bgprouter;
+package org.onosproject.routing.impl;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.common.collect.HashMultimap;
@@ -70,8 +70,8 @@ import java.util.Set;
 /**
  * Programs routes to a single OpenFlow switch.
  */
-@Component(immediate = true)
-public class SingleSwitchRouter {
+@Component(immediate = true, enabled = false)
+public class SingleSwitchFibInstaller {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -129,7 +129,7 @@ public class SingleSwitchRouter {
 
         getDeviceConfiguration(bgpConfig);
 
-        appId = coreService.getAppId(BgpRouter.BGP_ROUTER_APP);
+        appId = coreService.getAppId(RoutingService.ROUTER_APP_ID);
 
         deviceListener = new InnerDeviceListener();
         deviceService.addListener(deviceListener);
@@ -376,8 +376,8 @@ public class SingleSwitchRouter {
         @Override
         public void update(Collection<FibUpdate> updates,
                            Collection<FibUpdate> withdraws) {
-            SingleSwitchRouter.this.deleteFibEntry(withdraws);
-            SingleSwitchRouter.this.updateFibEntry(updates);
+            SingleSwitchFibInstaller.this.deleteFibEntry(withdraws);
+            SingleSwitchFibInstaller.this.updateFibEntry(updates);
         }
     }
 

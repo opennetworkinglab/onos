@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgprouter;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+package org.onosproject.routing.impl;
+
+import com.google.common.base.MoreObjects;
+import org.onlab.packet.IpAddress;
 
 import java.util.Objects;
 
-import org.onlab.packet.IpAddress;
-
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Identifier for a next hop group.

@@ -72,7 +72,7 @@ import static org.onosproject.routing.RouteEntry.createBinaryString;
  * (RIB). After route updates have been processed and next hops have been
  * resolved, FIB updates are sent to any listening FIB components.
  */
-@Component(immediate = true)
+@Component(immediate = true, enabled = false)
 @Service
 public class Router implements RoutingService {
 
