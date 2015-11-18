@@ -28,8 +28,8 @@ public final class BGPErrorType {
     public static final byte OPEN_MESSAGE_ERROR = 2;
     public static final byte UPDATE_MESSAGE_ERROR = 3;
     public static final byte HOLD_TIMER_EXPIRED = 4;
-    public static final byte FINITE_STATE_MACHINE_ERROR = 4;
-    public static final byte CEASE = 5;
+    public static final byte FINITE_STATE_MACHINE_ERROR = 5;
+    public static final byte CEASE = 6;
 
     //Message Header Error subcodes
     public static final byte CONNECTION_NOT_SYNCHRONIZED = 1;
@@ -42,6 +42,7 @@ public final class BGPErrorType {
     public static final byte BAD_BGP_IDENTIFIER = 3;
     public static final byte UNSUPPORTED_OPTIONAL_PARAMETER = 4;
     public static final byte UNACCEPTABLE_HOLD_TIME = 5;
+    public static final byte UNSUPPORTED_CAPABILITY = 7;
 
     //UPDATE Message Error subcodes
     public static final byte MALFORMED_ATTRIBUTE_LIST = 1;

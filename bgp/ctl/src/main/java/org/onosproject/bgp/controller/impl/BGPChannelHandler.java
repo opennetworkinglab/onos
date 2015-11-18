@@ -17,14 +17,20 @@
 package org.onosproject.bgp.controller.impl;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.nio.channels.ClosedChannelException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.LinkedList;
+import java.util.ListIterator;
 import java.util.concurrent.RejectedExecutionException;
 
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
@@ -47,6 +53,10 @@ import org.onosproject.bgpio.protocol.BGPMessage;
 import org.onosproject.bgpio.protocol.BGPOpenMsg;
 import org.onosproject.bgpio.protocol.BGPType;
 import org.onosproject.bgpio.protocol.BGPVersion;
+import org.onosproject.bgpio.types.BGPErrorType;
+import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.types.FourOctetAsNumCapabilityTlv;
+import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +66,7 @@ import org.slf4j.LoggerFactory;
 class BGPChannelHandler extends IdleStateAwareChannelHandler {
 
     private static final Logger log = LoggerFactory.getLogger(BGPChannelHandler.class);
-
+    static final int BGP_MIN_HOLDTIME = 3;
     static final int BGP_MAX_KEEPALIVE_INTERVAL = 3;
     private BGPPeer bgpPeer;
     private BGPId thisbgpId;
@@ -68,6 +78,13 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
     private int peerIdentifier;
     private BGPPacketStatsImpl bgpPacketStats;
     static final int MAX_WRONG_COUNT_PACKET = 5;
+    static final byte MULTI_PROTOCOL_EXTN_CAPA_TYPE = 1;
+    static final byte FOUR_OCTET_AS_NUM_CAPA_TYPE = 65;
+    static final int AS_TRANS = 23456;
+    static final int MAX_AS2_NUM = 65535;
+    static final short AFI = 16388;
+    static final byte RES = 0;
+    static final byte SAFI = 71;
 
     // State needs to be volatile because the HandshakeTimeoutHandler
     // needs to check if the handshake is complete
@@ -636,15 +653,197 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
     }
 
     /**
-     * Open message validation.
+     * BGP open message validation.
      *
      * @param h channel handler
-     * @param pOpenmsg open message
-     * @return true if validation succeed, otherwise false
-     * @throws BGPParseException when received invalid message
+     * @param openMsg open message
+     * @return true if valid message, otherwise false
+     * @throws BGPParseException throw exception
      */
-    public boolean openMsgValidation(BGPChannelHandler h, BGPOpenMsg pOpenmsg) throws BGPParseException {
-        // TODO: Open message validation.
+    public boolean openMsgValidation(BGPChannelHandler h, BGPOpenMsg openMsg) throws BGPParseException {
+        boolean result;
+
+        // Validate BGP ID
+        result = bgpIdValidation(openMsg);
+        if (!result) {
+            throw new BGPParseException(BGPErrorType.OPEN_MESSAGE_ERROR, BGPErrorType.BAD_BGP_IDENTIFIER, null);
+        }
+
+        // Validate AS number
+        result = asNumberValidation(h, openMsg);
+        if (!result) {
+            throw new BGPParseException(BGPErrorType.OPEN_MESSAGE_ERROR, BGPErrorType.BAD_PEER_AS, null);
+        }
+
+        // Validate hold timer
+        if ((openMsg.getHoldTime() != 0) && (openMsg.getHoldTime() < BGP_MIN_HOLDTIME)) {
+            throw new BGPParseException(BGPErrorType.OPEN_MESSAGE_ERROR, BGPErrorType.UNACCEPTABLE_HOLD_TIME, null);
+        }
+
+        // Validate capabilities
+        result = capabilityValidation(h, openMsg);
+        return result;
+    }
+
+    /**
+     * Capability Validation.
+     *
+     * @param h channel handler
+     * @param openmsg open message
+     * @return success or failure
+     * @throws BGPParseException
+     */
+    private boolean capabilityValidation(BGPChannelHandler h, BGPOpenMsg openmsg) throws BGPParseException {
+        log.debug("capabilityValidation");
+
+        boolean isMultiProtocolcapabilityExists = false;
+        boolean isFourOctetCapabilityExits = false;
+        int capAsNum = 0;
+
+        List<BGPValueType> capabilityTlv = openmsg.getCapabilityTlv();
+        ListIterator<BGPValueType> listIterator = capabilityTlv.listIterator();
+        List<BGPValueType> unSupportedCapabilityTlv = new LinkedList<>();
+        ListIterator<BGPValueType> unSupportedCaplistIterator = unSupportedCapabilityTlv.listIterator();
+        BGPValueType tempTlv;
+        boolean isLargeAsCapabilityCfg = h.bgpconfig.getLargeASCapability();
+        boolean isLsCapabilityCfg = h.bgpconfig.getLsCapability();
+
+        while (listIterator.hasNext()) {
+            BGPValueType tlv = listIterator.next();
+            if (tlv.getType() == MULTI_PROTOCOL_EXTN_CAPA_TYPE) {
+                isMultiProtocolcapabilityExists = true;
+            }
+            if (tlv.getType() == FOUR_OCTET_AS_NUM_CAPA_TYPE) {
+                isFourOctetCapabilityExits = true;
+                capAsNum = ((FourOctetAsNumCapabilityTlv) tlv).getInt();
+            }
+        }
+
+        if (isFourOctetCapabilityExits) {
+            if (capAsNum > MAX_AS2_NUM) {
+                if (openmsg.getAsNumber() != AS_TRANS) {
+                    throw new BGPParseException(BGPErrorType.OPEN_MESSAGE_ERROR, BGPErrorType.BAD_PEER_AS, null);
+                }
+            } else {
+                if (capAsNum != openmsg.getAsNumber()) {
+                    throw new BGPParseException(BGPErrorType.OPEN_MESSAGE_ERROR, BGPErrorType.BAD_PEER_AS, null);
+                }
+            }
+        }
+
+        if ((isLsCapabilityCfg)) {
+            if (!isMultiProtocolcapabilityExists) {
+                tempTlv = new MultiProtocolExtnCapabilityTlv(AFI, RES, SAFI);
+                unSupportedCapabilityTlv.add(tempTlv);
+            }
+        }
+
+        if ((isLargeAsCapabilityCfg)) {
+            if (!isFourOctetCapabilityExits) {
+                tempTlv = new FourOctetAsNumCapabilityTlv(h.bgpconfig.getAsNumber());
+                unSupportedCapabilityTlv.add(tempTlv);
+            }
+        }
+
+        if (unSupportedCaplistIterator.hasNext()) {
+            ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+            while (unSupportedCaplistIterator.hasNext()) {
+                BGPValueType tlv = unSupportedCaplistIterator.next();
+                tlv.write(buffer);
+            }
+            throw new BGPParseException(BGPErrorType.OPEN_MESSAGE_ERROR,
+                    BGPErrorType.UNSUPPORTED_CAPABILITY, buffer);
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * AS Number Validation.
+     *
+     * @param h channel Handler
+     * @param openMsg open message
+     * @return true or false
+     */
+    private boolean asNumberValidation(BGPChannelHandler h, BGPOpenMsg openMsg) {
+        log.debug("AS Num validation");
+
+        int capAsNum = 0;
+        boolean isFourOctetCapabilityExits = false;
+
+        BGPPeerCfg peerCfg = h.bgpconfig.displayPeers(peerAddr);
+        List<BGPValueType> capabilityTlv = openMsg.getCapabilityTlv();
+        ListIterator<BGPValueType> listIterator = capabilityTlv.listIterator();
+
+        while (listIterator.hasNext()) {
+            BGPValueType tlv = listIterator.next();
+            if (tlv.getType() == FOUR_OCTET_AS_NUM_CAPA_TYPE) {
+                isFourOctetCapabilityExits = true;
+                capAsNum = ((FourOctetAsNumCapabilityTlv) tlv).getInt();
+            }
+        }
+
+        if (peerCfg.getAsNumber() > MAX_AS2_NUM) {
+            if (openMsg.getAsNumber() != AS_TRANS) {
+                return false;
+            }
+
+            if (!isFourOctetCapabilityExits) {
+                return false;
+            }
+
+            if (peerCfg.getAsNumber() != capAsNum) {
+                return false;
+            }
+
+            isIbgpSession = peerCfg.getIsIBgp();
+            if (isIbgpSession) {
+                // IBGP - AS number should be same for Peer and local if it is IBGP
+                if (h.bgpconfig.getAsNumber() != capAsNum) {
+                    return false;
+                }
+            }
+        } else {
+
+            if (openMsg.getAsNumber() != peerCfg.getAsNumber()) {
+                return false;
+            }
+
+            if (isFourOctetCapabilityExits) {
+                if (capAsNum != peerCfg.getAsNumber()) {
+                    return false;
+                }
+            }
+
+            isIbgpSession = peerCfg.getIsIBgp();
+            if (isIbgpSession) {
+                // IBGP - AS number should be same for Peer and local if it is IBGP
+                if (openMsg.getAsNumber() != h.bgpconfig.getAsNumber()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Validates BGP ID.
+     *
+     * @param openMsg open message
+     * @return true or false
+     */
+    private boolean bgpIdValidation(BGPOpenMsg openMsg) {
+        String openMsgBgpId = Ip4Address.valueOf(openMsg.getBgpId()).toString();
+
+        InetAddress ipAddress;
+        try {
+            ipAddress = InetAddress.getByName(openMsgBgpId);
+            if (ipAddress.isMulticastAddress()) {
+                return false;
+            }
+        } catch (UnknownHostException e) {
+            log.debug("InetAddress convertion failed");
+        }
         return true;
     }
 }
