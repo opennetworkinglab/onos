@@ -60,7 +60,7 @@ public class FlowClassifierWebResource extends AbstractWebResource {
     /**
      * Get all flow classifiers created.
      *
-     * @return 200 OK, 404 if given flow classifier does not exist
+     * @return 200 OK
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
