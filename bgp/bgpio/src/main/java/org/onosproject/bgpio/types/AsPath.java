@@ -22,6 +22,7 @@ import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,7 @@ public class AsPath implements BGPValueType {
          *
          * @return AS type
          */
-        public byte getType() {
+        public byte type() {
             return (byte) value;
         }
     }
@@ -63,8 +64,6 @@ public class AsPath implements BGPValueType {
     public static final byte ASPATH_SET_TYPE = 1;
     public static final byte ASPATH_SEQ_TYPE = 2;
     public static final byte ASNUM_SIZE = 2;
-    public static final int TYPE_AND_LEN_AS_SHORT = 4;
-    public static final int TYPE_AND_LEN_AS_BYTE = 3;
 
     private boolean isAsPath = false;
     private List<Short> aspathSet;
@@ -108,8 +107,8 @@ public class AsPath implements BGPValueType {
                     validation.getLength());
         }
         //if fourth bit is set, length is read as short otherwise as byte , len includes type, length and value
-        int len = validation.isShort() ? validation.getLength() + TYPE_AND_LEN_AS_SHORT : validation
-                .getLength() + TYPE_AND_LEN_AS_BYTE;
+        int len = validation.isShort() ? validation.getLength() + Constants.TYPE_AND_LEN_AS_SHORT : validation
+                .getLength() + Constants.TYPE_AND_LEN_AS_BYTE;
         ChannelBuffer data = tempCb.readBytes(len);
         if (validation.getFirstBit() && !validation.getSecondBit() && validation.getThirdBit()) {
             throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_FLAGS_ERROR, data);

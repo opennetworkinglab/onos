@@ -19,9 +19,8 @@ import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
@@ -29,10 +28,7 @@ import com.google.common.base.MoreObjects;
  * Provides Implementation of Med BGP Path Attribute.
  */
 public class Med implements BGPValueType {
-    private static final Logger log = LoggerFactory.getLogger(Med.class);
     public static final byte MED_TYPE = 4;
-    public static final int TYPE_AND_LEN_AS_SHORT = 4;
-    public static final int TYPE_AND_LEN_AS_BYTE = 3;
     public static final byte MED_MAX_LEN = 4;
 
     private int med;
@@ -71,8 +67,8 @@ public class Med implements BGPValueType {
             Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
                     parseFlags.getLength());
         }
-        int len = parseFlags.isShort() ? parseFlags.getLength() + TYPE_AND_LEN_AS_SHORT : parseFlags
-                .getLength() + TYPE_AND_LEN_AS_BYTE;
+        int len = parseFlags.isShort() ? parseFlags.getLength() + Constants.TYPE_AND_LEN_AS_SHORT : parseFlags
+                .getLength() + Constants.TYPE_AND_LEN_AS_BYTE;
         ChannelBuffer data = tempCb.readBytes(len);
         if (!parseFlags.getFirstBit() && parseFlags.getSecondBit() && parseFlags.getThirdBit()) {
             throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_FLAGS_ERROR, data);
