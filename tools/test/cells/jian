@@ -1,0 +1,11 @@
+# Jian's ProxMox ONOS instances 1,2,3 & ONOS mining box
+
+export ONOS_NIC="10.128.1.*"
+export OC1="10.128.1.1"
+export OC2="10.128.1.2"
+export OC3="10.128.1.3"
+export OCN="10.128.1.4"
+
+export OCT=$OC1
+export ONOS_USE_SSH=true
+export ONOS_APPS=drivers,openflow,proxyarp,mobility
