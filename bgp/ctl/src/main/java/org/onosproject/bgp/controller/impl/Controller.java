@@ -24,10 +24,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 
+import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.onosproject.bgp.controller.BGPController;
 import org.onosproject.bgpio.protocol.BGPFactories;
@@ -51,11 +53,14 @@ public class Controller {
     // Configuration options
     private static final short BGP_PORT_NUM = 179;
     private final int workerThreads = 16;
+    private final int peerWorkerThreads = 16;
 
     // Start time of the controller
     private long systemStartTime;
 
     private NioServerSocketChannelFactory serverExecFactory;
+    private NioClientSocketChannelFactory peerExecFactory;
+    private static ClientBootstrap peerBootstrap;
     private BGPController bgpController;
 
     // Perf. related configuration
@@ -79,10 +84,6 @@ public class Controller {
         return FACTORY4;
     }
 
-    // ***************
-    // Getters/Setters
-    // ***************
-
     /**
      * To get system start time.
      *
@@ -92,16 +93,20 @@ public class Controller {
         return (this.systemStartTime);
     }
 
-    // **************
-    // Initialization
-    // **************
-
     /**
      * Tell controller that we're ready to accept bgp peer connections.
      */
     public void run() {
 
         try {
+
+            peerBootstrap = createPeerBootStrap();
+
+            peerBootstrap.setOption("reuseAddr", true);
+            peerBootstrap.setOption("child.keepAlive", true);
+            peerBootstrap.setOption("child.tcpNoDelay", true);
+            peerBootstrap.setOption("child.sendBufferSize", Controller.SEND_BUFFER_SIZE);
+
             final ServerBootstrap bootstrap = createServerBootStrap();
 
             bootstrap.setOption("reuseAddr", true);
@@ -143,6 +148,36 @@ public class Controller {
     }
 
     /**
+     * Creates peer boot strap.
+     *
+     * @return ClientBootstrap
+     */
+    private ClientBootstrap createPeerBootStrap() {
+
+        if (peerWorkerThreads == 0) {
+            peerExecFactory = new NioClientSocketChannelFactory(
+                              Executors.newCachedThreadPool(groupedThreads("onos/bgp", "boss-%d")),
+                             Executors.newCachedThreadPool(groupedThreads("onos/bgp", "worker-%d")));
+            return new ClientBootstrap(peerExecFactory);
+        } else {
+            peerExecFactory = new NioClientSocketChannelFactory(
+                              Executors.newCachedThreadPool(groupedThreads("onos/bgp",  "boss-%d")),
+                              Executors.newCachedThreadPool(groupedThreads("onos/bgp", "worker-%d")),
+                                                                          peerWorkerThreads);
+            return new ClientBootstrap(peerExecFactory);
+        }
+    }
+
+    /**
+     * Gets peer bootstrap.
+     *
+     * @return peer  bootstrap
+     */
+    public static ClientBootstrap peerBootstrap() {
+        return peerBootstrap;
+    }
+
+    /**
      * Initialize internal data structures.
      */
     public void init() {
@@ -151,10 +186,11 @@ public class Controller {
         this.systemStartTime = System.currentTimeMillis();
     }
 
-    // **************
-    // Utility methods
-    // **************
-
+    /**
+     * Gets run time memory.
+     *
+     * @return m run time memory
+     */
     public Map<String, Long> getMemory() {
         Map<String, Long> m = new HashMap<>();
         Runtime runtime = Runtime.getRuntime();
@@ -163,6 +199,11 @@ public class Controller {
         return m;
     }
 
+    /**
+     * Gets UP time.
+     *
+     * @return UP time
+     */
     public Long getUptime() {
         RuntimeMXBean rb = ManagementFactory.getRuntimeMXBean();
         return rb.getUptime();
@@ -183,6 +224,7 @@ public class Controller {
     public void stop() {
         log.info("Stopped");
         serverExecFactory.shutdown();
+        peerExecFactory.shutdown();
         cg.close();
     }
 
