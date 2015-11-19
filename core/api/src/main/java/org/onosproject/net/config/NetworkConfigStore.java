@@ -113,6 +113,8 @@ public interface NetworkConfigStore extends Store<NetworkConfigEvent, NetworkCon
      * @param <S>         type of subject
      * @param <C>         type of configuration
      * @return configuration object
+     * @throws IllegalArgumentException if the supplied JSON node contains
+     *                                  invalid data
      */
     <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass,
                                            JsonNode json);

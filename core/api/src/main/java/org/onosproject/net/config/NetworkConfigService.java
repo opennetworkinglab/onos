@@ -119,7 +119,7 @@ public interface NetworkConfigService
 
     /**
      * Applies configuration for the specified subject and configuration
-     * class using the raw JSON object. If configuration already exists, it
+     * class using the raw JSON node. If configuration already exists, it
      * will be updated.
      *
      * @param subject     configuration subject
@@ -128,6 +128,8 @@ public interface NetworkConfigService
      * @param <S>         type of subject
      * @param <C>         type of configuration
      * @return configuration or null if one is not available
+     * @throws IllegalArgumentException if the supplied JSON node contains
+     *                                  invalid data
      */
     <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass,
                                            JsonNode json);

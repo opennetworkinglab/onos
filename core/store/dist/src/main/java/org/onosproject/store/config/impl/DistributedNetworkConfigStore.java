@@ -60,6 +60,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.*;
 
 /**
@@ -71,9 +72,11 @@ public class DistributedNetworkConfigStore
         extends AbstractStore<NetworkConfigEvent, NetworkConfigStoreDelegate>
         implements NetworkConfigStore {
 
-    private static final int MAX_BACKOFF = 10;
-
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private static final int MAX_BACKOFF = 10;
+    private static final String INVALID_CONFIG_JSON =
+            "JSON node does not contain valid configuration";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
@@ -187,8 +190,17 @@ public class DistributedNetworkConfigStore
 
     @Override
     public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, JsonNode json) {
-        return createConfig(subject, configClass,
-                            configs.putAndGet(key(subject, configClass), json).value());
+        // Create the configuration and validate it.
+        C config = createConfig(subject, configClass, json);
+        checkArgument(config.isValid(), INVALID_CONFIG_JSON);
+
+        // Insert the validated configuration and get it back.
+        Versioned<JsonNode> versioned = configs.putAndGet(key(subject, configClass), json);
+
+        // Re-create the config if for some reason what we attempted to put
+        // was supplanted by someone else already.
+        return versioned.value() == json ? config :
+                createConfig(subject, configClass, versioned.value());
     }
 
     @Override

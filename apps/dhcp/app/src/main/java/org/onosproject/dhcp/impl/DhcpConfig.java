@@ -21,6 +21,9 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.basics.BasicElementConfig;
 
+import static org.onosproject.net.config.Config.FieldPresence.MANDATORY;
+import static org.onosproject.net.config.Config.FieldPresence.OPTIONAL;
+
 /**
  * DHCP Config class.
  */
@@ -42,6 +45,20 @@ public class DhcpConfig extends Config<ApplicationId> {
     public static final String END_IP = "endip";
 
     public static final int DEFAULT = -1;
+
+    @Override
+    public boolean isValid() {
+        // FIXME: Sweep through and revisit the validation assertions
+        // For now, this is just a demonstration of potential uses
+        return hasOnlyFields(MY_IP, MY_MAC, SUBNET_MASK, BROADCAST_ADDRESS,
+                             ROUTER_ADDRESS, DOMAIN_SERVER, TTL, LEASE_TIME,
+                             RENEW_TIME, REBIND_TIME, TIMER_DELAY, DEFAULT_TIMEOUT,
+                             START_IP, END_IP) &&
+                isIpAddress(MY_IP, MANDATORY) && isMacAddress(MY_MAC, MANDATORY) &&
+                isIpAddress(START_IP, MANDATORY) && isIpAddress(END_IP, MANDATORY) &&
+                isNumber(LEASE_TIME, OPTIONAL, 1) && isNumber(REBIND_TIME, OPTIONAL, 1) &&
+                isNumber(DEFAULT_TIMEOUT, OPTIONAL, 1, 3600);
+    }
 
     /**
      * Returns the dhcp server ip.
