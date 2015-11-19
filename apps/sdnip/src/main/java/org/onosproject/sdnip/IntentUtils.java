@@ -25,8 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 /**
  * Utilities for dealing with intents.
  */
@@ -50,8 +48,9 @@ public final class IntentUtils {
      * @return true if the two intents represent the same value, otherwise false
      */
     public static boolean equals(Intent one, Intent two) {
-        checkArgument(one.getClass() == two.getClass(),
-                "Intents are not the same type");
+        if (one.getClass() != two.getClass()) {
+            return false;
+        }
 
         if (!(Objects.equals(one.appId(), two.appId()) &&
                 Objects.equals(one.key(), two.key()))) {
