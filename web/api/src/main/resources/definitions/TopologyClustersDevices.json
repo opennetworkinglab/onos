@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "title": "devices",
+  "required": [
+    "devices"
+  ],
+  "properties": {
+    "devices": {
+      "type": "array",
+      "xml": {
+        "name": "cluster",
+        "wrapped": true
+      },
+      "items": {
+        "type": "string",
+        "title": "device",
+        "example": "of:0000000000000001"
+      }
+    }
+  }
+}
+

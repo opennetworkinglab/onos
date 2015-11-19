@@ -1,0 +1,54 @@
+{
+  "type": "object",
+  "title": "loads",
+  "required": [
+    "loads"
+  ],
+  "properties": {
+    "loads": {
+      "type": "array",
+      "required": [
+        "loads"
+      ],
+      "xml": {
+        "name": "loads",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "loads",
+        "required": [
+          "rate",
+          "latest",
+          "valid",
+          "time",
+          "link"
+        ],
+        "properties": {
+          "rate": {
+            "type": "integer",
+            "format": "int64",
+            "example": 0
+          },
+          "latest": {
+            "type": "string",
+            "example": "of:0000000000000001"
+          },
+          "valid": {
+            "type": "boolean",
+            "example": false
+          },
+          "time": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1447980119542
+          },
+          "link": {
+            "type": "string",
+            "example": "http://10.128.12.1:8181/onos/v1/links?device=of:0000000000000002&port=3"
+          }
+        }
+      }
+    }
+  }
+}

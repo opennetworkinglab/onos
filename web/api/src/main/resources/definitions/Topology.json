@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "title": "topology",
+  "required": [
+    "time",
+    "devices",
+    "links",
+    "clusters"
+  ],
+  "properties": {
+    "time": {
+      "type": "integer",
+      "format": "int64",
+      "example": 183004405835967
+    },
+    "devices": {
+      "type": "integer",
+      "format": "int64",
+      "example": 3
+    },
+    "links": {
+      "type": "integer",
+      "format": "int64",
+      "example": 4
+    },
+    "clusters": {
+      "type": "integer",
+      "format": "int64",
+      "example": 1
+    }
+  }
+}

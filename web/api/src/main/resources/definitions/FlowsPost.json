@@ -1,0 +1,102 @@
+{
+  "type": "object",
+  "title": "flow",
+  "required": [
+    "priority",
+    "timeout",
+    "isPermanent",
+    "deviceId"
+  ],
+  "properties": {
+    "priority": {
+      "type": "integer",
+      "format": "int64",
+      "example": 400000
+    },
+    "timeout": {
+      "type": "integer",
+      "format": "int64",
+      "example": 0
+    },
+    "isPermanent": {
+      "type": "boolean",
+      "example": true
+    },
+    "deviceId": {
+      "type": "string",
+      "example": "of:0000000000000003"
+    },
+    "treatment": {
+      "type": "object",
+      "title": "treatment",
+      "required": [
+        "instructions",
+        "deferred"
+      ],
+      "properties": {
+        "instructions": {
+          "type": "array",
+          "title": "treatment",
+          "required": [
+            "properties",
+            "port"
+          ],
+          "items": {
+            "type": "object",
+            "title": "instructions",
+            "required": [
+              "type",
+              "port"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "example": "OUTPUT"
+              },
+              "port": {
+                "type": "integer",
+                "format": "int64",
+                "example": -3
+              }
+            }
+          }
+        }
+      }
+    },
+    "selector": {
+      "type": "object",
+      "title": "selector",
+      "required": [
+        "criteria"
+      ],
+      "properties": {
+        "criteria": {
+          "type": "array",
+          "xml": {
+            "name": "criteria",
+            "wrapped": true
+          },
+          "items": {
+            "type": "object",
+            "title": "criteria",
+            "required": [
+              "type",
+              "ethType"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "example": "ETH_TYPE"
+              },
+              "ethType": {
+                "type": "integer",
+                "format": "int64",
+                "example": -30516
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -44,6 +44,7 @@ public class ApplicationsWebResource extends AbstractWebResource {
      * Get all installed applications.
      * Returns array of all installed applications.
      *
+     * @rsModel Applications
      * @return 200 OK
      */
     @GET
@@ -56,7 +57,7 @@ public class ApplicationsWebResource extends AbstractWebResource {
     /**
      * Get application details.
      * Returns details of the specified application.
-     *
+     * @rsModel Application
      * @param name application name
      * @return 200 OK; 404; 401
      */

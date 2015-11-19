@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "title": "device",
+  "required": [
+    "id",
+    "deviceCount",
+    "linkCount",
+    "root"
+  ],
+  "properties": {
+    "id": {
+      "type": "integer",
+      "format": "int64",
+      "example": 1
+    },
+    "deviceCount": {
+      "type": "integer",
+      "format": "int64",
+      "example": 3
+    },
+    "linkCount": {
+      "type": "integer",
+      "format": "int64",
+      "example": 4
+    },
+    "root": {
+      "type": "string",
+      "example": "of:0000000000000001"
+    }
+  }
+}

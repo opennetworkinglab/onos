@@ -1,0 +1,76 @@
+{
+  "type": "object",
+  "title": "device-table-statistics",
+  "required": [
+    "table-statistics"
+  ],
+  "properties": {
+    "device-table-statistics": {
+      "type": "array",
+      "required": [
+        "device-table-statistics"
+      ],
+      "xml": {
+        "name": "table-statistics",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "table-statistics",
+        "required": [
+          "device-table-statistics"
+        ],
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "example": "of:0000000000000001"
+          },
+          "table-statistics": {
+            "type": "array",
+            "xml": {
+              "name": "table",
+              "wrapped": true
+            },
+            "items": {
+              "type": "object",
+              "title": "table-statistics",
+              "required": [
+                "tableId",
+                "deviceId",
+                "activeEntries",
+                "packetsLookedUp",
+                "packetsMathced"
+              ],
+              "properties": {
+                "tableId": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 0
+                },
+                "deviceId": {
+                  "type": "string",
+                  "example": "of:0000000000000001"
+                },
+                "activeEntries": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 3
+                },
+                "packetsLookedUp": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 458530
+                },
+                "packetsMathced": {
+                  "type": "integer",
+                  "format": "int64",
+                  "example": 458501
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

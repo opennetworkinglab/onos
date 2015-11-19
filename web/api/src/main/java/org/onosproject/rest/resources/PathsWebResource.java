@@ -60,7 +60,7 @@ public class PathsWebResource extends AbstractWebResource {
     /**
      * Get all shortest paths between any two hosts or devices.
      * Returns array of all shortest paths between any two elements.
-     *
+     * @rsModel Paths
      * @param src source identifier
      * @param dst destination identifier
      * @return path data
@@ -79,7 +79,7 @@ public class PathsWebResource extends AbstractWebResource {
     /**
      * Get all shortest disjoint paths between any two hosts or devices.
      * Returns array of all shortest disjoint paths between any two elements.
-     *
+     * @rsModel Paths
      * @param src source identifier
      * @param dst destination identifier
      * @return path data

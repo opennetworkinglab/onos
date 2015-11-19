@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "title": "response",
+  "required": [
+    "infrastructure"
+  ],
+  "properties": {
+    "infrastructure": {
+      "type": "boolean",
+      "example": true
+    }
+  }
+}

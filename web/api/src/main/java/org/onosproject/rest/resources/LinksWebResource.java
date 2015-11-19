@@ -44,7 +44,7 @@ public class LinksWebResource extends AbstractWebResource {
     /**
      * Get infrastructure links.
      * Returns array of all links, or links for the specified device or port.
-     *
+     * @rsModel LinksGet
      * @param deviceId  (optional) device identifier
      * @param port      (optional) port number
      * @param direction (optional) direction qualifier

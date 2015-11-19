@@ -49,6 +49,7 @@ public class ClusterWebResource extends AbstractWebResource {
      * Returns array of all cluster nodes.
      *
      * @return 200 OK
+     * @rsModel Cluster
      */
     @GET
     public Response getClusterNodes() {
@@ -62,6 +63,7 @@ public class ClusterWebResource extends AbstractWebResource {
      *
      * @param id cluster node identifier
      * @return 200 OK
+     * @rsModel ClusterNode
      */
     @GET
     @Path("{id}")
@@ -78,6 +80,7 @@ public class ClusterWebResource extends AbstractWebResource {
      * @param config cluster definition
      * @return 200 OK
      * @throws IOException to signify bad request
+     * @rsModel ClusterPost
      */
     @POST
     @Path("configuration")

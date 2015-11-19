@@ -50,6 +50,7 @@ public class TopologyWebResource extends AbstractWebResource {
      * Get overview of current topology.
      *
      * @return topology overview
+     * @rsModel Topology
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -63,6 +64,7 @@ public class TopologyWebResource extends AbstractWebResource {
      * Get overview of topology SCCs.
      *
      * @return topology clusters overview
+     * @rsModel TopologyClusters
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -80,6 +82,7 @@ public class TopologyWebResource extends AbstractWebResource {
      *
      * @param clusterId id of the cluster to query
      * @return topology cluster details
+     * @rsModel TopologyCluster
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -103,6 +106,7 @@ public class TopologyWebResource extends AbstractWebResource {
      *
      * @param clusterId id of the cluster to query
      * @return topology cluster devices
+     * @rsModel TopologyClustersDevices
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -126,6 +130,7 @@ public class TopologyWebResource extends AbstractWebResource {
      *
      * @param clusterId id of the cluster to query
      * @return topology cluster links
+     * @rsModel LinksGet
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -136,7 +141,7 @@ public class TopologyWebResource extends AbstractWebResource {
 
         List<Link> links =
                 Lists.newArrayList(get(TopologyService.class)
-                        .getClusterLinks(topology, cluster));
+                                           .getClusterLinks(topology, cluster));
 
         return ok(encodeArray(Link.class, "links", links)).build();
     }
@@ -174,7 +179,8 @@ public class TopologyWebResource extends AbstractWebResource {
      *
      * @param connectPointString deviceid:portnumber
      * @return JSON representation of true if the connect point is broadcast,
-     *         false otherwise
+     * false otherwise
+     * @rsModel TopologyBroadcast
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -188,8 +194,8 @@ public class TopologyWebResource extends AbstractWebResource {
         boolean isBroadcast = get(TopologyService.class).isBroadcastPoint(topology, connectPoint);
 
         return ok(mapper()
-                .createObjectNode()
-                .put("broadcast", isBroadcast))
+                          .createObjectNode()
+                          .put("broadcast", isBroadcast))
                 .build();
     }
 
@@ -198,7 +204,8 @@ public class TopologyWebResource extends AbstractWebResource {
      *
      * @param connectPointString deviceid:portnumber
      * @return JSON representation of true if the connect point is broadcast,
-     *         false otherwise
+     * false otherwise
+     * @rsModel TopologyInfrastructure
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -212,8 +219,8 @@ public class TopologyWebResource extends AbstractWebResource {
         boolean isInfrastructure = get(TopologyService.class).isInfrastructure(topology, connectPoint);
 
         return ok(mapper()
-                .createObjectNode()
-                .put("infrastructure", isInfrastructure))
+                          .createObjectNode()
+                          .put("infrastructure", isInfrastructure))
                 .build();
     }
 
