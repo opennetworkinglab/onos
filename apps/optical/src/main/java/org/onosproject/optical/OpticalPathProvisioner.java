@@ -343,6 +343,7 @@ public class OpticalPathProvisioner {
                 return getIntents(crossConnectPoints);
             }
 
+            log.warn("Unable to find multi-layer path.");
             return Collections.emptyList();
         }
 
@@ -392,20 +393,41 @@ public class OpticalPathProvisioner {
     }
 
     /**
-     * Verifies if given link is cross-connect between packet and optical layer.
+     * Verifies if given device type is in packet layer, i.e., ROADM, OTN or ROADM_OTN device.
+     *
+     * @param type device type
+     * @return true if in packet layer, false otherwise
+     */
+    private boolean isPacketLayer(Device.Type type) {
+        return type == Device.Type.SWITCH || type == Device.Type.ROUTER;
+    }
+
+    /**
+     * Verifies if given device type is in packet layer, i.e., switch or router device.
+     *
+     * @param type device type
+     * @return true if in packet layer, false otherwise
+     */
+    private boolean isTransportLayer(Device.Type type) {
+        return type == Device.Type.ROADM || type == Device.Type.OTN || type == Device.Type.ROADM_OTN;
+    }
+
+    /**
+     * Verifies if given link forms a cross-connection between packet and optical layer.
      *
      * @param link the link
-     * @return true if the link is a cross-connect link
+     * @return true if the link is a cross-connect link, false otherwise
      */
-    public static boolean isCrossConnectLink(Link link) {
+    private boolean isCrossConnectLink(Link link) {
         if (link.type() != Link.Type.OPTICAL) {
             return false;
         }
 
-        checkNotNull(link.annotations());
-        checkNotNull(link.annotations().value("optical.type"));
+        Device.Type src = deviceService.getDevice(link.src().deviceId()).type();
+        Device.Type dst = deviceService.getDevice(link.dst().deviceId()).type();
 
-        return link.annotations().value("optical.type").equals("cross-connect");
+        return src != dst &&
+                ((isPacketLayer(src) && isTransportLayer(dst)) || (isPacketLayer(dst) && isTransportLayer(src)));
     }
 
 }
