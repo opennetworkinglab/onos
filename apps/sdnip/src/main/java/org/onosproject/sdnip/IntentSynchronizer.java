@@ -74,7 +74,7 @@ public class IntentSynchronizer implements IntentSynchronizationService {
      * @param intentService the intent service
      * @param executorService executor service for synchronization thread
      */
-    IntentSynchronizer(ApplicationId appId, IntentService intentService,
+    public IntentSynchronizer(ApplicationId appId, IntentService intentService,
                        ExecutorService executorService) {
         this.appId = appId;
         this.intentService = intentService;
