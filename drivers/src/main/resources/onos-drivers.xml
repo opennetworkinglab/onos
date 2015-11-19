@@ -131,7 +131,7 @@
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.CalientFiberSwitchHandshaker"/>
     </driver>
-    <driver name="onosfw" extends="default"
+    <driver name="onosfw" extends="ovs"
             manufacturer="" hwVersion="" swVersion="">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OpenVSwitchPipeline"/>
