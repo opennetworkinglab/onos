@@ -45,6 +45,7 @@
         <module>web</module>
         <module>cli</module>
 
+        <module>protocols</module>
         <module>openflow</module>
         <module>ovsdb</module>
         <module>netconf</module>
