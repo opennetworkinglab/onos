@@ -54,7 +54,7 @@ public class FlowClassifierManager implements FlowClassifierService {
     protected StorageService storageService;
 
     @Activate
-    private void activate() {
+    protected void activate() {
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(MultiValuedTimestamp.class)
@@ -67,7 +67,7 @@ public class FlowClassifierManager implements FlowClassifierService {
     }
 
     @Deactivate
-    private void deactivate() {
+    protected void deactivate() {
         flowClassifierStore.destroy();
         log.info("Flow Classifier service deactivated");
     }
