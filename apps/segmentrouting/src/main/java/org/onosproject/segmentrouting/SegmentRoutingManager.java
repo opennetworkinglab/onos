@@ -185,7 +185,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 }
             };
 
-    private final HostListener hostListener = new InternalHostListener();
+    private final InternalHostListener hostListener = new InternalHostListener();
 
     private Object threadSchedulerLock = new Object();
     private static int numOfEventsQueued = 0;
@@ -658,6 +658,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             // port addressing rules to the driver as well irrespective of whether
             // this instance is the master or not.
             defaultRoutingHandler.populatePortAddressingRules(device.id());
+            hostListener.readInitialHosts();
         }
         if (mastershipService.isLocalMaster(device.id())) {
             DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
@@ -725,6 +726,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     // port addressing rules to the driver as well, irrespective of whether
                     // this instance is the master or not.
                     defaultRoutingHandler.populatePortAddressingRules(device.id());
+                    hostListener.readInitialHosts();
                 }
                 if (mastershipService.isLocalMaster(device.id())) {
                     DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
@@ -751,7 +753,34 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
     }
 
+    // TODO Move bridging table population to a separate class
     private class InternalHostListener implements HostListener {
+        private void readInitialHosts() {
+            hostService.getHosts().forEach(host -> {
+                MacAddress mac = host.mac();
+                VlanId vlanId = host.vlan();
+                DeviceId deviceId = host.location().deviceId();
+                PortNumber port = host.location().port();
+                Set<IpAddress> ips = host.ipAddresses();
+                log.debug("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
+
+                // Populate bridging table entry
+                ForwardingObjective.Builder fob =
+                        getForwardingObjectiveBuilder(mac, vlanId, port);
+                flowObjectiveService.forward(deviceId, fob.add(
+                        new BridgingTableObjectiveContext(mac, vlanId)
+                ));
+
+                // Populate IP table entry
+                ips.forEach(ip -> {
+                    if (ip.isIp4()) {
+                        routingRulePopulator.populateIpRuleForHost(
+                                deviceId, ip.getIp4Address(), mac, port);
+                    }
+                });
+            });
+        }
+
         private ForwardingObjective.Builder getForwardingObjectiveBuilder(
                 MacAddress mac, VlanId vlanId, PortNumber port) {
             TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
@@ -780,7 +809,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             Set<IpAddress> ips = event.subject().ipAddresses();
             log.debug("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
 
-            // TODO Move bridging table population to a separate class
             // Populate bridging table entry
             ForwardingObjective.Builder fob =
                     getForwardingObjectiveBuilder(mac, vlanId, port);
