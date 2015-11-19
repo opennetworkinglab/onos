@@ -24,6 +24,7 @@ import java.net.URI;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.Device.Type;
+import com.google.common.base.Objects;
 
 /**
  * Default implementation of immutable device description entity.
@@ -130,6 +131,30 @@ public class DefaultDeviceDescription extends AbstractDescription
                 .add("hw", hwVersion).add("sw", swVersion)
                 .add("serial", serialNumber)
                 .toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), uri, type, manufacturer,
+                                hwVersion, swVersion, serialNumber, chassisId);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object instanceof DefaultDeviceDescription) {
+            if (!super.equals(object)) {
+                return false;
+            }
+            DefaultDeviceDescription that = (DefaultDeviceDescription) object;
+            return Objects.equal(this.uri, that.uri)
+                    && Objects.equal(this.type, that.type)
+                    && Objects.equal(this.manufacturer, that.manufacturer)
+                    && Objects.equal(this.hwVersion, that.hwVersion)
+                    && Objects.equal(this.swVersion, that.swVersion)
+                    && Objects.equal(this.serialNumber, that.serialNumber)
+                    && Objects.equal(this.chassisId, that.chassisId);
+        }
+        return false;
     }
 
     // default constructor for serialization

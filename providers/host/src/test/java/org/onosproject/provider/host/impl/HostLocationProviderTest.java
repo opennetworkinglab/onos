@@ -415,7 +415,7 @@ public class HostLocationProviderTest {
         public void hostDetected(HostId hostId, HostDescription hostDescription, boolean replaceIps) {
             if (added == null) {
                 added = hostDescription;
-            } else if ((moved == null) && !hostDescription.equals(added)) {
+            } else if ((moved == null) && hostDescription != added) {
                 moved = hostDescription;
             } else {
                 spine = hostDescription;

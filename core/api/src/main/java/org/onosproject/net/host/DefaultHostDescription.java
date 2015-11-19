@@ -28,6 +28,7 @@ import org.onlab.packet.VlanId;
 import com.google.common.collect.ImmutableSet;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import com.google.common.base.Objects;
 
 /**
  * Default implementation of an immutable host description.
@@ -117,6 +118,26 @@ public class DefaultHostDescription extends AbstractDescription
                 .add("location", location)
                 .add("ipAddress", ip)
                 .toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), mac, vlan, location, ip);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object != null && getClass() == object.getClass()) {
+            if (!super.equals(object)) {
+                return false;
+            }
+            DefaultHostDescription that = (DefaultHostDescription) object;
+            return Objects.equal(this.mac, that.mac)
+                    && Objects.equal(this.vlan, that.vlan)
+                    && Objects.equal(this.location, that.location)
+                    && Objects.equal(this.ip, that.ip);
+        }
+        return false;
     }
 
 }

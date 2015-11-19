@@ -20,6 +20,7 @@ import org.onosproject.net.AbstractDescription;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.SparseAnnotations;
+import com.google.common.base.Objects;
 
 /**
  * Default implementation of immutable link description entity.
@@ -68,6 +69,25 @@ public class DefaultLinkDescription extends AbstractDescription
                 .add("src", src())
                 .add("dst", dst())
                 .add("type", type()).toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), src, dst, type);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object != null && getClass() == object.getClass()) {
+            if (!super.equals(object)) {
+                return false;
+            }
+            DefaultLinkDescription that = (DefaultLinkDescription) object;
+            return Objects.equal(this.src, that.src)
+                    && Objects.equal(this.dst, that.dst)
+                    && Objects.equal(this.type, that.type);
+        }
+        return false;
     }
 
 }

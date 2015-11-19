@@ -16,6 +16,7 @@
 package org.onosproject.net;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import com.google.common.base.Objects;
 
 /**
  * Base implementation of an annotated model description.
@@ -44,6 +45,20 @@ public abstract class AbstractDescription implements Annotated {
     @Override
     public SparseAnnotations annotations() {
         return annotations;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(annotations);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object instanceof AbstractDescription) {
+            AbstractDescription that = (AbstractDescription) object;
+            return Objects.equal(this.annotations, that.annotations);
+        }
+        return false;
     }
 
 }
