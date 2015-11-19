@@ -32,8 +32,8 @@
     <description>ONOS south-bound protocols</description>
 
     <modules>
-        <!--
         <module>openflow</module>
+        <!--
         <module>ovsdb</module>
         <module>netconf</module>
         <module>pcep</module>
