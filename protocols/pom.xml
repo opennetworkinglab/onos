@@ -33,10 +33,10 @@
 
     <modules>
         <module>openflow</module>
+        <module>pcep</module>
         <!--
         <module>ovsdb</module>
         <module>netconf</module>
-        <module>pcep</module>
         <module>bgp</module>
         -->
     </modules>
