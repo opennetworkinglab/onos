@@ -15,6 +15,7 @@
  */
 package org.onosproject.vtn.table;
 
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -22,13 +23,14 @@ import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.vtnrsc.SegmentationId;
 
 /**
- * Applies L2 flows to the device.
+ * Applies L2 flows to the device. L2Forward table is Table(50).
  */
 public interface L2ForwardService {
 
     /**
-     * The local broadcast rule that message matches Table(50) Match: broadcast
-     * mac and vnid Action: output port.
+     * The local broadcast rule that message matches Table(50).
+     * Match: broadcast mac and vnid.
+     * Action: set output port.
      *
      * @param deviceId Device Id
      * @param segmentationId the vnid of the host belong to
@@ -45,8 +47,9 @@ public interface L2ForwardService {
                                 Objective.Operation type);
 
     /**
-     * The tunnel broadcast rule that message matches Table(50) Match: broadcast
-     * mac and vnid Action: output port.
+     * The tunnel broadcast rule that message matches Table(50).
+     * Match: broadcast mac and vnid.
+     * Action: output port.
      *
      * @param deviceId Device Id
      * @param segmentationId the vnid of the host belong to
@@ -61,8 +64,9 @@ public interface L2ForwardService {
                                  Objective.Operation type);
 
     /**
-     * The local out rule that message matches. Table(50) Match: local host mac
-     * and vnid Action: output local host port.
+     * The local out rule that message matches Table(50).
+     * Match: local host mac and vnid.
+     * Action: output local host port.
      *
      * @param deviceId Device Id
      * @param segmentationId the vnid of the host belong to
@@ -75,17 +79,19 @@ public interface L2ForwardService {
                          Objective.Operation type);
 
     /**
-     * The tunnel out rule that message matches. Table(50) Match: host mac and
-     * vnid Action: output tunnel port.
+     * The tunnel out rule that message matches Table(50).
+     * Match: host mac and vnid.
+     * Action: output tunnel port.
      *
      * @param deviceId Device Id
      * @param segmentationId the vnid of the host belong to
      * @param tunnelOutPort the port of the tunnel
      * @param dstMac the mac of the host
      * @param type the operation of the flow
+     * @param ipAddress the ipAddress of the node
      */
     void programTunnelOut(DeviceId deviceId, SegmentationId segmentationId,
                           PortNumber tunnelOutPort, MacAddress dstMac,
-                          Objective.Operation type);
+                          Objective.Operation type, IpAddress ipAddress);
 
 }

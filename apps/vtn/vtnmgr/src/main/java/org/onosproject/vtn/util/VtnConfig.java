@@ -15,9 +15,12 @@
  */
 package org.onosproject.vtn.util;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.onlab.packet.IpAddress;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeName;
@@ -26,6 +29,7 @@ import org.onosproject.net.behaviour.IpTunnelEndPoint;
 import org.onosproject.net.behaviour.TunnelConfig;
 import org.onosproject.net.behaviour.TunnelDescription;
 import org.onosproject.net.behaviour.TunnelEndPoint;
+import org.onosproject.net.behaviour.TunnelName;
 import org.onosproject.net.driver.DriverHandler;
 
 /**
@@ -34,7 +38,13 @@ import org.onosproject.net.driver.DriverHandler;
 public final class VtnConfig {
 
     private static final String DEFAULT_BRIDGE_NAME = "br-int";
-
+    private static final String DEFAULT_TUNNEL = "vxlan-0.0.0.0";
+    private static final Map<String, String> DEFAULT_TUNNEL_OPTIONS = new HashMap<String, String>() {
+        {
+            put("key", "flow");
+            put("remote_ip", "flow");
+        }
+    };
     /**
      * Constructs a vtn config object. Utility classes should not have a
      * public or default constructor, otherwise IDE will compile unsuccessfully. This
@@ -64,15 +74,19 @@ public final class VtnConfig {
      */
     public static void applyTunnelConfig(DriverHandler handler, IpAddress srcIp,
                                   IpAddress dstIp) {
+        DefaultAnnotations.Builder optionBuilder = DefaultAnnotations.builder();
+        for (String key : DEFAULT_TUNNEL_OPTIONS.keySet()) {
+            optionBuilder.set(key, DEFAULT_TUNNEL_OPTIONS.get(key));
+        }
         TunnelConfig tunnelConfig = handler.behaviour(TunnelConfig.class);
         TunnelEndPoint tunnelAsSrc = IpTunnelEndPoint.ipTunnelPoint(srcIp);
-        TunnelEndPoint tunnelAsDst = IpTunnelEndPoint.ipTunnelPoint(dstIp);
         TunnelDescription tunnel = new DefaultTunnelDescription(
                                                                 tunnelAsSrc,
-                                                                tunnelAsDst,
+                                                                null,
                                                                 TunnelDescription.Type.VXLAN,
-                                                                null);
-        tunnelConfig.createTunnel(tunnel);
+                                                                TunnelName.tunnelName(DEFAULT_TUNNEL),
+                                                                optionBuilder.build());
+        tunnelConfig.createTunnelInterface(BridgeName.bridgeName(DEFAULT_BRIDGE_NAME), tunnel);
     }
 
     /**
