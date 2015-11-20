@@ -47,6 +47,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
@@ -73,6 +74,7 @@ import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupService;
+import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -129,8 +131,13 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                                     groupedThreads("onos/pipeliner",
                                                    "spring-open-%d"));
     protected KryoNamespace appKryo = new KryoNamespace.Builder()
-            .register(GroupKey.class).register(DefaultGroupKey.class)
-            .register(SegmentRoutingGroup.class).register(byte[].class).build();
+            .register(KryoNamespaces.API)
+            .register(GroupKey.class)
+            .register(DefaultGroupKey.class)
+            .register(TrafficTreatment.class)
+            .register(SpringOpenGroup.class)
+            .register(byte[].class)
+            .build();
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
@@ -202,17 +209,15 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     @Override
                     public void onSuccess(FlowRuleOperations ops) {
                         pass(fwd);
-                        log.debug("Provisioned tables in {} with "
-                                + "forwarding rules for segment "
-                                + "router", deviceId);
+                        log.debug("Provisioned tables in {} successfully with "
+                                + "forwarding rules", deviceId);
                     }
 
                     @Override
                     public void onError(FlowRuleOperations ops) {
                         fail(fwd, ObjectiveError.FLOWINSTALLATIONFAILED);
                         log.warn("Failed to provision tables in {} with "
-                                + "forwarding rules for segment router",
-                                deviceId);
+                                + "forwarding rules", deviceId);
                     }
                 }));
 
@@ -220,26 +225,50 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
 
     @Override
     public void next(NextObjective nextObjective) {
-
-        log.debug("Processing NextObjective id{} op{}", nextObjective.id(),
-                  nextObjective.op());
-        if (nextObjective.op() == Objective.Operation.REMOVE) {
-            if (nextObjective.next().isEmpty()) {
-                removeGroup(nextObjective);
-            } else {
-                removeBucketFromGroup(nextObjective);
-            }
-        } else if (nextObjective.op() == Objective.Operation.ADD) {
-            NextGroup nextGroup = flowObjectiveStore.getNextGroup(nextObjective.id());
+        NextGroup nextGroup = flowObjectiveStore.getNextGroup(nextObjective.id());
+        switch (nextObjective.op()) {
+        case ADD:
             if (nextGroup != null) {
+                log.warn("Cannot add next {} that already exists in device {}",
+                         nextObjective.id(), deviceId);
+                return;
+            }
+            log.debug("Processing NextObjective id{} in dev{} - add group",
+                      nextObjective.id(), deviceId);
+            addGroup(nextObjective);
+            break;
+        case ADD_TO_EXISTING:
+            if (nextGroup != null) {
+                log.debug("Processing NextObjective id{} in dev{} - add bucket",
+                          nextObjective.id(), deviceId);
                 addBucketToGroup(nextObjective);
             } else {
-                addGroup(nextObjective);
+                log.warn("Cannot add to group that does not exist");
             }
-        } else {
+            break;
+        case REMOVE:
+            if (nextGroup == null) {
+                log.warn("Cannot remove next {} that does not exist in device {}",
+                         nextObjective.id(), deviceId);
+                return;
+            }
+            log.debug("Processing NextObjective id{}  in dev{} - remove group",
+                      nextObjective.id(), deviceId);
+            removeGroup(nextObjective);
+            break;
+        case REMOVE_FROM_EXISTING:
+            if (nextGroup == null) {
+                log.warn("Cannot remove from next {} that does not exist in device {}",
+                         nextObjective.id(), deviceId);
+                return;
+            }
+            log.debug("Processing NextObjective id{} in dev{} - remove bucket",
+                      nextObjective.id(), deviceId);
+            removeBucketFromGroup(nextObjective);
+            break;
+        default:
             log.warn("Unsupported operation {}", nextObjective.op());
         }
-
     }
 
     private void removeGroup(NextObjective nextObjective) {
@@ -256,7 +285,6 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         List<GroupBucket> buckets;
         switch (nextObjective.type()) {
             case SIMPLE:
-                log.debug("processing SIMPLE next objective");
                 Collection<TrafficTreatment> treatments = nextObjective.next();
                 if (treatments.size() == 1) {
                     TrafficTreatment treatment = treatments.iterator().next();
@@ -273,39 +301,57 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                             key,
                             null,
                             nextObjective.appId());
-                    log.debug("Creating SIMPLE group for next objective id {}",
-                              nextObjective.id());
-                    groupService.addGroup(groupDescription);
+                    log.debug("Creating SIMPLE group for next objective id {} "
+                            + "in dev:{}", nextObjective.id(), deviceId);
                     pendingGroups.put(key, nextObjective);
+                    groupService.addGroup(groupDescription);
                 }
                 break;
             case HASHED:
-                log.debug("processing HASHED next objective");
-                buckets = nextObjective
-                        .next()
-                        .stream()
-                        .map((treatment) -> DefaultGroupBucket
-                                .createSelectGroupBucket(treatment))
-                        .collect(Collectors.toList());
-                if (!buckets.isEmpty()) {
-                    final GroupKey key = new DefaultGroupKey(
-                            appKryo.serialize(nextObjective
-                                    .id()));
-                    GroupDescription groupDescription = new DefaultGroupDescription(
-                            deviceId,
-                            GroupDescription.Type.SELECT,
-                            new GroupBuckets(buckets),
-                            key,
-                            null,
-                            nextObjective.appId());
-                    log.debug("Creating HASHED group for next objective id {}",
-                              nextObjective.id());
-                    groupService.addGroup(groupDescription);
-                    pendingGroups.put(key, nextObjective);
+                // we convert MPLS ECMP groups to flow-actions for a single
+                // bucket(output port).
+                boolean mplsEcmp = false;
+                if (nextObjective.meta() != null) {
+                    for (Criterion c : nextObjective.meta().criteria()) {
+                        if (c.type() == Type.MPLS_LABEL) {
+                            mplsEcmp = true;
+                        }
+                    }
+                }
+                if (mplsEcmp) {
+                    // covert to flow-actions in a dummy group by choosing the first bucket
+                    log.debug("Converting HASHED group for next objective id {} " +
+                              "to flow-actions in device:{}", nextObjective.id(),
+                              deviceId);
+                    TrafficTreatment treatment = nextObjective.next().iterator().next();
+                    flowObjectiveStore.putNextGroup(nextObjective.id(),
+                                                    new SpringOpenGroup(null, treatment));
+                } else {
+                    // process as ECMP group
+                    buckets = nextObjective
+                            .next()
+                            .stream()
+                            .map((treatment) -> DefaultGroupBucket
+                                 .createSelectGroupBucket(treatment))
+                            .collect(Collectors.toList());
+                    if (!buckets.isEmpty()) {
+                        final GroupKey key = new DefaultGroupKey(
+                                                     appKryo.serialize(nextObjective.id()));
+                        GroupDescription groupDescription = new DefaultGroupDescription(
+                                                  deviceId,
+                                                  GroupDescription.Type.SELECT,
+                                                  new GroupBuckets(buckets),
+                                                  key,
+                                                  null,
+                                                  nextObjective.appId());
+                        log.debug("Creating HASHED group for next objective id {}"
+                                + " in dev:{}", nextObjective.id(), deviceId);
+                        pendingGroups.put(key, nextObjective);
+                        groupService.addGroup(groupDescription);
+                    }
                 }
                 break;
             case BROADCAST:
-                log.debug("processing BROADCAST next objective");
                 buckets = nextObjective
                         .next()
                         .stream()
@@ -323,10 +369,10 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                             key,
                             null,
                             nextObjective.appId());
-                    log.debug("Creating BROADCAST group for next objective id {}",
-                              nextObjective.id());
-                    groupService.addGroup(groupDescription);
+                    log.debug("Creating BROADCAST group for next objective id {} "
+                            + "in device {}", nextObjective.id(), deviceId);
                     pendingGroups.put(key, nextObjective);
+                    groupService.addGroup(groupDescription);
                 }
                 break;
             case FAILOVER:
@@ -417,9 +463,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     }
 
     private Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
-        log.debug("Processing versatile forwarding objective");
+        log.debug("Processing versatile forwarding objective in dev:{}", deviceId);
         TrafficSelector selector = fwd.selector();
-        TrafficTreatment treatment = null;
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
         if (ethType == null) {
@@ -428,50 +473,60 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             return Collections.emptySet();
         }
 
+        if (fwd.treatment() == null && fwd.nextId() == null) {
+            log.error("VERSATILE forwarding objective needs next objective ID "
+                    + "or treatment.");
+            return Collections.emptySet();
+        }
+        // emulation of ACL table (for versatile fwd objective) requires
+        // overriding any previous instructions
         TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment
                 .builder();
         treatmentBuilder.wipeDeferred();
 
         if (fwd.nextId() != null) {
             NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
-
             if (next != null) {
-                GroupKey key = appKryo.deserialize(next.data());
-
-                Group group = groupService.getGroup(deviceId, key);
-
-                if (group == null) {
-                    log.warn("The group left!");
-                    fail(fwd, ObjectiveError.GROUPMISSING);
-                    return Collections.emptySet();
+                SpringOpenGroup soGroup = appKryo.deserialize(next.data());
+                if (soGroup.dummy) {
+                    // need to convert to flow-actions
+                    for (Instruction ins : soGroup.treatment.allInstructions()) {
+                        treatmentBuilder.add(ins);
+                    }
+                } else {
+                    GroupKey key = soGroup.key;
+                    Group group = groupService.getGroup(deviceId, key);
+                    if (group == null) {
+                        log.warn("The group left!");
+                        fail(fwd, ObjectiveError.GROUPMISSING);
+                        return Collections.emptySet();
+                    }
+                    treatmentBuilder.deferred().group(group.id());
+                    log.debug("Adding OUTGROUP action");
                 }
-                treatmentBuilder.deferred().group(group.id());
-                treatment = treatmentBuilder.build();
-                log.debug("Adding OUTGROUP action");
             }
-        } else if (fwd.treatment() != null) {
+        }
+
+        if (fwd.treatment() != null) {
             if (fwd.treatment().allInstructions().size() == 1 &&
                     fwd.treatment().allInstructions().get(0).type() == Instruction.Type.OUTPUT) {
                 OutputInstruction o = (OutputInstruction) fwd.treatment().allInstructions().get(0);
                 if (o.port() == PortNumber.CONTROLLER) {
                     treatmentBuilder.punt();
-                    treatment = treatmentBuilder.build();
                 } else {
-                    treatment = fwd.treatment();
+                    treatmentBuilder.add(o);
                 }
             } else {
-                treatment = fwd.treatment();
+                for (Instruction ins : fwd.treatment().allInstructions()) {
+                    treatmentBuilder.add(ins);
+                }
             }
-        } else {
-            log.warn("VERSATILE forwarding objective needs next objective ID "
-                    + "or treatment.");
-            return Collections.emptySet();
         }
 
         FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
                 .fromApp(fwd.appId()).withPriority(fwd.priority())
                 .forDevice(deviceId).withSelector(fwd.selector())
-                .withTreatment(treatment);
+                .withTreatment(treatmentBuilder.build());
 
         if (fwd.permanent()) {
             ruleBuilder.makePermanent();
@@ -508,7 +563,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
     }
 
     protected Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
-        log.debug("Processing specific");
+        log.debug("Processing specific fwd objective:{} in dev:{} with next:{}",
+                  fwd.id(), deviceId, fwd.nextId());
         boolean isEthTypeObj = isSupportedEthTypeObjective(fwd);
         boolean isEthDstObj = isSupportedEthDstObjective(fwd);
 
@@ -518,7 +574,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             return processEthDstSpecificObjective(fwd);
         } else {
             log.warn("processSpecific: Unsupported "
-                    + "forwarding objective criteraia");
+                    + "forwarding objective criteria");
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
         }
@@ -540,7 +596,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                         .getCriterion(Criterion.Type.IPV4_DST))
                         .ip());
             forTableId = ipv4UnicastTableId;
-            log.debug("processing IPv4 specific forwarding objective");
+            log.debug("processing IPv4 specific forwarding objective:{} in dev:{}",
+                      fwd.id(), deviceId);
         } else {
             filteredSelectorBuilder = filteredSelectorBuilder
                 .matchEthType(Ethernet.MPLS_UNICAST)
@@ -550,7 +607,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             //if (selector.getCriterion(Criterion.Type.MPLS_BOS) != null) {
             //}
             forTableId = mplsTableId;
-            log.debug("processing MPLS specific forwarding objective");
+            log.debug("processing MPLS specific forwarding objective:{} in dev:{}",
+                    fwd.id(), deviceId);
         }
 
         TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment
@@ -561,24 +619,28 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             }
         }
 
-        //TODO: Analyze the forwarding objective here to make
-        //device specific decision such as no ECMP groups in Dell
-        //switches.
         if (fwd.nextId() != null) {
             NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
-
             if (next != null) {
-                GroupKey key = appKryo.deserialize(next.data());
-
-                Group group = groupService.getGroup(deviceId, key);
-
-                if (group == null) {
-                    log.warn("The group left!");
-                    fail(fwd, ObjectiveError.GROUPMISSING);
-                    return Collections.emptySet();
+                SpringOpenGroup soGroup = appKryo.deserialize(next.data());
+                if (soGroup.dummy) {
+                    log.debug("Adding flow-actions for fwd. obj. {} "
+                            + "in dev: {}", fwd.id(), deviceId);
+                    for (Instruction ins : soGroup.treatment.allInstructions()) {
+                        treatmentBuilder.add(ins);
+                    }
+                } else {
+                    GroupKey key = soGroup.key;
+                    Group group = groupService.getGroup(deviceId, key);
+                    if (group == null) {
+                        log.warn("The group left!");
+                        fail(fwd, ObjectiveError.GROUPMISSING);
+                        return Collections.emptySet();
+                    }
+                    treatmentBuilder.deferred().group(group.id());
+                    log.debug("Adding OUTGROUP action to group:{} for fwd. obj. {} "
+                            + "in dev: {}", group.id(), fwd.id(), deviceId);
                 }
-                treatmentBuilder.deferred().group(group.id());
-                log.debug("Adding OUTGROUP action");
             } else {
                 log.warn("processSpecific: No associated next objective object");
                 fail(fwd, ObjectiveError.GROUPMISSING);
@@ -621,6 +683,12 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         // Do not match MacAddress for subnet broadcast entry
         if (!ethCriterion.mac().equals(MacAddress.NONE)) {
             filteredSelectorBuilder.matchEthDst(ethCriterion.mac());
+            log.debug("processing L2 forwarding objective:{} in dev:{}",
+                      fwd.id(), deviceId);
+        } else {
+            log.debug("processing L2 Broadcast forwarding objective:{} "
+                    + "in dev:{} for vlan:{}",
+                      fwd.id(), deviceId, vlanIdCriterion.vlanId());
         }
         filteredSelectorBuilder.matchVlanId(vlanIdCriterion.vlanId());
         TrafficSelector filteredSelector = filteredSelectorBuilder.build();
@@ -635,14 +703,24 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         if (fwd.nextId() != null) {
             NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
             if (next != null) {
-                GroupKey key = appKryo.deserialize(next.data());
-                Group group = groupService.getGroup(deviceId, key);
-                if (group != null) {
-                    treatmentBuilder.deferred().group(group.id());
+                SpringOpenGroup soGrp = appKryo.deserialize(next.data());
+                if (soGrp.dummy) {
+                    log.debug("Adding flow-actions for fwd. obj. {} "
+                            + "in dev: {}", fwd.id(), deviceId);
+                    for (Instruction ins : soGrp.treatment.allInstructions()) {
+                        treatmentBuilder.add(ins);
+                    }
                 } else {
-                    log.warn("Group Missing");
-                    fail(fwd, ObjectiveError.GROUPMISSING);
-                    return Collections.emptySet();
+                    GroupKey key = soGrp.key;
+                    Group group = groupService.getGroup(deviceId, key);
+                    if (group == null) {
+                        log.warn("The group left!");
+                        fail(fwd, ObjectiveError.GROUPMISSING);
+                        return Collections.emptySet();
+                    }
+                    treatmentBuilder.deferred().group(group.id());
+                    log.debug("Adding OUTGROUP action to group:{} for fwd. obj. {} "
+                            + "in dev: {}", group.id(), fwd.id(), deviceId);
                 }
             }
         }
@@ -869,14 +947,14 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             public void onSuccess(FlowRuleOperations ops) {
                 pass(filt);
                 log.debug("Provisioned tables in {} with fitering "
-                        + "rules for segment router", deviceId);
+                        + "rules", deviceId);
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
                 fail(filt, ObjectiveError.FLOWINSTALLATIONFAILED);
                 log.warn("Failed to provision tables in {} with "
-                        + "fitering rules for segment router", deviceId);
+                        + "fitering rules", deviceId);
             }
         }));
     }
@@ -934,15 +1012,17 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         @Override
         public void event(GroupEvent event) {
             if (event.type() == GroupEvent.Type.GROUP_ADDED) {
-                log.debug("InnerGroupListener: Group ADDED "
+                log.trace("InnerGroupListener: Group ADDED "
                         + "event received in device {}", deviceId);
                 GroupKey key = event.subject().appCookie();
 
                 NextObjective obj = pendingGroups.getIfPresent(key);
                 if (obj != null) {
+                    log.debug("Group verified: dev:{} gid:{} <<->> nextId:{}",
+                              deviceId, event.subject().id(), obj.id());
                     flowObjectiveStore
                             .putNextGroup(obj.id(),
-                                          new SegmentRoutingGroup(key));
+                                          new SpringOpenGroup(key, null));
                     pass(obj);
                     pendingGroups.invalidate(key);
                 }
@@ -971,21 +1051,47 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                                  if (obj == null) {
                                      return;
                                  }
+                                 log.debug("Group verified: dev:{} gid:{} <<->> nextId:{}",
+                                           deviceId,
+                                           groupService.getGroup(deviceId, key).id(),
+                                           obj.id());
                                  pass(obj);
                                  pendingGroups.invalidate(key);
-                                 flowObjectiveStore.putNextGroup(obj.id(),
-                                                                 new SegmentRoutingGroup(
-                                                                                         key));
-                             });
+                                 flowObjectiveStore.putNextGroup(
+                                                        obj.id(),
+                                                        new SpringOpenGroup(key, null));
+                    });
         }
     }
 
-    private class SegmentRoutingGroup implements NextGroup {
-
+    /**
+     * SpringOpenGroup can either serve as storage for a GroupKey which can be
+     * used to fetch the group from the Group Service, or it can be serve as storage
+     * for Traffic Treatments which can be used as flow actions. In the latter
+     * case, we refer to this as a dummy group.
+     *
+     */
+    private class SpringOpenGroup implements NextGroup {
+        private final boolean dummy;
         private final GroupKey key;
+        private final TrafficTreatment treatment;
 
-        public SegmentRoutingGroup(GroupKey key) {
-            this.key = key;
+        /**
+         * Storage for a GroupKey or a TrafficTreatment. One of the params
+         * to this constructor must be null.
+         * @param key represents a GroupKey
+         * @param treatment represents flow actions in a dummy group
+         */
+        public SpringOpenGroup(GroupKey key, TrafficTreatment treatment) {
+            if (key == null) {
+                this.key = new DefaultGroupKey(new byte[]{0});
+                this.treatment = treatment;
+                this.dummy = true;
+            } else {
+                this.key = key;
+                this.treatment = DefaultTrafficTreatment.builder().build();
+                this.dummy = false;
+            }
         }
 
         @SuppressWarnings("unused")
@@ -995,7 +1101,7 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
 
         @Override
         public byte[] data() {
-            return appKryo.serialize(key);
+            return appKryo.serialize(this);
         }
 
     }

@@ -18,15 +18,19 @@ package org.onosproject.driver.pipeline;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.onlab.packet.Ethernet;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -35,8 +39,18 @@ import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.MplsBosCriterion;
+import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupKey;
 import org.slf4j.Logger;
 
 
@@ -106,6 +120,81 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
             rules.add(rule);
         }
         return rules;
+    }
+
+    @Override
+    protected Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
+        TrafficSelector selector = fwd.selector();
+        EthTypeCriterion ethType =
+                (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
+        if ((ethType == null) ||
+                (ethType.ethType().toShort() != Ethernet.TYPE_IPV4) &&
+                (ethType.ethType().toShort() != Ethernet.MPLS_UNICAST)) {
+            log.warn("processSpecific: Unsupported "
+                    + "forwarding objective criteraia");
+            fail(fwd, ObjectiveError.UNSUPPORTED);
+            return Collections.emptySet();
+        }
+
+        int forTableId = -1;
+        TrafficSelector.Builder filteredSelector = DefaultTrafficSelector.builder();
+        if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
+            filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(((IPCriterion)
+                        selector.getCriterion(Criterion.Type.IPV4_DST)).ip());
+            forTableId = UNICAST_ROUTING_TABLE;
+            log.debug("processing IPv4 specific forwarding objective {} hash{} in dev:{}",
+                      fwd.id(), fwd.hashCode(), deviceId);
+        } else {
+            filteredSelector
+                .matchEthType(Ethernet.MPLS_UNICAST)
+                .matchMplsLabel(((MplsCriterion)
+                        selector.getCriterion(Criterion.Type.MPLS_LABEL)).label());
+            MplsBosCriterion bos = (MplsBosCriterion) selector
+                                        .getCriterion(Criterion.Type.MPLS_BOS);
+            if (bos != null) {
+                filteredSelector.matchMplsBos(bos.mplsBos());
+            }
+            forTableId = MPLS_TABLE_1;
+            log.debug("processing MPLS specific forwarding objective {} hash:{} in dev {}",
+                      fwd.id(), fwd.hashCode(), deviceId);
+        }
+
+        TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
+        if (fwd.treatment() != null) {
+            for (Instruction i : fwd.treatment().allInstructions()) {
+                tb.add(i);
+            }
+        }
+
+        if (fwd.nextId() != null) {
+            NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
+            List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
+            // we only need the top level group's key to point the flow to it
+            Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
+            if (group == null) {
+                log.warn("The group left!");
+                fail(fwd, ObjectiveError.GROUPMISSING);
+                return Collections.emptySet();
+            }
+            tb.deferred().group(group.id());
+        }
+        tb.transition(ACL_TABLE);
+        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                .fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .forDevice(deviceId)
+                .withSelector(filteredSelector.build())
+                .withTreatment(tb.build())
+                .forTable(forTableId);
+
+        if (fwd.permanent()) {
+            ruleBuilder.makePermanent();
+        } else {
+            ruleBuilder.makeTemporary(fwd.timeout());
+        }
+
+        return Collections.singletonList(ruleBuilder.build());
     }
 
 

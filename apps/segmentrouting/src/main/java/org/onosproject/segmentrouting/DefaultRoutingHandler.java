@@ -448,7 +448,6 @@ public class DefaultRoutingHandler {
         if (nextHops.isEmpty()) {
             nextHops.add(destSw);
         }
-
         // If both target switch and dest switch are edge routers, then set IP
         // rule for both subnet and router IP.
         boolean targetIsEdge;
@@ -467,7 +466,7 @@ public class DefaultRoutingHandler {
         if (targetIsEdge && destIsEdge) {
             Set<Ip4Prefix> subnets = config.getSubnets(destSw);
             log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for subnets {}",
-                    targetSw, destSw, subnets);
+                      targetSw, destSw, subnets);
             result = rulePopulator.populateIpRuleForSubnet(targetSw,
                                                            subnets,
                                                            destSw,
@@ -479,24 +478,23 @@ public class DefaultRoutingHandler {
             Ip4Address routerIp = destRouterIp;
             IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
             log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
-                    targetSw, destSw, routerIpPrefix);
+                      targetSw, destSw, routerIpPrefix);
             result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
             if (!result) {
                 return false;
             }
 
-        // If the target switch is an edge router, then set IP rules for the router IP.
         } else if (targetIsEdge) {
+            // If the target switch is an edge router, then set IP rules for the router IP.
             Ip4Address routerIp = destRouterIp;
             IpPrefix routerIpPrefix = IpPrefix.valueOf(routerIp, IpPrefix.MAX_INET_MASK_LENGTH);
             log.debug("* populateEcmpRoutingRulePartial in device {} towards {} for router IP {}",
-                    targetSw, destSw, routerIpPrefix);
+                      targetSw, destSw, routerIpPrefix);
             result = rulePopulator.populateIpRuleForRouter(targetSw, routerIpPrefix, destSw, nextHops);
             if (!result) {
                 return false;
             }
         }
-
         // Populates MPLS rules to all routers
         log.debug("* populateEcmpRoutingRulePartial in device{} towards {} for all MPLS rules",
                 targetSw, destSw);
@@ -504,7 +502,6 @@ public class DefaultRoutingHandler {
         if (!result) {
             return false;
         }
-
         return true;
     }
 

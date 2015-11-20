@@ -81,7 +81,7 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
         log.debug("createGroupsAtTransitRouter: The neighborset with label "
                 + "for sw {} is {}", deviceId, nsSet);
 
-        createGroupsFromNeighborsets(nsSet);
+        //createGroupsFromNeighborsets(nsSet);
     }
 
     @Override
@@ -95,7 +95,7 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
         Set<NeighborSet> nsSet = computeImpactedNeighborsetForPortEvent(
                                              newNeighborLink.dst().deviceId(),
                                              devicePortMap.keySet());
-        createGroupsFromNeighborsets(nsSet);
+        //createGroupsFromNeighborsets(nsSet);
     }
 
     @Override

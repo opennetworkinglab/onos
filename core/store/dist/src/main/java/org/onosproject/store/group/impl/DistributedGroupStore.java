@@ -348,9 +348,11 @@ public class DistributedGroupStore
     public void storeGroupDescription(GroupDescription groupDesc) {
         log.debug("In storeGroupDescription");
         // Check if a group is existing with the same key
-        if (getGroup(groupDesc.deviceId(), groupDesc.appCookie()) != null) {
-            log.warn("Group already exists with the same key {}",
-                     groupDesc.appCookie());
+        Group existingGroup = getGroup(groupDesc.deviceId(), groupDesc.appCookie());
+        if (existingGroup != null) {
+            log.warn("Group already exists with the same key {} in dev:{} with id:{}",
+                     groupDesc.appCookie(), groupDesc.deviceId(),
+                     Integer.toHexString(existingGroup.id().id()));
             return;
         }
 

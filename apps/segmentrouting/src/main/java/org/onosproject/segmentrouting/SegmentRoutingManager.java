@@ -424,17 +424,22 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     /**
      * Returns the next objective ID for the given NeighborSet.
-     * If the nextObjectiveID does not exist, a new one is created and returned.
+     * If the nextObjective does not exist, a new one is created and
+     * it's id is returned.
+     * TODO move the side-effect creation of a Next Objective into a new method
      *
      * @param deviceId Device ID
      * @param ns NegighborSet
-     * @return next objective ID
+     * @param meta metadata passed into the creation of a Next Objective
+     * @return next objective ID or -1 if an error was encountered during the
+     *         creation of the nextObjective
      */
-    public int getNextObjectiveId(DeviceId deviceId, NeighborSet ns) {
+    public int getNextObjectiveId(DeviceId deviceId, NeighborSet ns,
+                                  TrafficSelector meta) {
         if (groupHandlerMap.get(deviceId) != null) {
             log.trace("getNextObjectiveId query in device {}", deviceId);
             return groupHandlerMap
-                    .get(deviceId).getNextObjectiveId(ns);
+                    .get(deviceId).getNextObjectiveId(ns, meta);
         } else {
             log.warn("getNextObjectiveId query in device {} not found", deviceId);
             return -1;
@@ -586,7 +591,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         DefaultGroupHandler groupHandler = groupHandlerMap.get(link.src()
                 .deviceId());
         if (groupHandler != null) {
-            groupHandler.linkUp(link);
+            groupHandler.linkUp(link, mastershipService.isLocalMaster(
+                                           link.src().deviceId()));
         } else {
             Device device = deviceService.getDevice(link.src().deviceId());
             if (device != null) {
@@ -596,7 +602,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 processDeviceAdded(device);
                 groupHandler = groupHandlerMap.get(link.src()
                                                    .deviceId());
-                groupHandler.linkUp(link);
+                groupHandler.linkUp(link, mastershipService.isLocalMaster(device.id()));
             }
         }
 

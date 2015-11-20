@@ -18,6 +18,7 @@ package org.onosproject.net.flowobjective;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
 import java.util.Collection;
@@ -39,6 +40,7 @@ public final class DefaultNextObjective implements NextObjective {
     private final Integer id;
     private final Operation op;
     private final Optional<ObjectiveContext> context;
+    private final TrafficSelector meta;
 
     private DefaultNextObjective(Builder builder) {
         this.treatments = builder.treatments;
@@ -47,6 +49,7 @@ public final class DefaultNextObjective implements NextObjective {
         this.id = builder.id;
         this.op = builder.op;
         this.context = Optional.ofNullable(builder.context);
+        this.meta = builder.meta;
     }
 
     @Override
@@ -94,6 +97,11 @@ public final class DefaultNextObjective implements NextObjective {
         return context;
     }
 
+    @Override
+    public TrafficSelector meta() {
+        return meta;
+    }
+
     /**
      * Returns a new builder.
      *
@@ -111,6 +119,7 @@ public final class DefaultNextObjective implements NextObjective {
         private List<TrafficTreatment> treatments;
         private Operation op;
         private ObjectiveContext context;
+        private TrafficSelector meta;
 
         private final ImmutableList.Builder<TrafficTreatment> listBuilder
                 = ImmutableList.builder();
@@ -172,6 +181,12 @@ public final class DefaultNextObjective implements NextObjective {
         }
 
         @Override
+        public Builder setMeta(TrafficSelector meta) {
+            this.meta = meta;
+            return this;
+        }
+
+        @Override
         public NextObjective add() {
             treatments = listBuilder.build();
             op = Operation.ADD;
@@ -218,5 +233,55 @@ public final class DefaultNextObjective implements NextObjective {
 
             return new DefaultNextObjective(this);
         }
+
+        @Override
+        public NextObjective addToExisting() {
+            treatments = listBuilder.build();
+            op = Operation.ADD_TO_EXISTING;
+            checkNotNull(appId, "Must supply an application id");
+            checkNotNull(id, "id cannot be null");
+            checkNotNull(type, "The type cannot be null");
+            checkArgument(!treatments.isEmpty(), "Must have at least one treatment");
+
+            return new DefaultNextObjective(this);
+        }
+
+        @Override
+        public NextObjective removeFromExisting() {
+            treatments = listBuilder.build();
+            op = Operation.REMOVE_FROM_EXISTING;
+            checkNotNull(appId, "Must supply an application id");
+            checkNotNull(id, "id cannot be null");
+            checkNotNull(type, "The type cannot be null");
+
+            return new DefaultNextObjective(this);
+        }
+
+        @Override
+        public NextObjective addToExisting(ObjectiveContext context) {
+            treatments = listBuilder.build();
+            op = Operation.ADD_TO_EXISTING;
+            this.context = context;
+            checkNotNull(appId, "Must supply an application id");
+            checkNotNull(id, "id cannot be null");
+            checkNotNull(type, "The type cannot be null");
+            checkArgument(!treatments.isEmpty(), "Must have at least one treatment");
+
+            return new DefaultNextObjective(this);
+        }
+
+        @Override
+        public NextObjective removeFromExisting(ObjectiveContext context) {
+            treatments = listBuilder.build();
+            op = Operation.REMOVE_FROM_EXISTING;
+            this.context = context;
+            checkNotNull(appId, "Must supply an application id");
+            checkNotNull(id, "id cannot be null");
+            checkNotNull(type, "The type cannot be null");
+
+            return new DefaultNextObjective(this);
+        }
+
     }
+
 }

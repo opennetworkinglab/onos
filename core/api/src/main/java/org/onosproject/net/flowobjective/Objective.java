@@ -21,7 +21,7 @@ import org.onosproject.core.ApplicationId;
 import java.util.Optional;
 
 /**
- * Base representation of an flow description.
+ * Base representation of a flow-objective description.
  */
 @Beta
 public interface Objective {
@@ -35,14 +35,30 @@ public interface Objective {
      */
     enum Operation {
         /**
-         * Adds the objective.
+         * Adds the objective. Can be used for any flow objective. For forwarding
+         * and filtering objectives, existing objectives with identical selector
+         * and priority fields (but different treatments or next) will be replaced.
+         * For next objectives, if modification is desired, ADD will not
+         * do anything - use ADD_TO_EXISTING.
          */
         ADD,
 
         /**
-         * Removes the objective.
+         * Removes the objective. Can be used for any flow objective.
          */
-        REMOVE
+        REMOVE,
+
+        /**
+         * Add to an existing Next Objective. Should not be used for any other
+         * objective.
+         */
+        ADD_TO_EXISTING,
+
+        /**
+         * Remove from an existing Next Objective. Should not be used for any
+         * other objective.
+         */
+        REMOVE_FROM_EXISTING
     }
 
     /**
@@ -129,6 +145,7 @@ public interface Objective {
          * @return an objective builder
          */
         Builder withPriority(int priority);
+
     }
 
 }

@@ -93,7 +93,7 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
                 + "with label for sw {} is {}",
                 deviceId, nsSet);
 
-        createGroupsFromNeighborsets(nsSet);
+        //createGroupsFromNeighborsets(nsSet);
     }
 
     @Override
@@ -107,7 +107,7 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
         Set<NeighborSet> nsSet = computeImpactedNeighborsetForPortEvent(
                                              newNeighborLink.dst().deviceId(),
                                              devicePortMap.keySet());
-        createGroupsFromNeighborsets(nsSet);
+        //createGroupsFromNeighborsets(nsSet);
     }
 
     @Override

@@ -368,6 +368,7 @@ public final class KryoNamespaces {
                     L2ModificationInstruction.ModVlanPcpInstruction.class,
                     L2ModificationInstruction.PopVlanInstruction.class,
                     L2ModificationInstruction.ModMplsLabelInstruction.class,
+                    L2ModificationInstruction.ModMplsBosInstruction.class,
                     L2ModificationInstruction.ModMplsTtlInstruction.class,
                     L2ModificationInstruction.ModTunnelIdInstruction.class,
                     L3ModificationInstruction.class,

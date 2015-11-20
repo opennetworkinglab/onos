@@ -194,7 +194,7 @@ public class TunnelHandler {
             tunnel.allowToRemoveGroup(true);
         }
 
-        return groupHandlerMap.get(deviceId).getNextObjectiveId(ns);
+        return groupHandlerMap.get(deviceId).getNextObjectiveId(ns, null);
     }
 
 }

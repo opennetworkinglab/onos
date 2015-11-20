@@ -16,6 +16,7 @@
 package org.onosproject.net.flowobjective;
 
 import com.google.common.annotations.Beta;
+
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -117,6 +118,53 @@ public final class DefaultForwardingObjective implements ForwardingObjective {
     @Override
     public Optional<ObjectiveContext> context() {
         return context;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(selector, flag, permanent,
+                            timeout, appId, priority, nextId,
+                            treatment, op);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof DefaultForwardingObjective)) {
+            return false;
+        }
+        final DefaultForwardingObjective other = (DefaultForwardingObjective) obj;
+        boolean nextEq = false, treatmentEq = false;
+        if (this.selector.equals(other.selector) &&
+                this.flag == other.flag &&
+                this.permanent == other.permanent &&
+                this.timeout == other.timeout &&
+                this.appId.equals(other.appId) &&
+                this.priority == other.priority &&
+                this.op == other.op) {
+            if (this.nextId != null && other.nextId != null) {
+                nextEq = this.nextId == other.nextId;
+            }
+            if (this.treatment != null && other.treatment != null) {
+                treatmentEq = this.treatment.equals(other.treatment);
+            }
+            if (nextEq && treatmentEq) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -54,6 +54,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -226,10 +227,11 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         if (fwd.nextId() != null &&
                 flowObjectiveStore.getNextGroup(fwd.nextId()) == null) {
             log.trace("Queuing forwarding objective for nextId {}", fwd.nextId());
-            if (pendingForwards.putIfAbsent(fwd.nextId(),
-                                            Sets.newHashSet(new PendingNext(deviceId, fwd))) != null) {
-                Set<PendingNext> pending = pendingForwards.get(fwd.nextId());
-                pending.add(new PendingNext(deviceId, fwd));
+            // TODO: change to computeIfAbsent
+            Set<PendingNext> pnext = pendingForwards.putIfAbsent(fwd.nextId(),
+                                         Sets.newHashSet(new PendingNext(deviceId, fwd)));
+            if (pnext != null) {
+                pnext.add(new PendingNext(deviceId, fwd));
             }
             return true;
         }
@@ -411,6 +413,27 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
         public ForwardingObjective forwardingObjective() {
             return fwd;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(deviceId, fwd);
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof PendingNext)) {
+                return false;
+            }
+            final PendingNext other = (PendingNext) obj;
+            if (this.deviceId.equals(other.deviceId) &&
+                    this.fwd.equals(other.fwd)) {
+                return true;
+            }
+            return false;
         }
     }
 }
