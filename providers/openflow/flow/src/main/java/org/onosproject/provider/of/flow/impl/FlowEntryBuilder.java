@@ -707,10 +707,13 @@ public class FlowEntryBuilder {
                 long tunnelId = match.get(MatchField.TUNNEL_ID).getValue();
                 builder.matchTunnelId(tunnelId);
                 break;
+            case ARP_THA:
+                mac = MacAddress.valueOf(match.get(MatchField.ARP_THA).getLong());
+                builder.matchArpTha(mac);
+                break;
             case ARP_OP:
             case ARP_SHA:
             case ARP_SPA:
-            case ARP_THA:
             case ARP_TPA:
             case MPLS_TC:
             default:
