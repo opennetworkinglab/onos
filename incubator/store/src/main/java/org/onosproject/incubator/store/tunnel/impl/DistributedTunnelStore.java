@@ -290,9 +290,10 @@ public class DistributedTunnelStore
         TunnelSubscription order = new TunnelSubscription(appId, null, null, tunnelId, null, null,
                                 annotations);
         Tunnel result = tunnelIdAsKeyStore.get(tunnelId);
-        if (result != null || Tunnel.State.INACTIVE.equals(result.state())) {
+        if (result == null || Tunnel.State.INACTIVE.equals(result.state())) {
             return null;
         }
+
         orderSet.add(order);
         orderRelationship.put(appId, orderSet);
         return result;
