@@ -303,7 +303,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                 .filter(s -> s.networkId().equals(port.networkId()))
                 .findFirst().get();
         if (subnet == null) {
-            log.debug("No subnet information for network {}", subnet.id());
+            log.debug("No subnet information for network {}", port.networkId());
             return null;
         }
 
