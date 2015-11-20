@@ -18,7 +18,6 @@ package org.onosproject.net.newresource;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 import java.util.LinkedList;
 import java.util.List;
