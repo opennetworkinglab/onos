@@ -320,7 +320,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     }
 
     private OFAction buildModLambdaInstruction(ModLambdaInstruction instruction) {
-        return factory().actions().circuit(factory().oxms().ochSigidBasic(
+        return factory().actions().circuit(factory().oxms().expOchSigId(
                 new CircuitSignalID((byte) 1, (byte) 2, instruction.lambda(), (short) 1)));
     }
 
@@ -329,7 +329,7 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         byte gridType = OpenFlowValueMapper.lookupGridType(signal.gridType());
         byte channelSpacing = OpenFlowValueMapper.lookupChannelSpacing(signal.channelSpacing());
 
-        return factory().actions().circuit(factory().oxms().ochSigidBasic(
+        return factory().actions().circuit(factory().oxms().expOchSigId(
                 new CircuitSignalID(gridType, channelSpacing,
                         (short) signal.spacingMultiplier(), (short) signal.slotGranularity())
         ));

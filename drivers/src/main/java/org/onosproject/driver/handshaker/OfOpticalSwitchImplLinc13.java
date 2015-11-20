@@ -15,8 +15,8 @@
  */
 package org.onosproject.driver.handshaker;
 
-import org.onosproject.net.Device;
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.net.Device;
 import org.onosproject.openflow.controller.OpenFlowOpticalSwitch;
 import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
@@ -26,6 +26,8 @@ import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeNotSta
 import org.projectfloodlight.openflow.protocol.OFCircuitPortStatus;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsReply;
 import org.projectfloodlight.openflow.protocol.OFCircuitPortsRequest;
+import org.projectfloodlight.openflow.protocol.OFFlowMod;
+import org.projectfloodlight.openflow.protocol.OFFlowStatsRequest;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFObject;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
@@ -34,11 +36,19 @@ import org.projectfloodlight.openflow.protocol.OFPortDescStatsReply;
 import org.projectfloodlight.openflow.protocol.OFPortOptical;
 import org.projectfloodlight.openflow.protocol.OFStatsReply;
 import org.projectfloodlight.openflow.protocol.OFStatsType;
+import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.action.OFActionSetField;
+import org.projectfloodlight.openflow.protocol.match.Match;
+import org.projectfloodlight.openflow.protocol.match.MatchField;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmExpOchSigId;
+import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.OFPort;
+import org.projectfloodlight.openflow.types.U8;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,6 +61,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * LINC sends the tap ports (OCh for our purposes) in the regular port desc stats reply,
  * while it sends *all* ports (both tap and WDM ports, i.e., OCh and OMS) in the experimenter port desc stats reply.
+ *
+ * As LINC implements custom OF optical extensions (in contrast to the final standard as specified in
+ * ONF TS-022 (March 15, 2015), we need to rewrite flow stat requests and flow mods in {@link #sendMsg(OFMessage)}.
  *
  */
 public class OfOpticalSwitchImplLinc13
@@ -160,6 +173,86 @@ public class OfOpticalSwitchImplLinc13
         return Collections.EMPTY_LIST;
     }
 
+    /**
+     * Rewrite match object to use LINC OF optical extensions.
+     *
+     * @param match original match
+     * @return rewritten match
+     */
+    private Match rewriteMatch(Match match) {
+        Match.Builder mBuilder = factory().buildMatch();
+        for (MatchField mf : match.getMatchFields()) {
+            if (mf == MatchField.EXP_OCH_SIG_ID) {
+                mBuilder.setExact(MatchField.OCH_SIGID, (CircuitSignalID) match.get(mf));
+                continue;
+            }
+            if (mf == MatchField.EXP_OCH_SIGTYPE) {
+                mBuilder.setExact(MatchField.OCH_SIGTYPE, (U8) match.get(mf));
+                continue;
+            }
+            mBuilder.setExact(mf, match.get(mf));
+        }
+
+        return mBuilder.build();
+    }
+
+    /**
+     * Rewrite actions to use LINC OF optical extensions.
+     *
+     * @param actions original actions
+     * @return rewritten actions
+     */
+    private List<OFAction> rewriteActions(List<OFAction> actions) {
+        List<OFAction> newActions = new LinkedList<>();
+
+        for (OFAction action : actions) {
+            if (!(action instanceof OFActionSetField)) {
+                newActions.add(action);
+                continue;
+            }
+
+            OFActionSetField sf = (OFActionSetField) action;
+            if (!(sf instanceof OFOxmExpOchSigId)) {
+                newActions.add(action);
+            }
+
+            OFOxmExpOchSigId oxm = (OFOxmExpOchSigId) sf.getField();
+            CircuitSignalID signalId = oxm.getValue();
+
+            newActions.add(
+                    factory().actions().circuit(factory().oxms().ochSigid(signalId)));
+        }
+
+        return newActions;
+    }
+
+    @Override
+    public void sendMsg(OFMessage msg) {
+        // Ignore everything but flow mods and stat requests
+        if (!(msg instanceof OFFlowMod || msg instanceof OFFlowStatsRequest)) {
+            super.sendMsg(msg);
+            return;
+        }
+
+        Match newMatch;
+        OFMessage newMsg = null;
+
+        if (msg instanceof OFFlowStatsRequest) {
+            // Rewrite match only
+            OFFlowStatsRequest fsr = (OFFlowStatsRequest) msg;
+            newMatch = rewriteMatch(fsr.getMatch());
+            newMsg = fsr.createBuilder().setMatch(newMatch).build();
+        } else if (msg instanceof OFFlowMod) {
+            // Rewrite match and actions
+            OFFlowMod fm = (OFFlowMod) msg;
+            newMatch = rewriteMatch(fm.getMatch());
+            List<OFAction> actions = rewriteActions(fm.getActions());
+
+            newMsg = fm.createBuilder().setMatch(newMatch).setActions(actions).build();
+        }
+
+        super.sendMsg(newMsg);
+    }
 
     @Override
     public Boolean supportNxRole() {
