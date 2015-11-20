@@ -21,9 +21,8 @@ import java.util.Objects;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -32,10 +31,7 @@ import com.google.common.base.Preconditions;
  * Implementation of NextHop BGP Path Attribute.
  */
 public class NextHop implements BGPValueType {
-    private static final Logger log = LoggerFactory.getLogger(NextHop.class);
     public static final byte NEXTHOP_TYPE = 3;
-    public static final int TYPE_AND_LEN_AS_SHORT = 4;
-    public static final int TYPE_AND_LEN_AS_BYTE = 3;
 
     private boolean isNextHop = false;
     private Ip4Address nextHop;
@@ -75,15 +71,14 @@ public class NextHop implements BGPValueType {
             Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
                     parseFlags.getLength());
         }
-        int len = parseFlags.isShort() ? parseFlags.getLength() + TYPE_AND_LEN_AS_SHORT : parseFlags
-                .getLength() + TYPE_AND_LEN_AS_BYTE;
+        int len = parseFlags.isShort() ? parseFlags.getLength() + Constants.TYPE_AND_LEN_AS_SHORT : parseFlags
+                .getLength() + Constants.TYPE_AND_LEN_AS_BYTE;
         ChannelBuffer data = tempCb.readBytes(len);
         if (parseFlags.getFirstBit() && !parseFlags.getSecondBit() && parseFlags.getThirdBit()) {
             throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_FLAGS_ERROR, data);
         }
 
-        //TODO: use Validation.toInetAddress once Validation is merged
-        InetAddress ipAddress = (InetAddress) cb.readBytes(parseFlags.getLength());
+         InetAddress ipAddress = Validation.toInetAddress(parseFlags.getLength(), cb);
         if (ipAddress.isMulticastAddress()) {
             throw new BGPParseException("Multicast address is not supported");
         }
