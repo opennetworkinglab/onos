@@ -83,7 +83,8 @@ public class SdnIpFib implements FibListener {
 
 
     @Override
-    public void update(Collection<FibUpdate> updates, Collection<FibUpdate> withdraws) {
+    public void update(Collection<FibUpdate> updates,
+                       Collection<FibUpdate> withdraws) {
         int submitCount = 0, withdrawCount = 0;
         //
         // NOTE: Semantically, we MUST withdraw existing intents before
@@ -157,7 +158,8 @@ public class SdnIpFib implements FibListener {
             MacAddress nextHopMacAddress) {
 
         // Find the attachment point (egress interface) of the next hop
-        Interface egressInterface = interfaceService.getMatchingInterface(nextHopIpAddress);
+        Interface egressInterface =
+                interfaceService.getMatchingInterface(nextHopIpAddress);
         if (egressInterface == null) {
             log.warn("No outgoing interface found for {}",
                     nextHopIpAddress);
@@ -182,10 +184,19 @@ public class SdnIpFib implements FibListener {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         if (prefix.isIp4()) {
             selector.matchEthType(Ethernet.TYPE_IPV4);
-            selector.matchIPDst(prefix);
+            // if it is default route, then we do not need match destination
+            // IP address
+            if (prefix.prefixLength() != 0) {
+                selector.matchIPDst(prefix);
+            }
         } else {
             selector.matchEthType(Ethernet.TYPE_IPV6);
-            selector.matchIPv6Dst(prefix);
+            // if it is default route, then we do not need match destination
+            // IP address
+            if (prefix.prefixLength() != 0) {
+                selector.matchIPv6Dst(prefix);
+            }
+
         }
 
         // Rewrite the destination MAC address
