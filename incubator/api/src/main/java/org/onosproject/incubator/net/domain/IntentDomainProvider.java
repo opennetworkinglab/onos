@@ -16,6 +16,7 @@
 package org.onosproject.incubator.net.domain;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.provider.Provider;
 
 import java.util.List;
 import java.util.Set;
@@ -24,7 +25,7 @@ import java.util.Set;
  * FIXME.
  */
 @Beta
-public interface IntentDomainProvider {
+public interface IntentDomainProvider extends Provider {
 
     /**
      * Requests that the provider attempt to satisfy the intent primitive.
@@ -37,7 +38,7 @@ public interface IntentDomainProvider {
      * @return intent resources that specify paths that satisfy the request.
      */
     //TODO Consider an iterable and/or holds (only hold one or two reservation(s) at a time)
-    List<DomainIntentResource> request(IntentDomain domain, IntentPrimitive primitive);
+    List<IntentResource> request(IntentDomain domain, IntentPrimitive primitive);
 
     /**
      * Request that the provider attempt to modify an existing resource to satisfy
@@ -48,14 +49,14 @@ public interface IntentDomainProvider {
      * @param newResource the resource to be applied
      * @return request contexts that contain resources to satisfy the intent
      */
-    DomainIntentResource modify(DomainIntentResource oldResource, DomainIntentResource newResource);
+    IntentResource modify(IntentResource oldResource, IntentResource newResource);
 
     /**
      * Requests that the provider release an intent resource.
      *
      * @param resource intent resource
      */
-    void release(DomainIntentResource resource);
+    void release(IntentResource resource);
 
     /**
      * Requests that the provider apply the path from the intent resource.
@@ -63,7 +64,7 @@ public interface IntentDomainProvider {
      * @param domainIntentResource request context
      * @return intent resource that satisfies the intent
      */
-    DomainIntentResource apply(DomainIntentResource domainIntentResource);
+    IntentResource apply(IntentResource domainIntentResource);
 
     /**
      * Requests that the provider cancel the path. Requests that are not applied
@@ -71,14 +72,14 @@ public interface IntentDomainProvider {
      *
      * @param domainIntentResource the intent resource whose path should be cancelled.
      */
-    void cancel(DomainIntentResource domainIntentResource);
+    void cancel(IntentResource domainIntentResource);
 
     /**
      * Returns all intent resources held by the provider.
      *
      * @return set of intent resources
      */
-    Set<DomainIntentResource> getResources();
+    Set<IntentResource> getResources();
 }
 
 

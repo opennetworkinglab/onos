@@ -15,13 +15,21 @@
  */
 package org.onosproject.incubator.net.domain;
 
-import com.google.common.annotations.Beta;
-import org.onosproject.event.EventListener;
+import org.onosproject.event.AbstractEvent;
 
 /**
- * Listener for intent domain events.
+ * Describes an intent domain event.
  */
-@Beta
-public interface IntentDomainListener
-    extends EventListener<IntentDomainEvent> {
+public class IntentDomainEvent
+        extends AbstractEvent<IntentDomainEvent.Type, IntentDomain> {
+
+    public enum Type {
+        DOMAIN_ADDED,
+        DOMAIN_MODIFIED,
+        DOMAIN_REMOVED
+    }
+
+    protected IntentDomainEvent(Type type, IntentDomain subject) {
+        super(type, subject);
+    }
 }

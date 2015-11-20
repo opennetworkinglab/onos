@@ -15,13 +15,11 @@
  */
 package org.onosproject.incubator.net.domain;
 
-import com.google.common.annotations.Beta;
-import org.onosproject.event.EventListener;
+import org.onosproject.net.provider.ProviderRegistry;
 
 /**
- * Listener for intent domain events.
+ * Abstraction of a intent domain provider registry.
  */
-@Beta
-public interface IntentDomainListener
-    extends EventListener<IntentDomainEvent> {
+public interface IntentDomainProviderRegistry
+        extends ProviderRegistry<IntentDomainProvider, IntentDomainProviderService> {
 }
