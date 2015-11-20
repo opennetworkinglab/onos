@@ -356,13 +356,17 @@ class LINCSwitch(OpticalSwitch):
         return configDict
 
     @staticmethod
-    def bootOE(net):
+    def bootOE(net, domain=None):
         """
         Start the LINC optical emulator within a mininet instance
 
         This involves 1. converting the information stored in Linc* to configs
         for both LINC and the network config system, 2. starting Linc, 3. connecting
         cross-connects, and finally pushing the network configs to ONOS.
+
+        Inevitably, there are times when we have OVS switches that should not be
+        under the control of the controller in charge of the Linc switches. We
+        hint at these by passing domain information.
         """
         LINCSwitch.opticalJSON = {}
         linkConfig = []
@@ -371,6 +375,8 @@ class LINCSwitch(OpticalSwitch):
         LINCSwitch.controllers = net.controllers
 
         for switch in net.switches:
+            if domain and switch not in domain:
+                continue
             if isinstance(switch, OpticalSwitch):
                 devices.append(switch.json())
             elif isinstance(switch, OVSSwitch):
