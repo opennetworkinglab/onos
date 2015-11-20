@@ -15,7 +15,8 @@
  */
 package org.onosproject.bgpio.types.attr;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -43,7 +44,7 @@ public class BgpLinkAttrUnRsrvdLinkBandwidth implements BGPValueType {
     public short sType;
 
     /* ISIS administrative group */
-    private float[] maxUnResBandwidth;
+    private List<Float> maxUnResBandwidth = new ArrayList<Float>();
 
     /**
      * Constructor to initialize the values.
@@ -51,10 +52,21 @@ public class BgpLinkAttrUnRsrvdLinkBandwidth implements BGPValueType {
      * @param maxUnResBandwidth Maximum Unreserved bandwidth
      * @param sType returns the tag value
      */
-    BgpLinkAttrUnRsrvdLinkBandwidth(float[] maxUnResBandwidth, short sType) {
-        this.maxUnResBandwidth = Arrays.copyOf(maxUnResBandwidth,
-                                               maxUnResBandwidth.length);
+    public BgpLinkAttrUnRsrvdLinkBandwidth(List<Float> maxUnResBandwidth,
+                                           short sType) {
+        this.maxUnResBandwidth = maxUnResBandwidth;
         this.sType = sType;
+    }
+
+    /**
+     * Returns object of this class with specified values.
+     *
+     * @param linkPfxMetric Prefix Metric
+     * @param sType returns the tag value
+     * @return object of BgpLinkAttrUnRsrvdLinkBandwidth
+     */
+    public static BgpLinkAttrUnRsrvdLinkBandwidth of(List<Float> linkPfxMetric, short sType) {
+        return new BgpLinkAttrUnRsrvdLinkBandwidth(linkPfxMetric, sType);
     }
 
     /**
@@ -67,7 +79,8 @@ public class BgpLinkAttrUnRsrvdLinkBandwidth implements BGPValueType {
     public static BgpLinkAttrUnRsrvdLinkBandwidth read(ChannelBuffer cb,
                                                        short sType)
                                                                throws BGPParseException {
-        float[] maxUnResBandwidth;
+        ArrayList<Float> maxUnResBandwidth = new ArrayList<Float>();
+        float tmp;
         short lsAttrLength = cb.readShort();
 
         if ((lsAttrLength != MAX_BANDWIDTH_LEN * NO_OF_PRIORITY)
@@ -77,12 +90,12 @@ public class BgpLinkAttrUnRsrvdLinkBandwidth implements BGPValueType {
                                    lsAttrLength);
         }
 
-        maxUnResBandwidth = new float[NO_OF_PRIORITY];
         for (int i = 0; i < NO_OF_PRIORITY; i++) {
-            maxUnResBandwidth[i] = ieeeToFloatRead(cb.readInt()) * NO_OF_BITS;
+            tmp = ieeeToFloatRead(cb.readInt()) * NO_OF_BITS;
+            maxUnResBandwidth.add(new Float(tmp));
         }
 
-        return new BgpLinkAttrUnRsrvdLinkBandwidth(maxUnResBandwidth, sType);
+        return BgpLinkAttrUnRsrvdLinkBandwidth.of(maxUnResBandwidth, sType);
     }
 
     /**
@@ -90,7 +103,7 @@ public class BgpLinkAttrUnRsrvdLinkBandwidth implements BGPValueType {
      *
      * @return unreserved bandwidth.
      */
-    float[] getLinkAttrUnRsrvdLinkBandwidth() {
+    public List<Float> getLinkAttrUnRsrvdLinkBandwidth() {
         return maxUnResBandwidth;
     }
 
