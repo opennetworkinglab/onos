@@ -227,7 +227,7 @@ public class FlowClassifierResourceTest extends VtnResourceTest {
         final Set<FlowClassifier> flowClassifiers = new HashSet<>();
         flowClassifiers.add(flowClassifier1);
 
-        expect(flowClassifierService.hasFlowClassifier(anyObject())).andReturn(true).anyTimes();
+        expect(flowClassifierService.exists(anyObject())).andReturn(true).anyTimes();
         expect(flowClassifierService.getFlowClassifier(anyObject())).andReturn(flowClassifier1).anyTimes();
         replay(flowClassifierService);
 

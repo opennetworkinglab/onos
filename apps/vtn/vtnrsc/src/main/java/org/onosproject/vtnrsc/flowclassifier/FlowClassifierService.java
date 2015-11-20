@@ -24,49 +24,59 @@ import org.onosproject.vtnrsc.FlowClassifierId;
 public interface FlowClassifierService {
 
     /**
+     * Check whether Flow Classifier is present based on given Flow Classifier
+     * Id.
+     *
+     * @param id flow classifier identifier
+     * @return true if flow classifier is present otherwise return false
+     */
+    boolean exists(FlowClassifierId id);
+
+    /**
+     * Returns the number of flow classifiers known to the system.
+     *
+     * @return number of flow classifiers
+     */
+    int getFlowClassifierCount();
+
+    /**
      * Store Flow Classifier.
      *
-     * @param flowClassifier Flow Classifier
-     * @return true if adding Flow Classifier into store is success otherwise return false.
+     * @param flowClassifier flow classifier
+     * @return true if adding flow classifier into store is success otherwise
+     *         return false
      */
     boolean createFlowClassifier(FlowClassifier flowClassifier);
 
     /**
      * Return the existing collection of Flow Classifier.
      *
-     * @return Flow Classifier collections.
+     * @return flow classifier collections
      */
     Iterable<FlowClassifier> getFlowClassifiers();
 
     /**
-     * Check whether Flow Classifier is present based on given Flow Classifier Id.
-     *
-     * @param id Flow Classifier.
-     * @return true if Flow Classifier is present otherwise return false.
-     */
-    boolean hasFlowClassifier(FlowClassifierId id);
-
-    /**
      * Retrieve the Flow Classifier based on given Flow Classifier id.
      *
-     * @param id Flow Classifier Id.
-     * @return Flow Classifier if present otherwise returns null.
+     * @param id flow classifier identifier
+     * @return flow classifier if present otherwise returns null
      */
     FlowClassifier getFlowClassifier(FlowClassifierId id);
 
     /**
      * Update Flow Classifier based on given Flow Classifier Id.
      *
-     * @param flowClassifier Flow Classifier.
-     * @return true if update is success otherwise return false.
+     * @param flowClassifier flow classifier
+     * @return true if flow classifier update is success otherwise return false
      */
     boolean updateFlowClassifier(FlowClassifier flowClassifier);
 
     /**
      * Remove Flow Classifier from store based on given Flow Classifier Id.
      *
-     * @param id Flow Classifier Id.
-     * @return true if Flow Classifier removal is success otherwise return false.
+     * @param id flow classifier identifier
+     * @return true if flow classifier removal is success otherwise return
+     *         false
      */
     boolean removeFlowClassifier(FlowClassifierId id);
 }

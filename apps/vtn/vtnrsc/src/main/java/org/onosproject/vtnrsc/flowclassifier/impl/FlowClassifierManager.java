@@ -73,6 +73,28 @@ public class FlowClassifierManager implements FlowClassifierService {
     }
 
     @Override
+    public boolean exists(FlowClassifierId id) {
+        checkNotNull(id, FLOW_CLASSIFIER_ID_NOT_NULL);
+        return flowClassifierStore.containsKey(id);
+    }
+
+    @Override
+    public int getFlowClassifierCount() {
+        return flowClassifierStore.size();
+    }
+
+    @Override
+    public Iterable<FlowClassifier> getFlowClassifiers() {
+        return ImmutableList.copyOf(flowClassifierStore.values());
+    }
+
+    @Override
+    public FlowClassifier getFlowClassifier(FlowClassifierId id) {
+        checkNotNull(id, FLOW_CLASSIFIER_ID_NOT_NULL);
+        return flowClassifierStore.get(id);
+    }
+
+    @Override
     public boolean createFlowClassifier(FlowClassifier flowClassifier) {
         log.debug("createFlowClassifier");
         checkNotNull(flowClassifier, FLOW_CLASSIFIER_NOT_NULL);
@@ -87,27 +109,22 @@ public class FlowClassifierManager implements FlowClassifierService {
     }
 
     @Override
-    public Iterable<FlowClassifier> getFlowClassifiers() {
-        return ImmutableList.copyOf(flowClassifierStore.values());
-    }
-
-    @Override
-    public boolean hasFlowClassifier(FlowClassifierId id) {
-        checkNotNull(id, FLOW_CLASSIFIER_ID_NOT_NULL);
-        return flowClassifierStore.containsKey(id);
-    }
-
-    @Override
-    public FlowClassifier getFlowClassifier(FlowClassifierId id) {
-        checkNotNull(id, FLOW_CLASSIFIER_ID_NOT_NULL);
-        return flowClassifierStore.get(id);
-    }
-
-    @Override
     public boolean updateFlowClassifier(FlowClassifier flowClassifier) {
         checkNotNull(flowClassifier, FLOW_CLASSIFIER_NOT_NULL);
-        FlowClassifierId id = flowClassifier.flowClassifierId();
-        flowClassifierStore.put(id, flowClassifier);
+
+        if (!flowClassifierStore.containsKey(flowClassifier.flowClassifierId())) {
+            log.debug("The flowClassifier is not exist whose identifier was {} ", flowClassifier.flowClassifierId()
+                    .toString());
+            return false;
+        }
+
+        flowClassifierStore.put(flowClassifier.flowClassifierId(), flowClassifier);
+
+        if (!flowClassifier.equals(flowClassifierStore.get(flowClassifier.flowClassifierId()))) {
+            log.debug("Updation of flowClassifier is failed whose identifier was {} ", flowClassifier
+                    .flowClassifierId().toString());
+            return false;
+        }
         return true;
     }
 
