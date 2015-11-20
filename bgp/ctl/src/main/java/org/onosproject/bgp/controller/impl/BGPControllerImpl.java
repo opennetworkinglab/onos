@@ -16,7 +16,9 @@
 
 package org.onosproject.bgp.controller.impl;
 
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -28,6 +30,8 @@ import org.onosproject.bgp.controller.BGPCfg;
 import org.onosproject.bgp.controller.BGPController;
 import org.onosproject.bgp.controller.BGPId;
 import org.onosproject.bgp.controller.BGPPeer;
+import org.onosproject.bgp.controller.BgpLinkListener;
+import org.onosproject.bgp.controller.BgpNodeListener;
 import org.onosproject.bgp.controller.BgpPeerManager;
 import org.onosproject.bgpio.exceptions.BGPParseException;
 import org.onosproject.bgpio.protocol.BGPMessage;
@@ -43,6 +47,10 @@ public class BGPControllerImpl implements BGPController {
     protected ConcurrentHashMap<BGPId, BGPPeer> connectedPeers = new ConcurrentHashMap<BGPId, BGPPeer>();
 
     protected BGPPeerManagerImpl peerManager = new BGPPeerManagerImpl();
+
+    protected Set<BgpNodeListener> bgpNodeListener = new CopyOnWriteArraySet<>();
+    protected Set<BgpLinkListener> bgpLinkListener = new CopyOnWriteArraySet<>();
+
     final Controller ctrl = new Controller(this);
 
     private BGPConfig bgpconfig = new BGPConfig();
@@ -69,6 +77,36 @@ public class BGPControllerImpl implements BGPController {
     @Override
     public BGPPeer getPeer(BGPId bgpId) {
         return this.connectedPeers.get(bgpId);
+    }
+
+    @Override
+    public void addListener(BgpNodeListener listener) {
+        this.bgpNodeListener.add(listener);
+    }
+
+    @Override
+    public void removeListener(BgpNodeListener listener) {
+        this.bgpNodeListener.remove(listener);
+    }
+
+    @Override
+    public Set<BgpNodeListener> listener() {
+        return bgpNodeListener;
+    }
+
+    @Override
+    public void addLinkListener(BgpLinkListener listener) {
+        this.bgpLinkListener.add(listener);
+    }
+
+    @Override
+    public void removeLinkListener(BgpLinkListener listener) {
+        this.bgpLinkListener.remove(listener);
+    }
+
+    @Override
+    public Set<BgpLinkListener> linkListener() {
+        return bgpLinkListener;
     }
 
     @Override

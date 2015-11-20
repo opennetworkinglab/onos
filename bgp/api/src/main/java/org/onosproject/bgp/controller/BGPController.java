@@ -17,13 +17,14 @@
 package org.onosproject.bgp.controller;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.onosproject.bgpio.exceptions.BGPParseException;
 import org.onosproject.bgpio.protocol.BGPMessage;
 
 /**
- * Abstraction of an BGP controller. Serves as a one stop shop for obtaining BGP devices and (un)register listeners
- * on bgp events
+ * Abstraction of an BGP controller. Serves as a one stop shop for obtaining BGP devices and (un)register listeners on
+ * bgp events
  */
 public interface BGPController {
 
@@ -41,6 +42,34 @@ public interface BGPController {
      * @return the interface to this bgp peer
      */
     BGPPeer getPeer(BGPId bgpId);
+
+    /**
+     * Register a listener for BGP message events.
+     *
+     * @param listener the listener to notify
+     */
+    void addListener(BgpNodeListener listener);
+
+    /**
+     * Unregister a listener.
+     *
+     * @param listener the listener to unregister
+     */
+    void removeListener(BgpNodeListener listener);
+
+    /**
+     * Register a listener for BGP message events.
+     *
+     * @param listener the listener to notify
+     */
+    void addLinkListener(BgpLinkListener listener);
+
+    /**
+     * Unregister a listener.
+     *
+     * @param listener the listener to unregister
+     */
+    void removeLinkListener(BgpLinkListener listener);
 
     /**
      * Send a message to a particular bgp peer.
@@ -92,4 +121,18 @@ public interface BGPController {
      * @return connectedPeers connected peers
      */
     Map<BGPId, BGPPeer> connectedPeers();
+
+    /**
+     * Return BGP node listener.
+     *
+     * @return node listener
+     */
+    Set<BgpNodeListener> listener();
+
+    /**
+     * Return BGP link listener.
+     *
+     * @return link listener
+     */
+    Set<BgpLinkListener> linkListener();
 }
