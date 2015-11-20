@@ -23,7 +23,6 @@ import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.ClosedChannelException;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -153,7 +152,9 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                 // check for OPEN message
                 if (m.getType() != BGPType.OPEN) {
                     // When the message type is not keep alive message increment the wrong packet statistics
-                    h.processUnknownMsg();
+                    h.processUnknownMsg(BGPErrorType.FINITE_STATE_MACHINE_ERROR,
+                                        BGPErrorType.RECEIVE_UNEXPECTED_MESSAGE_IN_OPENSENT_STATE, m.getType()
+                                        .getType());
                     log.debug("Message is not OPEN message");
                 } else {
                     log.debug("Sending keep alive message in OPENSENT state");
@@ -202,7 +203,8 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                 // check for open message
                 if (m.getType() != BGPType.OPEN) {
                     // When the message type is not open message increment the wrong packet statistics
-                    h.processUnknownMsg();
+                    h.processUnknownMsg(BGPErrorType.FINITE_STATE_MACHINE_ERROR, BGPErrorType.UNSPECIFIED_ERROR, m
+                                        .getType().getType());
                     log.debug("Message is not OPEN message");
                 } else {
                     h.bgpPacketStats.addInPacket();
@@ -247,7 +249,9 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                 // check for keep alive message
                 if (m.getType() != BGPType.KEEP_ALIVE) {
                     // When the message type is not keep alive message handle the wrong packet
-                    h.processUnknownMsg();
+                    h.processUnknownMsg(BGPErrorType.FINITE_STATE_MACHINE_ERROR,
+                                        BGPErrorType.RECEIVE_UNEXPECTED_MESSAGE_IN_OPENCONFIRM_STATE, m.getType()
+                                        .getType());
                     log.debug("Message is not KEEPALIVE message");
                 } else {
 
@@ -274,11 +278,12 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                      * time value is zero, then the HoldTimer and KeepaliveTimer are not started. A reasonable maximum
                      * time between KEEPALIVE messages would be one third of the Hold Time interval.
                      */
-                    h.sendKeepAliveMessage();
 
                     if (h.negotiatedHoldTime != 0) {
                         h.keepAliveTimer = new BGPKeepAliveTimer(h,
                                                                  (h.negotiatedHoldTime / BGP_MAX_KEEPALIVE_INTERVAL));
+                    } else {
+                        h.sendKeepAliveMessage();
                     }
 
                     h.bgpPacketStats.addOutPacket();
@@ -375,8 +380,7 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
         }
 
         inetAddress = (InetSocketAddress) address;
-        ipAddress = IpAddress.valueOf(inetAddress.getAddress());
-        peerAddr = ipAddress.toString();
+        peerAddr = IpAddress.valueOf(inetAddress.getAddress()).toString();
 
         // if peer is not configured disconnect session
         if (!bgpconfig.isPeerConfigured(peerAddr)) {
@@ -418,8 +422,7 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
         }
 
         inetAddress = (InetSocketAddress) address;
-        ipAddress = IpAddress.valueOf(inetAddress.getAddress());
-        peerAddr = ipAddress.toString();
+        peerAddr = IpAddress.valueOf(inetAddress.getAddress()).toString();
 
         if (thisbgpId != null) {
             if (!duplicateBGPIdFound) {
@@ -458,14 +461,14 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
             if ((ChannelState.OPENWAIT == state) || (ChannelState.OPENSENT == state)) {
 
                 // When ReadTimeout timer is expired in OPENWAIT/OPENSENT state, it is considered
-                // TODO: Send notification
+                sendNotification(BGPErrorType.HOLD_TIMER_EXPIRED, (byte) 0, null);
                 channel.close();
                 state = ChannelState.IDLE;
                 return;
             } else if (ChannelState.OPENCONFIRM == state) {
 
                 // When ReadTimeout timer is expired in OPENCONFIRM state.
-                // TODO: Send Notification
+                sendNotification(BGPErrorType.HOLD_TIMER_EXPIRED, (byte) 0, null);
                 channel.close();
                 state = ChannelState.IDLE;
                 return;
@@ -480,8 +483,17 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
             }
             channel.close();
         } else if (e.getCause() instanceof BGPParseException) {
-            // TODO: SEND NOTIFICATION
-            log.debug("BGP Parse Exception: ", e.getCause());
+            byte[] data = new byte[] {};
+            BGPParseException errMsg = (BGPParseException) e.getCause();
+            byte errorCode = errMsg.getErrorCode();
+            byte errorSubCode = errMsg.getErrorSubCode();
+            ChannelBuffer tempCb = errMsg.getData();
+            if (tempCb != null) {
+                int dataLength = tempCb.capacity();
+                data = new byte[dataLength];
+                tempCb.readBytes(data, 0, dataLength);
+            }
+            sendNotification(errorCode, errorSubCode, data);
         } else if (e.getCause() instanceof RejectedExecutionException) {
             log.warn("Could not process message: queue full");
         } else {
@@ -591,10 +603,29 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
 
         bgpId = Ip4Address.valueOf(bgpconfig.getRouterId()).toInt();
         BGPMessage msg = factory4.openMessageBuilder().setAsNumber((short) bgpconfig.getAsNumber())
-                .setHoldTime(bgpconfig.getHoldTime()).setBgpId(bgpId).build();
+                .setHoldTime(bgpconfig.getHoldTime()).setBgpId(bgpId)
+                .setLsCapabilityTlv(bgpconfig.getLsCapability())
+                .setLargeAsCapabilityTlv(bgpconfig.getLargeASCapability())
+                .build();
         log.debug("Sending open message to {}", channel.getRemoteAddress());
         channel.write(Collections.singletonList(msg));
 
+    }
+
+    /**
+     * Send notification message to peer.
+     *
+     * @param errorCode error code send in notification
+     * @param errorSubCode sub error code send in notification
+     * @param data data to send in notification
+     * @throws IOException, BGPParseException while building message
+     */
+    private void sendNotification(byte errorCode, byte errorSubCode, byte[] data)
+            throws IOException, BGPParseException {
+        BGPMessage msg = factory4.notificationMessageBuilder().setErrorCode(errorCode).setErrorSubCode(errorSubCode)
+                .setData(data).build();
+        log.debug("Sending notification message to {}", channel.getRemoteAddress());
+        channel.write(Collections.singletonList(msg));
     }
 
     /**
@@ -611,45 +642,20 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
     }
 
     /**
-     * Send notification and close channel with peer.
-     */
-    private void sendErrNotificationAndCloseChannel() {
-        // TODO: send notification
-        channel.close();
-    }
-
-    /**
      * Process unknown BGP message received.
      *
-     * @throws BGPParseException when received invalid message
+     * @param errorCode error code
+     * @param errorSubCode error sub code
+     * @param data message type
+     * @throws BGPParseException while processing error messsage
+     * @throws IOException while processing error message
      */
-    public void processUnknownMsg() throws BGPParseException {
+    public void processUnknownMsg(byte errorCode, byte errorSubCode, byte data) throws BGPParseException, IOException {
         log.debug("UNKNOWN message received");
-        Date now = null;
-        if (bgpPacketStats.wrongPacketCount() == 0) {
-            now = new Date();
-            bgpPacketStats.setTime(now.getTime());
-            bgpPacketStats.addWrongPacket();
-            sendErrNotificationAndCloseChannel();
-        }
-        if (bgpPacketStats.wrongPacketCount() > 1) {
-            Date lastest = new Date();
-            bgpPacketStats.addWrongPacket();
-            // converting to seconds
-            if (((lastest.getTime() - bgpPacketStats.getTime()) / 1000) > 60) {
-                now = lastest;
-                bgpPacketStats.setTime(now.getTime());
-                bgpPacketStats.resetWrongPacket();
-                bgpPacketStats.addWrongPacket();
-            } else if (((int) (lastest.getTime() - now.getTime()) / 1000) < 60) {
-                if (MAX_WRONG_COUNT_PACKET <= bgpPacketStats.wrongPacketCount()) {
-                    // reset once wrong packet count reaches MAX_WRONG_COUNT_PACKET
-                    bgpPacketStats.resetWrongPacket();
-                    // max wrong packets received send error message and close the session
-                    sendErrNotificationAndCloseChannel();
-                }
-            }
-        }
+        byte[] byteArray = new byte[1];
+        byteArray[0] = data;
+        sendNotification(errorCode, errorSubCode, byteArray);
+        channel.close();
     }
 
     /**

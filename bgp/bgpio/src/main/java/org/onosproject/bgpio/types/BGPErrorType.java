@@ -55,4 +55,20 @@ public final class BGPErrorType {
     public static final byte OPTIONAL_ATTRIBUTE_ERROR = 9;
     public static final byte INVALID_NETWORK_FIELD = 10;
     public static final byte MALFORMED_ASPATH = 11;
+
+    //FSM  Error subcodes
+    public static final byte UNSPECIFIED_ERROR = 0;
+    public static final byte RECEIVE_UNEXPECTED_MESSAGE_IN_OPENSENT_STATE = 1;
+    public static final byte RECEIVE_UNEXPECTED_MESSAGE_IN_OPENCONFIRM_STATE = 2;
+    public static final byte RECEIVE_UNEXPECTED_MESSAGE_IN_ESTABLISHED_STATE = 3;
+
+    //Cease  Error subcodes
+    public static final byte MAXIMUM_NUMBER_OF_PREFIXES_REACHED = 1;
+    public static final byte ADMINISTRATIVE_SHUTDOWN = 2;
+    public static final byte PEER_DECONFIGURED = 3;
+    public static final byte ADMINISTRATIVE_RESET = 4;
+    public static final byte CONNECTION_REJECTED = 5;
+    public static final byte OTHER_CONFIGURATION_CHANGE = 6;
+    public static final byte CONNECTION_COLLISION_RESOLUTION = 7;
+    public static final byte OUT_OF_RESOURCES = 8;
 }
