@@ -46,8 +46,8 @@
         <module>cli</module>
 
         <module>protocols</module>
+        <!-- FIXME move to protocols/ -->
         <module>ovsdb</module>
-        <module>netconf</module>
         <module>bgp</module>
 
         <module>providers</module>
