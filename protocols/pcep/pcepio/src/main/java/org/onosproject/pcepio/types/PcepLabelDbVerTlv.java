@@ -100,7 +100,7 @@ public class PcepLabelDbVerTlv implements PcepValueType {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof PceccCapabilityTlv) {
+        if (obj instanceof PcepLabelDbVerTlv) {
             PcepLabelDbVerTlv other = (PcepLabelDbVerTlv) obj;
             return Objects.equals(this.rawValue, other.rawValue);
         }
