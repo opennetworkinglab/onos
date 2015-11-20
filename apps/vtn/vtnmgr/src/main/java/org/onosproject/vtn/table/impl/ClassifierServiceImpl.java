@@ -20,6 +20,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
@@ -35,6 +36,7 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective.Flag;
 import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.Objective.Operation;
 import org.onosproject.vtn.table.ClassifierService;
 import org.onosproject.vtnrsc.SegmentationId;
 import org.slf4j.Logger;
@@ -115,6 +117,29 @@ public class ClassifierServiceImpl implements ClassifierService {
                 flowObjectiveService.forward(deviceId, objective.remove());
             }
         });
+    }
+
+    @Override
+    public void programL3ExPortClassifierRules(DeviceId deviceId,
+                                               PortNumber exPort,
+                                               IpAddress fIp, Operation type) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void programL3InPortClassifierRules(DeviceId deviceId,
+                                               PortNumber inPort,
+                                               MacAddress srcMac,
+                                               MacAddress dstVmGwMac,
+                                               SegmentationId l3Vni,
+                                               Operation type) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void programArpClassifierRules(DeviceId deviceId, IpAddress srcGwIp,
+                                          SegmentationId srcVni, Operation type) {
+        // TODO Auto-generated method stub
     }
 
 }

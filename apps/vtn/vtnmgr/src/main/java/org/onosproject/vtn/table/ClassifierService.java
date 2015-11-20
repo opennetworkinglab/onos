@@ -15,6 +15,7 @@
  */
 package org.onosproject.vtn.table;
 
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
@@ -23,13 +24,13 @@ import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.vtnrsc.SegmentationId;
 
 /**
- * Applies classifier flows to the device.
+ * Applies classifier flows to the device. Classifier table is Table(0).
  */
 public interface ClassifierService {
 
     /**
      * The port rule that message from host matches Table(0) Match: host mac and
-     * ingress port Action: set vnid and go to table(50).
+     * ingress port Action: set vnid and go to L2Forward Table(50).
      *
      * @param deviceId Device Id
      * @param segmentationId the vnid of the host belong to
@@ -44,7 +45,7 @@ public interface ClassifierService {
 
     /**
      * The port rule that message from tunnel Table(0) Match: tunnel port and
-     * vnid Action: go to table(50).
+     * vnid Action: go to L2Forward Table(50).
      *
      * @param deviceId Device Id
      * @param segmentationId the vnid of the host belong to
@@ -54,5 +55,51 @@ public interface ClassifierService {
     void programTunnelIn(DeviceId deviceId, SegmentationId segmentationId,
                          Iterable<PortNumber> localTunnelPorts,
                          Objective.Operation type);
+
+    /**
+     * Assemble the L3 Classifier table rules which are sended from external port.
+     * Match: ipv4 type, ingress port and destination ip.
+     * Action: go to DNAT Table(20).
+     *
+     * @param deviceId Device Id
+     * @param inPort external port
+     * @param dstIp floating ip
+     * @param type the operation type of the flow rules
+     */
+    void programL3ExPortClassifierRules(DeviceId deviceId, PortNumber inPort,
+                                        IpAddress dstIp,
+                                        Objective.Operation type);
+
+    /**
+     * Assemble the L3 Classifier table rules which are sended from internal port.
+     * Match: ingress port, source mac and destination mac.
+     * Action: set vnid and go to L3Forward Table(30).
+     *
+     * @param deviceId Device Id
+     * @param inPort the ingress port of the host
+     * @param srcMac source mac
+     * @param dstMac destination vm gateway mac
+     * @param actionVni the vni of L3 network
+     * @param type the operation type of the flow rules
+     */
+    void programL3InPortClassifierRules(DeviceId deviceId,
+                                          PortNumber inPort, MacAddress srcMac,
+                                          MacAddress dstMac,
+                                          SegmentationId actionVni,
+                                          Objective.Operation type);
+
+    /**
+     * Assemble the Arp Classifier table rules.
+     * Match: arp type and destination ip.
+     * Action: set vnid and go to ARP Table(10).
+     *
+     * @param deviceId Device Id
+     * @param dstIp source gateway ip
+     * @param actionVni the vni of the source network (l2vni)
+     * @param type the operation type of the flow rules
+     */
+    void programArpClassifierRules(DeviceId deviceId, IpAddress dstIp,
+                                   SegmentationId actionVni,
+                                   Objective.Operation type);
 
 }
