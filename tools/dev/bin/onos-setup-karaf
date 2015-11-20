@@ -59,7 +59,7 @@ if [ ! -d $KARAF_ROOT ]; then
     # Check if Apache Karaf bits are available and if not, fetch them.
     if [ ! -f $KARAF_TAR ]; then
         echo "Downloading $KARAF_TAR..."
-        curl -sL http://downloads.onosproject.org/third-party/apache-karaf-$KARAF_VERSION.tar.gz > $KARAF_TAR
+        curl -sL http://downloads.onosproject.org/third-party/apache-karaf-$KARAF_VERSION.tar.gz --create-dirs -o $KARAF_TAR
     fi
     [ ! -f $KARAF_ZIP -a ! -f $KARAF_TAR ] && \
         echo "Apache Karaf bits $KARAF_ZIP or $KARAF_TAR not found" && exit 1
