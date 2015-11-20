@@ -107,7 +107,7 @@ public class OpaqueNodeAttributeTlv implements PcepValueType {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof OpaqueLinkAttributeTlv) {
+        if (obj instanceof OpaqueNodeAttributeTlv) {
             OpaqueNodeAttributeTlv other = (OpaqueNodeAttributeTlv) obj;
             return Objects.equals(this.rawValue, other.rawValue);
         }
