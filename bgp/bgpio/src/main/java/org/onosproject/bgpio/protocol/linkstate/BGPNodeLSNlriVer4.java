@@ -104,7 +104,7 @@ public class BGPNodeLSNlriVer4 implements BGPNodeLSNlri {
      * @param isVpn true if VPN info is present
      * @param routeDistinguisher unique for each VPN
      */
-    BGPNodeLSNlriVer4(long identifier, byte protocolId, BGPNodeLSIdentifier localNodeDescriptors, boolean isVpn,
+    public BGPNodeLSNlriVer4(long identifier, byte protocolId, BGPNodeLSIdentifier localNodeDescriptors, boolean isVpn,
                       RouteDistinguisher routeDistinguisher) {
         this.identifier = identifier;
         this.protocolId = protocolId;
