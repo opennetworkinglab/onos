@@ -59,17 +59,15 @@ public final class ResourceRegistrar {
 
     @Activate
     public void activate() {
-        // FIXME there is a loop causing high resource utilization on device registration
-//        deviceListener = new ResourceDeviceListener(adminService, executor);
-//        deviceService.addListener(deviceListener);
-//        linkListener = new ResourceLinkListener(adminService, driverService, executor);
-//        linkService.addListener(linkListener);
+        deviceListener = new ResourceDeviceListener(adminService, executor);
+        deviceService.addListener(deviceListener);
+        linkListener = new ResourceLinkListener(adminService, driverService, executor);
+        linkService.addListener(linkListener);
     }
 
     @Deactivate
     public void deactivate() {
-        // FIXME there is a loop causing high resource utilization on device registration
-//        deviceService.removeListener(deviceListener);
-//        linkService.removeListener(linkListener);
+        deviceService.removeListener(deviceListener);
+        linkService.removeListener(linkListener);
     }
 }

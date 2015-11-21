@@ -121,10 +121,10 @@ public abstract class ResourcePath {
     public List<Object> components() {
         LinkedList<Object> components = new LinkedList<>();
 
-        Optional<Discrete> parentPath = Optional.ofNullable(parent);
-        while (parentPath.isPresent()) {
-            components.addFirst(last);
-            parentPath = parent.parent();
+        ResourcePath current = this;
+        while (current.parent().isPresent()) {
+            components.addFirst(current.last);
+            current = current.parent;
         }
 
         return components;
