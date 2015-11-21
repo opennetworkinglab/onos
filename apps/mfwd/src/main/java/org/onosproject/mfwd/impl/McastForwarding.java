@@ -168,7 +168,7 @@ public class McastForwarding {
              * ingress port would be a specific device.
              */
             McastRoute entry = mrib.findBestMatch(spfx, gpfx);
-            if (entry == null || entry.getSaddr().equals(IPv4.fromIPv4Address(0))) {
+            if (entry == null || entry.getSaddr().address().isZero()) {
 
                 /*
                  * Create an entry that we can fast drop.
