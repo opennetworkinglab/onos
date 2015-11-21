@@ -15,6 +15,7 @@
  */
 package org.onosproject.bgpio.types;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -86,7 +87,7 @@ public class IPReachabilityInformationTlv implements BGPValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(ipPrefix, prefixLen);
+        return Objects.hash(Arrays.hashCode(ipPrefix), prefixLen);
     }
 
     @Override
@@ -97,7 +98,7 @@ public class IPReachabilityInformationTlv implements BGPValueType {
 
         if (obj instanceof IPReachabilityInformationTlv) {
             IPReachabilityInformationTlv other = (IPReachabilityInformationTlv) obj;
-            return Objects.equals(prefixLen, other.prefixLen) && Objects.equals(ipPrefix, other.ipPrefix);
+            return Objects.equals(prefixLen, other.prefixLen) && Arrays.equals(ipPrefix, other.ipPrefix);
         }
         return false;
     }
