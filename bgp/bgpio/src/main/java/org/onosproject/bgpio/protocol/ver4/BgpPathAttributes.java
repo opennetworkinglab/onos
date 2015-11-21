@@ -28,6 +28,8 @@ import org.onosproject.bgpio.types.LocalPref;
 import org.onosproject.bgpio.types.Med;
 import org.onosproject.bgpio.types.NextHop;
 import org.onosproject.bgpio.types.Origin;
+import org.onosproject.bgpio.types.MpReachNlri;
+import org.onosproject.bgpio.types.MpUnReachNlri;
 import org.onosproject.bgpio.util.UnSupportedAttribute;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
@@ -127,11 +129,14 @@ public class BgpPathAttributes {
             case LocalPref.LOCAL_PREF_TYPE:
                 pathAttribute = LocalPref.read(cb);
                 break;
-            case MPREACHNLRI_TYPE:
-                //TODO: To be merged later
+            case MpReachNlri.MPREACHNLRI_TYPE:
+                pathAttribute = MpReachNlri.read(cb);
+                isMpReach = ((MpReachNlri) pathAttribute).isMpReachNlriSet();
                 break;
-            case MPUNREACHNLRI_TYPE:
-                //TODO: To be merged later
+            case MpUnReachNlri.MPUNREACHNLRI_TYPE:
+                pathAttribute = MpUnReachNlri.read(cb);
+                isMpUnReach = ((MpUnReachNlri) pathAttribute)
+                        .isMpUnReachNlriSet();
                 break;
             case LINK_STATE_ATTRIBUTE_TYPE:
                 //TODO: To be merged later
