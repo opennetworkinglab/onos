@@ -117,7 +117,7 @@ public final class PIMInterfaces {
          * @param cp The connectPoint representing the PIMInterface to be removed.
          */
         private void removeInterface(ConnectPoint cp) {
-            removeInterface(cp);
+            PIMInterfaces.this.removeInterface(cp);
         }
 
         @Override
