@@ -26,6 +26,7 @@ import org.onosproject.bgpio.exceptions.BGPParseException;
 import org.onosproject.bgpio.protocol.BGPLSNlri;
 import org.onosproject.bgpio.protocol.linkstate.BGPPrefixIPv4LSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4;
+import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
@@ -39,7 +40,6 @@ import com.google.common.base.MoreObjects;
 public class MpReachNlri implements BGPValueType {
 
     private static final Logger log = LoggerFactory.getLogger(MpReachNlri.class);
-
     public static final byte MPREACHNLRI_TYPE = 14;
     public static final byte LINK_NLRITYPE = 2;
 
@@ -131,8 +131,7 @@ public class MpReachNlri implements BGPValueType {
             if ((afi == Constants.AFI_VALUE) && (safi == Constants.SAFI_VALUE) || (afi == Constants.AFI_VALUE)
                                     && (safi == Constants.VPN_SAFI_VALUE)) {
                 byte nextHopLen = tempCb.readByte();
-                //TODO: use Validation.toInetAddress once Validation is merged
-                InetAddress ipAddress = (InetAddress) cb.readBytes(nextHopLen);
+                InetAddress ipAddress = Validation.toInetAddress(nextHopLen, cb);
                 if (ipAddress.isMulticastAddress()) {
                     throw new BGPParseException("Multicast not supported");
                 }
@@ -151,8 +150,8 @@ public class MpReachNlri implements BGPValueType {
                     case BGPNodeLSNlriVer4.NODE_NLRITYPE:
                         bgpLSNlri = BGPNodeLSNlriVer4.read(tempBuf, afi, safi);
                         break;
-                    case LINK_NLRITYPE:
-                        //TODO: To be merged later
+                    case BgpLinkLsNlriVer4.LINK_NLRITYPE:
+                        bgpLSNlri = BgpLinkLsNlriVer4.read(tempBuf, afi, safi);
                         break;
                     case BGPPrefixIPv4LSNlriVer4.PREFIX_IPV4_NLRITYPE:
                         bgpLSNlri = BGPPrefixIPv4LSNlriVer4.read(tempBuf, afi, safi);
@@ -163,7 +162,6 @@ public class MpReachNlri implements BGPValueType {
                     mpReachNlri.add(bgpLSNlri);
                 }
             } else {
-                //TODO: check with the values got from capability
                 throw new BGPParseException("Not Supporting afi " + afi + "safi " + safi);
             }
         }

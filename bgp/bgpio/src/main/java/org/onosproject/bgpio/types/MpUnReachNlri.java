@@ -24,6 +24,7 @@ import org.onosproject.bgpio.exceptions.BGPParseException;
 import org.onosproject.bgpio.protocol.BGPLSNlri;
 import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BGPPrefixIPv4LSNlriVer4;
+import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
@@ -36,10 +37,10 @@ import com.google.common.base.MoreObjects;
  */
 public class MpUnReachNlri implements BGPValueType {
 
-    protected static final Logger log = LoggerFactory.getLogger(MpUnReachNlri.class);
-
+    private static final Logger log = LoggerFactory.getLogger(MpUnReachNlri.class);
     public static final byte MPUNREACHNLRI_TYPE = 15;
     public static final byte LINK_NLRITYPE = 2;
+
     private boolean isMpUnReachNlri = false;
     private final short afi;
     private final byte safi;
@@ -113,8 +114,8 @@ public class MpUnReachNlri implements BGPValueType {
                     case BGPNodeLSNlriVer4.NODE_NLRITYPE:
                         bgpLSNlri = BGPNodeLSNlriVer4.read(tempBuf, afi, safi);
                         break;
-                    case LINK_NLRITYPE:
-                        //TODO: to be merged later
+                    case BgpLinkLsNlriVer4.LINK_NLRITYPE:
+                        bgpLSNlri = BgpLinkLsNlriVer4.read(tempBuf, afi, safi);
                         break;
                     case BGPPrefixIPv4LSNlriVer4.PREFIX_IPV4_NLRITYPE:
                         bgpLSNlri = BGPPrefixIPv4LSNlriVer4.read(tempBuf, afi,
