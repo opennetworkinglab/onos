@@ -15,6 +15,9 @@
  */
 package org.onosproject.bgpio.types;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -28,12 +31,12 @@ import com.google.common.base.MoreObjects;
  * Provides implementation of IsIsPseudonode Tlv.
  */
 public class IsIsPseudonode implements IGPRouterID, BGPValueType {
-    protected static final Logger log = LoggerFactory.getLogger(IsIsPseudonode.class);
+    private static final Logger log = LoggerFactory.getLogger(IsIsPseudonode.class);
 
     public static final short TYPE = 515;
     public static final short LENGTH = 7;
 
-    private final byte[] isoNodeID;
+    private final List<Byte> isoNodeID;
     private byte psnIdentifier;
 
     /**
@@ -42,7 +45,7 @@ public class IsIsPseudonode implements IGPRouterID, BGPValueType {
      * @param isoNodeID ISO system-ID
      * @param psnIdentifier PSN identifier
      */
-    public IsIsPseudonode(byte[] isoNodeID, byte psnIdentifier) {
+    public IsIsPseudonode(List<Byte> isoNodeID, byte psnIdentifier) {
         this.isoNodeID = isoNodeID;
         this.psnIdentifier = psnIdentifier;
     }
@@ -54,7 +57,8 @@ public class IsIsPseudonode implements IGPRouterID, BGPValueType {
      * @param psnIdentifier PSN identifier
      * @return object of IsIsPseudonode
      */
-    public static IsIsPseudonode of(final byte[] isoNodeID, final byte psnIdentifier) {
+    public static IsIsPseudonode of(final List<Byte> isoNodeID,
+                                    final byte psnIdentifier) {
         return new IsIsPseudonode(isoNodeID, psnIdentifier);
     }
 
@@ -63,7 +67,7 @@ public class IsIsPseudonode implements IGPRouterID, BGPValueType {
      *
      * @return ISO NodeID
      */
-    public byte[] getISONodeID() {
+    public List<Byte> getISONodeID() {
         return isoNodeID;
     }
 
@@ -78,7 +82,7 @@ public class IsIsPseudonode implements IGPRouterID, BGPValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(isoNodeID, psnIdentifier);
+        return Objects.hash(isoNodeID) & Objects.hash(psnIdentifier);
     }
 
     @Override
@@ -87,8 +91,27 @@ public class IsIsPseudonode implements IGPRouterID, BGPValueType {
             return true;
         }
         if (obj instanceof IsIsPseudonode) {
+            int countObjSubTlv = 0;
+            int countOtherSubTlv = 0;
+            boolean isCommonSubTlv = true;
             IsIsPseudonode other = (IsIsPseudonode) obj;
-            return Objects.equals(isoNodeID, other.isoNodeID) && Objects.equals(psnIdentifier, other.psnIdentifier);
+            Iterator<Byte> objListIterator = other.isoNodeID.iterator();
+            countOtherSubTlv = other.isoNodeID.size();
+            countObjSubTlv = isoNodeID.size();
+            if (countObjSubTlv != countOtherSubTlv) {
+                return false;
+            } else {
+                while (objListIterator.hasNext() && isCommonSubTlv) {
+                    Byte subTlv = objListIterator.next();
+                    if (isoNodeID.contains(subTlv) && other.isoNodeID.contains(subTlv)) {
+                        isCommonSubTlv = Objects.equals(isoNodeID.get(isoNodeID.indexOf(subTlv)),
+                                         other.isoNodeID.get(other.isoNodeID.indexOf(subTlv)));
+                    } else {
+                        isCommonSubTlv = false;
+                    }
+                }
+                return isCommonSubTlv && Objects.equals(psnIdentifier, other.psnIdentifier);
+            }
         }
         return false;
     }
@@ -98,7 +121,11 @@ public class IsIsPseudonode implements IGPRouterID, BGPValueType {
         int iLenStartIndex = c.writerIndex();
         c.writeShort(TYPE);
         c.writeShort(LENGTH);
-        c.writeBytes(isoNodeID);
+        Iterator<Byte> objListIterator = isoNodeID.iterator();
+        while (objListIterator.hasNext()) {
+            byte value = objListIterator.next();
+            c.writeByte(value);
+        }
         c.writeByte(psnIdentifier);
         return c.writerIndex() - iLenStartIndex;
     }
@@ -110,8 +137,12 @@ public class IsIsPseudonode implements IGPRouterID, BGPValueType {
      * @return object of IsIsPseudonode
      */
     public static IsIsPseudonode read(ChannelBuffer cb) {
-        byte[] isoNodeID = new byte[LENGTH - 1];
-        cb.readBytes(isoNodeID, 0, LENGTH - 1);
+        List<Byte> isoNodeID = new ArrayList<Byte>();
+        byte value;
+        for (int i = 0; i < LENGTH; i++) {
+            value = cb.readByte();
+            isoNodeID.add(value);
+        }
         byte psnIdentifier = cb.readByte();
         return IsIsPseudonode.of(isoNodeID, psnIdentifier);
     }

@@ -15,6 +15,11 @@
  */
 package org.onosproject.bgpio.types;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
 
 import com.google.common.testing.EqualsTester;
@@ -24,13 +29,28 @@ import com.google.common.testing.EqualsTester;
  */
 public class IsIsPseudonodeTest {
     private final byte[] value1 = new byte[] {0x01, 0x02, 0x01, 0x02, 0x01, 0x02};
+    byte value;
+    List<Byte> isoNodeID1 = new ArrayList<Byte>();
+    ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
     private final byte[] value2 = new byte[] {0x01, 0x02, 0x01, 0x02, 0x01, 0x03};
-    private final IsIsPseudonode tlv1 = IsIsPseudonode.of(value1, (byte) 1);
-    private final IsIsPseudonode sameAsTlv1 = IsIsPseudonode.of(value1, (byte) 1);
-    private final IsIsPseudonode tlv2 = IsIsPseudonode.of(value2, (byte) 1);
+    List<Byte> isoNodeID2 = new ArrayList<Byte>();
+    ChannelBuffer buffer1 = ChannelBuffers.dynamicBuffer();
+    private final IsIsPseudonode tlv1 = IsIsPseudonode.of(isoNodeID1, (byte) 1);
+    private final IsIsPseudonode sameAsTlv1 = IsIsPseudonode.of(isoNodeID1, (byte) 1);
+    private final IsIsPseudonode tlv2 = IsIsPseudonode.of(isoNodeID2, (byte) 1);
 
     @Test
     public void testEquality() {
+        buffer.writeBytes(value1);
+        for (int i = 0; i < 6; i++) {
+            value = buffer.readByte();
+            isoNodeID1.add(value);
+        }
+        buffer1.writeBytes(value2);
+        for (int i = 0; i < 6; i++) {
+            value = buffer1.readByte();
+            isoNodeID1.add(value);
+        }
         new EqualsTester()
         .addEqualityGroup(tlv1, sameAsTlv1)
         .addEqualityGroup(tlv2)
