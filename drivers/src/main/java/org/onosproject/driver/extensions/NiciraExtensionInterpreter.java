@@ -38,10 +38,10 @@ public class NiciraExtensionInterpreter extends AbstractHandlerBehaviour
 
     @Override
     public boolean supported(ExtensionType extensionType) {
-        if (extensionType.equals(ExtensionType.ExtensionTypes.NICIRA_SET_TUNNEL_DST)) {
+        if (extensionType.equals(ExtensionType.ExtensionTypes.NICIRA_SET_TUNNEL_DST.type())) {
             return true;
         }
-        if (extensionType.equals(ExtensionType.ExtensionTypes.NICIRA_RESUBMIT)) {
+        if (extensionType.equals(ExtensionType.ExtensionTypes.NICIRA_RESUBMIT.type())) {
             return true;
         }
         return false;
