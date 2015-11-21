@@ -43,6 +43,7 @@ import org.onosproject.ovsdb.controller.OvsdbRowStore;
 import org.onosproject.ovsdb.controller.OvsdbStore;
 import org.onosproject.ovsdb.controller.OvsdbTableStore;
 import org.onosproject.ovsdb.controller.OvsdbTunnel;
+import org.onosproject.ovsdb.rfc.exception.BridgeCreateException;
 import org.onosproject.ovsdb.rfc.jsonrpc.Callback;
 import org.onosproject.ovsdb.rfc.message.OperationResult;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
@@ -479,6 +480,9 @@ public class DefaultOvsdbClient
                     insertConfig(OvsdbConstant.PORT, "_uuid", "Bridge", "ports", bridgeUuid,
                                  port.getRow());
                 }
+            } else {
+                String message = BridgeCreateException.createMessage(ovsUuid);
+                throw new BridgeCreateException(message);
             }
 
         } else {
@@ -545,6 +549,9 @@ public class DefaultOvsdbClient
                     insertConfig(OvsdbConstant.PORT, "_uuid", "Bridge", "ports", bridgeUuid,
                                  port.getRow());
                 }
+            } else {
+                String message = BridgeCreateException.createMessage(ovsUuid);
+                throw new BridgeCreateException(message);
             }
 
         } else {
