@@ -171,6 +171,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                     break;
                 default:
                     log.error("Unsupported Group operation");
+                    return;
             }
             sw.sendMsg(groupMod);
             GroupId groudId = new DefaultGroupId(groupMod.getGroup().getGroupNumber());
