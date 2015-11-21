@@ -15,7 +15,8 @@
  */
 package org.onosproject.bgpio.types.attr;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -36,18 +37,28 @@ public class BgpPrefixAttrRouteTag implements BGPValueType {
     protected static final Logger log = LoggerFactory
             .getLogger(BgpPrefixAttrRouteTag.class);
 
-    public static final int ATTR_PREFIX_ROUTETAG = 1153;
+    public static final short ATTR_PREFIX_ROUTETAG = 1153;
 
     /* Prefix Route Tag */
-    private int[] pfxRouteTag;
+    private List<Integer> pfxRouteTag = new ArrayList<Integer>();
 
     /**
      * Constructor to initialize the values.
      *
      * @param pfxRouteTag prefix route tag
      */
-    BgpPrefixAttrRouteTag(int[] pfxRouteTag) {
-        this.pfxRouteTag = Arrays.copyOf(pfxRouteTag, pfxRouteTag.length);
+    public BgpPrefixAttrRouteTag(List<Integer> pfxRouteTag) {
+        this.pfxRouteTag = pfxRouteTag;
+    }
+
+    /**
+     * Returns object of this class with specified values.
+     *
+     * @param pfxRouteTag Prefix Metric
+     * @return object of BgpPrefixAttrRouteTag
+     */
+    public static BgpPrefixAttrRouteTag of(ArrayList<Integer> pfxRouteTag) {
+        return new BgpPrefixAttrRouteTag(pfxRouteTag);
     }
 
     /**
@@ -59,7 +70,8 @@ public class BgpPrefixAttrRouteTag implements BGPValueType {
      */
     public static BgpPrefixAttrRouteTag read(ChannelBuffer cb)
             throws BGPParseException {
-        int[] pfxRouteTag;
+        int tmp;
+        ArrayList<Integer> pfxRouteTag = new ArrayList<Integer>();
 
         short lsAttrLength = cb.readShort();
         int len = lsAttrLength / Integer.SIZE;
@@ -70,13 +82,12 @@ public class BgpPrefixAttrRouteTag implements BGPValueType {
                                    lsAttrLength);
         }
 
-        pfxRouteTag = new int[lsAttrLength];
-
         for (int i = 0; i < len; i++) {
-            pfxRouteTag[i] = cb.readInt();
+            tmp = cb.readInt();
+            pfxRouteTag.add(new Integer(tmp));
         }
 
-        return new BgpPrefixAttrRouteTag(pfxRouteTag);
+        return BgpPrefixAttrRouteTag.of(pfxRouteTag);
     }
 
     /**
@@ -84,7 +95,7 @@ public class BgpPrefixAttrRouteTag implements BGPValueType {
      *
      * @return route tag
      */
-    int[] getPfxRouteTag() {
+    public List<Integer> getPfxRouteTag() {
         return pfxRouteTag;
     }
 
