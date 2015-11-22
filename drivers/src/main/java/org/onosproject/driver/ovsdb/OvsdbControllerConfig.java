@@ -16,6 +16,7 @@
 
 package org.onosproject.driver.ovsdb;
 
+import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.net.AnnotationKeys;
@@ -56,7 +57,7 @@ public class OvsdbControllerConfig extends AbstractHandlerBehaviour implements C
         DriverHandler handler = handler();
         OvsdbClientService clientService = getOvsdbClientService(handler);
         if (!clientService.getControllers(handler().data().deviceId())
-                .equals(controllers)) {
+                .equals(ImmutableSet.copyOf(controllers))) {
             clientService.setControllersWithDeviceId(handler().
                     data().deviceId(), controllers);
         }
