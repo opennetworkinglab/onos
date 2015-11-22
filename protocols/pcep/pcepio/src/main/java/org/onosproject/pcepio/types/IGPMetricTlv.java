@@ -15,7 +15,7 @@
  */
 package org.onosproject.pcepio.types;
 
-import java.util.Objects;
+import java.util.Arrays;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.protocol.PcepVersion;
@@ -95,7 +95,7 @@ public class IGPMetricTlv implements PcepValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(rawValue);
+        return  Arrays.hashCode(rawValue);
     }
 
     @Override
@@ -105,7 +105,7 @@ public class IGPMetricTlv implements PcepValueType {
         }
         if (obj instanceof IGPMetricTlv) {
             IGPMetricTlv other = (IGPMetricTlv) obj;
-            return Objects.equals(rawValue, other.rawValue);
+            return Arrays.equals(rawValue, other.rawValue);
         }
         return false;
     }
