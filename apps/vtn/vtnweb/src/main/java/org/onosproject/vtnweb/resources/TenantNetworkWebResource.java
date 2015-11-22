@@ -98,20 +98,20 @@ public class TenantNetworkWebResource extends AbstractWebResource {
             if ((queryId == null || queryId.equals(network.id().toString()))
                     && (queryName == null || queryName.equals(network.name()))
                     && (queryadminStateUp == null || queryadminStateUp
-                            .equals(network.adminStateUp()))
+                            .equals(Boolean.toString(network.adminStateUp())))
                     && (querystate == null || querystate.equals(network.state()
                             .toString()))
-                    && (queryshared == null || queryshared.equals(network
-                            .shared()))
+                    && (queryshared == null || queryshared.equals(Boolean.toString(network
+                            .shared())))
                     && (querytenantId == null || querytenantId.equals(network
                             .tenantId().toString()))
-                    && (routerExternal == null || routerExternal.equals(network
-                            .routerExternal()))
-                    && (type == null || type.equals(network.type()))
+                    && (routerExternal == null || routerExternal.equals(Boolean.toString(network
+                    .routerExternal())))
+                    && (type == null || type.equals(network.type().toString()))
                     && (physicalNetwork == null || physicalNetwork
-                            .equals(network.physicalNetwork()))
+                    .equals(network.physicalNetwork().toString()))
                     && (segmentationId == null || segmentationId.equals(network
-                            .segmentationId()))) {
+                            .segmentationId().toString()))) {
                 networksMap.putIfAbsent(network.id(), network);
             }
         }
