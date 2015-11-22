@@ -148,7 +148,7 @@ public class DistributedTunnelStore
     @Override
     public TunnelId createOrUpdateTunnel(Tunnel tunnel) {
         // tunnelIdAsKeyStore.
-        if (tunnel.tunnelId() != null && !"".equals(tunnel.tunnelId())) {
+        if (tunnel.tunnelId() != null && !"".equals(tunnel.tunnelId().toString())) {
             Tunnel old = tunnelIdAsKeyStore.get(tunnel.tunnelId());
             if (old == null) {
                 log.info("This tunnel[" + tunnel.tunnelId() + "] is not available.");
