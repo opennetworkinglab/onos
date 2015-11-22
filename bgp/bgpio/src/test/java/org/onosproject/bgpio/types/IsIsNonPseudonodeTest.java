@@ -20,14 +20,14 @@ import org.junit.Test;
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for IsIsPseudonode Tlv.
+ * Test for IsIsNonPseudonode Tlv.
  */
-public class IsIsPseudonodeTest {
-    private final byte[] value1 = new byte[] {0x01, 0x02, 0x01, 0x02, 0x01, 0x02};
-    private final byte[] value2 = new byte[] {0x01, 0x02, 0x01, 0x02, 0x01, 0x03};
-    private final IsIsPseudonode tlv1 = IsIsPseudonode.of(value1, (byte) 1);
-    private final IsIsPseudonode sameAsTlv1 = IsIsPseudonode.of(value1, (byte) 1);
-    private final IsIsPseudonode tlv2 = IsIsPseudonode.of(value2, (byte) 1);
+public class IsIsNonPseudonodeTest {
+    private final byte[] value1 = new byte[] {0x19, 0x00, (byte) 0x95, 0x01, (byte) 0x90, 0x58};
+    private final byte[] value2 = new byte[] {0x19, 0x00, (byte) 0x95, 0x01, (byte) 0x90, 0x59};
+    private final IsIsNonPseudonode tlv1 = IsIsNonPseudonode.of(value1);
+    private final IsIsNonPseudonode sameAsTlv1 = IsIsNonPseudonode.of(value1);
+    private final IsIsNonPseudonode tlv2 = IsIsNonPseudonode.of(value2);
 
     @Test
     public void testEquality() {

@@ -28,7 +28,7 @@ import com.google.common.base.MoreObjects;
  * Provides Implementation of IsIsNonPseudonode Tlv.
  */
 public class IsIsNonPseudonode implements IGPRouterID, BGPValueType {
-    protected static final Logger log = LoggerFactory.getLogger(IsIsNonPseudonode.class);
+    private static final Logger log = LoggerFactory.getLogger(IsIsNonPseudonode.class);
 
     public static final short TYPE = 515;
     public static final short LENGTH = 6;
@@ -41,7 +41,7 @@ public class IsIsNonPseudonode implements IGPRouterID, BGPValueType {
      * @param isoNodeID ISO system-ID
      */
     public IsIsNonPseudonode(byte[] isoNodeID) {
-        this.isoNodeID = isoNodeID;
+        this.isoNodeID = Arrays.copyOf(isoNodeID, isoNodeID.length);
     }
 
     /**
@@ -97,7 +97,7 @@ public class IsIsNonPseudonode implements IGPRouterID, BGPValueType {
      */
     public static IsIsNonPseudonode read(ChannelBuffer cb) {
         byte[] isoNodeID = new byte[LENGTH];
-        cb.readBytes(isoNodeID, 0, LENGTH);
+        cb.readBytes(isoNodeID);
         return IsIsNonPseudonode.of(isoNodeID);
     }
 
