@@ -12,6 +12,8 @@ target
 dependency-reduced-pom.xml
 .idea
 *.DS_Store
+localDB
+localDB.*
 
 core/store/trivial/data/
 core/store/apps
