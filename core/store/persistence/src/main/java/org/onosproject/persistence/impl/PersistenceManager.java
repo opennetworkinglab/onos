@@ -60,12 +60,13 @@ public class PersistenceManager implements PersistenceService {
 
     private static final int FLUSH_FREQUENCY_MILLIS = 3000;
 
-    private final Timer timer = new Timer();
+    private Timer timer;
 
     private final CommitTask commitTask = new CommitTask();
 
     @Activate
     public void activate() {
+        timer = new Timer();
         Path dbPath = Paths.get(DATABASE_PATH);
         Path dbFolderPath = Paths.get(ENCLOSING_FOLDER);
         //Make sure the directory exists, if it does not, make it.
@@ -96,6 +97,7 @@ public class PersistenceManager implements PersistenceService {
 
     @Deactivate
     public void deactivate() {
+        timer.cancel();
         for (Map.Entry<String, Object> entry : localDB.getAll().entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
