@@ -24,7 +24,7 @@
     },
     "deviceId": {
       "type": "string",
-      "example": "of:0000000000000003"
+      "example": "of:0000000000000001"
     },
     "treatment": {
       "type": "object",
@@ -91,7 +91,7 @@
               "ethType": {
                 "type": "integer",
                 "format": "int64",
-                "example": -30516
+                "example": "0x88cc"
               }
             }
           }

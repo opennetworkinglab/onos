@@ -262,7 +262,6 @@ public class OnosSwaggerMojo extends AbstractMojo {
 
         addSummaryDescriptions(methodNode, comment);
         addJsonSchemaDefinition(definitions, tag);
-        addJsonSchemaDefinition(definitions, tag);
 
         processParameters(javaMethod, methodNode, method, tag);
 

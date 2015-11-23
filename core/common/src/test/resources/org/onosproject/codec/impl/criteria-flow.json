@@ -9,7 +9,7 @@
             {"type":"IN_PORT", "port":23},
             {"type":"IN_PHY_PORT", "port":44},
             {"type":"METADATA", "metadata":123456},
-            {"type":"ETH_TYPE","ethType":2054},
+            {"type":"ETH_TYPE","ethType":"0x806"},
             {"type":"ETH_SRC","mac":"00:11:22:33:44:55"},
             {"type":"ETH_DST","mac":"00:11:22:33:44:55"},
             {"type":"VLAN_VID","vlanId":777},

@@ -138,8 +138,8 @@ public final class CriterionJsonMatcher extends
      * @return true if the JSON matches the criterion, false otherwise.
      */
     private boolean matchCriterion(EthTypeCriterion criterion) {
-        final int ethType = criterion.ethType().toShort();
-        final int jsonEthType = jsonCriterion.get("ethType").intValue();
+        final int ethType = criterion.ethType().toShort() & 0xffff;
+        final int jsonEthType = Integer.decode(jsonCriterion.get("ethType").textValue()) & 0xffff;
         if (ethType != jsonEthType) {
             description.appendText("ethType was "
                     + Integer.toString(jsonEthType));

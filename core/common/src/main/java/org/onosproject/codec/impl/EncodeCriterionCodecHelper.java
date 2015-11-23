@@ -15,8 +15,7 @@
  */
 package org.onosproject.codec.impl;
 
-import java.util.EnumMap;
-
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.net.OchSignal;
@@ -50,7 +49,7 @@ import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.EnumMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -69,7 +68,7 @@ public final class EncodeCriterionCodecHelper {
      * Initializes the formatter lookup map for the criterion subclasses.
      *
      * @param criterion Criterion to encode
-     * @param context context of the JSON encoding
+     * @param context   context of the JSON encoding
      */
     public EncodeCriterionCodecHelper(Criterion criterion, CodecContext context) {
         this.criterion = criterion;
@@ -171,7 +170,8 @@ public final class EncodeCriterionCodecHelper {
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
             final EthTypeCriterion ethTypeCriterion =
                     (EthTypeCriterion) criterion;
-            return root.put(CriterionCodec.ETH_TYPE, ethTypeCriterion.ethType().toShort());
+            return root.put(CriterionCodec.ETH_TYPE, "0x"
+                    + Integer.toHexString(ethTypeCriterion.ethType().toShort() & 0xffff));
         }
     }
 

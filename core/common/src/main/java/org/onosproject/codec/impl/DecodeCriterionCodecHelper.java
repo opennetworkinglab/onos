@@ -15,11 +15,8 @@
  */
 package org.onosproject.codec.impl;
 
-import static org.onlab.util.Tools.nullIsIllegal;
-
-import java.util.HashMap;
-import java.util.Map;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -37,8 +34,10 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.onlab.util.Tools.nullIsIllegal;
 
 /**
  * Decode portion of the criterion codec.
@@ -106,12 +105,16 @@ public final class DecodeCriterionCodecHelper {
     private class EthTypeDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
-            int ethType = nullIsIllegal(json.get(CriterionCodec.ETH_TYPE),
-                    CriterionCodec.ETH_TYPE + MISSING_MEMBER_MESSAGE).asInt();
+            int ethType;
+            if (json.get(CriterionCodec.ETH_TYPE).isInt()) {
+                ethType = nullIsIllegal(json.get(CriterionCodec.ETH_TYPE),
+                                        CriterionCodec.ETH_TYPE + MISSING_MEMBER_MESSAGE).asInt();
+            } else {
+                ethType = Integer.decode(json.get(CriterionCodec.ETH_TYPE).textValue());
+            }
             return Criteria.matchEthType(ethType);
         }
     }
-
     private class EthDstDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {

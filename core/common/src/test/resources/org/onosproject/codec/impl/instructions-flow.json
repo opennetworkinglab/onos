@@ -35,5 +35,5 @@
       ],
       "deferred":[]
   },
-  "selector": {"criteria":[{"type":"ETH_TYPE","ethType":2054}]}
+  "selector": {"criteria":[{"type":"ETH_TYPE","ethType":"0x806"}]}
 }
