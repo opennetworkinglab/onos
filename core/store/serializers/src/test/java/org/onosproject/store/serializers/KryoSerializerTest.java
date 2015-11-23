@@ -400,7 +400,7 @@ public class KryoSerializerTest {
 
     @Test
     public void testBandwidthConstraint() {
-        testSerializable(new BandwidthConstraint(new BandwidthResource(Bandwidth.bps(1000.0))));
+        testSerializable(new BandwidthConstraint(Bandwidth.bps(1000.0)));
     }
 
     @Test

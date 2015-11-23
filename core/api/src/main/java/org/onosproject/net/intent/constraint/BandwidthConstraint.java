@@ -17,9 +17,9 @@ package org.onosproject.net.intent.constraint;
 
 import com.google.common.annotations.Beta;
 
+import org.onlab.util.Bandwidth;
 import org.onlab.util.DataRateUnit;
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.link.BandwidthResource;
 import org.onosproject.net.resource.link.BandwidthResourceRequest;
 import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.resource.ResourceRequest;
@@ -36,14 +36,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Beta
 public final class BandwidthConstraint extends BooleanConstraint {
 
-    private final BandwidthResource bandwidth;
+    private final Bandwidth bandwidth;
 
     /**
      * Creates a new bandwidth constraint.
      *
      * @param bandwidth required bandwidth
      */
-    public BandwidthConstraint(BandwidthResource bandwidth) {
+    public BandwidthConstraint(Bandwidth bandwidth) {
         this.bandwidth = checkNotNull(bandwidth, "Bandwidth cannot be null");
     }
 
@@ -55,7 +55,7 @@ public final class BandwidthConstraint extends BooleanConstraint {
      * @return  {@link BandwidthConstraint} instance with given bandwidth requirement
      */
     public static BandwidthConstraint of(double v, DataRateUnit unit) {
-        return new BandwidthConstraint(BandwidthResource.of(v, unit));
+        return new BandwidthConstraint(Bandwidth.of(v, unit));
     }
 
     // Constructor for serialization
@@ -68,7 +68,7 @@ public final class BandwidthConstraint extends BooleanConstraint {
         for (ResourceRequest request : resourceService.getAvailableResources(link)) {
             if (request.type() == ResourceType.BANDWIDTH) {
                 BandwidthResourceRequest brr = (BandwidthResourceRequest) request;
-                if (brr.bandwidth().toDouble() >= bandwidth.toDouble()) {
+                if (brr.bandwidth().toDouble() >= bandwidth.bps()) {
                     return true;
                 }
             }
@@ -81,7 +81,7 @@ public final class BandwidthConstraint extends BooleanConstraint {
      *
      * @return required bandwidth
      */
-    public BandwidthResource bandwidth() {
+    public Bandwidth bandwidth() {
         return bandwidth;
     }
 

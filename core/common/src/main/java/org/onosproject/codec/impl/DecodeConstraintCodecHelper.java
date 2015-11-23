@@ -32,7 +32,6 @@ import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
-import org.onosproject.net.resource.link.BandwidthResource;
 import org.onosproject.net.resource.link.LambdaResource;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -185,7 +184,7 @@ public final class DecodeConstraintCodecHelper {
                 ConstraintCodec.BANDWIDTH + ConstraintCodec.MISSING_MEMBER_MESSAGE)
                 .asDouble();
 
-        return new BandwidthConstraint(new BandwidthResource(Bandwidth.bps(bandwidth)));
+        return new BandwidthConstraint(Bandwidth.bps(bandwidth));
     }
 
     /**

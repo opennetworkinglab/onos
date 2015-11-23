@@ -39,7 +39,6 @@ import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
-import org.onosproject.net.resource.link.BandwidthResource;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -365,7 +364,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         // Check for a bandwidth specification
         if (!isNullOrEmpty(bandwidthString)) {
             final Bandwidth bandwidth = Bandwidth.bps(Double.parseDouble(bandwidthString));
-            constraints.add(new BandwidthConstraint(new BandwidthResource(bandwidth)));
+            constraints.add(new BandwidthConstraint(bandwidth));
         }
 
         // Check for a lambda specification

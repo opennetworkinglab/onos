@@ -134,7 +134,7 @@ public class ConstraintCodecTest {
         assertThat(constraint, instanceOf(BandwidthConstraint.class));
 
         BandwidthConstraint bandwidthConstraint = (BandwidthConstraint) constraint;
-        assertThat(bandwidthConstraint.bandwidth().toDouble(), is(345.678D));
+        assertThat(bandwidthConstraint.bandwidth().bps(), is(345.678D));
     }
 
     /**

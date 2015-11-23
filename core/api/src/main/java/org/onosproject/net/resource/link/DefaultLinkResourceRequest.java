@@ -201,7 +201,7 @@ public final class DefaultLinkResourceRequest implements LinkResourceRequest {
                 return addLambdaRequest();
             } else if (constraint instanceof BandwidthConstraint) {
                 BandwidthConstraint bw = (BandwidthConstraint) constraint;
-                return addBandwidthRequest(bw.bandwidth().toDouble());
+                return addBandwidthRequest(bw.bandwidth().bps());
             }
             return this;
         }

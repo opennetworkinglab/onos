@@ -18,7 +18,6 @@ package org.onosproject.net.intent.constraint;
 import org.junit.Test;
 import org.onlab.util.Bandwidth;
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.link.BandwidthResource;
 import org.onosproject.net.resource.link.LambdaResource;
 
 import com.google.common.testing.EqualsTester;
@@ -39,21 +38,18 @@ public class ConstraintObjectsTest {
     private final Bandwidth sameAsBandwidth1 = Bandwidth.bps(100.0);
     private final Bandwidth bandwidth2 = Bandwidth.bps(200.0);
 
-    final BandwidthConstraint bandwidthConstraint1 =
-            new BandwidthConstraint(new BandwidthResource(bandwidth1));
-    final BandwidthConstraint bandwidthConstraintSameAs1 =
-            new BandwidthConstraint(new BandwidthResource(sameAsBandwidth1));
-    final BandwidthConstraint bandwidthConstraint2 =
-            new BandwidthConstraint(new BandwidthResource(bandwidth2));
+    final BandwidthConstraint bandwidthConstraint1 = new BandwidthConstraint(bandwidth1);
+    final BandwidthConstraint bandwidthConstraintSameAs1 = new BandwidthConstraint(sameAsBandwidth1);
+    final BandwidthConstraint bandwidthConstraint2 = new BandwidthConstraint(bandwidth2);
 
     /**
      * Checks that the objects were created properly.
      */
     @Test
     public void testBandwidthConstraintCreation() {
-        assertThat(bandwidthConstraint1.bandwidth().toDouble(), is(equalTo(100.0)));
-        assertThat(bandwidthConstraintSameAs1.bandwidth().toDouble(), is(equalTo(100.0)));
-        assertThat(bandwidthConstraint2.bandwidth().toDouble(), is(equalTo(200.0)));
+        assertThat(bandwidthConstraint1.bandwidth().bps(), is(equalTo(100.0)));
+        assertThat(bandwidthConstraintSameAs1.bandwidth().bps(), is(equalTo(100.0)));
+        assertThat(bandwidthConstraint2.bandwidth().bps(), is(equalTo(200.0)));
     }
 
     /**
