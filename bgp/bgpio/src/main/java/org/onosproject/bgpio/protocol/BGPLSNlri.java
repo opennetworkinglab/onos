@@ -16,7 +16,7 @@
 package org.onosproject.bgpio.protocol;
 
 import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4.PROTOCOLTYPE;
+import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4.ProtocolType;
 import org.onosproject.bgpio.types.RouteDistinguisher;
 
 /**
@@ -43,7 +43,7 @@ public interface BGPLSNlri {
      * @return Protocol Id in Nlri
      * @throws BGPParseException while getting protocol ID
      */
-    PROTOCOLTYPE getProtocolId() throws BGPParseException;
+    ProtocolType getProtocolId() throws BGPParseException;
 
     /**
      * Returns Route distinguisher in Nlri.

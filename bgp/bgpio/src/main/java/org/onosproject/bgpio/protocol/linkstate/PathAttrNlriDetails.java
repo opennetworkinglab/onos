@@ -19,7 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4.PROTOCOLTYPE;
+import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4.ProtocolType;
 import org.onosproject.bgpio.types.BGPValueType;
 
 import com.google.common.base.MoreObjects;
@@ -29,7 +29,7 @@ import com.google.common.base.MoreObjects;
  */
 public class PathAttrNlriDetails {
     private List<BGPValueType> pathAttributes;
-    private PROTOCOLTYPE protocolID;
+    private ProtocolType protocolID;
     private long identifier;
 
     /**
@@ -55,7 +55,7 @@ public class PathAttrNlriDetails {
      *
      * @param protocolID in linkstate nlri
      */
-    public void setProtocolID(PROTOCOLTYPE protocolID) {
+    public void setProtocolID(ProtocolType protocolID) {
         this.protocolID = protocolID;
     }
 
@@ -64,7 +64,7 @@ public class PathAttrNlriDetails {
      *
      * @return protocolID
      */
-    public PROTOCOLTYPE protocolID() {
+    public ProtocolType protocolID() {
         return this.protocolID;
     }
 

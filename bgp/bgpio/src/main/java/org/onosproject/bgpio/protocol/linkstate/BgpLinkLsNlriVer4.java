@@ -21,7 +21,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.exceptions.BGPParseException;
 import org.onosproject.bgpio.protocol.BgpLinkLsNlri;
 import org.onosproject.bgpio.protocol.NlriType;
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4.PROTOCOLTYPE;
+import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4.ProtocolType;
 import org.onosproject.bgpio.types.BGPErrorType;
 import org.onosproject.bgpio.types.BGPValueType;
 import org.onosproject.bgpio.types.RouteDistinguisher;
@@ -140,20 +140,20 @@ public class BgpLinkLsNlriVer4 implements BgpLinkLsNlri {
     }
 
     @Override
-    public PROTOCOLTYPE getProtocolId() throws BGPParseException {
+    public ProtocolType getProtocolId() throws BGPParseException {
         switch (protocolId) {
         case Constants.ISIS_LEVELONE:
-            return PROTOCOLTYPE.ISIS_LevelOne;
+            return ProtocolType.ISIS_LEVEL_ONE;
         case Constants.ISIS_LEVELTWO:
-            return PROTOCOLTYPE.ISIS_LevelTwo;
+            return ProtocolType.ISIS_LEVEL_TWO;
         case Constants.OSPFV2:
-            return PROTOCOLTYPE.OSPFv2;
+            return ProtocolType.OSPF_V2;
         case Constants.DIRECT:
-            return PROTOCOLTYPE.Direct;
+            return ProtocolType.DIRECT;
         case Constants.STATIC_CONFIGURATION:
-            return PROTOCOLTYPE.Static_Configuration;
+            return ProtocolType.STATIC_CONFIGURATION;
         case Constants.OSPFV3:
-            return PROTOCOLTYPE.OSPFv3;
+            return ProtocolType.OSPF_V3;
         default:
             throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, (byte) 0, null);
         }

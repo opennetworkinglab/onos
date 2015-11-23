@@ -61,8 +61,8 @@ public class BGPNodeLSNlriVer4 implements BGPNodeLSNlri {
     /**
      * Enum to provide PROTOCOLTYPE.
      */
-    public enum PROTOCOLTYPE {
-        ISIS_LevelOne(1), ISIS_LevelTwo(2), OSPFv2(3), Direct(4), Static_Configuration(5), OSPFv3(6);
+    public enum ProtocolType {
+        ISIS_LEVEL_ONE(1), ISIS_LEVEL_TWO(2), OSPF_V2(3), DIRECT(4), STATIC_CONFIGURATION(5), OSPF_V3(6);
         int value;
 
         /**
@@ -70,7 +70,7 @@ public class BGPNodeLSNlriVer4 implements BGPNodeLSNlri {
          *
          * @param val protocol type
          */
-        PROTOCOLTYPE(int val) {
+        ProtocolType(int val) {
             value = val;
         }
 
@@ -180,20 +180,20 @@ public class BGPNodeLSNlriVer4 implements BGPNodeLSNlri {
     }
 
     @Override
-    public PROTOCOLTYPE getProtocolId() throws BGPParseException {
+    public ProtocolType getProtocolId() throws BGPParseException {
         switch (protocolId) {
         case Constants.ISIS_LEVELONE:
-            return PROTOCOLTYPE.ISIS_LevelOne;
+            return ProtocolType.ISIS_LEVEL_ONE;
         case Constants.ISIS_LEVELTWO:
-            return PROTOCOLTYPE.ISIS_LevelTwo;
+            return ProtocolType.ISIS_LEVEL_TWO;
         case Constants.OSPFV2:
-            return PROTOCOLTYPE.OSPFv2;
+            return ProtocolType.OSPF_V2;
         case Constants.DIRECT:
-            return PROTOCOLTYPE.Direct;
+            return ProtocolType.DIRECT;
         case Constants.STATIC_CONFIGURATION:
-            return PROTOCOLTYPE.Static_Configuration;
+            return ProtocolType.STATIC_CONFIGURATION;
         case Constants.OSPFV3:
-            return PROTOCOLTYPE.OSPFv3;
+            return ProtocolType.OSPF_V3;
         default:
             throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, (byte) 0, null);
         }
