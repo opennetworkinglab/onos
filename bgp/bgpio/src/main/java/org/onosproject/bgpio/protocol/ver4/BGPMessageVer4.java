@@ -75,8 +75,9 @@ public abstract class BGPMessageVer4 {
                     }
                 }
                 short length = cb.readShort();
-                if (length != (cb.readableBytes() + HEADER_AND_MSG_LEN)) {
-                    Validation.validateLen(BGPErrorType.MESSAGE_HEADER_ERROR, BGPErrorType.BAD_MESSAGE_LENGTH, length);
+                if (length > cb.readableBytes() + HEADER_AND_MSG_LEN) {
+                    Validation.validateLen(BGPErrorType.MESSAGE_HEADER_ERROR,
+                                           BGPErrorType.BAD_MESSAGE_LENGTH, length);
                 }
                 bgpHeader.setLength(length);
                 byte type = cb.readByte();
@@ -93,7 +94,7 @@ public abstract class BGPMessageVer4 {
                     return BGPKeepaliveMsgVer4.READER.readFrom(cb.readBytes(len), bgpHeader);
                 case UPDATE_MSG_TYPE:
                     log.debug("UPDATE MESSAGE is received");
-                    // TODO: Update message version 4
+                    return BgpUpdateMsgVer4.READER.readFrom(cb.readBytes(len), bgpHeader);
                 case NOTIFICATION_MSG_TYPE:
                     log.debug("NOTIFICATION MESSAGE is received");
                     return BGPNotificationMsgVer4.READER.readFrom(cb.readBytes(len), bgpHeader);
@@ -102,7 +103,8 @@ public abstract class BGPMessageVer4 {
                     return null;
                 }
             } catch (IndexOutOfBoundsException e) {
-                throw new BGPParseException(BGPErrorType.MESSAGE_HEADER_ERROR, BGPErrorType.BAD_MESSAGE_LENGTH, null);
+                throw new BGPParseException(BGPErrorType.MESSAGE_HEADER_ERROR,
+                                            BGPErrorType.BAD_MESSAGE_LENGTH, null);
             }
         }
     }
