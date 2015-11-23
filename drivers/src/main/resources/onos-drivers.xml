@@ -138,7 +138,7 @@
                    impl="org.onosproject.driver.pipeline.OpenVSwitchPipeline"/>
     </driver>
     <driver name="eci" extends="default"
-            manufacturer="ECI Telecom" hwVersion="optical" swVersion="V_1_0">
+            manufacturer="ECI Telecom" hwVersion="Optical.*" swVersion="V_1_0">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.OFOpticalSwitch13"/>
     </driver>

@@ -144,7 +144,16 @@ public class OFOpticalSwitch13 extends AbstractOpenFlowSwitch implements OpenFlo
 
     @Override
     public Device.Type deviceType() {
-        return Device.Type.ROADM;
+        String hwDesc = hardwareDescription();
+        switch (hwDesc) {
+            case "Optical-ROADM":
+                return Device.Type.ROADM;
+            case "Optical-OTN":
+                return Device.Type.OTN;
+            default:
+                log.error("Unsupported hardwareDescription {}", hwDesc);
+                return Device.Type.OTHER;
+        }
     }
 
     /*
