@@ -37,8 +37,9 @@
         <behaviour api="org.onosproject.net.behaviour.ExtensionResolver"
                    impl="org.onosproject.driver.extensions.NiciraExtensionInterpreter" />
     </driver>
+    <!--This driver is for simulated NETCONF devices through of-config tool on top og OVSDB-->
     <driver name="ovs-netconf" extends="default"
-            manufacturer="Nicira, Inc\." hwVersion="Open vSwitch" swVersion="2\..*">
+            manufacturer="" hwVersion="" swVersion="">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.NiciraSwitchHandshaker"/>
         <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
