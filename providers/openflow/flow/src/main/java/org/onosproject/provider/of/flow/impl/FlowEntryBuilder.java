@@ -513,6 +513,7 @@ public class FlowEntryBuilder {
         Ip4Prefix ip4Prefix;
         Ip6Address ip6Address;
         Ip6Prefix ip6Prefix;
+        Ip4Address ip;
 
         TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
         for (MatchField<?> field : match.getMatchFields()) {
@@ -715,9 +716,12 @@ public class FlowEntryBuilder {
                 mac = MacAddress.valueOf(match.get(MatchField.ARP_THA).getLong());
                 builder.matchArpTha(mac);
                 break;
+            case ARP_TPA:
+                ip = Ip4Address.valueOf(match.get(MatchField.ARP_TPA).getInt());
+                builder.matchArpTpa(ip);
+                break;
             case ARP_OP:
             case ARP_SPA:
-            case ARP_TPA:
             case MPLS_TC:
             default:
                 log.warn("Match type {} not yet implemented.", field.id);
