@@ -417,13 +417,17 @@ public abstract class FlowModBuilder {
                                   mplsBos.mplsBos() ? OFBooleanValue.TRUE
                                                     : OFBooleanValue.FALSE);
                 break;
+            case ARP_SHA:
+                arpHaCriterion = (ArpHaCriterion) c;
+                mBuilder.setExact(MatchField.ARP_SHA,
+                                  MacAddress.of(arpHaCriterion.mac().toLong()));
+                break;
             case ARP_THA:
                 arpHaCriterion = (ArpHaCriterion) c;
                 mBuilder.setExact(MatchField.ARP_THA,
                                   MacAddress.of(arpHaCriterion.mac().toLong()));
                 break;
             case ARP_OP:
-            case ARP_SHA:
             case ARP_SPA:
             case ARP_TPA:
             case MPLS_TC:
