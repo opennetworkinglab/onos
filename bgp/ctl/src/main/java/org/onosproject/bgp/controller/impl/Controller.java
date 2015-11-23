@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.bootstrap.ServerBootstrap;
+import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
@@ -49,9 +50,12 @@ public class Controller {
     private static final BGPFactory FACTORY4 = BGPFactories.getFactory(BGPVersion.BGP_4);
 
     private ChannelGroup cg;
+    public Channel serverChannel;
 
     // Configuration options
     private static final short BGP_PORT_NUM = 179;
+    private static final short PORT_NUM_ZERO = 0;
+    private static boolean isPortNumSet = false;
     private final int workerThreads = 16;
     private final int peerWorkerThreads = 16;
 
@@ -119,7 +123,8 @@ public class Controller {
             bootstrap.setPipelineFactory(pfact);
             InetSocketAddress sa = new InetSocketAddress(getBgpPortNum());
             cg = new DefaultChannelGroup();
-            cg.add(bootstrap.bind(sa));
+            serverChannel = bootstrap.bind(sa);
+            cg.add(serverChannel);
             log.info("Listening for Peer connection on {}", sa);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -234,6 +239,16 @@ public class Controller {
      * @return port number
      */
     public static short getBgpPortNum() {
+        if (isPortNumSet) {
+            return PORT_NUM_ZERO;
+        }
         return BGP_PORT_NUM;
+    }
+
+    /**
+     * sets the isPortNumSet as true.
+     */
+    public void setBgpPortNum() {
+        isPortNumSet = true;
     }
 }

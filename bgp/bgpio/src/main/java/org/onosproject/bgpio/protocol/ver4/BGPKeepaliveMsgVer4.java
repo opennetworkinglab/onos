@@ -31,7 +31,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides BGP keep alive message.
  */
-class BGPKeepaliveMsgVer4 implements BGPKeepaliveMsg {
+public class BGPKeepaliveMsgVer4 implements BGPKeepaliveMsg {
 
     /*
     <Keepalive Message>::= <Common Header>
@@ -88,7 +88,7 @@ class BGPKeepaliveMsgVer4 implements BGPKeepaliveMsg {
     /**
      * Default constructor.
      */
-    BGPKeepaliveMsgVer4() {
+    public BGPKeepaliveMsgVer4() {
     }
 
     /**

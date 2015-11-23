@@ -204,6 +204,15 @@ public class BGPControllerImpl implements BGPController {
 
     }
 
+    /**
+     * Returns controller.
+     *
+     * @return controller
+     */
+    public Controller controller() {
+        return this.ctrl;
+    }
+
     @Override
     public ConcurrentHashMap<BGPId, BGPPeer> connectedPeers() {
         return connectedPeers;
