@@ -21,6 +21,7 @@ import java.util.Objects;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.Ip6Address;
 import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,7 @@ public class IPv6AddressTlv implements BGPValueType {
      *
      * @return Ipv6 address of interface/neighbor
      */
-    public Ip6Address getValue() {
+    public Ip6Address address() {
         return address;
     }
 
@@ -97,8 +98,7 @@ public class IPv6AddressTlv implements BGPValueType {
      * @throws BGPParseException while parsing IPv6AddressTlv
      */
     public static IPv6AddressTlv read(ChannelBuffer cb, short type) throws BGPParseException {
-        //TODO: use Validation.toInetAddress once Validation is merged
-        InetAddress ipAddress = (InetAddress) cb.readBytes(LENGTH);
+        InetAddress ipAddress = Validation.toInetAddress(LENGTH, cb);
         if (ipAddress.isMulticastAddress()) {
             throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, (byte) 0, null);
         }
