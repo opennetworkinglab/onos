@@ -57,6 +57,11 @@
 
         <command>
             <action class="org.onosproject.cli.cfg.NetworkConfigCommand"/>
+            <completers>
+                <ref component-id="subjectClassKeyCompleter"/>
+                <ref component-id="subjectKeyCompleter"/>
+                <ref component-id="configKeyCompleter"/>
+            </completers>
         </command>
 
         <command>
@@ -531,5 +536,9 @@
     <bean id="encapTypeCompleter" class="org.onosproject.cli.net.EncapTypeCompleter"/>
 
     <bean id="placeholderCompleter" class="org.onosproject.cli.PlaceholderCompleter"/>
+
+    <bean id="subjectClassKeyCompleter" class="org.onosproject.cli.cfg.SubjectClassKeyCompleter"/>
+    <bean id="subjectKeyCompleter" class="org.onosproject.cli.cfg.SubjectKeyCompleter"/>
+    <bean id="configKeyCompleter" class="org.onosproject.cli.cfg.ConfigKeyCompleter"/>
 
 </blueprint>
