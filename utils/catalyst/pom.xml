@@ -15,6 +15,11 @@
     <description>ONLab catalyst dependency</description>
 
     <dependencies>
+        <dependency>
+            <groupId>io.atomix.catalyst</groupId>
+            <artifactId>catalyst-netty</artifactId>
+            <version>1.0.0-rc5</version>
+        </dependency>
 
     </dependencies>
 
@@ -24,10 +29,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <configuration>
-                    <createSourcesJar>true</createSourcesJar>
                     <artifactSet>
                         <includes>
-                            <include>io.atomix.catalyst.*</include>
+                            <include>io/atomix/catalyst/**</include>
                         </includes>
                     </artifactSet>
                 </configuration>
