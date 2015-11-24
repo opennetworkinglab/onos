@@ -212,8 +212,7 @@ public class DistributedLabelResourceStore
     @Override
     public boolean createGlobalPool(LabelResourceId beginLabel,
                                     LabelResourceId endLabel) {
-        LabelResourcePool pool = new LabelResourcePool(
-                                                       GLOBAL_RESOURCE_POOL_DEVICE_ID,
+        LabelResourcePool pool = new LabelResourcePool(GLOBAL_RESOURCE_POOL_DEVICE_ID,
                                                        beginLabel.labelId(),
                                                        endLabel.labelId());
         return this.internalCreate(pool);
@@ -251,8 +250,7 @@ public class DistributedLabelResourceStore
                 .get(pool.deviceId());
         if (poolOld == null) {
             resourcePool.put(pool.deviceId(), pool);
-            LabelResourceEvent event = new LabelResourceEvent(
-                                                              Type.POOL_CREATED,
+            LabelResourceEvent event = new LabelResourceEvent(Type.POOL_CREATED,
                                                               pool);
             notifyDelegate(event);
             return true;
@@ -292,8 +290,7 @@ public class DistributedLabelResourceStore
         Versioned<LabelResourcePool> poolOld = resourcePool.get(deviceId);
         if (poolOld != null) {
             resourcePool.remove(deviceId);
-            LabelResourceEvent event = new LabelResourceEvent(
-                                                              Type.POOL_CREATED,
+            LabelResourceEvent event = new LabelResourceEvent(Type.POOL_DESTROYED,
                                                               poolOld.value());
             notifyDelegate(event);
         }
@@ -309,8 +306,7 @@ public class DistributedLabelResourceStore
         if (device == null) {
             return Collections.emptyList();
         }
-        LabelResourceRequest request = new LabelResourceRequest(
-                                                                deviceId,
+        LabelResourceRequest request = new LabelResourceRequest(deviceId,
                                                                 LabelResourceRequest.Type.APPLY,
                                                                 applyNum, null);
         NodeId master = mastershipService.getMasterFor(deviceId);
@@ -345,8 +341,7 @@ public class DistributedLabelResourceStore
             log.info("the free number of the label resource pool of deviceId {} is not enough.");
             return Collections.emptyList();
         }
-        Set<LabelResource> releaseLabels = new HashSet<LabelResource>(
-                                                                      pool.releaseLabelId());
+        Set<LabelResource> releaseLabels = new HashSet<LabelResource>(pool.releaseLabelId());
         long tmp = releaseLabels.size() > applyNum ? applyNum : releaseLabels
                 .size();
         LabelResource resource = null;
@@ -394,8 +389,7 @@ public class DistributedLabelResourceStore
             }
             ImmutableSet<LabelResource> collection = ImmutableSet.copyOf(maps
                     .get(deviceId));
-            request = new LabelResourceRequest(
-                                               deviceId,
+            request = new LabelResourceRequest(deviceId,
                                                LabelResourceRequest.Type.RELEASE,
                                                0, collection);
             NodeId master = mastershipService.getMasterFor(deviceId);
@@ -430,8 +424,7 @@ public class DistributedLabelResourceStore
             log.info("the label resource pool of device id {} does not exist");
             return false;
         }
-        Set<LabelResource> storeSet = new HashSet<LabelResource>(
-                                                                 pool.releaseLabelId());
+        Set<LabelResource> storeSet = new HashSet<LabelResource>(pool.releaseLabelId());
         LabelResource labelResource = null;
         long realReleasedNum = 0;
         for (Iterator<LabelResource> it = release.iterator(); it.hasNext();) {
@@ -499,8 +492,7 @@ public class DistributedLabelResourceStore
 
     @Override
     public Collection<LabelResource> applyFromGlobalPool(long applyNum) {
-        LabelResourceRequest request = new LabelResourceRequest(
-                                                                DeviceId.deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID),
+        LabelResourceRequest request = new LabelResourceRequest(DeviceId.deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID),
                                                                 LabelResourceRequest.Type.APPLY,
                                                                 applyNum, null);
         return this.internalApply(request);
@@ -511,17 +503,14 @@ public class DistributedLabelResourceStore
         Set<LabelResource> set = new HashSet<LabelResource>();
         DefaultLabelResource resource = null;
         for (LabelResourceId labelResource : release) {
-            resource = new DefaultLabelResource(
-                                                DeviceId.deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID),
+            resource = new DefaultLabelResource(DeviceId.deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID),
                                                 labelResource);
             set.add(resource);
         }
-        LabelResourceRequest request = new LabelResourceRequest(
-                                                                DeviceId.deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID),
+        LabelResourceRequest request = new LabelResourceRequest(DeviceId.deviceId(GLOBAL_RESOURCE_POOL_DEVICE_ID),
                                                                 LabelResourceRequest.Type.APPLY,
                                                                 0,
-                                                                ImmutableSet
-                                                                        .copyOf(set));
+                                                                ImmutableSet.copyOf(set));
         return this.internalRelease(request);
     }
 
