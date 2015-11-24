@@ -16,8 +16,7 @@
   -->
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0"
           name="onos-@FEATURE-VERSION">
-    <repository>mvn:org.onosproject/onos-features/@ONOS-VERSION/xml/features
-    </repository>
+    <repository>mvn:org.apache.karaf.features/standard/3.0.3/xml/features</repository>
 
     <feature name="onos-thirdparty-base" version="@FEATURE-VERSION"
              description="ONOS 3rd party dependencies">
