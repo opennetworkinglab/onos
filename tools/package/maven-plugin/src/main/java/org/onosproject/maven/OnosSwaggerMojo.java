@@ -66,6 +66,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
     private static final String PRODUCES = "javax.ws.rs.Produces";
     private static final String CONSUMES = "javax.ws.rs.Consumes";
     private static final String JSON = "MediaType.APPLICATION_JSON";
+    private static final String OCTET_STREAM = "MediaType.APPLICATION_OCTET_STREAM";
 
     /**
      * The directory where the generated catalogue file will be put.
@@ -327,7 +328,6 @@ public class OnosSwaggerMojo extends AbstractMojo {
     }
 
     // Temporary solution to add responses to a method
-    // TODO Provide annotations in the web resources for responses and parse them
     private void addResponses(ObjectNode methodNode, DocletTag tag, boolean responseJson) {
         ObjectNode responses = mapper.createObjectNode();
         methodNode.set("responses", responses);
@@ -352,6 +352,8 @@ public class OnosSwaggerMojo extends AbstractMojo {
     private String getIOType(JavaAnnotation annotation) {
         if (annotation.getNamedParameter("value").toString().equals(JSON)) {
             return "application/json";
+        } else if (annotation.getNamedParameter("value").toString().equals(OCTET_STREAM)){
+            return "application/octet_stream";
         }
         return "";
     }
