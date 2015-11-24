@@ -38,6 +38,7 @@ import org.onosproject.net.driver.Driver;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -102,6 +103,7 @@ public class CodecManager implements CodecService {
         registerCodec(GroupBucket.class, new GroupBucketCodec());
         registerCodec(Load.class, new LoadCodec());
         registerCodec(TableStatisticsEntry.class, new TableStatisticsEntryCodec());
+        registerCodec(PortStatistics.class, new PortStatisticsCodec());
         log.info("Started");
     }
 

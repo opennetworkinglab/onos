@@ -36,6 +36,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.link.LinkService;
@@ -153,4 +154,62 @@ public class StatisticsWebResource  extends AbstractWebResource {
         rootArrayNode.add(deviceStatsNode);
         return ok(root).build();
     }
+
+    /**
+     * Get port statistics of all devices.
+     * @rsModel StatisticsPorts
+     * @return JSON encoded array of port statistics
+     */
+    @GET
+    @Path("ports")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPortStatistics() {
+        final DeviceService service = get(DeviceService.class);
+        final Iterable<Device> devices = service.getDevices();
+        final ObjectNode root = mapper().createObjectNode();
+        final ArrayNode rootArrayNode = root.putArray("statistics");
+        for (final Device device : devices) {
+            final ObjectNode deviceStatsNode = mapper().createObjectNode();
+            deviceStatsNode.put("device", device.id().toString());
+            final ArrayNode statisticsNode = deviceStatsNode.putArray("ports");
+            final Iterable<PortStatistics> portStatsEntries = service.getPortStatistics(device.id());
+            if (portStatsEntries != null) {
+                for (final PortStatistics entry : portStatsEntries) {
+                    statisticsNode.add(codec(PortStatistics.class).encode(entry, this));
+                }
+            }
+            rootArrayNode.add(deviceStatsNode);
+        }
+
+        return ok(root).build();
+    }
+
+    /**
+     * Get port statistics of a specified devices.
+     * @rsModel StatisticsPorts
+     * @param deviceId device ID
+     * @return JSON encoded array of port statistics
+     */
+    @GET
+    @Path("ports/{deviceId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPortStatisticsByDeviceId(@PathParam("deviceId") String deviceId) {
+        final DeviceService service = get(DeviceService.class);
+        final Iterable<PortStatistics> portStatsEntries =
+                service.getPortStatistics(DeviceId.deviceId(deviceId));
+        final ObjectNode root = mapper().createObjectNode();
+        final ArrayNode rootArrayNode = root.putArray("statistics");
+        final ObjectNode deviceStatsNode = mapper().createObjectNode();
+        deviceStatsNode.put("device", deviceId);
+        final ArrayNode statisticsNode = deviceStatsNode.putArray("ports");
+        if (portStatsEntries != null) {
+            for (final PortStatistics entry : portStatsEntries) {
+                statisticsNode.add(codec(PortStatistics.class).encode(entry, this));
+            }
+        }
+        rootArrayNode.add(deviceStatsNode);
+
+        return ok(root).build();
+    }
+
 }

@@ -16,6 +16,7 @@
         "title": "flow",
         "required": [
           "id",
+          "tableId",
           "appId",
           "groupId",
           "priority",
@@ -32,6 +33,11 @@
           "id": {
             "type": "string",
             "example": "12103425214920339"
+          },
+          "tableId": {
+            "type": "integer",
+            "format": "int64",
+            "example": 3
           },
           "appId": {
             "type": "string",

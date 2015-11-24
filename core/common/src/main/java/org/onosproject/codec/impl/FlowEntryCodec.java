@@ -39,6 +39,7 @@ public final class FlowEntryCodec extends JsonCodec<FlowEntry> {
 
         final ObjectNode result = context.mapper().createObjectNode()
                 .put("id", Long.toString(flowEntry.id().value()))
+                .put("tableId", flowEntry.tableId())
                 .put("appId", service.getAppId(flowEntry.appId()).name())
                 .put("groupId", flowEntry.groupId().id())
                 .put("priority", flowEntry.priority())
