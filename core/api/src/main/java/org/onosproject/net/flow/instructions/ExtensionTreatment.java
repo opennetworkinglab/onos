@@ -21,14 +21,14 @@ import java.util.List;
 /**
  * An extensible instruction type.
  */
-public interface ExtensionInstruction {
+public interface ExtensionTreatment {
 
     /**
      * Gets the type of the extension instruction.
      *
      * @return type
      */
-    ExtensionType type();
+    ExtensionTreatmentType type();
 
     /**
      * Sets a property on the extension instruction.

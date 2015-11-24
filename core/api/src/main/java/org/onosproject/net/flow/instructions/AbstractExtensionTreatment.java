@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Abstract implementation of the set/get property methods of ExtensionInstruction.
  */
-public abstract class AbstractExtensionInstruction implements ExtensionInstruction {
+public abstract class AbstractExtensionTreatment implements ExtensionTreatment {
 
     private static final String INVALID_KEY = "Invalid property key: ";
     private static final String INVALID_TYPE = "Given type does not match field type: ";

@@ -30,7 +30,7 @@ import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.instructions.ExtensionInstruction;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.meter.MeterId;
@@ -489,7 +489,7 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
-        public TrafficTreatment.Builder extension(ExtensionInstruction extension,
+        public TrafficTreatment.Builder extension(ExtensionTreatment extension,
                                                   DeviceId deviceId) {
             return add(Instructions.extension(extension, deviceId));
         }

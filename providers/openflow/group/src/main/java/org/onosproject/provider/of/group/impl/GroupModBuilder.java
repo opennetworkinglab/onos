@@ -33,7 +33,7 @@ import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.instructions.ExtensionInstruction;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
@@ -42,7 +42,7 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
-import org.onosproject.openflow.controller.ExtensionInterpreter;
+import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
 import org.projectfloodlight.openflow.protocol.OFBucket;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFGroupAdd;
@@ -424,16 +424,16 @@ public final class GroupModBuilder {
         return null;
     }
 
-    private OFAction buildExtensionAction(ExtensionInstruction i, DeviceId deviceId) {
+    private OFAction buildExtensionAction(ExtensionTreatment i, DeviceId deviceId) {
         if (!driverService.isPresent()) {
             log.error("No driver service present");
             return null;
         }
         Driver driver = driverService.get().getDriver(deviceId);
-        if (driver.hasBehaviour(ExtensionInterpreter.class)) {
+        if (driver.hasBehaviour(ExtensionTreatmentInterpreter.class)) {
             DefaultDriverHandler handler =
                     new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
-            ExtensionInterpreter interpreter = handler.behaviour(ExtensionInterpreter.class);
+            ExtensionTreatmentInterpreter interpreter = handler.behaviour(ExtensionTreatmentInterpreter.class);
             return interpreter.mapInstruction(factory, i);
         }
 

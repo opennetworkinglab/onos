@@ -18,8 +18,8 @@ package org.onosproject.openflow.controller;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.driver.HandlerBehaviour;
-import org.onosproject.net.flow.instructions.ExtensionInstruction;
-import org.onosproject.net.flow.instructions.ExtensionType;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
+import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 
@@ -27,25 +27,25 @@ import org.projectfloodlight.openflow.protocol.action.OFAction;
  * Interprets extension instructions and converts them to/from OpenFlow objects.
  */
 @Beta
-public interface ExtensionInterpreter extends HandlerBehaviour {
+public interface ExtensionTreatmentInterpreter extends HandlerBehaviour {
 
     /**
      * Returns true if the given extension instruction is supported by this
      * driver.
      *
-     * @param extensionType extension instruction type
+     * @param extensionTreatmentType extension instruction type
      * @return true if the instruction is supported, otherwise false
      */
-    boolean supported(ExtensionType extensionType);
+    boolean supported(ExtensionTreatmentType extensionTreatmentType);
 
     /**
      * Maps an extension instruction to an OpenFlow action.
      *
      * @param factory OpenFlow factory
-     * @param extensionInstruction extension instruction
+     * @param extensionTreatment extension instruction
      * @return OpenFlow action
      */
-    OFAction mapInstruction(OFFactory factory, ExtensionInstruction extensionInstruction);
+    OFAction mapInstruction(OFFactory factory, ExtensionTreatment extensionTreatment);
 
     /**
      * Maps an OpenFlow action to an extension instruction.
@@ -53,6 +53,6 @@ public interface ExtensionInterpreter extends HandlerBehaviour {
      * @param action OpenFlow action
      * @return extension instruction
      */
-    ExtensionInstruction mapAction(OFAction action);
+    ExtensionTreatment mapAction(OFAction action);
 
 }

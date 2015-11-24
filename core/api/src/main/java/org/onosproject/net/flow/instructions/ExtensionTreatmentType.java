@@ -25,25 +25,26 @@ import java.util.Objects;
  * Type of extension instructions.
  */
 @Beta
-public final class ExtensionType {
+public final class ExtensionTreatmentType {
 
     /**
      * A list of well-known named extension instruction type codes.
+     * These numbers have no impact on the actual OF type id.
      */
-    public enum ExtensionTypes {
+    public enum ExtensionTreatmentTypes {
         // TODO fix type numbers to include experimenter id
-        NICIRA_SET_TUNNEL_DST(31),
-        NICIRA_RESUBMIT(32);
+        NICIRA_SET_TUNNEL_DST(0),
+        NICIRA_RESUBMIT(1);
 
-        private ExtensionType type;
+        private ExtensionTreatmentType type;
 
         /**
          * Creates a new named extension instruction type.
          *
          * @param type type code
          */
-        ExtensionTypes(int type) {
-            this.type = new ExtensionType(type);
+        ExtensionTreatmentTypes(int type) {
+            this.type = new ExtensionTreatmentType(type);
         }
 
         /**
@@ -51,7 +52,7 @@ public final class ExtensionType {
          *
          * @return extension type object
          */
-        public ExtensionType type() {
+        public ExtensionTreatmentType type() {
             return type;
         }
     }
@@ -63,7 +64,7 @@ public final class ExtensionType {
      *
      * @param type type code
      */
-    public ExtensionType(int type) {
+    public ExtensionTreatmentType(int type) {
         this.type = type;
     }
 
@@ -77,8 +78,8 @@ public final class ExtensionType {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof ExtensionType) {
-            final ExtensionType that = (ExtensionType) obj;
+        if (obj instanceof ExtensionTreatmentType) {
+            final ExtensionTreatmentType that = (ExtensionTreatmentType) obj;
             return this.type == that.type;
         }
         return false;
@@ -86,7 +87,7 @@ public final class ExtensionType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(ExtensionType.class)
+        return MoreObjects.toStringHelper(ExtensionTreatmentType.class)
                 .add("type", type)
                 .toString();
     }

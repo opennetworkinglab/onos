@@ -489,7 +489,7 @@ public final class Instructions {
      * @param deviceId device ID
      * @return extension instruction
      */
-    public static ExtensionInstructionWrapper extension(ExtensionInstruction extension,
+    public static ExtensionInstructionWrapper extension(ExtensionTreatment extension,
                                                         DeviceId deviceId) {
         checkNotNull(extension, "Extension instruction cannot be null");
         checkNotNull(deviceId, "Device ID cannot be null");
@@ -858,16 +858,16 @@ public final class Instructions {
      *  Extension instruction.
      */
     public static class ExtensionInstructionWrapper implements Instruction {
-        private final ExtensionInstruction extensionInstruction;
+        private final ExtensionTreatment extensionTreatment;
         private final DeviceId deviceId;
 
-        ExtensionInstructionWrapper(ExtensionInstruction extension, DeviceId deviceId) {
-            extensionInstruction = extension;
+        ExtensionInstructionWrapper(ExtensionTreatment extension, DeviceId deviceId) {
+            extensionTreatment = extension;
             this.deviceId = deviceId;
         }
 
-        public ExtensionInstruction extensionInstruction() {
-            return extensionInstruction;
+        public ExtensionTreatment extensionInstruction() {
+            return extensionTreatment;
         }
 
         public DeviceId deviceId() {
@@ -882,14 +882,14 @@ public final class Instructions {
         @Override
         public String toString() {
             return toStringHelper(type().toString())
-                    .add("extension", extensionInstruction)
+                    .add("extension", extensionTreatment)
                     .add("deviceId", deviceId)
                     .toString();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(type().ordinal(), extensionInstruction, deviceId);
+            return Objects.hash(type().ordinal(), extensionTreatment, deviceId);
         }
 
         @Override
@@ -899,7 +899,7 @@ public final class Instructions {
             }
             if (obj instanceof ExtensionInstructionWrapper) {
                 ExtensionInstructionWrapper that = (ExtensionInstructionWrapper) obj;
-                return Objects.equals(extensionInstruction, that.extensionInstruction)
+                return Objects.equals(extensionTreatment, that.extensionTreatment)
                         && Objects.equals(deviceId, that.deviceId);
 
             }

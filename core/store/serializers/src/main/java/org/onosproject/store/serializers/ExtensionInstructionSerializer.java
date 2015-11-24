@@ -22,13 +22,13 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.behaviour.ExtensionResolver;
+import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
-import org.onosproject.net.flow.instructions.ExtensionInstruction;
-import org.onosproject.net.flow.instructions.ExtensionType;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
+import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.net.flow.instructions.Instructions;
 
 /**
@@ -53,16 +53,16 @@ public class ExtensionInstructionSerializer extends
     @Override
     public Instructions.ExtensionInstructionWrapper read(Kryo kryo, Input input,
                                                          Class<Instructions.ExtensionInstructionWrapper> type) {
-        ExtensionType exType = (ExtensionType) kryo.readClassAndObject(input);
+        ExtensionTreatmentType exType = (ExtensionTreatmentType) kryo.readClassAndObject(input);
         DeviceId deviceId = (DeviceId) kryo.readClassAndObject(input);
 
         DriverService driverService = DefaultServiceDirectory.getService(DriverService.class);
         DriverHandler handler = new DefaultDriverHandler(
                 new DefaultDriverData(driverService.getDriver(deviceId), deviceId));
 
-        ExtensionResolver resolver = handler.behaviour(ExtensionResolver.class);
+        ExtensionTreatmentResolver resolver = handler.behaviour(ExtensionTreatmentResolver.class);
 
-        ExtensionInstruction instruction = resolver.getExtensionInstruction(exType);
+        ExtensionTreatment instruction = resolver.getExtensionInstruction(exType);
 
         byte[] bytes = (byte[]) kryo.readClassAndObject(input);
 

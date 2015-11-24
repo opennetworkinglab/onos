@@ -129,7 +129,7 @@ import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
-import org.onosproject.net.flow.instructions.ExtensionType;
+import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L1ModificationInstruction;
@@ -455,7 +455,7 @@ public final class KryoNamespaces {
             .register(new DefaultOutboundPacketSerializer(), DefaultOutboundPacket.class)
             .register(new AnnotationsSerializer(), DefaultAnnotations.class)
             .register(new ExtensionInstructionSerializer(), Instructions.ExtensionInstructionWrapper.class)
-            .register(ExtensionType.class)
+            .register(ExtensionTreatmentType.class)
             .register(Versioned.class)
             .register(MapEvent.class)
             .register(MapEvent.Type.class)

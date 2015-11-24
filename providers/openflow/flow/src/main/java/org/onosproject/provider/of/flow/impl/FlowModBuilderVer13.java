@@ -27,7 +27,7 @@ import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.instructions.ExtensionInstruction;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.GroupInstruction;
@@ -49,7 +49,7 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInst
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
-import org.onosproject.openflow.controller.ExtensionInterpreter;
+import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
@@ -482,16 +482,16 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         return null;
     }
 
-    private OFAction buildExtensionAction(ExtensionInstruction i) {
+    private OFAction buildExtensionAction(ExtensionTreatment i) {
         if (!driverService.isPresent()) {
             log.error("No driver service present");
             return null;
         }
         Driver driver = driverService.get().getDriver(deviceId);
-        if (driver.hasBehaviour(ExtensionInterpreter.class)) {
+        if (driver.hasBehaviour(ExtensionTreatmentInterpreter.class)) {
             DefaultDriverHandler handler =
                     new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
-            ExtensionInterpreter interpreter = handler.behaviour(ExtensionInterpreter.class);
+            ExtensionTreatmentInterpreter interpreter = handler.behaviour(ExtensionTreatmentInterpreter.class);
             return interpreter.mapInstruction(factory(), i);
         }
 

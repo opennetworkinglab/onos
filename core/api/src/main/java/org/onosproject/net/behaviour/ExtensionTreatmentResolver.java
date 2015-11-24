@@ -18,14 +18,14 @@ package org.onosproject.net.behaviour;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.driver.HandlerBehaviour;
-import org.onosproject.net.flow.instructions.ExtensionInstruction;
-import org.onosproject.net.flow.instructions.ExtensionType;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
+import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
 /**
  * Provides access to the extension implemented by this driver.
  */
 @Beta
-public interface ExtensionResolver extends HandlerBehaviour {
+public interface ExtensionTreatmentResolver extends HandlerBehaviour {
 
     /**
      * Gets an extension instruction instance of the specified type, if supported
@@ -36,5 +36,5 @@ public interface ExtensionResolver extends HandlerBehaviour {
      * @throws UnsupportedOperationException if the extension type is not
      * supported by this driver
      */
-    ExtensionInstruction getExtensionInstruction(ExtensionType type);
+    ExtensionTreatment getExtensionInstruction(ExtensionTreatmentType type);
 }

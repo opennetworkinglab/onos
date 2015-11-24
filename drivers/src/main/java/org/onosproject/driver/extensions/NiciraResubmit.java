@@ -19,8 +19,8 @@ package org.onosproject.driver.extensions;
 import com.google.common.base.MoreObjects;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.instructions.AbstractExtensionInstruction;
-import org.onosproject.net.flow.instructions.ExtensionType;
+import org.onosproject.net.flow.instructions.AbstractExtensionTreatment;
+import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.store.serializers.PortNumberSerializer;
 
 import java.util.Objects;
@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Nicira resubmit extension instruction.
  */
-public class NiciraResubmit extends AbstractExtensionInstruction {
+public class NiciraResubmit extends AbstractExtensionTreatment {
 
     private PortNumber inPort;
 
@@ -66,8 +66,8 @@ public class NiciraResubmit extends AbstractExtensionInstruction {
     }
 
     @Override
-    public ExtensionType type() {
-        return ExtensionType.ExtensionTypes.NICIRA_RESUBMIT.type();
+    public ExtensionTreatmentType type() {
+        return ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type();
     }
 
     @Override

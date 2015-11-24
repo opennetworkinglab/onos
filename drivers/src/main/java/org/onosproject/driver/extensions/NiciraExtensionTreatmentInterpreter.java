@@ -17,11 +17,11 @@
 package org.onosproject.driver.extensions;
 
 import org.onlab.packet.Ip4Address;
-import org.onosproject.net.behaviour.ExtensionResolver;
+import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
-import org.onosproject.net.flow.instructions.ExtensionInstruction;
-import org.onosproject.net.flow.instructions.ExtensionType;
-import org.onosproject.openflow.controller.ExtensionInterpreter;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
+import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
+import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
 import org.projectfloodlight.openflow.protocol.OFActionType;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
@@ -33,36 +33,38 @@ import org.projectfloodlight.openflow.types.IPv4Address;
 /**
  * Interpreter for Nicira OpenFlow extensions.
  */
-public class NiciraExtensionInterpreter extends AbstractHandlerBehaviour
-        implements ExtensionInterpreter, ExtensionResolver {
+public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviour
+        implements ExtensionTreatmentInterpreter, ExtensionTreatmentResolver {
 
     @Override
-    public boolean supported(ExtensionType extensionType) {
-        if (extensionType.equals(ExtensionType.ExtensionTypes.NICIRA_SET_TUNNEL_DST.type())) {
+    public boolean supported(ExtensionTreatmentType extensionTreatmentType) {
+        if (extensionTreatmentType.equals(
+                ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST.type())) {
             return true;
         }
-        if (extensionType.equals(ExtensionType.ExtensionTypes.NICIRA_RESUBMIT.type())) {
+        if (extensionTreatmentType.equals(
+                ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type())) {
             return true;
         }
         return false;
     }
 
     @Override
-    public OFAction mapInstruction(OFFactory factory, ExtensionInstruction extensionInstruction) {
-        ExtensionType type = extensionInstruction.type();
-        if (type.equals(ExtensionType.ExtensionTypes.NICIRA_SET_TUNNEL_DST.type())) {
-            NiciraSetTunnelDst tunnelDst = (NiciraSetTunnelDst) extensionInstruction;
+    public OFAction mapInstruction(OFFactory factory, ExtensionTreatment extensionTreatment) {
+        ExtensionTreatmentType type = extensionTreatment.type();
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST.type())) {
+            NiciraSetTunnelDst tunnelDst = (NiciraSetTunnelDst) extensionTreatment;
             return factory.actions().setField(factory.oxms().tunnelIpv4Dst(
                     IPv4Address.of(tunnelDst.tunnelDst().toInt())));
         }
-        if (type.equals(ExtensionType.ExtensionTypes.NICIRA_RESUBMIT.type())) {
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type())) {
           // TODO this will be implemented later
         }
         return null;
     }
 
     @Override
-    public ExtensionInstruction mapAction(OFAction action) {
+    public ExtensionTreatment mapAction(OFAction action) {
         if (action.getType().equals(OFActionType.SET_FIELD)) {
             OFActionSetField setFieldAction = (OFActionSetField) action;
             OFOxm<?> oxm = setFieldAction.getField();
@@ -79,11 +81,11 @@ public class NiciraExtensionInterpreter extends AbstractHandlerBehaviour
     }
 
     @Override
-    public ExtensionInstruction getExtensionInstruction(ExtensionType type) {
-        if (type.equals(ExtensionType.ExtensionTypes.NICIRA_SET_TUNNEL_DST.type())) {
+    public ExtensionTreatment getExtensionInstruction(ExtensionTreatmentType type) {
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST.type())) {
             return new NiciraSetTunnelDst();
         }
-        if (type.equals(ExtensionType.ExtensionTypes.NICIRA_RESUBMIT.type())) {
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type())) {
             return new NiciraResubmit();
         }
         throw new UnsupportedOperationException(
