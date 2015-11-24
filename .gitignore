@@ -17,4 +17,5 @@ localDB.*
 
 core/store/trivial/data/
 core/store/apps
+core/store/data
 /bin/
