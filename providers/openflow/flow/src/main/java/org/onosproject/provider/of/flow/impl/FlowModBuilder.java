@@ -424,6 +424,11 @@ public abstract class FlowModBuilder {
                 mBuilder.setExact(MatchField.ARP_SHA,
                                   MacAddress.of(arpHaCriterion.mac().toLong()));
                 break;
+            case ARP_SPA:
+                arpPaCriterion = (ArpPaCriterion) c;
+                mBuilder.setExact(MatchField.ARP_SPA,
+                                  IPv4Address.of(arpPaCriterion.ip().toInt()));
+                break;
             case ARP_THA:
                 arpHaCriterion = (ArpHaCriterion) c;
                 mBuilder.setExact(MatchField.ARP_THA,
@@ -435,7 +440,6 @@ public abstract class FlowModBuilder {
                                   IPv4Address.of(arpPaCriterion.ip().toInt()));
                 break;
             case ARP_OP:
-            case ARP_SPA:
             case MPLS_TC:
             case PBB_ISID:
             default:
