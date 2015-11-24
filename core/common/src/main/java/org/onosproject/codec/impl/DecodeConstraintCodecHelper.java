@@ -32,7 +32,6 @@ import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
-import org.onosproject.net.resource.link.LambdaResource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -105,7 +104,7 @@ public final class DecodeConstraintCodecHelper {
                 ConstraintCodec.LAMBDA + ConstraintCodec.MISSING_MEMBER_MESSAGE)
                 .asLong();
 
-        return new LambdaConstraint(LambdaResource.valueOf(new IndexedLambda(lambda)));
+        return new LambdaConstraint(new IndexedLambda(lambda));
     }
 
     /**

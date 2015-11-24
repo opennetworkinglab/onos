@@ -43,6 +43,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Link;
 import org.onosproject.net.Link.Type;
 import org.onosproject.net.LinkKey;
@@ -395,7 +396,7 @@ public class KryoSerializerTest {
 
     @Test
     public void testLambdaConstraint() {
-        testSerializable(new LambdaConstraint(LambdaResource.valueOf(1)));
+        testSerializable(new LambdaConstraint(new IndexedLambda(1)));
     }
 
     @Test

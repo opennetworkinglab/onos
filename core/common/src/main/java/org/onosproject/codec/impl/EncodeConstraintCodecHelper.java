@@ -142,7 +142,7 @@ public final class EncodeConstraintCodecHelper {
                 (LambdaConstraint) constraint;
 
         return context.mapper().createObjectNode()
-                .put("lambda", lambdaConstraint.lambda().toInt());
+                .put("lambda", lambdaConstraint.lambda().index());
     }
 
     /**

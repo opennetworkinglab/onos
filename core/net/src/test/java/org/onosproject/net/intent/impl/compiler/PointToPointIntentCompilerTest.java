@@ -21,6 +21,7 @@ import org.onlab.util.Bandwidth;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.flow.TrafficSelector;
@@ -34,7 +35,6 @@ import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.impl.PathNotFoundException;
-import org.onosproject.net.resource.link.LambdaResource;
 import org.onosproject.net.resource.link.LinkResourceService;
 
 import java.util.Collections;
@@ -274,7 +274,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     public void testLambdaConstrainedIntentSuccess() {
 
         final List<Constraint> constraints =
-                Collections.singletonList(new LambdaConstraint(LambdaResource.valueOf(1)));
+                Collections.singletonList(new LambdaConstraint(new IndexedLambda(1)));
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeLambdaResourceService(1);
 
@@ -298,7 +298,7 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     public void testLambdaConstrainedIntentFailure() {
 
         final List<Constraint> constraints =
-                Collections.singletonList(new LambdaConstraint(LambdaResource.valueOf(1)));
+                Collections.singletonList(new LambdaConstraint(new IndexedLambda(1)));
         final LinkResourceService resourceService =
                 IntentTestsMocks.MockResourceService.makeBandwidthResourceService(10.0);
         try {

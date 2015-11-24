@@ -16,8 +16,8 @@
 package org.onosproject.net.intent.constraint;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Link;
-import org.onosproject.net.resource.link.LambdaResource;
 import org.onosproject.net.resource.link.LinkResourceService;
 import org.onosproject.net.resource.ResourceRequest;
 import org.onosproject.net.resource.ResourceType;
@@ -32,14 +32,14 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 @Beta
 public class LambdaConstraint extends BooleanConstraint {
 
-    private final LambdaResource lambda;
+    private final IndexedLambda lambda;
 
     /**
      * Creates a new optical lambda constraint.
      *
      * @param lambda optional lambda to indicate a specific lambda
      */
-    public LambdaConstraint(LambdaResource lambda) {
+    public LambdaConstraint(IndexedLambda lambda) {
         this.lambda = lambda;
     }
 
@@ -63,7 +63,7 @@ public class LambdaConstraint extends BooleanConstraint {
      *
      * @return required lambda
      */
-    public LambdaResource lambda() {
+    public IndexedLambda lambda() {
         return lambda;
     }
 

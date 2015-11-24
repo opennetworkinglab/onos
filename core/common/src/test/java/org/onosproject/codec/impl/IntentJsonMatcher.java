@@ -157,7 +157,7 @@ public final class IntentJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode>
         final JsonNode lambdaJson = constraintJson.get("lambda");
         return lambdaJson != null
                 && constraintJson.get("lambda").asInt()
-                == lambdaConstraint.lambda().toInt();
+                == lambdaConstraint.lambda().index();
     }
 
     /**

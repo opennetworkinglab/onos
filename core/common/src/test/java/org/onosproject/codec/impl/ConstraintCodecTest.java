@@ -146,7 +146,7 @@ public class ConstraintCodecTest {
         assertThat(constraint, instanceOf(LambdaConstraint.class));
 
         LambdaConstraint lambdaConstraint = (LambdaConstraint) constraint;
-        assertThat(lambdaConstraint.lambda().toInt(), is(444));
+        assertThat(lambdaConstraint.lambda().index(), is(444L));
     }
 
     /**

@@ -22,11 +22,11 @@ import java.util.Set;
 
 import org.junit.Test;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
-import org.onosproject.net.resource.link.LambdaResource;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
@@ -132,7 +132,7 @@ public class LinkCollectionIntentTest extends IntentTest {
         final LinkedList<Constraint> constraints = new LinkedList<>();
 
         links1.add(link("src", 1, "dst", 2));
-        constraints.add(new LambdaConstraint(LambdaResource.valueOf(23)));
+        constraints.add(new LambdaConstraint(new IndexedLambda(23)));
         final LinkCollectionIntent collectionIntent =
                 LinkCollectionIntent.builder()
                         .appId(APP_ID)
