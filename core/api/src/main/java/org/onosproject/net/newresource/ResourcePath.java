@@ -56,6 +56,7 @@ public abstract class ResourcePath {
      * Creates an resource path which represents a discrete-type resource from the specified components.
      *
      * @param components components of the path. The order represents hierarchical structure of the resource.
+     * @return resource path instance
      */
     public static ResourcePath discrete(Object... components) {
         if (components.length == 0) {
@@ -70,6 +71,7 @@ public abstract class ResourcePath {
      *
      * @param value amount of the resource
      * @param components components of the path. The order represents hierarchical structure of the resource.
+     * @return resource path instance
      */
     public static ResourcePath continuous(double value, Object... components) {
         return new Continuous(ImmutableList.copyOf(components), value);
