@@ -103,7 +103,7 @@ public class UiWebSocket
     }
 
     @Override
-    public void onOpen(Connection connection) {
+    public synchronized void onOpen(Connection connection) {
         this.connection = connection;
         this.control = (FrameConnection) connection;
         try {
