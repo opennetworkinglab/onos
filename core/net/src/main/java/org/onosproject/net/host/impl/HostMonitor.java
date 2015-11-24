@@ -168,7 +168,9 @@ public class HostMonitor implements TimerTask {
             }
         }
 
-        this.timeout = Timer.getTimer().newTimeout(this, probeRate, TimeUnit.MILLISECONDS);
+        synchronized (this) {
+            this.timeout = Timer.getTimer().newTimeout(this, probeRate, TimeUnit.MILLISECONDS);
+        }
     }
 
     /**
