@@ -11,8 +11,7 @@ from collections import deque, OrderedDict
 import re
 import json
 import sys
-import random
-import string
+import hashlib
 
 convert = lambda text: int(text) if text.isdigit() else text.lower()
 alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
@@ -46,7 +45,7 @@ if __name__ == '__main__':
   partitions = generate_permutations([v.get('id') for v in nodes], 3)
   name = 0
   for node in nodes:
-      name = name ^ node['ip']
+      name = name ^ hash(node['ip'])
   data = {
            'name': name,
            'nodes': nodes,

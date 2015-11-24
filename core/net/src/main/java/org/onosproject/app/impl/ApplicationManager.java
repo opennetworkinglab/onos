@@ -237,12 +237,22 @@ public class ApplicationManager
         boolean changed = false;
         for (String name : app.features()) {
             Feature feature = featuresService.getFeature(name);
+
+            // If we see an attempt at activation of a non-existent feature
+            // attempt to install the app artifacts first and then retry.
+            // This can be triggered by a race condition between different ONOS
+            // instances "installing" the apps from disk at their own pace.
+            // Perhaps there is a more elegant solution to be explored in the
+            // future.
+            if (feature == null) {
+                installAppArtifacts(app);
+                feature = featuresService.getFeature(name);
+            }
+
             if (feature != null && !featuresService.isInstalled(feature)) {
                 featuresService.installFeature(name);
                 changed = true;
-            } else if (feature == null && !initializing) {
-                // Suppress feature-not-found reporting during startup since these
-                // can arise naturally from the staggered cluster install.
+            } else if (feature == null) {
                 log.warn("Feature {} not found", name);
             }
         }
