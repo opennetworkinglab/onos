@@ -15,7 +15,7 @@
  */
 package org.onosproject.bgpio.types;
 
-import java.util.Objects;
+import java.util.Arrays;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.protocol.IGPRouterID;
@@ -65,7 +65,7 @@ public class IsIsNonPseudonode implements IGPRouterID, BGPValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(isoNodeID);
+        return Arrays.hashCode(isoNodeID);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class IsIsNonPseudonode implements IGPRouterID, BGPValueType {
         }
         if (obj instanceof IsIsNonPseudonode) {
             IsIsNonPseudonode other = (IsIsNonPseudonode) obj;
-            return Objects.equals(isoNodeID, other.isoNodeID);
+            return Arrays.equals(isoNodeID, other.isoNodeID);
         }
         return false;
     }

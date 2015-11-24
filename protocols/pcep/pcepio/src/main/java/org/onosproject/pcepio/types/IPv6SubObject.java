@@ -16,7 +16,7 @@
 
 package org.onosproject.pcepio.types;
 
-import java.util.Objects;
+import java.util.Arrays;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.protocol.PcepVersion;
@@ -168,7 +168,7 @@ public class IPv6SubObject implements PcepValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(rawValue);
+        return Arrays.hashCode(rawValue);
     }
 
     @Override
@@ -178,7 +178,7 @@ public class IPv6SubObject implements PcepValueType {
         }
         if (obj instanceof IPv6SubObject) {
             IPv6SubObject other = (IPv6SubObject) obj;
-            return Objects.equals(rawValue, other.rawValue);
+            return Arrays.equals(rawValue, other.rawValue);
         }
         return false;
     }
