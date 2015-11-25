@@ -50,16 +50,21 @@ function build_stage_dir() {
         $ONOS_ROOT/tools/package/bin/onos-client > bin/onos
     chmod a+x bin/onos-service bin/onos
 
-    # Stage the ONOS bundles, but only those that match the version
-    mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/onosproject
-    find $M2_REPO/org/onosproject -type f -path "*/$ONOS_POM_VERSION/*" \
-        \( -name '*.jar' -o -name '*.pom' -o -name '*-features.xml' \) \
-            | grep -v -Ee '-tests.jar|-[0-9]{8}.[0-9]{6}-' \
-            | while read src; do
-        dst=$ONOS_STAGE/$KARAF_DIST/system/${src#$M2_REPO/*}
-        mkdir -p $(dirname $dst)
-        cp $src $dst
-    done
+    if [ -d $ONOS_ROOT/tools/package/karaf-assembly/target/repo ]; then
+        cp -r $ONOS_ROOT/tools/package/karaf-assembly/target/repo/* $ONOS_STAGE/$KARAF_DIST/system
+    else
+        # TODO: Deprecated so remove when confident staging works.
+        # Stage the ONOS bundles, but only those that match the version
+        mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/onosproject
+        find $M2_REPO/org/onosproject -type f -path "*/$ONOS_POM_VERSION/*" \
+            \( -name '*.jar' -o -name '*.pom' -o -name '*-features.xml' \) \
+                | grep -v -Ee '-tests.jar|-[0-9]{8}.[0-9]{6}-' \
+                | while read src; do
+            dst=$ONOS_STAGE/$KARAF_DIST/system/${src#$M2_REPO/*}
+            mkdir -p $(dirname $dst)
+            cp $src $dst
+        done
+    fi
 
     # ONOS Patching ----------------------------------------------------------------
 
