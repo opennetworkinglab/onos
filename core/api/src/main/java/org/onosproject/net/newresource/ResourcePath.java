@@ -143,12 +143,27 @@ public abstract class ResourcePath {
         return Optional.ofNullable(parent);
     }
 
+    /**
+     * Returns a child resource path of this instance with specifying the child object.
+     * The child resource path is discrete-type.
+     *
+     * @param child child object
+     * @return a child resource path
+     */
     public ResourcePath child(Object child) {
         checkState(this instanceof Discrete);
 
         return new Discrete((Discrete) this, child);
     }
 
+    /**
+     * Returns a child resource path of this instance with specifying a child object and
+     * value. The child resource path is continuous-type.
+     *
+     * @param child child object
+     * @param value value
+     * @return a child resource path
+     */
     public ResourcePath child(Object child, double value) {
         checkState(this instanceof Discrete);
 
