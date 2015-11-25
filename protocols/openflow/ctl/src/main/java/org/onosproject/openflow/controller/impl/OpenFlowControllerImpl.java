@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.core.CoreService;
 import org.onosproject.net.driver.DefaultDriverProviderService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
@@ -83,11 +84,15 @@ import static org.onlab.util.Tools.groupedThreads;
 @Component(immediate = true)
 @Service
 public class OpenFlowControllerImpl implements OpenFlowController {
+    private static final String APP_ID = "org.onosproject.openflow-base";
     private static final String DEFAULT_OFPORT = "6633,6653";
     private static final int DEFAULT_WORKER_THREADS = 16;
 
     private static final Logger log =
             LoggerFactory.getLogger(OpenFlowControllerImpl.class);
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
@@ -147,15 +152,24 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Activate
     public void activate(ComponentContext context) {
+        coreService.registerApplication(APP_ID, this::preDeactivate);
         cfgService.registerProperties(getClass());
         ctrl.setConfigParams(context.getProperties());
         ctrl.start(agent, driverService);
     }
 
+    private void preDeactivate() {
+        // Close listening channel and all OF channels before deactivating
+        ctrl.stop();
+        connectedSwitches.values().forEach(OpenFlowSwitch::disconnectSwitch);
+    }
+
     @Deactivate
     public void deactivate() {
         cfgService.unregisterProperties(getClass(), false);
-        ctrl.stop();
+        connectedSwitches.clear();
+        activeMasterSwitches.clear();
+        activeEqualSwitches.clear();
     }
 
     @Modified

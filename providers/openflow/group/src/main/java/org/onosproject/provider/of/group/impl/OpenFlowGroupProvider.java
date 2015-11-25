@@ -128,7 +128,8 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
     public void deactivate() {
         providerRegistry.unregister(this);
         providerService = null;
-
+        collectors.values().forEach(GroupStatsCollector::stop);
+        collectors.clear();
         log.info("Stopped");
     }
 

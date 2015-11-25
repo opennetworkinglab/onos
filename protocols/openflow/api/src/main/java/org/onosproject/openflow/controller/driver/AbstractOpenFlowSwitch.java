@@ -98,6 +98,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
 
     @Override
     public final void disconnectSwitch() {
+        setConnected(false);
         this.channel.close();
     }
 

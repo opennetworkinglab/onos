@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestTools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.core.CoreService;
 import org.onosproject.openflow.OpenflowSwitchDriverAdapter;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
@@ -126,6 +127,10 @@ public class OpenFlowControllerImplTest {
 
         switchListener = new TestSwitchListener();
         controller.addListener(switchListener);
+
+        CoreService mockCoreService =
+                EasyMock.createMock(CoreService.class);
+        controller.coreService = mockCoreService;
 
         ComponentConfigService mockConfigService =
                 EasyMock.createMock(ComponentConfigService.class);

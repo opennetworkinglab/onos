@@ -132,6 +132,8 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
     @Deactivate
     public void deactivate() {
         providerRegistry.unregister(this);
+        collectors.values().forEach(MeterStatsCollector::stop);
+        collectors.clear();
         controller.removeEventListener(listener);
         controller.removeListener(listener);
         providerService = null;
