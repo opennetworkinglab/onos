@@ -199,6 +199,7 @@ public abstract class ResourcePath {
      * implementation only. It is not for resource API user.
      * </p>
      */
+    @Beta
     public static final class Discrete extends ResourcePath {
         private Discrete() {
             super();
@@ -220,6 +221,7 @@ public abstract class ResourcePath {
      * Note: This class is exposed to the public, but intended to be used in the resource API
      * implementation only. It is not for resource API user.
      */
+    @Beta
     public static final class Continuous extends ResourcePath {
         // Note: value is not taken into account for equality
         private final double value;
