@@ -113,7 +113,7 @@ public class DistributedProxyArpStore implements ProxyArpStore {
 
     @Override
     public void forward(ConnectPoint outPort, Host subject, ByteBuffer packet) {
-        NodeId nodeId = mastershipService.getMasterFor(outPort.deviceId());
+        /*NodeId nodeId = mastershipService.getMasterFor(outPort.deviceId());
         if (nodeId.equals(localNodeId)) {
             if (delegate != null) {
                 delegate.emitResponse(outPort, packet);
@@ -122,7 +122,10 @@ public class DistributedProxyArpStore implements ProxyArpStore {
             log.info("Forwarding ARP response from {} to {}", subject.id(), outPort);
             commService.unicast(new ArpResponseMessage(outPort, subject, packet.array()),
                                 ARP_RESPONSE_MESSAGE, serializer::encode, nodeId);
-        }
+        }*/
+        //FIXME: Code above may be unnecessary and therefore cluster messaging
+        // and pendingMessages could be pruned as well.
+        delegate.emitResponse(outPort, packet);
     }
 
     @Override

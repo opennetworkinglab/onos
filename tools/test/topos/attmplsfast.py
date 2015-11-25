@@ -15,19 +15,23 @@ from mininet.util import dumpNodeConnections
 class AttMplsTopo( Topo ):
     "Internet Topology Zoo Specimen."
 
-    def build( self ):
+    def __init__( self ):
         "Create a topology."
 
+        # Initialize Topology
+        Topo.__init__( self )
+
         # add nodes, switches first...
+        NY54 = self.addSwitch( 's25' ) # 40.728270, -73.994483
         CMBR = self.addSwitch( 's1' )  # 42.373730, -71.109734
-        CHCG = self.addSwitch( 's2' )  # 41.877461, -87.642892
+        CHCG = self.addSwitch( 's2', protocols='OpenFlow13' )  # 41.877461, -87.642892
         CLEV = self.addSwitch( 's3' )  # 41.498928, -81.695217
         RLGH = self.addSwitch( 's4' )  # 35.780150, -78.644026
         ATLN = self.addSwitch( 's5' )  # 33.749017, -84.394168
         PHLA = self.addSwitch( 's6' )  # 39.952906, -75.172278
         WASH = self.addSwitch( 's7' )  # 38.906696, -77.035509
         NSVL = self.addSwitch( 's8' )  # 36.166410, -86.787305
-        STLS = self.addSwitch( 's9' )  # 38.626418, -90.198143
+        STLS = self.addSwitch( 's9', protocols='OpenFlow13' )  # 38.626418, -90.198143
         NWOR = self.addSwitch( 's10' ) # 29.951475, -90.078434
         HSTN = self.addSwitch( 's11' ) # 29.763249, -95.368332
         SNAN = self.addSwitch( 's12' ) # 29.424331, -98.491745
@@ -40,12 +44,12 @@ class AttMplsTopo( Topo ):
         PTLD = self.addSwitch( 's19' ) # 45.523317, -122.677768
         STTL = self.addSwitch( 's20' ) # 47.607326, -122.331786
         SLKC = self.addSwitch( 's21' ) # 40.759577, -111.895079
-        LA03 = self.addSwitch( 's22' ) # 34.056346, -118.235951
+        LA03 = self.addSwitch( 's22', protocols='OpenFlow13' ) # 34.056346, -118.235951
         SNDG = self.addSwitch( 's23' ) # 32.714564, -117.153528
         PHNX = self.addSwitch( 's24' ) # 33.448289, -112.076299
-        NY54 = self.addSwitch( 's25' ) # 40.728270, -73.994483
 
         # ... and now hosts
+        NY54_host = self.addHost( 'h25' )
         CMBR_host = self.addHost( 'h1' )
         CHCG_host = self.addHost( 'h2' )
         CLEV_host = self.addHost( 'h3' )
@@ -70,7 +74,6 @@ class AttMplsTopo( Topo ):
         LA03_host = self.addHost( 'h22' )
         SNDG_host = self.addHost( 'h23' )
         PHNX_host = self.addHost( 'h24' )
-        NY54_host = self.addHost( 'h25' )
 
         # add edges between switch and corresponding host
         self.addLink( NY54 , NY54_host )

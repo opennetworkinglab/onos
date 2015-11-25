@@ -27,8 +27,6 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.store.Timestamp;
-import org.onosproject.store.service.LogicalClockService;
 import org.onosproject.store.service.TestStorageService;
 
 import java.util.HashSet;
@@ -37,9 +35,9 @@ import java.util.Set;
 /**
  * Tests for the ECHostStore.
  */
-public class ECHostStoreTest extends TestCase {
+public class DistributedHostStoreTest extends TestCase {
 
-    private ECHostStore ecXHostStore;
+    private DistributedHostStore ecXHostStore;
 
     private static final HostId HOSTID = HostId.hostId(MacAddress.valueOf("1a:1a:1a:1a:1a:1a"));
 
@@ -50,10 +48,9 @@ public class ECHostStoreTest extends TestCase {
 
     @Before
     public void setUp() {
-        ecXHostStore = new ECHostStore();
+        ecXHostStore = new DistributedHostStore();
 
         ecXHostStore.storageService = new TestStorageService();
-        ecXHostStore.clockService = new TestLogicalClockService();
         ecXHostStore.activate();
     }
 
@@ -83,13 +80,4 @@ public class ECHostStoreTest extends TestCase {
         assertTrue(host.ipAddresses().contains(IP2));
     }
 
-    /**
-     * Mocks the LogicalClockService class.
-     */
-    class TestLogicalClockService implements LogicalClockService {
-        @Override
-        public Timestamp getTimestamp() {
-            return null;
-        }
-    }
 }

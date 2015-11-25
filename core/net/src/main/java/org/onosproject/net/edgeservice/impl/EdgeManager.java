@@ -27,10 +27,10 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.event.AbstractListenerManager;
-import org.onosproject.event.Event;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.edge.EdgePortEvent;
 import org.onosproject.net.edge.EdgePortListener;
@@ -38,17 +38,16 @@ import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkListener;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.topology.Topology;
-import org.onosproject.net.topology.TopologyEvent;
-import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -73,7 +72,9 @@ public class EdgeManager
 
     private final Map<DeviceId, Set<ConnectPoint>> connectionPoints = Maps.newConcurrentMap();
 
-    private final TopologyListener topologyListener = new InnerTopologyListener();
+    private final LinkListener linkListener = new InnerLinkListener();
+
+    private final DeviceListener deviceListener = new InnerDeviceListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
@@ -84,17 +85,23 @@ public class EdgeManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TopologyService topologyService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkService linkService;
+
     @Activate
     public void activate() {
         eventDispatcher.addSink(EdgePortEvent.class, listenerRegistry);
-        topologyService.addListener(topologyListener);
+        deviceService.addListener(deviceListener);
+        linkService.addListener(linkListener);
+        loadAllEdgePorts();
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         eventDispatcher.removeSink(EdgePortEvent.class);
-        topologyService.removeListener(topologyListener);
+        deviceService.removeListener(deviceListener);
+        linkService.removeListener(linkListener);
         log.info("Stopped");
     }
 
@@ -142,31 +149,27 @@ public class EdgeManager
         return new DefaultOutboundPacket(point.deviceId(), builder.build(), data);
     }
 
-    // Internal listener for topo events used to keep our edge-port cache
-    // up to date.
-    private class InnerTopologyListener implements TopologyListener {
+    private class InnerLinkListener implements LinkListener {
+
         @Override
-        public void event(TopologyEvent event) {
-            topology = event.subject();
-            List<Event> triggers = event.reasons();
-            if (triggers != null) {
-                triggers.forEach(reason -> {
-                    if (reason instanceof DeviceEvent) {
-                        processDeviceEvent((DeviceEvent) reason);
-                    } else if (reason instanceof LinkEvent) {
-                        processLinkEvent((LinkEvent) reason);
-                    }
-                });
-            } else {
-                //FIXME special case of preexisting edgeport & no triggerless events could cause this to never hit and
-                //never discover an edgeport that should have been discovered.
-                loadAllEdgePorts();
-            }
+        public void event(LinkEvent event) {
+            topology = topologyService.currentTopology();
+            processLinkEvent(event);
+        }
+    }
+
+    private class InnerDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            topology = topologyService.currentTopology();
+            processDeviceEvent(event);
         }
     }
 
     // Initial loading of the edge port cache.
     private void loadAllEdgePorts() {
+        topology = topologyService.currentTopology();
         deviceService.getAvailableDevices().forEach(d -> deviceService.getPorts(d.id())
                 .forEach(p -> addEdgePort(new ConnectPoint(d.id(), p.number()))));
     }
