@@ -201,6 +201,7 @@
                 <entry key="--icmp6Code" value-ref="Icmp6CodeCompleter"/>
                 <entry key="--extHdr" value-ref="ExtHeaderCompleter"/>
                 <entry key="-a" value-ref="allAppNameCompleter"/>
+                <entry key="-e" value-ref="encapTypeCompleter"/>
             </optional-completers>
         </command>
         <command>
@@ -216,6 +217,7 @@
                 <entry key="--icmp6Code" value-ref="Icmp6CodeCompleter"/>
                 <entry key="--extHdr" value-ref="ExtHeaderCompleter"/>
                 <entry key="-a" value-ref="allAppNameCompleter"/>
+                <entry key="-e" value-ref="encapTypeCompleter"/>
             </optional-completers>
         </command>
         <command>
@@ -252,6 +254,7 @@
                 <entry key="--icmp6Code" value-ref="Icmp6CodeCompleter"/>
                 <entry key="--extHdr" value-ref="ExtHeaderCompleter"/>
                 <entry key="-a" value-ref="allAppNameCompleter"/>
+                <entry key="-e" value-ref="encapTypeCompleter"/>
             </optional-completers>
         </command>
         <command>
@@ -266,6 +269,7 @@
                 <entry key="--icmp6Code" value-ref="Icmp6CodeCompleter"/>
                 <entry key="--extHdr" value-ref="ExtHeaderCompleter"/>
                 <entry key="-a" value-ref="allAppNameCompleter"/>
+                <entry key="-e" value-ref="encapTypeCompleter"/>
             </optional-completers>
         </command>
         <command>
@@ -499,5 +503,6 @@
     <bean id="startStopCompleter" class="org.onosproject.cli.StartStopCompleter"/>
     <bean id="metricNameCompleter" class="org.onosproject.cli.MetricNameCompleter"/>
     <bean id="upDownCompleter" class="org.onosproject.cli.UpDownCompleter"/>
+    <bean id="encapTypeCompleter" class="org.onosproject.cli.net.EncapTypeCompleter"/>
 
 </blueprint>

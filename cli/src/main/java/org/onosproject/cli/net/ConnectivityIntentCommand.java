@@ -26,6 +26,7 @@ import org.onlab.util.Bandwidth;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -36,6 +37,7 @@ import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
+import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.intent.constraint.LambdaConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
@@ -116,14 +118,6 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
             required = false, multiValued = true)
     private List<String> extHdrStringList = null;
 
-    @Option(name = "-b", aliases = "--bandwidth", description = "Bandwidth",
-            required = false, multiValued = false)
-    private String bandwidthString = null;
-
-    @Option(name = "-l", aliases = "--lambda", description = "Lambda",
-            required = false, multiValued = false)
-    private boolean lambda = false;
-
     @Option(name = "-a", aliases = "--appId", description = "Application Id",
             required = false, multiValued = false)
     private String appId = null;
@@ -131,10 +125,6 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "-k", aliases = "--key", description = "Intent Key",
             required = false, multiValued = false)
     private String intentKey = null;
-
-    @Option(name = "--partial", description = "Allow partial installation",
-            required = false, multiValued = false)
-    private boolean partial = false;
 
 
     // Treatments
@@ -175,6 +165,24 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "-p", aliases = "--priority", description = "Priority",
             required = false, multiValued = false)
     private int priority = Intent.DEFAULT_INTENT_PRIORITY;
+
+    // Constraints
+    @Option(name = "-b", aliases = "--bandwidth", description = "Bandwidth",
+            required = false, multiValued = false)
+    private String bandwidthString = null;
+
+    @Option(name = "-l", aliases = "--lambda", description = "Lambda",
+            required = false, multiValued = false)
+    private boolean lambda = false;
+
+    @Option(name = "--partial", description = "Allow partial installation",
+            required = false, multiValued = false)
+    private boolean partial = false;
+
+    @Option(name = "-e", aliases = "--encapsulation", description = "Encapsulation type",
+            required = false, multiValued = false)
+    private String encapsulationString = null;
+
 
     /**
      * Constructs a traffic selector based on the command line arguments
@@ -373,8 +381,15 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         }
         constraints.add(new LinkTypeConstraint(lambda, Link.Type.OPTICAL));
 
+        // Check for partial failure specification
         if (partial) {
             constraints.add(new PartialFailureConstraint());
+        }
+
+        // Check for encapsulation specification
+        if (!isNullOrEmpty(encapsulationString)) {
+            final EncapsulationType encapType = EncapsulationType.valueOf(encapsulationString);
+            constraints.add(new EncapsulationConstraint(encapType));
         }
 
         return constraints;
