@@ -70,7 +70,7 @@ public class IntentsWebResource extends AbstractWebResource {
     /**
      * Get all intents.
      * Returns array containing all the intents in the system.
-     *
+     * @rsModel Intents
      * @return array of all the intents in the system
      */
     @GET
@@ -84,7 +84,7 @@ public class IntentsWebResource extends AbstractWebResource {
     /**
      * Get intent by application and key.
      * Returns details of the specified intent.
-     *
+     * @rsModel Intents
      * @param appId application identifier
      * @param key   intent key
      * @return intent data
@@ -136,7 +136,7 @@ public class IntentsWebResource extends AbstractWebResource {
     /**
      * Submit a new intent.
      * Creates and submits intent from the JSON request.
-     *
+     * @rsModel IntentHost
      * @param stream input JSON
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid

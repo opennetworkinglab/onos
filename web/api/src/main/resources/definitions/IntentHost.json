@@ -1,0 +1,34 @@
+{
+  "type": "object",
+  "title": "host",
+  "required": [
+    "type",
+    "appId",
+    "priority",
+    "one",
+    "two"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "example": "HostToHostIntent"
+    },
+    "appId": {
+      "type": "string",
+      "example": "org.onosproject.ovsdb"
+    },
+    "priority": {
+      "type": "integer",
+      "format": "int64",
+      "example": 55
+    },
+    "one": {
+      "type": "string",
+      "example": "46:E4:3C:A4:17:C8/-1"
+    },
+    "two": {
+      "type": "string",
+      "example": "08:00:27:56:8a:15/-1"
+    }
+  }
+}
