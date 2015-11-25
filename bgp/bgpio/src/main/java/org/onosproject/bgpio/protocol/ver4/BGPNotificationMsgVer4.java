@@ -151,7 +151,9 @@ class BGPNotificationMsgVer4 implements BGPNotificationMsg {
 
         @Override
         public Builder setData(byte[] data) {
-            this.data = data;
+            if (data != null) {
+                this.data = data;
+            }
             return this;
         }
 

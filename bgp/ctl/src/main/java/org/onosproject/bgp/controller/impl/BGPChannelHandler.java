@@ -23,8 +23,8 @@ import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.ClosedChannelException;
 import java.util.Collections;
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -153,8 +153,8 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                 if (m.getType() != BGPType.OPEN) {
                     // When the message type is not keep alive message increment the wrong packet statistics
                     h.processUnknownMsg(BGPErrorType.FINITE_STATE_MACHINE_ERROR,
-                                        BGPErrorType.RECEIVE_UNEXPECTED_MESSAGE_IN_OPENSENT_STATE, m.getType()
-                                        .getType());
+                                        BGPErrorType.RECEIVE_UNEXPECTED_MESSAGE_IN_OPENSENT_STATE,
+                                        m.getType().getType());
                     log.debug("Message is not OPEN message");
                 } else {
                     log.debug("Sending keep alive message in OPENSENT state");
@@ -165,6 +165,11 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
 
                     // validate capabilities and open msg
                     if (h.openMsgValidation(h, pOpenmsg)) {
+                        if (h.connectionCollisionDetection(BGPPeerCfg.State.OPENCONFIRM,
+                                                           h.peerIdentifier, h.peerAddr)) {
+                            h.channel.close();
+                            return;
+                        }
                         log.debug("Sending handshake OPEN message");
 
                         /*
@@ -203,8 +208,8 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                 // check for open message
                 if (m.getType() != BGPType.OPEN) {
                     // When the message type is not open message increment the wrong packet statistics
-                    h.processUnknownMsg(BGPErrorType.FINITE_STATE_MACHINE_ERROR, BGPErrorType.UNSPECIFIED_ERROR, m
-                                        .getType().getType());
+                    h.processUnknownMsg(BGPErrorType.FINITE_STATE_MACHINE_ERROR, BGPErrorType.UNSPECIFIED_ERROR,
+                                        m.getType().getType());
                     log.debug("Message is not OPEN message");
                 } else {
                     h.bgpPacketStats.addInPacket();
@@ -214,6 +219,11 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
 
                     // Validate open message
                     if (h.openMsgValidation(h, pOpenmsg)) {
+                        if (h.connectionCollisionDetection(BGPPeerCfg.State.OPENSENT,
+                                                           h.peerIdentifier, h.peerAddr)) {
+                            h.channel.close();
+                            return;
+                        }
                         log.debug("Sending handshake OPEN message");
 
                         /*
@@ -237,6 +247,7 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                         h.sendHandshakeOpenMessage();
                         h.bgpPacketStats.addOutPacket();
                         h.setState(OPENCONFIRM);
+                        h.bgpconfig.setPeerConnState(h.peerAddr, BGPPeerCfg.State.OPENCONFIRM);
                     }
                 }
             }
@@ -250,8 +261,8 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                 if (m.getType() != BGPType.KEEP_ALIVE) {
                     // When the message type is not keep alive message handle the wrong packet
                     h.processUnknownMsg(BGPErrorType.FINITE_STATE_MACHINE_ERROR,
-                                        BGPErrorType.RECEIVE_UNEXPECTED_MESSAGE_IN_OPENCONFIRM_STATE, m.getType()
-                                        .getType());
+                                        BGPErrorType.RECEIVE_UNEXPECTED_MESSAGE_IN_OPENCONFIRM_STATE,
+                                        m.getType().getType());
                     log.debug("Message is not KEEPALIVE message");
                 } else {
 
@@ -281,7 +292,7 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
 
                     if (h.negotiatedHoldTime != 0) {
                         h.keepAliveTimer = new BGPKeepAliveTimer(h,
-                                                                 (h.negotiatedHoldTime / BGP_MAX_KEEPALIVE_INTERVAL));
+                                                                (h.negotiatedHoldTime / BGP_MAX_KEEPALIVE_INTERVAL));
                     } else {
                         h.sendKeepAliveMessage();
                     }
@@ -292,13 +303,6 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                     h.setHandshakeComplete(true);
 
                     if (!h.peerManager.addConnectedPeer(h.thisbgpId, h.bgpPeer)) {
-                        /*
-                         * RFC 4271, Section 6.8, Based on the value of the BGP identifier, a convention is established
-                         * for detecting which BGP connection is to be preserved when a collision occurs. The convention
-                         * is to compare the BGP Identifiers of the peers involved in the collision and to retain only
-                         * the connection initiated by the BGP speaker with the higher-valued BGP Identifier..
-                         */
-                        // TODO: Connection collision handling.
                         disconnectDuplicate(h);
                     } else {
                         h.setState(ESTABLISHED);
@@ -374,6 +378,7 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
 
         // Connection should establish only if local ip and Autonomous system number is configured.
         if (bgpconfig.getState() != BGPCfg.State.IP_AS_CONFIGURED) {
+            sendNotification(BGPErrorType.CEASE, BGPErrorType.CONNECTION_REJECTED, null);
             channel.close();
             log.info("BGP local AS and router ID not configured");
             return;
@@ -385,6 +390,7 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
         // if peer is not configured disconnect session
         if (!bgpconfig.isPeerConfigured(peerAddr)) {
             log.debug("Peer is not configured {}", peerAddr);
+            sendNotification(BGPErrorType.CEASE, BGPErrorType.CONNECTION_REJECTED, null);
             channel.close();
             return;
         }
@@ -436,6 +442,25 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                 if (bgpPeer != null) {
                     peerManager.removeConnectedPeer(thisbgpId);
                 }
+
+                // Retry connection if connection is lost to bgp speaker/peer
+                if ((channel != null) && (null != channel.getPipeline().get("ActiveHandler"))) {
+                    BgpConnectPeerImpl connectPeer;
+                    BGPPeerCfg.State peerCfgState;
+
+                    peerCfgState = bgpconfig.getPeerConnState(peerAddr);
+                    // on session disconnect using configuration, do not retry
+                    if (!peerCfgState.equals(BGPPeerCfg.State.IDLE)) {
+                        log.debug("Connection reset by peer, retry, STATE:{}", peerCfgState);
+                        BGPPeerConfig peerConfig = (BGPPeerConfig) bgpconfig.displayPeers(peerAddr);
+
+                        bgpconfig.setPeerConnState(peerAddr, BGPPeerCfg.State.IDLE);
+                        connectPeer = new BgpConnectPeerImpl(bgpController, peerAddr, Controller.getBgpPortNum());
+                        peerConfig.setConnectPeer(connectPeer);
+                    }
+                } else {
+                    bgpconfig.setPeerConnState(peerAddr, BGPPeerCfg.State.IDLE);
+                }
             } else {
                 // A duplicate was disconnected on this ChannelHandler,
                 // this is the same peer reconnecting, but the original state was
@@ -448,6 +473,7 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                 keepAliveTimer.getKeepAliveTimer().cancel();
             }
         } else {
+            bgpconfig.setPeerConnState(peerAddr, BGPPeerCfg.State.IDLE);
             log.warn("No bgp ip in channelHandler registered for " + "disconnected peer {}", getPeerInfoString());
         }
     }
@@ -519,6 +545,39 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
         } else {
             state.processBGPMessage(this, (BGPMessage) e.getMessage());
         }
+    }
+
+    /**
+     * Check for connection collision.
+     *
+     * @param state connection state
+     * @param peerIdentifier BGP peer identifier
+     * @param peerAddr BGP peer address
+     * @return true if bgp spreakers initiated connection
+     * @throws BGPParseException on error while procession collision detection
+     * @throws IOException on error while procession collision detection
+     */
+    public boolean connectionCollisionDetection(BGPPeerCfg.State state, int peerIdentifier, String peerAddr)
+            throws IOException, BGPParseException {
+        /*
+         * RFC 4271, Section 6.8, Based on the value of the BGP identifier, a convention is established for detecting
+         * which BGP connection is to be preserved when a collision occurs. The convention is to compare the BGP
+         * Identifiers of the peers involved in the collision and to retain only the connection initiated by the BGP
+         * speaker with the higher-valued BGP Identifier..
+         */
+        BGPPeerCfg.State currentState = bgpconfig.getPeerConnState(peerAddr);
+        if (currentState.equals(state)) {
+            if (((Ip4Address.valueOf(bgpconfig.getRouterId())).compareTo(Ip4Address.valueOf(peerIdentifier))) > 0) {
+                // send notification
+                sendNotification(BGPErrorType.CEASE, BGPErrorType.CONNECTION_COLLISION_RESOLUTION, null);
+                log.debug("Connection collision detected, local id: {},  peer id: {}, peer state:{}, in state:{}",
+                          (Ip4Address.valueOf(bgpconfig.getRouterId())), (Ip4Address.valueOf(peerIdentifier)),
+                          currentState, state);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // *************************
@@ -603,10 +662,8 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
 
         bgpId = Ip4Address.valueOf(bgpconfig.getRouterId()).toInt();
         BGPMessage msg = factory4.openMessageBuilder().setAsNumber((short) bgpconfig.getAsNumber())
-                .setHoldTime(bgpconfig.getHoldTime()).setBgpId(bgpId)
-                .setLsCapabilityTlv(bgpconfig.getLsCapability())
-                .setLargeAsCapabilityTlv(bgpconfig.getLargeASCapability())
-                .build();
+                .setHoldTime(bgpconfig.getHoldTime()).setBgpId(bgpId).setLsCapabilityTlv(bgpconfig.getLsCapability())
+                .setLargeAsCapabilityTlv(bgpconfig.getLargeASCapability()).build();
         log.debug("Sending open message to {}", channel.getRemoteAddress());
         channel.write(Collections.singletonList(msg));
 
@@ -621,9 +678,9 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
      * @throws IOException, BGPParseException while building message
      */
     private void sendNotification(byte errorCode, byte errorSubCode, byte[] data)
-            throws IOException, BGPParseException {
-        BGPMessage msg = factory4.notificationMessageBuilder().setErrorCode(errorCode).setErrorSubCode(errorSubCode)
-                .setData(data).build();
+                                                                           throws IOException, BGPParseException {
+        BGPMessage msg = factory4.notificationMessageBuilder().setErrorCode(errorCode)
+                                                              .setErrorSubCode(errorSubCode).setData(data).build();
         log.debug("Sending notification message to {}", channel.getRemoteAddress());
         channel.write(Collections.singletonList(msg));
     }
@@ -757,8 +814,7 @@ class BGPChannelHandler extends IdleStateAwareChannelHandler {
                 BGPValueType tlv = unSupportedCaplistIterator.next();
                 tlv.write(buffer);
             }
-            throw new BGPParseException(BGPErrorType.OPEN_MESSAGE_ERROR,
-                    BGPErrorType.UNSUPPORTED_CAPABILITY, buffer);
+            throw new BGPParseException(BGPErrorType.OPEN_MESSAGE_ERROR, BGPErrorType.UNSUPPORTED_CAPABILITY, buffer);
         } else {
             return true;
         }
