@@ -15,7 +15,6 @@
  */
 package org.onosproject.provider.lldp.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -47,8 +46,8 @@ import org.onosproject.net.MastershipRole;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.Config;
-import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigEvent.Type;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.device.DeviceEvent;
@@ -121,8 +120,14 @@ public class LldpLinkProviderTest {
 
     private TestSuppressionConfig cfg;
 
+    private Set<DeviceId> deviceBlacklist;
+
+    private Set<ConnectPoint> portBlacklist;
+
     @Before
     public void setUp() {
+        deviceBlacklist = new HashSet<>();
+        portBlacklist = new HashSet<>();
         cfg = new TestSuppressionConfig();
         coreService = createMock(CoreService.class);
         expect(coreService.registerApplication(appId.name()))
@@ -174,7 +179,7 @@ public class LldpLinkProviderTest {
      * Checks that links on a reconfigured switch are properly removed.
      */
     @Test
-    public void switchSuppressed() {
+    public void switchSuppressedByAnnotation() {
 
         // add device to stub DeviceService
         deviceService.putDevice(device(DID3));
@@ -193,6 +198,26 @@ public class LldpLinkProviderTest {
         if (linkDiscovery != null) {
             assertTrue("Discovery expected to be stopped", linkDiscovery.isStopped());
         }
+    }
+
+    @Test
+    public void switchSuppressByBlacklist() {
+        // add device in stub DeviceService
+        deviceService.putDevice(device(DID3));
+        deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID3));
+
+        // add deviveId to device blacklist
+        deviceBlacklist.add(DID3);
+        configListener.event(new NetworkConfigEvent(Type.CONFIG_ADDED,
+                                                    DID3,
+                                                    LinkDiscoveryFromDevice.class));
+
+        // discovery helper for device is expected to be gone or stopped
+        LinkDiscovery linkDiscovery = provider.discoverers.get(DID3);
+        if (linkDiscovery != null) {
+            assertTrue("Discovery expected to be stopped", linkDiscovery.isStopped());
+        }
+
     }
 
     @Test
@@ -269,7 +294,7 @@ public class LldpLinkProviderTest {
      * Checks that discovery on reconfigured switch are properly restarted.
      */
     @Test
-    public void portSuppressedByDeviceIdConfig() {
+    public void portSuppressedByParentDeviceIdBlacklist() {
 
         /// When Device is configured without suppression:OFF,
         /// Port should be included for discovery
@@ -288,9 +313,11 @@ public class LldpLinkProviderTest {
         assertTrue("Discoverer should contain the port there", provider.discoverers.get(DID3).containsPort(portno3));
 
         // add suppression rule for "deviceId: "of:0000000000000003""
-        provider.updateRules(new SuppressionRules(ImmutableSet.of(DID3),
-                                                  ImmutableSet.of(),
-                                                  ImmutableMap.of()));
+        deviceBlacklist.add(DID3);
+        configListener.event(new NetworkConfigEvent(Type.CONFIG_ADDED,
+                                                    DID3,
+                                                    LinkDiscoveryFromDevice.class));
+
 
         /// When Device is reconfigured with suppression:ON, Port also is same
 
@@ -300,7 +327,7 @@ public class LldpLinkProviderTest {
         deviceService.putPorts(DID3, port(DID3, portno3, true));
         deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_UPDATED, DID3));
 
-        // discovery on device is expected to be stopped
+        // discovery helper for device is expected to be gone or stopped
         LinkDiscovery linkDiscovery = provider.discoverers.get(DID3);
         if (linkDiscovery != null) {
             assertTrue("Discovery expected to be stopped", linkDiscovery.isStopped());
@@ -366,6 +393,34 @@ public class LldpLinkProviderTest {
 
         // discovery helper should be there turned on
         assertFalse("Discoverer is expected to start", provider.discoverers.get(DID3).isStopped());
+        assertFalse("Discoverer should not contain the port there",
+                    provider.discoverers.get(DID3).containsPort(portno3));
+    }
+
+    @Test
+    public void portSuppressedByPortBlacklist() {
+
+        // add device in stub DeviceService without suppression configured
+        deviceService.putDevice(device(DID3));
+        deviceListener.event(deviceEvent(DeviceEvent.Type.DEVICE_ADDED, DID3));
+
+        final long portno3 = 3L;
+        final Port port3 = port(DID3, portno3, true);
+
+        final ConnectPoint cpDid3no3 = new ConnectPoint(DID3, PortNumber.portNumber(portno3));
+        portBlacklist.add(cpDid3no3);
+
+        // suppressed port added to non-suppressed device
+        deviceService.putPorts(DID3, port3);
+        deviceListener.event(portEvent(DeviceEvent.Type.PORT_ADDED, DID3, port3));
+
+        configListener.event(new NetworkConfigEvent(Type.CONFIG_ADDED,
+                                                    cpDid3no3,
+                                                    LinkDiscoveryFromPort.class));
+
+        // discovery helper should be there turned on
+        assertFalse("Discoverer is expected to start", provider.discoverers.get(DID3).isStopped());
+        // but port is not a discovery target
         assertFalse("Discoverer should not contain the port there",
                     provider.discoverers.get(DID3).containsPort(portno3));
     }
@@ -479,42 +534,6 @@ public class LldpLinkProviderTest {
             }
         }
         return false;
-    }
-
-
-    @Test
-    public void addDeviceIdRule() {
-        DeviceId deviceId1 = DeviceId.deviceId("of:0000000000000001");
-        DeviceId deviceId2 = DeviceId.deviceId("of:0000000000000002");
-        Set<DeviceId> deviceIds = new HashSet<>();
-
-        deviceIds.add(deviceId1);
-        cfg.deviceIds(deviceIds);
-
-        configEvent(NetworkConfigEvent.Type.CONFIG_ADDED);
-
-        assertTrue(provider.rules().getSuppressedDevice().contains(deviceId1));
-        assertFalse(provider.rules().getSuppressedDevice().contains(deviceId2));
-    }
-
-    @Test
-    public void updateDeviceIdRule() {
-        DeviceId deviceId1 = DeviceId.deviceId("of:0000000000000001");
-        DeviceId deviceId2 = DeviceId.deviceId("of:0000000000000002");
-        Set<DeviceId> deviceIds = new HashSet<>();
-
-        deviceIds.add(deviceId1);
-        cfg.deviceIds(deviceIds);
-
-        configEvent(NetworkConfigEvent.Type.CONFIG_ADDED);
-
-        deviceIds.add(deviceId2);
-        cfg.deviceIds(deviceIds);
-
-        configEvent(NetworkConfigEvent.Type.CONFIG_UPDATED);
-
-        assertTrue(provider.rules().getSuppressedDevice().contains(deviceId1));
-        assertTrue(provider.rules().getSuppressedDevice().contains(deviceId2));
     }
 
     @Test
@@ -866,11 +885,28 @@ public class LldpLinkProviderTest {
 
     private final class TestNetworkConfigRegistry
         extends NetworkConfigRegistryAdapter {
+        @SuppressWarnings("unchecked")
         @Override
-        public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
-            ConfigApplyDelegate delegate = config -> { };
-            ObjectMapper mapper = new ObjectMapper();
-            return (C) cfg;
+        public <S, C extends Config<S>> C getConfig(S subj, Class<C> configClass) {
+            if (configClass == SuppressionConfig.class) {
+                return (C) cfg;
+            } else if (configClass == LinkDiscoveryFromDevice.class) {
+                return (C) new LinkDiscoveryFromDevice() {
+                    @Override
+                    public boolean enabled() {
+                        return !deviceBlacklist.contains(subj);
+                    }
+                };
+            } else if (configClass == LinkDiscoveryFromPort.class) {
+                return (C) new LinkDiscoveryFromPort() {
+                    @Override
+                    public boolean enabled() {
+                        return !portBlacklist.contains(subj);
+                    }
+                };
+            } else {
+                return null;
+            }
         }
 
         @Override
@@ -880,20 +916,8 @@ public class LldpLinkProviderTest {
     }
 
     private final class TestSuppressionConfig extends SuppressionConfig {
-        private Set<DeviceId> deviceIds = new HashSet<>(DEFAULT_RULES.getSuppressedDevice());
         private Set<Device.Type> deviceTypes = new HashSet<>(DEFAULT_RULES.getSuppressedDeviceType());
         private Map<String, String> annotation = new HashMap<>(DEFAULT_RULES.getSuppressedAnnotation());
-
-        @Override
-        public Set<DeviceId> deviceIds() {
-            return ImmutableSet.copyOf(deviceIds);
-        }
-
-        @Override
-        public SuppressionConfig deviceIds(Set<DeviceId> deviceIds) {
-            this.deviceIds = ImmutableSet.copyOf(deviceIds);
-            return this;
-        }
 
         @Override
         public Set<Device.Type> deviceTypes() {

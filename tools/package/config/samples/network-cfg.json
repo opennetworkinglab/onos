@@ -62,12 +62,6 @@
 		]
 	    }
 	}
-        "org.onosproject.provider.lldp": {
-            "suppression": {
-                "deviceIds": [ "of:2222000000000000" ],
-                "deviceTypes": [ "ROADM" ],
-                "annotation": { "no-lldp": null, "sendLLDP" : "false" }
-            }
-        }
     }
 }
+

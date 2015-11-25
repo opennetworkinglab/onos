@@ -26,7 +26,6 @@ import com.google.common.collect.Maps;
 
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 import org.slf4j.Logger;
 
@@ -39,44 +38,22 @@ import static org.onosproject.provider.lldp.impl.LldpLinkProvider.DEFAULT_RULES;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * LLDP suppression config class.
+ * LinkDiscovery suppression config class.
  */
 public class SuppressionConfig extends Config<ApplicationId> {
-    private static final String DEVICE_IDS = "deviceIds";
+
     private static final String DEVICE_TYPES = "deviceTypes";
     private static final String ANNOTATION = "annotation";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final List<DeviceId>  DEFAULT_DEVICE_IDS
-                    = ImmutableList.copyOf(DEFAULT_RULES.getSuppressedDevice());
+
     private static final List<Device.Type>  DEFAULT_DEVICE_TYPES
                 = ImmutableList.copyOf(DEFAULT_RULES.getSuppressedDeviceType());
 
     private final Logger log = getLogger(getClass());
 
     /**
-     * Returns device IDs on which LLDP is suppressed.
-     *
-     * @return Set of DeviceId objects
-     */
-    @Deprecated
-    public Set<DeviceId> deviceIds() {
-        return ImmutableSet.copyOf(getList(DEVICE_IDS, DeviceId::deviceId, DEFAULT_DEVICE_IDS));
-    }
-
-    /**
-     * Sets device IDs on which LLDP is suppressed.
-     *
-     * @param deviceIds new set of device IDs; null to clear
-     * @return self
-     */
-    @Deprecated
-    public SuppressionConfig deviceIds(Set<DeviceId> deviceIds) {
-        return (SuppressionConfig) setOrClear(DEVICE_IDS, deviceIds);
-    }
-
-    /**
-     * Returns types of devices on which LLDP is suppressed.
+     * Returns types of devices on which LinkDiscovery is suppressed.
      *
      * @return set of device types
      */
@@ -85,7 +62,7 @@ public class SuppressionConfig extends Config<ApplicationId> {
     }
 
     /**
-     * Sets types of devices on which LLDP is suppressed.
+     * Sets types of devices on which LinkDiscovery is suppressed.
      *
      * @param deviceTypes new set of device types; null to clear
      * @return self
@@ -95,7 +72,7 @@ public class SuppressionConfig extends Config<ApplicationId> {
     }
 
     /**
-     * Returns annotation of Ports on which LLDP is suppressed.
+     * Returns annotation of Ports on which LinkDiscovery is suppressed.
      *
      * @return key-value pairs of annotation
      */
@@ -142,7 +119,7 @@ public class SuppressionConfig extends Config<ApplicationId> {
     }
 
     /**
-     * Sets annotation of Ports on which LLDP is suppressed.
+     * Sets annotation of Ports on which LinkDiscovery is suppressed.
      *
      * @param annotation new key-value pair of annotation; null to clear
      * @return self

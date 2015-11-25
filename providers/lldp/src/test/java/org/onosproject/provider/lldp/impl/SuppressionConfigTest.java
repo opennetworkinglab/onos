@@ -39,21 +39,6 @@ public class SuppressionConfigTest {
     }
 
     @Test
-    public void testDeviceIds() {
-        Set<DeviceId> inputIds = new HashSet<DeviceId>() { {
-            add(DEVICE_ID_1);
-            add(DEVICE_ID_2);
-        } };
-
-        assertNotNull(cfg.deviceIds(inputIds));
-
-        Set<DeviceId> outputIds = cfg.deviceIds();
-        assertTrue(outputIds.contains(DEVICE_ID_1));
-        assertTrue(outputIds.contains(DEVICE_ID_2));
-        assertEquals(outputIds.size(), 2);
-    }
-
-    @Test
     public void testDeviceTypes() {
         Set<Device.Type> inputTypes = new HashSet<Device.Type>() { {
             add(DEVICE_TYPE_1);

@@ -23,7 +23,6 @@ import java.util.Set;
 
 import org.onosproject.net.Annotations;
 import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Element;
 import org.onosproject.net.Port;
 
@@ -35,23 +34,17 @@ public class SuppressionRules {
 
     public static final String ANY_VALUE = "(any)";
 
-    private final Set<DeviceId> suppressedDevice;
     private final Set<Device.Type> suppressedDeviceType;
     private final Map<String, String> suppressedAnnotation;
 
-    public SuppressionRules(Set<DeviceId> suppressedDevice,
-                     Set<Device.Type> suppressedType,
-                     Map<String, String> suppressedAnnotation) {
+    public SuppressionRules(Set<Device.Type> suppressedType,
+                            Map<String, String> suppressedAnnotation) {
 
-        this.suppressedDevice = ImmutableSet.copyOf(suppressedDevice);
         this.suppressedDeviceType = ImmutableSet.copyOf(suppressedType);
         this.suppressedAnnotation = ImmutableMap.copyOf(suppressedAnnotation);
     }
 
     public boolean isSuppressed(Device device) {
-        if (suppressedDevice.contains(device.id())) {
-            return true;
-        }
         if (suppressedDeviceType.contains(device.type())) {
             return true;
         }
@@ -94,10 +87,6 @@ public class SuppressionRules {
         return false;
     }
 
-    Set<DeviceId> getSuppressedDevice() {
-        return suppressedDevice;
-    }
-
     Set<Device.Type> getSuppressedDeviceType() {
         return suppressedDeviceType;
     }
@@ -108,8 +97,7 @@ public class SuppressionRules {
 
     @Override
     public int hashCode() {
-        return Objects.hash(suppressedDevice,
-                            suppressedDeviceType,
+        return Objects.hash(suppressedDeviceType,
                             suppressedAnnotation);
     }
 
@@ -117,9 +105,7 @@ public class SuppressionRules {
     public boolean equals(Object object) {
         if (object != null && getClass() == object.getClass()) {
             SuppressionRules that = (SuppressionRules) object;
-            return Objects.equals(this.suppressedDevice,
-                                  that.suppressedDevice)
-                    && Objects.equals(this.suppressedDeviceType,
+            return Objects.equals(this.suppressedDeviceType,
                                       that.suppressedDeviceType)
                     && Objects.equals(this.suppressedAnnotation,
                                       that.suppressedAnnotation);
@@ -130,7 +116,6 @@ public class SuppressionRules {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("suppressedDevice", suppressedDevice)
                 .add("suppressedDeviceType", suppressedDeviceType)
                 .add("suppressedAnnotation", suppressedAnnotation)
                 .toString();

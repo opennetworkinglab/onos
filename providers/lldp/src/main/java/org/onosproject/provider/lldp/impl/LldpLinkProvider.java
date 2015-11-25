@@ -15,9 +15,28 @@
  */
 package org.onosproject.provider.lldp.impl;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.onlab.packet.Ethernet.TYPE_BSN;
+import static org.onlab.packet.Ethernet.TYPE_LLDP;
+import static org.onlab.util.Tools.get;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.Link.Type.DIRECT;
+import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
+import static org.onosproject.net.config.basics.SubjectFactories.CONNECT_POINT_SUBJECT_FACTORY;
+import static org.onosproject.net.config.basics.SubjectFactories.DEVICE_SUBJECT_FACTORY;
+import static org.slf4j.LoggerFactory.getLogger;
+
+import java.util.Dictionary;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -61,25 +80,9 @@ import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.util.Dictionary;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.onlab.packet.Ethernet.TYPE_BSN;
-import static org.onlab.packet.Ethernet.TYPE_LLDP;
-import static org.onlab.util.Tools.get;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.Link.Type.DIRECT;
-import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
-import static org.slf4j.LoggerFactory.getLogger;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 
 /**
  * Provider which uses LLDP and BDDP packets to detect network infrastructure links.
@@ -170,21 +173,35 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
     private ApplicationId appId;
 
     static final SuppressionRules DEFAULT_RULES
-        = new SuppressionRules(ImmutableSet.of(),
-                               EnumSet.of(Device.Type.ROADM),
+        = new SuppressionRules(EnumSet.of(Device.Type.ROADM),
                                ImmutableMap.of(NO_LLDP, SuppressionRules.ANY_VALUE));
 
     private SuppressionRules rules = LldpLinkProvider.DEFAULT_RULES;
 
     public static final String CONFIG_KEY = "suppression";
+    public static final String FEATURE_NAME = "linkDiscovery";
 
-    private final Set<ConfigFactory> factories = ImmutableSet.of(
+    private final Set<ConfigFactory<?, ?>> factories = ImmutableSet.of(
             new ConfigFactory<ApplicationId, SuppressionConfig>(APP_SUBJECT_FACTORY,
                     SuppressionConfig.class,
                     CONFIG_KEY) {
                 @Override
                 public SuppressionConfig createConfig() {
                     return new SuppressionConfig();
+                }
+            },
+            new ConfigFactory<DeviceId, LinkDiscoveryFromDevice>(DEVICE_SUBJECT_FACTORY,
+                    LinkDiscoveryFromDevice.class, FEATURE_NAME) {
+                @Override
+                public LinkDiscoveryFromDevice createConfig() {
+                    return new LinkDiscoveryFromDevice();
+                }
+            },
+            new ConfigFactory<ConnectPoint, LinkDiscoveryFromPort>(CONNECT_POINT_SUBJECT_FACTORY,
+                    LinkDiscoveryFromPort.class, FEATURE_NAME) {
+                @Override
+                public LinkDiscoveryFromPort createConfig() {
+                    return new LinkDiscoveryFromPort();
                 }
             }
     );
@@ -211,8 +228,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         if (cfg == null) {
             // If no configuration is found, register default.
             cfg = cfgRegistry.addConfig(appId, SuppressionConfig.class);
-            cfg.deviceIds(DEFAULT_RULES.getSuppressedDevice())
-               .deviceTypes(DEFAULT_RULES.getSuppressedDeviceType())
+            cfg.deviceTypes(DEFAULT_RULES.getSuppressedDeviceType())
                .annotation(DEFAULT_RULES.getSuppressedAnnotation())
                .apply();
         }
@@ -333,6 +349,30 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
                                .ifPresent(ld -> updatePorts(ld, d.id())));
     }
 
+    private boolean isBlacklisted(DeviceId did) {
+        LinkDiscoveryFromDevice cfg = cfgRegistry.getConfig(did, LinkDiscoveryFromDevice.class);
+        if (cfg == null) {
+            return false;
+        }
+        return !cfg.enabled();
+    }
+
+    private boolean isBlacklisted(ConnectPoint cp) {
+        // if parent device is blacklisted, so is the port
+        if (isBlacklisted(cp.deviceId())) {
+            return true;
+        }
+        LinkDiscoveryFromPort cfg = cfgRegistry.getConfig(cp, LinkDiscoveryFromPort.class);
+        if (cfg == null) {
+            return false;
+        }
+        return !cfg.enabled();
+    }
+
+    private boolean isBlacklisted(Port port) {
+        return isBlacklisted(new ConnectPoint(port.element().id(), port.number()));
+    }
+
     /**
      * Updates discovery helper for specified device.
      *
@@ -343,7 +383,10 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
      * @return discovery helper if discovery is enabled for the device
      */
     private Optional<LinkDiscovery> updateDevice(Device device) {
-        if (rules.isSuppressed(device)) {
+        if (device == null) {
+            return Optional.empty();
+        }
+        if (rules.isSuppressed(device) || isBlacklisted(device.id())) {
             log.trace("LinkDiscovery from {} disabled by configuration", device.id());
             removeDevice(device.id());
             return Optional.empty();
@@ -382,12 +425,15 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
      * or calls {@link #removePort(Port)} otherwise.
      */
     private void updatePort(LinkDiscovery discoverer, Port port) {
+        if (port == null) {
+            return;
+        }
         if (port.number().isLogical()) {
             // silently ignore logical ports
             return;
         }
 
-        if (rules.isSuppressed(port)) {
+        if (rules.isSuppressed(port) || isBlacklisted(port)) {
             log.trace("LinkDiscovery from {} disabled by configuration", port);
             removePort(port);
             return;
@@ -659,6 +705,11 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         }
     }
 
+    static final EnumSet<NetworkConfigEvent.Type> CONFIG_CHANGED
+                    = EnumSet.of(NetworkConfigEvent.Type.CONFIG_ADDED,
+                                 NetworkConfigEvent.Type.CONFIG_UPDATED,
+                                 NetworkConfigEvent.Type.CONFIG_REMOVED);
+
     private class InternalConfigListener implements NetworkConfigListener {
 
         private synchronized void reconfigureSuppressionRules(SuppressionConfig cfg) {
@@ -667,8 +718,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
                 return;
             }
 
-            SuppressionRules newRules = new SuppressionRules(cfg.deviceIds(),
-                                                             cfg.deviceTypes(),
+            SuppressionRules newRules = new SuppressionRules(cfg.deviceTypes(),
                                                              cfg.annotation());
 
             updateRules(newRules);
@@ -676,7 +726,29 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
         @Override
         public void event(NetworkConfigEvent event) {
-            if (event.configClass().equals(SuppressionConfig.class) &&
+            if (event.configClass() == LinkDiscoveryFromDevice.class &&
+                CONFIG_CHANGED.contains(event.type())) {
+
+                if (event.subject() instanceof DeviceId) {
+                    final DeviceId did = (DeviceId) event.subject();
+                    Device device = deviceService.getDevice(did);
+                    updateDevice(device).ifPresent(ld -> updatePorts(ld, did));
+                }
+
+            } else if (event.configClass() == LinkDiscoveryFromPort.class &&
+                       CONFIG_CHANGED.contains(event.type())) {
+
+                if (event.subject() instanceof ConnectPoint) {
+                    ConnectPoint cp = (ConnectPoint) event.subject();
+                    if (cp.elementId() instanceof DeviceId) {
+                        final DeviceId did = (DeviceId) cp.elementId();
+                        Device device = deviceService.getDevice(did);
+                        Port port = deviceService.getPort(did, cp.port());
+                        updateDevice(device).ifPresent(ld -> updatePort(ld, port));
+                    }
+                }
+
+            } else if (event.configClass().equals(SuppressionConfig.class) &&
                 (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
                  event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)) {
                 SuppressionConfig cfg = cfgRegistry.getConfig(appId, SuppressionConfig.class);
