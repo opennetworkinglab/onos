@@ -214,6 +214,30 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         log.debug("port {} is removed", port.toString());
     }
 
+    private void initializeFlowRules() {
+        OpenstackSwitchingRulePopulator rulePopulator =
+                new OpenstackSwitchingRulePopulator(appId, flowObjectiveService,
+                        deviceService, restHandler, driverService);
+
+        deviceService.getDevices().forEach(device -> {
+                    log.debug("device {} num of ports {} ", device.id(),
+                            deviceService.getPorts(device.id()).size());
+                    deviceService.getPorts(device.id()).stream()
+                            .filter(port -> port.annotations().value("portName").startsWith("tap"))
+                            .forEach(vmPort -> {
+                                        OpenstackPort osPort = rulePopulator.openstackPort(vmPort);
+                                        if (osPort != null) {
+                                            rulePopulator.populateSwitchingRules(device, vmPort);
+                                            registerDhcpInfo(osPort);
+                                        } else {
+                                            log.warn("No openstackPort information for port {}", vmPort);
+                                        }
+                                    }
+                            );
+                }
+        );
+    }
+
     private void registerDhcpInfo(OpenstackPort openstackPort) {
         Ip4Address ip4Address;
         Ip4Address subnetMask;
@@ -343,6 +367,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
             doNotPushFlows = cfg.doNotPushFlows();
             restHandler = new OpenstackRestHandler(cfg);
             arpHandler = new OpenstackArpHandler(restHandler, packetService);
+            initializeFlowRules();
         }
 
         @Override

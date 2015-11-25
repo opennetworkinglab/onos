@@ -99,6 +99,18 @@ public class OpenstackSwitchingRulePopulator {
     }
 
     /**
+     * Returns OpenstackPort object for the Port reference given.
+     *
+     * @param port Port object
+     * @return OpenstackPort reference, or null when not found
+     */
+    public OpenstackPort openstackPort(Port port) {
+        String uuid = port.annotations().value("portName").substring(3);
+        return openstackPortList.stream().filter(p -> p.id().startsWith(uuid))
+                .findAny().orElse(null);
+    }
+
+    /**
      * Populates the flow rules for traffic to VMs in the same Cnode as the sender.
      *
      * @param device device to put the rules
