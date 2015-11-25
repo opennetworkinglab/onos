@@ -39,7 +39,9 @@ import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.MplsBosCriterion;
@@ -61,6 +63,14 @@ import org.slf4j.Logger;
 public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
 
     private final Logger log = getLogger(getClass());
+
+    /*
+     * Cpqd emulation does not require the non-OF standard rules for
+     * matching untagged packets.
+     *
+     * (non-Javadoc)
+     * @see org.onosproject.driver.pipeline.OFDPA2Pipeline#processVlanIdFilter
+     */
 
     @Override
     protected List<FlowRule> processVlanIdFilter(PortCriterion portCriterion,
@@ -122,16 +132,101 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         return rules;
     }
 
+    /*
+     * Cpqd emulation does not handle vlan tags and mpls labels correctly.
+     * Workaround requires popping off the VLAN tags in the TMAC table.
+     *
+     * (non-Javadoc)
+     * @see org.onosproject.driver.pipeline.OFDPA2Pipeline#processEthDstFilter
+     */
     @Override
-    protected Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
+    protected List<FlowRule> processEthDstFilter(PortCriterion portCriterion,
+                                                 EthCriterion ethCriterion,
+                                                 VlanIdCriterion vidCriterion,
+                                                 VlanId assignedVlan,
+                                                 ApplicationId applicationId) {
+        //handling untagged packets via assigned VLAN
+        if (vidCriterion.vlanId() == VlanId.NONE) {
+            vidCriterion = (VlanIdCriterion) Criteria.matchVlanId(assignedVlan);
+        }
+        // ofdpa cannot match on ALL portnumber, so we need to use separate
+        // rules for each port.
+        List<PortNumber> portnums = new ArrayList<PortNumber>();
+        if (portCriterion.port() == PortNumber.ALL) {
+            for (Port port : deviceService.getPorts(deviceId)) {
+                if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
+                    portnums.add(port.number());
+                }
+            }
+        } else {
+            portnums.add(portCriterion.port());
+        }
+
+        List<FlowRule> rules = new ArrayList<FlowRule>();
+        for (PortNumber pnum : portnums) {
+            // for unicast IP packets
+            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+            selector.matchInPort(pnum);
+            selector.matchVlanId(vidCriterion.vlanId());
+            selector.matchEthType(Ethernet.TYPE_IPV4);
+            selector.matchEthDst(ethCriterion.mac());
+            /*
+             * Note: CpqD switches do not handle MPLS-related operation properly
+             * for a packet with VLAN tag. We pop VLAN here as a workaround.
+             * Side effect: HostService learns redundant hosts with same MAC but
+             * different VLAN. No known side effect on the network reachability.
+             */
+            treatment.popVlan();
+            treatment.transition(UNICAST_ROUTING_TABLE);
+            FlowRule rule = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(selector.build())
+                    .withTreatment(treatment.build())
+                    .withPriority(DEFAULT_PRIORITY)
+                    .fromApp(applicationId)
+                    .makePermanent()
+                    .forTable(TMAC_TABLE).build();
+            rules.add(rule);
+            //for MPLS packets
+            selector = DefaultTrafficSelector.builder();
+            treatment = DefaultTrafficTreatment.builder();
+            selector.matchInPort(pnum);
+            selector.matchVlanId(vidCriterion.vlanId());
+            selector.matchEthType(Ethernet.MPLS_UNICAST);
+            selector.matchEthDst(ethCriterion.mac());
+            // workaround here again
+            treatment.popVlan();
+            treatment.transition(MPLS_TABLE_0);
+            rule = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(selector.build())
+                    .withTreatment(treatment.build())
+                    .withPriority(DEFAULT_PRIORITY)
+                    .fromApp(applicationId)
+                    .makePermanent()
+                    .forTable(TMAC_TABLE).build();
+            rules.add(rule);
+        }
+        return rules;
+    }
+
+    /*
+     * Cpqd emulation allows MPLS ecmp.
+     *
+     * (non-Javadoc)
+     * @see org.onosproject.driver.pipeline.OFDPA2Pipeline#processEthTypeSpecific
+     */
+    @Override
+    protected Collection<FlowRule> processEthTypeSpecific(ForwardingObjective fwd) {
         TrafficSelector selector = fwd.selector();
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
         if ((ethType == null) ||
                 (ethType.ethType().toShort() != Ethernet.TYPE_IPV4) &&
                 (ethType.ethType().toShort() != Ethernet.MPLS_UNICAST)) {
-            log.warn("processSpecific: Unsupported "
-                    + "forwarding objective criteraia");
+            log.warn("processSpecific: Unsupported forwarding objective criteria"
+                    + "ethType:{} in dev:{}", ethType, deviceId);
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
         }
@@ -143,8 +238,8 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
                 .matchIPDst(((IPCriterion)
                         selector.getCriterion(Criterion.Type.IPV4_DST)).ip());
             forTableId = UNICAST_ROUTING_TABLE;
-            log.debug("processing IPv4 specific forwarding objective {} hash{} in dev:{}",
-                      fwd.id(), fwd.hashCode(), deviceId);
+            log.debug("processing IPv4 specific forwarding objective {} -> next:{}"
+                    + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
         } else {
             filteredSelector
                 .matchEthType(Ethernet.MPLS_UNICAST)
@@ -156,8 +251,8 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
                 filteredSelector.matchMplsBos(bos.mplsBos());
             }
             forTableId = MPLS_TABLE_1;
-            log.debug("processing MPLS specific forwarding objective {} hash:{} in dev {}",
-                      fwd.id(), fwd.hashCode(), deviceId);
+            log.debug("processing MPLS specific forwarding objective {} -> next:{}"
+                    + " in dev {}", fwd.id(), fwd.nextId(), deviceId);
         }
 
         TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
@@ -197,7 +292,6 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         return Collections.singletonList(ruleBuilder.build());
     }
 
-
     @Override
     protected void initializePipeline() {
         processPortTable();
@@ -210,7 +304,6 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         processAclTable();
     }
 
-    @Override
     protected void processPortTable() {
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -239,7 +332,6 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         }));
     }
 
-    @Override
     protected void processTmacTable() {
         //table miss entry
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
@@ -270,7 +362,6 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         }));
     }
 
-    @Override
     protected void processIpTable() {
         //table miss entry
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
@@ -278,6 +369,7 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         selector = DefaultTrafficSelector.builder();
         treatment = DefaultTrafficTreatment.builder();
+        treatment.deferred().setOutput(PortNumber.CONTROLLER);
         treatment.transition(ACL_TABLE);
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
@@ -301,7 +393,6 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         }));
     }
 
-    @Override
     protected void processMplsTable() {
         //table miss entry
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
@@ -374,7 +465,6 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         }));
     }
 
-    @Override
     protected void processAclTable() {
         //table miss entry - catch all to executed action-set
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();

@@ -18,7 +18,6 @@ package org.onosproject.driver.pipeline;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -35,14 +35,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.onlab.osgi.ServiceDirectory;
-import org.onlab.packet.Data;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IPv4;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MPLS;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
-import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -99,10 +94,6 @@ import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupService;
-import org.onosproject.net.packet.DefaultOutboundPacket;
-import org.onosproject.net.packet.OutboundPacket;
-import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
@@ -160,7 +151,6 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected ApplicationId driverId;
     protected PacketService packetService;
     protected DeviceService deviceService;
-    private InternalPacketProcessor processor = new InternalPacketProcessor();
     protected KryoNamespace appKryo = new KryoNamespace.Builder()
         .register(KryoNamespaces.API)
         .register(GroupKey.class)
@@ -170,7 +160,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         .register(ArrayDeque.class)
         .build();
 
-    private Cache<GroupKey, OfdpaNextGroup> pendingNextObjectives;
+    private Cache<GroupKey, List<OfdpaNextGroup>> pendingNextObjectives;
     private ConcurrentHashMap<GroupKey, Set<GroupChainElem>> pendingGroups;
 
     private ScheduledExecutorService groupChecker =
@@ -196,10 +186,12 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         pendingNextObjectives = CacheBuilder.newBuilder()
                 .expireAfterWrite(20, TimeUnit.SECONDS)
                 .removalListener((
-                     RemovalNotification<GroupKey, OfdpaNextGroup> notification) -> {
+                     RemovalNotification<GroupKey, List<OfdpaNextGroup>> notification) -> {
                          if (notification.getCause() == RemovalCause.EXPIRED) {
-                             fail(notification.getValue().nextObjective(),
-                                  ObjectiveError.GROUPINSTALLATIONFAILED);
+                             notification.getValue().forEach(ofdpaNextGrp ->
+                                 fail(ofdpaNextGrp.nextObj,
+                                      ObjectiveError.GROUPINSTALLATIONFAILED));
+
                          }
                 }).build();
 
@@ -212,7 +204,6 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         flowObjectiveStore = context.store();
         packetService = serviceDirectory.get(PacketService.class);
         deviceService = serviceDirectory.get(DeviceService.class);
-        packetService.addProcessor(processor, PacketProcessor.director(2));
         groupService.addListener(new InnerGroupListener());
 
         driverId = coreService.registerApplication(
@@ -271,7 +262,6 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 log.warn("Unknown forwarding type {}", fwd.op());
         }
 
-
         flowRuleService.apply(flowOpsBuilder.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
@@ -283,7 +273,6 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 fail(fwd, ObjectiveError.FLOWINSTALLATIONFAILED);
             }
         }));
-
     }
 
     @Override
@@ -697,17 +686,57 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      *            returned if there is an issue in processing the objective.
      */
     protected Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
-        TrafficSelector selector = fwd.selector();
-        EthTypeCriterion ethType =
-                (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
-        if ((ethType == null) ||
-                (ethType.ethType().toShort() != Ethernet.TYPE_IPV4) &&
-                (ethType.ethType().toShort() != Ethernet.MPLS_UNICAST)) {
-            log.warn("processSpecific: Unsupported "
-                    + "forwarding objective criteraia");
+        log.trace("Processing specific fwd objective:{} in dev:{} with next:{}",
+                  fwd.id(), deviceId, fwd.nextId());
+        boolean isEthTypeObj = isSupportedEthTypeObjective(fwd);
+        boolean isEthDstObj = isSupportedEthDstObjective(fwd);
+
+        if (isEthTypeObj) {
+            return processEthTypeSpecific(fwd);
+        } else if (isEthDstObj) {
+            return processEthDstSpecific(fwd);
+        } else {
+            log.warn("processSpecific: Unsupported forwarding objective "
+                    + "criteria fwd:{} in dev:{}", fwd.nextId(), deviceId);
             fail(fwd, ObjectiveError.UNSUPPORTED);
             return Collections.emptySet();
         }
+    }
+
+    private boolean isSupportedEthTypeObjective(ForwardingObjective fwd) {
+        TrafficSelector selector = fwd.selector();
+        EthTypeCriterion ethType = (EthTypeCriterion) selector
+                .getCriterion(Criterion.Type.ETH_TYPE);
+        if ((ethType == null) ||
+                ((ethType.ethType().toShort() != Ethernet.TYPE_IPV4) &&
+                        (ethType.ethType().toShort() != Ethernet.MPLS_UNICAST))) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isSupportedEthDstObjective(ForwardingObjective fwd) {
+        TrafficSelector selector = fwd.selector();
+        EthCriterion ethDst = (EthCriterion) selector
+                .getCriterion(Criterion.Type.ETH_DST);
+        VlanIdCriterion vlanId = (VlanIdCriterion) selector
+                .getCriterion(Criterion.Type.VLAN_VID);
+        if (ethDst == null && vlanId == null) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Handles forwarding rules to the IP and MPLS tables.
+     *
+     * @param fwd the forwarding objective
+     * @return A collection of flow rules, or an empty set
+     */
+    protected Collection<FlowRule> processEthTypeSpecific(ForwardingObjective fwd) {
+        TrafficSelector selector = fwd.selector();
+        EthTypeCriterion ethType =
+                (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
 
         int forTableId = -1;
         TrafficSelector.Builder filteredSelector = DefaultTrafficSelector.builder();
@@ -716,8 +745,8 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .matchIPDst(((IPCriterion)
                         selector.getCriterion(Criterion.Type.IPV4_DST)).ip());
             forTableId = UNICAST_ROUTING_TABLE;
-            log.debug("processing IPv4 specific forwarding objective {} in dev:{}",
-                      fwd.id(), deviceId);
+            log.debug("processing IPv4 specific forwarding objective {} -> next:{}"
+                    + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
         } else {
             filteredSelector
                 .matchEthType(Ethernet.MPLS_UNICAST)
@@ -729,8 +758,8 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 filteredSelector.matchMplsBos(bos.mplsBos());
             }
             forTableId = MPLS_TABLE_1;
-            log.debug("processing MPLS specific forwarding objective {} in dev {}",
-                      fwd.id(), deviceId);
+            log.debug("processing MPLS specific forwarding objective {} -> next:{}"
+                    + " in dev {}", fwd.id(), fwd.nextId(), deviceId);
         }
 
         TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
@@ -754,6 +783,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 // MPLS interface, or a MPLS SWAP (with-same) but that would
                 // have to be handled in the next-objective. Also the pop-mpls
                 // logic used here won't work in non-BoS case.
+                fail(fwd, ObjectiveError.FLOWINSTALLATIONFAILED);
                 return Collections.emptySet();
             }
 
@@ -762,7 +792,8 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             // we only need the top level group's key to point the flow to it
             Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
             if (group == null) {
-                log.warn("The group left!");
+                log.warn("Group with key:{} for next-id:{} not found in dev:{}",
+                         gkeys.get(0).peekFirst(), fwd.nextId(), deviceId);
                 fail(fwd, ObjectiveError.GROUPMISSING);
                 return Collections.emptySet();
             }
@@ -784,6 +815,88 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
 
         return Collections.singletonList(ruleBuilder.build());
+    }
+
+    /**
+     * Handles forwarding rules to the L2 bridging table. Flow actions are not
+     * allowed in the bridging table - instead we use L2 Interface group or
+     * L2 flood group
+     *
+     * @param fwd the forwarding objective
+     * @return A collection of flow rules, or an empty set
+     */
+    protected Collection<FlowRule> processEthDstSpecific(ForwardingObjective fwd) {
+        List<FlowRule> rules = new ArrayList<>();
+
+        // Build filtered selector
+        TrafficSelector selector = fwd.selector();
+        EthCriterion ethCriterion = (EthCriterion) selector
+                .getCriterion(Criterion.Type.ETH_DST);
+        VlanIdCriterion vlanIdCriterion = (VlanIdCriterion) selector
+                .getCriterion(Criterion.Type.VLAN_VID);
+
+        if (vlanIdCriterion == null) {
+            log.warn("Forwarding objective for bridging requires vlan. Not "
+                    + "installing fwd:{} in dev:{}", fwd.id(), deviceId);
+            fail(fwd, ObjectiveError.BADPARAMS);
+            return Collections.emptySet();
+        }
+
+        TrafficSelector.Builder filteredSelectorBuilder =
+                DefaultTrafficSelector.builder();
+        // Do not match MacAddress for subnet broadcast entry
+        if (!ethCriterion.mac().equals(MacAddress.NONE)) {
+            filteredSelectorBuilder.matchEthDst(ethCriterion.mac());
+            log.debug("processing L2 forwarding objective:{} -> next:{} in dev:{}",
+                      fwd.id(), fwd.nextId(), deviceId);
+        } else {
+            log.debug("processing L2 Broadcast forwarding objective:{} -> next:{} "
+                    + "in dev:{} for vlan:{}",
+                      fwd.id(), fwd.nextId(), deviceId, vlanIdCriterion.vlanId());
+        }
+        filteredSelectorBuilder.matchVlanId(vlanIdCriterion.vlanId());
+        TrafficSelector filteredSelector = filteredSelectorBuilder.build();
+
+        if (fwd.treatment() != null) {
+            log.warn("Ignoring traffic treatment in fwd rule {} meant for L2 table"
+                    + "for dev:{}. Expecting only nextId", fwd.id(), deviceId);
+        }
+
+        TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+        if (fwd.nextId() != null) {
+            NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
+            if (next != null) {
+                List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
+                // we only need the top level group's key to point the flow to it
+                Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
+                if (group != null) {
+                    treatmentBuilder.deferred().group(group.id());
+                } else {
+                    log.warn("Group with key:{} for next-id:{} not found in dev:{}",
+                             gkeys.get(0).peekFirst(), fwd.nextId(), deviceId);
+                    fail(fwd, ObjectiveError.GROUPMISSING);
+                    return Collections.emptySet();
+                }
+            }
+        }
+        treatmentBuilder.immediate().transition(ACL_TABLE);
+        TrafficTreatment filteredTreatment = treatmentBuilder.build();
+
+        // Build bridging table entries
+        FlowRule.Builder flowRuleBuilder = DefaultFlowRule.builder();
+        flowRuleBuilder.fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .forDevice(deviceId)
+                .withSelector(filteredSelector)
+                .withTreatment(filteredTreatment)
+                .forTable(BRIDGING_TABLE);
+        if (fwd.permanent()) {
+            flowRuleBuilder.makePermanent();
+        } else {
+            flowRuleBuilder.makeTemporary(fwd.timeout());
+        }
+        rules.add(flowRuleBuilder.build());
+        return rules;
     }
 
     private void pass(Objective obj) {
@@ -842,9 +955,26 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @param nextObj  the nextObjective of type SIMPLE
      */
     private void processSimpleNextObjective(NextObjective nextObj) {
-        // break up simple next objective to GroupChain objects
         TrafficTreatment treatment = nextObj.next().iterator().next();
+        // determine if plain L2 or L3->L2
+        boolean plainL2 = true;
+        for (Instruction ins : treatment.allInstructions()) {
+            if (ins.type() == Instruction.Type.L2MODIFICATION) {
+                L2ModificationInstruction l2ins = (L2ModificationInstruction) ins;
+                if (l2ins.subtype() == L2SubType.ETH_DST ||
+                        l2ins.subtype() == L2SubType.ETH_SRC) {
+                    plainL2 = false;
+                    break;
+                }
+            }
+        }
 
+        if (plainL2) {
+            createL2InterfaceGroup(nextObj);
+            return;
+        }
+
+        // break up simple next objective to GroupChain objects
         GroupInfo groupInfo = createL2L3Chain(treatment, nextObj.id(),
                                               nextObj.appId(), false,
                                               nextObj.meta());
@@ -860,13 +990,105 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                                            Collections.singletonList(gkeyChain),
                                            nextObj);
 
-        // store l3groupkey with the ofdpaGroupChain for the nextObjective that depends on it
-        pendingNextObjectives.put(groupInfo.outerGrpDesc.appCookie(), ofdpaGrp);
+        // store l3groupkey with the ofdpaNextGroup for the nextObjective that depends on it
+        updatePendingNextObjective(groupInfo.outerGrpDesc.appCookie(), ofdpaGrp);
 
         // now we are ready to send the l2 groupDescription (inner), as all the stores
         // that will get async replies have been updated. By waiting to update
         // the stores, we prevent nasty race conditions.
         groupService.addGroup(groupInfo.innerGrpDesc);
+    }
+
+    private void updatePendingNextObjective(GroupKey key, OfdpaNextGroup value) {
+        List<OfdpaNextGroup> nextList = new CopyOnWriteArrayList<OfdpaNextGroup>();
+        nextList.add(value);
+        List<OfdpaNextGroup> ret = pendingNextObjectives.asMap()
+                .putIfAbsent(key, nextList);
+        if (ret != null) {
+            ret.add(value);
+        }
+    }
+
+    /**
+     * Creates a simple L2 Interface Group.
+     *
+     * @param nextObj the next Objective
+     */
+    private void createL2InterfaceGroup(NextObjective nextObj) {
+        // only allowed actions are vlan pop and outport
+        TrafficTreatment.Builder ttb = DefaultTrafficTreatment.builder();
+        PortNumber portNum = null;
+        for (Instruction ins : nextObj.next().iterator().next().allInstructions()) {
+            if (ins.type() == Instruction.Type.L2MODIFICATION) {
+                L2ModificationInstruction l2ins = (L2ModificationInstruction) ins;
+                switch (l2ins.subtype()) {
+                case VLAN_POP:
+                    ttb.add(l2ins);
+                    break;
+                default:
+                    break;
+                }
+            } else if (ins.type() == Instruction.Type.OUTPUT) {
+                portNum = ((OutputInstruction) ins).port();
+                ttb.add(ins);
+            } else {
+                log.warn("Driver does not handle this type of TrafficTreatment"
+                        + " instruction in simple nextObjectives:  {}", ins.type());
+            }
+        }
+        //use the vlanid associated with the port
+        VlanId vlanid = port2Vlan.get(portNum);
+
+        if (vlanid == null && nextObj.meta() != null) {
+            // use metadata vlan info if available
+            Criterion vidCriterion = nextObj.meta().getCriterion(Type.VLAN_VID);
+            if (vidCriterion != null) {
+                vlanid = ((VlanIdCriterion) vidCriterion).vlanId();
+            }
+        }
+
+        if (vlanid == null) {
+            log.error("Driver cannot process an L2/L3 group chain without "
+                    + "egress vlan information for dev: {} port:{}",
+                    deviceId, portNum);
+            return;
+        }
+
+        // assemble information for ofdpa l2interface group
+        Integer l2groupId = L2INTERFACEMASK | (vlanid.toShort() << 16) | (int) portNum.toLong();
+        // a globally unique groupkey that is different for ports in the same devices
+        // but different for the same portnumber on different devices. Also different
+        // for the various group-types created out of the same next objective.
+        int l2gk = 0x0ffffff & (deviceId.hashCode() << 8 | (int) portNum.toLong());
+        final GroupKey l2groupkey = new DefaultGroupKey(appKryo.serialize(l2gk));
+
+        // create group description for the l2interfacegroup
+        GroupBucket l2interfaceGroupBucket =
+                DefaultGroupBucket.createIndirectGroupBucket(ttb.build());
+        GroupDescription l2groupDescription =
+                             new DefaultGroupDescription(
+                                     deviceId,
+                                     GroupDescription.Type.INDIRECT,
+                                     new GroupBuckets(Collections.singletonList(
+                                                          l2interfaceGroupBucket)),
+                                     l2groupkey,
+                                     l2groupId,
+                                     nextObj.appId());
+        log.debug("Trying L2Interface: device:{} gid:{} gkey:{} nextId:{}",
+                  deviceId, Integer.toHexString(l2groupId),
+                  l2groupkey, nextObj.id());
+
+        // create object for local and distributed storage
+        Deque<GroupKey> singleKey = new ArrayDeque<>();
+        singleKey.addFirst(l2groupkey);
+        OfdpaNextGroup ofdpaGrp = new OfdpaNextGroup(
+                                           Collections.singletonList(singleKey),
+                                           nextObj);
+
+        // store l2groupkey for the nextObjective that depends on it
+        updatePendingNextObjective(l2groupkey, ofdpaGrp);
+        // send the group description to the group service
+        groupService.addGroup(l2groupDescription);
     }
 
     /**
@@ -895,6 +1117,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         TrafficTreatment.Builder innerTtb = DefaultTrafficTreatment.builder();
         VlanId vlanid = null;
         long portNum = 0;
+        boolean setVlan = false, popVlan = false;
         for (Instruction ins : treatment.allInstructions()) {
             if (ins.type() == Instruction.Type.L2MODIFICATION) {
                 L2ModificationInstruction l2ins = (L2ModificationInstruction) ins;
@@ -908,9 +1131,11 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 case VLAN_ID:
                     vlanid = ((ModVlanIdInstruction) l2ins).vlanId();
                     outerTtb.setVlanId(vlanid);
+                    setVlan = true;
                     break;
                 case VLAN_POP:
                     innerTtb.popVlan();
+                    popVlan = true;
                     break;
                 case DEC_MPLS_TTL:
                 case MPLS_LABEL:
@@ -935,12 +1160,11 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             vlanid = port2Vlan.get(PortNumber.portNumber(portNum));
         }
 
-        if (vlanid == null) {
-            // use metadata
-            for (Criterion metaCriterion : meta.criteria()) {
-                if (metaCriterion.type() == Type.VLAN_VID) {
-                    vlanid = ((VlanIdCriterion) metaCriterion).vlanId();
-                }
+        if (vlanid == null && meta != null) {
+            // use metadata if available
+            Criterion vidCriterion = meta.getCriterion(Type.VLAN_VID);
+            if (vidCriterion != null) {
+                vlanid = ((VlanIdCriterion) vidCriterion).vlanId();
             }
         }
 
@@ -949,6 +1173,14 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     + "egress vlan information for dev: {} port:{}",
                     deviceId, portNum);
             return null;
+        }
+
+        if (!setVlan && !popVlan) {
+            // untagged outgoing port
+            TrafficTreatment.Builder temp = DefaultTrafficTreatment.builder();
+            temp.popVlan();
+            innerTtb.build().allInstructions().forEach(i -> temp.add(i));
+            innerTtb = temp;
         }
 
         // assemble information for ofdpa l2interface group
@@ -1077,6 +1309,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
 
             // also ensure that all ports are in the same vlan
+            // XXX maybe HA issue here?
             VlanId thisvlanid = port2Vlan.get(portNum);
             if (vlanid == null) {
                 vlanid = thisvlanid;
@@ -1151,7 +1384,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         // store l2floodgroupkey with the ofdpaGroupChain for the nextObjective
         // that depends on it
-        pendingNextObjectives.put(l2floodgroupkey, ofdpaGrp);
+        updatePendingNextObjective(l2floodgroupkey, ofdpaGrp);
 
         for (GroupDescription l2intGrpDesc : l2interfaceGroupDescs) {
             // store all l2groupkeys with the groupChainElem for the l2floodgroup
@@ -1336,7 +1569,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         // store l3ecmpGroupKey with the ofdpaGroupChain for the nextObjective
         // that depends on it
-        pendingNextObjectives.put(l3ecmpGroupKey, ofdpaGrp);
+        updatePendingNextObjective(l3ecmpGroupKey, ofdpaGrp);
 
         log.debug("Trying L3ECMP: device:{} gid:{} gkey:{} nextId:{}",
                   deviceId, Integer.toHexString(l3ecmpGroupId),
@@ -1422,16 +1655,18 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                         processGroupChain(gce);
                     }
                 } else {
-                    OfdpaNextGroup obj = pendingNextObjectives.getIfPresent(key);
-                    if (obj != null) {
-                        log.info("Group service processed group key {} in device:{}. "
-                                + "Done implementing next objective: {} <<-->> gid:{}",
-                                key, deviceId, obj.nextObjective().id(),
-                                Integer.toHexString(groupService.getGroup(deviceId, key)
-                                                    .givenGroupId()));
-                        pass(obj.nextObjective());
+                    List<OfdpaNextGroup> objList = pendingNextObjectives.getIfPresent(key);
+                    if (objList != null) {
                         pendingNextObjectives.invalidate(key);
-                        flowObjectiveStore.putNextGroup(obj.nextObjective().id(), obj);
+                        objList.forEach(obj -> {
+                            log.info("Group service processed group key {} in device:{}. "
+                                    + "Done implementing next objective: {} <<-->> gid:{}",
+                                    key, deviceId, obj.nextObjective().id(),
+                                    Integer.toHexString(groupService.getGroup(deviceId, key)
+                                                        .givenGroupId()));
+                            pass(obj.nextObjective());
+                            flowObjectiveStore.putNextGroup(obj.nextObjective().id(), obj);
+                        });
                     }
                 }
             });
@@ -1455,16 +1690,18 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                         processGroupChain(gce);
                     }
                 } else {
-                    OfdpaNextGroup obj = pendingNextObjectives.getIfPresent(key);
-                    if (obj != null) {
-                        log.info("group ADDED with key {} in dev {}.. Done implementing next "
-                                + "objective: {} <<-->> gid:{}",
-                                key, deviceId, obj.nextObjective().id(),
-                                Integer.toHexString(groupService.getGroup(deviceId, key)
-                                                    .givenGroupId()));
-                        pass(obj.nextObjective());
+                    List<OfdpaNextGroup> objList = pendingNextObjectives.getIfPresent(key);
+                    if (objList != null) {
                         pendingNextObjectives.invalidate(key);
-                        flowObjectiveStore.putNextGroup(obj.nextObjective().id(), obj);
+                        objList.forEach(obj -> {
+                            log.info("group ADDED with key {} in dev {}.. Done implementing next "
+                                    + "objective: {} <<-->> gid:{}",
+                                    key, deviceId, obj.nextObjective().id(),
+                                    Integer.toHexString(groupService.getGroup(deviceId, key)
+                                                        .givenGroupId()));
+                            pass(obj.nextObjective());
+                            flowObjectiveStore.putNextGroup(obj.nextObjective().id(), obj);
+                        });
                     }
                 }
             }
@@ -1549,418 +1786,6 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     " groupKey: " + groupDescription.appCookie() +
                     " waiting-on-groups: " + waitOnGroups.get() +
                     " device: " + deviceId);
-        }
-
-    }
-
-    //////////////////////////////////////
-    //  Test code to be used for future
-    //  static-flow-pusher app
-    //////////////////////////////////////
-
-    public void processStaticFlows() {
-        //processPortTable();
-        processGroupTable();
-        processVlanTable();
-        processTmacTable();
-        processIpTable();
-        //processMcastTable();
-        //processBridgingTable();
-        processAclTable();
-        sendPackets();
-        processMplsTable();
-    }
-
-    protected void processGroupTable() {
-        TrafficTreatment.Builder act = DefaultTrafficTreatment.builder();
-
-        act.popVlan(); // to send out untagged packets
-        act.setOutput(PortNumber.portNumber(24));
-        GroupBucket bucket =
-                DefaultGroupBucket.createIndirectGroupBucket(act.build());
-        final GroupKey groupkey = new DefaultGroupKey(appKryo.serialize(500));
-        Integer groupId = 0x00c80018; //l2 interface, vlan 200, port 24
-        GroupDescription groupDescription = new DefaultGroupDescription(deviceId,
-                             GroupDescription.Type.INDIRECT,
-                             new GroupBuckets(Collections.singletonList(bucket)),
-                             groupkey,
-                             groupId,
-                             driverId);
-        groupService.addGroup(groupDescription);
-
-        TrafficTreatment.Builder act2 = DefaultTrafficTreatment.builder();
-        act2.setOutput(PortNumber.portNumber(40));
-        GroupBucket bucket2 = DefaultGroupBucket.createIndirectGroupBucket(act2.build());
-        final GroupKey groupkey2 = new DefaultGroupKey(appKryo.serialize(502));
-        Integer groupId2 = 0x00c50028; //l2 interface, vlan 197, port 40
-        GroupDescription groupDescription2 = new DefaultGroupDescription(deviceId,
-                             GroupDescription.Type.INDIRECT,
-                             new GroupBuckets(Collections.singletonList(bucket2)),
-                             groupkey2,
-                             groupId2,
-                             driverId);
-        groupService.addGroup(groupDescription2);
-
-        while (groupService.getGroup(deviceId, groupkey2) == null) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-
-        //Now for L3 Unicast group
-        TrafficTreatment.Builder act3 = DefaultTrafficTreatment.builder();
-        act3.setEthDst(MacAddress.valueOf(0x2020));
-        act3.setEthSrc(MacAddress.valueOf(0x1010));
-        act3.setVlanId(VlanId.vlanId((short) 200));
-        act3.group(new DefaultGroupId(0x00c80018)); // point to L2 interface
-        // MPLS interface group - does not work for popping single label
-        //Integer secGroupId = MPLSINTERFACEMASK | 38; // 0x90000026
-        Integer groupId3 = L3UNICASTMASK | 1; // 0x20000001
-        GroupBucket bucket3 =
-                DefaultGroupBucket.createIndirectGroupBucket(act3.build());
-        final GroupKey groupkey3 = new DefaultGroupKey(appKryo.serialize(503));
-        GroupDescription groupDescription3 = new DefaultGroupDescription(deviceId,
-                             GroupDescription.Type.INDIRECT,
-                             new GroupBuckets(Collections.singletonList(bucket3)),
-                             groupkey3,
-                             groupId3,
-                             driverId);
-        groupService.addGroup(groupDescription3);
-
-        //Another L3 Unicast group
-        TrafficTreatment.Builder act4 = DefaultTrafficTreatment.builder();
-        act4.setEthDst(MacAddress.valueOf(0x3030));
-        act4.setEthSrc(MacAddress.valueOf(0x1010));
-        act4.setVlanId(VlanId.vlanId((short) 197));
-        act4.group(new DefaultGroupId(0x00c50028)); // point to L2 interface
-        Integer groupId4 = L3UNICASTMASK | 2; // 0x20000002
-        GroupBucket bucket4 =
-                DefaultGroupBucket.createIndirectGroupBucket(act4.build());
-        final GroupKey groupkey4 = new DefaultGroupKey(appKryo.serialize(504));
-        GroupDescription groupDescription4 = new DefaultGroupDescription(deviceId,
-                             GroupDescription.Type.INDIRECT,
-                             new GroupBuckets(Collections.singletonList(bucket4)),
-                             groupkey4,
-                             groupId4,
-                             driverId);
-        groupService.addGroup(groupDescription4);
-
-        while (groupService.getGroup(deviceId, groupkey4) == null) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-
-        // L3 ecmp group
-        TrafficTreatment.Builder act5 = DefaultTrafficTreatment.builder();
-        act5.group(new DefaultGroupId(0x20000001));
-        TrafficTreatment.Builder act6 = DefaultTrafficTreatment.builder();
-        act6.group(new DefaultGroupId(0x20000002));
-        GroupBucket buckete1 =
-                DefaultGroupBucket.createSelectGroupBucket(act5.build());
-        GroupBucket buckete2 =
-                DefaultGroupBucket.createSelectGroupBucket(act6.build());
-        List<GroupBucket> bktlist = new ArrayList<GroupBucket>();
-        bktlist.add(buckete1);
-        bktlist.add(buckete2);
-        final GroupKey groupkey5 = new DefaultGroupKey(appKryo.serialize(505));
-        Integer groupId5 = L3ECMPMASK | 5; // 0x70000005
-        GroupDescription groupDescription5 = new DefaultGroupDescription(deviceId,
-                             GroupDescription.Type.SELECT,
-                             new GroupBuckets(bktlist),
-                             groupkey5,
-                             groupId5,
-                             driverId);
-        groupService.addGroup(groupDescription5);
-
-
-    }
-
-    @SuppressWarnings("deprecation")
-    protected void processMplsTable() {
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchEthType(Ethernet.MPLS_UNICAST);
-        selector.matchMplsLabel(MplsLabel.mplsLabel(0xff)); //255
-        selector.matchMplsBos(true);
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        treatment.decMplsTtl(); // nw_ttl does not work
-        treatment.copyTtlIn();
-        treatment.popMpls(Ethernet.TYPE_IPV4);
-        treatment.deferred().group(new DefaultGroupId(0x20000001)); // point to L3 Unicast
-        //treatment.deferred().group(new DefaultGroupId(0x70000005)); // point to L3 ECMP
-        treatment.transition(ACL_TABLE);
-        FlowRule test = DefaultFlowRule.builder().forDevice(deviceId)
-                .withSelector(selector.build()).withTreatment(treatment.build())
-                .withPriority(DEFAULT_PRIORITY).fromApp(driverId).makePermanent()
-                .forTable(24).build();
-        ops = ops.add(test);
-
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized mpls table");
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info("Failed to initialize mpls table");
-            }
-        }));
-
-    }
-
-    protected void processPortTable() {
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchInPort(PortNumber.portNumber(0)); // should be maskable?
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        treatment.transition(VLAN_TABLE);
-        FlowRule tmisse = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(LOWEST_PRIORITY)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(PORT_TABLE).build();
-        ops = ops.add(tmisse);
-
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized port table");
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info("Failed to initialize port table");
-            }
-        }));
-
-    }
-
-    private void processVlanTable() {
-        // Table miss entry is not required as ofdpa default is to drop
-        // In OF terms, the absence of a t.m.e. also implies drop
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        selector.matchInPort(PortNumber.portNumber(12));
-        selector.matchVlanId(VlanId.vlanId((short) 100));
-        treatment.transition(TMAC_TABLE);
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DEFAULT_PRIORITY)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(VLAN_TABLE).build();
-        ops =  ops.add(rule);
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized vlan table");
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info("Failed to initialize vlan table");
-            }
-        }));
-    }
-
-    protected void processTmacTable() {
-        //table miss entry
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        selector.matchInPort(PortNumber.portNumber(12));
-        selector.matchVlanId(VlanId.vlanId((short) 100));
-        selector.matchEthType(Ethernet.TYPE_IPV4);
-        selector.matchEthDst(MacAddress.valueOf("00:00:00:00:00:02"));
-        treatment.transition(UNICAST_ROUTING_TABLE);
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DEFAULT_PRIORITY)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(TMAC_TABLE).build();
-        ops = ops.add(rule);
-
-        selector.matchEthType(Ethernet.MPLS_UNICAST);
-        treatment.transition(MPLS_TABLE_0);
-        FlowRule rulempls = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(DEFAULT_PRIORITY)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(TMAC_TABLE).build();
-        ops = ops.add(rulempls);
-
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized tmac table");
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info("Failed to initialize tmac table");
-            }
-        }));
-    }
-
-    protected void processIpTable() {
-        //table miss entry
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        selector.matchEthType(Ethernet.TYPE_IPV4);
-        selector.matchIPDst(IpPrefix.valueOf("2.0.0.0/16"));
-        treatment.deferred().group(new DefaultGroupId(0x20000001));
-        treatment.transition(ACL_TABLE);
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(30000)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(UNICAST_ROUTING_TABLE).build();
-        ops =  ops.add(rule);
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized IP table");
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info("Failed to initialize unicast IP table");
-            }
-        }));
-    }
-
-    protected void processAclTable() {
-        //table miss entry
-        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        selector.matchEthDst(MacAddress.valueOf("00:00:00:00:00:02"));
-        treatment.deferred().group(new DefaultGroupId(0x20000001));
-        FlowRule rule = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(60000)
-                .fromApp(driverId)
-                .makePermanent()
-                .forTable(ACL_TABLE).build();
-        ops =  ops.add(rule);
-        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-            @Override
-            public void onSuccess(FlowRuleOperations ops) {
-                log.info("Initialized Acl table");
-            }
-
-            @Override
-            public void onError(FlowRuleOperations ops) {
-                log.info("Failed to initialize Acl table");
-            }
-        }));
-    }
-
-    private void sendPackets() {
-        Ethernet eth = new Ethernet();
-        eth.setDestinationMACAddress("00:00:00:00:00:02");
-        eth.setSourceMACAddress("00:00:00:11:22:33");
-        eth.setVlanID((short) 100);
-        eth.setEtherType(Ethernet.MPLS_UNICAST);
-        MPLS mplsPkt = new MPLS();
-        mplsPkt.setLabel(255);
-        mplsPkt.setTtl((byte) 5);
-
-        IPv4 ipv4 = new IPv4();
-
-        ipv4.setDestinationAddress("4.0.5.6");
-        ipv4.setSourceAddress("1.0.2.3");
-        ipv4.setTtl((byte) 64);
-        ipv4.setChecksum((short) 0);
-
-        UDP udp = new UDP();
-        udp.setDestinationPort(666);
-        udp.setSourcePort(333);
-        udp.setPayload(new Data(new byte[]{(byte) 1, (byte) 2}));
-        udp.setChecksum((short) 0);
-
-        ipv4.setPayload(udp);
-        mplsPkt.setPayload(ipv4);
-        eth.setPayload(mplsPkt);
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(PortNumber.portNumber(24))
-                .build();
-        OutboundPacket packet = new DefaultOutboundPacket(deviceId,
-                                                          treatment,
-                                                          ByteBuffer.wrap(eth.serialize()));
-
-
-        Ethernet eth2 = new Ethernet();
-        eth2.setDestinationMACAddress("00:00:00:00:00:02");
-        eth2.setSourceMACAddress("00:00:00:11:22:33");
-        eth2.setVlanID((short) 100);
-        eth2.setEtherType(Ethernet.TYPE_IPV4);
-
-        IPv4 ipv42 = new IPv4();
-        ipv42.setDestinationAddress("2.0.0.2");
-        ipv42.setSourceAddress("1.0.9.9");
-        ipv42.setTtl((byte) 64);
-        ipv42.setChecksum((short) 0);
-
-        UDP udp2 = new UDP();
-        udp2.setDestinationPort(999);
-        udp2.setSourcePort(333);
-        udp2.setPayload(new Data(new byte[]{(byte) 1, (byte) 2}));
-        udp2.setChecksum((short) 0);
-
-        ipv42.setPayload(udp2);
-        eth2.setPayload(ipv42);
-
-        TrafficTreatment treatment2 = DefaultTrafficTreatment.builder()
-                .setOutput(PortNumber.portNumber(26))
-                .build();
-        OutboundPacket packet2 = new DefaultOutboundPacket(deviceId,
-                                                          treatment2,
-                                                          ByteBuffer.wrap(eth2.serialize()));
-
-
-        log.info("Emitting packets now");
-        packetService.emit(packet);
-        packetService.emit(packet);
-        packetService.emit(packet2);
-        packetService.emit(packet);
-        packetService.emit(packet);
-        log.info("Done emitting packets");
-    }
-
-    private class InternalPacketProcessor implements PacketProcessor {
-
-        @Override
-        public void process(PacketContext context) {
-
-
         }
     }
 

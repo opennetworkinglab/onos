@@ -80,6 +80,8 @@ public class DefaultGroupHandler {
         NeighborSetNextObjectiveStoreKey, Integer> nsNextObjStore = null;
     protected EventuallyConsistentMap<
             SubnetNextObjectiveStoreKey, Integer> subnetNextObjStore = null;
+    protected EventuallyConsistentMap<
+            PortNextObjectiveStoreKey, Integer> portNextObjStore = null;
 
     protected KryoNamespace.Builder kryo = new KryoNamespace.Builder()
             .register(URI.class).register(HashSet.class)
@@ -93,11 +95,12 @@ public class DefaultGroupHandler {
                                   DeviceProperties config,
                                   LinkService linkService,
                                   FlowObjectiveService flowObjService,
-                                  EventuallyConsistentMap<
-                                          NeighborSetNextObjectiveStoreKey,
+                                  EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey,
                                           Integer> nsNextObjStore,
                                   EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
-                                          Integer> subnetNextObjStore) {
+                                          Integer> subnetNextObjStore,
+                                  EventuallyConsistentMap<PortNextObjectiveStoreKey,
+                                          Integer> portNextObjStore) {
         this.deviceId = checkNotNull(deviceId);
         this.appId = checkNotNull(appId);
         this.deviceConfig = checkNotNull(config);
@@ -114,6 +117,7 @@ public class DefaultGroupHandler {
         this.flowObjectiveService = flowObjService;
         this.nsNextObjStore = nsNextObjStore;
         this.subnetNextObjStore = subnetNextObjStore;
+        this.portNextObjStore = portNextObjStore;
 
         populateNeighborMaps();
     }
@@ -133,30 +137,34 @@ public class DefaultGroupHandler {
      * @throws DeviceConfigNotFoundException if the device configuration is not found
      * @return default group handler type
      */
-    public static DefaultGroupHandler createGroupHandler(DeviceId deviceId,
-                                                         ApplicationId appId,
-                                                         DeviceProperties config,
-                                                         LinkService linkService,
-                                                         FlowObjectiveService flowObjService,
-                                                         EventuallyConsistentMap<
-                                                                 NeighborSetNextObjectiveStoreKey,
-                                                                 Integer> nsNextObjStore,
-                                                         EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
-                                                                 Integer> subnetNextObjStore)
-                                                         throws DeviceConfigNotFoundException {
+    public static DefaultGroupHandler createGroupHandler(
+                                          DeviceId deviceId,
+                                          ApplicationId appId,
+                                          DeviceProperties config,
+                                          LinkService linkService,
+                                          FlowObjectiveService flowObjService,
+                                          EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey,
+                                          Integer> nsNextObjStore,
+                                          EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
+                                          Integer> subnetNextObjStore,
+                                          EventuallyConsistentMap<PortNextObjectiveStoreKey,
+                                          Integer> portNextObjStore)
+                                                  throws DeviceConfigNotFoundException {
         // handle possible exception in the caller
         if (config.isEdgeDevice(deviceId)) {
             return new DefaultEdgeGroupHandler(deviceId, appId, config,
                                                linkService,
                                                flowObjService,
                                                nsNextObjStore,
-                                               subnetNextObjStore);
+                                               subnetNextObjStore,
+                                               portNextObjStore);
         } else {
             return new DefaultTransitGroupHandler(deviceId, appId, config,
                                                   linkService,
                                                   flowObjService,
                                                   nsNextObjStore,
-                                                  subnetNextObjStore);
+                                                  subnetNextObjStore,
+                                                  portNextObjStore);
         }
     }
 
@@ -231,25 +239,21 @@ public class DefaultGroupHandler {
 
             Integer nextId = nsNextObjStore.
                     get(new NeighborSetNextObjectiveStoreKey(deviceId, ns));
-            if (nextId != null) {
+            if (nextId != null && isMaster) {
                 NextObjective.Builder nextObjBuilder = DefaultNextObjective
                         .builder().withId(nextId)
                         .withType(NextObjective.Type.HASHED).fromApp(appId);
 
                 nextObjBuilder.addTreatment(tBuilder.build());
-
                 log.info("**linkUp in device {}: Adding Bucket "
-                        + "with Port {} to next object id {} and amIMaster:{}",
+                        + "with Port {} to next object id {}",
                         deviceId,
                         newLink.src().port(),
-                        nextId, isMaster);
-
-                if (isMaster) {
-                    NextObjective nextObjective = nextObjBuilder.
-                            addToExisting(new SRNextObjectiveContext(deviceId));
-                    flowObjectiveService.next(deviceId, nextObjective);
-                }
-            } else {
+                        nextId);
+                NextObjective nextObjective = nextObjBuilder.
+                        addToExisting(new SRNextObjectiveContext(deviceId));
+                flowObjectiveService.next(deviceId, nextObjective);
+            } else if (isMaster) {
                 log.warn("linkUp in device {}, but global store has no record "
                         + "for neighbor-set {}", deviceId, ns);
             }
@@ -331,8 +335,8 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Returns the next objective associated with the neighborset.
-     * If there is no next objective for this neighborset, this API
+     * Returns the next objective of type hashed associated with the neighborset.
+     * If there is no next objective for this neighborset, this method
      * would create a next objective and return. Optionally metadata can be
      * passed in for the creation of the next objective.
      *
@@ -372,9 +376,10 @@ public class DefaultGroupHandler {
     }
 
     /**
-     * Returns the next objective associated with the subnet.
-     * If there is no next objective for this subnet, this API
-     * would create a next objective and return.
+     * Returns the next objective of type broadcast associated with the subnet,
+     * or -1 if no such objective exists. Note that this method does NOT create
+     * the next objective as a side-effect. It is expected that is objective is
+     * created at startup from network configuration.
      *
      * @param prefix subnet information
      * @return int if found or -1
@@ -384,6 +389,38 @@ public class DefaultGroupHandler {
                 get(new SubnetNextObjectiveStoreKey(deviceId, prefix));
 
         return (nextId != null) ? nextId : -1;
+    }
+
+    /**
+     * Returns the next objective of type simple associated with the port on the
+     * device, given the treatment. Different treatments to the same port result
+     * in different next objectives. If no such objective exists, this method
+     * creates one and returns the id. Optionally metadata can be passed in for
+     * the creation of the objective.
+     *
+     * @param portNum the port number for the simple next objective
+     * @param treatment the actions to apply on the packets (should include outport)
+     * @param meta optional metadata passed into the creation of the next objective
+     * @return int if found or created, -1 if there are errors during the
+     *          creation of the next objective.
+     */
+    public int getPortNextObjectiveId(PortNumber portNum, TrafficTreatment treatment,
+                                      TrafficSelector meta) {
+        Integer nextId = portNextObjStore.
+                get(new PortNextObjectiveStoreKey(deviceId, portNum, treatment));
+        if (nextId == null) {
+            log.trace("getPortNextObjectiveId in device{}: Next objective id "
+                    + "not found for {} and {} creating", deviceId, portNum);
+            createGroupFromPort(portNum, treatment, meta);
+            nextId = portNextObjStore.get(
+                         new PortNextObjectiveStoreKey(deviceId, portNum, treatment));
+            if (nextId == null) {
+                log.warn("getPortNextObjectiveId: unable to create next obj"
+                        + "for dev:{} port{}", deviceId, portNum);
+                return -1;
+            }
+        }
+        return nextId;
     }
 
     /**
@@ -561,7 +598,7 @@ public class DefaultGroupHandler {
                 }
             }
             if (meta != null) {
-                nextObjBuilder.setMeta(meta);
+                nextObjBuilder.withMeta(meta);
             }
             NextObjective nextObj = nextObjBuilder.
                     add(new SRNextObjectiveContext(deviceId));
@@ -574,7 +611,10 @@ public class DefaultGroupHandler {
         }
     }
 
-
+    /**
+     * Creates broadcast groups for all ports in the same configured subnet.
+     *
+     */
     public void createGroupsFromSubnetConfig() {
         Map<Ip4Prefix, List<PortNumber>> subnetPortMap =
                 this.deviceConfig.getSubnetPortsMap(this.deviceId);
@@ -611,6 +651,37 @@ public class DefaultGroupHandler {
             subnetNextObjStore.put(key, nextId);
         });
     }
+
+
+    /**
+     * Create simple next objective for a single port. The treatments can include
+     * all outgoing actions that need to happen on the packet.
+     *
+     * @param portNum  the outgoing port on the device
+     * @param treatment the actions to apply on the packets (should include outport)
+     * @param meta optional data to pass to the driver
+     */
+    public void createGroupFromPort(PortNumber portNum, TrafficTreatment treatment,
+                                    TrafficSelector meta) {
+        int nextId = flowObjectiveService.allocateNextId();
+        PortNextObjectiveStoreKey key = new PortNextObjectiveStoreKey(
+                                                deviceId, portNum, treatment);
+
+        NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                .builder().withId(nextId)
+                .withType(NextObjective.Type.SIMPLE)
+                .addTreatment(treatment)
+                .fromApp(appId)
+                .withMeta(meta);
+
+        NextObjective nextObj = nextObjBuilder.add();
+        flowObjectiveService.next(deviceId, nextObj);
+        log.debug("createGroupFromPort: Submited next objective {} in device {} "
+                + "for port {}", nextId, deviceId, portNum);
+
+        portNextObjStore.put(key, nextId);
+    }
+
 
     public GroupKey getGroupKey(Object obj) {
         return new DefaultGroupKey(kryo.build().serialize(obj));

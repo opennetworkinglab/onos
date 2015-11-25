@@ -16,7 +16,6 @@
 package org.onosproject.net.flowobjective.impl;
 
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -53,9 +52,11 @@ import org.onosproject.net.group.GroupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -228,8 +229,10 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 flowObjectiveStore.getNextGroup(fwd.nextId()) == null) {
             log.trace("Queuing forwarding objective for nextId {}", fwd.nextId());
             // TODO: change to computeIfAbsent
-            Set<PendingNext> pnext = pendingForwards.putIfAbsent(fwd.nextId(),
-                                         Sets.newHashSet(new PendingNext(deviceId, fwd)));
+            Set<PendingNext> newset = Collections.newSetFromMap(
+                                          new ConcurrentHashMap<PendingNext, Boolean>());
+            newset.add(new PendingNext(deviceId, fwd));
+            Set<PendingNext> pnext = pendingForwards.putIfAbsent(fwd.nextId(), newset);
             if (pnext != null) {
                 pnext.add(new PendingNext(deviceId, fwd));
             }

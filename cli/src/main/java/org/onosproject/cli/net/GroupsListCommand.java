@@ -119,7 +119,7 @@ public class GroupsListCommand extends AbstractShellCommand {
     }
 
     private void printGroups(DeviceId deviceId, List<Group> groups) {
-        print("deviceId=%s", deviceId);
+        print("deviceId=%s, groupCount=%s", deviceId, groups.size());
         for (Group group : groups) {
             print(FORMAT, Integer.toHexString(group.id().id()), group.state(), group.type(),
                   group.bytes(), group.packets(), group.appId().name());

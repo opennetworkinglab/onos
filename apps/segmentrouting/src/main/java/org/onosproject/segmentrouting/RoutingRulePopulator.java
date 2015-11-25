@@ -147,20 +147,34 @@ public class RoutingRulePopulator {
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
 
-        sbuilder.matchIPDst(IpPrefix.valueOf(hostIp, IpPrefix.MAX_INET_MASK_LENGTH));
         sbuilder.matchEthType(Ethernet.TYPE_IPV4);
+        sbuilder.matchIPDst(IpPrefix.valueOf(hostIp, IpPrefix.MAX_INET_MASK_LENGTH));
+        TrafficSelector selector = sbuilder.build();
 
         tbuilder.deferred()
                 .setEthDst(hostMac)
                 .setEthSrc(deviceMac)
                 .setOutput(outPort);
-
         TrafficTreatment treatment = tbuilder.build();
-        TrafficSelector selector = sbuilder.build();
+
+        // All forwarding is via Groups. Drivers can re-purpose to flow-actions if needed.
+        // for switch pipelines that need it, provide outgoing vlan as metadata
+        VlanId outvlan = null;
+        Ip4Prefix subnet = srManager.deviceConfiguration.getPortSubnet(deviceId, outPort);
+        if (subnet == null) {
+            outvlan = VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET);
+        } else {
+            outvlan = srManager.getSubnetAssignedVlanId(deviceId, subnet);
+        }
+        TrafficSelector meta = DefaultTrafficSelector.builder()
+                                    .matchVlanId(outvlan).build();
+        int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outPort,
+                                                             treatment, meta);
 
         return DefaultForwardingObjective.builder()
+                .withSelector(selector)
+                .nextStep(portNextObjId)
                 .fromApp(srManager.appId).makePermanent()
-                .withSelector(selector).withTreatment(treatment)
                 .withPriority(100).withFlag(ForwardingObjective.Flag.SPECIFIC);
     }
 
@@ -454,7 +468,7 @@ public class RoutingRulePopulator {
                 if (srManager.mastershipService.isLocalMaster(deviceId)) {
                     TrafficTreatment tt = DefaultTrafficTreatment.builder()
                             .pushVlan().setVlanId(assignedVlan).build();
-                    fob.setMeta(tt);
+                    fob.withMeta(tt);
                 }
                 fob.permit().fromApp(srManager.appId);
                 srManager.flowObjectiveService.
@@ -558,6 +572,12 @@ public class RoutingRulePopulator {
         config.getSubnets(deviceId).forEach(subnet -> {
             int nextId = srManager.getSubnetNextObjectiveId(deviceId, subnet);
             VlanId vlanId = srManager.getSubnetAssignedVlanId(deviceId, subnet);
+
+            if (nextId < 0 || vlanId == null) {
+                log.error("Cannot install subnet broadcast rule in dev:{} due"
+                        + "to vlanId:{} or nextId:{}", vlanId, nextId);
+                return;
+            }
 
             /* Driver should treat objective with MacAddress.NONE as the
              * subnet broadcast rule

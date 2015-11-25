@@ -181,7 +181,7 @@ public final class DefaultNextObjective implements NextObjective {
         }
 
         @Override
-        public Builder setMeta(TrafficSelector meta) {
+        public Builder withMeta(TrafficSelector meta) {
             this.meta = meta;
             return this;
         }

@@ -196,7 +196,7 @@ public final class DefaultFilteringObjective implements FilteringObjective {
         }
 
         @Override
-        public Builder setMeta(TrafficTreatment treatment) {
+        public Builder withMeta(TrafficTreatment treatment) {
             this.meta = treatment;
             return this;
         }

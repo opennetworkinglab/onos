@@ -107,7 +107,7 @@ public class ArpHandler {
                                             vlanId);
 
         // ARP request for router. Send ARP reply.
-        if (isArpReqForRouter(deviceId, arpRequest)) {
+        if (isArpForRouter(deviceId, arpRequest)) {
             Ip4Address targetAddress = Ip4Address.valueOf(arpRequest.getTargetProtocolAddress());
             sendArpResponse(arpRequest, config.getRouterMacForAGatewayIp(targetAddress), vlanId);
         } else {
@@ -130,7 +130,7 @@ public class ArpHandler {
                                             vlanId);
 
         // ARP reply for router. Process all pending IP packets.
-        if (isArpReqForRouter(deviceId, arpReply)) {
+        if (isArpForRouter(deviceId, arpReply)) {
             Ip4Address hostIpAddress = Ip4Address.valueOf(arpReply.getSenderProtocolAddress());
             srManager.ipHandler.forwardPackets(deviceId, hostIpAddress);
         } else {
@@ -141,7 +141,8 @@ public class ArpHandler {
             // ARP reply for unknown host, Flood in the subnet.
             } else {
                 // Don't flood to non-edge ports
-                if (vlanId.equals(VlanId.vlanId(srManager.ASSIGNED_VLAN_NO_SUBNET))) {
+                if (vlanId.equals(
+                        VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET))) {
                     return;
                 }
                 removeVlanAndFlood(payload, inPort);
@@ -150,14 +151,21 @@ public class ArpHandler {
     }
 
 
-    private boolean isArpReqForRouter(DeviceId deviceId, ARP arpRequest) {
-        Set<Ip4Address> gatewayIpAddresses = config.getPortIPs(deviceId);
-        if (gatewayIpAddresses != null) {
-            Ip4Address targetProtocolAddress = Ip4Address.valueOf(arpRequest
-                    .getTargetProtocolAddress());
-            if (gatewayIpAddresses.contains(targetProtocolAddress)) {
+    private boolean isArpForRouter(DeviceId deviceId, ARP arpMsg) {
+        Ip4Address targetProtocolAddress = Ip4Address.valueOf(
+                                               arpMsg.getTargetProtocolAddress());
+        Set<Ip4Address> gatewayIpAddresses = null;
+        try {
+            if (targetProtocolAddress.equals(config.getRouterIp(deviceId))) {
                 return true;
             }
+            gatewayIpAddresses = config.getPortIPs(deviceId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " Aborting check for router IP in processing arp");
+        }
+        if (gatewayIpAddresses != null &&
+                gatewayIpAddresses.contains(targetProtocolAddress)) {
+            return true;
         }
         return false;
     }

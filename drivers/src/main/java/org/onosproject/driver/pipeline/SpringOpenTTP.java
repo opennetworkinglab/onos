@@ -287,24 +287,14 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             case SIMPLE:
                 Collection<TrafficTreatment> treatments = nextObjective.next();
                 if (treatments.size() == 1) {
-                    TrafficTreatment treatment = treatments.iterator().next();
-                    GroupBucket bucket = DefaultGroupBucket
-                            .createIndirectGroupBucket(treatment);
-                    final GroupKey key = new DefaultGroupKey(
-                            appKryo.serialize(nextObjective
-                                    .id()));
-                    GroupDescription groupDescription = new DefaultGroupDescription(
-                            deviceId,
-                            GroupDescription.Type.INDIRECT,
-                            new GroupBuckets(
-                                    Collections.singletonList(bucket)),
-                            key,
-                            null,
-                            nextObjective.appId());
-                    log.debug("Creating SIMPLE group for next objective id {} "
-                            + "in dev:{}", nextObjective.id(), deviceId);
-                    pendingGroups.put(key, nextObjective);
-                    groupService.addGroup(groupDescription);
+                    // Spring Open TTP converts simple nextObjective to flow-actions
+                    // in a dummy group
+                    TrafficTreatment treatment = nextObjective.next().iterator().next();
+                    log.debug("Converting SIMPLE group for next objective id {} " +
+                            "to {} flow-actions in device:{}", nextObjective.id(),
+                            treatment.allInstructions().size(), deviceId);
+                    flowObjectiveStore.putNextGroup(nextObjective.id(),
+                                                    new SpringOpenGroup(null, treatment));
                 }
                 break;
             case HASHED:
@@ -624,8 +614,9 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             if (next != null) {
                 SpringOpenGroup soGroup = appKryo.deserialize(next.data());
                 if (soGroup.dummy) {
-                    log.debug("Adding flow-actions for fwd. obj. {} "
-                            + "in dev: {}", fwd.id(), deviceId);
+                    log.debug("Adding {} flow-actions for fwd. obj. {} -> next:{} "
+                            + "in dev: {}", soGroup.treatment.allInstructions().size(),
+                            fwd.id(), fwd.nextId(), deviceId);
                     for (Instruction ins : soGroup.treatment.allInstructions()) {
                         treatmentBuilder.add(ins);
                     }
@@ -639,7 +630,8 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
                     }
                     treatmentBuilder.deferred().group(group.id());
                     log.debug("Adding OUTGROUP action to group:{} for fwd. obj. {} "
-                            + "in dev: {}", group.id(), fwd.id(), deviceId);
+                            + "for next:{} in dev: {}", group.id(), fwd.id(),
+                            fwd.nextId(), deviceId);
                 }
             } else {
                 log.warn("processSpecific: No associated next objective object");
@@ -705,10 +697,11 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             if (next != null) {
                 SpringOpenGroup soGrp = appKryo.deserialize(next.data());
                 if (soGrp.dummy) {
-                    log.debug("Adding flow-actions for fwd. obj. {} "
-                            + "in dev: {}", fwd.id(), deviceId);
+                    log.debug("Adding {} flow-actions for fwd. obj. {} "
+                            + "in dev: {}", soGrp.treatment.allInstructions().size(),
+                            fwd.id(), deviceId);
                     for (Instruction ins : soGrp.treatment.allInstructions()) {
-                        treatmentBuilder.add(ins);
+                        treatmentBuilder.deferred().add(ins);
                     }
                 } else {
                     GroupKey key = soGrp.key;
@@ -773,6 +766,12 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         return rules;
     }
 
+    /*
+     * Note: CpqD switches do not handle MPLS-related operation properly
+     * for a packet with VLAN tag. We pop VLAN here as a workaround.
+     * Side effect: HostService learns redundant hosts with same MAC but
+     * different VLAN. No known side effect on the network reachability.
+     */
     protected List<FlowRule> processEthDstFilter(EthCriterion ethCriterion,
                                        VlanIdCriterion vlanIdCriterion,
                                        FilteringObjective filt,
@@ -783,12 +782,6 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             vlanIdCriterion = (VlanIdCriterion) Criteria.matchVlanId(assignedVlan);
         }
 
-        /*
-         * Note: CpqD switches do not handle MPLS-related operation properly
-         * for a packet with VLAN tag. We pop VLAN here as a workaround.
-         * Side effect: HostService learns redundant hosts with same MAC but
-         * different VLAN. No known side effect on the network reachability.
-         */
         List<FlowRule> rules = new ArrayList<>();
         TrafficSelector.Builder selectorIp = DefaultTrafficSelector
                 .builder();

@@ -57,6 +57,7 @@ import org.onosproject.segmentrouting.config.SegmentRoutingConfig;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.NeighborSet;
 import org.onosproject.segmentrouting.grouphandler.NeighborSetNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.grouphandler.PortNextObjectiveStoreKey;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -97,7 +98,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-@SuppressWarnings("ALL")
 @Service
 @Component(immediate = true)
 public class SegmentRoutingManager implements SegmentRoutingService {
@@ -150,21 +150,27 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private ScheduledExecutorService executorService = Executors
             .newScheduledThreadPool(1);
 
+    @SuppressWarnings("unused")
     private static ScheduledFuture<?> eventHandlerFuture = null;
+    @SuppressWarnings("rawtypes")
     private ConcurrentLinkedQueue<Event> eventQueue = new ConcurrentLinkedQueue<Event>();
     private Map<DeviceId, DefaultGroupHandler> groupHandlerMap =
             new ConcurrentHashMap<DeviceId, DefaultGroupHandler>();
     // Per device next objective ID store with (device id + neighbor set) as key
     private EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey, Integer>
             nsNextObjStore = null;
+    // Per device next objective ID store with (device id + subnet) as key
     private EventuallyConsistentMap<SubnetNextObjectiveStoreKey, Integer>
             subnetNextObjStore = null;
-    private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
-    private EventuallyConsistentMap<String, Policy> policyStore = null;
+    // Per device next objective ID store with (device id + port) as key
+    private EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
+            portNextObjStore = null;
     // Per device, per-subnet assigned-vlans store, with (device id + subnet
     // IPv4 prefix) as key
     private EventuallyConsistentMap<SubnetAssignedVidStoreKey, VlanId>
         subnetVidStore = null;
+    private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
+    private EventuallyConsistentMap<String, Policy> policyStore = null;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
@@ -175,6 +181,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private final InternalConfigListener cfgListener =
             new InternalConfigListener(this);
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private final ConfigFactory cfgFactory =
             new ConfigFactory(SubjectFactories.DEVICE_SUBJECT_FACTORY,
                               SegmentRoutingConfig.class,
@@ -228,7 +235,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         log.debug("Creating EC map nsnextobjectivestore");
         EventuallyConsistentMapBuilder<NeighborSetNextObjectiveStoreKey, Integer>
                 nsNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
-
         nsNextObjStore = nsNextObjMapBuilder
                 .withName("nsnextobjectivestore")
                 .withSerializer(kryoBuilder)
@@ -239,16 +245,23 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         log.debug("Creating EC map subnetnextobjectivestore");
         EventuallyConsistentMapBuilder<SubnetNextObjectiveStoreKey, Integer>
                 subnetNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
-
         subnetNextObjStore = subnetNextObjMapBuilder
                 .withName("subnetnextobjectivestore")
                 .withSerializer(kryoBuilder)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
+        log.debug("Creating EC map subnetnextobjectivestore");
+        EventuallyConsistentMapBuilder<PortNextObjectiveStoreKey, Integer>
+                portNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
+        portNextObjStore = portNextObjMapBuilder
+                .withName("portnextobjectivestore")
+                .withSerializer(kryoBuilder)
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .build();
+
         EventuallyConsistentMapBuilder<String, Tunnel> tunnelMapBuilder =
                 storageService.eventuallyConsistentMapBuilder();
-
         tunnelStore = tunnelMapBuilder
                 .withName("tunnelstore")
                 .withSerializer(kryoBuilder)
@@ -257,7 +270,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         EventuallyConsistentMapBuilder<String, Policy> policyMapBuilder =
                 storageService.eventuallyConsistentMapBuilder();
-
         policyStore = policyMapBuilder
                 .withName("policystore")
                 .withSerializer(kryoBuilder)
@@ -266,7 +278,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         EventuallyConsistentMapBuilder<SubnetAssignedVidStoreKey, VlanId>
             subnetVidStoreMapBuilder = storageService.eventuallyConsistentMapBuilder();
-
         subnetVidStore = subnetVidStoreMapBuilder
                 .withName("subnetvidstore")
                 .withSerializer(kryoBuilder)
@@ -425,8 +436,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     /**
      * Returns the next objective ID for the given NeighborSet.
      * If the nextObjective does not exist, a new one is created and
-     * it's id is returned.
-     * TODO move the side-effect creation of a Next Objective into a new method
+     * its id is returned.
      *
      * @param deviceId Device ID
      * @param ns NegighborSet
@@ -441,18 +451,19 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             return groupHandlerMap
                     .get(deviceId).getNextObjectiveId(ns, meta);
         } else {
-            log.warn("getNextObjectiveId query in device {} not found", deviceId);
+            log.warn("getNextObjectiveId query - groupHandler for device {} "
+                    + "not found", deviceId);
             return -1;
         }
     }
 
     /**
-     * Returns the next objective ID for the Subnet given. If the nextObjectiveID does not exist,
-     * a new one is created and returned.
+     * Returns the next objective ID for the given subnet prefix. It is expected
+     * that the next-objective has been pre-created from configuration.
      *
      * @param deviceId Device ID
      * @param prefix Subnet
-     * @return next objective ID
+     * @return next objective ID or -1 if it was not found
      */
     public int getSubnetNextObjectiveId(DeviceId deviceId, IpPrefix prefix) {
         if (groupHandlerMap.get(deviceId) != null) {
@@ -460,7 +471,33 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             return groupHandlerMap
                     .get(deviceId).getSubnetNextObjectiveId(prefix);
         } else {
-            log.warn("getSubnetNextObjectiveId query in device {} not found", deviceId);
+            log.warn("getSubnetNextObjectiveId query - groupHandler for "
+                    + "device {} not found", deviceId);
+            return -1;
+        }
+    }
+
+    /**
+     * Returns the next objective ID for the given portNumber, given the treatment.
+     * There could be multiple different treatments to the same outport, which
+     * would result in different objectives. If the next object
+     * does not exist, a new one is created and its id is returned.
+     *
+     * @param deviceId Device ID
+     * @param portNum port number on device for which NextObjective is queried
+     * @param treatment the actions to apply on the packets (should include outport)
+     * @param meta metadata passed into the creation of a Next Objective if necessary
+     * @return next objective ID or -1 if it was not found
+     */
+    public int getPortNextObjectiveId(DeviceId deviceId, PortNumber portNum,
+                                      TrafficTreatment treatment,
+                                      TrafficSelector meta) {
+        DefaultGroupHandler ghdlr = groupHandlerMap.get(deviceId);
+        if (ghdlr != null) {
+            return ghdlr.getPortNextObjectiveId(portNum, treatment, meta);
+        } else {
+            log.warn("getPortNextObjectiveId query -  groupHandler for device {}"
+                    + " not found", deviceId);
             return -1;
         }
     }
@@ -475,7 +512,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
             InboundPacket pkt = context.inPacket();
             Ethernet ethernet = pkt.parsed();
-
+            log.trace("Rcvd pktin: {}", ethernet);
             if (ethernet.getEtherType() == Ethernet.TYPE_ARP) {
                 arpHandler.processPacketIn(pkt);
             } else if (ethernet.getEtherType() == Ethernet.TYPE_IPV4) {
@@ -517,6 +554,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     private void scheduleEventHandlerIfNotScheduled(Event event) {
         synchronized (threadSchedulerLock) {
             eventQueue.add(event);
@@ -539,6 +577,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         public void run() {
             try {
                 while (true) {
+                    @SuppressWarnings("rawtypes")
                     Event event = null;
                     synchronized (threadSchedulerLock) {
                         if (!eventQueue.isEmpty()) {
@@ -647,7 +686,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                            linkService,
                                            flowObjectiveService,
                                            nsNextObjStore,
-                                           subnetNextObjStore);
+                                           subnetNextObjStore,
+                                           portNextObjStore);
             } catch (DeviceConfigNotFoundException e) {
                 log.warn(e.getMessage() + " Aborting processDeviceAdded.");
                 return;
@@ -714,7 +754,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                                    linkService,
                                                    flowObjectiveService,
                                                    nsNextObjStore,
-                                                   subnetNextObjStore);
+                                                   subnetNextObjStore,
+                                                   portNextObjStore);
                     } catch (DeviceConfigNotFoundException e) {
                         log.warn(e.getMessage() + " Aborting configureNetwork.");
                         return;
@@ -766,7 +807,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
                 // Populate bridging table entry
                 ForwardingObjective.Builder fob =
-                        getForwardingObjectiveBuilder(mac, vlanId, port);
+                        getForwardingObjectiveBuilder(deviceId, mac, vlanId, port);
                 flowObjectiveService.forward(deviceId, fob.add(
                         new BridgingTableObjectiveContext(mac, vlanId)
                 ));
@@ -782,20 +823,37 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
 
         private ForwardingObjective.Builder getForwardingObjectiveBuilder(
-                MacAddress mac, VlanId vlanId, PortNumber port) {
+                     DeviceId deviceId, MacAddress mac, VlanId vlanId,
+                     PortNumber outport) {
+            // match rule
             TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
             sbuilder.matchEthDst(mac);
             sbuilder.matchVlanId(vlanId);
 
             TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-            // TODO Move popVlan from flow action to group action
             tbuilder.immediate().popVlan();
-            tbuilder.immediate().setOutput(port);
+            tbuilder.immediate().setOutput(outport);
+
+            // for switch pipelines that need it, provide outgoing vlan as metadata
+            VlanId outvlan = null;
+            Ip4Prefix subnet = deviceConfiguration.getPortSubnet(deviceId, outport);
+            if (subnet == null) {
+                outvlan = VlanId.vlanId(ASSIGNED_VLAN_NO_SUBNET);
+            } else {
+                outvlan = getSubnetAssignedVlanId(deviceId, subnet);
+            }
+            TrafficSelector meta = DefaultTrafficSelector.builder()
+                                        .matchVlanId(outvlan).build();
+
+            // All forwarding is via Groups. Drivers can re-purpose to flow-actions if needed.
+            int portNextObjId = getPortNextObjectiveId(deviceId, outport,
+                                                       tbuilder.build(),
+                                                       meta);
 
             return DefaultForwardingObjective.builder()
                     .withFlag(ForwardingObjective.Flag.SPECIFIC)
                     .withSelector(sbuilder.build())
-                    .withTreatment(tbuilder.build())
+                    .nextStep(portNextObjId)
                     .withPriority(100)
                     .fromApp(appId)
                     .makePermanent();
@@ -807,11 +865,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             DeviceId deviceId = event.subject().location().deviceId();
             PortNumber port = event.subject().location().port();
             Set<IpAddress> ips = event.subject().ipAddresses();
-            log.debug("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
+            log.info("Host {}/{} is added at {}:{}", mac, vlanId, deviceId, port);
 
             // Populate bridging table entry
+            log.debug("Populate L2 table entry for host {} at {}:{}",
+                      mac, deviceId, port);
             ForwardingObjective.Builder fob =
-                    getForwardingObjectiveBuilder(mac, vlanId, port);
+                    getForwardingObjectiveBuilder(deviceId, mac, vlanId, port);
             flowObjectiveService.forward(deviceId, fob.add(
                     new BridgingTableObjectiveContext(mac, vlanId)
             ));
@@ -835,7 +895,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
             // Revoke bridging table entry
             ForwardingObjective.Builder fob =
-                    getForwardingObjectiveBuilder(mac, vlanId, port);
+                    getForwardingObjectiveBuilder(deviceId, mac, vlanId, port);
             flowObjectiveService.forward(deviceId, fob.remove(
                     new BridgingTableObjectiveContext(mac, vlanId)
             ));
@@ -863,7 +923,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
             // Revoke previous bridging table entry
             ForwardingObjective.Builder prevFob =
-                    getForwardingObjectiveBuilder(mac, vlanId, prevPort);
+                    getForwardingObjectiveBuilder(prevDeviceId, mac, vlanId, prevPort);
             flowObjectiveService.forward(prevDeviceId, prevFob.remove(
                     new BridgingTableObjectiveContext(mac, vlanId)
             ));
@@ -878,7 +938,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
             // Populate new bridging table entry
             ForwardingObjective.Builder newFob =
-                    getForwardingObjectiveBuilder(mac, vlanId, prevPort);
+                    getForwardingObjectiveBuilder(newDeviceId, mac, vlanId, newPort);
             flowObjectiveService.forward(newDeviceId, newFob.add(
                     new BridgingTableObjectiveContext(mac, vlanId)
             ));

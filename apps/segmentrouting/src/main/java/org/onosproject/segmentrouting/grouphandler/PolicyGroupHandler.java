@@ -68,9 +68,11 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                               EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey,
                                       Integer> nsNextObjStore,
                               EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
-                                      Integer> subnetNextObjStore) {
+                                      Integer> subnetNextObjStore,
+                              EventuallyConsistentMap<PortNextObjectiveStoreKey,
+                              Integer> portNextObjStore) {
         super(deviceId, appId, config, linkService, flowObjService,
-              nsNextObjStore, subnetNextObjStore);
+              nsNextObjStore, subnetNextObjStore, portNextObjStore);
     }
 
     public PolicyGroupIdentifier createPolicyGroupChain(String id,

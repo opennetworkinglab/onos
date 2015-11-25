@@ -147,7 +147,7 @@ public interface NextObjective extends Objective {
          * @param selector match conditions
          * @return an objective builder
          */
-        Builder setMeta(TrafficSelector selector);
+        Builder withMeta(TrafficSelector selector);
 
         /**
          * Builds the next objective that will be added.

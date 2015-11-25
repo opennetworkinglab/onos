@@ -98,7 +98,7 @@ public class IpHandler {
      */
     public void addToPacketBuffer(IPv4 ipPacket) {
 
-        // Better not buffer TPC packets due to out-of-order packet transfer
+        // Better not buffer TCP packets due to out-of-order packet transfer
         if (ipPacket.getProtocol() == IPv4.PROTOCOL_TCP) {
             return;
         }

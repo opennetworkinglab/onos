@@ -88,10 +88,10 @@ public class IcmpHandler {
                 (destinationAddress.equals(routerIpAddress) ||
                         gatewayIpAddresses.contains(destinationAddress))) {
             sendICMPResponse(ethernet, connectPoint);
-            // TODO: do we need to set the flow rule again ??
 
         // ICMP for any known host
         } else if (!srManager.hostService.getHostsByIp(destinationAddress).isEmpty()) {
+            // TODO: known host packet should not be coming to controller - resend flows?
             srManager.ipHandler.forwardPackets(deviceId, destinationAddress);
 
         // ICMP for an unknown host in the subnet of the router
