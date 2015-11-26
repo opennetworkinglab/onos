@@ -20,7 +20,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.EthType.EtherType;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -38,7 +40,6 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective.Flag;
 import org.onosproject.net.flowobjective.Objective;
-import org.onosproject.net.flowobjective.Objective.Operation;
 import org.onosproject.vtn.table.ClassifierService;
 import org.onosproject.vtnrsc.SegmentationId;
 import org.slf4j.Logger;
@@ -51,6 +52,8 @@ import com.google.common.collect.Sets;
 public class ClassifierServiceImpl implements ClassifierService {
     private final Logger log = getLogger(getClass());
 
+    private static final EtherType ETH_TYPE = EtherType.ARP;
+    private static final int ARP_CLAFFIFIER_PRIORITY = 60000;
     private static final int L3_CLAFFIFIER_PRIORITY = 0xffff;
     private static final int L2_CLAFFIFIER_PRIORITY = 50000;
 
@@ -167,9 +170,27 @@ public class ClassifierServiceImpl implements ClassifierService {
     }
 
     @Override
-    public void programArpClassifierRules(DeviceId deviceId, IpAddress srcGwIp,
-                                          SegmentationId srcVni, Operation type) {
-        // TODO Auto-generated method stub
+    public void programArpClassifierRules(DeviceId deviceId, IpAddress dstIp,
+                                          SegmentationId actionVni,
+                                          Objective.Operation type) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(ETH_TYPE.ethType().toShort())
+                .matchArpTpa(Ip4Address.valueOf(dstIp.toString()))
+                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setTunnelId(Long.parseLong(actionVni.segmentationId()))
+                .build();
+        ForwardingObjective.Builder objective = DefaultForwardingObjective
+                .builder().withTreatment(treatment).withSelector(selector)
+                .fromApp(appId).withFlag(Flag.SPECIFIC)
+                .withPriority(ARP_CLAFFIFIER_PRIORITY);
+        if (type.equals(Objective.Operation.ADD)) {
+            log.debug("ArpClassifierRules-->ADD");
+            flowObjectiveService.forward(deviceId, objective.add());
+        } else {
+            log.debug("ArpClassifierRules-->REMOVE");
+            flowObjectiveService.forward(deviceId, objective.remove());
+        }
     }
 
 }
