@@ -60,6 +60,7 @@
         <module>mlb</module>
         <module>openstackswitching</module>
         <module>pathpainter</module>
+        <module>cpman</module>
   </modules>
 
     <properties>
