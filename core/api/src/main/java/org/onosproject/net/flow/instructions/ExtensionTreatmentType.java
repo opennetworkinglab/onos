@@ -34,7 +34,8 @@ public final class ExtensionTreatmentType {
     public enum ExtensionTreatmentTypes {
         // TODO fix type numbers to include experimenter id
         NICIRA_SET_TUNNEL_DST(0),
-        NICIRA_RESUBMIT(1);
+        NICIRA_RESUBMIT(1),
+        NICIRA_SET_NSH_SPI(32);
 
         private ExtensionTreatmentType type;
 

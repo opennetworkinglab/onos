@@ -46,6 +46,10 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                 ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type())) {
             return true;
         }
+        if (extensionTreatmentType.equals(
+                ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
+            return true;
+        }
         return false;
     }
 
@@ -59,6 +63,9 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type())) {
           // TODO this will be implemented later
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
+            // TODO this will be implemented later
         }
         return null;
     }
@@ -87,6 +94,9 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type())) {
             return new NiciraResubmit();
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
+            return new NiciraSetNshSpi();
         }
         throw new UnsupportedOperationException(
                 "Driver does not support extension type " + type.toString());
