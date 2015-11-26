@@ -18,6 +18,8 @@ package org.onosproject.net.newresource;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -41,8 +43,8 @@ import static com.google.common.base.Preconditions.checkState;
  * A double value is associated with a continuous type value.
  *
  * Users of this class must keep the semantics of resources regarding the hierarchical structure.
- * For example, resource path, Link:1/VLAN ID:100, is valid, but resource path, VLAN ID:100/Link:1
- * is not valid because a link is not a sub-component of a VLAN ID.
+ * For example, resource path, Device:1/Port:1/VLAN ID:100, is valid, but resource path,
+ * VLAN ID:100/Device:1/Port:1 is not valid because a link is not a sub-component of a VLAN ID.
  */
 @Beta
 public abstract class ResourcePath {
@@ -52,29 +54,73 @@ public abstract class ResourcePath {
 
     public static final Discrete ROOT = new Discrete();
 
+    public static ResourcePath discrete(DeviceId device) {
+        return new Discrete(ImmutableList.of(device));
+    }
+
     /**
      * Creates an resource path which represents a discrete-type resource from the specified components.
      *
-     * @param components components of the path. The order represents hierarchical structure of the resource.
+     * @param device device ID which is the first component of the path
+     * @param components following components of the path. The order represents hierarchical structure of the resource.
      * @return resource path instance
      */
-    public static ResourcePath discrete(Object... components) {
-        if (components.length == 0) {
-            return ROOT;
-        } else {
-            return new Discrete(ImmutableList.copyOf(components));
-        }
+    public static ResourcePath discrete(DeviceId device, Object... components) {
+        return new Discrete(ImmutableList.builder()
+                .add(device)
+                .add(components)
+                .build());
+    }
+
+    /**
+     * Creates an resource path which represents a discrete-type resource from the specified components.
+     *
+     * @param device device ID which is the first component of the path
+     * @param port port number which is the second component of the path
+     * @param components following components of the path. The order represents hierarchical structure of the resource.
+     * @return resource path instance
+     */
+    public static ResourcePath discrete(DeviceId device, PortNumber port, Object... components) {
+        return new Discrete(ImmutableList.builder()
+                .add(device)
+                .add(port)
+                .add(components)
+                .build());
     }
 
     /**
      * Creates an resource path which represents a continuous-type resource from the specified components.
      *
      * @param value amount of the resource
-     * @param components components of the path. The order represents hierarchical structure of the resource.
+     * @param device device ID which is the first component of the path
+     * @param components following components of the path. The order represents hierarchical structure of the resource.
      * @return resource path instance
      */
-    public static ResourcePath continuous(double value, Object... components) {
-        return new Continuous(ImmutableList.copyOf(components), value);
+    public static ResourcePath continuous(double value, DeviceId device, Object... components) {
+        checkArgument(components.length > 0,
+                "Length of components must be greater thant 0, but " + components.length);
+
+        return new Continuous(ImmutableList.builder()
+                .add(device)
+                .add(components)
+                .build(), value);
+    }
+
+    /**
+     * Creates an resource path which represents a continuous-type resource from the specified components.
+     *
+     * @param value amount of the resource
+     * @param device device ID which is the first component of the path.
+     * @param port port number which is the second component of the path.
+     * @param components following components of the path. The order represents hierarchical structure of the resource.
+     * @return resource path instance
+     */
+    public static ResourcePath continuous(double value, DeviceId device, PortNumber port, Object... components) {
+        return new Continuous(ImmutableList.builder()
+                .add(device)
+                .add(port)
+                .add(components)
+                .build(), value);
     }
 
     /**
@@ -82,7 +128,7 @@ public abstract class ResourcePath {
      *
      * @param components components of the path. The order represents hierarchical structure of the resource.
      */
-    ResourcePath(List<Object> components) {
+    protected ResourcePath(List<Object> components) {
         checkNotNull(components);
         checkArgument(!components.isEmpty());
 
@@ -101,7 +147,7 @@ public abstract class ResourcePath {
      * @param parent the parent of this resource
      * @param last a child of the parent
      */
-    ResourcePath(Discrete parent, Object last) {
+    protected ResourcePath(Discrete parent, Object last) {
         checkNotNull(parent);
         checkNotNull(last);
 

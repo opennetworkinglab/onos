@@ -53,13 +53,6 @@ public class ResourcePathTest {
     }
 
     @Test
-    public void testCreateWithZeroComponent() {
-        ResourcePath path = ResourcePath.discrete();
-
-        assertThat(path, is(ResourcePath.ROOT));
-    }
-
-    @Test
     public void testComponents() {
         ResourcePath port = ResourcePath.discrete(D1, P1);
 
