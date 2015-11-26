@@ -24,8 +24,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
-import org.onosproject.net.link.LinkListener;
-import org.onosproject.net.link.LinkService;
 import org.onosproject.net.newresource.ResourceAdminService;
 
 import java.util.concurrent.ExecutorService;
@@ -49,25 +47,18 @@ public final class ResourceRegistrar {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected LinkService linkService;
-
     private DeviceListener deviceListener;
-    private LinkListener linkListener;
     private final ExecutorService executor =
             Executors.newSingleThreadExecutor(groupedThreads("onos/resource", "registrar"));
 
     @Activate
     public void activate() {
-        deviceListener = new ResourceDeviceListener(adminService, executor);
+        deviceListener = new ResourceDeviceListener(adminService, driverService, executor);
         deviceService.addListener(deviceListener);
-        linkListener = new ResourceLinkListener(adminService, driverService, executor);
-        linkService.addListener(linkListener);
     }
 
     @Deactivate
     public void deactivate() {
         deviceService.removeListener(deviceListener);
-        linkService.removeListener(linkListener);
     }
 }

@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -59,9 +60,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.LinkKey.linkKey;
@@ -120,11 +121,16 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
             return Collections.emptyMap();
         }
 
-        List<ResourcePath> resources = labels.entrySet().stream()
-                .map(x -> ResourcePath.discrete(linkKey(x.getKey().src(), x.getKey().src()), x.getValue()))
-                .collect(Collectors.toList());
+        // for short term solution: same label is used for both directions
+        // TODO: introduce the concept of Tx and Rx resources of a port
+        Set<ResourcePath> resources = labels.entrySet().stream()
+                .flatMap(x -> Stream.of(
+                        ResourcePath.discrete(x.getKey().src().deviceId(), x.getKey().src().port(), x.getValue()),
+                        ResourcePath.discrete(x.getKey().dst().deviceId(), x.getKey().dst().port(), x.getValue())
+                ))
+                .collect(Collectors.toSet());
         List<org.onosproject.net.newresource.ResourceAllocation> allocations =
-                resourceService.allocate(intent.id(), resources);
+                resourceService.allocate(intent.id(), ImmutableList.copyOf(resources));
         if (allocations.isEmpty()) {
             Collections.emptyMap();
         }
@@ -135,20 +141,23 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
     private Map<LinkKey, MplsLabel> findMplsLabels(Set<LinkKey> links) {
         Map<LinkKey, MplsLabel> labels = new HashMap<>();
         for (LinkKey link : links) {
-            Optional<MplsLabel> label = findMplsLabel(link);
-            if (label.isPresent()) {
-                labels.put(link, label.get());
+            Set<MplsLabel> forward = findMplsLabel(link.src());
+            Set<MplsLabel> backward = findMplsLabel(link.dst());
+            Set<MplsLabel> common = Sets.intersection(forward, backward);
+            if (common.isEmpty()) {
+                continue;
             }
+            labels.put(link, common.iterator().next());
         }
 
         return labels;
     }
 
-    private Optional<MplsLabel> findMplsLabel(LinkKey link) {
-        return resourceService.getAvailableResources(ResourcePath.discrete(link)).stream()
+    private Set<MplsLabel> findMplsLabel(ConnectPoint cp) {
+        return resourceService.getAvailableResources(ResourcePath.discrete(cp.deviceId(), cp.port())).stream()
                 .filter(x -> x.last() instanceof MplsLabel)
                 .map(x -> (MplsLabel) x.last())
-                .findFirst();
+                .collect(Collectors.toSet());
     }
 
     private MplsLabel getMplsLabel(Map<LinkKey, MplsLabel> labels, LinkKey link) {

@@ -57,9 +57,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.onosproject.net.LinkKey.linkKey;
 
 /**
  * An intent compiler for {@link org.onosproject.net.intent.OpticalConnectivityIntent}.
@@ -182,7 +182,10 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
         IndexedLambda minLambda = findFirstLambda(lambdas);
         List<ResourcePath> lambdaResources = path.links().stream()
-                .map(x -> ResourcePath.discrete(linkKey(x.src(), x.dst())))
+                .flatMap(x -> Stream.of(
+                        ResourcePath.discrete(x.src().deviceId(), x.src().port()),
+                        ResourcePath.discrete(x.dst().deviceId(), x.dst().port())
+                ))
                 .map(x -> x.child(minLambda))
                 .collect(Collectors.toList());
 
@@ -197,7 +200,10 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
     private Set<IndexedLambda> findCommonLambdasOverLinks(List<Link> links) {
         return links.stream()
-                .map(x -> ResourcePath.discrete(linkKey(x.src(), x.dst())))
+                .flatMap(x -> Stream.of(
+                        ResourcePath.discrete(x.src().deviceId(), x.src().port()),
+                        ResourcePath.discrete(x.dst().deviceId(), x.dst().port())
+                ))
                 .map(resourceService::getAvailableResources)
                 .map(x -> Iterables.filter(x, r -> r.last() instanceof IndexedLambda))
                 .map(x -> Iterables.transform(x, r -> (IndexedLambda) r.last()))

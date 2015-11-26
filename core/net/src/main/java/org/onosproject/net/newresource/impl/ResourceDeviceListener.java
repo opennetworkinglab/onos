@@ -16,13 +16,22 @@
 package org.onosproject.net.newresource.impl;
 
 import com.google.common.collect.Lists;
+import org.onlab.packet.MplsLabel;
+import org.onlab.packet.VlanId;
+import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.OchPort;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.TributarySlot;
 import org.onosproject.net.OduSignalType;
+import org.onosproject.net.behaviour.MplsQuery;
+import org.onosproject.net.behaviour.VlanQuery;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.newresource.ResourceAdminService;
 import org.onosproject.net.newresource.ResourcePath;
 import org.slf4j.Logger;
@@ -42,12 +51,19 @@ final class ResourceDeviceListener implements DeviceListener {
 
     private static final Logger log = LoggerFactory.getLogger(ResourceDeviceListener.class);
 
+    private static final int MAX_VLAN_ID = VlanId.MAX_VLAN;
+    private static final List<VlanId> ENTIRE_VLAN_IDS = getEntireVlans();
+
+    private static final int MAX_MPLS_LABEL = 1048576;
+    private static final List<MplsLabel> ENTIRE_MPLS_LABELS = getEntireMplsLabels();
+
     private static final int TOTAL_ODU2_TRIBUTARY_SLOTS = 8;
     private static final int TOTAL_ODU4_TRIBUTARY_SLOTS = 80;
     private static final List<TributarySlot> ENTIRE_ODU2_TRIBUTARY_SLOTS = getEntireOdu2TributarySlots();
     private static final List<TributarySlot> ENTIRE_ODU4_TRIBUTARY_SLOTS = getEntireOdu4TributarySlots();
 
     private final ResourceAdminService adminService;
+    private final DriverService driverService;
     private final ExecutorService executor;
 
     /**
@@ -56,8 +72,10 @@ final class ResourceDeviceListener implements DeviceListener {
      * @param adminService instance invoked to register resources
      * @param executor executor used for processing resource registration
      */
-    ResourceDeviceListener(ResourceAdminService adminService, ExecutorService executor) {
+    ResourceDeviceListener(ResourceAdminService adminService, DriverService driverService,
+                           ExecutorService executor) {
         this.adminService = checkNotNull(adminService);
+        this.driverService = checkNotNull(driverService);
         this.executor = checkNotNull(executor);
     }
 
@@ -95,6 +113,18 @@ final class ResourceDeviceListener implements DeviceListener {
         executor.submit(() -> {
             adminService.registerResources(portPath);
 
+            // for VLAN IDs
+            if (isVlanEnabled(device.id(), port.number())) {
+                adminService.registerResources(Lists.transform(ENTIRE_VLAN_IDS, portPath::child));
+            }
+
+            // for MPLS labels
+            if (isMplsEnabled(device.id(), port.number())) {
+                adminService.registerResources(Lists.transform(ENTIRE_MPLS_LABELS, portPath::child));
+            }
+
+            // for Tributary slots
+            // TODO: need to define Behaviour to make a query about OCh port
             switch (port.type()) {
                 case OCH:
                     // register ODU TributarySlots against the OCH port
@@ -124,15 +154,55 @@ final class ResourceDeviceListener implements DeviceListener {
         executor.submit(() -> adminService.unregisterResources(resource));
     }
 
+    private boolean isVlanEnabled(DeviceId device, PortNumber port) {
+        try {
+            DriverHandler handler = driverService.createHandler(device);
+            if (handler == null) {
+                return false;
+            }
+
+            VlanQuery query = handler.behaviour(VlanQuery.class);
+            return query != null && query.isEnabled(port);
+        } catch (ItemNotFoundException e) {
+            return false;
+        }
+    }
+
+    private boolean isMplsEnabled(DeviceId device, PortNumber port) {
+        try {
+            DriverHandler handler = driverService.createHandler(device);
+            if (handler == null) {
+                return false;
+            }
+
+            MplsQuery query = handler.behaviour(MplsQuery.class);
+            return query != null && query.isEnabled(port);
+        } catch (ItemNotFoundException e) {
+            return false;
+        }
+    }
+
+    private static List<VlanId> getEntireVlans() {
+        return IntStream.range(0, MAX_VLAN_ID)
+                .mapToObj(x -> VlanId.vlanId((short) x))
+                .collect(Collectors.toList());
+    }
+
+    private static List<MplsLabel> getEntireMplsLabels() {
+        // potentially many objects are created
+        return IntStream.range(0, MAX_MPLS_LABEL)
+                .mapToObj(MplsLabel::mplsLabel)
+                .collect(Collectors.toList());
+    }
+
     private static List<TributarySlot> getEntireOdu2TributarySlots() {
         return IntStream.rangeClosed(1, TOTAL_ODU2_TRIBUTARY_SLOTS)
-                .mapToObj(x -> TributarySlot.of(x))
+                .mapToObj(TributarySlot::of)
                 .collect(Collectors.toList());
     }
     private static List<TributarySlot> getEntireOdu4TributarySlots() {
         return IntStream.rangeClosed(1, TOTAL_ODU4_TRIBUTARY_SLOTS)
-                .mapToObj(x -> TributarySlot.of(x))
+                .mapToObj(TributarySlot::of)
                 .collect(Collectors.toList());
     }
-
 }

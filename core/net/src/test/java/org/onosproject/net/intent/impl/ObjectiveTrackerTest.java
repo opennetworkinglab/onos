@@ -29,8 +29,10 @@ import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.Event;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.intent.Intent;
@@ -52,7 +54,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.onosproject.net.LinkKey.linkKey;
 import static org.onosproject.net.newresource.ResourceEvent.Type.*;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.device;
@@ -231,7 +232,7 @@ public class ObjectiveTrackerTest {
     @Test
     public void testResourceEvent() throws Exception {
         ResourceEvent event = new ResourceEvent(RESOURCE_ADDED,
-                ResourcePath.discrete(linkKey(link("a", 1, "b", 1))));
+                ResourcePath.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)));
         resourceListener.event(event);
 
         assertThat(

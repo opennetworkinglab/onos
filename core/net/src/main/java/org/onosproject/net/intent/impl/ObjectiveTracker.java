@@ -34,6 +34,7 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.NetworkResource;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -302,11 +303,11 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     private class InternalResourceListener implements ResourceListener {
         @Override
         public void event(ResourceEvent event) {
-            Optional<Class<?>> linkEvent = event.subject().components().stream()
+            Optional<Class<?>> deviceEvent = event.subject().components().stream()
                     .map(Object::getClass)
-                    .filter(x -> x == LinkKey.class)
+                    .filter(x -> x == PortNumber.class)
                     .findFirst();
-            if (linkEvent.isPresent()) {
+            if (deviceEvent.isPresent()) {
                 executorService.execute(() -> {
                     if (delegate == null) {
                         return;
