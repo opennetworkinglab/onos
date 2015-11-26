@@ -189,6 +189,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         List<ResourceAllocation> allocations = resourceService.allocate(intent.id(), lambdaResources);
         if (allocations.isEmpty()) {
             log.info("Resource allocation for {} failed (resource request: {})", intent, lambdaResources);
+            return null;
         }
 
         return minLambda;
