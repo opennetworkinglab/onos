@@ -16,6 +16,7 @@
 package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -50,6 +51,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import static org.onlab.util.Tools.nullIsNotFound;
@@ -64,6 +66,7 @@ public class HostsWebResource extends AbstractWebResource {
     @Context
     UriInfo uriInfo;
     public static final String HOST_NOT_FOUND = "Host is not found";
+    private static final String[] REMOVAL_KEYS = {"mac", "vlan", "location", "ipAddresses"};
 
     /**
      * Get all end-station hosts.
@@ -199,14 +202,31 @@ public class HostsWebResource extends AbstractWebResource {
             while (ipStrings.hasNext()) {
                 ips.add(IpAddress.valueOf(ipStrings.next().asText()));
             }
-            //TODO remove elements from json node after reading them
-            SparseAnnotations annotations = annotations(node);
+
+            // try to remove elements from json node after reading them
+            SparseAnnotations annotations = annotations(removeElements(node, REMOVAL_KEYS));
             // Update host inventory
 
             HostId hostId = HostId.hostId(mac, vlanId);
             DefaultHostDescription desc = new DefaultHostDescription(mac, vlanId, hostLocation, ips, annotations);
             hostProviderService.hostDetected(hostId, desc);
             return hostId;
+        }
+
+        /**
+         * Remove a set of elements from JsonNode by specifying keys.
+         *
+         * @param node JsonNode containing host information
+         * @param removalKeys key of elements that need to be removed
+         * @return removal keys
+         */
+        private JsonNode removeElements(JsonNode node, String[] removalKeys) {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> map = mapper.convertValue(node, Map.class);
+            for (String key : removalKeys) {
+                map.remove(key);
+            }
+            return mapper.convertValue(map, JsonNode.class);
         }
 
         /**
