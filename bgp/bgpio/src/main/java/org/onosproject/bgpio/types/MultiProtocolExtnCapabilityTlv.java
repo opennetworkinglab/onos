@@ -25,7 +25,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides MultiProtocolExtnCapabilityTlv.
  */
-public class MultiProtocolExtnCapabilityTlv implements BGPValueType {
+public class MultiProtocolExtnCapabilityTlv implements BgpValueType {
 
     /*
         0       7       15      23      31
@@ -141,7 +141,7 @@ public class MultiProtocolExtnCapabilityTlv implements BGPValueType {
      * @param cb of type channel buffer
      * @return object of MultiProtocolExtnCapabilityTlv
      */
-    public static BGPValueType read(ChannelBuffer cb) {
+    public static BgpValueType read(ChannelBuffer cb) {
         short afi = cb.readShort();
         byte res = cb.readByte();
         byte safi = cb.readByte();

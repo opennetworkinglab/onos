@@ -27,12 +27,12 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.bgp.controller.BGPController;
+import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpDpid;
 import org.onosproject.bgp.controller.BgpLinkListener;
 import org.onosproject.bgp.controller.BgpNodeListener;
 import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4;
+import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -74,7 +74,7 @@ public class BgpTopologyProvider extends AbstractProvider implements LinkProvide
     protected DeviceProviderRegistry deviceProviderRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected BGPController controller;
+    protected BgpController controller;
 
     private DeviceProviderService deviceProviderService;
     private LinkProviderService linkProviderService;
@@ -150,7 +150,7 @@ public class BgpTopologyProvider extends AbstractProvider implements LinkProvide
     private class InternalBgpProvider implements BgpNodeListener, BgpLinkListener {
 
         @Override
-        public void addNode(BGPNodeLSNlriVer4 nodeNlri) {
+        public void addNode(BgpNodeLSNlriVer4 nodeNlri) {
             log.debug("Add node {}", nodeNlri.toString());
 
             if (deviceProviderService == null) {
@@ -167,7 +167,7 @@ public class BgpTopologyProvider extends AbstractProvider implements LinkProvide
         }
 
         @Override
-        public void deleteNode(BGPNodeLSNlriVer4 nodeNlri) {
+        public void deleteNode(BgpNodeLSNlriVer4 nodeNlri) {
             log.debug("Delete node {}", nodeNlri.toString());
 
             if (deviceProviderService == null) {

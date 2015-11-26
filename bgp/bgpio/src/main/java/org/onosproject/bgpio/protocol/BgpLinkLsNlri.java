@@ -17,13 +17,13 @@ package org.onosproject.bgpio.protocol;
 
 import java.util.List;
 
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.protocol.linkstate.NodeDescriptors;
 
 /**
  * Abstraction of an entity providing BGP-LS Link NLRI.
  */
-public interface BgpLinkLsNlri extends BGPLSNlri {
+public interface BgpLinkLsNlri extends BgpLSNlri {
     /**
      * Returns local node descriptors.
      *
@@ -43,5 +43,5 @@ public interface BgpLinkLsNlri extends BGPLSNlri {
      *
      * @return link descriptors
      */
-    List<BGPValueType> linkDescriptors();
+    List<BgpValueType> linkDescriptors();
 }

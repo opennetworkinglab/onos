@@ -19,9 +19,9 @@ import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.Ip6Address;
-import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.types.BGPErrorType;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Implements BGP attribute IPv6 router ID.
  */
-public final class BgpAttrRouterIdV6 implements BGPValueType {
+public final class BgpAttrRouterIdV6 implements BgpValueType {
 
     protected static final Logger log = LoggerFactory
             .getLogger(BgpAttrRouterIdV6.class);
@@ -70,18 +70,18 @@ public final class BgpAttrRouterIdV6 implements BGPValueType {
      * @param cb ChannelBuffer
      * @param sType TLV type
      * @return object of BgpAttrRouterIdV6
-     * @throws BGPParseException while parsing BgpAttrRouterIdV6
+     * @throws BgpParseException while parsing BgpAttrRouterIdV6
      */
     public static BgpAttrRouterIdV6 read(ChannelBuffer cb, short sType)
-            throws BGPParseException {
+            throws BgpParseException {
         byte[] ipBytes;
         Ip6Address ip6RouterId;
 
         short lsAttrLength = cb.readShort();
 
         if ((lsAttrLength != 16) || (cb.readableBytes() < lsAttrLength)) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                   BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                   BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
                                    lsAttrLength);
         }
 

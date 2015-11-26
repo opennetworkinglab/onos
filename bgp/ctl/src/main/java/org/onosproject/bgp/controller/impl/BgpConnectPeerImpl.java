@@ -21,9 +21,9 @@ import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.onosproject.bgp.controller.BGPCfg;
-import org.onosproject.bgp.controller.BGPController;
-import org.onosproject.bgp.controller.BGPPeerCfg;
+import org.onosproject.bgp.controller.BgpCfg;
+import org.onosproject.bgp.controller.BgpController;
+import org.onosproject.bgp.controller.BgpPeerCfg;
 import org.onosproject.bgp.controller.BgpConnectPeer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ public class BgpConnectPeerImpl implements BgpConnectPeer {
     private int connectRetryTime;
     private ChannelPipelineFactory pfact;
     private ClientBootstrap peerBootstrap;
-    private BGPCfg bgpconfig;
+    private BgpCfg bgpconfig;
 
     /**
      * Initialize timer and initiate pipeline factory.
@@ -51,10 +51,10 @@ public class BgpConnectPeerImpl implements BgpConnectPeer {
      * @param remoteHost remote host to connect
      * @param remotePort remote port to connect
      */
-    public BgpConnectPeerImpl(BGPController bgpController, String remoteHost, int remotePort) {
+    public BgpConnectPeerImpl(BgpController bgpController, String remoteHost, int remotePort) {
 
         this.bgpconfig = bgpController.getConfig();
-        this.pfact = new BGPPipelineFactory(bgpController, false);
+        this.pfact = new BgpPipelineFactory(bgpController, false);
         this.peerBootstrap = Controller.peerBootstrap();
         this.peerBootstrap.setPipelineFactory(pfact);
         this.peerHost = remoteHost;
@@ -98,12 +98,12 @@ public class BgpConnectPeerImpl implements BgpConnectPeer {
             InetSocketAddress connectToSocket = new InetSocketAddress(peerHost, peerPort);
 
             try {
-                bgpconfig.setPeerConnState(peerHost, BGPPeerCfg.State.CONNECT);
+                bgpconfig.setPeerConnState(peerHost, BgpPeerCfg.State.CONNECT);
                 peerBootstrap.connect(connectToSocket).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
                         if (!future.isSuccess()) {
-                            bgpconfig.setPeerConnState(peerHost, BGPPeerCfg.State.ACTIVE);
+                            bgpconfig.setPeerConnState(peerHost, BgpPeerCfg.State.ACTIVE);
                             connectRetryCounter++;
                             log.error("Connection failed, ConnectRetryCounter {} remote host {}", connectRetryCounter,
                                       peerHost);

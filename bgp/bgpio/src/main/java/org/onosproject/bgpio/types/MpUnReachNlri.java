@@ -20,10 +20,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.protocol.BGPLSNlri;
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4;
-import org.onosproject.bgpio.protocol.linkstate.BGPPrefixIPv4LSNlriVer4;
+import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.protocol.BgpLSNlri;
+import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
+import org.onosproject.bgpio.protocol.linkstate.BgpPrefixIPv4LSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
@@ -35,7 +35,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides Implementation of MpUnReach Nlri BGP Path Attribute.
  */
-public class MpUnReachNlri implements BGPValueType {
+public class MpUnReachNlri implements BgpValueType {
 
     private static final Logger log = LoggerFactory.getLogger(MpUnReachNlri.class);
     public static final byte MPUNREACHNLRI_TYPE = 15;
@@ -44,7 +44,7 @@ public class MpUnReachNlri implements BGPValueType {
     private boolean isMpUnReachNlri = false;
     private final short afi;
     private final byte safi;
-    private final List<BGPLSNlri> mpUnReachNlri;
+    private final List<BgpLSNlri> mpUnReachNlri;
     private final int length;
 
     /**
@@ -55,7 +55,7 @@ public class MpUnReachNlri implements BGPValueType {
      * @param safi subsequent address family identifier
      * @param length of MpUnReachNlri
      */
-    public MpUnReachNlri(List<BGPLSNlri> mpUnReachNlri, short afi, byte safi,
+    public MpUnReachNlri(List<BgpLSNlri> mpUnReachNlri, short afi, byte safi,
                   int length) {
         this.mpUnReachNlri = mpUnReachNlri;
         this.isMpUnReachNlri = true;
@@ -69,9 +69,9 @@ public class MpUnReachNlri implements BGPValueType {
      *
      * @param cb ChannelBuffer
      * @return object of MpUnReachNlri
-     * @throws BGPParseException while parsing MpUnReachNlri
+     * @throws BgpParseException while parsing MpUnReachNlri
      */
-    public static MpUnReachNlri read(ChannelBuffer cb) throws BGPParseException {
+    public static MpUnReachNlri read(ChannelBuffer cb) throws BgpParseException {
         ChannelBuffer tempBuf = cb.copy();
         Validation parseFlags = Validation.parseAttributeHeader(cb);
         int len = parseFlags.isShort() ? parseFlags.getLength() + Constants.TYPE_AND_LEN_AS_SHORT
@@ -80,17 +80,17 @@ public class MpUnReachNlri implements BGPValueType {
 
         if (!parseFlags.getFirstBit() && parseFlags.getSecondBit()
                 && parseFlags.getThirdBit()) {
-            throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                        BGPErrorType.ATTRIBUTE_FLAGS_ERROR, data);
+            throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                        BgpErrorType.ATTRIBUTE_FLAGS_ERROR, data);
         }
 
         if (cb.readableBytes() < parseFlags.getLength()) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                   BGPErrorType.ATTRIBUTE_LENGTH_ERROR, parseFlags.getLength());
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                   BgpErrorType.ATTRIBUTE_LENGTH_ERROR, parseFlags.getLength());
         }
 
-        LinkedList<BGPLSNlri> mpUnReachNlri = new LinkedList<>();
-        BGPLSNlri bgpLSNlri = null;
+        LinkedList<BgpLSNlri> mpUnReachNlri = new LinkedList<>();
+        BgpLSNlri bgpLSNlri = null;
         short afi = 0;
         byte safi = 0;
         ChannelBuffer tempCb = cb.readBytes(parseFlags.getLength());
@@ -106,19 +106,19 @@ public class MpUnReachNlri implements BGPValueType {
                     short totNlriLen = tempCb.readShort();
                     if (tempCb.readableBytes() < totNlriLen) {
                         Validation.validateLen(
-                                BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                BGPErrorType.ATTRIBUTE_LENGTH_ERROR, totNlriLen);
+                                BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                BgpErrorType.ATTRIBUTE_LENGTH_ERROR, totNlriLen);
                     }
                     tempBuf = tempCb.readBytes(totNlriLen);
                     switch (nlriType) {
-                    case BGPNodeLSNlriVer4.NODE_NLRITYPE:
-                        bgpLSNlri = BGPNodeLSNlriVer4.read(tempBuf, afi, safi);
+                    case BgpNodeLSNlriVer4.NODE_NLRITYPE:
+                        bgpLSNlri = BgpNodeLSNlriVer4.read(tempBuf, afi, safi);
                         break;
                     case BgpLinkLsNlriVer4.LINK_NLRITYPE:
                         bgpLSNlri = BgpLinkLsNlriVer4.read(tempBuf, afi, safi);
                         break;
-                    case BGPPrefixIPv4LSNlriVer4.PREFIX_IPV4_NLRITYPE:
-                        bgpLSNlri = BGPPrefixIPv4LSNlriVer4.read(tempBuf, afi,
+                    case BgpPrefixIPv4LSNlriVer4.PREFIX_IPV4_NLRITYPE:
+                        bgpLSNlri = BgpPrefixIPv4LSNlriVer4.read(tempBuf, afi,
                                                                  safi);
                         break;
                     default:
@@ -128,7 +128,7 @@ public class MpUnReachNlri implements BGPValueType {
                 }
             } else {
                 //TODO: check with the values got from capability
-                throw new BGPParseException("Not Supporting afi " + afi
+                throw new BgpParseException("Not Supporting afi " + afi
                         + "safi " + safi);
             }
         }
@@ -164,7 +164,7 @@ public class MpUnReachNlri implements BGPValueType {
      *
      * @return list of MpUnReach Nlri
      */
-    public List<BGPLSNlri> mpUnReachNlri() {
+    public List<BgpLSNlri> mpUnReachNlri() {
         return this.mpUnReachNlri;
     }
 

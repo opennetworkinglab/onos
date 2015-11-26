@@ -29,7 +29,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides IP Reachability InformationTlv Tlv which contains IP Prefix.
  */
-public class IPReachabilityInformationTlv implements BGPValueType {
+public class IPReachabilityInformationTlv implements BgpValueType {
 
     /*
      * Reference :draft-ietf-idr-ls-distribution-11

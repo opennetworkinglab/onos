@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.types.BGPErrorType;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,7 @@ import com.google.common.base.MoreObjects;
 /**
  * BGP Multi-Topology ID of the LS attribute.
  */
-public class BgpAttrNodeMultiTopologyId implements BGPValueType {
+public class BgpAttrNodeMultiTopologyId implements BgpValueType {
 
     private static final Logger log = LoggerFactory
             .getLogger(BgpAttrNodeMultiTopologyId.class);
@@ -66,18 +66,18 @@ public class BgpAttrNodeMultiTopologyId implements BGPValueType {
      *
      * @param cb ChannelBuffer
      * @return Constructor of BgpAttrNodeMultiTopologyId
-     * @throws BGPParseException while parsing BgpAttrNodeMultiTopologyId
+     * @throws BgpParseException while parsing BgpAttrNodeMultiTopologyId
      */
     public static BgpAttrNodeMultiTopologyId read(ChannelBuffer cb)
-            throws BGPParseException {
+            throws BgpParseException {
         ArrayList<Short> multiTopologyId = new ArrayList<Short>();
         short tempMultiTopologyId;
         short lsAttrLength = cb.readShort();
         int len = lsAttrLength / 2; // Length is 2*n and n is the number of MT-IDs
 
         if (cb.readableBytes() < lsAttrLength) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                   BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                   BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
                                    lsAttrLength);
         }
 

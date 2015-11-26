@@ -18,12 +18,12 @@ package org.onosproject.bgpio.protocol.linkstate;
 import java.util.List;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpLinkLsNlri;
 import org.onosproject.bgpio.protocol.NlriType;
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4.ProtocolType;
-import org.onosproject.bgpio.types.BGPErrorType;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4.ProtocolType;
+import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.RouteDistinguisher;
 import org.onosproject.bgpio.util.Constants;
 import org.slf4j.Logger;
@@ -58,7 +58,7 @@ public class BgpLinkLsNlriVer4 implements BgpLinkLsNlri {
     private static final Logger log = LoggerFactory.getLogger(BgpLinkLsNlriVer4.class);
     public static final int LINK_NLRITYPE = 2;
 
-    private BGPLinkLSIdentifier linkLSIdentifier;
+    private BgpLinkLSIdentifier linkLSIdentifier;
     private byte protocolId;
     private long identifier;
     private RouteDistinguisher routeDistinguisher;
@@ -84,7 +84,7 @@ public class BgpLinkLsNlriVer4 implements BgpLinkLsNlri {
      * @param routeDistinguisher route distinguisher from message
      * @param isVpn vpn info availability in message
      */
-    public BgpLinkLsNlriVer4(byte protocolId, long identifier, BGPLinkLSIdentifier linkLSIdentifier,
+    public BgpLinkLsNlriVer4(byte protocolId, long identifier, BgpLinkLSIdentifier linkLSIdentifier,
                              RouteDistinguisher routeDistinguisher, boolean isVpn) {
         this.protocolId = protocolId;
         this.identifier = identifier;
@@ -100,9 +100,9 @@ public class BgpLinkLsNlriVer4 implements BgpLinkLsNlri {
      * @param afi Address Family Identifier
      * @param safi Subsequent Address Family Identifier
      * @return object of this class
-     * @throws BGPParseException while parsing Link LS NLRI
+     * @throws BgpParseException while parsing Link LS NLRI
      */
-    public static BgpLinkLsNlriVer4 read(ChannelBuffer cb, short afi, byte safi) throws BGPParseException {
+    public static BgpLinkLsNlriVer4 read(ChannelBuffer cb, short afi, byte safi) throws BgpParseException {
         boolean isVpn = false;
         RouteDistinguisher routeDistinguisher = null;
         if ((afi == Constants.AFI_VALUE) && (safi == Constants.VPN_SAFI_VALUE)) {
@@ -115,8 +115,8 @@ public class BgpLinkLsNlriVer4 implements BgpLinkLsNlri {
         byte protocolId = cb.readByte();
         long identifier = cb.readLong();
 
-        BGPLinkLSIdentifier linkLSIdentifier = new BGPLinkLSIdentifier();
-        linkLSIdentifier = BGPLinkLSIdentifier.parseLinkIdendifier(cb, protocolId);
+        BgpLinkLSIdentifier linkLSIdentifier = new BgpLinkLSIdentifier();
+        linkLSIdentifier = BgpLinkLSIdentifier.parseLinkIdendifier(cb, protocolId);
         return new BgpLinkLsNlriVer4(protocolId, identifier, linkLSIdentifier, routeDistinguisher, isVpn);
     }
 
@@ -135,12 +135,12 @@ public class BgpLinkLsNlriVer4 implements BgpLinkLsNlri {
      *
      * @param linkLSIdentifier link LS identifier to set
      */
-    public void setLinkLSIdentifier(BGPLinkLSIdentifier linkLSIdentifier) {
+    public void setLinkLSIdentifier(BgpLinkLSIdentifier linkLSIdentifier) {
         this.linkLSIdentifier = linkLSIdentifier;
     }
 
     @Override
-    public ProtocolType getProtocolId() throws BGPParseException {
+    public ProtocolType getProtocolId() throws BgpParseException {
         switch (protocolId) {
         case Constants.ISIS_LEVELONE:
             return ProtocolType.ISIS_LEVEL_ONE;
@@ -155,7 +155,7 @@ public class BgpLinkLsNlriVer4 implements BgpLinkLsNlri {
         case Constants.OSPFV3:
             return ProtocolType.OSPF_V3;
         default:
-            throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, (byte) 0, null);
+            throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR, (byte) 0, null);
         }
     }
 
@@ -188,12 +188,12 @@ public class BgpLinkLsNlriVer4 implements BgpLinkLsNlri {
      *
      * @return link identifier
      */
-    public BGPLinkLSIdentifier getLinkIdentifier() {
+    public BgpLinkLSIdentifier getLinkIdentifier() {
         return this.linkLSIdentifier;
     }
 
     @Override
-    public List<BGPValueType> linkDescriptors() {
+    public List<BgpValueType> linkDescriptors() {
         return this.linkLSIdentifier.linkDescriptors();
     }
 

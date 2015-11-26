@@ -18,7 +18,7 @@ package org.onosproject.bgpio.types;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides OSPF Route Type Tlv which contains route type.
  */
-public class OSPFRouteTypeTlv implements BGPValueType {
+public class OSPFRouteTypeTlv implements BgpValueType {
 
     /* Reference :draft-ietf-idr-ls-distribution-11
       0                   1                   2                   3
@@ -90,9 +90,9 @@ public class OSPFRouteTypeTlv implements BGPValueType {
      * Returns RouteType.
      *
      * @return RouteType
-     * @throws BGPParseException if routeType is not matched
+     * @throws BgpParseException if routeType is not matched
      */
-    public ROUTETYPE getValue() throws BGPParseException {
+    public ROUTETYPE getValue() throws BgpParseException {
         switch (routeType) {
         case INTRA_AREA_TYPE:
             return ROUTETYPE.Intra_Area;
@@ -107,7 +107,7 @@ public class OSPFRouteTypeTlv implements BGPValueType {
         case NSSA_TYPE_2:
             return ROUTETYPE.NSSA_2;
         default:
-            throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, (byte) 0, null);
+            throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR, (byte) 0, null);
         }
     }
 

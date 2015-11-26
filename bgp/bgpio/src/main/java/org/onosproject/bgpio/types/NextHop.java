@@ -20,7 +20,7 @@ import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.Ip4Address;
-import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
 
@@ -30,7 +30,7 @@ import com.google.common.base.Preconditions;
 /**
  * Implementation of NextHop BGP Path Attribute.
  */
-public class NextHop implements BGPValueType {
+public class NextHop implements BgpValueType {
     public static final byte NEXTHOP_TYPE = 3;
 
     private boolean isNextHop = false;
@@ -60,27 +60,27 @@ public class NextHop implements BGPValueType {
      *
      * @param cb ChannelBuffer
      * @return object of NextHop
-     * @throws BGPParseException while parsing nexthop attribute
+     * @throws BgpParseException while parsing nexthop attribute
      */
-    public static NextHop read(ChannelBuffer cb) throws BGPParseException {
+    public static NextHop read(ChannelBuffer cb) throws BgpParseException {
         Ip4Address nextHop;
         ChannelBuffer tempCb = cb.copy();
         Validation parseFlags = Validation.parseAttributeHeader(cb);
 
         if (cb.readableBytes() < parseFlags.getLength()) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR, BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
                     parseFlags.getLength());
         }
         int len = parseFlags.isShort() ? parseFlags.getLength() + Constants.TYPE_AND_LEN_AS_SHORT : parseFlags
                 .getLength() + Constants.TYPE_AND_LEN_AS_BYTE;
         ChannelBuffer data = tempCb.readBytes(len);
         if (parseFlags.getFirstBit() && !parseFlags.getSecondBit() && parseFlags.getThirdBit()) {
-            throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_FLAGS_ERROR, data);
+            throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR, BgpErrorType.ATTRIBUTE_FLAGS_ERROR, data);
         }
 
          InetAddress ipAddress = Validation.toInetAddress(parseFlags.getLength(), cb);
         if (ipAddress.isMulticastAddress()) {
-            throw new BGPParseException("Multicast address is not supported");
+            throw new BgpParseException("Multicast address is not supported");
         }
 
         nextHop = Ip4Address.valueOf(ipAddress);

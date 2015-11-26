@@ -19,13 +19,13 @@ package org.onosproject.bgp.controller.impl;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.onosproject.bgpio.protocol.BGPLSNlri;
-import org.onosproject.bgpio.protocol.linkstate.BGPLinkLSIdentifier;
+import org.onosproject.bgpio.protocol.BgpLSNlri;
+import org.onosproject.bgpio.protocol.linkstate.BgpLinkLSIdentifier;
 import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSIdentifier;
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4;
-import org.onosproject.bgpio.protocol.linkstate.BGPPrefixIPv4LSNlriVer4;
-import org.onosproject.bgpio.protocol.linkstate.BGPPrefixLSIdentifier;
+import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSIdentifier;
+import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
+import org.onosproject.bgpio.protocol.linkstate.BgpPrefixIPv4LSNlriVer4;
+import org.onosproject.bgpio.protocol.linkstate.BgpPrefixLSIdentifier;
 import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
 import org.onosproject.bgpio.types.RouteDistinguisher;
 
@@ -35,22 +35,22 @@ import com.google.common.base.MoreObjects;
  * Implementation of Adj-RIB-In with VPN for each peer.
  */
 public class VpnAdjRibIn {
-    private Map<BGPNodeLSIdentifier, PathAttrNlriDetails> nodeTree = new TreeMap<>();
-    private Map<BGPLinkLSIdentifier, PathAttrNlriDetails> linkTree = new TreeMap<>();
-    private Map<BGPPrefixLSIdentifier, PathAttrNlriDetails> prefixTree = new TreeMap<>();
+    private Map<BgpNodeLSIdentifier, PathAttrNlriDetails> nodeTree = new TreeMap<>();
+    private Map<BgpLinkLSIdentifier, PathAttrNlriDetails> linkTree = new TreeMap<>();
+    private Map<BgpPrefixLSIdentifier, PathAttrNlriDetails> prefixTree = new TreeMap<>();
 
-    private Map<RouteDistinguisher, Map<BGPNodeLSIdentifier, PathAttrNlriDetails>> vpnNodeTree
+    private Map<RouteDistinguisher, Map<BgpNodeLSIdentifier, PathAttrNlriDetails>> vpnNodeTree
                                                                                                      = new TreeMap<>();
-    private Map<RouteDistinguisher, Map<BGPLinkLSIdentifier, PathAttrNlriDetails>> vpnLinkTree
+    private Map<RouteDistinguisher, Map<BgpLinkLSIdentifier, PathAttrNlriDetails>> vpnLinkTree
                                                                                                      = new TreeMap<>();
-    private Map<RouteDistinguisher, Map<BGPPrefixLSIdentifier, PathAttrNlriDetails>> vpnPrefixTree
+    private Map<RouteDistinguisher, Map<BgpPrefixLSIdentifier, PathAttrNlriDetails>> vpnPrefixTree
                                                                                                      = new TreeMap<>();
     /**
      * Returns the adjacency node.
      *
      * @return node adjacency RIB node
      */
-    public Map<BGPNodeLSIdentifier, PathAttrNlriDetails> nodeTree() {
+    public Map<BgpNodeLSIdentifier, PathAttrNlriDetails> nodeTree() {
         return nodeTree;
     }
 
@@ -59,7 +59,7 @@ public class VpnAdjRibIn {
      *
      * @return link adjacency RIB node
      */
-    public Map<BGPLinkLSIdentifier, PathAttrNlriDetails> linkTree() {
+    public Map<BgpLinkLSIdentifier, PathAttrNlriDetails> linkTree() {
         return linkTree;
     }
 
@@ -68,7 +68,7 @@ public class VpnAdjRibIn {
      *
      * @return prefix adjacency RIB node
      */
-    public Map<BGPPrefixLSIdentifier, PathAttrNlriDetails> prefixTree() {
+    public Map<BgpPrefixLSIdentifier, PathAttrNlriDetails> prefixTree() {
         return prefixTree;
     }
 
@@ -77,7 +77,7 @@ public class VpnAdjRibIn {
      *
      * @return vpnNode adjacency RIB node
      */
-    public Map<RouteDistinguisher, Map<BGPNodeLSIdentifier, PathAttrNlriDetails>> vpnNodeTree() {
+    public Map<RouteDistinguisher, Map<BgpNodeLSIdentifier, PathAttrNlriDetails>> vpnNodeTree() {
         return vpnNodeTree;
     }
 
@@ -86,7 +86,7 @@ public class VpnAdjRibIn {
      *
      * @return vpnLink adjacency RIB node
      */
-    public Map<RouteDistinguisher, Map<BGPLinkLSIdentifier, PathAttrNlriDetails>> vpnLinkTree() {
+    public Map<RouteDistinguisher, Map<BgpLinkLSIdentifier, PathAttrNlriDetails>> vpnLinkTree() {
         return vpnLinkTree;
     }
 
@@ -95,7 +95,7 @@ public class VpnAdjRibIn {
      *
      * @return vpnPrefix adjacency RIB node
      */
-    public Map<RouteDistinguisher, Map<BGPPrefixLSIdentifier, PathAttrNlriDetails>> vpnPrefixTree() {
+    public Map<RouteDistinguisher, Map<BgpPrefixLSIdentifier, PathAttrNlriDetails>> vpnPrefixTree() {
         return vpnPrefixTree;
     }
 
@@ -105,23 +105,23 @@ public class VpnAdjRibIn {
      * @param nlri NLRI info
      * @param details has pathattribute , protocolID and identifier
      */
-    public void add(BGPLSNlri nlri, PathAttrNlriDetails details) {
-        if (nlri instanceof BGPNodeLSNlriVer4) {
-            BGPNodeLSIdentifier nodeLSIdentifier = ((BGPNodeLSNlriVer4) nlri).getLocalNodeDescriptors();
+    public void add(BgpLSNlri nlri, PathAttrNlriDetails details) {
+        if (nlri instanceof BgpNodeLSNlriVer4) {
+            BgpNodeLSIdentifier nodeLSIdentifier = ((BgpNodeLSNlriVer4) nlri).getLocalNodeDescriptors();
             if (nodeTree.containsKey(nodeLSIdentifier)) {
                 nodeTree.replace(nodeLSIdentifier, details);
             } else {
                 nodeTree.put(nodeLSIdentifier, details);
             }
         } else if (nlri instanceof BgpLinkLsNlriVer4) {
-            BGPLinkLSIdentifier linkLSIdentifier = ((BgpLinkLsNlriVer4) nlri).getLinkIdentifier();
+            BgpLinkLSIdentifier linkLSIdentifier = ((BgpLinkLsNlriVer4) nlri).getLinkIdentifier();
             if (linkTree.containsKey(linkLSIdentifier)) {
                 linkTree.replace(linkLSIdentifier, details);
             } else {
                 linkTree.put(linkLSIdentifier, details);
             }
-        } else if (nlri instanceof BGPPrefixIPv4LSNlriVer4) {
-            BGPPrefixLSIdentifier prefixIdentifier = ((BGPPrefixIPv4LSNlriVer4) nlri).getPrefixIdentifier();
+        } else if (nlri instanceof BgpPrefixIPv4LSNlriVer4) {
+            BgpPrefixLSIdentifier prefixIdentifier = ((BgpPrefixIPv4LSNlriVer4) nlri).getPrefixIdentifier();
             if (prefixTree.containsKey(prefixIdentifier)) {
                 prefixTree.replace(prefixIdentifier, details);
             } else {
@@ -138,9 +138,9 @@ public class VpnAdjRibIn {
      * @param details has pathattribute , protocolID and identifier
      * @param routeDistinguisher unique for for each vpn
      */
-    public void addVpn(BGPLSNlri nlri, PathAttrNlriDetails details, RouteDistinguisher routeDistinguisher) {
+    public void addVpn(BgpLSNlri nlri, PathAttrNlriDetails details, RouteDistinguisher routeDistinguisher) {
         add(nlri, details);
-        if (nlri instanceof BGPNodeLSNlriVer4) {
+        if (nlri instanceof BgpNodeLSNlriVer4) {
             if (!vpnNodeTree.containsKey(routeDistinguisher)) {
                 vpnNodeTree.put(routeDistinguisher, nodeTree);
             }
@@ -148,7 +148,7 @@ public class VpnAdjRibIn {
             if (!vpnLinkTree.containsKey(routeDistinguisher)) {
                 vpnLinkTree.put(routeDistinguisher, linkTree);
             }
-        } else if (nlri instanceof BGPPrefixIPv4LSNlriVer4) {
+        } else if (nlri instanceof BgpPrefixIPv4LSNlriVer4) {
             if (!vpnPrefixTree.containsKey(routeDistinguisher)) {
                 vpnPrefixTree.put(routeDistinguisher, prefixTree);
             }
@@ -161,10 +161,10 @@ public class VpnAdjRibIn {
      * @param nlri NLRI Info
      * @param routeDistinguisher unique for for each vpn
      */
-    public void removeVpn(BGPLSNlri nlri, RouteDistinguisher routeDistinguisher) {
-        if (nlri instanceof BGPNodeLSNlriVer4) {
+    public void removeVpn(BgpLSNlri nlri, RouteDistinguisher routeDistinguisher) {
+        if (nlri instanceof BgpNodeLSNlriVer4) {
             if (vpnNodeTree.containsKey(routeDistinguisher)) {
-                BGPNodeLSIdentifier nodeLSIdentifier = ((BGPNodeLSNlriVer4) nlri).getLocalNodeDescriptors();
+                BgpNodeLSIdentifier nodeLSIdentifier = ((BgpNodeLSNlriVer4) nlri).getLocalNodeDescriptors();
                 if (nodeTree.containsKey(nodeLSIdentifier)) {
                     nodeTree.remove(nodeLSIdentifier);
                 }
@@ -174,7 +174,7 @@ public class VpnAdjRibIn {
             }
         } else if (nlri instanceof BgpLinkLsNlriVer4) {
             if (vpnLinkTree.containsKey(routeDistinguisher)) {
-                BGPLinkLSIdentifier linkLSIdentifier = ((BgpLinkLsNlriVer4) nlri).getLinkIdentifier();
+                BgpLinkLSIdentifier linkLSIdentifier = ((BgpLinkLsNlriVer4) nlri).getLinkIdentifier();
                 if (linkTree.containsKey(linkLSIdentifier)) {
                     linkTree.remove(linkLSIdentifier);
                 }
@@ -182,9 +182,9 @@ public class VpnAdjRibIn {
                     vpnLinkTree.remove(routeDistinguisher);
                 }
             }
-        } else if (nlri instanceof BGPPrefixIPv4LSNlriVer4) {
+        } else if (nlri instanceof BgpPrefixIPv4LSNlriVer4) {
             if (vpnPrefixTree.containsKey(routeDistinguisher)) {
-                BGPPrefixLSIdentifier prefixIdentifier = ((BGPPrefixIPv4LSNlriVer4) nlri).getPrefixIdentifier();
+                BgpPrefixLSIdentifier prefixIdentifier = ((BgpPrefixIPv4LSNlriVer4) nlri).getPrefixIdentifier();
                 if (prefixTree.containsKey(prefixIdentifier)) {
                     prefixTree.remove(prefixIdentifier);
                 }

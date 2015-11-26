@@ -27,23 +27,23 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.bgp.controller.BGPCfg;
-import org.onosproject.bgp.controller.BGPController;
-import org.onosproject.bgp.controller.BGPId;
-import org.onosproject.bgp.controller.BGPPeer;
+import org.onosproject.bgp.controller.BgpCfg;
+import org.onosproject.bgp.controller.BgpController;
+import org.onosproject.bgp.controller.BgpId;
+import org.onosproject.bgp.controller.BgpPeer;
 import org.onosproject.bgp.controller.BgpLinkListener;
 import org.onosproject.bgp.controller.BgpNodeListener;
 import org.onosproject.bgp.controller.BgpPeerManager;
-import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.protocol.BGPMessage;
-import org.onosproject.bgpio.protocol.linkstate.BGPLinkLSIdentifier;
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSIdentifier;
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4;
+import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.protocol.BgpMessage;
+import org.onosproject.bgpio.protocol.linkstate.BgpLinkLSIdentifier;
+import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSIdentifier;
+import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
 import org.onosproject.bgpio.protocol.linkstate.NodeDescriptors;
 import org.onosproject.bgpio.types.AutonomousSystemTlv;
 import org.onosproject.bgpio.types.LinkLocalRemoteIdentifiersTlv;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.RouteDistinguisher;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.net.ConnectPoint;
@@ -225,7 +225,7 @@ public class BgpTopologyProviderTest {
     }
 
     /* class implement test controller */
-    private class TestController implements BGPController {
+    private class TestController implements BgpController {
         protected Set<BgpNodeListener> nodeListener = new CopyOnWriteArraySet<>();
         protected Set<BgpLinkListener> linkListener = new CopyOnWriteArraySet<>();
 
@@ -250,25 +250,25 @@ public class BgpTopologyProviderTest {
         }
 
         @Override
-        public Iterable<BGPPeer> getPeers() {
+        public Iterable<BgpPeer> getPeers() {
             // TODO Auto-generated method stub
             return null;
         }
 
         @Override
-        public BGPPeer getPeer(BGPId bgpId) {
+        public BgpPeer getPeer(BgpId bgpId) {
             // TODO Auto-generated method stub
             return null;
         }
 
         @Override
-        public void writeMsg(BGPId bgpId, BGPMessage msg) {
+        public void writeMsg(BgpId bgpId, BgpMessage msg) {
             // TODO Auto-generated method stub
 
         }
 
         @Override
-        public void processBGPPacket(BGPId bgpId, BGPMessage msg) throws BGPParseException {
+        public void processBGPPacket(BgpId bgpId, BgpMessage msg) throws BgpParseException {
             // TODO Auto-generated method stub
 
         }
@@ -280,7 +280,7 @@ public class BgpTopologyProviderTest {
         }
 
         @Override
-        public BGPCfg getConfig() {
+        public BgpCfg getConfig() {
             // TODO Auto-generated method stub
             return null;
         }
@@ -299,7 +299,7 @@ public class BgpTopologyProviderTest {
         }
 
         @Override
-        public Map<BGPId, BGPPeer> connectedPeers() {
+        public Map<BgpId, BgpPeer> connectedPeers() {
             // TODO Auto-generated method stub
             return null;
         }
@@ -321,16 +321,16 @@ public class BgpTopologyProviderTest {
     @Test
     public void bgpTopologyProviderTestAddDevice1() {
         int deviceAddCount = 0;
-        LinkedList<BGPValueType> subTlvs;
+        LinkedList<BgpValueType> subTlvs;
         subTlvs = new LinkedList<>();
-        BGPValueType tlv = new AutonomousSystemTlv(100);
+        BgpValueType tlv = new AutonomousSystemTlv(100);
         short deslength = AutonomousSystemTlv.LENGTH;
         short desType = AutonomousSystemTlv.TYPE;
 
         subTlvs.add(tlv);
-        BGPNodeLSIdentifier localNodeDescriptors = new BGPNodeLSIdentifier(new NodeDescriptors(subTlvs, deslength,
+        BgpNodeLSIdentifier localNodeDescriptors = new BgpNodeLSIdentifier(new NodeDescriptors(subTlvs, deslength,
                                                                                                desType));
-        BGPNodeLSNlriVer4 nodeNlri = new BGPNodeLSNlriVer4(0, (byte) Constants.DIRECT, localNodeDescriptors, false,
+        BgpNodeLSNlriVer4 nodeNlri = new BgpNodeLSNlriVer4(0, (byte) Constants.DIRECT, localNodeDescriptors, false,
                                                            new RouteDistinguisher());
 
         nodeNlri.setNodeLSIdentifier(localNodeDescriptors);
@@ -347,16 +347,16 @@ public class BgpTopologyProviderTest {
     /* Validate node is not added to the device for invalid URI, RIB count should be zero */
     @Test
     public void bgpTopologyProviderTestAddDevice2() {
-        LinkedList<BGPValueType> subTlvs;
-        BGPValueType tlv = new AutonomousSystemTlv(10);
+        LinkedList<BgpValueType> subTlvs;
+        BgpValueType tlv = new AutonomousSystemTlv(10);
         short deslength = AutonomousSystemTlv.LENGTH;
         short desType = AutonomousSystemTlv.TYPE;
 
         subTlvs = new LinkedList<>();
         subTlvs.add(tlv);
-        BGPNodeLSIdentifier localNodeDescriptors = new BGPNodeLSIdentifier(new NodeDescriptors(subTlvs, deslength,
+        BgpNodeLSIdentifier localNodeDescriptors = new BgpNodeLSIdentifier(new NodeDescriptors(subTlvs, deslength,
                                                                                                desType));
-        BGPNodeLSNlriVer4 nodeNlri = new BGPNodeLSNlriVer4(0, (byte) Constants.DIRECT, localNodeDescriptors, false,
+        BgpNodeLSNlriVer4 nodeNlri = new BgpNodeLSNlriVer4(0, (byte) Constants.DIRECT, localNodeDescriptors, false,
                                                            new RouteDistinguisher());
 
         nodeNlri.setNodeLSIdentifier(localNodeDescriptors);
@@ -369,16 +369,16 @@ public class BgpTopologyProviderTest {
     /* Delete node when node does not exist, RIB count should be zero */
     @Test
     public void bgpTopologyProviderTestAddDevice3() {
-        LinkedList<BGPValueType> subTlvs;
-        BGPValueType tlv = new AutonomousSystemTlv(10);
+        LinkedList<BgpValueType> subTlvs;
+        BgpValueType tlv = new AutonomousSystemTlv(10);
         short deslength = AutonomousSystemTlv.LENGTH;
         short desType = AutonomousSystemTlv.TYPE;
 
         subTlvs = new LinkedList<>();
         subTlvs.add(tlv);
-        BGPNodeLSIdentifier localNodeDescriptors = new BGPNodeLSIdentifier(new NodeDescriptors(subTlvs, deslength,
+        BgpNodeLSIdentifier localNodeDescriptors = new BgpNodeLSIdentifier(new NodeDescriptors(subTlvs, deslength,
                                                                                                desType));
-        BGPNodeLSNlriVer4 nodeNlri = new BGPNodeLSNlriVer4(0, (byte) Constants.DIRECT, localNodeDescriptors, false,
+        BgpNodeLSNlriVer4 nodeNlri = new BgpNodeLSNlriVer4(0, (byte) Constants.DIRECT, localNodeDescriptors, false,
                                                            new RouteDistinguisher());
 
         nodeNlri.setNodeLSIdentifier(localNodeDescriptors);
@@ -394,13 +394,13 @@ public class BgpTopologyProviderTest {
 
         NodeDescriptors localNodeDescriptors;
         NodeDescriptors remoteNodeDescriptors;
-        LinkedList<BGPValueType> subTlvs;
-        LinkedList<BGPValueType> linkDescriptor = new LinkedList<>();
-        BGPValueType tlvLocalRemoteId;
+        LinkedList<BgpValueType> subTlvs;
+        LinkedList<BgpValueType> linkDescriptor = new LinkedList<>();
+        BgpValueType tlvLocalRemoteId;
         short deslength = AutonomousSystemTlv.LENGTH;
         short desType = AutonomousSystemTlv.TYPE;
 
-        BGPValueType tlv = new AutonomousSystemTlv(100);
+        BgpValueType tlv = new AutonomousSystemTlv(100);
         subTlvs = new LinkedList<>();
         subTlvs.add(tlv);
 
@@ -409,7 +409,7 @@ public class BgpTopologyProviderTest {
         tlvLocalRemoteId = new LinkLocalRemoteIdentifiersTlv(1, 2);
         linkDescriptor.add(tlvLocalRemoteId);
 
-        BGPLinkLSIdentifier linkLSIdentifier = new BGPLinkLSIdentifier(localNodeDescriptors, remoteNodeDescriptors,
+        BgpLinkLSIdentifier linkLSIdentifier = new BgpLinkLSIdentifier(localNodeDescriptors, remoteNodeDescriptors,
                                                                        linkDescriptor);
         BgpLinkLsNlriVer4 linkNlri = new BgpLinkLsNlriVer4((byte) Constants.DIRECT, 0, linkLSIdentifier, null, false);
 

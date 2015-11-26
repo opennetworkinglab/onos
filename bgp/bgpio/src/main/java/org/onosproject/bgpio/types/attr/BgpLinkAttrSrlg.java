@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.types.BGPErrorType;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.util.Validation;
 
 import com.google.common.base.MoreObjects;
@@ -30,7 +30,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Implements BGP link Shared Risk Link Group attribute.
  */
-public class BgpLinkAttrSrlg implements BGPValueType {
+public class BgpLinkAttrSrlg implements BgpValueType {
 
     public static final short ATTRNODE_SRLG = 1097;
 
@@ -61,10 +61,10 @@ public class BgpLinkAttrSrlg implements BGPValueType {
      *
      * @param cb Channel buffer
      * @return object of type BgpLinkAttrSrlg
-     * @throws BGPParseException while parsing BgpLinkAttrSrlg
+     * @throws BgpParseException while parsing BgpLinkAttrSrlg
      */
     public static BgpLinkAttrSrlg read(ChannelBuffer cb)
-            throws BGPParseException {
+            throws BgpParseException {
         int tempSrlg;
         ArrayList<Integer> sRlg = new ArrayList<Integer>();
 
@@ -72,8 +72,8 @@ public class BgpLinkAttrSrlg implements BGPValueType {
         int len = lsAttrLength / Integer.SIZE; // each element is of 4 octets
 
         if (cb.readableBytes() < lsAttrLength) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                   BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                   BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
                                    lsAttrLength);
         }
 

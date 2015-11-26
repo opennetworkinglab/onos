@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.bgpio;
+package org.onosproject.bgpio.types;
 
 import org.junit.Test;
-import org.onosproject.bgpio.types.Med;
 
 import com.google.common.testing.EqualsTester;
 
@@ -32,9 +31,6 @@ public class MedTest {
 
     @Test
     public void testEquality() {
-        new EqualsTester()
-        .addEqualityGroup(attr1, sameAsAttr1)
-        .addEqualityGroup(attr2)
-        .testEquals();
+        new EqualsTester().addEqualityGroup(attr1, sameAsAttr1).addEqualityGroup(attr2).testEquals();
     }
 }

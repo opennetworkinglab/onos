@@ -26,7 +26,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides Implementation of Link Local/Remote IdentifiersTlv.
  */
-public class LinkLocalRemoteIdentifiersTlv implements BGPValueType {
+public class LinkLocalRemoteIdentifiersTlv implements BgpValueType {
     private static final Logger log = LoggerFactory.getLogger(LinkLocalRemoteIdentifiersTlv.class);
     public static final short TYPE = 258;
     private static final int LENGTH = 8;

@@ -18,9 +18,9 @@ package org.onosproject.bgpio.types.attr;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.types.BGPErrorType;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Implements BGP attribute Max Link bandwidth.
  */
-public final class BgpLinkAttrMaxLinkBandwidth implements BGPValueType {
+public final class BgpLinkAttrMaxLinkBandwidth implements BgpValueType {
 
     protected static final Logger log = LoggerFactory
             .getLogger(BgpLinkAttrMaxLinkBandwidth.class);
@@ -72,17 +72,17 @@ public final class BgpLinkAttrMaxLinkBandwidth implements BGPValueType {
      * @param cb Channel buffer
      * @param type type of this tlv
      * @return object of type BgpLinkAttrMaxLinkBandwidth
-     * @throws BGPParseException while parsing BgpLinkAttrMaxLinkBandwidth
+     * @throws BgpParseException while parsing BgpLinkAttrMaxLinkBandwidth
      */
     public static BgpLinkAttrMaxLinkBandwidth read(ChannelBuffer cb, short type)
-            throws BGPParseException {
+            throws BgpParseException {
         float maxBandwidth;
         short lsAttrLength = cb.readShort();
 
         if ((lsAttrLength != MAX_BANDWIDTH_LEN)
                 || (cb.readableBytes() < lsAttrLength)) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                   BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                   BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
                                    lsAttrLength);
         }
 

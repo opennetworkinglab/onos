@@ -28,7 +28,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides implementation of IsIsPseudonode Tlv.
  */
-public class IsIsPseudonode implements IGPRouterID, BGPValueType {
+public class IsIsPseudonode implements IGPRouterID, BgpValueType {
     private static final Logger log = LoggerFactory.getLogger(IsIsPseudonode.class);
 
     public static final short TYPE = 515;

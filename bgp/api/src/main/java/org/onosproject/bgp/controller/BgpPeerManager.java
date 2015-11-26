@@ -26,7 +26,7 @@ public interface BgpPeerManager {
      *
      * @return false if peer already exist, otherwise true
      */
-    public boolean addConnectedPeer(BGPId bgpId, BGPPeer bgpPeer);
+    public boolean addConnectedPeer(BgpId bgpId, BgpPeer bgpPeer);
 
     /**
      * Validate wheather peer is connected.
@@ -35,14 +35,14 @@ public interface BgpPeerManager {
      *
      * @return true if peer exist, otherwise false
      */
-    public boolean isPeerConnected(BGPId bgpId);
+    public boolean isPeerConnected(BgpId bgpId);
 
     /**
      * Remove connected peer.
      *
      * @param bgpId BGP ID
      */
-    public void removeConnectedPeer(BGPId bgpId);
+    public void removeConnectedPeer(BgpId bgpId);
 
     /**
      * Gets connected peer.
@@ -50,5 +50,5 @@ public interface BgpPeerManager {
      * @param bgpId BGP ID
      * @return BGPPeer the connected peer, otherwise null
      */
-    public BGPPeer getPeer(BGPId bgpId);
+    public BgpPeer getPeer(BgpId bgpId);
 }

@@ -13,7 +13,7 @@
 
 package org.onosproject.bgp.controller;
 
-import org.onosproject.bgpio.protocol.BGPLSNlri;
+import org.onosproject.bgpio.protocol.BgpLSNlri;
 import org.onosproject.bgpio.protocol.linkstate.PathAttrNlriDetails;
 import org.onosproject.bgpio.types.RouteDistinguisher;
 
@@ -29,14 +29,14 @@ public interface BgpLocalRib {
      * @param nlri network layer reach info
      * @param details nlri details
      */
-    void add(BgpSessionInfo sessionInfo, BGPLSNlri nlri, PathAttrNlriDetails details);
+    void add(BgpSessionInfo sessionInfo, BgpLSNlri nlri, PathAttrNlriDetails details);
 
     /**
      * Removes NLRI identifier if it exists.
      *
      * @param nlri info
      */
-    void delete(BGPLSNlri nlri);
+    void delete(BgpLSNlri nlri);
 
     /**
      * Update NLRI identifier mapped with route distinguisher if it exists in tree otherwise add NLRI infomation mapped
@@ -47,7 +47,7 @@ public interface BgpLocalRib {
      * @param details has pathattribute, protocol id and identifier
      * @param routeDistinguisher unique for each VPN
      */
-    void add(BgpSessionInfo sessionInfo, BGPLSNlri nlri, PathAttrNlriDetails details,
+    void add(BgpSessionInfo sessionInfo, BgpLSNlri nlri, PathAttrNlriDetails details,
                     RouteDistinguisher routeDistinguisher);
 
     /**
@@ -56,5 +56,5 @@ public interface BgpLocalRib {
      * @param nlri info
      * @param routeDistinguisher unique for each VPN
      */
-    void delete(BGPLSNlri nlri, RouteDistinguisher routeDistinguisher);
+    void delete(BgpLSNlri nlri, RouteDistinguisher routeDistinguisher);
 }

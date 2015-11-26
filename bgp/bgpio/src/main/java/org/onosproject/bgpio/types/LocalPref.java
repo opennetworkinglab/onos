@@ -18,7 +18,7 @@ package org.onosproject.bgpio.types;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
 
@@ -27,7 +27,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides implementation of LocalPref BGP Path Attribute.
  */
-public class LocalPref implements BGPValueType {
+public class LocalPref implements BgpValueType {
     public static final byte LOCAL_PREF_TYPE = 5;
     public static final byte LOCAL_PREF_MAX_LEN = 4;
 
@@ -56,14 +56,14 @@ public class LocalPref implements BGPValueType {
      *
      * @param cb channelBuffer
      * @return object of LocalPref
-     * @throws BGPParseException while parsing localPref attribute
+     * @throws BgpParseException while parsing localPref attribute
      */
-    public static LocalPref read(ChannelBuffer cb) throws BGPParseException {
+    public static LocalPref read(ChannelBuffer cb) throws BgpParseException {
         int localPref;
         ChannelBuffer tempCb = cb.copy();
         Validation parseFlags = Validation.parseAttributeHeader(cb);
         if ((parseFlags.getLength() > LOCAL_PREF_MAX_LEN) || cb.readableBytes() < parseFlags.getLength()) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR, BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
                     parseFlags.getLength());
         }
 
@@ -71,7 +71,7 @@ public class LocalPref implements BGPValueType {
                   Constants.TYPE_AND_LEN_AS_SHORT : parseFlags.getLength() + Constants.TYPE_AND_LEN_AS_BYTE;
         ChannelBuffer data = tempCb.readBytes(len);
         if (parseFlags.getFirstBit()) {
-            throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_FLAGS_ERROR, data);
+            throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR, BgpErrorType.ATTRIBUTE_FLAGS_ERROR, data);
         }
 
         localPref = cb.readInt();

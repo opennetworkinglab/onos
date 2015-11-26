@@ -20,14 +20,14 @@ import java.util.List;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.IpPrefix;
-import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.protocol.BGPMessageReader;
-import org.onosproject.bgpio.protocol.BGPType;
+import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.protocol.BgpMessageReader;
+import org.onosproject.bgpio.protocol.BgpType;
 import org.onosproject.bgpio.protocol.BgpUpdateMsg;
-import org.onosproject.bgpio.types.BGPErrorType;
-import org.onosproject.bgpio.types.BGPHeader;
+import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpHeader;
 import org.onosproject.bgpio.util.Validation;
-import org.onosproject.bgpio.protocol.BGPVersion;
+import org.onosproject.bgpio.protocol.BgpVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,12 +75,12 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
     public static final int BYTE_IN_BITS = 8;
     public static final int MIN_LEN_AFTER_WITHDRW_ROUTES = 2;
     public static final int MINIMUM_COMMON_HEADER_LENGTH = 19;
-    public static final BGPType MSG_TYPE = BGPType.UPDATE;
+    public static final BgpType MSG_TYPE = BgpType.UPDATE;
     public static final BgpUpdateMsgVer4.Reader READER = new Reader();
 
     private List<IpPrefix> withdrawnRoutes;
     private BgpPathAttributes bgpPathAttributes;
-    private BGPHeader bgpHeader;
+    private BgpHeader bgpHeader;
     private List<IpPrefix> nlri;
 
     /**
@@ -91,7 +91,7 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
      * @param bgpPathAttributes BGP Path attributes
      * @param nlri Network Layer Reachability Information
      */
-    public BgpUpdateMsgVer4(BGPHeader bgpHeader, List<IpPrefix> withdrawnRoutes,
+    public BgpUpdateMsgVer4(BgpHeader bgpHeader, List<IpPrefix> withdrawnRoutes,
                      BgpPathAttributes bgpPathAttributes, List<IpPrefix> nlri) {
         this.bgpHeader = bgpHeader;
         this.withdrawnRoutes = withdrawnRoutes;
@@ -102,15 +102,15 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
     /**
      * Reader reads BGP Update Message from the channel buffer.
      */
-    static class Reader implements BGPMessageReader<BgpUpdateMsg> {
+    static class Reader implements BgpMessageReader<BgpUpdateMsg> {
 
         @Override
-        public BgpUpdateMsg readFrom(ChannelBuffer cb, BGPHeader bgpHeader)
-                throws BGPParseException {
+        public BgpUpdateMsg readFrom(ChannelBuffer cb, BgpHeader bgpHeader)
+                throws BgpParseException {
 
             if (cb.readableBytes() != (bgpHeader.getLength() - MINIMUM_COMMON_HEADER_LENGTH)) {
-                Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                        BGPErrorType.BAD_MESSAGE_LENGTH, bgpHeader.getLength());
+                Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                        BgpErrorType.BAD_MESSAGE_LENGTH, bgpHeader.getLength());
             }
 
             LinkedList<IpPrefix> withDrwRoutes = new LinkedList<>();
@@ -120,8 +120,8 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
             Short withDrwLen = cb.readShort();
 
             if (cb.readableBytes() < withDrwLen) {
-                Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                        BGPErrorType.MALFORMED_ATTRIBUTE_LIST,
+                Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                        BgpErrorType.MALFORMED_ATTRIBUTE_LIST,
                         cb.readableBytes());
             }
             ChannelBuffer tempCb = cb.readBytes(withDrwLen);
@@ -131,23 +131,23 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
             }
             if (cb.readableBytes() < MIN_LEN_AFTER_WITHDRW_ROUTES) {
                 log.debug("Bgp Path Attribute len field not present");
-                throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                        BGPErrorType.MALFORMED_ATTRIBUTE_LIST, null);
+                throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                        BgpErrorType.MALFORMED_ATTRIBUTE_LIST, null);
             }
 
             // Reading Total Path Attribute Length
             short totPathAttrLen = cb.readShort();
             int len = withDrwLen + totPathAttrLen + PACKET_MINIMUM_LENGTH;
             if (len > bgpHeader.getLength()) {
-                throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                        BGPErrorType.MALFORMED_ATTRIBUTE_LIST, null);
+                throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                        BgpErrorType.MALFORMED_ATTRIBUTE_LIST, null);
             }
             if (totPathAttrLen != 0) {
                 // Parsing BGPPathAttributes
                 if (cb.readableBytes() < totPathAttrLen) {
                     Validation
-                            .validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                         BGPErrorType.MALFORMED_ATTRIBUTE_LIST,
+                            .validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                         BgpErrorType.MALFORMED_ATTRIBUTE_LIST,
                                          cb.readableBytes());
                 }
                 tempCb = cb.readBytes(totPathAttrLen);
@@ -167,10 +167,10 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
      *
      * @param cb channelBuffer
      * @return list of IP Prefix
-     * @throws BGPParseException while parsing NLRI
+     * @throws BgpParseException while parsing NLRI
      */
     public static LinkedList<IpPrefix> parseNlri(ChannelBuffer cb)
-            throws BGPParseException {
+            throws BgpParseException {
         LinkedList<IpPrefix> nlri = new LinkedList<>();
         while (cb.readableBytes() > 0) {
             int length = cb.readByte();
@@ -186,8 +186,8 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
                     len = len + 1;
                 }
                 if (cb.readableBytes() < len) {
-                    Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                            BGPErrorType.MALFORMED_ATTRIBUTE_LIST,
+                    Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                            BgpErrorType.MALFORMED_ATTRIBUTE_LIST,
                             cb.readableBytes());
                 }
                 byte[] prefix = new byte[len];
@@ -204,10 +204,10 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
      *
      * @param cb channelBuffer
      * @return list of IP prefix
-     * @throws BGPParseException while parsing withdrawn routes
+     * @throws BgpParseException while parsing withdrawn routes
      */
     public static LinkedList<IpPrefix> parseWithdrawnRoutes(ChannelBuffer cb)
-            throws BGPParseException {
+            throws BgpParseException {
         LinkedList<IpPrefix> withDrwRoutes = new LinkedList<>();
         while (cb.readableBytes() > 0) {
             int length = cb.readByte();
@@ -224,8 +224,8 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
                 }
                 if (cb.readableBytes() < len) {
                     Validation
-                            .validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                         BGPErrorType.MALFORMED_ATTRIBUTE_LIST,
+                            .validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                         BgpErrorType.MALFORMED_ATTRIBUTE_LIST,
                                          cb.readableBytes());
                 }
                 byte[] prefix = new byte[len];
@@ -238,17 +238,17 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
     }
 
     @Override
-    public BGPVersion getVersion() {
-        return BGPVersion.BGP_4;
+    public BgpVersion getVersion() {
+        return BgpVersion.BGP_4;
     }
 
     @Override
-    public BGPType getType() {
-        return BGPType.UPDATE;
+    public BgpType getType() {
+        return BgpType.UPDATE;
     }
 
     @Override
-    public void writeTo(ChannelBuffer channelBuffer) throws BGPParseException {
+    public void writeTo(ChannelBuffer channelBuffer) throws BgpParseException {
         //Not to be implemented as of now
     }
 
@@ -268,7 +268,7 @@ public class BgpUpdateMsgVer4 implements BgpUpdateMsg {
     }
 
     @Override
-    public BGPHeader getHeader() {
+    public BgpHeader getHeader() {
         return this.bgpHeader;
     }
 

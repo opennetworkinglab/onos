@@ -18,9 +18,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.linkstate.BgpLinkLsNlriVer4;
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4;
+import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ public final class BgpDpid {
             } else if (nodeDescriptorType == NODE_DESCRIPTOR_REMOTE) {
                 add(linkNlri.remoteNodeDescriptors().toString());
             }
-        } catch (BGPParseException e) {
+        } catch (BgpParseException e) {
             log.info("Exception BgpId string: " + e.toString());
         }
 
@@ -72,7 +72,7 @@ public final class BgpDpid {
      *
      * @param nodeNlri node Nlri.
      */
-    public BgpDpid(final BGPNodeLSNlriVer4 nodeNlri) {
+    public BgpDpid(final BgpNodeLSNlriVer4 nodeNlri) {
         this.stringBuilder = new StringBuilder("bgpls://");
 
         if (nodeNlri.getRouteDistinguisher() != null) {
@@ -89,7 +89,7 @@ public final class BgpDpid {
 
             add(nodeNlri.getLocalNodeDescriptors().toString());
 
-        } catch (BGPParseException e) {
+        } catch (BgpParseException e) {
             log.info("Exception node string: " + e.toString());
         }
     }

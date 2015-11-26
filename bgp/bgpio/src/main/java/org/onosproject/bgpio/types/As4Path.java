@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
@@ -31,7 +31,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides Implementation of As4Path BGP Path Attribute.
  */
-public class As4Path implements BGPValueType {
+public class As4Path implements BgpValueType {
     private static final Logger log = LoggerFactory.getLogger(AsPath.class);
     public static final byte AS4PATH_TYPE = 17;
     public static final byte ASNUM_SIZE = 4;
@@ -63,16 +63,16 @@ public class As4Path implements BGPValueType {
      *
      * @param cb ChannelBuffer
      * @return object of As4Path
-     * @throws BGPParseException while parsing As4Path
+     * @throws BgpParseException while parsing As4Path
      */
-    public static As4Path read(ChannelBuffer cb) throws BGPParseException {
+    public static As4Path read(ChannelBuffer cb) throws BgpParseException {
         List<Integer> as4pathSet = new ArrayList<>();
         List<Integer> as4pathSeq = new ArrayList<>();
         ChannelBuffer tempCb = cb.copy();
         Validation validation = Validation.parseAttributeHeader(cb);
 
         if (cb.readableBytes() < validation.getLength()) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR, BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
                     validation.getLength());
         }
         //if fourth bit is set length is read as short otherwise as byte , len includes type, length and value
@@ -80,7 +80,7 @@ public class As4Path implements BGPValueType {
                 .getLength() + Constants.TYPE_AND_LEN_AS_BYTE;
         ChannelBuffer data = tempCb.readBytes(len);
         if (validation.getFirstBit() && !validation.getSecondBit() && validation.getThirdBit()) {
-            throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_FLAGS_ERROR, data);
+            throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR, BgpErrorType.ATTRIBUTE_FLAGS_ERROR, data);
         }
 
         ChannelBuffer tempBuf = cb.readBytes(validation.getLength());
@@ -91,8 +91,8 @@ public class As4Path implements BGPValueType {
             //length = no of Ases * ASnum size (4 bytes)
             int length = pathSegLen * ASNUM_SIZE;
             if (tempBuf.readableBytes() < length) {
-                Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                        BGPErrorType.ATTRIBUTE_LENGTH_ERROR, length);
+                Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                        BgpErrorType.ATTRIBUTE_LENGTH_ERROR, length);
             }
             ChannelBuffer aspathBuf = tempBuf.readBytes(length);
             while (aspathBuf.readableBytes() > 0) {

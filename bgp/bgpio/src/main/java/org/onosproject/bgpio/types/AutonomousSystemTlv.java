@@ -26,7 +26,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides Autonomous System Tlv which contains opaque value (32 Bit AS Number).
  */
-public class AutonomousSystemTlv implements BGPValueType {
+public class AutonomousSystemTlv implements BgpValueType {
 
     /* Reference :draft-ietf-idr-ls-distribution-11
      *  0                   1                   2                   3

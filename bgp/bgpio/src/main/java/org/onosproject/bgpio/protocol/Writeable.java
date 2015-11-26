@@ -17,7 +17,7 @@
 package org.onosproject.bgpio.protocol;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 
 /**
  * Abstraction of an entity providing functionality to write byte streams of
@@ -29,7 +29,7 @@ public interface Writeable {
      * Writes byte streams of messages to channel buffer.
      *
      * @param cb channelBuffer
-     * @throws BGPParseException when error occurs while writing BGP message to channel buffer
+     * @throws BgpParseException when error occurs while writing BGP message to channel buffer
      */
-    void writeTo(ChannelBuffer cb) throws BGPParseException;
+    void writeTo(ChannelBuffer cb) throws BgpParseException;
 }

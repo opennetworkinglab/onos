@@ -18,9 +18,9 @@ package org.onosproject.bgpio.types.attr;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.types.BGPErrorType;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Implements BGP link state Default TE metric link attribute.
  */
-public class BgpLinkAttrTeDefaultMetric implements BGPValueType {
+public class BgpLinkAttrTeDefaultMetric implements BgpValueType {
 
     protected static final Logger log = LoggerFactory
             .getLogger(BgpLinkAttrTeDefaultMetric.class);
@@ -66,18 +66,18 @@ public class BgpLinkAttrTeDefaultMetric implements BGPValueType {
      *
      * @param cb Channel buffer
      * @return object of type BgpLinkAttrTeDefaultMetric
-     * @throws BGPParseException while parsing BgpLinkAttrTeDefaultMetric
+     * @throws BgpParseException while parsing BgpLinkAttrTeDefaultMetric
      */
     public static BgpLinkAttrTeDefaultMetric read(ChannelBuffer cb)
-            throws BGPParseException {
+            throws BgpParseException {
         int linkTeMetric;
 
         short lsAttrLength = cb.readShort();
 
         if ((lsAttrLength != TE_DATA_LEN)
                 || (cb.readableBytes() < lsAttrLength)) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                   BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                   BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
                                    lsAttrLength);
         }
 

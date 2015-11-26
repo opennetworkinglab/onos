@@ -18,9 +18,9 @@ package org.onosproject.bgpio.types.attr;
 import java.util.Arrays;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.types.BGPErrorType;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Implements BGP link name attribute.
  */
-public class BgpLinkAttrName implements BGPValueType {
+public class BgpLinkAttrName implements BgpValueType {
 
     protected static final Logger log = LoggerFactory
             .getLogger(BgpLinkAttrName.class);
@@ -64,16 +64,16 @@ public class BgpLinkAttrName implements BGPValueType {
      *
      * @param cb Channel buffer
      * @return object of type BgpLinkAttrName
-     * @throws BGPParseException while parsing BgpLinkAttrName
+     * @throws BgpParseException while parsing BgpLinkAttrName
      */
     public static BgpLinkAttrName read(ChannelBuffer cb)
-            throws BGPParseException {
+            throws BgpParseException {
         byte[] linkName;
         short lsAttrLength = cb.readShort();
 
         if (cb.readableBytes() < lsAttrLength) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                   BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                   BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
                                    lsAttrLength);
         }
 

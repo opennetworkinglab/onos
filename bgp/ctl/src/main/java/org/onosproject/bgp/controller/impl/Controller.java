@@ -32,10 +32,10 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.onosproject.bgp.controller.BGPController;
-import org.onosproject.bgpio.protocol.BGPFactories;
-import org.onosproject.bgpio.protocol.BGPFactory;
-import org.onosproject.bgpio.protocol.BGPVersion;
+import org.onosproject.bgp.controller.BgpController;
+import org.onosproject.bgpio.protocol.BgpFactories;
+import org.onosproject.bgpio.protocol.BgpFactory;
+import org.onosproject.bgpio.protocol.BgpVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public class Controller {
 
     private static final Logger log = LoggerFactory.getLogger(Controller.class);
 
-    private static final BGPFactory FACTORY4 = BGPFactories.getFactory(BGPVersion.BGP_4);
+    private static final BgpFactory FACTORY4 = BgpFactories.getFactory(BgpVersion.BGP_4);
 
     private ChannelGroup cg;
     public Channel serverChannel;
@@ -65,7 +65,7 @@ public class Controller {
     private NioServerSocketChannelFactory serverExecFactory;
     private NioClientSocketChannelFactory peerExecFactory;
     private static ClientBootstrap peerBootstrap;
-    private BGPController bgpController;
+    private BgpController bgpController;
 
     // Perf. related configuration
     private static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
@@ -75,7 +75,7 @@ public class Controller {
      *
      * @param bgpController bgp controller instance
      */
-    public Controller(BGPController bgpController) {
+    public Controller(BgpController bgpController) {
         this.bgpController = bgpController;
     }
 
@@ -84,7 +84,7 @@ public class Controller {
      *
      * @return instance of factory version
      */
-    static BGPFactory getBGPMessageFactory4() {
+    static BgpFactory getBgpMessageFactory4() {
         return FACTORY4;
     }
 
@@ -118,7 +118,7 @@ public class Controller {
             bootstrap.setOption("child.tcpNoDelay", true);
             bootstrap.setOption("child.sendBufferSize", Controller.SEND_BUFFER_SIZE);
 
-            ChannelPipelineFactory pfact = new BGPPipelineFactory(bgpController, true);
+            ChannelPipelineFactory pfact = new BgpPipelineFactory(bgpController, true);
 
             bootstrap.setPipelineFactory(pfact);
             InetSocketAddress sa = new InetSocketAddress(getBgpPortNum());

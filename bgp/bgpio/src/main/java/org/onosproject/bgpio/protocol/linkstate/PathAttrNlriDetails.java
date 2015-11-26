@@ -19,8 +19,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4.ProtocolType;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4.ProtocolType;
+import org.onosproject.bgpio.types.BgpValueType;
 
 import com.google.common.base.MoreObjects;
 
@@ -28,7 +28,7 @@ import com.google.common.base.MoreObjects;
  * This Class stores path Attributes, protocol ID and Identifier of LinkState NLRI.
  */
 public class PathAttrNlriDetails {
-    private List<BGPValueType> pathAttributes;
+    private List<BgpValueType> pathAttributes;
     private ProtocolType protocolID;
     private long identifier;
 
@@ -37,7 +37,7 @@ public class PathAttrNlriDetails {
      *
      * @param pathAttributes in update message
      */
-    public void setPathAttribute(List<BGPValueType> pathAttributes) {
+    public void setPathAttribute(List<BgpValueType> pathAttributes) {
         this.pathAttributes = pathAttributes;
     }
 
@@ -46,7 +46,7 @@ public class PathAttrNlriDetails {
      *
      * @return path attributes
      */
-    public List<BGPValueType> pathAttributes() {
+    public List<BgpValueType> pathAttributes() {
         return this.pathAttributes;
     }
 
@@ -102,14 +102,14 @@ public class PathAttrNlriDetails {
             int countOtherSubTlv = 0;
             boolean isCommonSubTlv = true;
             PathAttrNlriDetails other = (PathAttrNlriDetails) obj;
-            Iterator<BGPValueType> objListIterator = other.pathAttributes.iterator();
+            Iterator<BgpValueType> objListIterator = other.pathAttributes.iterator();
             countOtherSubTlv = other.pathAttributes.size();
             countObjSubTlv = pathAttributes.size();
             if (countObjSubTlv != countOtherSubTlv) {
                 return false;
             } else {
                 while (objListIterator.hasNext() && isCommonSubTlv) {
-                    BGPValueType subTlv = objListIterator.next();
+                    BgpValueType subTlv = objListIterator.next();
                     if (pathAttributes.contains(subTlv) && other.pathAttributes.contains(subTlv)) {
                         isCommonSubTlv = Objects.equals(pathAttributes.get(pathAttributes.indexOf(subTlv)),
                                 other.pathAttributes.get(other.pathAttributes.indexOf(subTlv)));

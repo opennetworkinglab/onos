@@ -23,10 +23,10 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
-import org.onosproject.bgpio.protocol.ver4.BGPKeepaliveMsgVer4;
-import org.onosproject.bgpio.protocol.ver4.BGPOpenMsgVer4;
-import org.onosproject.bgpio.types.BGPHeader;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.protocol.ver4.BgpKeepaliveMsgVer4;
+import org.onosproject.bgpio.protocol.ver4.BgpOpenMsgVer4;
+import org.onosproject.bgpio.types.BgpHeader;
+import org.onosproject.bgpio.types.BgpValueType;
 
 public class BgpPeerChannelHandlerTest extends SimpleChannelHandler {
     public static final int OPEN_MSG_MINIMUM_LENGTH = 29;
@@ -34,16 +34,16 @@ public class BgpPeerChannelHandlerTest extends SimpleChannelHandler {
         (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
         (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
         (byte) 0xff, (byte) 0xff};
-    public static final BGPHeader DEFAULT_OPEN_HEADER = new BGPHeader(MARKER,
+    public static final BgpHeader DEFAULT_OPEN_HEADER = new BgpHeader(MARKER,
             (short) OPEN_MSG_MINIMUM_LENGTH, (byte) 0X01);
-    LinkedList<BGPValueType> capabilityTlv = new LinkedList<>();
+    LinkedList<BgpValueType> capabilityTlv = new LinkedList<>();
     public byte version;
     public short asNumber;
     public short holdTime;
     public int bgpId;
     public boolean isLargeAsCapabilitySet;
 
-    final BGPOpenMsgVer4 openMessage = new BGPOpenMsgVer4();
+    final BgpOpenMsgVer4 openMessage = new BgpOpenMsgVer4();
     ChannelHandlerContext savedCtx;
 
     /**
@@ -60,7 +60,7 @@ public class BgpPeerChannelHandlerTest extends SimpleChannelHandler {
             short holdTime,
             int bgpId,
             boolean isLargeAsCapabilitySet,
-            LinkedList<BGPValueType> capabilityTlv) {
+            LinkedList<BgpValueType> capabilityTlv) {
         this.version = version;
         this.asNumber = asNumber;
         this.holdTime = holdTime;
@@ -81,7 +81,7 @@ public class BgpPeerChannelHandlerTest extends SimpleChannelHandler {
                                  ChannelStateEvent channelEvent) throws InterruptedException {
         this.savedCtx = ctx;
 
-        BGPOpenMsgVer4 openMsg = new BGPOpenMsgVer4(DEFAULT_OPEN_HEADER,
+        BgpOpenMsgVer4 openMsg = new BgpOpenMsgVer4(DEFAULT_OPEN_HEADER,
                 this.version,
                 this.asNumber,
                 this.holdTime,
@@ -93,7 +93,7 @@ public class BgpPeerChannelHandlerTest extends SimpleChannelHandler {
 
         TimeUnit.MILLISECONDS.sleep(100);
 
-        BGPKeepaliveMsgVer4 keepaliveMsg = new BGPKeepaliveMsgVer4();
+        BgpKeepaliveMsgVer4 keepaliveMsg = new BgpKeepaliveMsgVer4();
         ChannelBuffer buffer1 = ChannelBuffers.dynamicBuffer();
         keepaliveMsg.writeTo(buffer1);
         ctx.getChannel().write(buffer1);

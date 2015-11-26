@@ -19,7 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.types.attr.BgpAttrNodeFlagBitTlv;
 import org.onosproject.bgpio.types.attr.BgpAttrNodeIsIsAreaId;
 import org.onosproject.bgpio.types.attr.BgpAttrNodeMultiTopologyId;
@@ -52,7 +52,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Implements BGP Link state attribute.
  */
-public class LinkStateAttributes implements BGPValueType {
+public class LinkStateAttributes implements BgpValueType {
 
     protected static final Logger log = LoggerFactory
             .getLogger(LinkStateAttributes.class);
@@ -92,7 +92,7 @@ public class LinkStateAttributes implements BGPValueType {
     public static final byte LINKSTATE_ATTRIB_TYPE = 50;
     public static final byte TYPE_AND_LEN = 4;
     private boolean isLinkStateAttribute = false;
-    private List<BGPValueType> linkStateAttribList;
+    private List<BgpValueType> linkStateAttribList;
 
     /**
      * Constructor to reset parameters.
@@ -106,7 +106,7 @@ public class LinkStateAttributes implements BGPValueType {
      *
      * @param linkStateAttribList Linked list of Link, Node and Prefix TLVs
      */
-    LinkStateAttributes(List<BGPValueType> linkStateAttribList) {
+    LinkStateAttributes(List<BgpValueType> linkStateAttribList) {
         this.linkStateAttribList = linkStateAttribList;
         this.isLinkStateAttribute = true;
     }
@@ -116,7 +116,7 @@ public class LinkStateAttributes implements BGPValueType {
      *
      * @return linked list of Link, Node and Prefix TLVs
      */
-    public List<BGPValueType> linkStateAttributes() {
+    public List<BgpValueType> linkStateAttributes() {
         return this.linkStateAttribList;
     }
 
@@ -134,10 +134,10 @@ public class LinkStateAttributes implements BGPValueType {
      *
      * @param cb ChannelBuffer
      * @return constructor of LinkStateAttributes
-     * @throws BGPParseException while parsing link state attributes
+     * @throws BgpParseException while parsing link state attributes
      */
     public static LinkStateAttributes read(ChannelBuffer cb)
-            throws BGPParseException {
+            throws BgpParseException {
 
         ChannelBuffer tempBuf = cb;
         Validation parseFlags = Validation.parseAttributeHeader(cb);
@@ -147,20 +147,20 @@ public class LinkStateAttributes implements BGPValueType {
         ChannelBuffer data = tempBuf.readBytes(len);
         if (!parseFlags.getFirstBit() || parseFlags.getSecondBit()
                 || parseFlags.getThirdBit()) {
-            throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                        BGPErrorType.ATTRIBUTE_FLAGS_ERROR,
+            throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                        BgpErrorType.ATTRIBUTE_FLAGS_ERROR,
                                         data);
         }
 
         if (cb.readableBytes() < parseFlags.getLength()) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                   BGPErrorType.BAD_MESSAGE_LENGTH,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                   BgpErrorType.BAD_MESSAGE_LENGTH,
                                    parseFlags.getLength());
         }
 
-        BGPValueType bgpLSAttrib = null;
-        LinkedList<BGPValueType> linkStateAttribList;
-        linkStateAttribList = new LinkedList<BGPValueType>();
+        BgpValueType bgpLSAttrib = null;
+        LinkedList<BgpValueType> linkStateAttribList;
+        linkStateAttribList = new LinkedList<BgpValueType>();
         ChannelBuffer tempCb = cb.readBytes(parseFlags.getLength());
         while (tempCb.readableBytes() > 0) {
             short tlvCodePoint = tempCb.readShort();
@@ -279,8 +279,8 @@ public class LinkStateAttributes implements BGPValueType {
                 break;
 
             default:
-                throw new BGPParseException(
-                                            "The BGP-LS Attribute is not supported : "
+                throw new BgpParseException(
+                                            "The Bgp-LS Attribute is not supported : "
                                                     + tlvCodePoint);
             }
 

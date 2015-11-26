@@ -18,9 +18,9 @@ package org.onosproject.bgpio.types.attr;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.types.BGPErrorType;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Implements BGP attribute Is Is Administrative area.
  */
-public final class BgpLinkAttrIsIsAdminstGrp implements BGPValueType {
+public final class BgpLinkAttrIsIsAdminstGrp implements BgpValueType {
 
     protected static final Logger log = LoggerFactory
             .getLogger(BgpLinkAttrIsIsAdminstGrp.class);
@@ -65,17 +65,17 @@ public final class BgpLinkAttrIsIsAdminstGrp implements BGPValueType {
      *
      * @param cb Channel buffer
      * @return object of type BgpLinkAttrIsIsAdminstGrp
-     * @throws BGPParseException while parsing BgpLinkAttrIsIsAdminstGrp
+     * @throws BgpParseException while parsing BgpLinkAttrIsIsAdminstGrp
      */
     public static BgpLinkAttrIsIsAdminstGrp read(ChannelBuffer cb)
-            throws BGPParseException {
+            throws BgpParseException {
         long isisAdminGrp;
         short lsAttrLength = cb.readShort();
 
         if ((lsAttrLength != ISIS_ADMIN_DATA_LEN)
                 || (cb.readableBytes() < lsAttrLength)) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                   BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                   BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
                                    lsAttrLength);
         }
 

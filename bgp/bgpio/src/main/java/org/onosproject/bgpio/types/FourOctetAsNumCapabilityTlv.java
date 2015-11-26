@@ -26,7 +26,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides FourOctetAsNumCapabilityTlv Capability Tlv.
  */
-public class FourOctetAsNumCapabilityTlv implements BGPValueType {
+public class FourOctetAsNumCapabilityTlv implements BgpValueType {
 
     /**
      * support to indicate its support for four-octet AS numbers -CAPABILITY TLV format.

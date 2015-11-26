@@ -13,9 +13,9 @@
 
 package org.onosproject.bgp.controller.impl;
 
-import org.onosproject.bgp.controller.BGPId;
+import org.onosproject.bgp.controller.BgpId;
 import org.onosproject.bgp.controller.BgpSessionInfo;
-import org.onosproject.bgpio.protocol.BGPVersion;
+import org.onosproject.bgpio.protocol.BgpVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
 public class BgpSessionInfoImpl implements BgpSessionInfo {
 
     protected final Logger log = LoggerFactory.getLogger(BgpSessionInfoImpl.class);
-    private BGPId remoteBgpId;
-    private BGPVersion remoteBgpVersion;
+    private BgpId remoteBgpId;
+    private BgpVersion remoteBgpVersion;
     private long remoteBgpASNum;
     private short remoteBgpholdTime;
     private int remoteBgpIdentifier;
@@ -44,7 +44,7 @@ public class BgpSessionInfoImpl implements BgpSessionInfo {
      *@param negotiatedholdTime negotiated hold time
      *@param isIbgpSession session type ibgp/ebgp
      */
-    public BgpSessionInfoImpl(BGPId remoteBgpId, BGPVersion remoteBgpVersion, long remoteBgpASNum,
+    public BgpSessionInfoImpl(BgpId remoteBgpId, BgpVersion remoteBgpVersion, long remoteBgpASNum,
                               short remoteBgpholdTime, int remoteBgpIdentifier, short negotiatedholdTime,
                               boolean isIbgpSession) {
         this.remoteBgpId = remoteBgpId;
@@ -67,12 +67,12 @@ public class BgpSessionInfoImpl implements BgpSessionInfo {
     }
 
     @Override
-    public BGPId remoteBgpId() {
+    public BgpId remoteBgpId() {
         return remoteBgpId;
     }
 
     @Override
-    public BGPVersion remoteBgpVersion() {
+    public BgpVersion remoteBgpVersion() {
         return remoteBgpVersion;
     }
 

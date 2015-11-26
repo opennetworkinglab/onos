@@ -21,12 +21,12 @@ import java.util.LinkedList;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.types.AreaIDTlv;
 import org.onosproject.bgpio.types.AutonomousSystemTlv;
-import org.onosproject.bgpio.types.BGPErrorType;
-import org.onosproject.bgpio.types.BGPLSIdentifierTlv;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpLSIdentifierTlv;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.IsIsNonPseudonode;
 import org.onosproject.bgpio.types.IsIsPseudonode;
 import org.onosproject.bgpio.types.OSPFNonPseudonode;
@@ -71,7 +71,7 @@ public class NodeDescriptors {
     public static final int ISISPSEUDONODE_LEN = 7;
     public static final int OSPFNONPSEUDONODE_LEN = 4;
     public static final int OSPFPSEUDONODE_LEN = 8;
-    private LinkedList<BGPValueType> subTlvs;
+    private LinkedList<BgpValueType> subTlvs;
     private short deslength;
     private short desType;
 
@@ -91,7 +91,7 @@ public class NodeDescriptors {
      * @param deslength Descriptors length
      * @param desType local node descriptor or remote node descriptor type
      */
-    public NodeDescriptors(LinkedList<BGPValueType> subTlvs, short deslength, short desType) {
+    public NodeDescriptors(LinkedList<BgpValueType> subTlvs, short deslength, short desType) {
         this.subTlvs = subTlvs;
         this.deslength = deslength;
         this.desType = desType;
@@ -102,7 +102,7 @@ public class NodeDescriptors {
      *
      * @return subTlvs list of subTlvs
      */
-    public LinkedList<BGPValueType> getSubTlvs() {
+    public LinkedList<BgpValueType> getSubTlvs() {
         return subTlvs;
     }
 
@@ -122,14 +122,14 @@ public class NodeDescriptors {
             int countOtherSubTlv = 0;
             boolean isCommonSubTlv = true;
             NodeDescriptors other = (NodeDescriptors) obj;
-            Iterator<BGPValueType> objListIterator = other.subTlvs.iterator();
+            Iterator<BgpValueType> objListIterator = other.subTlvs.iterator();
             countOtherSubTlv = other.subTlvs.size();
             countObjSubTlv = subTlvs.size();
             if (countObjSubTlv != countOtherSubTlv) {
                 return false;
             } else {
                 while (objListIterator.hasNext() && isCommonSubTlv) {
-                    BGPValueType subTlv = objListIterator.next();
+                    BgpValueType subTlv = objListIterator.next();
                     isCommonSubTlv = Objects.equals(subTlvs.contains(subTlv), other.subTlvs.contains(subTlv));
                 }
                 return isCommonSubTlv;
@@ -146,20 +146,20 @@ public class NodeDescriptors {
      * @param desType local node descriptor or remote node descriptor type
      * @param protocolId protocol ID
      * @return object of NodeDescriptors
-     * @throws BGPParseException while parsing node descriptors
+     * @throws BgpParseException while parsing node descriptors
      */
     public static NodeDescriptors read(ChannelBuffer cb, short desLength, short desType, byte protocolId)
-            throws BGPParseException {
-        LinkedList<BGPValueType> subTlvs;
+            throws BgpParseException {
+        LinkedList<BgpValueType> subTlvs;
         subTlvs = new LinkedList<>();
-        BGPValueType tlv = null;
+        BgpValueType tlv = null;
 
         while (cb.readableBytes() > 0) {
             ChannelBuffer tempBuf = cb;
             short type = cb.readShort();
             short length = cb.readShort();
             if (cb.readableBytes() < length) {
-                throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.OPTIONAL_ATTRIBUTE_ERROR,
+                throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR, BgpErrorType.OPTIONAL_ATTRIBUTE_ERROR,
                         tempBuf.readBytes(cb.readableBytes() + TYPE_AND_LEN));
             }
             ChannelBuffer tempCb = cb.readBytes(length);
@@ -167,8 +167,8 @@ public class NodeDescriptors {
             case AutonomousSystemTlv.TYPE:
                 tlv = AutonomousSystemTlv.read(tempCb);
                 break;
-            case BGPLSIdentifierTlv.TYPE:
-                tlv = BGPLSIdentifierTlv.read(tempCb);
+            case BgpLSIdentifierTlv.TYPE:
+                tlv = BgpLSIdentifierTlv.read(tempCb);
                 break;
             case AreaIDTlv.TYPE:
                 tlv = AreaIDTlv.read(tempCb);

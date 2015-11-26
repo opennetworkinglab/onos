@@ -18,7 +18,7 @@ package org.onosproject.bgpio.types;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
 
@@ -27,7 +27,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides Implementation of Med BGP Path Attribute.
  */
-public class Med implements BGPValueType {
+public class Med implements BgpValueType {
     public static final byte MED_TYPE = 4;
     public static final byte MED_MAX_LEN = 4;
 
@@ -56,22 +56,22 @@ public class Med implements BGPValueType {
      *
      * @param cb ChannelBuffer
      * @return object of Med
-     * @throws BGPParseException while parsing Med path attribute
+     * @throws BgpParseException while parsing Med path attribute
      */
-    public static Med read(ChannelBuffer cb) throws BGPParseException {
+    public static Med read(ChannelBuffer cb) throws BgpParseException {
         int med;
         ChannelBuffer tempCb = cb.copy();
         Validation parseFlags = Validation.parseAttributeHeader(cb);
 
         if ((parseFlags.getLength() > MED_MAX_LEN) || cb.readableBytes() < parseFlags.getLength()) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR, BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
                     parseFlags.getLength());
         }
         int len = parseFlags.isShort() ? parseFlags.getLength() + Constants.TYPE_AND_LEN_AS_SHORT : parseFlags
                 .getLength() + Constants.TYPE_AND_LEN_AS_BYTE;
         ChannelBuffer data = tempCb.readBytes(len);
         if (!parseFlags.getFirstBit() && parseFlags.getSecondBit() && parseFlags.getThirdBit()) {
-            throw new BGPParseException(BGPErrorType.UPDATE_MESSAGE_ERROR, BGPErrorType.ATTRIBUTE_FLAGS_ERROR, data);
+            throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR, BgpErrorType.ATTRIBUTE_FLAGS_ERROR, data);
         }
 
         med = cb.readInt();

@@ -26,7 +26,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides AreaID Tlv which contains opaque value (32 Bit Area-ID).
  */
-public class AreaIDTlv implements BGPValueType {
+public class AreaIDTlv implements BgpValueType {
 
     /* Reference :draft-ietf-idr-ls-distribution-11
      *  0                   1                   2                   3

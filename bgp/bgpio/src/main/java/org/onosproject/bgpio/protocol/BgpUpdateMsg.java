@@ -24,7 +24,7 @@ import org.onosproject.bgpio.protocol.ver4.BgpPathAttributes;
 /**
  * Abstraction of an entity providing BGP Update Message.
  */
-public interface BgpUpdateMsg extends BGPMessage {
+public interface BgpUpdateMsg extends BgpMessage {
     /**
      * Returns path attributes in BGP Update Message.
      *

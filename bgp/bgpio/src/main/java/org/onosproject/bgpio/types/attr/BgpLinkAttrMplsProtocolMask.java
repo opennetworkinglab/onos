@@ -18,9 +18,9 @@ package org.onosproject.bgpio.types.attr;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
-import org.onosproject.bgpio.types.BGPErrorType;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.exceptions.BgpParseException;
+import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.util.Validation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Implements BGP MPLS protocol mask attribute.
  */
-public class BgpLinkAttrMplsProtocolMask implements BGPValueType {
+public class BgpLinkAttrMplsProtocolMask implements BgpValueType {
 
     protected static final Logger log = LoggerFactory
             .getLogger(BgpLinkAttrMplsProtocolMask.class);
@@ -72,10 +72,10 @@ public class BgpLinkAttrMplsProtocolMask implements BGPValueType {
      *
      * @param cb Channel buffer
      * @return object of type BgpLinkAttrMPLSProtocolMask
-     * @throws BGPParseException while parsing BgpLinkAttrMplsProtocolMask
+     * @throws BgpParseException while parsing BgpLinkAttrMplsProtocolMask
      */
     public static BgpLinkAttrMplsProtocolMask read(ChannelBuffer cb)
-            throws BGPParseException {
+            throws BgpParseException {
         boolean bLdp = false;
         boolean bRsvpTe = false;
 
@@ -83,8 +83,8 @@ public class BgpLinkAttrMplsProtocolMask implements BGPValueType {
 
         if ((lsAttrLength != MASK_BYTE_LEN)
                 || (cb.readableBytes() < lsAttrLength)) {
-            Validation.validateLen(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                                   BGPErrorType.ATTRIBUTE_LENGTH_ERROR,
+            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                                   BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
                                    lsAttrLength);
         }
 

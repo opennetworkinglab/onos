@@ -12,7 +12,7 @@
  */
 package org.onosproject.bgp.controller;
 
-import org.onosproject.bgpio.protocol.linkstate.BGPNodeLSNlriVer4;
+import org.onosproject.bgpio.protocol.linkstate.BgpNodeLSNlriVer4;
 
 /**
  * Allows for providers interested in node events to be notified.
@@ -24,12 +24,12 @@ public interface BgpNodeListener {
      *
      * @param nodeNlri node rechability info
      */
-    void addNode(BGPNodeLSNlriVer4 nodeNlri);
+    void addNode(BgpNodeLSNlriVer4 nodeNlri);
 
     /**
      * Notifies that the node was removed.
      *
      * @param nodeNlri node rechability info
      */
-    void deleteNode(BGPNodeLSNlriVer4 nodeNlri);
+    void deleteNode(BgpNodeLSNlriVer4 nodeNlri);
 }

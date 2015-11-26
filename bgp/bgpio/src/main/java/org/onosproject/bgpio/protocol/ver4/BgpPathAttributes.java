@@ -19,11 +19,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.types.As4Path;
 import org.onosproject.bgpio.types.AsPath;
-import org.onosproject.bgpio.types.BGPErrorType;
-import org.onosproject.bgpio.types.BGPValueType;
+import org.onosproject.bgpio.types.BgpErrorType;
+import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.LocalPref;
 import org.onosproject.bgpio.types.Med;
 import org.onosproject.bgpio.types.NextHop;
@@ -58,7 +58,7 @@ public class BgpPathAttributes {
     public static final int MPREACHNLRI_TYPE = 14;
     public static final int MPUNREACHNLRI_TYPE = 15;
 
-    private final List<BGPValueType> pathAttribute;
+    private final List<BgpValueType> pathAttribute;
 
     /**
      * Initialize parameter.
@@ -72,7 +72,7 @@ public class BgpPathAttributes {
      *
      * @param pathAttribute list of path attributes
      */
-    public BgpPathAttributes(List<BGPValueType> pathAttribute) {
+    public BgpPathAttributes(List<BgpValueType> pathAttribute) {
         this.pathAttribute = pathAttribute;
     }
 
@@ -81,7 +81,7 @@ public class BgpPathAttributes {
      *
      * @return list of path attributes
      */
-    public List<BGPValueType> pathAttributes() {
+    public List<BgpValueType> pathAttributes() {
         return this.pathAttribute;
     }
 
@@ -90,13 +90,13 @@ public class BgpPathAttributes {
      *
      * @param cb channelBuffer
      * @return object of BgpPathAttributes
-     * @throws BGPParseException while parsing BGP path attributes
+     * @throws BgpParseException while parsing BGP path attributes
      */
     public static BgpPathAttributes read(ChannelBuffer cb)
-            throws BGPParseException {
+            throws BgpParseException {
 
-        BGPValueType pathAttribute = null;
-        List<BGPValueType> pathAttributeList = new LinkedList<>();
+        BgpValueType pathAttribute = null;
+        List<BgpValueType> pathAttributeList = new LinkedList<>();
         boolean isOrigin = false;
         boolean isAsPath = false;
         boolean isNextHop = false;
@@ -161,27 +161,27 @@ public class BgpPathAttributes {
      * @param isNextHop say whether nexthop attribute is present
      * @param isMpReach say whether mpreach attribute is present
      * @param isMpUnReach say whether mpunreach attribute is present
-     * @throws BGPParseException if mandatory path attribute is not present
+     * @throws BgpParseException if mandatory path attribute is not present
      */
     public static void checkMandatoryAttr(boolean isOrigin, boolean isAsPath,
             boolean isNextHop, boolean isMpReach, boolean isMpUnReach)
-            throws BGPParseException {
+            throws BgpParseException {
         if (!isOrigin) {
             log.debug("Mandatory Attributes not Present");
-            Validation.validateType(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                    BGPErrorType.MISSING_WELLKNOWN_ATTRIBUTE,
+            Validation.validateType(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                    BgpErrorType.MISSING_WELLKNOWN_ATTRIBUTE,
                     Origin.ORIGIN_TYPE);
         }
         if (!isAsPath) {
             log.debug("Mandatory Attributes not Present");
-            Validation.validateType(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                    BGPErrorType.MISSING_WELLKNOWN_ATTRIBUTE,
+            Validation.validateType(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                    BgpErrorType.MISSING_WELLKNOWN_ATTRIBUTE,
                     AsPath.ASPATH_TYPE);
         }
         if (!isMpUnReach && !isMpReach && !isNextHop) {
             log.debug("Mandatory Attributes not Present");
-            Validation.validateType(BGPErrorType.UPDATE_MESSAGE_ERROR,
-                    BGPErrorType.MISSING_WELLKNOWN_ATTRIBUTE,
+            Validation.validateType(BgpErrorType.UPDATE_MESSAGE_ERROR,
+                    BgpErrorType.MISSING_WELLKNOWN_ATTRIBUTE,
                     NextHop.NEXTHOP_TYPE);
         }
     }

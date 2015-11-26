@@ -13,7 +13,7 @@
 
 package org.onosproject.bgp.controller;
 
-import org.onosproject.bgpio.protocol.BGPVersion;
+import org.onosproject.bgpio.protocol.BgpVersion;
 
 /**
  * Abstraction of an BGP session info. Maintian session parameters obtained during session creation.
@@ -38,14 +38,14 @@ public interface BgpSessionInfo {
      *
      * @return bgp ID.
      */
-    BGPId remoteBgpId();
+    BgpId remoteBgpId();
 
     /**
      * Gets the BGP version of peer.
      *
      * @return bgp version.
      */
-    BGPVersion remoteBgpVersion();
+    BgpVersion remoteBgpVersion();
 
     /**
      * Gets the BGP remote bgp AS number.

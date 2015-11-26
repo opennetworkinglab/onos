@@ -28,7 +28,7 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides implementation of OSPFPseudonode Tlv.
  */
-public class OSPFPseudonode implements IGPRouterID, BGPValueType {
+public class OSPFPseudonode implements IGPRouterID, BgpValueType {
 
     protected static final Logger log = LoggerFactory.getLogger(OSPFPseudonode.class);
 

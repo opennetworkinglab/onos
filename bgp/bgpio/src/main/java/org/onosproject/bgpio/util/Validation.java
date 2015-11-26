@@ -24,7 +24,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onosproject.bgpio.exceptions.BGPParseException;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,13 +109,13 @@ public class Validation {
      * @param errorCode Error code
      * @param subErrCode Sub Error Code
      * @param length erroneous length
-     * @throws BGPParseException for erroneous length
+     * @throws BgpParseException for erroneous length
      */
-    public static void validateLen(byte errorCode, byte subErrCode, int length) throws BGPParseException {
+    public static void validateLen(byte errorCode, byte subErrCode, int length) throws BgpParseException {
         byte[] errLen = Ints.toByteArray(length);
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errLen);
-        throw new BGPParseException(errorCode, subErrCode, buffer);
+        throw new BgpParseException(errorCode, subErrCode, buffer);
     }
 
     /**
@@ -124,13 +124,13 @@ public class Validation {
      * @param errorCode Error code
      * @param subErrCode Sub Error Code
      * @param type erroneous type
-     * @throws BGPParseException for erroneous type
+     * @throws BgpParseException for erroneous type
      */
-    public static void validateType(byte errorCode, byte subErrCode, int type) throws BGPParseException {
+    public static void validateType(byte errorCode, byte subErrCode, int type) throws BgpParseException {
         byte[] errType = Ints.toByteArray(type);
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         buffer.writeBytes(errType);
-        throw new BGPParseException(errorCode, subErrCode, buffer);
+        throw new BgpParseException(errorCode, subErrCode, buffer);
     }
 
     /**
