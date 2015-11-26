@@ -20,6 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Maps;
+
 import org.onlab.util.HexString;
 import org.onlab.util.SharedExecutors;
 import org.onlab.util.Tools;
@@ -33,6 +34,7 @@ import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -92,18 +94,25 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
     private static final String ERROR_NULL_KEY = "Key cannot be null";
     private static final String ERROR_NULL_VALUE = "Null values are not allowed";
 
-    private final LoadingCache<K, String> keyCache = CacheBuilder.newBuilder()
+    // String representation of serialized byte[] -> original key Object
+    private final LoadingCache<String, K> keyCache = CacheBuilder.newBuilder()
             .softValues()
-            .build(new CacheLoader<K, String>() {
+            .build(new CacheLoader<String, K>() {
 
                 @Override
-                public String load(K key) {
-                    return HexString.toHexString(serializer.encode(key));
+                public K load(String key) {
+                    return serializer.decode(HexString.fromHexString(key));
                 }
             });
 
+    protected String sK(K key) {
+        String s = HexString.toHexString(serializer.encode(key));
+        keyCache.put(s, key);
+        return s;
+    }
+
     protected K dK(String key) {
-        return serializer.decode(HexString.fromHexString(key));
+        return keyCache.getUnchecked(key);
     }
 
     public DefaultAsyncConsistentMap(String name,
@@ -207,7 +216,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
     public CompletableFuture<Boolean> containsKey(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
         final MeteringAgent.Context timer = monitor.startTimer(CONTAINS_KEY);
-        return database.mapContainsKey(name, keyCache.getUnchecked(key))
+        return database.mapContainsKey(name, sK(key))
                 .whenComplete((r, e) -> timer.stop(e));
     }
 
@@ -223,7 +232,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
     public CompletableFuture<Versioned<V>> get(K key) {
         checkNotNull(key, ERROR_NULL_KEY);
         final MeteringAgent.Context timer = monitor.startTimer(GET);
-        return database.mapGet(name, keyCache.getUnchecked(key))
+        return database.mapGet(name, sK(key))
                 .whenComplete((r, e) -> timer.stop(e))
                 .thenApply(v -> v != null ? v.map(serializer::decode) : null);
     }
@@ -328,10 +337,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
     public CompletableFuture<Set<K>> keySet() {
         final MeteringAgent.Context timer = monitor.startTimer(KEY_SET);
         return database.mapKeySet(name)
-                .thenApply(s -> s
-                        .stream()
-                        .map(this::dK)
-                        .collect(Collectors.toSet()))
+                .thenApply(s -> newMappingKeySet(s))
                 .whenComplete((r, e) -> timer.stop(e));
     }
 
@@ -351,10 +357,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         final MeteringAgent.Context timer = monitor.startTimer(ENTRY_SET);
         return database.mapEntrySet(name)
                 .whenComplete((r, e) -> timer.stop(e))
-                .thenApply(s -> s
-                        .stream()
-                        .map(this::mapRawEntry)
-                        .collect(Collectors.toSet()));
+                .thenApply(s -> newMappingEntrySet(s));
     }
 
     @Override
@@ -413,8 +416,22 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
         checkIfUnmodifiable();
     }
 
+    private Set<K> newMappingKeySet(Set<String> s) {
+        return new MappingSet<>(s, Collections::unmodifiableSet,
+                                this::sK, this::dK);
+    }
+
+    private Set<Entry<K, Versioned<V>>> newMappingEntrySet(Set<Entry<String, Versioned<byte[]>>> s) {
+        return new MappingSet<>(s, Collections::unmodifiableSet,
+                                this::reverseMapRawEntry, this::mapRawEntry);
+    }
+
     private Map.Entry<K, Versioned<V>> mapRawEntry(Map.Entry<String, Versioned<byte[]>> e) {
         return Maps.immutableEntry(dK(e.getKey()), e.getValue().<V>map(serializer::decode));
+    }
+
+    private Map.Entry<String, Versioned<byte[]>> reverseMapRawEntry(Map.Entry<K, Versioned<V>> e) {
+        return Maps.immutableEntry(sK(e.getKey()), e.getValue().map(serializer::encode));
     }
 
     private CompletableFuture<UpdateResult<K, V>> updateAndGet(K key,
@@ -423,7 +440,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
                                                                V value) {
         beforeUpdate(key);
         return database.mapUpdate(name,
-                keyCache.getUnchecked(key),
+                sK(key),
                 oldValueMatch.map(serializer::encode),
                 oldVersionMatch,
                 value == null ? null : serializer.encode(value))
