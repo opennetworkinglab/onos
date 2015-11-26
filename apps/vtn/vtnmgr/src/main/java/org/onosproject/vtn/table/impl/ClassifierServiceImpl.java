@@ -20,7 +20,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
@@ -49,6 +51,7 @@ import com.google.common.collect.Sets;
 public class ClassifierServiceImpl implements ClassifierService {
     private final Logger log = getLogger(getClass());
 
+    private static final int L3_CLAFFIFIER_PRIORITY = 0xffff;
     private static final int L2_CLAFFIFIER_PRIORITY = 50000;
 
     private final FlowObjectiveService flowObjectiveService;
@@ -120,10 +123,24 @@ public class ClassifierServiceImpl implements ClassifierService {
     }
 
     @Override
-    public void programL3ExPortClassifierRules(DeviceId deviceId,
-                                               PortNumber exPort,
-                                               IpAddress fIp, Operation type) {
-        // TODO Auto-generated method stub
+    public void programL3ExPortClassifierRules(DeviceId deviceId, PortNumber inPort,
+                                               IpAddress dstIp,
+                                               Objective.Operation type) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4).matchInPort(inPort)
+                .matchIPDst(IpPrefix.valueOf(dstIp, 32)).build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
+        ForwardingObjective.Builder objective = DefaultForwardingObjective
+                .builder().withTreatment(treatment).withSelector(selector)
+                .fromApp(appId).withFlag(Flag.SPECIFIC)
+                .withPriority(L3_CLAFFIFIER_PRIORITY);
+        if (type.equals(Objective.Operation.ADD)) {
+            log.debug("L3ExToInClassifierRules-->ADD");
+            flowObjectiveService.forward(deviceId, objective.add());
+        } else {
+            log.debug("L3ExToInClassifierRules-->REMOVE");
+            flowObjectiveService.forward(deviceId, objective.remove());
+        }
     }
 
     @Override
