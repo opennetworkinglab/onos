@@ -144,13 +144,26 @@ public class ClassifierServiceImpl implements ClassifierService {
     }
 
     @Override
-    public void programL3InPortClassifierRules(DeviceId deviceId,
-                                               PortNumber inPort,
-                                               MacAddress srcMac,
-                                               MacAddress dstVmGwMac,
-                                               SegmentationId l3Vni,
-                                               Operation type) {
-        // TODO Auto-generated method stub
+    public void programL3InPortClassifierRules(DeviceId deviceId, PortNumber inPort,
+                                               MacAddress srcMac, MacAddress dstMac,
+                                               SegmentationId actionVni,
+                                               Objective.Operation type) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(inPort).matchEthSrc(srcMac).matchEthDst(dstMac)
+                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setTunnelId(Long.parseLong(actionVni.segmentationId())).build();
+        ForwardingObjective.Builder objective = DefaultForwardingObjective
+                .builder().withTreatment(treatment).withSelector(selector)
+                .fromApp(appId).withFlag(Flag.SPECIFIC)
+                .withPriority(L3_CLAFFIFIER_PRIORITY);
+        if (type.equals(Objective.Operation.ADD)) {
+            log.debug("L3InternalClassifierRules-->ADD");
+            flowObjectiveService.forward(deviceId, objective.add());
+        } else {
+            log.debug("L3InternalClassifierRules-->REMOVE");
+            flowObjectiveService.forward(deviceId, objective.remove());
+        }
     }
 
     @Override
