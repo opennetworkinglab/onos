@@ -87,7 +87,9 @@ public class OchPort extends DefaultPort {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof OchPort) {
+
+        // Subclass is considered as a change of identity, hence equals() will return false if class type don't match
+        if (obj != null && getClass() == obj.getClass()) {
             final OchPort other = (OchPort) obj;
             return Objects.equals(this.element().id(), other.element().id()) &&
                     Objects.equals(this.number(), other.number()) &&

@@ -102,7 +102,7 @@ public class OmsPort extends DefaultPort {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof OmsPort) {
+        if (obj != null && getClass() == obj.getClass()) {
             final OmsPort other = (OmsPort) obj;
             return Objects.equals(this.element().id(), other.element().id()) &&
                     Objects.equals(this.number(), other.number()) &&

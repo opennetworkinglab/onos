@@ -71,7 +71,7 @@ public class OduCltPort extends DefaultPort {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof OduCltPort) {
+        if (obj != null && getClass() == obj.getClass()) {
             final OduCltPort other = (OduCltPort) obj;
             return Objects.equals(this.element().id(), other.element().id()) &&
                     Objects.equals(this.number(), other.number()) &&
