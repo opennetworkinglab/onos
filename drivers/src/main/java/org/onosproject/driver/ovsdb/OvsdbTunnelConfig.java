@@ -68,10 +68,10 @@ public class OvsdbTunnelConfig extends AbstractHandlerBehaviour
     public boolean createTunnelInterface(BridgeName bridgeName, TunnelDescription tunnel) {
         Map<String, String> options = ((DefaultAnnotations) tunnel.annotations()).asMap();
         if (tunnel.src() != null) {
-            options.put(OPTION_LOCAL_IP, tunnel.src().toString());
+            options.put(OPTION_LOCAL_IP, ((IpTunnelEndPoint) tunnel.src()).ip().toString());
         }
         if (tunnel.dst() != null) {
-            options.put(OPTION_REMOTE_IP, tunnel.dst().toString());
+            options.put(OPTION_REMOTE_IP, ((IpTunnelEndPoint) tunnel.dst()).ip().toString());
         }
 
         DriverHandler handler = handler();
