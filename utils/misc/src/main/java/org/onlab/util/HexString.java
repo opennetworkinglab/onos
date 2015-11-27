@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,39 @@ package org.onlab.util;
 public final class HexString {
 
     private HexString() {
-
     }
 
     /**
-     * Convert a string of bytes to a ':' separated hex string.
+     * Convert a byte array to a colon-separated hex string.
      *
-     * @param bytes string of bytes to convert
-     * @return "0f:ca:fe:de:ad:be:ef"
+     * @param bytes byte array to be converted
+     * @return converted colon-separated hex string, e.g. "0f:ca:fe:de:ad:be:ef",
+     *         or "(null)" if given byte array is null
      */
     public static String toHexString(final byte[] bytes) {
+        return toHexString(bytes, ":");
+    }
+
+    /**
+     * Convert a byte array to a hex string separated by given separator.
+     *
+     * @param bytes byte array to be converted
+     * @param separator the string use to separate each byte
+     * @return converted hex string, or "(null)" if given byte array is null
+     */
+    public static String toHexString(final byte[] bytes, String separator) {
         if (bytes == null) {
             return "(null)";
+        }
+        if (separator == null) {
+            separator = "";
         }
         int i;
         StringBuilder ret = new StringBuilder(bytes.length * 3 - 1);
         String tmp;
         for (i = 0; i < bytes.length; i++) {
             if (i > 0) {
-                ret.append(':');
+                ret.append(separator);
             }
             tmp = Integer.toHexString((bytes[i] & 0xff));
             if (tmp.length() == 1) {
@@ -47,6 +61,14 @@ public final class HexString {
         return ret.toString();
     }
 
+    /**
+     * Convert a long number to colon-separated hex string.
+     * Prepend zero padding until given length.
+     *
+     * @param val long number to be converted
+     * @param padTo prepend zeros until this length
+     * @return converted colon-separated hex string, e.g. "0f:ca:fe:de:ad:be:ef"
+     */
     public static String toHexString(final long val, final int padTo) {
         char[] arr = Long.toHexString(val).toCharArray();
         StringBuilder ret = new StringBuilder(padTo * 3 - 1);
@@ -67,18 +89,24 @@ public final class HexString {
         return ret.toString();
     }
 
+    /**
+     * Convert a long number to colon-separated hex string.
+     * Prepend zero padding until 8 bytes.
+     *
+     * @param val long number to be converted
+     * @return converted colon-separated hex string, e.g. "0f:ca:fe:de:ad:be:ef"
+     */
     public static String toHexString(final long val) {
         return toHexString(val, 8);
     }
 
     /**
-     * Convert a string of hex values into a string of bytes.
+     * Convert a colon-separated hex string to byte array.
      *
-     * @param values
-     *            "0f:ca:fe:de:ad:be:ef"
-     * @return [15, 5 ,2, 5, 17]
-     * @throws NumberFormatException
-     *             If the string can not be parsed
+     * @param values colon-separated hex string to be converted,
+     *               e.g. "0f:ca:fe:de:ad:be:ef"
+     * @return converted byte array
+     * @throws NumberFormatException if input hex string cannot be parsed
      */
     public static byte[] fromHexString(final String values) {
         String[] octets = values.split(":");
@@ -93,6 +121,14 @@ public final class HexString {
         return ret;
     }
 
+    /**
+     * Convert a colon-separated hex string to long.
+     *
+     * @param value colon-separated hex string to be converted,
+     *              e.g. "00:0f:ca:fe:de:ad:be:ef"
+     * @return converted long number
+     * @throws NumberFormatException if input hex string cannot be parsed
+     */
     public static long toLong(String value) {
         String[] octets = value.split(":");
         if (octets.length > 8) {
