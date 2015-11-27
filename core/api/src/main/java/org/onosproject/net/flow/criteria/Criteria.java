@@ -453,6 +453,16 @@ public final class Criteria {
     }
 
     /**
+     * Creates a match on MPLS TC.
+     *
+     * @param mplsTc MPLS TC (3 bits)
+     * @return match criterion
+     */
+    public static Criterion matchMplsTc(byte mplsTc) {
+        return new MplsTcCriterion(mplsTc);
+    }
+
+    /**
      * Creates a match on Tunnel ID.
      *
      * @param tunnelId Tunnel ID (64 bits)
