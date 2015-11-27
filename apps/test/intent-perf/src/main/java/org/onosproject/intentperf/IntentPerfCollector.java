@@ -106,7 +106,7 @@ public class IntentPerfCollector {
     /**
      * Clears all previously accumulated data.
      */
-    public void clearSamples() {
+    public synchronized void clearSamples() {
         newestTime = 0;
         overall = new Sample(0, nodes.length);
         current = new Sample(0, nodes.length);
