@@ -163,7 +163,7 @@ public class OpenstackSwitchingRulePopulator {
                 .filter(n -> n.id().equals(port.networkId()))
                 .findAny().orElse(null);
         if (network == null) {
-            log.warn("No VNI information for network {}", network.id());
+            log.warn("No VNI information for network {}", port.networkId());
             return null;
         }
 
