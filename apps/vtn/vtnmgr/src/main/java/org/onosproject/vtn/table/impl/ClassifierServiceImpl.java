@@ -53,9 +53,9 @@ public class ClassifierServiceImpl implements ClassifierService {
     private final Logger log = getLogger(getClass());
 
     private static final EtherType ETH_TYPE = EtherType.ARP;
-    private static final int ARP_CLAFFIFIER_PRIORITY = 60000;
-    private static final int L3_CLAFFIFIER_PRIORITY = 0xffff;
-    private static final int L2_CLAFFIFIER_PRIORITY = 50000;
+    private static final int ARP_CLASSIFIER_PRIORITY = 60000;
+    private static final int L3_CLASSIFIER_PRIORITY = 0xffff;
+    private static final int L2_CLASSIFIER_PRIORITY = 50000;
 
     private final FlowObjectiveService flowObjectiveService;
     private final ApplicationId appId;
@@ -84,7 +84,7 @@ public class ClassifierServiceImpl implements ClassifierService {
         ForwardingObjective.Builder objective = DefaultForwardingObjective
                 .builder().withTreatment(treatment.build())
                 .withSelector(selector).fromApp(appId).makePermanent()
-                .withFlag(Flag.SPECIFIC).withPriority(L2_CLAFFIFIER_PRIORITY);
+                .withFlag(Flag.SPECIFIC).withPriority(L2_CLASSIFIER_PRIORITY);
         if (type.equals(Objective.Operation.ADD)) {
             log.debug("programLocalIn-->ADD");
             flowObjectiveService.forward(deviceId, objective.add());
@@ -114,7 +114,7 @@ public class ClassifierServiceImpl implements ClassifierService {
             ForwardingObjective.Builder objective = DefaultForwardingObjective
                     .builder().withTreatment(treatment).withSelector(selector)
                     .fromApp(appId).makePermanent().withFlag(Flag.SPECIFIC)
-                    .withPriority(L2_CLAFFIFIER_PRIORITY);
+                    .withPriority(L2_CLASSIFIER_PRIORITY);
             if (type.equals(Objective.Operation.ADD)) {
                 log.debug("programTunnelIn-->ADD");
                 flowObjectiveService.forward(deviceId, objective.add());
@@ -136,7 +136,7 @@ public class ClassifierServiceImpl implements ClassifierService {
         ForwardingObjective.Builder objective = DefaultForwardingObjective
                 .builder().withTreatment(treatment).withSelector(selector)
                 .fromApp(appId).withFlag(Flag.SPECIFIC)
-                .withPriority(L3_CLAFFIFIER_PRIORITY);
+                .withPriority(L3_CLASSIFIER_PRIORITY);
         if (type.equals(Objective.Operation.ADD)) {
             log.debug("L3ExToInClassifierRules-->ADD");
             flowObjectiveService.forward(deviceId, objective.add());
@@ -159,7 +159,7 @@ public class ClassifierServiceImpl implements ClassifierService {
         ForwardingObjective.Builder objective = DefaultForwardingObjective
                 .builder().withTreatment(treatment).withSelector(selector)
                 .fromApp(appId).withFlag(Flag.SPECIFIC)
-                .withPriority(L3_CLAFFIFIER_PRIORITY);
+                .withPriority(L3_CLASSIFIER_PRIORITY);
         if (type.equals(Objective.Operation.ADD)) {
             log.debug("L3InternalClassifierRules-->ADD");
             flowObjectiveService.forward(deviceId, objective.add());
@@ -183,7 +183,7 @@ public class ClassifierServiceImpl implements ClassifierService {
         ForwardingObjective.Builder objective = DefaultForwardingObjective
                 .builder().withTreatment(treatment).withSelector(selector)
                 .fromApp(appId).withFlag(Flag.SPECIFIC)
-                .withPriority(ARP_CLAFFIFIER_PRIORITY);
+                .withPriority(ARP_CLASSIFIER_PRIORITY);
         if (type.equals(Objective.Operation.ADD)) {
             log.debug("ArpClassifierRules-->ADD");
             flowObjectiveService.forward(deviceId, objective.add());
