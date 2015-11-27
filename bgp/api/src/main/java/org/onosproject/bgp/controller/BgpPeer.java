@@ -16,8 +16,10 @@
 package org.onosproject.bgp.controller;
 import java.util.List;
 import org.jboss.netty.channel.Channel;
+import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpFactory;
 import org.onosproject.bgpio.protocol.BgpMessage;
+import org.onosproject.bgpio.types.BgpValueType;
 
 /**
  * Represents the peer side of an BGP peer.
@@ -93,6 +95,14 @@ public interface BgpPeer {
      * @return string representation of the connection to the peer
      */
     String channelId();
+
+    /**
+     * Maintaining Adj-RIB-In separately for each peer.
+     *
+     * @param pathAttr list of Bgp path attributes
+     * @throws BgpParseException while building Adj-Rib-In
+     */
+    void buildAdjRibIn(List<BgpValueType> pathAttr) throws BgpParseException;
 
     /**
      * Return the BGP session info.
