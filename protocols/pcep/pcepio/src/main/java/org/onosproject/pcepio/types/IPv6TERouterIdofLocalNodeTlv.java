@@ -15,7 +15,7 @@
  */
 package org.onosproject.pcepio.types;
 
-import java.util.Objects;
+import java.util.Arrays;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.protocol.PcepVersion;
@@ -125,7 +125,7 @@ public class IPv6TERouterIdofLocalNodeTlv implements PcepValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(rawValue);
+        return Arrays.hashCode(rawValue);
     }
 
     @Override
@@ -135,7 +135,7 @@ public class IPv6TERouterIdofLocalNodeTlv implements PcepValueType {
         }
         if (obj instanceof IPv6TERouterIdofLocalNodeTlv) {
             IPv6TERouterIdofLocalNodeTlv other = (IPv6TERouterIdofLocalNodeTlv) obj;
-            return Objects.equals(rawValue, other.rawValue);
+            return Arrays.equals(rawValue, other.rawValue);
         }
         return false;
     }
