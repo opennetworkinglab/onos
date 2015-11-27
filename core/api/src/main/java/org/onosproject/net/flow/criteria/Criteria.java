@@ -549,6 +549,16 @@ public final class Criteria {
         return new ArpHaCriterion(mac, Type.ARP_SHA);
     }
 
+    /**
+     * Creates a match on arp operation type field using the specified value.
+     *
+     * @param arpOp arp operation type value
+     * @return match criterion
+     */
+    public static Criterion matchArpOp(int arpOp) {
+        return new ArpOpCriterion(arpOp, Type.ARP_OP);
+    }
+
     public static Criterion dummy() {
         return new DummyCriterion();
     }
