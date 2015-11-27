@@ -29,6 +29,7 @@ public interface TunnelConfig extends HandlerBehaviour {
      *
      * @param tunnel tunnel descriptor
      */
+    @Deprecated
     void createTunnel(TunnelDescription tunnel);
 
     /**

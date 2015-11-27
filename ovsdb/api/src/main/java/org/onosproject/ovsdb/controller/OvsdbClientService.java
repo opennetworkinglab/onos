@@ -49,6 +49,7 @@ public interface OvsdbClientService extends OvsdbRPC {
      * @param srcIp source IP address
      * @param dstIp destination IP address
      */
+    @Deprecated
     void createTunnel(IpAddress srcIp, IpAddress dstIp);
 
     /**
