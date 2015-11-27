@@ -81,6 +81,11 @@ import org.onosproject.vtn.table.impl.L2ForwardServiceImpl;
 import org.onosproject.vtn.util.DataPathIdGenerator;
 import org.onosproject.vtn.util.VtnConfig;
 import org.onosproject.vtn.util.VtnData;
+import org.onosproject.vtnrsc.AllowedAddressPair;
+import org.onosproject.vtnrsc.BindingHostId;
+import org.onosproject.vtnrsc.DefaultVirtualPort;
+import org.onosproject.vtnrsc.FixedIp;
+import org.onosproject.vtnrsc.SecurityGroup;
 import org.onosproject.vtnrsc.SegmentationId;
 import org.onosproject.vtnrsc.SubnetId;
 import org.onosproject.vtnrsc.TenantId;
@@ -148,10 +153,12 @@ public class VTNManager implements VTNService {
     private static final String CONTROLLER_IP_KEY = "ipaddress";
     public static final String DRIVER_NAME = "onosfw";
     private static final String EX_PORT_NAME = "eth0";
+    private static final String VIRTUALPORT = "vtn-virtual-port";
     private static final String SWITCHES_OF_CONTROLLER = "switchesOfController";
     private static final String SWITCH_OF_LOCAL_HOST_PORTS = "switchOfLocalHostPorts";
     private static final String DEFAULT_IP = "0.0.0.0";
 
+    private EventuallyConsistentMap<VirtualPortId, VirtualPort> vPortStore;
     private EventuallyConsistentMap<IpAddress, Boolean> switchesOfController;
     private EventuallyConsistentMap<DeviceId, NetworkOfLocalHostPorts> switchOfLocalHostPorts;
 
@@ -171,7 +178,21 @@ public class VTNManager implements VTNService {
                                 .register(Host.class)
                                 .register(TenantNetwork.class)
                                 .register(TenantId.class)
-                                .register(SubnetId.class);
+                                .register(SubnetId.class)
+                                .register(VirtualPortId.class)
+                                .register(VirtualPort.State.class)
+                                .register(AllowedAddressPair.class)
+                                .register(FixedIp.class)
+                                .register(BindingHostId.class)
+                                .register(SecurityGroup.class)
+                                .register(IpAddress.class)
+                                .register(DefaultVirtualPort.class);
+
+        vPortStore = storageService
+                .<VirtualPortId, VirtualPort>eventuallyConsistentMapBuilder()
+                .withName(VIRTUALPORT).withSerializer(serializer)
+                .withTimestampProvider((k, v) -> clockService.getTimestamp())
+                .build();
 
         switchesOfController = storageService
                 .<IpAddress, Boolean>eventuallyConsistentMapBuilder()
@@ -355,8 +376,7 @@ public class VTNManager implements VTNService {
         VirtualPortId virtualPortId = VirtualPortId.portId(ifaceId);
         VirtualPort virtualPort = virtualPortService.getPort(virtualPortId);
         if (virtualPort == null) {
-            log.error("The virtualPort of host is null");
-            return;
+            virtualPort = vPortStore.get(virtualPortId);
         }
 
         Iterable<Device> devices = deviceService.getAvailableDevices();
@@ -383,6 +403,7 @@ public class VTNManager implements VTNService {
         }
 
         if (type == Objective.Operation.ADD) {
+            vPortStore.put(virtualPortId, virtualPort);
             if (networkOflocalHostPorts == null) {
                 networkOflocalHostPorts = new HashSet<PortNumber>();
                 localHostPorts.putIfAbsent(network.id(), networkOflocalHostPorts);
@@ -396,6 +417,7 @@ public class VTNManager implements VTNService {
                                               localTunnelPorts,
                                               type);
         } else if (type == Objective.Operation.REMOVE) {
+            vPortStore.remove(virtualPortId);
             if (networkOflocalHostPorts != null) {
                 l2ForwardService.programLocalBcastRules(deviceId, segmentationId,
                                                         inPort, networkOflocalHostPorts,
