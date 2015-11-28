@@ -343,7 +343,7 @@ public class VtnRscManager implements VtnRscService {
         VirtualPort vmPort = virtualPortService.getPort(portId);
         Set<Host> hostSet = hostService.getHostsByMac(vmPort.macAddress());
         for (Host host : hostSet) {
-            if (host.annotations().value(IFACEID).equals(vmPort.portId())) {
+            if (host.annotations().value(IFACEID).equals(vmPort.portId().portId())) {
                 return host.location().deviceId();
             }
         }
