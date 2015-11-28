@@ -72,7 +72,9 @@ public class NetconfOperation {
             log.error("Unable to send Hello Message to the device: ", e);
         } finally {
             log.debug("Closing the session after successful execution");
-            ssh.close();
+            if (ssh != null) {
+                ssh.close();
+            }
         }
     }
 
