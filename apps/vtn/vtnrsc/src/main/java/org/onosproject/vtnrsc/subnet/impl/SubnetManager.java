@@ -144,21 +144,19 @@ public class SubnetManager implements SubnetService {
     @Override
     public boolean updateSubnets(Iterable<Subnet> subnets) {
         checkNotNull(subnets, SUBNET_NOT_NULL);
-        if (subnets != null) {
-            for (Subnet subnet : subnets) {
-                if (!subnetStore.containsKey(subnet.id())) {
-                    log.debug("The subnet is not exist whose identifier is {}",
-                              subnet.id().toString());
-                    return false;
-                }
+        for (Subnet subnet : subnets) {
+            if (!subnetStore.containsKey(subnet.id())) {
+                log.debug("The subnet is not exist whose identifier is {}",
+                          subnet.id().toString());
+                return false;
+            }
 
-                subnetStore.put(subnet.id(), subnet);
+            subnetStore.put(subnet.id(), subnet);
 
-                if (!subnet.equals(subnetStore.get(subnet.id()))) {
-                    log.debug("The subnet is updated failed whose identifier is {}",
-                              subnet.id().toString());
-                    return false;
-                }
+            if (!subnet.equals(subnetStore.get(subnet.id()))) {
+                log.debug("The subnet is updated failed whose identifier is {}",
+                          subnet.id().toString());
+                return false;
             }
         }
         return true;
@@ -167,14 +165,12 @@ public class SubnetManager implements SubnetService {
     @Override
     public boolean removeSubnets(Iterable<SubnetId> subnetIds) {
         checkNotNull(subnetIds, SUBNET_ID_NULL);
-        if (subnetIds != null) {
-            for (SubnetId subnetId : subnetIds) {
-                subnetStore.remove(subnetId);
-                if (subnetStore.containsKey(subnetId)) {
-                    log.debug("The subnet created is failed whose identifier is {}",
-                              subnetId.toString());
-                    return false;
-                }
+        for (SubnetId subnetId : subnetIds) {
+             subnetStore.remove(subnetId);
+            if (subnetStore.containsKey(subnetId)) {
+                log.debug("The subnet created is failed whose identifier is {}",
+                          subnetId.toString());
+                return false;
             }
         }
         return true;
