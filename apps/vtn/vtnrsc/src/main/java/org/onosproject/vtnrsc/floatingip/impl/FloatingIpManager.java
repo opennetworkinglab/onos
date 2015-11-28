@@ -202,26 +202,23 @@ public class FloatingIpManager implements FloatingIpService {
     public boolean updateFloatingIps(Collection<FloatingIp> floatingIps) {
         checkNotNull(floatingIps, FLOATINGIP_NOT_NULL);
         boolean result = true;
-        if (floatingIps != null) {
-            for (FloatingIp floatingIp : floatingIps) {
-                verifyFloatingIpData(floatingIp);
-                if (floatingIp.portId() != null) {
-                    floatingIpStore.put(floatingIp.id(), floatingIp);
-                    if (!floatingIpStore.containsKey(floatingIp.id())) {
+        for (FloatingIp floatingIp : floatingIps) {
+            verifyFloatingIpData(floatingIp);
+            if (floatingIp.portId() != null) {
+                floatingIpStore.put(floatingIp.id(), floatingIp);
+                if (!floatingIpStore.containsKey(floatingIp.id())) {
+                    log.debug("The floating Ip is updated failed whose identifier is {}",
+                              floatingIp.id().toString());
+                    result = false;
+                }
+            } else {
+                FloatingIp oldFloatingIp = floatingIpStore.get(floatingIp.id());
+                if (oldFloatingIp != null) {
+                    floatingIpStore.remove(floatingIp.id(), oldFloatingIp);
+                    if (floatingIpStore.containsKey(floatingIp.id())) {
                         log.debug("The floating Ip is updated failed whose identifier is {}",
                                   floatingIp.id().toString());
                         result = false;
-                    }
-                } else {
-                    FloatingIp oldFloatingIp = floatingIpStore.get(floatingIp
-                            .id());
-                    if (oldFloatingIp != null) {
-                        floatingIpStore.remove(floatingIp.id(), oldFloatingIp);
-                        if (floatingIpStore.containsKey(floatingIp.id())) {
-                            log.debug("The floating Ip is updated failed whose identifier is {}",
-                                      floatingIp.id().toString());
-                            result = false;
-                        }
                     }
                 }
             }
@@ -233,21 +230,19 @@ public class FloatingIpManager implements FloatingIpService {
     public boolean removeFloatingIps(Collection<FloatingIpId> floatingIpIds) {
         checkNotNull(floatingIpIds, FLOATINGIP_ID_NOT_NULL);
         boolean result = true;
-        if (floatingIpIds != null) {
-            for (FloatingIpId floatingIpId : floatingIpIds) {
-                if (!floatingIpStore.containsKey(floatingIpId)) {
-                    log.debug("The floatingIp is not exist whose identifier is {}",
-                              floatingIpId.toString());
-                    throw new IllegalArgumentException(
-                                                       "FloatingIP ID doesn't exist");
-                }
-                FloatingIp floatingIp = floatingIpStore.get(floatingIpId);
-                floatingIpStore.remove(floatingIpId, floatingIp);
-                if (floatingIpStore.containsKey(floatingIpId)) {
-                    log.debug("The floating Ip is deleted failed whose identifier is {}",
-                              floatingIpId.toString());
-                    result = false;
-                }
+        for (FloatingIpId floatingIpId : floatingIpIds) {
+            if (!floatingIpStore.containsKey(floatingIpId)) {
+                log.debug("The floatingIp is not exist whose identifier is {}",
+                          floatingIpId.toString());
+                throw new IllegalArgumentException(
+                                                   "FloatingIP ID doesn't exist");
+            }
+            FloatingIp floatingIp = floatingIpStore.get(floatingIpId);
+            floatingIpStore.remove(floatingIpId, floatingIp);
+            if (floatingIpStore.containsKey(floatingIpId)) {
+                log.debug("The floating Ip is deleted failed whose identifier is {}",
+                          floatingIpId.toString());
+                result = false;
             }
         }
         return result;
