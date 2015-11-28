@@ -15,7 +15,7 @@
  */
 package org.onosproject.pcepio.types;
 
-import java.util.Objects;
+import java.util.Arrays;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.pcepio.protocol.PcepVersion;
@@ -106,7 +106,7 @@ public class SharedRiskLinkGroupTlv implements PcepValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(srlgValue);
+        return  Arrays.hashCode(srlgValue);
     }
 
     @Override
@@ -116,7 +116,7 @@ public class SharedRiskLinkGroupTlv implements PcepValueType {
         }
         if (obj instanceof SharedRiskLinkGroupTlv) {
             SharedRiskLinkGroupTlv other = (SharedRiskLinkGroupTlv) obj;
-            return Objects.equals(this.srlgValue, other.srlgValue);
+            return Arrays.equals(this.srlgValue, other.srlgValue);
         }
         return false;
     }
