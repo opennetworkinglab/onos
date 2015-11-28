@@ -46,20 +46,17 @@ public final class BgpDpid {
         this.stringBuilder = new StringBuilder("bgpls://");
 
         if (linkNlri.getRouteDistinguisher() != null) {
-            this.stringBuilder.append(Long.toString(linkNlri.getRouteDistinguisher().getRouteDistinguisher()))
-                              .append(':');
+            this.stringBuilder.append(linkNlri.getRouteDistinguisher().getRouteDistinguisher()).append(':');
         }
 
         try {
-            this.stringBuilder.append(linkNlri.getProtocolId().toString())
-                              .append(':')
-                              .append(Long.toString(linkNlri.getIdentifier()))
-                              .append('/');
+            this.stringBuilder.append(linkNlri.getProtocolId()).append(':').append(linkNlri.getIdentifier())
+            .append('/');
 
             if (nodeDescriptorType == NODE_DESCRIPTOR_LOCAL) {
-                add(linkNlri.localNodeDescriptors().toString());
+                add(linkNlri.localNodeDescriptors());
             } else if (nodeDescriptorType == NODE_DESCRIPTOR_REMOTE) {
-                add(linkNlri.remoteNodeDescriptors().toString());
+                add(linkNlri.remoteNodeDescriptors());
             }
         } catch (BgpParseException e) {
             log.info("Exception BgpId string: " + e.toString());
@@ -76,18 +73,15 @@ public final class BgpDpid {
         this.stringBuilder = new StringBuilder("bgpls://");
 
         if (nodeNlri.getRouteDistinguisher() != null) {
-            this.stringBuilder.append(Long.toString(nodeNlri.getRouteDistinguisher().getRouteDistinguisher()))
-                              .append(':');
+            this.stringBuilder.append(nodeNlri.getRouteDistinguisher().getRouteDistinguisher()).append(':');
         }
 
         try {
 
-            this.stringBuilder.append(nodeNlri.getProtocolId().toString())
-                              .append(':')
-                              .append(Long.toString(nodeNlri.getIdentifier()))
-                              .append('/');
+            this.stringBuilder.append(nodeNlri.getProtocolId()).append(':').append(nodeNlri.getIdentifier())
+            .append('/');
 
-            add(nodeNlri.getLocalNodeDescriptors().toString());
+            add(nodeNlri.getLocalNodeDescriptors());
 
         } catch (BgpParseException e) {
             log.info("Exception node string: " + e.toString());

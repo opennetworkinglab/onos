@@ -30,7 +30,6 @@ import org.onosproject.bgp.controller.BgpCfg;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpId;
 import org.onosproject.bgp.controller.BgpPeer;
-import org.onosproject.bgp.controller.BgpLinkListener;
 import org.onosproject.bgp.controller.BgpNodeListener;
 import org.onosproject.bgp.controller.BgpPeerManager;
 import org.onosproject.bgpio.exceptions.BgpParseException;
@@ -49,7 +48,6 @@ public class BgpControllerImpl implements BgpController {
     protected BgpPeerManagerImpl peerManager = new BgpPeerManagerImpl();
 
     protected Set<BgpNodeListener> bgpNodeListener = new CopyOnWriteArraySet<>();
-    protected Set<BgpLinkListener> bgpLinkListener = new CopyOnWriteArraySet<>();
 
     final Controller ctrl = new Controller(this);
 
@@ -92,21 +90,6 @@ public class BgpControllerImpl implements BgpController {
     @Override
     public Set<BgpNodeListener> listener() {
         return bgpNodeListener;
-    }
-
-    @Override
-    public void addLinkListener(BgpLinkListener listener) {
-        this.bgpLinkListener.add(listener);
-    }
-
-    @Override
-    public void removeLinkListener(BgpLinkListener listener) {
-        this.bgpLinkListener.remove(listener);
-    }
-
-    @Override
-    public Set<BgpLinkListener> linkListener() {
-        return bgpLinkListener;
     }
 
     @Override

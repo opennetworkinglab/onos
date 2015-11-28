@@ -58,20 +58,6 @@ public interface BgpController {
     void removeListener(BgpNodeListener listener);
 
     /**
-     * Register a listener for BGP message events.
-     *
-     * @param listener the listener to notify
-     */
-    void addLinkListener(BgpLinkListener listener);
-
-    /**
-     * Unregister a listener.
-     *
-     * @param listener the listener to unregister
-     */
-    void removeLinkListener(BgpLinkListener listener);
-
-    /**
      * Send a message to a particular bgp peer.
      *
      * @param bgpId the id of the peer to send message.
@@ -128,11 +114,4 @@ public interface BgpController {
      * @return node listener
      */
     Set<BgpNodeListener> listener();
-
-    /**
-     * Return BGP link listener.
-     *
-     * @return link listener
-     */
-    Set<BgpLinkListener> linkListener();
 }
