@@ -154,21 +154,19 @@ public class RouterManager implements RouterService {
     @Override
     public boolean updateRouters(Collection<Router> routers) {
         checkNotNull(routers, ROUTER_NOT_NULL);
-        if (routers != null) {
-            for (Router router : routers) {
-                if (!routerStore.containsKey(router.id())) {
-                    log.debug("The routers is not exist whose identifier is {}",
-                              router.id().toString());
-                    throw new IllegalArgumentException(
-                                                       "routers ID doesn't exist");
-                }
-                verifyRouterData(router);
-                routerStore.put(router.id(), router);
-                if (!router.equals(routerStore.get(router.id()))) {
-                    log.debug("The router is updated failed whose identifier is {}",
-                              router.id().toString());
-                    return false;
-                }
+        for (Router router : routers) {
+            if (!routerStore.containsKey(router.id())) {
+                log.debug("The routers is not exist whose identifier is {}",
+                          router.id().toString());
+                throw new IllegalArgumentException(
+                                                   "routers ID doesn't exist");
+            }
+            verifyRouterData(router);
+            routerStore.put(router.id(), router);
+            if (!router.equals(routerStore.get(router.id()))) {
+                log.debug("The router is updated failed whose identifier is {}",
+                          router.id().toString());
+                return false;
             }
         }
         return true;
@@ -177,21 +175,19 @@ public class RouterManager implements RouterService {
     @Override
     public boolean removeRouters(Collection<RouterId> routerIds) {
         checkNotNull(routerIds, ROUTER_ID_NULL);
-        if (routerIds != null) {
-            for (RouterId routerId : routerIds) {
-                if (!routerStore.containsKey(routerId)) {
-                    log.debug("The router is not exist whose identifier is {}",
-                              routerId.toString());
-                    throw new IllegalArgumentException(
-                                                       "router ID doesn't exist");
-                }
-                Router router = routerStore.get(routerId);
-                routerStore.remove(routerId, router);
-                if (routerStore.containsKey(routerId)) {
-                    log.debug("The router deleted is failed whose identifier is {}",
-                              routerId.toString());
-                    return false;
-                }
+        for (RouterId routerId : routerIds) {
+            if (!routerStore.containsKey(routerId)) {
+                log.debug("The router is not exist whose identifier is {}",
+                          routerId.toString());
+                throw new IllegalArgumentException(
+                                                   "router ID doesn't exist");
+            }
+            Router router = routerStore.get(routerId);
+            routerStore.remove(routerId, router);
+            if (routerStore.containsKey(routerId)) {
+                log.debug("The router deleted is failed whose identifier is {}",
+                          routerId.toString());
+                return false;
             }
         }
         return true;
