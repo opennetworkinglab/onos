@@ -52,5 +52,38 @@
      <command>
       <action class="org.onosproject.vtnrsc.cli.virtualport.VirtualPortUpdateCommand"/>
     </command>
+     <command>
+      <action class="org.onosproject.vtnrsc.cli.floatingip.FloatingIpCreateCommand"/>
+    </command>
+     <command>
+      <action class="org.onosproject.vtnrsc.cli.floatingip.FloatingIpQueryCommand"/>
+    </command>
+     <command>
+      <action class="org.onosproject.vtnrsc.cli.floatingip.FloatingIpRemoveCommand"/>
+    </command>
+     <command>
+      <action class="org.onosproject.vtnrsc.cli.floatingip.FloatingIpUpdateCommand"/>
+    </command>
+     <command>
+      <action class="org.onosproject.vtnrsc.cli.router.RouterCreateCommand"/>
+    </command>
+     <command>
+      <action class="org.onosproject.vtnrsc.cli.router.RouterQueryCommand"/>
+    </command>
+     <command>
+      <action class="org.onosproject.vtnrsc.cli.router.RouterRemoveCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.vtnrsc.cli.router.RouterUpdateCommand"/>
+    </command>
+     <command>
+      <action class="org.onosproject.vtnrsc.cli.routerinterface.RouterInterfaceCreateCommand"/>
+    </command>
+     <command>
+      <action class="org.onosproject.vtnrsc.cli.routerinterface.RouterInterfaceRemoveCommand"/>
+    </command>
+     <command>
+      <action class="org.onosproject.vtnrsc.cli.routerinterface.RouterInterfaceQueryCommand"/>
+    </command>
   </command-bundle>
 </blueprint>
