@@ -37,6 +37,8 @@
                 org.onosproject.vtnweb.resources.PortChainWebResource
                 org.onosproject.vtnweb.resources.PortPairGroupWebResource
                 org.onosproject.vtnweb.resources.PortPairWebResource
+				org.onosproject.vtnweb.resources.FloatingIpWebResource
+                org.onosproject.vtnweb.resources.RouterWebResource
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
