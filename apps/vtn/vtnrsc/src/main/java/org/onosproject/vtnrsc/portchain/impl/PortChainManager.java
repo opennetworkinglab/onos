@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.MultiValuedTimestamp;
@@ -34,6 +35,8 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.vtnrsc.PortChain;
 import org.onosproject.vtnrsc.PortChainId;
+import org.onosproject.vtnrsc.portchain.PortChainEvent;
+import org.onosproject.vtnrsc.portchain.PortChainListener;
 import org.onosproject.vtnrsc.portchain.PortChainService;
 import org.slf4j.Logger;
 
@@ -42,13 +45,14 @@ import org.slf4j.Logger;
  */
 @Component(immediate = true)
 @Service
-public class PortChainManager implements PortChainService {
-
-    private final Logger log = getLogger(getClass());
+public class PortChainManager extends AbstractListenerManager<PortChainEvent, PortChainListener> implements
+        PortChainService {
 
     private static final String PORT_CHAIN_ID_NULL = "PortChain ID cannot be null";
     private static final String PORT_CHAIN_NULL = "PortChain cannot be null";
+    private static final String LISTENER_NOT_NULL = "Listener cannot be null";
 
+    private final Logger log = getLogger(getClass());
     private EventuallyConsistentMap<PortChainId, PortChain> portChainStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
