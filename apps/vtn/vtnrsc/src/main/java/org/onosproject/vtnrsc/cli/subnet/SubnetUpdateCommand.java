@@ -98,7 +98,7 @@ public class SubnetUpdateCommand extends AbstractShellCommand {
     protected void execute() {
         SubnetService service = get(SubnetService.class);
         if (id == null || networkId == null || tenantId == null) {
-            print(null, "id,networkId,tenantId can not be null");
+            print("id,networkId,tenantId can not be null");
             return;
         }
         Subnet subnet = new DefaultSubnet(SubnetId.subnetId(id), subnetName,
