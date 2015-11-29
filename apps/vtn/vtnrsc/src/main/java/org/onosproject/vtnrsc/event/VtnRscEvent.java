@@ -51,7 +51,55 @@ public class VtnRscEvent
         /**
          * Signifies that router interface has remove.
          */
-        ROUTER_INTERFACE_DELETE
+        ROUTER_INTERFACE_DELETE,
+        /**
+         * Signifies that port-pair has add.
+         */
+        PORT_PAIR_PUT,
+        /**
+         * Signifies that port-pair has remove.
+         */
+        PORT_PAIR_DELETE,
+        /**
+         * Signifies that port-pair has update.
+         */
+        PORT_PAIR_UPDATE,
+        /**
+         * Signifies that port-pair-group has add.
+         */
+        PORT_PAIR_GROUP_PUT,
+        /**
+         * Signifies that port-pair-group has remove.
+         */
+        PORT_PAIR_GROUP_DELETE,
+        /**
+         * Signifies that port-pair-group has update.
+         */
+        PORT_PAIR_GROUP_UPDATE,
+        /**
+         * Signifies that flow-classifier has add.
+         */
+        FLOW_CLASSIFIER_PUT,
+        /**
+         * Signifies that flow-classifier has remove.
+         */
+        FLOW_CLASSIFIER_DELETE,
+        /**
+         * Signifies that flow-classifier has update.
+         */
+        FLOW_CLASSIFIER_UPDATE,
+        /**
+         * Signifies that port-chain has add.
+         */
+        PORT_CHAIN_PUT,
+        /**
+         * Signifies that port-chain has remove.
+         */
+        PORT_CHAIN_DELETE,
+        /**
+         * Signifies that port-chain has update.
+         */
+        PORT_CHAIN_UPDATE
     }
 
     /**
