@@ -169,4 +169,10 @@ public class BgpLinkAttrIgpMetric implements BgpValueType {
                 .add("igpMetric", igpMetric).add("igpMetricLen", igpMetricLen)
                 .toString();
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

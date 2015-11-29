@@ -18,6 +18,8 @@ package org.onosproject.bgpio.protocol.linkstate;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -36,12 +38,12 @@ import com.google.common.base.MoreObjects;
 /**
  * Provides Implementation of Local node descriptors and prefix descriptors.
  */
-public class BgpPrefixLSIdentifier {
+public class BgpPrefixLSIdentifier implements Comparable<Object> {
 
     protected static final Logger log = LoggerFactory.getLogger(BgpPrefixLSIdentifier.class);
     public static final int TYPE_AND_LEN = 4;
     private NodeDescriptors localNodeDescriptors;
-    private LinkedList<BgpValueType> prefixDescriptor;
+    private List<BgpValueType> prefixDescriptor;
 
     /**
      * Resets parameters.
@@ -57,7 +59,7 @@ public class BgpPrefixLSIdentifier {
      * @param localNodeDescriptors Local node descriptors
      * @param prefixDescriptor Prefix Descriptors
      */
-    public BgpPrefixLSIdentifier(NodeDescriptors localNodeDescriptors, LinkedList<BgpValueType> prefixDescriptor) {
+    public BgpPrefixLSIdentifier(NodeDescriptors localNodeDescriptors, List<BgpValueType> prefixDescriptor) {
         this.localNodeDescriptors = localNodeDescriptors;
         this.prefixDescriptor = prefixDescriptor;
     }
@@ -77,7 +79,7 @@ public class BgpPrefixLSIdentifier {
         localNodeDescriptors = parseLocalNodeDescriptors(cb, protocolId);
 
         //Parse Prefix descriptor
-        LinkedList<BgpValueType> prefixDescriptor = new LinkedList<>();
+        List<BgpValueType> prefixDescriptor = new LinkedList<>();
         prefixDescriptor = parsePrefixDescriptors(cb);
         return new BgpPrefixLSIdentifier(localNodeDescriptors, prefixDescriptor);
     }
@@ -92,7 +94,7 @@ public class BgpPrefixLSIdentifier {
      */
     public static NodeDescriptors parseLocalNodeDescriptors(ChannelBuffer cb, byte protocolId)
                                                                  throws BgpParseException {
-        ChannelBuffer tempBuf = cb;
+        ChannelBuffer tempBuf = cb.copy();
         short type = cb.readShort();
         short length = cb.readShort();
         if (cb.readableBytes() < length) {
@@ -119,7 +121,7 @@ public class BgpPrefixLSIdentifier {
      * @return list of prefix descriptors
      * @throws BgpParseException while parsing list of prefix descriptors
      */
-    public static LinkedList<BgpValueType> parsePrefixDescriptors(ChannelBuffer cb) throws BgpParseException {
+    public static List<BgpValueType> parsePrefixDescriptors(ChannelBuffer cb) throws BgpParseException {
         LinkedList<BgpValueType> prefixDescriptor = new LinkedList<>();
         BgpValueType tlv = null;
         boolean isIpReachInfo = false;
@@ -127,7 +129,7 @@ public class BgpPrefixLSIdentifier {
         int count = 0;
 
         while (cb.readableBytes() > 0) {
-            ChannelBuffer tempBuf = cb;
+            ChannelBuffer tempBuf = cb.copy();
             short type = cb.readShort();
             short length = cb.readShort();
             if (cb.readableBytes() < length) {
@@ -180,7 +182,7 @@ public class BgpPrefixLSIdentifier {
      *
      * @return Prefix descriptors
      */
-    public LinkedList<BgpValueType> getPrefixdescriptor() {
+    public List<BgpValueType> getPrefixdescriptor() {
         return this.prefixDescriptor;
     }
 
@@ -209,8 +211,12 @@ public class BgpPrefixLSIdentifier {
             } else {
                 while (objListIterator.hasNext() && isCommonSubTlv) {
                     BgpValueType subTlv = objListIterator.next();
-                    isCommonSubTlv = Objects.equals(prefixDescriptor.contains(subTlv),
-                            other.prefixDescriptor.contains(subTlv));
+                    if (prefixDescriptor.contains(subTlv) && other.prefixDescriptor.contains(subTlv)) {
+                        isCommonSubTlv = Objects.equals(prefixDescriptor.get(prefixDescriptor.indexOf(subTlv)),
+                                         other.prefixDescriptor.get(other.prefixDescriptor.indexOf(subTlv)));
+                    } else {
+                        isCommonSubTlv = false;
+                    }
                 }
                 return isCommonSubTlv && Objects.equals(this.localNodeDescriptors, other.localNodeDescriptors);
             }
@@ -224,5 +230,42 @@ public class BgpPrefixLSIdentifier {
                 .add("localNodeDescriptors", localNodeDescriptors)
                 .add("prefixDescriptor", prefixDescriptor)
                 .toString();
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        int result = this.localNodeDescriptors.compareTo(((BgpPrefixLSIdentifier) o).localNodeDescriptors);
+        if (result != 0) {
+            return result;
+        } else {
+            int countOtherSubTlv = ((BgpPrefixLSIdentifier) o).prefixDescriptor.size();
+            int countObjSubTlv = prefixDescriptor.size();
+            if (countOtherSubTlv != countObjSubTlv) {
+                if (countOtherSubTlv > countObjSubTlv) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+           }
+
+            ListIterator<BgpValueType> listIterator = prefixDescriptor.listIterator();
+            ListIterator<BgpValueType> listIteratorOther = ((BgpPrefixLSIdentifier) o).prefixDescriptor.listIterator();
+            while (listIterator.hasNext()) {
+                BgpValueType tlv = listIterator.next();
+                BgpValueType tlv1 = listIteratorOther.next();
+                if (prefixDescriptor.contains(tlv) && ((BgpPrefixLSIdentifier) o).prefixDescriptor.contains(tlv1)) {
+                    int res = prefixDescriptor.get(prefixDescriptor.indexOf(tlv)).compareTo(
+                            ((BgpPrefixLSIdentifier) o).prefixDescriptor
+                                    .get(((BgpPrefixLSIdentifier) o).prefixDescriptor.indexOf(tlv1)));
+                    if (res != 0) {
+                        return res;
+                    }
+                }
+            }
+        }
+        return 0;
     }
 }

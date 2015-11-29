@@ -237,4 +237,10 @@ public final class BgpLinkAttrProtectionType implements BgpValueType {
                 .add("bDedOnePlusOne", bDedOnePlusOne)
                 .add("bEnhanced", bEnhanced).toString();
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

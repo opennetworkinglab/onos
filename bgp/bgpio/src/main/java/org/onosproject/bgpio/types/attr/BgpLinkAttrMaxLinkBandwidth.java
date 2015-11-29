@@ -147,4 +147,10 @@ public final class BgpLinkAttrMaxLinkBandwidth implements BgpValueType {
         return MoreObjects.toStringHelper(getClass())
                 .add("maxBandwidth", maxBandwidth).toString();
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

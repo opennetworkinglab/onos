@@ -22,8 +22,6 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.util.Validation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -32,7 +30,6 @@ import com.google.common.base.Preconditions;
  * Provides Implementation of IPv4AddressTlv.
  */
 public class IPv4AddressTlv implements BgpValueType {
-    private static final Logger log = LoggerFactory.getLogger(IPv4AddressTlv.class);
     private static final int LENGTH = 4;
 
     private Ip4Address address;
@@ -115,6 +112,14 @@ public class IPv4AddressTlv implements BgpValueType {
      */
     public static IPv4AddressTlv of(final Ip4Address address , final short type) {
         return new IPv4AddressTlv(address, type);
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        return ((Ip4Address) (this.address)).compareTo((Ip4Address) (((IPv4AddressTlv) o).address));
     }
 
     @Override

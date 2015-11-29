@@ -15,13 +15,12 @@
  */
 package org.onosproject.bgpio.types;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.protocol.IGPRouterID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
@@ -29,8 +28,6 @@ import com.google.common.base.MoreObjects;
  * Provides implementation of IsIsPseudonode Tlv.
  */
 public class IsIsPseudonode implements IGPRouterID, BgpValueType {
-    private static final Logger log = LoggerFactory.getLogger(IsIsPseudonode.class);
-
     public static final short TYPE = 515;
     public static final short LENGTH = 7;
 
@@ -122,6 +119,19 @@ public class IsIsPseudonode implements IGPRouterID, BgpValueType {
     @Override
     public short getType() {
         return TYPE;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        ByteBuffer value1 = ByteBuffer.wrap(this.isoNodeID);
+        ByteBuffer value2 = ByteBuffer.wrap(((IsIsPseudonode) o).isoNodeID);
+        if (value1.compareTo(value2) != 0) {
+            return value1.compareTo(value2);
+        }
+        return ((Byte) (this.psnIdentifier)).compareTo((Byte) (((IsIsPseudonode) o).psnIdentifier));
     }
 
     @Override

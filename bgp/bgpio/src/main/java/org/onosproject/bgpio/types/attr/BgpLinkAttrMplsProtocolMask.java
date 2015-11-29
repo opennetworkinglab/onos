@@ -149,4 +149,10 @@ public class BgpLinkAttrMplsProtocolMask implements BgpValueType {
         return MoreObjects.toStringHelper(getClass())
                 .add("bLdp", bLdp).add("bRsvpTe", bRsvpTe).toString();
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

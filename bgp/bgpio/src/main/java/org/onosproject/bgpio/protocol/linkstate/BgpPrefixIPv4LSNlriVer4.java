@@ -15,7 +15,7 @@
  */
 package org.onosproject.bgpio.protocol.linkstate;
 
-import java.util.LinkedList;
+import java.util.List;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.exceptions.BgpParseException;
@@ -188,7 +188,7 @@ public class BgpPrefixIPv4LSNlriVer4 implements BgpPrefixLSNlri {
     }
 
     @Override
-    public LinkedList<BgpValueType> getPrefixdescriptor() {
+    public List<BgpValueType> getPrefixdescriptor() {
         return this.bgpPrefixLSIdentifier.getPrefixdescriptor();
     }
 

@@ -127,4 +127,10 @@ public class BgpAttrNodeIsIsAreaId implements BgpValueType {
         return MoreObjects.toStringHelper(getClass()).omitNullValues()
                 .add("isisAreaId", isisAreaId).toString();
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

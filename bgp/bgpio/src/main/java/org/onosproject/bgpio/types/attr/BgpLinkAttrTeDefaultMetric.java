@@ -129,4 +129,10 @@ public class BgpLinkAttrTeDefaultMetric implements BgpValueType {
         return MoreObjects.toStringHelper(getClass())
                 .add("linkTEMetric", linkTeMetric).toString();
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

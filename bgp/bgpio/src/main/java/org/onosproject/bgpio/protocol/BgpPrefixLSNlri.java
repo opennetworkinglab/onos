@@ -15,7 +15,7 @@
  */
 package org.onosproject.bgpio.protocol;
 
-import java.util.LinkedList;
+import java.util.List;
 
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.protocol.linkstate.NodeDescriptors;
@@ -36,5 +36,5 @@ public interface BgpPrefixLSNlri extends BgpLSNlri {
      *
      * @return list of Prefix descriptor
      */
-    LinkedList<BgpValueType> getPrefixdescriptor();
+    List<BgpValueType> getPrefixdescriptor();
 }

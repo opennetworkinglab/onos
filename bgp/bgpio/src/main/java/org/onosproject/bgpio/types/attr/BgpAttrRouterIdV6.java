@@ -134,4 +134,10 @@ public final class BgpAttrRouterIdV6 implements BgpValueType {
         return MoreObjects.toStringHelper(getClass()).omitNullValues()
                 .add("ip6RouterId", ip6RouterId).toString();
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

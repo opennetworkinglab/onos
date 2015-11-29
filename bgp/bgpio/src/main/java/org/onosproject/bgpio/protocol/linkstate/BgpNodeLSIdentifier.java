@@ -29,9 +29,9 @@ import com.google.common.base.MoreObjects;
 /**
  * Implementation of Node Identifier which includes local node descriptor/remote node descriptors.
  */
-public class BgpNodeLSIdentifier {
+public class BgpNodeLSIdentifier implements Comparable<Object> {
 
-    protected static final Logger log = LoggerFactory.getLogger(BgpNodeLSIdentifier.class);
+    private static final Logger log = LoggerFactory.getLogger(BgpNodeLSIdentifier.class);
     private NodeDescriptors nodeDescriptors;
 
     /**
@@ -60,7 +60,8 @@ public class BgpNodeLSIdentifier {
      */
     public static BgpNodeLSIdentifier parseLocalNodeDescriptors(ChannelBuffer cb, byte protocolId)
             throws BgpParseException {
-        ChannelBuffer tempBuf = cb;
+        log.debug("parse Local node descriptor");
+        ChannelBuffer tempBuf = cb.copy();
         short type = cb.readShort();
         short length = cb.readShort();
         if (cb.readableBytes() < length) {
@@ -109,5 +110,13 @@ public class BgpNodeLSIdentifier {
         return MoreObjects.toStringHelper(getClass())
                 .add("NodeDescriptors", nodeDescriptors)
                 .toString();
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        return this.nodeDescriptors.compareTo(((BgpNodeLSIdentifier) o).nodeDescriptors);
     }
 }

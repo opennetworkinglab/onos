@@ -190,4 +190,10 @@ public final class BgpAttrNodeFlagBitTlv implements BgpValueType {
                 .add("bExternalBit", bExternalBit).add("bAbrBit", bAbrBit)
                 .toString();
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

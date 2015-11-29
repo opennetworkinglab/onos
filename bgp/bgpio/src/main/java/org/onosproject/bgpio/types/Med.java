@@ -112,4 +112,10 @@ public class Med implements BgpValueType {
         //Not to implement as of now
         return 0;
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

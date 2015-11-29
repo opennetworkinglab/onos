@@ -205,4 +205,10 @@ public class AsPath implements BgpValueType {
         //Not required to Implement as of now
         return 0;
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

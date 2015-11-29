@@ -18,10 +18,12 @@ package org.onosproject.bgpio.types;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Implementation of RouteDistinguisher.
  */
-public class RouteDistinguisher {
+public class RouteDistinguisher implements Comparable<RouteDistinguisher> {
 
     private long routeDistinguisher;
 
@@ -58,5 +60,20 @@ public class RouteDistinguisher {
      */
     public long getRouteDistinguisher() {
         return this.routeDistinguisher;
+    }
+
+    @Override
+    public int compareTo(RouteDistinguisher rd) {
+        if (this.equals(rd)) {
+            return 0;
+        }
+        return ((Long) (this.getRouteDistinguisher())).compareTo((Long) (rd.getRouteDistinguisher()));
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass())
+                .add("routeDistinguisher", routeDistinguisher)
+                .toString();
     }
 }

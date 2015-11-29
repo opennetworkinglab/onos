@@ -18,8 +18,6 @@ package org.onosproject.bgpio.types;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
@@ -27,7 +25,6 @@ import com.google.common.base.MoreObjects;
  * Provides Implementation of Link Local/Remote IdentifiersTlv.
  */
 public class LinkLocalRemoteIdentifiersTlv implements BgpValueType {
-    private static final Logger log = LoggerFactory.getLogger(LinkLocalRemoteIdentifiersTlv.class);
     public static final short TYPE = 258;
     private static final int LENGTH = 8;
 
@@ -117,6 +114,20 @@ public class LinkLocalRemoteIdentifiersTlv implements BgpValueType {
      */
     public static LinkLocalRemoteIdentifiersTlv of(final int linkLocalIdentifer, final int linkRemoteIdentifer) {
         return new LinkLocalRemoteIdentifiersTlv(linkLocalIdentifer, linkRemoteIdentifer);
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        int result = ((Integer) (this.linkLocalIdentifer))
+                .compareTo((Integer) (((LinkLocalRemoteIdentifiersTlv) o).linkLocalIdentifer));
+        if (result != 0) {
+            return result;
+        }
+        return ((Integer) (this.linkRemoteIdentifer))
+                .compareTo((Integer) (((LinkLocalRemoteIdentifiersTlv) o).linkRemoteIdentifer));
     }
 
     @Override

@@ -127,4 +127,10 @@ public final class BgpLinkAttrIsIsAdminstGrp implements BgpValueType {
         return MoreObjects.toStringHelper(getClass())
                 .add("isisAdminGrp", isisAdminGrp).toString();
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

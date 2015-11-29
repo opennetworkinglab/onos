@@ -36,4 +36,12 @@ public interface BgpValueType {
      * @return length written to channel buffer
      */
     int write(ChannelBuffer cb);
+
+    /**
+     * Compares two objects.
+     *
+     * @param o object
+     * @return result after comparing two objects
+     */
+    int compareTo(Object o);
 }

@@ -305,4 +305,10 @@ public class LinkStateAttributes implements BgpValueType {
         return MoreObjects.toStringHelper(getClass()).omitNullValues()
                 .add("linkStateAttribList", linkStateAttribList).toString();
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

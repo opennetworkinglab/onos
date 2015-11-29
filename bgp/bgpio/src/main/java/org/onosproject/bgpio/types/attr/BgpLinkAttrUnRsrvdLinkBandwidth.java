@@ -154,4 +154,10 @@ public class BgpLinkAttrUnRsrvdLinkBandwidth implements BgpValueType {
         return MoreObjects.toStringHelper(getClass()).omitNullValues()
                 .add("maxUnResBandwidth", maxUnResBandwidth).toString();
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

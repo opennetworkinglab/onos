@@ -18,8 +18,6 @@ package org.onosproject.bgpio.types;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
@@ -37,8 +35,6 @@ public class AreaIDTlv implements BgpValueType {
      |                    opaque value (32 Bit Area-ID)              |
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
-
-    protected static final Logger log = LoggerFactory.getLogger(AreaIDTlv.class);
 
     public static final short TYPE = 514;
     public static final short LENGTH = 4;
@@ -113,6 +109,14 @@ public class AreaIDTlv implements BgpValueType {
     @Override
     public short getType() {
         return TYPE;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        return ((Integer) (this.areaID)).compareTo((Integer) (((AreaIDTlv) o).areaID));
     }
 
     @Override

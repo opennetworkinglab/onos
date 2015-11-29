@@ -19,8 +19,6 @@ import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.exceptions.BgpParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
@@ -41,8 +39,6 @@ public class OSPFRouteTypeTlv implements BgpValueType {
                    Figure : OSPF Route Type TLV Format
     */
 
-    protected static final Logger log = LoggerFactory.getLogger(OSPFRouteTypeTlv.class);
-
     public static final short TYPE = 264;
     public static final short LENGTH = 1;
     public static final int INTRA_AREA_TYPE = 1;
@@ -51,15 +47,16 @@ public class OSPFRouteTypeTlv implements BgpValueType {
     public static final short EXTERNAL_TYPE_2 = 4;
     public static final short NSSA_TYPE_1 = 5;
     public static final short NSSA_TYPE_2 = 6;
+
     private final byte routeType;
 
     /**
      * Enum for Route Type.
      */
-    public enum ROUTETYPE {
+    public enum RouteType {
         Intra_Area(1), Inter_Area(2), External_1(3), External_2(4), NSSA_1(5), NSSA_2(6);
         int value;
-        ROUTETYPE(int val) {
+        RouteType(int val) {
             value = val;
         }
         public byte getType() {
@@ -92,20 +89,20 @@ public class OSPFRouteTypeTlv implements BgpValueType {
      * @return RouteType
      * @throws BgpParseException if routeType is not matched
      */
-    public ROUTETYPE getValue() throws BgpParseException {
+    public RouteType getValue() throws BgpParseException {
         switch (routeType) {
         case INTRA_AREA_TYPE:
-            return ROUTETYPE.Intra_Area;
+            return RouteType.Intra_Area;
         case INTER_AREA_TYPE:
-            return ROUTETYPE.Inter_Area;
+            return RouteType.Inter_Area;
         case EXTERNAL_TYPE_1:
-            return ROUTETYPE.External_1;
+            return RouteType.External_1;
         case EXTERNAL_TYPE_2:
-            return ROUTETYPE.External_2;
+            return RouteType.External_2;
         case NSSA_TYPE_1:
-            return ROUTETYPE.NSSA_1;
+            return RouteType.NSSA_1;
         case NSSA_TYPE_2:
-            return ROUTETYPE.NSSA_2;
+            return RouteType.NSSA_2;
         default:
             throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR, (byte) 0, null);
         }
@@ -150,6 +147,14 @@ public class OSPFRouteTypeTlv implements BgpValueType {
     @Override
     public short getType() {
         return TYPE;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        return ((Byte) (this.routeType)).compareTo((Byte) (((OSPFRouteTypeTlv) o).routeType));
     }
 
     @Override

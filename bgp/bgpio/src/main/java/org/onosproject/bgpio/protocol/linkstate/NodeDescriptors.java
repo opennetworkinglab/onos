@@ -18,6 +18,8 @@ package org.onosproject.bgpio.protocol.linkstate;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -57,7 +59,7 @@ public class NodeDescriptors {
                    Figure : Local or Remote Node Descriptors TLV format
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(NodeDescriptors.class);
+    private static final Logger log = LoggerFactory.getLogger(NodeDescriptors.class);
 
     public static final short LOCAL_NODE_DES_TYPE = 256;
     public static final short REMOTE_NODE_DES_TYPE = 257;
@@ -71,7 +73,7 @@ public class NodeDescriptors {
     public static final int ISISPSEUDONODE_LEN = 7;
     public static final int OSPFNONPSEUDONODE_LEN = 4;
     public static final int OSPFPSEUDONODE_LEN = 8;
-    private LinkedList<BgpValueType> subTlvs;
+    private List<BgpValueType> subTlvs;
     private short deslength;
     private short desType;
 
@@ -91,7 +93,7 @@ public class NodeDescriptors {
      * @param deslength Descriptors length
      * @param desType local node descriptor or remote node descriptor type
      */
-    public NodeDescriptors(LinkedList<BgpValueType> subTlvs, short deslength, short desType) {
+    public NodeDescriptors(List<BgpValueType> subTlvs, short deslength, short desType) {
         this.subTlvs = subTlvs;
         this.deslength = deslength;
         this.desType = desType;
@@ -102,7 +104,7 @@ public class NodeDescriptors {
      *
      * @return subTlvs list of subTlvs
      */
-    public LinkedList<BgpValueType> getSubTlvs() {
+    public List<BgpValueType> getSubTlvs() {
         return subTlvs;
     }
 
@@ -130,7 +132,12 @@ public class NodeDescriptors {
             } else {
                 while (objListIterator.hasNext() && isCommonSubTlv) {
                     BgpValueType subTlv = objListIterator.next();
-                    isCommonSubTlv = Objects.equals(subTlvs.contains(subTlv), other.subTlvs.contains(subTlv));
+                    if (subTlvs.contains(subTlv) && other.subTlvs.contains(subTlv)) {
+                        isCommonSubTlv = Objects.equals(subTlvs.get(subTlvs.indexOf(subTlv)),
+                                         other.subTlvs.get(other.subTlvs.indexOf(subTlv)));
+                    } else {
+                        isCommonSubTlv = false;
+                    }
                 }
                 return isCommonSubTlv;
             }
@@ -150,12 +157,12 @@ public class NodeDescriptors {
      */
     public static NodeDescriptors read(ChannelBuffer cb, short desLength, short desType, byte protocolId)
             throws BgpParseException {
-        LinkedList<BgpValueType> subTlvs;
-        subTlvs = new LinkedList<>();
+        log.debug("Read NodeDescriptor");
+        List<BgpValueType> subTlvs = new LinkedList<>();
         BgpValueType tlv = null;
 
         while (cb.readableBytes() > 0) {
-            ChannelBuffer tempBuf = cb;
+            ChannelBuffer tempBuf = cb.copy();
             short type = cb.readShort();
             short length = cb.readShort();
             if (cb.readableBytes() < length) {
@@ -221,5 +228,35 @@ public class NodeDescriptors {
                 .add("deslength", deslength)
                 .add("subTlvs", subTlvs)
                 .toString();
+    }
+
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        ListIterator<BgpValueType> listIterator = subTlvs.listIterator();
+        ListIterator<BgpValueType> listIteratorOther = ((NodeDescriptors) o).subTlvs.listIterator();
+        int countOtherSubTlv = ((NodeDescriptors) o).subTlvs.size();
+        int countObjSubTlv = subTlvs.size();
+        if (countOtherSubTlv != countObjSubTlv) {
+             if (countOtherSubTlv > countObjSubTlv) {
+                 return 1;
+             } else {
+                 return -1;
+             }
+        } else {
+            while (listIterator.hasNext()) {
+            BgpValueType tlv = listIterator.next();
+                BgpValueType tlv1 = listIteratorOther.next();
+                if (subTlvs.contains(tlv) && ((NodeDescriptors) o).subTlvs.contains(tlv1)) {
+                    int result = subTlvs.get(subTlvs.indexOf(tlv)).compareTo(
+                            ((NodeDescriptors) o).subTlvs.get(((NodeDescriptors) o).subTlvs.indexOf(tlv1)));
+                    if (result != 0) {
+                        return result;
+                    }
+                }
+            }
+        }
+        return 0;
     }
 }

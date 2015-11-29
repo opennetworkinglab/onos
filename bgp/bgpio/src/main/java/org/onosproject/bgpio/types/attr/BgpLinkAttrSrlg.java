@@ -127,4 +127,10 @@ public class BgpLinkAttrSrlg implements BgpValueType {
     public String toString() {
         return MoreObjects.toStringHelper(getClass()).omitNullValues().add("sRlg", sRlg).toString();
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }

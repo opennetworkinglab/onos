@@ -15,14 +15,13 @@
  */
 package org.onosproject.bgpio.types;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.bgpio.util.Validation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
@@ -45,10 +44,9 @@ public class IPReachabilityInformationTlv implements BgpValueType {
              Figure 14: IP Reachability Information TLV Format
     */
 
-    protected static final Logger log = LoggerFactory.getLogger(IPReachabilityInformationTlv.class);
-
     public static final short TYPE = 265;
     public static final int ONE_BYTE_LEN = 8;
+
     private byte prefixLen;
     private byte[] ipPrefix;
     public short length;
@@ -143,6 +141,16 @@ public class IPReachabilityInformationTlv implements BgpValueType {
     @Override
     public short getType() {
         return TYPE;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        ByteBuffer value1 = ByteBuffer.wrap(this.ipPrefix);
+        ByteBuffer value2 = ByteBuffer.wrap(((IPReachabilityInformationTlv) o).ipPrefix);
+        return value1.compareTo(value2);
     }
 
     @Override

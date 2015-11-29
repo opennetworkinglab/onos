@@ -20,8 +20,6 @@ import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.protocol.IGPRouterID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
@@ -29,9 +27,6 @@ import com.google.common.base.MoreObjects;
  * Provides implementation of OSPFNonPseudonode Tlv.
  */
 public class OSPFNonPseudonode implements IGPRouterID, BgpValueType {
-
-    protected static final Logger log = LoggerFactory.getLogger(OSPFNonPseudonode.class);
-
     public static final short TYPE = 515;
     public static final short LENGTH = 4;
 
@@ -105,6 +100,14 @@ public class OSPFNonPseudonode implements IGPRouterID, BgpValueType {
     @Override
     public short getType() {
         return TYPE;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        return ((Integer) (this.routerID)).compareTo((Integer) (((OSPFNonPseudonode) o).routerID));
     }
 
     @Override

@@ -17,6 +17,7 @@ package org.onosproject.bgpio.types.attr;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -133,5 +134,31 @@ public class BgpAttrNodeMultiTopologyId implements BgpValueType {
                 .omitNullValues()
                 .add("multiTopologyId", multiTopologyId)
                 .toString();
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        int countOtherSubTlv = ((BgpAttrNodeMultiTopologyId) o).multiTopologyId.size();
+        int countObjSubTlv = multiTopologyId.size();
+        if (countOtherSubTlv != countObjSubTlv) {
+            if (countOtherSubTlv > countObjSubTlv) {
+                return 1;
+            } else {
+                return -1;
+            }
+       }
+        ListIterator<Short> listIterator = multiTopologyId.listIterator();
+        ListIterator<Short> listIteratorOther = ((BgpAttrNodeMultiTopologyId) o).multiTopologyId.listIterator();
+        while (listIterator.hasNext()) {
+            short id = listIterator.next();
+            short id1 = listIteratorOther.next();
+            if (((Short) id).compareTo((Short) id1) != 0) {
+                return ((Short) id).compareTo((Short) id1);
+            }
+        }
+        return 0;
     }
 }

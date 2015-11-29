@@ -19,8 +19,6 @@ package org.onosproject.bgpio.types;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
@@ -39,30 +37,28 @@ public class BgpLSIdentifierTlv implements BgpValueType {
      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
      */
 
-    protected static final Logger log = LoggerFactory.getLogger(BgpLSIdentifierTlv.class);
-
     public static final short TYPE = 513;
     public static final short LENGTH = 4;
 
-    private final int bgpLSIdentifier;
+    private final int bgpLsIdentifier;
 
     /**
-     * Constructor to initialize bgpLSIdentifier.
+     * Constructor to initialize bgpLsIdentifier.
      *
-     * @param bgpLSIdentifier BGPLS-Identifier
+     * @param bgpLsIdentifier BGPLS-Identifier
      */
-    public BgpLSIdentifierTlv(int bgpLSIdentifier) {
-        this.bgpLSIdentifier = bgpLSIdentifier;
+    public BgpLSIdentifierTlv(int bgpLsIdentifier) {
+        this.bgpLsIdentifier = bgpLsIdentifier;
     }
 
     /**
-     * Returns object of this class with specified rbgpLSIdentifier.
+     * Returns object of this class with specified bgpLsIdentifier.
      *
-     * @param bgpLSIdentifier BGPLS-Identifier
+     * @param bgpLsIdentifier BGPLS-Identifier
      * @return BGPLS-Identifier
      */
-    public static BgpLSIdentifierTlv of(final int bgpLSIdentifier) {
-        return new BgpLSIdentifierTlv(bgpLSIdentifier);
+    public static BgpLSIdentifierTlv of(final int bgpLsIdentifier) {
+        return new BgpLSIdentifierTlv(bgpLsIdentifier);
     }
 
     /**
@@ -70,13 +66,13 @@ public class BgpLSIdentifierTlv implements BgpValueType {
      *
      * @return opaque value of BGPLS-Identifier
      */
-    public int getBgpLSIdentifier() {
-        return bgpLSIdentifier;
+    public int getBgpLsIdentifier() {
+        return bgpLsIdentifier;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bgpLSIdentifier);
+        return Objects.hash(bgpLsIdentifier);
     }
 
     @Override
@@ -87,7 +83,7 @@ public class BgpLSIdentifierTlv implements BgpValueType {
 
         if (obj instanceof BgpLSIdentifierTlv) {
             BgpLSIdentifierTlv other = (BgpLSIdentifierTlv) obj;
-            return Objects.equals(bgpLSIdentifier, other.bgpLSIdentifier);
+            return Objects.equals(bgpLsIdentifier, other.bgpLsIdentifier);
         }
         return false;
     }
@@ -97,7 +93,7 @@ public class BgpLSIdentifierTlv implements BgpValueType {
         int iLenStartIndex = c.writerIndex();
         c.writeShort(TYPE);
         c.writeShort(LENGTH);
-        c.writeInt(bgpLSIdentifier);
+        c.writeInt(bgpLsIdentifier);
         return c.writerIndex() - iLenStartIndex;
     }
 
@@ -117,11 +113,19 @@ public class BgpLSIdentifierTlv implements BgpValueType {
     }
 
     @Override
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        return ((Integer) (this.bgpLsIdentifier)).compareTo((Integer) (((BgpLSIdentifierTlv) o).bgpLsIdentifier));
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("Type", TYPE)
                 .add("Length", LENGTH)
-                .add("Value", bgpLSIdentifier)
+                .add("Value", bgpLsIdentifier)
                 .toString();
     }
 }

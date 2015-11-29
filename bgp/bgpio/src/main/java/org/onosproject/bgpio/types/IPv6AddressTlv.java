@@ -22,8 +22,6 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.onlab.packet.Ip6Address;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.util.Validation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -32,7 +30,6 @@ import com.google.common.base.Preconditions;
  * Provides Implementation of IPv6AddressTlv.
  */
 public class IPv6AddressTlv implements BgpValueType {
-    private static final Logger log = LoggerFactory.getLogger(IPv6AddressTlv.class);
     private static final int LENGTH = 16;
 
     private final Ip6Address address;
@@ -115,6 +112,14 @@ public class IPv6AddressTlv implements BgpValueType {
      */
     public static IPv6AddressTlv of(final Ip6Address address , final short type) {
         return new IPv6AddressTlv(address, type);
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (this.equals(o)) {
+            return 0;
+        }
+        return ((Ip6Address) (this.address)).compareTo((Ip6Address) (((IPv6AddressTlv) o).address));
     }
 
     @Override

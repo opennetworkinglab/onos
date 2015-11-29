@@ -184,4 +184,10 @@ public class BgpPrefixAttrOspfFwdAddr implements BgpValueType {
                     .add("ip6RouterId", ip6RouterId).toString();
         }
     }
+
+    @Override
+    public int compareTo(Object o) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 }
