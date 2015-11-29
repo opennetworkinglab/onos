@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collections;
+import java.util.Set;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -34,8 +35,11 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.vtnrsc.PortPairGroup;
 import org.onosproject.vtnrsc.PortPairGroupId;
+import org.onosproject.vtnrsc.portpairgroup.PortPairGroupListener;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
 import org.slf4j.Logger;
+
+import com.google.common.collect.Sets;
 
 /**
  * Provides implementation of the portPairGroupService.
@@ -44,11 +48,12 @@ import org.slf4j.Logger;
 @Service
 public class PortPairGroupManager implements PortPairGroupService {
 
-    private final Logger log = getLogger(getClass());
-
     private static final String PORT_PAIR_GROUP_ID_NULL = "PortPairGroup ID cannot be null";
     private static final String PORT_PAIR_GROUP_NULL = "PortPairGroup cannot be null";
+    private static final String LISTENER_NOT_NULL = "Listener cannot be null";
 
+    private final Logger log = getLogger(getClass());
+    private final Set<PortPairGroupListener> listeners = Sets.newCopyOnWriteArraySet();
     private EventuallyConsistentMap<PortPairGroupId, PortPairGroup> portPairGroupStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -73,6 +78,7 @@ public class PortPairGroupManager implements PortPairGroupService {
     @Deactivate
     public void deactivate() {
         portPairGroupStore.destroy();
+        listeners.clear();
         log.info("Stopped");
     }
 
@@ -142,5 +148,17 @@ public class PortPairGroupManager implements PortPairGroupService {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void addListener(PortPairGroupListener listener) {
+        checkNotNull(listener, LISTENER_NOT_NULL);
+        listeners.add(listener);
+    }
+
+    @Override
+    public void removeListener(PortPairGroupListener listener) {
+        checkNotNull(listener, LISTENER_NOT_NULL);
+        listeners.remove(listener);
     }
 }

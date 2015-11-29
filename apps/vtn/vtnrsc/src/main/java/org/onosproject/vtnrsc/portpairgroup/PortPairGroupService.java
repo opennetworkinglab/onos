@@ -77,4 +77,18 @@ public interface PortPairGroupService {
      * @return true if the give port pair group is deleted successfully.
      */
     boolean removePortPairGroup(PortPairGroupId portPairGroupId);
+
+    /**
+     * Adds the specified listener to Port-Pair-Group manager.
+     *
+     * @param listener Port-Pair-Group listener
+     */
+    void addListener(PortPairGroupListener listener);
+
+    /**
+     * Removes the specified listener to Port-Pair-Group manager.
+     *
+     * @param listener Port-Pair-Group listener
+     */
+    void removeListener(PortPairGroupListener listener);
 }
