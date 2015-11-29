@@ -20,6 +20,10 @@ import java.util.Objects;
 import org.onosproject.vtnrsc.FloatingIp;
 import org.onosproject.vtnrsc.Router;
 import org.onosproject.vtnrsc.RouterInterface;
+import org.onosproject.vtnrsc.PortPair;
+import org.onosproject.vtnrsc.PortPairGroup;
+import org.onosproject.vtnrsc.FlowClassifier;
+import org.onosproject.vtnrsc.PortChain;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -31,6 +35,10 @@ public class VtnRscEventFeedback {
     private final FloatingIp floaingtIp;
     private final Router router;
     private final RouterInterface routerInterface;
+    private final PortPair portPair;
+    private final PortPairGroup portPairGroup;
+    private final FlowClassifier flowClassifier;
+    private final PortChain portChain;
 
     /**
      * Creates VtnRscEventFeedback object.
@@ -41,6 +49,10 @@ public class VtnRscEventFeedback {
         this.floaingtIp = checkNotNull(floatingIp, "floaintIp cannot be null");
         this.router = null;
         this.routerInterface = null;
+        this.portPair = null;
+        this.portPairGroup = null;
+        this.flowClassifier = null;
+        this.portChain = null;
     }
 
     /**
@@ -52,6 +64,10 @@ public class VtnRscEventFeedback {
         this.floaingtIp = null;
         this.router = checkNotNull(router, "router cannot be null");
         this.routerInterface = null;
+        this.portPair = null;
+        this.portPairGroup = null;
+        this.flowClassifier = null;
+        this.portChain = null;
     }
 
     /**
@@ -64,6 +80,74 @@ public class VtnRscEventFeedback {
         this.router = null;
         this.routerInterface = checkNotNull(routerInterface,
                                             "routerInterface cannot be null");
+        this.portPair = null;
+        this.portPairGroup = null;
+        this.flowClassifier = null;
+        this.portChain = null;
+    }
+
+    /**
+     * Creates VtnRscEventFeedback object.
+     *
+     * @param portPair the Port-Pair
+     */
+    public VtnRscEventFeedback(PortPair portPair) {
+        this.floaingtIp = null;
+        this.router = null;
+        this.routerInterface = null;
+        this.portPair = checkNotNull(portPair,
+                                     "Port-Pair cannot be null");
+        this.portPairGroup = null;
+        this.flowClassifier = null;
+        this.portChain = null;
+    }
+
+    /**
+     * Creates VtnRscEventFeedback object.
+     *
+     * @param portPairGroup the Port-Pair-Group
+     */
+    public VtnRscEventFeedback(PortPairGroup portPairGroup) {
+        this.floaingtIp = null;
+        this.router = null;
+        this.routerInterface = null;
+        this.portPair = null;
+        this.portPairGroup = checkNotNull(portPairGroup,
+                                     "Port-Pair-Group cannot be null");
+        this.flowClassifier = null;
+        this.portChain = null;
+    }
+
+    /**
+     * Creates VtnRscEventFeedback object.
+     *
+     * @param flowClassifier the Flow-Classifier
+     */
+    public VtnRscEventFeedback(FlowClassifier flowClassifier) {
+        this.floaingtIp = null;
+        this.router = null;
+        this.routerInterface = null;
+        this.portPair = null;
+        this.portPairGroup = null;
+        this.flowClassifier = checkNotNull(flowClassifier,
+                                     "Flow-Classifier cannot be null");
+        this.portChain = null;
+    }
+
+    /**
+     * Creates VtnRscEventFeedback object.
+     *
+     * @param portChain the Port-Chain
+     */
+    public VtnRscEventFeedback(PortChain portChain) {
+        this.floaingtIp = null;
+        this.router = null;
+        this.routerInterface = null;
+        this.portPair = null;
+        this.portPairGroup = null;
+        this.flowClassifier = null;
+        this.portChain = checkNotNull(portChain,
+                                     "Port-Chain cannot be null");
     }
 
     /**
@@ -93,9 +177,46 @@ public class VtnRscEventFeedback {
         return routerInterface;
     }
 
+    /**
+     * Returns Port-Pair.
+     *
+     * @return portPair the Port-Pair
+     */
+    public PortPair portPair() {
+        return portPair;
+    }
+
+    /**
+     * Returns Port-Pair-Group.
+     *
+     * @return portPairGroup the Port-Pair-Group
+     */
+    public PortPairGroup portPairGroup() {
+        return portPairGroup;
+    }
+
+    /**
+     * Returns Flow-Classifier.
+     *
+     * @return flowClassifier the Flow-Classifier
+     */
+    public FlowClassifier flowClassifier() {
+        return flowClassifier;
+    }
+
+    /**
+     * Returns Port-Chain.
+     *
+     * @return portChain the Port-Chain
+     */
+    public PortChain portChain() {
+        return portChain;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(floaingtIp, router, routerInterface);
+        return Objects.hash(floaingtIp, router, routerInterface, portPair,
+                            portPairGroup, flowClassifier, portChain);
     }
 
     @Override
@@ -107,7 +228,11 @@ public class VtnRscEventFeedback {
             final VtnRscEventFeedback that = (VtnRscEventFeedback) obj;
             return Objects.equals(this.floaingtIp, that.floaingtIp)
                     && Objects.equals(this.router, that.router)
-                    && Objects.equals(this.routerInterface, that.routerInterface);
+                    && Objects.equals(this.routerInterface, that.routerInterface)
+                    && Objects.equals(this.portPair, that.portPair)
+                    && Objects.equals(this.portPairGroup, that.portPairGroup)
+                    && Objects.equals(this.flowClassifier, that.flowClassifier)
+                    && Objects.equals(this.portChain, that.portChain);
         }
         return false;
     }
@@ -118,6 +243,10 @@ public class VtnRscEventFeedback {
                 .add("router", router)
                 .add("floaingtIp", floaingtIp)
                 .add("routerInterface", routerInterface)
+                .add("portPair", portPair)
+                .add("portPairGroup", portPairGroup)
+                .add("flowClassifier", flowClassifier)
+                .add("portChain", portChain)
                 .toString();
     }
 }
