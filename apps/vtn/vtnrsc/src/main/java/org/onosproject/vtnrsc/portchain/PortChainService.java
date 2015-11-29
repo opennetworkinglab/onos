@@ -15,13 +15,14 @@
  */
 package org.onosproject.vtnrsc.portchain;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.vtnrsc.PortChain;
 import org.onosproject.vtnrsc.PortChainId;
 
 /**
  * Service for interacting with the inventory of port chains.
  */
-public interface PortChainService {
+public interface PortChainService extends ListenerService<PortChainEvent, PortChainListener> {
 
     /**
      * Returns if the port chain is existed.

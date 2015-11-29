@@ -32,6 +32,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.CoreService;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -54,6 +55,11 @@ import org.onosproject.vtnrsc.SubnetId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.VirtualPort;
 import org.onosproject.vtnrsc.VirtualPortId;
+import org.onosproject.vtnrsc.PortPair;
+import org.onosproject.vtnrsc.PortPairId;
+import org.onosproject.vtnrsc.PortPairGroup;
+import org.onosproject.vtnrsc.FlowClassifier;
+import org.onosproject.vtnrsc.PortChain;
 import org.onosproject.vtnrsc.event.VtnRscEvent;
 import org.onosproject.vtnrsc.event.VtnRscEventFeedback;
 import org.onosproject.vtnrsc.event.VtnRscListener;
@@ -70,16 +76,27 @@ import org.onosproject.vtnrsc.service.VtnRscService;
 import org.onosproject.vtnrsc.subnet.SubnetService;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
+import org.onosproject.vtnrsc.portpair.PortPairEvent;
+import org.onosproject.vtnrsc.portpair.PortPairListener;
+import org.onosproject.vtnrsc.portpair.PortPairService;
+import org.onosproject.vtnrsc.portpairgroup.PortPairGroupEvent;
+import org.onosproject.vtnrsc.portpairgroup.PortPairGroupListener;
+import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
+import org.onosproject.vtnrsc.flowclassifier.FlowClassifierEvent;
+import org.onosproject.vtnrsc.flowclassifier.FlowClassifierListener;
+import org.onosproject.vtnrsc.flowclassifier.FlowClassifierService;
+import org.onosproject.vtnrsc.portchain.PortChainEvent;
+import org.onosproject.vtnrsc.portchain.PortChainListener;
+import org.onosproject.vtnrsc.portchain.PortChainService;
 import org.slf4j.Logger;
-
-import com.google.common.collect.Sets;
 
 /**
  * Provides implementation of the VtnRsc service.
  */
 @Component(immediate = true)
 @Service
-public class VtnRscManager implements VtnRscService {
+public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscListener>
+                           implements VtnRscService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -88,11 +105,14 @@ public class VtnRscManager implements VtnRscService {
     protected LogicalClockService clockService;
 
     private final Logger log = getLogger(getClass());
-    private final Set<VtnRscListener> listeners = Sets.newCopyOnWriteArraySet();
     private HostListener hostListener = new InnerHostListener();
     private FloatingIpListener floatingIpListener = new InnerFloatingIpListener();
     private RouterListener routerListener = new InnerRouterListener();
     private RouterInterfaceListener routerInterfaceListener = new InnerRouterInterfaceListener();
+    private PortPairListener portPairListener = new InnerPortPairListener();
+    private PortPairGroupListener portPairGroupListener = new InnerPortPairGroupListener();
+    private FlowClassifierListener flowClassifierListener = new InnerFlowClassifierListener();
+    private PortChainListener portChainListener = new InnerPortChainListener();
 
     private EventuallyConsistentMap<TenantId, SegmentationId> l3vniMap;
     private EventuallyConsistentMap<TenantId, Set<DeviceId>> classifierOvsMap;
@@ -125,6 +145,14 @@ public class VtnRscManager implements VtnRscService {
     protected TenantNetworkService tenantNetworkService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PortPairService portPairService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PortPairGroupService portPairGroupService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected FlowClassifierService flowClassifierService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PortChainService portChainService;
 
     @Activate
     public void activate() {
@@ -132,6 +160,10 @@ public class VtnRscManager implements VtnRscService {
         floatingIpService.addListener(floatingIpListener);
         routerService.addListener(routerListener);
         routerInterfaceService.addListener(routerInterfaceListener);
+        portPairService.addListener(portPairListener);
+        portPairGroupService.addListener(portPairGroupListener);
+        flowClassifierService.addListener(flowClassifierListener);
+        portChainService.addListener(portChainListener);
 
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
@@ -161,23 +193,15 @@ public class VtnRscManager implements VtnRscService {
         floatingIpService.removeListener(floatingIpListener);
         routerService.removeListener(routerListener);
         routerInterfaceService.removeListener(routerInterfaceListener);
+        portPairService.removeListener(portPairListener);
+        portPairGroupService.removeListener(portPairGroupListener);
+        flowClassifierService.removeListener(flowClassifierListener);
+        portChainService.removeListener(portChainListener);
+
         l3vniMap.destroy();
         classifierOvsMap.destroy();
         sffOvsMap.destroy();
-        listeners.clear();
         log.info("Stopped");
-    }
-
-    @Override
-    public void addListener(VtnRscListener listener) {
-        checkNotNull(listener, LISTENER_NOT_NULL);
-        listeners.add(listener);
-    }
-
-    @Override
-    public void removeListener(VtnRscListener listener) {
-        checkNotNull(listener, LISTENER_NOT_NULL);
-        listeners.add(listener);
     }
 
     @Override
@@ -282,6 +306,93 @@ public class VtnRscManager implements VtnRscService {
         }
     }
 
+    private class InnerPortPairListener implements PortPairListener {
+
+        @Override
+        public void event(PortPairEvent event) {
+            checkNotNull(event, EVENT_NOT_NULL);
+            PortPair portPair = event.subject();
+            if (PortPairEvent.Type.PORT_PAIR_PUT == event.type()) {
+                notifyListeners(new VtnRscEvent(VtnRscEvent.Type.PORT_PAIR_PUT,
+                        new VtnRscEventFeedback(portPair)));
+            } else if (PortPairEvent.Type.PORT_PAIR_DELETE == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                        VtnRscEvent.Type.PORT_PAIR_DELETE,
+                        new VtnRscEventFeedback(portPair)));
+            } else if (PortPairEvent.Type.PORT_PAIR_UPDATE == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                        VtnRscEvent.Type.PORT_PAIR_UPDATE,
+                        new VtnRscEventFeedback(portPair)));
+            }
+        }
+    }
+
+    private class InnerPortPairGroupListener implements PortPairGroupListener {
+
+        @Override
+        public void event(PortPairGroupEvent event) {
+            checkNotNull(event, EVENT_NOT_NULL);
+            PortPairGroup portPairGroup = event.subject();
+            if (PortPairGroupEvent.Type.PORT_PAIR_GROUP_PUT == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                        VtnRscEvent.Type.PORT_PAIR_GROUP_PUT,
+                        new VtnRscEventFeedback(portPairGroup)));
+            } else if (PortPairGroupEvent.Type.PORT_PAIR_GROUP_DELETE == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                        VtnRscEvent.Type.PORT_PAIR_GROUP_DELETE,
+                        new VtnRscEventFeedback(portPairGroup)));
+            } else if (PortPairGroupEvent.Type.PORT_PAIR_GROUP_UPDATE == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                        VtnRscEvent.Type.PORT_PAIR_GROUP_UPDATE,
+                        new VtnRscEventFeedback(portPairGroup)));
+            }
+        }
+    }
+
+    private class InnerFlowClassifierListener implements FlowClassifierListener {
+
+        @Override
+        public void event(FlowClassifierEvent event) {
+            checkNotNull(event, EVENT_NOT_NULL);
+            FlowClassifier flowClassifier = event.subject();
+            if (FlowClassifierEvent.Type.FLOW_CLASSIFIER_PUT == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                        VtnRscEvent.Type.FLOW_CLASSIFIER_PUT,
+                        new VtnRscEventFeedback(flowClassifier)));
+            } else if (FlowClassifierEvent.Type.FLOW_CLASSIFIER_DELETE == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                        VtnRscEvent.Type.FLOW_CLASSIFIER_DELETE,
+                        new VtnRscEventFeedback(flowClassifier)));
+            } else if (FlowClassifierEvent.Type.FLOW_CLASSIFIER_UPDATE == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                        VtnRscEvent.Type.FLOW_CLASSIFIER_UPDATE,
+                        new VtnRscEventFeedback(flowClassifier)));
+            }
+        }
+    }
+
+    private class InnerPortChainListener implements PortChainListener {
+
+        @Override
+        public void event(PortChainEvent event) {
+            checkNotNull(event, EVENT_NOT_NULL);
+            PortChain portChain = event.subject();
+            if (PortChainEvent.Type.PORT_CHAIN_PUT == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                        VtnRscEvent.Type.PORT_CHAIN_PUT,
+                        new VtnRscEventFeedback(portChain)));
+            } else if (PortChainEvent.Type.PORT_CHAIN_DELETE == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                        VtnRscEvent.Type.PORT_CHAIN_DELETE,
+                        new VtnRscEventFeedback(portChain)));
+            } else if (PortChainEvent.Type.PORT_CHAIN_UPDATE == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                        VtnRscEvent.Type.PORT_CHAIN_UPDATE,
+                        new VtnRscEventFeedback(portChain)));
+            }
+        }
+    }
+
     @Override
     public Iterator<Device> getClassifierOfTenant(TenantId tenantId) {
         checkNotNull(tenantId, TENANTID_NOT_NULL);
@@ -333,8 +444,7 @@ public class VtnRscManager implements VtnRscService {
 
     @Override
     public boolean isServiceFunction(VirtualPortId portId) {
-        // TODO Auto-generated method stub
-        return false;
+        return portPairService.exists(PortPairId.of(portId.portId()));
     }
 
     @Override
@@ -467,6 +577,6 @@ public class VtnRscManager implements VtnRscService {
      */
     private void notifyListeners(VtnRscEvent event) {
         checkNotNull(event, EVENT_NOT_NULL);
-        listeners.forEach(listener -> listener.event(event));
+        post(event);
     }
 }

@@ -18,32 +18,20 @@ package org.onosproject.vtnrsc.service;
 import java.util.Iterator;
 
 import org.onlab.packet.MacAddress;
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.vtnrsc.SegmentationId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.VirtualPortId;
+import org.onosproject.vtnrsc.event.VtnRscEvent;
 import org.onosproject.vtnrsc.event.VtnRscListener;
 
 /**
  * Service for interacting with the inventory of Vtn resource.
  */
-public interface VtnRscService {
-    /**
-     * Adds the specified listener.
-     *
-     * @param listener VtnRsc listener
-     */
-    void addListener(VtnRscListener listener);
-
-    /**
-     * Removes the specified listener.
-     *
-     * @param listener VtnRsc listener
-     */
-    void removeListener(VtnRscListener listener);
-
+public interface VtnRscService extends ListenerService<VtnRscEvent, VtnRscListener> {
     /**
      * Returns the SegmentationId of tenant.
      *
