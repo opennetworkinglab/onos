@@ -79,4 +79,18 @@ public interface FlowClassifierService {
      *         false
      */
     boolean removeFlowClassifier(FlowClassifierId id);
+
+    /**
+     * Adds the specified listener to Flow-Classifier manager.
+     *
+     * @param listener Flow-Classifier listener
+     */
+    void addListener(FlowClassifierListener listener);
+
+    /**
+     * Removes the specified listener to Flow-Classifier manager.
+     *
+     * @param listener Flow-Classifier listener
+     */
+    void removeListener(FlowClassifierListener listener);
 }

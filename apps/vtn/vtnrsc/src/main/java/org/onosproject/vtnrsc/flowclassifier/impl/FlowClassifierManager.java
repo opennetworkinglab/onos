@@ -15,6 +15,9 @@
  */
 package org.onosproject.vtnrsc.flowclassifier.impl;
 
+import static org.slf4j.LoggerFactory.getLogger;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,13 +32,14 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.vtnrsc.FlowClassifierId;
 import org.onosproject.vtnrsc.FlowClassifier;
+import org.onosproject.vtnrsc.flowclassifier.FlowClassifierListener;
 import org.onosproject.vtnrsc.flowclassifier.FlowClassifierService;
 import org.slf4j.Logger;
 
-import static org.slf4j.LoggerFactory.getLogger;
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
 /**
  * Provides implementation of the Flow Classifier Service.
@@ -44,12 +48,14 @@ import com.google.common.collect.ImmutableList;
 @Service
 public class FlowClassifierManager implements FlowClassifierService {
 
-    private final Logger log = getLogger(FlowClassifierManager.class);
-
     private static final String FLOW_CLASSIFIER_NOT_NULL = "Flow Classifier cannot be null";
     private static final String FLOW_CLASSIFIER_ID_NOT_NULL = "Flow Classifier Id cannot be null";
+    private static final String LISTENER_NOT_NULL = "Listener cannot be null";
 
+    private final Logger log = getLogger(FlowClassifierManager.class);
+    private final Set<FlowClassifierListener> listeners = Sets.newCopyOnWriteArraySet();
     private EventuallyConsistentMap<FlowClassifierId, FlowClassifier> flowClassifierStore;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
@@ -69,6 +75,7 @@ public class FlowClassifierManager implements FlowClassifierService {
     @Deactivate
     protected void deactivate() {
         flowClassifierStore.destroy();
+        listeners.clear();
         log.info("Flow Classifier service deactivated");
     }
 
@@ -137,5 +144,17 @@ public class FlowClassifierManager implements FlowClassifierService {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void addListener(FlowClassifierListener listener) {
+        checkNotNull(listener, LISTENER_NOT_NULL);
+        listeners.add(listener);
+    }
+
+    @Override
+    public void removeListener(FlowClassifierListener listener) {
+        checkNotNull(listener, LISTENER_NOT_NULL);
+        listeners.remove(listener);
     }
 }
