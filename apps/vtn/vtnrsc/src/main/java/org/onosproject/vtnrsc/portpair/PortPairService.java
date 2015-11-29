@@ -77,4 +77,18 @@ public interface PortPairService {
      * @return true if the give port pair is deleted successfully.
      */
     boolean removePortPair(PortPairId portPairId);
+
+    /**
+     * Adds the specified listener to Port-Pair manager.
+     *
+     * @param listener Port-Pair listener
+     */
+    void addListener(PortPairListener listener);
+
+    /**
+     * Removes the specified listener to Port-Pair manager.
+     *
+     * @param listener Port-Pair listener
+     */
+    void removeListener(PortPairListener listener);
 }
