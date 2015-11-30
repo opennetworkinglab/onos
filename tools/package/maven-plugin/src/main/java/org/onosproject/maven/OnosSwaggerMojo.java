@@ -293,6 +293,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
                                                    + param + ".json");
                     String lines = Files.readLines(config, Charsets.UTF_8).stream().reduce((t, u) -> t + u).
                             get();
+                    lines = lines.replaceAll("\\s+","");
                     definitions.putPOJO(param, lines);
                 } catch (IOException e) {
                     e.printStackTrace();

@@ -68,7 +68,6 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     /**
      * Get entire network configuration base.
      *
-     * @rsModel NetCfgGet
      * @return network configuration JSON
      */
     @GET
@@ -185,7 +184,6 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     /**
      * Upload bulk network configuration.
      *
-     * @rsModel NetCfgGet
      * @param request network configuration JSON rooted at the top node
      * @return empty response
      * @throws IOException if unable to parse the request
