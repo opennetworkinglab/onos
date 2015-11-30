@@ -187,7 +187,7 @@ public class FloatingIpWebResource extends AbstractWebResource {
      *
      * @param floatingIpNodes the floatingIp json node
      * @return floatingIps a collection of floatingIp
-     * @throws Exception
+     * @throws Exception when any argument is illegal
      */
     public Collection<FloatingIp> changeJsonToSub(JsonNode floatingIpNodes)
             throws Exception {

@@ -293,7 +293,7 @@ public class RouterWebResource extends AbstractWebResource {
      *
      * @param routerNode the router json node
      * @return routers a collection of router
-     * @throws Exception
+     * @throws Exception when any argument is illegal
      */
     public Collection<Router> changeJsonToSub(JsonNode routerNode)
             throws Exception {
