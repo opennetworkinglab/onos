@@ -340,7 +340,7 @@ public final class DefaultTrafficSelector implements TrafficSelector {
 
         @Override
         public Builder matchMplsBos(boolean mplsBos) {
-            return add(Criteria.matchMplsLabel(mplsBos));
+            return add(Criteria.matchMplsBos(mplsBos));
         }
 
         @Override

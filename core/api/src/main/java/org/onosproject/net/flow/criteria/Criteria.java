@@ -448,7 +448,7 @@ public final class Criteria {
      * @param mplsBos boolean value indicating true (BOS=1) or false (BOS=0)
      * @return match criterion
      */
-    public static Criterion matchMplsLabel(boolean mplsBos) {
+    public static Criterion matchMplsBos(boolean mplsBos) {
         return new MplsBosCriterion(mplsBos);
     }
 
