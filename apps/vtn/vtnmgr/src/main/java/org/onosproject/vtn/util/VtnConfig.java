@@ -113,6 +113,7 @@ public final class VtnConfig {
      * Gets ports in the controller device.
      *
      * @param handler DriverHandler
+     * @return set of port numbers
      */
     public static Set<PortNumber> getPortNumbers(DriverHandler handler) {
         BridgeConfig bridgeConfig = handler.behaviour(BridgeConfig.class);
