@@ -419,6 +419,14 @@ public interface TrafficSelector {
         Builder matchArpSha(MacAddress addr);
 
         /**
+         * Matches a arp operation type.
+         *
+         * @param arpOp a arp operation type
+         * @return a selection builder
+         */
+        Builder matchArpOp(int arpOp);
+
+        /**
          * Builds an immutable traffic selector.
          *
          * @return traffic selector

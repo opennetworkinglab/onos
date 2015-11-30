@@ -708,6 +708,10 @@ public class FlowEntryBuilder {
                 long tunnelId = match.get(MatchField.TUNNEL_ID).getValue();
                 builder.matchTunnelId(tunnelId);
                 break;
+            case ARP_OP:
+                int arpOp = match.get(MatchField.ARP_OP).getOpcode();
+                builder.matchArpOp(arpOp);
+                break;
             case ARP_SHA:
                 mac = MacAddress.valueOf(match.get(MatchField.ARP_SHA).getLong());
                 builder.matchArpSha(mac);
@@ -724,7 +728,6 @@ public class FlowEntryBuilder {
                 ip = Ip4Address.valueOf(match.get(MatchField.ARP_TPA).getInt());
                 builder.matchArpTpa(ip);
                 break;
-            case ARP_OP:
             case MPLS_TC:
             default:
                 log.warn("Match type {} not yet implemented.", field.id);

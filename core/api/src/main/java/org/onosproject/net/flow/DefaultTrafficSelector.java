@@ -374,6 +374,11 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchArpOp(int arpOp) {
+            return add(Criteria.matchArpOp(arpOp));
+        }
+
+        @Override
         public TrafficSelector build() {
             return new DefaultTrafficSelector(ImmutableSet.copyOf(selector.values()));
         }
