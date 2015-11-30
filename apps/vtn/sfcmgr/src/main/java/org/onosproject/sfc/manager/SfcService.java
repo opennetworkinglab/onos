@@ -15,6 +15,11 @@
  */
 package org.onosproject.sfc.manager;
 
+import org.onosproject.vtnrsc.PortPair;
+import org.onosproject.vtnrsc.PortPairGroup;
+import org.onosproject.vtnrsc.FlowClassifier;
+import org.onosproject.vtnrsc.PortChain;
+
 /**
  * SFC application that applies flows to the device.
  */
@@ -23,48 +28,64 @@ public interface SfcService {
     /**
      * When port-pair is created, check whether Forwarding Rule needs to be
      * updated in OVS.
+     *
+     * @param portPair port-pair
      */
-    public void onPortPairCreated();
+    void onPortPairCreated(PortPair portPair);
 
     /**
      * When port-pair is deleted, check whether Forwarding Rule needs to be
      * updated in OVS.
+     *
+     * @param portPair port-pair
      */
-    public void onPortPairDeleted();
+    void onPortPairDeleted(PortPair portPair);
 
     /**
      * When port-pair-group is created, check whether Forwarding Rule needs to
      * be updated in OVS.
+     *
+     * @param portPairGroup port-pair-group
      */
-    public void onPortPairGroupCreated();
+    void onPortPairGroupCreated(PortPairGroup portPairGroup);
 
     /**
      * When port-pair-group is deleted, check whether Forwarding Rule needs to
      * be updated in OVS.
+     *
+     * @param portPairGroup port-pair-group
      */
-    public void onPortPairGroupDeleted();
+    void onPortPairGroupDeleted(PortPairGroup portPairGroup);
 
     /**
      * When flow-classifier is created, check whether Forwarding Rule needs to
      * be updated in OVS.
+     *
+     * @param flowClassifier flow-classifier
      */
-    public void onFlowClassifierCreated();
+    void onFlowClassifierCreated(FlowClassifier flowClassifier);
 
     /**
      * When flow-classifier is deleted, check whether Forwarding Rule needs to
      * be updated in OVS.
+     *
+     * @param flowClassifier flow-classifier
      */
-    public void onFlowClassifierDeleted();
+    void onFlowClassifierDeleted(FlowClassifier flowClassifier);
 
     /**
      * When port-chain is created, check whether Forwarding Rule needs to be
      * updated in OVS.
+     *
+     * @param portChain port-chain
      */
-    public void onPortChainCreated();
+    void onPortChainCreated(PortChain portChain);
 
     /**
      * When port-chain is deleted, check whether Forwarding Rule needs to be
      * updated in OVS.
+     *
+     * @param portChain port-chain
      */
-    public void onPortChainDeleted();
+    void onPortChainDeleted(PortChain portChain);
 }
