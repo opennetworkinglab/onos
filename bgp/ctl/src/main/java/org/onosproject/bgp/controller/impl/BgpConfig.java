@@ -21,8 +21,14 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onosproject.bgp.controller.BgpCfg;
+import org.onosproject.bgp.controller.BgpConnectPeer;
+import org.onosproject.bgp.controller.BgpController;
+import org.onosproject.bgp.controller.BgpId;
+import org.onosproject.bgp.controller.BgpPeer;
 import org.onosproject.bgp.controller.BgpPeerCfg;
+import org.onosproject.bgp.controller.impl.BgpControllerImpl.BgpPeerManagerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,12 +54,16 @@ public class BgpConfig implements BgpCfg {
 
     private Ip4Address routerId = null;
     private TreeMap<String, BgpPeerCfg> bgpPeerTree = new TreeMap<>();
+    private BgpConnectPeer connectPeer;
+    private BgpPeerManagerImpl peerManager;
+    private BgpController bgpController;
 
-    /**
+    /*
      * Constructor to initialize the values.
      */
-    public BgpConfig() {
-
+    public BgpConfig(BgpController bgpController) {
+        this.bgpController = bgpController;
+        this.peerManager = (BgpPeerManagerImpl) bgpController.peerManager();
         this.holdTime = DEFAULT_HOLD_TIMER;
         this.maxConnRetryTime = DEFAULT_CONN_RETRY_TIME;
         this.maxConnRetryCount = DEFAULT_CONN_RETRY_COUNT;
@@ -172,7 +182,12 @@ public class BgpConfig implements BgpCfg {
 
         if (lspeer != null) {
             lspeer.setSelfInnitConnection(true);
-            // TODO: initiate peer connection
+
+            if (lspeer.connectPeer() == null) {
+                connectPeer = new BgpConnectPeerImpl(bgpController, routerid, Controller.getBgpPortNum());
+                lspeer.setConnectPeer(connectPeer);
+                connectPeer.connectPeer();
+            }
             return true;
         }
 
@@ -185,7 +200,6 @@ public class BgpConfig implements BgpCfg {
 
         if (lspeer != null) {
 
-            //TODO DISCONNECT PEER
             disconnectPeer(routerid);
             lspeer.setSelfInnitConnection(false);
             lspeer = this.bgpPeerTree.remove(routerid);
@@ -204,7 +218,12 @@ public class BgpConfig implements BgpCfg {
 
         if (lspeer != null) {
 
-            //TODO DISCONNECT PEER
+            BgpPeer disconnPeer = peerManager.getPeer(BgpId.bgpId(IpAddress.valueOf(routerid)));
+            if (disconnPeer != null) {
+                // TODO: send notification peer deconfigured
+                disconnPeer.disconnectPeer();
+            }
+            lspeer.connectPeer().disconnectPeer();
             lspeer.setState(BgpPeerCfg.State.IDLE);
             lspeer.setSelfInnitConnection(false);
             log.debug("Disconnected : " + routerid + " successfully");

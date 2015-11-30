@@ -31,6 +31,7 @@ import org.onosproject.bgp.controller.BgpCfg;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpId;
 import org.onosproject.bgp.controller.BgpPeer;
+import org.onosproject.bgp.controller.BgpLocalRib;
 import org.onosproject.bgp.controller.BgpNodeListener;
 import org.onosproject.bgp.controller.BgpPeerManager;
 import org.onosproject.bgpio.exceptions.BgpParseException;
@@ -208,6 +209,17 @@ public class BgpTopologyProviderTest {
             return 0;
         }
 
+        @Override
+        public BgpLocalRib bgpLocalRibVpn() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public BgpLocalRib bgpLocalRib() {
+            // TODO Auto-generated method stub
+            return null;
+        }
 
         @Override
         public BgpPeerManager peerManager() {

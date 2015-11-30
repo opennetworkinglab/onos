@@ -95,6 +95,20 @@ public interface BgpController {
     int connectedPeerCount();
 
     /**
+     * Return BGP local RIB instance with VPN.
+     *
+     * @return BGPLocalRibImpl local RIB with VPN
+     */
+    BgpLocalRib bgpLocalRibVpn();
+
+    /**
+     * Return BGP local RIB instance.
+     *
+     * @return BGPLocalRibImpl local RIB
+     */
+    BgpLocalRib bgpLocalRib();
+
+    /**
      * Return BGP peer manager.
      *
      * @return BGPPeerManager peer manager instance

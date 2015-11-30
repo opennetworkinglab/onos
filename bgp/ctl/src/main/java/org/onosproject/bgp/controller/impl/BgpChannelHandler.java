@@ -440,7 +440,9 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                 // which we obviously don't want.
                 log.debug("{}:removal called", getPeerInfoString());
                 if (bgpPeer != null) {
+                    BgpPeerImpl peer = (BgpPeerImpl) bgpPeer;
                     peerManager.removeConnectedPeer(thisbgpId);
+                    peer.updateLocalRIBOnPeerDisconnect();
                 }
 
                 // Retry connection if connection is lost to bgp speaker/peer

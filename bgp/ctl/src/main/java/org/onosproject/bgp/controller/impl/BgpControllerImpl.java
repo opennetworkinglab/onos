@@ -16,6 +16,8 @@
 
 package org.onosproject.bgp.controller.impl;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -29,11 +31,16 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.bgp.controller.BgpCfg;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpId;
+import org.onosproject.bgp.controller.BgpLocalRib;
 import org.onosproject.bgp.controller.BgpPeer;
 import org.onosproject.bgp.controller.BgpNodeListener;
 import org.onosproject.bgp.controller.BgpPeerManager;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpMessage;
+import org.onosproject.bgpio.protocol.BgpUpdateMsg;
+import org.onosproject.bgpio.types.BgpValueType;
+import org.onosproject.bgpio.types.MpReachNlri;
+import org.onosproject.bgpio.types.MpUnReachNlri;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,11 +54,14 @@ public class BgpControllerImpl implements BgpController {
 
     protected BgpPeerManagerImpl peerManager = new BgpPeerManagerImpl();
 
+    private BgpLocalRib bgplocalRIB = new BgpLocalRibImpl(this);
+    private BgpLocalRib bgplocalRIBVpn = new BgpLocalRibImpl(this);
+
     protected Set<BgpNodeListener> bgpNodeListener = new CopyOnWriteArraySet<>();
 
     final Controller ctrl = new Controller(this);
 
-    private BgpConfig bgpconfig = new BgpConfig();
+    private BgpConfig bgpconfig = new BgpConfig(this);
 
     @Activate
     public void activate() {
@@ -100,6 +110,8 @@ public class BgpControllerImpl implements BgpController {
     @Override
     public void processBGPPacket(BgpId bgpId, BgpMessage msg) throws BgpParseException {
 
+        BgpPeer peer = getPeer(bgpId);
+
         switch (msg.getType()) {
         case OPEN:
             // TODO: Process Open message
@@ -111,7 +123,23 @@ public class BgpControllerImpl implements BgpController {
             // TODO: Process notificatoin message
             break;
         case UPDATE:
-            // TODO: Process update message
+            BgpUpdateMsg updateMsg = (BgpUpdateMsg) msg;
+            List<BgpValueType> pathAttr = updateMsg.bgpPathAttributes().pathAttributes();
+            if (pathAttr == null) {
+               log.debug("llPathAttr is null, cannot process update message");
+               break;
+            }
+            Iterator<BgpValueType> listIterator = pathAttr.iterator();
+            boolean isLinkstate = false;
+            while (listIterator.hasNext()) {
+                BgpValueType attr = listIterator.next();
+                if ((attr instanceof MpReachNlri) || (attr instanceof MpUnReachNlri)) {
+                    isLinkstate = true;
+                }
+            }
+            if (isLinkstate) {
+                peer.buildAdjRibIn(pathAttr);
+            }
             break;
         default:
             // TODO: Process other message
@@ -214,5 +242,25 @@ public class BgpControllerImpl implements BgpController {
     @Override
     public int connectedPeerCount() {
         return connectedPeers.size();
+    }
+
+    /**
+     * Gets the BGP local RIB.
+     *
+     * @return bgplocalRIB BGP local RIB.
+     */
+    @Override
+    public BgpLocalRib bgpLocalRib() {
+        return bgplocalRIB;
+    }
+
+    /**
+     * Gets the BGP local RIB with VPN.
+     *
+     * @return bgplocalRIBVpn BGP VPN local RIB .
+     */
+    @Override
+    public BgpLocalRib bgpLocalRibVpn() {
+        return bgplocalRIBVpn;
     }
 }

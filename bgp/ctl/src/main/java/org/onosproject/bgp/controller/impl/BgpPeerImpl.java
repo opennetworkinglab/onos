@@ -28,6 +28,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpPeer;
 import org.onosproject.bgp.controller.BgpSessionInfo;
+import org.onosproject.bgp.controller.BgpLocalRib;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpFactories;
 import org.onosproject.bgpio.protocol.BgpFactory;
@@ -61,9 +62,28 @@ public class BgpPeerImpl implements BgpPeer {
     protected boolean isHandShakeComplete = false;
     private BgpSessionInfo sessionInfo;
     private BgpPacketStatsImpl pktStats;
+    private BgpLocalRib bgplocalRIB;
+    private BgpLocalRib bgplocalRIBVpn;
     private AdjRibIn adjRib;
     private VpnAdjRibIn vpnAdjRib;
 
+    /**
+     * Return the adjacency RIB-IN.
+     *
+     * @return adjRib the adjacency RIB-IN
+     */
+    public AdjRibIn adjacencyRib() {
+        return adjRib;
+    }
+
+    /**
+     * Return the adjacency RIB-IN with VPN.
+     *
+     * @return vpnAdjRib the adjacency RIB-IN with VPN
+     */
+    public VpnAdjRibIn vpnAdjacencyRib() {
+        return vpnAdjRib;
+    }
 
     @Override
     public BgpSessionInfo sessionInfo() {
@@ -81,6 +101,8 @@ public class BgpPeerImpl implements BgpPeer {
         this.bgpController = bgpController;
         this.sessionInfo = sessionInfo;
         this.pktStats = pktStats;
+        this.bgplocalRIB =  bgpController.bgpLocalRib();
+        this.bgplocalRIBVpn =  bgpController.bgpLocalRibVpn();
         this.adjRib = new AdjRibIn();
         this.vpnAdjRib = new VpnAdjRibIn();
     }
@@ -119,22 +141,31 @@ public class BgpPeerImpl implements BgpPeer {
                 PathAttrNlriDetails details = setPathAttrDetails(nlriInfo, pathAttr);
                 if (!((BgpNodeLSNlriVer4) nlriInfo).isVpnPresent()) {
                     adjRib.add(nlriInfo, details);
+                    bgplocalRIB.add(sessionInfo(), nlriInfo, details);
                 } else {
                     vpnAdjRib.addVpn(nlriInfo, details, ((BgpNodeLSNlriVer4) nlriInfo).getRouteDistinguisher());
+                    bgplocalRIBVpn.add(sessionInfo(), nlriInfo, details,
+                                       ((BgpNodeLSNlriVer4) nlriInfo).getRouteDistinguisher());
                 }
             } else if (nlriInfo instanceof BgpLinkLsNlriVer4) {
                 PathAttrNlriDetails details = setPathAttrDetails(nlriInfo, pathAttr);
                 if (!((BgpLinkLsNlriVer4) nlriInfo).isVpnPresent()) {
                     adjRib.add(nlriInfo, details);
+                    bgplocalRIB.add(sessionInfo(), nlriInfo, details);
                 } else {
                     vpnAdjRib.addVpn(nlriInfo, details, ((BgpLinkLsNlriVer4) nlriInfo).getRouteDistinguisher());
+                    bgplocalRIBVpn.add(sessionInfo(), nlriInfo, details,
+                                       ((BgpLinkLsNlriVer4) nlriInfo).getRouteDistinguisher());
                 }
             } else if (nlriInfo instanceof BgpPrefixIPv4LSNlriVer4) {
                 PathAttrNlriDetails details = setPathAttrDetails(nlriInfo, pathAttr);
                 if (!((BgpPrefixIPv4LSNlriVer4) nlriInfo).isVpnPresent()) {
                     adjRib.add(nlriInfo, details);
+                    bgplocalRIB.add(sessionInfo(), nlriInfo, details);
                 } else {
                     vpnAdjRib.addVpn(nlriInfo, details, ((BgpPrefixIPv4LSNlriVer4) nlriInfo).getRouteDistinguisher());
+                    bgplocalRIBVpn.add(sessionInfo(), nlriInfo, details,
+                                       ((BgpPrefixIPv4LSNlriVer4) nlriInfo).getRouteDistinguisher());
                 }
             }
         }
@@ -170,20 +201,26 @@ public class BgpPeerImpl implements BgpPeer {
             if (nlriInfo instanceof BgpNodeLSNlriVer4) {
                 if (!((BgpNodeLSNlriVer4) nlriInfo).isVpnPresent()) {
                     adjRib.remove(nlriInfo);
+                    bgplocalRIB.delete(nlriInfo);
                 } else {
                     vpnAdjRib.removeVpn(nlriInfo, ((BgpNodeLSNlriVer4) nlriInfo).getRouteDistinguisher());
+                    bgplocalRIBVpn.delete(nlriInfo, ((BgpNodeLSNlriVer4) nlriInfo).getRouteDistinguisher());
                 }
             } else if (nlriInfo instanceof BgpLinkLsNlriVer4) {
                 if (!((BgpLinkLsNlriVer4) nlriInfo).isVpnPresent()) {
                     adjRib.remove(nlriInfo);
+                    bgplocalRIB.delete(nlriInfo);
                 } else {
                     vpnAdjRib.removeVpn(nlriInfo, ((BgpLinkLsNlriVer4) nlriInfo).getRouteDistinguisher());
+                    bgplocalRIBVpn.delete(nlriInfo, ((BgpLinkLsNlriVer4) nlriInfo).getRouteDistinguisher());
                 }
             } else if (nlriInfo instanceof BgpPrefixIPv4LSNlriVer4) {
                 if (!((BgpPrefixIPv4LSNlriVer4) nlriInfo).isVpnPresent()) {
                     adjRib.remove(nlriInfo);
+                    bgplocalRIB.delete(nlriInfo);
                 } else {
                     vpnAdjRib.removeVpn(nlriInfo, ((BgpPrefixIPv4LSNlriVer4) nlriInfo).getRouteDistinguisher());
+                    bgplocalRIBVpn.delete(nlriInfo, ((BgpPrefixIPv4LSNlriVer4) nlriInfo).getRouteDistinguisher());
                 }
             }
         }
@@ -205,6 +242,18 @@ public class BgpPeerImpl implements BgpPeer {
      */
     public VpnAdjRibIn vpnAdjRib() {
         return vpnAdjRib;
+    }
+
+    /**
+     * Update localRIB on peer disconnect.
+     *
+     */
+    public void updateLocalRIBOnPeerDisconnect() {
+        BgpLocalRibImpl localRib = (BgpLocalRibImpl) bgplocalRIB;
+        BgpLocalRibImpl localRibVpn = (BgpLocalRibImpl) bgplocalRIBVpn;
+
+        localRib.localRIBUpdate(adjacencyRib());
+        localRibVpn.localRIBUpdate(vpnAdjacencyRib());
     }
 
     // ************************
