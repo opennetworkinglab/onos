@@ -230,6 +230,16 @@ public final class Criteria {
     }
 
     /**
+     * Creates a match on TCP flags using the specified value.
+     *
+     * @param flags TCP flags
+     * @return match criterion
+     */
+    public static Criterion matchTcpFlags(int flags) {
+        return new TcpFlagsCriterion(flags);
+    }
+
+    /**
      * Creates a match on UDP source port field using the specified value.
      *
      * @param udpPort UDP source port
