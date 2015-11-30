@@ -516,7 +516,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
             boolean enabled = !port.getState().contains(OFPortState.LINK_DOWN)
                     && !port.getConfig().contains(OFPortConfig.PORT_DOWN);
-            SparseAnnotations annotations = makePortNameAnnotation(port.getName());
+            SparseAnnotations annotations = makePortAnnotation(port.getName(), port.getHwAddr().toString());
 
             OFExpPortDescPropOpticalTransport firstProp = port.getProperties().get(0);
             OFPortOpticalTransportSignalType sigType = firstProp.getPortSignalType();
@@ -560,16 +560,19 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         /**
          * Creates an annotation for the port name if one is available.
          *
-         * @param port description of the port
+         * @param portName the port name
+         * @param portMac the port mac
          * @return annotation containing the port name if one is found,
          *         null otherwise
          */
-        private SparseAnnotations makePortNameAnnotation(String port) {
+        private SparseAnnotations makePortAnnotation(String portName, String portMac) {
             SparseAnnotations annotations = null;
-            String portName = Strings.emptyToNull(port);
+            String pName = Strings.emptyToNull(portName);
+            String pMac = Strings.emptyToNull(portMac);
             if (portName != null) {
                 annotations = DefaultAnnotations.builder()
-                        .set(AnnotationKeys.PORT_NAME, portName).build();
+                        .set(AnnotationKeys.PORT_NAME, pName)
+                        .set(AnnotationKeys.PORT_MAC, pMac).build();
             }
             return annotations;
         }
@@ -586,7 +589,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     !port.getState().contains(OFPortState.LINK_DOWN) &&
                             !port.getConfig().contains(OFPortConfig.PORT_DOWN);
             Port.Type type = port.getCurr().contains(OFPortFeatures.PF_FIBER) ? FIBER : COPPER;
-            SparseAnnotations annotations = makePortNameAnnotation(port.getName());
+            SparseAnnotations annotations = makePortAnnotation(port.getName(), port.getHwAddr().toString());
             return new DefaultPortDescription(portNo, enabled, type,
                                               portSpeed(port), annotations);
         }
@@ -607,7 +610,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
             boolean enabled = !port.getState().contains(OFPortState.LINK_DOWN)
                     && !port.getConfig().contains(OFPortConfig.PORT_DOWN);
-            SparseAnnotations annotations = makePortNameAnnotation(port.getName());
+            SparseAnnotations annotations = makePortAnnotation(port.getName(), port.getHwAddr().toString());
 
             if (port.getVersion() == OFVersion.OF_13
                     && ptype == PortDescPropertyType.OPTICAL_TRANSPORT) {
@@ -649,7 +652,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
             // FIXME when Calient OF agent reports port status
             boolean enabled = true;
-            SparseAnnotations annotations = makePortNameAnnotation(port.getName());
+            SparseAnnotations annotations = makePortAnnotation(port.getName(), port.getHwAddr().toString());
 
             // S160 data sheet
             // Wavelength range: 1260 - 1630 nm, grid is irrelevant for this type of switch
@@ -664,7 +667,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             } else {
                 PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
                 Port.Type type = port.getCurr().contains(OFPortFeatures.PF_FIBER) ? FIBER : COPPER;
-                SparseAnnotations annotations = makePortNameAnnotation(port.getName());
+                SparseAnnotations annotations = makePortAnnotation(port.getName(), port.getHwAddr().toString());
                 return new DefaultPortDescription(portNo, false, type,
                                                   portSpeed(port), annotations);
             }
