@@ -28,92 +28,136 @@ public interface Criterion {
     enum Type {
         /** Switch input port. */
         IN_PORT,
+
         /** Switch physical input port. */
         IN_PHY_PORT,
+
         /** Metadata passed between tables. */
         METADATA,
+
         /** Ethernet destination address. */
         ETH_DST,
+
         /** Ethernet source address. */
         ETH_SRC,
+
         /** Ethernet frame type. */
         ETH_TYPE,
+
         /** VLAN id. */
         VLAN_VID,
+
         /** VLAN priority. */
         VLAN_PCP,
+
         /** IP DSCP (6 bits in ToS field). */
         IP_DSCP,
+
         /** IP ECN (2 bits in ToS field). */
         IP_ECN,
+
         /** IP protocol. */
         IP_PROTO,
+
         /** IPv4 source address. */
         IPV4_SRC,
+
         /** IPv4 destination address. */
         IPV4_DST,
+
         /** TCP source port. */
         TCP_SRC,
+
         /** TCP destination port. */
         TCP_DST,
+
         /** UDP source port. */
         UDP_SRC,
+
         /** UDP destination port. */
         UDP_DST,
+
         /** SCTP source port. */
         SCTP_SRC,
+
         /** SCTP destination port. */
         SCTP_DST,
+
         /** ICMP type. */
         ICMPV4_TYPE,
+
         /** ICMP code. */
         ICMPV4_CODE,
+
         /** ARP opcode. */
         ARP_OP,
+
         /** ARP source IPv4 address. */
         ARP_SPA,
+
         /** ARP target IPv4 address. */
         ARP_TPA,
+
         /** ARP source hardware address. */
         ARP_SHA,
+
         /** ARP target hardware address. */
         ARP_THA,
+
         /** IPv6 source address. */
         IPV6_SRC,
+
         /** IPv6 destination address. */
         IPV6_DST,
+
         /** IPv6 Flow Label. */
         IPV6_FLABEL,
+
         /** ICMPv6 type. */
         ICMPV6_TYPE,
+
         /** ICMPv6 code. */
         ICMPV6_CODE,
+
         /** Target address for ND. */
         IPV6_ND_TARGET,
+
         /** Source link-layer for ND. */
         IPV6_ND_SLL,
+
         /** Target link-layer for ND. */
         IPV6_ND_TLL,
+
         /** MPLS label. */
         MPLS_LABEL,
+
         /** MPLS TC. */
         MPLS_TC,
-        /** MPLS BoS bit. */
+
+        /**  MPLS BoS bit. */
         MPLS_BOS,
+
         /** PBB I-SID. */
         PBB_ISID,
+
         /** Logical Port Metadata. */
         TUNNEL_ID,
+
         /** IPv6 Extension Header pseudo-field. */
         IPV6_EXTHDR,
+
         /** Unassigned value: 40. */
         UNASSIGNED_40,
+
         /** PBB UCA header field. */
         PBB_UCA,
+
         /** TCP flags. */
         TCP_FLAGS,
+
         /** Output port from action set metadata. */
         ACTSET_OUTPUT,
+
         /** Packet type value. */
         PACKET_TYPE,
 
@@ -123,16 +167,17 @@ public interface Criterion {
         //
         /** Optical channel signal ID (lambda). */
         OCH_SIGID,
+
         /** Optical channel signal type (fixed or flexible). */
         OCH_SIGTYPE,
+
         /** ODU (Optical channel Data Unit) signal ID. */
         ODU_SIGID,
+
         /** ODU (Optical channel Data Unit) signal type. */
         ODU_SIGTYPE,
 
-        /**
-         * An empty criterion.
-         */
+        /** An empty criterion. */
         DUMMY
     }
 
@@ -170,6 +215,43 @@ public interface Criterion {
         private short value;
 
         IPv6ExthdrFlags(short value) {
+            this.value = value;
+        }
+
+        /**
+         * Gets the value as an integer.
+         *
+         * @return the value as an integer
+         */
+        public short getValue() {
+            return this.value;
+        }
+    }
+
+    enum TCPFlags {
+
+        /** ECN-nonce concealment protection. */
+        NS((short) (1 << 0)),
+        /** Congestion Window Reduced. */
+        CWR((short) (1 << 1)),
+        /** ECN-Echo. **/
+        ECE((short) (1 << 2)),
+        /** Urgent pointer field is significant. */
+        URG((short) (1 << 3)),
+        /** Acknowledgment field is significant. */
+        ACK((short) (1 << 4)),
+        /** Push the buffered data to the receiving application. */
+        PSH((short) (1 << 5)),
+        /** Reset the connection. */
+        RST((short) (1 << 6)),
+        /** Synchronize sequence numbers. */
+        SYN((short) (1 << 7)),
+        /** No more data from sender. */
+        FIN((short) (1 << 8));
+
+        private short value;
+
+        TCPFlags(short value) {
             this.value = value;
         }
 
