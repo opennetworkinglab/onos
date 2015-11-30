@@ -37,12 +37,7 @@
             <artifactId>onos-netconf-provider-device</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-netconf-provider-flow</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- TODO: add other dependencies here as more bundles are added to the app -->
+        <!-- Add other dependencies here as more bundles are added to the app -->
     </dependencies>
 
 </project>
