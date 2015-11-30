@@ -47,6 +47,7 @@
         <module>cordfabric</module>
         <module>xos-integration</module>
         <module>pcep-api</module>
+        <module>iptopology-api</module>
         <module>olt</module>
         <module>cip</module>
         <module>flowanalyzer</module>
