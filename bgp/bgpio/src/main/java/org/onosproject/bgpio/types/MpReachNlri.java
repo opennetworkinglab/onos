@@ -131,7 +131,7 @@ public class MpReachNlri implements BgpValueType {
             if ((afi == Constants.AFI_VALUE) && (safi == Constants.SAFI_VALUE) || (afi == Constants.AFI_VALUE)
                                     && (safi == Constants.VPN_SAFI_VALUE)) {
                 byte nextHopLen = tempCb.readByte();
-                InetAddress ipAddress = Validation.toInetAddress(nextHopLen, cb);
+                InetAddress ipAddress = Validation.toInetAddress(nextHopLen, tempCb);
                 if (ipAddress.isMulticastAddress()) {
                     throw new BgpParseException("Multicast not supported");
                 }
