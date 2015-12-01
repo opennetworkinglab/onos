@@ -39,10 +39,12 @@ import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.rest.BaseResource;
+import org.onosproject.codec.CodecService;
 import org.onosproject.vtnrsc.PortPair;
 import org.onosproject.vtnrsc.PortPairId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.portpair.PortPairService;
+import org.onosproject.vtnweb.web.SfcCodecContext;
 
 import com.eclipsesource.json.JsonObject;
 import com.sun.jersey.api.client.ClientResponse;
@@ -129,7 +131,10 @@ public class PortPairResourceTest extends VtnResourceTest {
      */
     @Before
     public void setUpTest() {
-        ServiceDirectory testDirectory = new TestServiceDirectory().add(PortPairService.class, portPairService);
+
+        SfcCodecContext context = new SfcCodecContext();
+        ServiceDirectory testDirectory = new TestServiceDirectory().add(PortPairService.class, portPairService)
+                .add(CodecService.class, context.codecManager());
         BaseResource.setServiceDirectory(testDirectory);
 
     }

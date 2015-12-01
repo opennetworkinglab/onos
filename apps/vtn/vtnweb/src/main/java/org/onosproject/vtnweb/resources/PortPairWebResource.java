@@ -16,7 +16,6 @@
 
 package org.onosproject.vtnweb.resources;
 
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.onlab.util.Tools.nullIsNotFound;
 
@@ -38,12 +37,10 @@ import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.vtnrsc.PortPair;
 import org.onosproject.vtnrsc.PortPairId;
 import org.onosproject.vtnrsc.portpair.PortPairService;
-import org.onosproject.vtnweb.web.PortPairCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -54,7 +51,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class PortPairWebResource extends AbstractWebResource {
 
     private final Logger log = LoggerFactory.getLogger(PortPairWebResource.class);
-    private final PortPairService service = get(PortPairService.class);
     public static final String PORT_PAIR_NOT_FOUND = "Port pair not found";
     public static final String PORT_PAIR_ID_EXIST = "Port pair exists";
     public static final String PORT_PAIR_ID_NOT_EXIST = "Port pair does not exist with identifier";
@@ -67,12 +63,12 @@ public class PortPairWebResource extends AbstractWebResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortPairs() {
-        Iterable<PortPair> portPairs = service.getPortPairs();
-        ObjectNode result = new ObjectMapper().createObjectNode();
+        Iterable<PortPair> portPairs = get(PortPairService.class).getPortPairs();
+        ObjectNode result = mapper().createObjectNode();
         ArrayNode portPairEntry = result.putArray("port_pairs");
         if (portPairs != null) {
             for (final PortPair portPair : portPairs) {
-                portPairEntry.add(new PortPairCodec().encode(portPair, this));
+                portPairEntry.add(codec(PortPair.class).encode(portPair, this));
             }
         }
         return ok(result.toString()).build();
@@ -88,13 +84,10 @@ public class PortPairWebResource extends AbstractWebResource {
     @Path("{pair_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortPair(@PathParam("pair_id") String id) {
-
-        if (!service.exists(PortPairId.of(id))) {
-            return Response.status(NOT_FOUND).entity(PORT_PAIR_NOT_FOUND).build();
-        }
-        PortPair portPair = nullIsNotFound(service.getPortPair(PortPairId.of(id)), PORT_PAIR_NOT_FOUND);
-        ObjectNode result = new ObjectMapper().createObjectNode();
-        result.set("port_pair", new PortPairCodec().encode(portPair, this));
+        PortPair portPair = nullIsNotFound(get(PortPairService.class).getPortPair(PortPairId.of(id)),
+                                           PORT_PAIR_NOT_FOUND);
+        ObjectNode result = mapper().createObjectNode();
+        result.set("port_pair", codec(PortPair.class).encode(portPair, this));
         return ok(result.toString()).build();
     }
 
@@ -110,11 +103,11 @@ public class PortPairWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createPortPair(InputStream stream) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode jsonTree = (ObjectNode) mapper.readTree(stream);
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             JsonNode port = jsonTree.get("port_pair");
-            PortPair portPair = new PortPairCodec().decode((ObjectNode) port, this);
-            Boolean isSuccess = nullIsNotFound(service.createPortPair(portPair), PORT_PAIR_NOT_FOUND);
+            PortPair portPair = codec(PortPair.class).decode((ObjectNode) port, this);
+            Boolean isSuccess = nullIsNotFound(get(PortPairService.class).createPortPair(portPair),
+                                               PORT_PAIR_NOT_FOUND);
             return Response.status(OK).entity(isSuccess.toString()).build();
         } catch (IOException e) {
             log.error("Exception while creating port pair {}.", e.toString());
@@ -136,11 +129,11 @@ public class PortPairWebResource extends AbstractWebResource {
     public Response updatePortPair(@PathParam("pair_id") String id,
                                    final InputStream stream) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode jsonTree = (ObjectNode) mapper.readTree(stream);
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             JsonNode port = jsonTree.get("port_pair");
-            PortPair portPair = new PortPairCodec().decode((ObjectNode) port, this);
-            Boolean isSuccess = nullIsNotFound(service.updatePortPair(portPair), PORT_PAIR_NOT_FOUND);
+            PortPair portPair = codec(PortPair.class).decode((ObjectNode) port, this);
+            Boolean isSuccess = nullIsNotFound(get(PortPairService.class).updatePortPair(portPair),
+                                               PORT_PAIR_NOT_FOUND);
             return Response.status(OK).entity(isSuccess.toString()).build();
         } catch (IOException e) {
             log.error("Update port pair failed because of exception {}.", e.toString());
@@ -158,7 +151,7 @@ public class PortPairWebResource extends AbstractWebResource {
     public void deletePortPair(@PathParam("pair_id") String id) {
 
         PortPairId portPairId = PortPairId.of(id);
-        Boolean isSuccess = nullIsNotFound(service.removePortPair(portPairId), PORT_PAIR_NOT_FOUND);
+        Boolean isSuccess = nullIsNotFound(get(PortPairService.class).removePortPair(portPairId), PORT_PAIR_NOT_FOUND);
         if (!isSuccess) {
             log.debug("Port pair identifier {} does not exist", id);
         }
