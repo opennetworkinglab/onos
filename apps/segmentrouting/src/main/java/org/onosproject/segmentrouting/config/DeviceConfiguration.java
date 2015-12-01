@@ -16,7 +16,6 @@
 package org.onosproject.segmentrouting.config;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
@@ -26,7 +25,6 @@ import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.host.InterfaceIpAddress;
-import org.onosproject.segmentrouting.config.SegmentRoutingConfig.AdjacencySid;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.slf4j.Logger;
@@ -34,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,7 +59,7 @@ public class DeviceConfiguration implements DeviceProperties {
         boolean isEdge;
         HashMap<PortNumber, Ip4Address> gatewayIps;
         HashMap<PortNumber, Ip4Prefix> subnets;
-        List<AdjacencySid> adjacencySids;
+        Map<Integer, Set<Integer>> adjacencySids;
 
         public SegmentRouterInfo() {
             this.gatewayIps = new HashMap<>();
@@ -83,11 +82,11 @@ public class DeviceConfiguration implements DeviceProperties {
                 cfgService.getConfig(subject, SegmentRoutingConfig.class);
             SegmentRouterInfo info = new SegmentRouterInfo();
             info.deviceId = subject;
-            info.nodeSid = config.getSid();
-            info.ip = config.getIp();
-            info.mac = config.getMac();
+            info.nodeSid = config.nodeSid();
+            info.ip = config.routerIp();
+            info.mac = config.routerMac();
             info.isEdge = config.isEdgeRouter();
-            info.adjacencySids = config.getAdjacencySids();
+            info.adjacencySids = config.adjacencySids();
 
             this.deviceConfigMap.put(info.deviceId, info);
             this.allSegmentIds.add(info.nodeSid);
@@ -410,19 +409,13 @@ public class DeviceConfiguration implements DeviceProperties {
      *
      * @param deviceId device identification of the router
      * @param sid adjacency Sid
-     * @return list of port numbers
+     * @return set of port numbers
      */
-    public List<Integer> getPortsForAdjacencySid(DeviceId deviceId, int sid) {
+    public Set<Integer> getPortsForAdjacencySid(DeviceId deviceId, int sid) {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
-        if (srinfo != null) {
-            for (AdjacencySid asid : srinfo.adjacencySids) {
-                if (asid.getAsid() == sid) {
-                    return asid.getPorts();
-                }
-            }
-        }
-
-        return Lists.newArrayList();
+        return srinfo != null ?
+                ImmutableSet.copyOf(srinfo.adjacencySids.get(sid)) :
+                ImmutableSet.copyOf(new HashSet<>());
     }
 
     /**
@@ -435,20 +428,6 @@ public class DeviceConfiguration implements DeviceProperties {
      */
     public boolean isAdjacencySid(DeviceId deviceId, int sid) {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
-        if (srinfo != null) {
-            if (srinfo.adjacencySids.isEmpty()) {
-                return false;
-            } else {
-                for (AdjacencySid asid:
-                        srinfo.adjacencySids) {
-                    if (asid.getAsid() == sid) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        }
-
-        return false;
+        return srinfo != null && srinfo.adjacencySids.containsKey(sid);
     }
 }

@@ -16,113 +16,210 @@
 
 package org.onosproject.segmentrouting.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableMap;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
-import org.onosproject.net.config.basics.BasicElementConfig;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Configuration object for Segment Routing Application.
  */
 public class SegmentRoutingConfig extends Config<DeviceId> {
-    private static final String NAME = "name";
-    private static final String IP = "routerIp";
-    private static final String MAC = "routerMac";
-    private static final String SID = "nodeSid";
-    private static final String EDGE = "isEdgeRouter";
-    private static final String ADJSID = "adjacencySids";
+    public static final String NAME = "name";
+    public static final String IP = "routerIp";
+    public static final String MAC = "routerMac";
+    public static final String SID = "nodeSid";
+    public static final String EDGE = "isEdgeRouter";
+    public static final String ADJSIDS = "adjacencySids";
+    public static final String ADJSID = "adjSid";
+    public static final String PORTS = "ports";
 
-    public Optional<String> getName() {
+    @Override
+    public boolean isValid() {
+        return hasOnlyFields(NAME, IP, MAC, SID, EDGE, ADJSIDS, ADJSID, PORTS) &&
+                this.name() != null &&
+                this.routerIp() != null &&
+                this.routerMac() != null &&
+                this.nodeSid() != -1 &&
+                this.isEdgeRouter() != null &&
+                this.adjacencySids() != null;
+    }
+
+    /**
+     * Gets the name of the router.
+     *
+     * @return Optional name of the router. May be empty if not configured.
+     */
+    public Optional<String> name() {
         String name = get(NAME, null);
         return name != null ? Optional.of(name) : Optional.empty();
     }
 
-    public BasicElementConfig setName(String name) {
-        return (BasicElementConfig) setOrClear(NAME, name);
+    /**
+     * Sets the name of the router.
+     *
+     * @param name name of the router.
+     * @return the config of the router.
+     */
+    public SegmentRoutingConfig setName(String name) {
+        return (SegmentRoutingConfig) setOrClear(NAME, name);
     }
 
-    public Ip4Address getIp() {
+    /**
+     * Gets the IP address of the router.
+     *
+     * @return IP address of the router. Or null if not configured.
+     */
+    public Ip4Address routerIp() {
         String ip = get(IP, null);
         return ip != null ? Ip4Address.valueOf(ip) : null;
     }
 
-    public BasicElementConfig setIp(String ip) {
-        return (BasicElementConfig) setOrClear(IP, ip);
+    /**
+     * Sets the IP address of the router.
+     *
+     * @param ip IP address of the router.
+     * @return the config of the router.
+     */
+    public SegmentRoutingConfig setRouterIp(String ip) {
+        return (SegmentRoutingConfig) setOrClear(IP, ip);
     }
 
-    public MacAddress getMac() {
+    /**
+     * Gets the MAC address of the router.
+     *
+     * @return MAC address of the router. Or null if not configured.
+     */
+    public MacAddress routerMac() {
         String mac = get(MAC, null);
         return mac != null ? MacAddress.valueOf(mac) : null;
     }
 
-    public BasicElementConfig setMac(String mac) {
-        return (BasicElementConfig) setOrClear(MAC, mac);
+    /**
+     * Sets the MAC address of the router.
+     *
+     * @param mac MAC address of the router.
+     * @return the config of the router.
+     */
+    public SegmentRoutingConfig setRouterMac(String mac) {
+        return (SegmentRoutingConfig) setOrClear(MAC, mac);
     }
 
-    public int getSid() {
+    /**
+     * Gets the node SID of the router.
+     *
+     * @return node SID of the router. Or -1 if not configured.
+     */
+    public int nodeSid() {
         return get(SID, -1);
     }
 
-    public BasicElementConfig setSid(int sid) {
-        return (BasicElementConfig) setOrClear(SID, sid);
+    /**
+     * Sets the node SID of the router.
+     *
+     * @param sid node SID of the router.
+     * @return the config of the router.
+     */
+    public SegmentRoutingConfig setNodeSid(int sid) {
+        return (SegmentRoutingConfig) setOrClear(SID, sid);
     }
 
-    public boolean isEdgeRouter() {
-        return get(EDGE, false);
+    /**
+     * Checks if the router is an edge router.
+     *
+     * @return true if the router is an edge router.
+     *         false if the router is not an edge router.
+     *         null if the value is not configured.
+     */
+    public Boolean isEdgeRouter() {
+        String isEdgeRouter = get(EDGE, null);
+        return isEdgeRouter != null ?
+                Boolean.valueOf(isEdgeRouter) :
+                null;
     }
 
-    public BasicElementConfig setEdgeRouter(boolean isEdgeRouter) {
-        return (BasicElementConfig) setOrClear(EDGE, isEdgeRouter);
+    /**
+     * Specifies if the router is an edge router.
+     *
+     * @param isEdgeRouter true if the router is an edge router.
+     * @return the config of the router.
+     */
+    public SegmentRoutingConfig setIsEdgeRouter(boolean isEdgeRouter) {
+        return (SegmentRoutingConfig) setOrClear(EDGE, isEdgeRouter);
     }
 
-    public List<AdjacencySid> getAdjacencySids() {
-        ArrayList<AdjacencySid> adjacencySids = new ArrayList<>();
-
-        if (!object.has(ADJSID)) {
-            return adjacencySids;
+    /**
+     * Gets the adjacency SIDs of the router.
+     *
+     * @return adjacency SIDs of the router. Or null if not configured.
+     */
+    public Map<Integer, Set<Integer>> adjacencySids() {
+        if (!object.has(ADJSIDS)) {
+            return null;
         }
 
-        ArrayNode adjacencySidNodes = (ArrayNode) object.path(ADJSID);
-        adjacencySidNodes.forEach(adjacencySidNode -> {
-            int asid = adjacencySidNode.path(AdjacencySid.ASID).asInt();
+        Map<Integer, Set<Integer>> adjacencySids = new HashMap<>();
+        ArrayNode adjacencySidsNode = (ArrayNode) object.path(ADJSIDS);
+        for (JsonNode adjacencySidNode : adjacencySidsNode) {
+            int asid = adjacencySidNode.path(ADJSID).asInt(-1);
+            if (asid == -1) {
+                return null;
+            }
 
-            ArrayList<Integer> ports = new ArrayList<Integer>();
-            ArrayNode portsNodes = (ArrayNode) adjacencySidNode.path(AdjacencySid.PORTS);
-            portsNodes.forEach(portNode -> {
-                ports.add(portNode.asInt());
+            HashSet<Integer> ports = new HashSet<>();
+            ArrayNode portsNode = (ArrayNode) adjacencySidNode.path(PORTS);
+            for (JsonNode portNode : portsNode) {
+                int port = portNode.asInt(-1);
+                if (port == -1) {
+                    return null;
+                }
+                ports.add(port);
+            }
+            adjacencySids.put(asid, ports);
+        }
+
+        return ImmutableMap.copyOf(adjacencySids);
+    }
+
+    /**
+     * Sets the adjacency SIDs of the router.
+     *
+     * @param adjacencySids adjacency SIDs of the router.
+     * @return the config of the router.
+     */
+    public SegmentRoutingConfig setAdjacencySids(Map<Integer, Set<Integer>> adjacencySids) {
+        if (adjacencySids == null) {
+            object.remove(ADJSIDS);
+        } else {
+            ArrayNode adjacencySidsNode = mapper.createArrayNode();
+
+            adjacencySids.forEach((sid, ports) -> {
+                ObjectNode adjacencySidNode = mapper.createObjectNode();
+
+                adjacencySidNode.put(ADJSID, sid);
+
+                ArrayNode portsNode = mapper.createArrayNode();
+                ports.forEach(port -> {
+                    portsNode.add(port.toString());
+                });
+                adjacencySidNode.set(PORTS, portsNode);
+
+                adjacencySidsNode.add(adjacencySidNode);
             });
 
-            AdjacencySid adjacencySid = new AdjacencySid(asid, ports);
-            adjacencySids.add(adjacencySid);
-        });
-
-        return adjacencySids;
-    }
-
-    public class AdjacencySid {
-        private static final String ASID = "adjSid";
-        private static final String PORTS = "ports";
-
-        int asid;
-        List<Integer> ports;
-
-        public AdjacencySid(int asid, List<Integer> ports) {
-            this.asid = asid;
-            this.ports = ports;
+            object.set(ADJSIDS, adjacencySidsNode);
         }
 
-        public int getAsid() {
-            return asid;
-        }
-
-        public List<Integer> getPorts() {
-            return ports;
-        }
+        return this;
     }
 }

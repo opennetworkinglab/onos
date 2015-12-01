@@ -158,7 +158,7 @@ public class TunnelHandler {
 
     private int createGroupsForTunnel(Tunnel tunnel) {
 
-        List<Integer> portNumbers;
+        Set<Integer> portNumbers;
         final int groupError = -1;
 
         DeviceId deviceId = config.getDeviceId(tunnel.labelIds().get(0));
