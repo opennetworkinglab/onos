@@ -691,12 +691,6 @@
                         <artifactId>onos-build-conf</artifactId>
                         <version>${onos-build-conf.version}</version>
                     </dependency>
-                    <!-- For Java 8 lambda support-->
-                    <dependency>
-                        <groupId>com.puppycrawl.tools</groupId>
-                        <artifactId>checkstyle</artifactId>
-                        <version>5.9</version>
-                    </dependency>
                 </dependencies>
                 <configuration>
                     <!-- begin: workaround for unexpected NullPointerException on Eclipse -->
