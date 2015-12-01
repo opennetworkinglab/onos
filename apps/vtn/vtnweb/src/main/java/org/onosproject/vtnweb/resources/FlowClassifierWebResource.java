@@ -36,12 +36,10 @@ import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.FlowClassifierId;
 import org.onosproject.vtnrsc.flowclassifier.FlowClassifierService;
-import org.onosproject.vtnweb.web.FlowClassifierCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -64,11 +62,11 @@ public class FlowClassifierWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFlowClassifiers() {
         Iterable<FlowClassifier> flowClassifiers = get(FlowClassifierService.class).getFlowClassifiers();
-        ObjectNode result = new ObjectMapper().createObjectNode();
+        ObjectNode result = mapper().createObjectNode();
         ArrayNode flowClassifierEntry = result.putArray("flow_classifiers");
         if (flowClassifiers != null) {
             for (final FlowClassifier flowClassifier : flowClassifiers) {
-                flowClassifierEntry.add(new FlowClassifierCodec().encode(flowClassifier, this));
+                flowClassifierEntry.add(codec(FlowClassifier.class).encode(flowClassifier, this));
             }
         }
         return ok(result.toString()).build();
@@ -85,11 +83,11 @@ public class FlowClassifierWebResource extends AbstractWebResource {
     @Path("{flow_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFlowClassifier(@PathParam("flow_id") String id) {
-        FlowClassifier flowClassifier = nullIsNotFound(
-                get(FlowClassifierService.class).getFlowClassifier(FlowClassifierId.of(id)), FLOW_CLASSIFIER_NOT_FOUND);
+        FlowClassifier flowClassifier = nullIsNotFound(get(FlowClassifierService.class)
+                                         .getFlowClassifier(FlowClassifierId.of(id)), FLOW_CLASSIFIER_NOT_FOUND);
 
-        ObjectNode result = new ObjectMapper().createObjectNode();
-        result.set("flow_classifier", new FlowClassifierCodec().encode(flowClassifier, this));
+        ObjectNode result = mapper().createObjectNode();
+        result.set("flow_classifier", codec(FlowClassifier.class).encode(flowClassifier, this));
 
         return ok(result.toString()).build();
     }
@@ -107,13 +105,12 @@ public class FlowClassifierWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createFlowClassifier(InputStream stream) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode jsonTree = (ObjectNode) mapper.readTree(stream);
+            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
             JsonNode flow = jsonTree.get("flow_classifier");
 
-            FlowClassifier flowClassifier = new FlowClassifierCodec().decode((ObjectNode) flow, this);
+            FlowClassifier flowClassifier = codec(FlowClassifier.class).decode((ObjectNode) flow, this);
             Boolean issuccess = nullIsNotFound(get(FlowClassifierService.class).createFlowClassifier(flowClassifier),
-                    FLOW_CLASSIFIER_NOT_FOUND);
+                                               FLOW_CLASSIFIER_NOT_FOUND);
             return Response.status(OK).entity(issuccess.toString()).build();
         } catch (IOException ex) {
             log.error("Exception while creating flow classifier {}.", ex.toString());
@@ -139,9 +136,9 @@ public class FlowClassifierWebResource extends AbstractWebResource {
 
             JsonNode jsonTree = mapper().readTree(stream);
             JsonNode flow = jsonTree.get("flow_classifier");
-            FlowClassifier flowClassifier = new FlowClassifierCodec().decode((ObjectNode) flow, this);
+            FlowClassifier flowClassifier = codec(FlowClassifier.class).decode((ObjectNode) flow, this);
             Boolean result = nullIsNotFound(get(FlowClassifierService.class).updateFlowClassifier(flowClassifier),
-                    FLOW_CLASSIFIER_NOT_FOUND);
+                                            FLOW_CLASSIFIER_NOT_FOUND);
             return Response.status(OK).entity(result.toString()).build();
         } catch (IOException e) {
             log.error("Update flow classifier failed because of exception {}.", e.toString());
@@ -161,7 +158,7 @@ public class FlowClassifierWebResource extends AbstractWebResource {
         log.debug("Deletes flow classifier by identifier {}.", id);
         FlowClassifierId flowClassifierId = FlowClassifierId.of(id);
         Boolean issuccess = nullIsNotFound(get(FlowClassifierService.class).removeFlowClassifier(flowClassifierId),
-                FLOW_CLASSIFIER_NOT_FOUND);
+                                           FLOW_CLASSIFIER_NOT_FOUND);
 
     }
 }

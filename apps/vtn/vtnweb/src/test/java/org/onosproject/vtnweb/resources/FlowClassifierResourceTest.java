@@ -40,11 +40,13 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.IpPrefix;
 import org.onlab.rest.BaseResource;
+import org.onosproject.codec.CodecService;
 import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.FlowClassifierId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.flowclassifier.FlowClassifierService;
+import org.onosproject.vtnweb.web.SfcCodecContext;
 
 import com.eclipsesource.json.JsonObject;
 import com.sun.jersey.api.client.ClientResponse;
@@ -192,8 +194,11 @@ public class FlowClassifierResourceTest extends VtnResourceTest {
      */
     @Before
     public void setUpTest() {
-        ServiceDirectory testDirectory = new TestServiceDirectory().add(FlowClassifierService.class,
-                                                                        flowClassifierService);
+        SfcCodecContext context = new SfcCodecContext();
+
+        ServiceDirectory testDirectory = new TestServiceDirectory()
+        .add(FlowClassifierService.class, flowClassifierService)
+        .add(CodecService.class, context.codecManager());
         BaseResource.setServiceDirectory(testDirectory);
 
     }
