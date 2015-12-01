@@ -46,9 +46,6 @@
         <module>cli</module>
 
         <module>protocols</module>
-        <!-- FIXME move to protocols/ -->
-        <module>bgp</module>
-
         <module>providers</module>
         <module>drivers</module>
 

@@ -36,9 +36,7 @@
         <module>netconf</module>
         <module>pcep</module>
         <module>ovsdb</module>
-        <!--
         <module>bgp</module>
-        -->
     </modules>
 
     <dependencies>
