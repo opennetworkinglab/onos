@@ -36,7 +36,12 @@ public final class ExtensionTreatmentType {
         NICIRA_SET_TUNNEL_DST(0),
         NICIRA_RESUBMIT(1),
         NICIRA_SET_NSH_SPI(32),
-        NICIRA_RESUBMIT_TABLE(14);
+        NICIRA_RESUBMIT_TABLE(14),
+        NICIRA_SET_NSH_SI(33),
+        NICIRA_SET_NSH_CH1(34),
+        NICIRA_SET_NSH_CH2(35),
+        NICIRA_SET_NSH_CH3(36),
+        NICIRA_SET_NSH_CH4(37);
 
         private ExtensionTreatmentType type;
 

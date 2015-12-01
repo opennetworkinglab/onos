@@ -25,57 +25,57 @@ import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import com.google.common.base.MoreObjects;
 
 /**
- * Nicira set NSH SPI extension instruction.
+ * Nicira set NSH SI extension instruction.
  */
-public class NiciraSetNshSpi extends AbstractExtensionTreatment {
+public class NiciraSetNshSi extends AbstractExtensionTreatment {
 
-    private int nshSpi;
+    private byte nshSi;
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder().build();
 
     /**
-     * Creates a new set nsh spi instruction.
+     * Creates a new set nsh si instruction.
      */
-    NiciraSetNshSpi() {
-        nshSpi = 0;
+    NiciraSetNshSi() {
+        nshSi = 0;
     }
 
     /**
-     * Creates a new set nsh spi instruction with given spi.
+     * Creates a new set nsh si instruction with given si.
      *
-     * @param nshSpi nsh service path index
+     * @param nshSi nsh service index
      */
-    NiciraSetNshSpi(int nshSpi) {
-        this.nshSpi = nshSpi;
+    NiciraSetNshSi(byte nshSi) {
+        this.nshSi = nshSi;
     }
 
     /**
-     * Gets the nsh service path index.
+     * Gets the nsh service index.
      *
-     * @return nsh service path index
+     * @return nsh service index
      */
-    public int nshSpi() {
-        return nshSpi;
+    public byte nshSi() {
+        return nshSi;
     }
 
     @Override
     public ExtensionTreatmentType type() {
-        return ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type();
+        return ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SI.type();
     }
 
     @Override
     public void deserialize(byte[] data) {
-        nshSpi = appKryo.deserialize(data);
+        nshSi = appKryo.deserialize(data);
     }
 
     @Override
     public byte[] serialize() {
-        return appKryo.serialize(nshSpi);
+        return appKryo.serialize(nshSi);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(nshSpi);
+        return Objects.hash(nshSi);
     }
 
     @Override
@@ -83,9 +83,9 @@ public class NiciraSetNshSpi extends AbstractExtensionTreatment {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof NiciraSetNshSpi) {
-            NiciraSetNshSpi that = (NiciraSetNshSpi) obj;
-            return Objects.equals(nshSpi, that.nshSpi);
+        if (obj instanceof NiciraSetNshSi) {
+            NiciraSetNshSi that = (NiciraSetNshSi) obj;
+            return Objects.equals(nshSi, that.nshSi);
 
         }
         return false;
@@ -94,7 +94,7 @@ public class NiciraSetNshSpi extends AbstractExtensionTreatment {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("nshSpi", nshSpi)
+                .add("nshSi", nshSi)
                 .toString();
     }
 }

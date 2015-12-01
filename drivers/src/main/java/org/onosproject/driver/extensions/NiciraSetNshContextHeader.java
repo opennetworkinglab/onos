@@ -25,57 +25,63 @@ import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import com.google.common.base.MoreObjects;
 
 /**
- * Nicira set NSH SPI extension instruction.
+ * Nicira set NSH Context header extension instruction.
  */
-public class NiciraSetNshSpi extends AbstractExtensionTreatment {
+public class NiciraSetNshContextHeader extends AbstractExtensionTreatment {
 
-    private int nshSpi;
+    private int nshCh;
+    private ExtensionTreatmentType type;
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder().build();
 
     /**
-     * Creates a new set nsh spi instruction.
+     * Creates a new set nsh context header instruction.
+     *
+     * @param type extension treatment type
      */
-    NiciraSetNshSpi() {
-        nshSpi = 0;
+    NiciraSetNshContextHeader(ExtensionTreatmentType type) {
+        this.nshCh = 0;
+        this.type = type;
     }
 
     /**
-     * Creates a new set nsh spi instruction with given spi.
+     * Creates a new set nsh context header instruction.
      *
-     * @param nshSpi nsh service path index
+     * @param nshCh nsh context header
+     * @param type extension treatment type
      */
-    NiciraSetNshSpi(int nshSpi) {
-        this.nshSpi = nshSpi;
+    NiciraSetNshContextHeader(int nshCh, ExtensionTreatmentType type) {
+        this.nshCh = nshCh;
+        this.type = type;
     }
 
     /**
-     * Gets the nsh service path index.
+     * Gets the nsh context header.
      *
-     * @return nsh service path index
+     * @return nsh context header
      */
-    public int nshSpi() {
-        return nshSpi;
+    public int nshCh() {
+        return nshCh;
     }
 
     @Override
     public ExtensionTreatmentType type() {
-        return ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type();
+        return type;
     }
 
     @Override
     public void deserialize(byte[] data) {
-        nshSpi = appKryo.deserialize(data);
+        nshCh = appKryo.deserialize(data);
     }
 
     @Override
     public byte[] serialize() {
-        return appKryo.serialize(nshSpi);
+        return appKryo.serialize(nshCh);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(nshSpi);
+        return Objects.hash(nshCh, type);
     }
 
     @Override
@@ -83,9 +89,9 @@ public class NiciraSetNshSpi extends AbstractExtensionTreatment {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof NiciraSetNshSpi) {
-            NiciraSetNshSpi that = (NiciraSetNshSpi) obj;
-            return Objects.equals(nshSpi, that.nshSpi);
+        if (obj instanceof NiciraSetNshContextHeader) {
+            NiciraSetNshContextHeader that = (NiciraSetNshContextHeader) obj;
+            return Objects.equals(nshCh, that.nshCh) && Objects.equals(type, that.type);
 
         }
         return false;
@@ -94,7 +100,8 @@ public class NiciraSetNshSpi extends AbstractExtensionTreatment {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("nshSpi", nshSpi)
+                .add("nshCh", nshCh)
+                .add("type", type)
                 .toString();
     }
 }

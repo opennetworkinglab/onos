@@ -46,8 +46,22 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                 ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type())) {
             return true;
         }
-        if (extensionTreatmentType.equals(
-                ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
+        if (extensionTreatmentType.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
+            return true;
+        }
+        if (extensionTreatmentType.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SI.type())) {
+            return true;
+        }
+        if (extensionTreatmentType.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH1.type())) {
+            return true;
+        }
+        if (extensionTreatmentType.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH2.type())) {
+            return true;
+        }
+        if (extensionTreatmentType.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH3.type())) {
+            return true;
+        }
+        if (extensionTreatmentType.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH4.type())) {
             return true;
         }
         if (extensionTreatmentType.equals(
@@ -66,14 +80,29 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                     IPv4Address.of(tunnelDst.tunnelDst().toInt())));
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type())) {
-          // TODO this will be implemented later
+            // TODO this will be implemented later
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
             // TODO this will be implemented later
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE.type())) {
             // TODO this will be implemented later
-          }
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SI.type())) {
+            // TODO this will be implemented later
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH1.type())) {
+            // TODO this will be implemented later
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH2.type())) {
+            // TODO this will be implemented later
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH3.type())) {
+            // TODO this will be implemented later
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH4.type())) {
+            // TODO this will be implemented later
+        }
         return null;
     }
 
@@ -102,11 +131,20 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type())) {
             return new NiciraResubmit();
         }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE.type())) {
+            return new NiciraResubmitTable();
+        }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
             return new NiciraSetNshSpi();
         }
-        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE.type())) {
-            return new NiciraResubmitTable();
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SI.type())) {
+            return new NiciraSetNshSi();
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH1.type())
+                || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH2.type())
+                || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH3.type())
+                || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH4.type())) {
+            return new NiciraSetNshContextHeader(type);
         }
         throw new UnsupportedOperationException(
                 "Driver does not support extension type " + type.toString());
