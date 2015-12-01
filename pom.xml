@@ -47,7 +47,6 @@
 
         <module>protocols</module>
         <!-- FIXME move to protocols/ -->
-        <module>ovsdb</module>
         <module>bgp</module>
 
         <module>providers</module>
