@@ -35,7 +35,8 @@ public final class ExtensionTreatmentType {
         // TODO fix type numbers to include experimenter id
         NICIRA_SET_TUNNEL_DST(0),
         NICIRA_RESUBMIT(1),
-        NICIRA_SET_NSH_SPI(32);
+        NICIRA_SET_NSH_SPI(32),
+        NICIRA_RESUBMIT_TABLE(14);
 
         private ExtensionTreatmentType type;
 
