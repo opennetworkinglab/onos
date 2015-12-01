@@ -59,6 +59,7 @@
         <module>pim</module>
         <module>mlb</module>
         <module>openstackswitching</module>
+        <module>pathpainter</module>
   </modules>
 
     <properties>
