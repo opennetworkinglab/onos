@@ -84,6 +84,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         return ImmutableSet.of(
                 new SetSrcHandler(),
                 new SetDstHandler(),
+                new SwapSrcDstHandler(),
                 new NextPathHandler(),
                 new PrevPathHandler()
         );
@@ -120,6 +121,20 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
             if (src.equals(dst)) {
                 src = null;
             }
+            findAndSendPaths();
+        }
+    }
+
+    private final class SwapSrcDstHandler extends RequestHandler {
+        public SwapSrcDstHandler() {
+            super(PAINTER_SWAP_SRC_DST);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            ElementId temp = src;
+            src = dst;
+            dst = temp;
             findAndSendPaths();
         }
     }

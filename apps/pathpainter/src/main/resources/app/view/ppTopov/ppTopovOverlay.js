@@ -16,8 +16,7 @@
     var overlay = {
         // NOTE: this must match the ID defined in AppUiTopovOverlay
         overlayId: 'pp-overlay',
-        // FIXME: new icon for the overlay
-        glyphId: '*star4',
+        glyphId: 'topo',
         tooltip: 'Path Painter Topo Overlay',
 
         // These glyphs get installed using the overlayId as a prefix.
@@ -68,7 +67,6 @@
         // FIXME: use into [ and ] instead of 1 and 2
         // FIXME: new icons for src/dst
         // TODO: add keys for shortest paths & disjoint paths modes
-        // TODO: add key for src/dst swap; with its own icon
         keyBindings: {
             1: {
                 cb: function () { pps.setSrc(selection); },
@@ -79,6 +77,11 @@
                 cb: function () { pps.setDst(selection); },
                 tt: 'Set destination node',
                 gid: 'triangleDown'
+            },
+            3: {
+                cb: function () { pps.swapSrcDst(); },
+                tt: 'Swap source and destination nodes',
+                gid: 'refresh'
             },
             leftArrow: {
                 cb: function () { pps.prevPath(); },
@@ -92,7 +95,7 @@
             },
 
             _keyOrder: [
-                '1', '2', 'leftArrow', 'rightArrow'
+                '1', '2', '3', 'leftArrow', 'rightArrow'
             ]
         },
 

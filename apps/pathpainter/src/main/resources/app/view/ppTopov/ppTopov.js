@@ -28,6 +28,7 @@
     // constants
     var srcMessage = 'ppTopovSetSrc',
         dstMessage = 'ppTopovSetDst',
+        swapMessage = 'ppTopovSwapSrcDst',
         modeMessage = 'ppTopovSetMode',
         nextPathMessage = 'ppTopovNextPath',
         prevPathMessage = 'ppTopovPrevPath';
@@ -58,11 +59,16 @@
         flash.flash('Destination node: ' + node.id);
     }
 
-    function nextPath(node) {
+    function swapSrcDst() {
+        wss.sendEvent(swapMessage)
+        flash.flash('Source and destination swap');
+    }
+
+    function nextPath() {
         wss.sendEvent(nextPathMessage);
     }
 
-    function prevPath(node) {
+    function prevPath() {
         wss.sendEvent(prevPathMessage);
     }
 
@@ -97,7 +103,8 @@
                 setDst: setDst,
                 setMode: setMode,
                 nextPath: nextPath,
-                prevPath: prevPath
+                prevPath: prevPath,
+                swapSrcDst: swapSrcDst
             };
         }]);
 }());

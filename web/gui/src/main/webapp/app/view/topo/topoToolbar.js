@@ -167,7 +167,7 @@
 
         // generate radio button set for overlays; start with 'none'
         var rset = [{
-                gid: 'topo',
+                gid: 'unknown',
                 tooltip: 'No Overlay',
                 cb: function () {
                     tov.tbSelection(null, switchOverlayActions);
