@@ -20,6 +20,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import java.util.Objects;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 
 /**
  * Abstraction of a single traffic treatment step.
@@ -68,7 +69,22 @@ public abstract class L3ModificationInstruction implements Instruction {
         /**
          * Copy TTL in.
          */
-        TTL_IN
+        TTL_IN,
+
+        /**
+         * ARP IP src modification.
+         */
+        ARP_SPA,
+
+        /**
+         * ARP Ether src modification.
+         */
+        ARP_SHA,
+
+        /**
+         * Arp operation modification.
+         */
+        ARP_OP
 
         //TODO: remaining types
     }
@@ -126,6 +142,150 @@ public abstract class L3ModificationInstruction implements Instruction {
             if (obj instanceof ModIPInstruction) {
                 ModIPInstruction that = (ModIPInstruction) obj;
                 return  Objects.equals(ip, that.ip) &&
+                        Objects.equals(this.subtype(), that.subtype());
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Represents a L3 ARP IP src/dst modification instruction.
+     */
+    public static final class ModArpIPInstruction extends L3ModificationInstruction {
+
+        private final L3SubType subtype;
+        private final IpAddress ip;
+
+        ModArpIPInstruction(L3SubType subType, IpAddress addr) {
+
+            this.subtype = subType;
+            this.ip = addr;
+        }
+
+        @Override
+        public L3SubType subtype() {
+            return this.subtype;
+        }
+
+        public IpAddress ip() {
+            return this.ip;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(subtype().toString())
+                    .add("ip", ip).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype(), ip);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModArpIPInstruction) {
+                ModArpIPInstruction that = (ModArpIPInstruction) obj;
+                return  Objects.equals(ip, that.ip) &&
+                        Objects.equals(this.subtype(), that.subtype());
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Represents a L3 ARP Ether src/dst modification instruction.
+     */
+    public static final class ModArpEthInstruction extends L3ModificationInstruction {
+
+        private final L3SubType subtype;
+        private final MacAddress mac;
+
+        ModArpEthInstruction(L3SubType subType, MacAddress addr) {
+
+            this.subtype = subType;
+            this.mac = addr;
+        }
+
+        @Override
+        public L3SubType subtype() {
+            return this.subtype;
+        }
+
+        public MacAddress mac() {
+            return this.mac;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(subtype().toString())
+                    .add("mac", mac).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype(), mac);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModArpEthInstruction) {
+                ModArpEthInstruction that = (ModArpEthInstruction) obj;
+                return  Objects.equals(mac, that.mac) &&
+                        Objects.equals(this.subtype(), that.subtype());
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Represents a L3 ARP operation modification instruction.
+     */
+    public static final class ModArpOpInstruction extends L3ModificationInstruction {
+
+        private final L3SubType subtype;
+        private final short op;
+
+        ModArpOpInstruction(L3SubType subType, short op) {
+
+            this.subtype = subType;
+            this.op = op;
+        }
+
+        @Override
+        public L3SubType subtype() {
+            return this.subtype;
+        }
+
+        public long op() {
+            return this.op;
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(subtype().toString())
+                    .add("op", op).toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype(), op);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModArpOpInstruction) {
+                ModArpOpInstruction that = (ModArpOpInstruction) obj;
+                return  Objects.equals(op, that.op) &&
                         Objects.equals(this.subtype(), that.subtype());
             }
             return false;

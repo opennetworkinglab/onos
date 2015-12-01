@@ -424,6 +424,30 @@ public interface TrafficTreatment {
         Builder setUdpDst(TpPort port);
 
         /**
+         * Sets the arp src ip address.
+         *
+         * @param addr an ip
+         * @return a treatment builder
+         */
+        Builder setArpSpa(IpAddress addr);
+
+        /**
+         * Sets the arp src mac address.
+         *
+         * @param addr a macaddress
+         * @return a treatment builder
+         */
+        Builder setArpSha(MacAddress addr);
+
+        /**
+         * Sets the arp operation.
+         *
+         * @param op the value of arp operation.
+         * @return a treatment builder.
+         */
+        Builder setArpOp(short op);
+
+        /**
          * Uses an extension treatment.
          *
          * @param extension extension treatment

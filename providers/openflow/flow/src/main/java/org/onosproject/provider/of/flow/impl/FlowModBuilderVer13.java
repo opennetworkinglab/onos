@@ -45,6 +45,9 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPc
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.PushHeaderInstructions;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpIPInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpEthInstruction;
+import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModArpOpInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction.ModTransportPortInstruction;
@@ -61,6 +64,7 @@ import org.projectfloodlight.openflow.protocol.action.OFActionSetQueue;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
+import org.projectfloodlight.openflow.types.ArpOpcode;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
@@ -429,6 +433,19 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                         (ModIPv6FlowLabelInstruction) i;
                 int flowLabel = flowLabelInstruction.flowLabel();
                 oxm = factory().oxms().ipv6Flabel(IPv6FlowLabel.of(flowLabel));
+                break;
+            case ARP_SPA:
+                ModArpIPInstruction aip = (ModArpIPInstruction) i;
+                ip4 = aip.ip().getIp4Address();
+                oxm = factory().oxms().arpSpa(IPv4Address.of(ip4.toInt()));
+                break;
+            case ARP_SHA:
+                ModArpEthInstruction ei = (ModArpEthInstruction) i;
+                oxm = factory().oxms().arpSha(MacAddress.of(ei.mac().toLong()));
+                break;
+            case ARP_OP:
+                ModArpOpInstruction oi = (ModArpOpInstruction) i;
+                oxm = factory().oxms().arpOp(ArpOpcode.of((int) oi.op()));
                 break;
             case DEC_TTL:
                 return factory().actions().decNwTtl();

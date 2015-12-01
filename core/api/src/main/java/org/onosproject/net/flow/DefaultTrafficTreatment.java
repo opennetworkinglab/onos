@@ -489,6 +489,21 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public Builder setArpSpa(IpAddress addr) {
+            return add(Instructions.modArpSpa(addr));
+        }
+
+        @Override
+        public Builder setArpSha(MacAddress addr) {
+            return add(Instructions.modArpSha(addr));
+        }
+
+        @Override
+        public Builder setArpOp(short op) {
+            return add(Instructions.modL3ArpOp(op));
+        }
+
+        @Override
         public TrafficTreatment.Builder extension(ExtensionTreatment extension,
                                                   DeviceId deviceId) {
             return add(Instructions.extension(extension, deviceId));
