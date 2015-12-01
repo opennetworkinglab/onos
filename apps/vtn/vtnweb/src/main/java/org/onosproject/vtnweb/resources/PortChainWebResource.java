@@ -15,7 +15,6 @@
  */
 package org.onosproject.vtnweb.resources;
 
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.onlab.util.Tools.nullIsNotFound;
 
@@ -37,11 +36,11 @@ import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.vtnrsc.PortChain;
 import org.onosproject.vtnrsc.PortChainId;
 import org.onosproject.vtnrsc.portchain.PortChainService;
-import org.onosproject.vtnweb.web.PortChainCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -52,7 +51,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class PortChainWebResource extends AbstractWebResource {
 
     private final Logger log = LoggerFactory.getLogger(PortChainWebResource.class);
-    private final PortChainService service = get(PortChainService.class);
     public static final String PORT_CHAIN_NOT_FOUND = "Port chain not found";
     public static final String PORT_CHAIN_ID_EXIST = "Port chain exists";
     public static final String PORT_CHAIN_ID_NOT_EXIST = "Port chain does not exist with identifier";
@@ -65,10 +63,15 @@ public class PortChainWebResource extends AbstractWebResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortChains() {
-        Iterable<PortChain> portChains = service.getPortChains();
-        ObjectNode result = new ObjectMapper().createObjectNode();
-        result.set("port_chains", new PortChainCodec().encode(portChains, this));
-        return ok(result).build();
+        Iterable<PortChain> portChains = get(PortChainService.class).getPortChains();
+        ObjectNode result = mapper().createObjectNode();
+        ArrayNode portChainEntry = result.putArray("port_chains");
+        if (portChains != null) {
+            for (final PortChain portChain : portChains) {
+                portChainEntry.add(codec(PortChain.class).encode(portChain, this));
+            }
+        }
+        return ok(result.toString()).build();
     }
 
     /**
@@ -82,14 +85,11 @@ public class PortChainWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortPain(@PathParam("chain_id") String id) {
 
-        if (!service.exists(PortChainId.of(id))) {
-            return Response.status(NOT_FOUND).entity(PORT_CHAIN_NOT_FOUND).build();
-        }
-        PortChain portChain = nullIsNotFound(service.getPortChain(PortChainId.of(id)),
+        PortChain portChain = nullIsNotFound(get(PortChainService.class).getPortChain(PortChainId.of(id)),
                                              PORT_CHAIN_NOT_FOUND);
-        ObjectNode result = new ObjectMapper().createObjectNode();
-        result.set("port_chain", new PortChainCodec().encode(portChain, this));
-        return ok(result).build();
+        ObjectNode result = mapper().createObjectNode();
+        result.set("port_chain", codec(PortChain.class).encode(portChain, this));
+        return ok(result.toString()).build();
     }
 
     /**
@@ -105,8 +105,10 @@ public class PortChainWebResource extends AbstractWebResource {
     public Response createPortChain(InputStream stream) {
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            PortChain portChain = codec(PortChain.class).decode(jsonTree, this);
-            Boolean issuccess = nullIsNotFound(service.createPortChain(portChain), PORT_CHAIN_NOT_FOUND);
+            JsonNode port = jsonTree.get("port_chain");
+            PortChain portChain = codec(PortChain.class).decode((ObjectNode) port, this);
+            Boolean issuccess = nullIsNotFound(get(PortChainService.class).createPortChain(portChain),
+                                               PORT_CHAIN_NOT_FOUND);
             return Response.status(OK).entity(issuccess.toString()).build();
         } catch (IOException e) {
             log.error("Exception while creating port chain {}.", e.toString());
@@ -129,8 +131,10 @@ public class PortChainWebResource extends AbstractWebResource {
                                    final InputStream stream) {
         try {
             ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            PortChain portChain = codec(PortChain.class).decode(jsonTree, this);
-            Boolean result = nullIsNotFound(service.updatePortChain(portChain), PORT_CHAIN_NOT_FOUND);
+            JsonNode port = jsonTree.get("port_chain");
+            PortChain portChain = codec(PortChain.class).decode((ObjectNode) port, this);
+            Boolean result = nullIsNotFound(get(PortChainService.class).updatePortChain(portChain),
+                                            PORT_CHAIN_NOT_FOUND);
             return Response.status(OK).entity(result.toString()).build();
         } catch (IOException e) {
             log.error("Update port chain failed because of exception {}.", e.toString());
@@ -149,7 +153,8 @@ public class PortChainWebResource extends AbstractWebResource {
         log.debug("Deletes port chain by identifier {}.", id);
         PortChainId portChainId = PortChainId.of(id);
 
-        Boolean issuccess = nullIsNotFound(service.removePortChain(portChainId), PORT_CHAIN_NOT_FOUND);
+        Boolean issuccess = nullIsNotFound(get(PortChainService.class).removePortChain(portChainId),
+                                           PORT_CHAIN_NOT_FOUND);
         if (!issuccess) {
             log.debug("Port Chain identifier {} does not exist", id);
         }
