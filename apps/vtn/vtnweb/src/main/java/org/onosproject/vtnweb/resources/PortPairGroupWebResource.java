@@ -16,7 +16,6 @@
 
 package org.onosproject.vtnweb.resources;
 
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.onlab.util.Tools.nullIsNotFound;
 
@@ -38,11 +37,12 @@ import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.vtnrsc.PortPairGroup;
 import org.onosproject.vtnrsc.PortPairGroupId;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
-import org.onosproject.vtnweb.web.PortPairGroupCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -53,7 +53,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class PortPairGroupWebResource extends AbstractWebResource {
 
     private final Logger log = LoggerFactory.getLogger(PortPairGroupWebResource.class);
-    private final PortPairGroupService service = get(PortPairGroupService.class);
     public static final String PORT_PAIR_GROUP_NOT_FOUND = "Port pair group not found";
     public static final String PORT_PAIR_GROUP_ID_EXIST = "Port pair group exists";
     public static final String PORT_PAIR_GROUP_ID_NOT_EXIST = "Port pair group does not exist with identifier";
@@ -66,10 +65,15 @@ public class PortPairGroupWebResource extends AbstractWebResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortPairGroups() {
-        Iterable<PortPairGroup> portPairGroups = service.getPortPairGroups();
-        ObjectNode result = new ObjectMapper().createObjectNode();
-        result.set("port_pair_groups", new PortPairGroupCodec().encode(portPairGroups, this));
-        return ok(result).build();
+        Iterable<PortPairGroup> portPairGroups = get(PortPairGroupService.class).getPortPairGroups();
+        ObjectNode result = mapper().createObjectNode();
+        ArrayNode portPairGroupEntry = result.putArray("port_pair_groups");
+        if (portPairGroups != null) {
+            for (final PortPairGroup portPairGroup : portPairGroups) {
+                portPairGroupEntry.add(codec(PortPairGroup.class).encode(portPairGroup, this));
+            }
+        }
+        return ok(result.toString()).build();
     }
 
     /**
@@ -82,17 +86,13 @@ public class PortPairGroupWebResource extends AbstractWebResource {
     @Path("{group_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortPairGroup(@PathParam("group_id") String id) {
-
-        if (!service.exists(PortPairGroupId.of(id))) {
-            return Response.status(NOT_FOUND)
-                    .entity(PORT_PAIR_GROUP_NOT_FOUND).build();
-        }
-        PortPairGroup portPairGroup = nullIsNotFound(service.getPortPairGroup(PortPairGroupId.of(id)),
+        PortPairGroup portPairGroup = nullIsNotFound(get(PortPairGroupService.class)
+                                                     .getPortPairGroup(PortPairGroupId.of(id)),
                                                      PORT_PAIR_GROUP_NOT_FOUND);
 
-        ObjectNode result = new ObjectMapper().createObjectNode();
-        result.set("port_pair_group", new PortPairGroupCodec().encode(portPairGroup, this));
-        return ok(result).build();
+        ObjectNode result = mapper().createObjectNode();
+        result.set("port_pair_group", codec(PortPairGroup.class).encode(portPairGroup, this));
+        return ok(result.toString()).build();
     }
 
     /**
@@ -108,10 +108,12 @@ public class PortPairGroupWebResource extends AbstractWebResource {
     public Response createPortPairGroup(InputStream stream) {
 
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode jsonTree = (ObjectNode) mapper.readTree(stream);
+            JsonNode port = jsonTree.get("port_pair_group");
 
-            PortPairGroup portPairGroup = codec(PortPairGroup.class).decode(jsonTree, this);
-            Boolean issuccess = nullIsNotFound(service.createPortPairGroup(portPairGroup),
+            PortPairGroup portPairGroup = codec(PortPairGroup.class).decode((ObjectNode) port, this);
+            Boolean issuccess = nullIsNotFound(get(PortPairGroupService.class).createPortPairGroup(portPairGroup),
                                                PORT_PAIR_GROUP_NOT_FOUND);
             return Response.status(OK).entity(issuccess.toString()).build();
         } catch (IOException e) {
@@ -134,9 +136,12 @@ public class PortPairGroupWebResource extends AbstractWebResource {
     public Response updatePortPairGroup(@PathParam("group_id") String id,
                                         final InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
-            PortPairGroup portPairGroup = codec(PortPairGroup.class).decode(jsonTree, this);
-            Boolean isSuccess = nullIsNotFound(service.updatePortPairGroup(portPairGroup), PORT_PAIR_GROUP_NOT_FOUND);
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode jsonTree = (ObjectNode) mapper.readTree(stream);
+            JsonNode port = jsonTree.get("port_pair_group");
+            PortPairGroup portPairGroup = codec(PortPairGroup.class).decode((ObjectNode) port, this);
+            Boolean isSuccess = nullIsNotFound(get(PortPairGroupService.class).updatePortPairGroup(portPairGroup),
+                                               PORT_PAIR_GROUP_NOT_FOUND);
             return Response.status(OK).entity(isSuccess.toString()).build();
         } catch (IOException e) {
             log.error("Update port pair group failed because of exception {}.", e.toString());
@@ -154,7 +159,7 @@ public class PortPairGroupWebResource extends AbstractWebResource {
     public void deletePortPairGroup(@PathParam("group_id") String id) {
         log.debug("Deletes port pair group by identifier {}.", id);
         PortPairGroupId portPairGroupId = PortPairGroupId.of(id);
-        Boolean issuccess = nullIsNotFound(service.removePortPairGroup(portPairGroupId),
+        Boolean issuccess = nullIsNotFound(get(PortPairGroupService.class).removePortPairGroup(portPairGroupId),
                                            PORT_PAIR_GROUP_NOT_FOUND);
         if (!issuccess) {
             log.debug("Port pair group identifier {} does not exist", id);
