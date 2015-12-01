@@ -15,6 +15,7 @@
  */
 package org.onosproject.pcepio.types;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -100,7 +101,7 @@ public class ISISAreaIdentifierTlv implements PcepValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(rawValue);
+        return Objects.hash(Arrays.hashCode(rawValue), rawValue.length);
     }
 
     @Override
@@ -110,7 +111,7 @@ public class ISISAreaIdentifierTlv implements PcepValueType {
         }
         if (obj instanceof ISISAreaIdentifierTlv) {
             ISISAreaIdentifierTlv other = (ISISAreaIdentifierTlv) obj;
-            return Objects.equals(hLength, other.hLength) && Objects.equals(rawValue, other.rawValue);
+            return Objects.equals(hLength, other.hLength) && Arrays.equals(rawValue, other.rawValue);
         }
         return false;
     }
