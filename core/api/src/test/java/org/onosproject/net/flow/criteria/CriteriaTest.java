@@ -222,6 +222,12 @@ public class CriteriaTest {
     Criterion sameAsMatchMpls1 = Criteria.matchMplsLabel(mpls1);
     Criterion matchMpls2 = Criteria.matchMplsLabel(mpls2);
 
+    byte mplsTc1 = 1;
+    byte mplsTc2 = 2;
+    Criterion matchMplsTc1 = Criteria.matchMplsTc(mplsTc1);
+    Criterion sameAsMatchMplsTc1 = Criteria.matchMplsTc(mplsTc1);
+    Criterion matchMplsTc2 = Criteria.matchMplsTc(mplsTc2);
+
     long tunnelId1 = 1;
     long tunnelId2 = 2;
     Criterion matchTunnelId1 = Criteria.matchTunnelId(tunnelId1);
@@ -326,6 +332,7 @@ public class CriteriaTest {
         assertThatClassIsImmutable(IPv6NDTargetAddressCriterion.class);
         assertThatClassIsImmutable(IPv6NDLinkLayerAddressCriterion.class);
         assertThatClassIsImmutable(MplsCriterion.class);
+        assertThatClassIsImmutable(MplsTcCriterion.class);
         assertThatClassIsImmutable(IPv6ExthdrFlagsCriterion.class);
         assertThatClassIsImmutable(LambdaCriterion.class);
         assertThatClassIsImmutable(OduSignalIdCriterion.class);
@@ -752,6 +759,19 @@ public class CriteriaTest {
     // TcpFlagsCriterion class
 
     /**
+     * Test the matchTcpFlags method.
+     */
+    @Test
+    public void testMatchTcpFlagsMethod() {
+        Criterion matchTcpFlag = Criteria.matchTcpFlags(tcpFlags1);
+        TcpFlagsCriterion tcpFlagsCriterion =
+                checkAndConvert(matchTcpFlag,
+                        Criterion.Type.TCP_FLAGS,
+                        TcpFlagsCriterion.class);
+        assertThat(tcpFlagsCriterion.flags(), is(equalTo(tcpFlags1)));
+    }
+
+    /**
      * Test the equals() method of the TcpFlagsCriterion class.
      */
     @Test
@@ -1034,6 +1054,32 @@ public class CriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchMpls1, sameAsMatchMpls1)
                 .addEqualityGroup(matchMpls2)
+                .testEquals();
+    }
+
+    // MplsTcCriterion class
+
+    /**
+     * Test the matchMplsTc method.
+     */
+    @Test
+    public void testMatchMplsTcMethod() {
+        Criterion matchMplsTc = Criteria.matchMplsTc(mplsTc1);
+        MplsTcCriterion mplsTcCriterion =
+                checkAndConvert(matchMplsTc,
+                                Criterion.Type.MPLS_TC,
+                                MplsTcCriterion.class);
+        assertThat(mplsTcCriterion.tc(), is(equalTo(mplsTc1)));
+    }
+
+    /**
+     * Test the equals() method of the MplsTcCriterion class.
+     */
+    @Test
+    public void testMplsTcCriterionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(matchMplsTc1, sameAsMatchMplsTc1)
+                .addEqualityGroup(matchMplsTc2)
                 .testEquals();
     }
 
