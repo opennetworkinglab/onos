@@ -255,14 +255,15 @@ public class BgpPrefixLSIdentifier implements Comparable<Object> {
             ListIterator<BgpValueType> listIteratorOther = ((BgpPrefixLSIdentifier) o).prefixDescriptor.listIterator();
             while (listIterator.hasNext()) {
                 BgpValueType tlv = listIterator.next();
-                BgpValueType tlv1 = listIteratorOther.next();
-                if (prefixDescriptor.contains(tlv) && ((BgpPrefixLSIdentifier) o).prefixDescriptor.contains(tlv1)) {
+                if (prefixDescriptor.contains(tlv) && ((BgpPrefixLSIdentifier) o).prefixDescriptor.contains(tlv)) {
                     int res = prefixDescriptor.get(prefixDescriptor.indexOf(tlv)).compareTo(
                             ((BgpPrefixLSIdentifier) o).prefixDescriptor
-                                    .get(((BgpPrefixLSIdentifier) o).prefixDescriptor.indexOf(tlv1)));
+                                    .get(((BgpPrefixLSIdentifier) o).prefixDescriptor.indexOf(tlv)));
                     if (res != 0) {
                         return res;
                     }
+                } else {
+                    return 1;
                 }
             }
         }

@@ -247,13 +247,15 @@ public class NodeDescriptors {
         } else {
             while (listIterator.hasNext()) {
             BgpValueType tlv = listIterator.next();
-                BgpValueType tlv1 = listIteratorOther.next();
-                if (subTlvs.contains(tlv) && ((NodeDescriptors) o).subTlvs.contains(tlv1)) {
+                log.debug("NodeDescriptor compare subtlv's");
+                if (subTlvs.contains(tlv) && ((NodeDescriptors) o).subTlvs.contains(tlv)) {
                     int result = subTlvs.get(subTlvs.indexOf(tlv)).compareTo(
-                            ((NodeDescriptors) o).subTlvs.get(((NodeDescriptors) o).subTlvs.indexOf(tlv1)));
+                            ((NodeDescriptors) o).subTlvs.get(((NodeDescriptors) o).subTlvs.indexOf(tlv)));
                     if (result != 0) {
                         return result;
                     }
+                } else {
+                    return 1;
                 }
             }
         }

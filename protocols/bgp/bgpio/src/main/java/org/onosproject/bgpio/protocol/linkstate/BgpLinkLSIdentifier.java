@@ -280,14 +280,15 @@ public class BgpLinkLSIdentifier implements Comparable<Object> {
             ListIterator<BgpValueType> listIteratorOther = ((BgpLinkLSIdentifier) o).linkDescriptor.listIterator();
             while (listIterator.hasNext()) {
                 BgpValueType tlv = listIterator.next();
-                BgpValueType tlv1 = listIteratorOther.next();
-                if (linkDescriptor.contains(tlv) && ((BgpLinkLSIdentifier) o).linkDescriptor.contains(tlv1)) {
+                if (linkDescriptor.contains(tlv) && ((BgpLinkLSIdentifier) o).linkDescriptor.contains(tlv)) {
                     int res = linkDescriptor.get(linkDescriptor.indexOf(tlv)).compareTo(
                             ((BgpLinkLSIdentifier) o).linkDescriptor.get(((BgpLinkLSIdentifier) o).linkDescriptor
-                                    .indexOf(tlv1)));
+                                    .indexOf(tlv)));
                     if (res != 0) {
                         return res;
                     }
+                } else {
+                    return 1;
                 }
             }
         }
