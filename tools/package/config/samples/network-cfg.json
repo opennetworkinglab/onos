@@ -39,7 +39,8 @@
                 "nodeSid" : 105,
                 "routerIp" : "192.168.0.11",
                 "routerMac" : "00:00:01:00:11:80",
-                "isEdgeRouter" : false
+                "isEdgeRouter" : false,
+                "adjacencySids" : []
             }
         }
     },

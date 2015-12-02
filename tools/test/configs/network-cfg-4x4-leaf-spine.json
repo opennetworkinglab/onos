@@ -1,0 +1,208 @@
+{
+    "ports" : {
+    "of:0000000000000001/5" : {
+        "interfaces" : [
+        {
+            "ips" : [ "10.0.1.254/24" ],
+            "mac" : "08:9e:01:82:38:68",
+            "vlan" : "100"
+        }
+        ]
+    },
+    "of:0000000000000001/6" : {
+        "interfaces" : [
+        {
+            "ips" : [ "10.0.1.254/24" ],
+            "mac" : "08:9e:01:82:38:68",
+            "vlan" : "100"
+        }
+        ]
+    },
+    "of:0000000000000002/5" : {
+        "interfaces" : [
+        {
+            "ips" : [ "10.0.2.254/24" ],
+            "mac" : "08:9e:01:82:38:68",
+            "vlan" : "100"
+        }
+        ]
+    },
+    "of:0000000000000002/6" : {
+        "interfaces" : [
+        {
+            "ips" : [ "10.0.2.254/24" ],
+            "mac" : "08:9e:01:82:38:68",
+            "vlan" : "100"
+        }
+        ]
+    },
+    "of:0000000000000003/5" : {
+        "interfaces" : [
+        {
+            "ips" : [ "10.0.3.254/24" ],
+            "mac" : "08:9e:01:82:38:68",
+            "vlan" : "100"
+        }
+        ]
+    },
+    "of:0000000000000003/6" : {
+        "interfaces" : [
+        {
+            "ips" : [ "10.0.3.254/24" ],
+            "mac" : "08:9e:01:82:38:68",
+            "vlan" : "100"
+        }
+        ]
+    },
+    "of:0000000000000004/5" : {
+        "interfaces" : [
+        {
+            "ips" : [ "10.0.4.254/24" ],
+            "mac" : "08:9e:01:82:38:68",
+            "vlan" : "100"
+        }
+        ]
+    },
+    "of:0000000000000004/6" : {
+        "interfaces" : [
+        {
+            "ips" : [ "10.0.4.254/24" ],
+            "mac" : "08:9e:01:82:38:68",
+            "vlan" : "100"
+        }
+        ]
+    }
+    },
+    "devices" : {
+        "of:0000000000000001" : {
+            "segmentrouting" : {
+                "name" : "Leaf-R1",
+                "nodeSid" : 101,
+                "routerIp" : "10.0.1.254",
+                "routerMac" : "00:00:00:00:01:80",
+                "isEdgeRouter" : true,
+                "adjacencySids" : []
+            }
+        },
+        "of:0000000000000002" : {
+            "segmentrouting" : {
+                "name" : "Leaf-R2",
+                "nodeSid" : 102,
+                "routerIp" : "10.0.2.254",
+                "routerMac" : "00:00:00:00:02:80",
+                "isEdgeRouter" : true,
+                "adjacencySids" : []
+            }
+        },
+        "of:0000000000000003" : {
+            "segmentrouting" : {
+                "name" : "Leaf-R3",
+                "nodeSid" : 103,
+                "routerIp" : "10.0.3.254",
+                "routerMac" : "00:00:00:00:03:80",
+                "isEdgeRouter" : true,
+                "adjacencySids" : []
+            }
+        },
+        "of:0000000000000004" : {
+            "segmentrouting" : {
+                "name" : "Leaf-R4",
+                "nodeSid" : 104,
+                "routerIp" : "10.0.4.254",
+                "routerMac" : "00:00:00:00:04:80",
+                "isEdgeRouter" : true,
+                "adjacencySids" : []
+            }
+        },
+        "of:0000000000000191" : {
+            "segmentrouting" : {
+                "name" : "Spine-R1",
+                "nodeSid" : 105,
+                "routerIp" : "192.168.0.11",
+                "routerMac" : "00:00:01:00:11:80",
+                "isEdgeRouter" : false,
+                "adjacencySids" : []
+            }
+        },
+        "of:0000000000000192" : {
+            "segmentrouting" : {
+                "name" : "Spine-R2",
+                "nodeSid" : 106,
+                "routerIp" : "192.168.0.22",
+                "routerMac" : "00:00:01:00:22:80",
+                "isEdgeRouter" : false,
+                "adjacencySids" : []
+            }
+        },
+        "of:0000000000000193" : {
+            "segmentrouting" : {
+                "name" : "Spine-R3",
+                "nodeSid" : 107,
+                "routerIp" : "192.168.0.33",
+                "routerMac" : "00:00:03:00:33:80",
+                "isEdgeRouter" : false,
+                "adjacencySids" : []
+            }
+        },
+        "of:0000000000000194" : {
+            "segmentrouting" : {
+                "name" : "Spine-R4",
+                "nodeSid" : 108,
+                "routerIp" : "192.168.0.44",
+                "routerMac" : "00:00:04:00:44:80",
+                "isEdgeRouter" : false,
+                "adjacencySids" : []
+            }
+        }
+    },
+    "hosts" : {
+        "00:00:00:00:00:01/4093" : {
+            "basic": {
+                "ips": ["10.0.1.1"],
+                "location": "of:0000000000000001/5"
+            }
+        },
+        "00:00:00:00:00:02/4093" : {
+            "basic": {
+                "ips": ["10.0.1.2"],
+                "location": "of:0000000000000001/6"
+            }
+        },
+        "00:00:00:00:00:03/4093" : {
+            "basic": {
+                "ips": ["10.0.2.1"],
+                "location": "of:0000000000000002/5"
+            }
+        },
+        "00:00:00:00:00:04/4093" : {
+            "basic": {
+                "ips": ["10.0.2.2"],
+                "location": "of:0000000000000002/6"
+            }
+        },
+        "00:00:00:00:00:05/4093" : {
+            "basic": {
+                "ips": ["10.0.3.1"],
+                "location": "of:0000000000000003/5"
+            }
+        },
+        "00:00:00:00:00:06/4093" : {
+            "basic": {
+                "ips": ["10.0.3.2"],
+                "location": "of:0000000000000003/6"
+            }
+        },
+        "00:00:00:00:00:07/4093" : {
+            "basic": {
+                "ips": ["10.0.4.1"],
+                "location": "of:0000000000000004/5"
+            }
+        },
+        "00:00:00:00:00:08/4093" : {
+            "basic": {
+                "ips": ["10.0.4.2"],
+                "location": "of:0000000000000004/6"
+            }
+        }
+    }
+}

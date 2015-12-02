@@ -44,7 +44,8 @@
                 "nodeSid" : 101,
                 "routerIp" : "10.0.1.254",
                 "routerMac" : "00:00:00:00:01:80",
-                "isEdgeRouter" : true
+                "isEdgeRouter" : true,
+                "adjacencySids" : []
             }
         },
         "of:0000000000000002" : {
@@ -53,7 +54,8 @@
                 "nodeSid" : 102,
                 "routerIp" : "10.0.2.254",
                 "routerMac" : "00:00:00:00:02:80",
-                "isEdgeRouter" : true
+                "isEdgeRouter" : true,
+                "adjacencySids" : []
             }
         },
         "of:0000000000000191" : {
@@ -62,7 +64,8 @@
                 "nodeSid" : 103,
                 "routerIp" : "192.168.0.11",
                 "routerMac" : "00:00:01:00:11:80",
-                "isEdgeRouter" : false
+                "isEdgeRouter" : false,
+                "adjacencySids" : []
             }
         },
         "of:0000000000000192" : {
@@ -71,7 +74,8 @@
                 "nodeSid" : 104,
                 "routerIp" : "192.168.0.22",
                 "routerMac" : "00:00:01:00:22:80",
-                "isEdgeRouter" : false
+                "isEdgeRouter" : false,
+                "adjacencySids" : []
             }
         }
     },
