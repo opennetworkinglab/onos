@@ -18,24 +18,21 @@ package org.onosproject.cpman;
 /**
  * Include various control plane metrics.
  */
-public class ControlPlaneMetric {
+public class ControlMetric {
 
-    private ControlMetricType metricType;
-    private long metricValue;
+    private final ControlMetricType metricType;
+    private final MetricValue metricValue;
+
+    ControlMetric(ControlMetricType metricType, MetricValue metricValue) {
+        this.metricType = metricType;
+        this.metricValue = metricValue;
+    }
 
     ControlMetricType metricType() {
         return metricType;
     }
 
-    void setMetricType(ControlMetricType metricType) {
-        this.metricType = metricType;
-    }
-
-    long metricValue() {
+    MetricValue metricValue() {
         return metricValue;
-    }
-
-    void setMetricValue(long metricValue) {
-        this.metricValue = metricValue;
     }
 }

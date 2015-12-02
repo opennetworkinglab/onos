@@ -15,29 +15,28 @@
  */
 package org.onosproject.cpman;
 
+import org.onosproject.net.statistic.Load;
+
+import java.util.concurrent.TimeUnit;
+
 /**
- * Abstracted Control Message Type.
+ * Data repository for control plane load information.
  */
-public enum ControlMessageType {
+public interface ControlLoad extends Load {
 
-    /** Mapped to PACKET-IN message of OpenFlow. */
-    INBOUND_PACKET,
+    /**
+     * Obtains the average of the specified time duration.
+     *
+     * @param duration time duration
+     * @param unit     time unit
+     * @return average control plane metric value
+     */
+    long average(int duration, TimeUnit unit);
 
-    /** Mapped to PACKET-OUT message of OpenFlow. */
-    OUTBOUND_PACKET,
-
-    /** Mapped to FLOW-MOD message of OpenFlow. */
-    FLOW_MOD_PACKET,
-
-    /** Mapped to FLOW-REMOVED message of OpenFlow. */
-    FLOW_REMOVED_PACKET,
-
-    /** Mapped to STATS-REQUEST message of OpenFlow. */
-    REQUEST_PACKET,
-
-    /** Mapped to STATS-REPLY message of OpenFlow. */
-    REPLY_PACKET,
-
-    /** All message types. */
-    ALL
+    /**
+     * Obtains the average of all time duration.
+     *
+     * @return average control plane metric value
+     */
+    long average();
 }

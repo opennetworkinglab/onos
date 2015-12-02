@@ -20,15 +20,27 @@ package org.onosproject.cpman;
  */
 public enum ControlMetricType {
 
-    /** Racket Rate of Control Message. */
-    PacketRate,
+    /** Mapped to PACKET-IN message of OpenFlow. */
+    INBOUND_PACKET,
 
-    /** Byte Rate of Control Message. */
-    ByteRate,
+    /** Mapped to PACKET-OUT message of OpenFlow. */
+    OUTBOUND_PACKET,
+
+    /** Mapped to FLOW-MOD message of OpenFlow. */
+    FLOW_MOD_PACKET,
+
+    /** Mapped to FLOW-REMOVED message of OpenFlow. */
+    FLOW_REMOVED_PACKET,
+
+    /** Mapped to STATS-REQUEST message of OpenFlow. */
+    REQUEST_PACKET,
+
+    /** Mapped to STATS-REPLY message of OpenFlow. */
+    REPLY_PACKET,
 
     /** Cpu Utilization. */
-    CpuInfo,
+    CPU_INFO,
 
     /** Memory Utilization. */
-    MemoryInfo
+    MEMORY_INFO
 }

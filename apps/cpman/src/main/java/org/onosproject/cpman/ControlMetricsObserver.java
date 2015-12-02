@@ -15,28 +15,20 @@
  */
 package org.onosproject.cpman;
 
-import org.onosproject.net.statistic.Load;
+import org.onosproject.net.DeviceId;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 
 /**
- * Data repository for control plane load information.
+ * Control metrics observer interface.
  */
-public interface ControlPlaneLoad extends Load {
+public interface ControlMetricsObserver {
 
     /**
-     * Obtain the average of the specified time duration.
+     * Feeds the extracted value from MetricAggregator to back-end storage.
      *
-     * @param duration time duration
-     * @param unit     time unit
-     * @return average control plane metric value
+     * @param metricsAggregator metric aggregator
+     * @param deviceId          device id {@link org.onosproject.net.DeviceId}
      */
-    long average(int duration, TimeUnit unit);
-
-    /**
-     * Obtain the average of all time duration.
-     *
-     * @return average control plane metric value
-     */
-    long average();
+    void feedMetrics(MetricsAggregator metricsAggregator, Optional<DeviceId> deviceId);
 }

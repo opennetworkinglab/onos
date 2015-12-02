@@ -24,28 +24,28 @@ import java.util.concurrent.TimeUnit;
 /**
  * Control Plane Statistics Service Interface.
  */
-public interface ControlPlaneStatsService {
+public interface ControlPlaneMonitorService {
 
     /**
-     * Add a new control plane metric value with a certain update interval.
+     * Adds a new control metric value with a certain update interval.
      *
-     * @param cpm            control plane metric (e.g., control message rate, cpu, memory, etc.)
+     * @param controlMetric  control plane metric (e.g., control message rate, cpu, memory, etc.)
      * @param updateInterval value update interval (time unit will be in minute)
      */
-    void updateMetric(ControlPlaneMetric cpm, int updateInterval);
+    void updateMetric(ControlMetric controlMetric, int updateInterval, Optional<DeviceId> deviceId);
 
     /**
-     * Obtain the control plane load of a specific device.
+     * Obtains the control plane load of a specific device.
      *
      * @param nodeId   node id {@link org.onosproject.cluster.NodeId}
      * @param type     control metric type
      * @param deviceId device id {@link org.onosproject.net.DeviceId}
      * @return control plane load
      */
-    ControlPlaneLoad getLoad(NodeId nodeId, ControlMetricType type, Optional<DeviceId> deviceId);
+    ControlLoad getLoad(NodeId nodeId, ControlMetricType type, Optional<DeviceId> deviceId);
 
     /**
-     * Obtain the control plane load of a specific device with a specific time duration.
+     * Obtains the control plane load of a specific device with a specific time duration.
      *
      * @param nodeId   node id {@link org.onosproject.cluster.NodeId}
      * @param type     control metric type
@@ -54,6 +54,6 @@ public interface ControlPlaneStatsService {
      * @param deviceId device id {@link org.onosproject.net.Device}
      * @return control plane load
      */
-    ControlPlaneLoad getLoad(NodeId nodeId, ControlMetricType type, Optional<DeviceId> deviceId,
-                             int duration, TimeUnit unit);
+    ControlLoad getLoad(NodeId nodeId, ControlMetricType type, Optional<DeviceId> deviceId,
+                        int duration, TimeUnit unit);
 }
