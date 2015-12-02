@@ -166,6 +166,11 @@ public class BgpPathAttributes {
     public static void checkMandatoryAttr(boolean isOrigin, boolean isAsPath,
             boolean isNextHop, boolean isMpReach, boolean isMpUnReach)
             throws BgpParseException {
+        // Mandatory attributes validation not required for MP_UNREACH
+        if (isMpUnReach) {
+            return;
+        }
+
         if (!isOrigin) {
             log.debug("Mandatory Attributes not Present");
             Validation.validateType(BgpErrorType.UPDATE_MESSAGE_ERROR,

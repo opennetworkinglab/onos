@@ -194,7 +194,9 @@ class BgpNotificationMsgVer4 implements BgpNotificationMsg {
             }
             cb.writeByte(message.errorCode);
             cb.writeByte(message.errorSubCode);
-            cb.writeBytes(message.data);
+            if (message.data != null) {
+                cb.writeBytes(message.data);
+            }
 
             //Update message length field in notification message
             int length = cb.writerIndex() - msgStartIndex;
