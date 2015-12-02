@@ -140,11 +140,12 @@ function cells {
     done
 }
 
-# Miscellaneous
+# Find a process by regex
 function spy {
     ps -ef | egrep "$@" | grep -v egrep
 }
 
+# Kill a process by regex
 function nuke {
     spy "$@" | cut -c7-11 | xargs kill
 }
@@ -186,5 +187,9 @@ function vicell {
     ($apply) && cell ${cdf}
 }
 
-# autocomplete for certain utilities
+# Autocomplete for certain utilities
 . ${ONOS_ROOT}/tools/test/bin/ogroup-opts
+
+
+# Load AT&T MPLS topo GEO data
+alias atttopo='onos-topo-cfg $OCI $ONOS_ROOT/tools/test/topos/attmpls.json'

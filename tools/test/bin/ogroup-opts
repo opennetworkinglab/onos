@@ -51,7 +51,7 @@ complete -F _cell-opts cell vicell
 function _ocapp-opts () {
   local cur=${COMP_WORDS[COMP_CWORD]}
   if [ $COMP_CWORD -eq 1 ]; then
-    COMPREPLY=( $( compgen -W "bundle ui cli" -- $cur ) )
+    COMPREPLY=( $( compgen -W "app bundle ui uitable uitopo cli" -- $cur ) )
   fi
 }
 
