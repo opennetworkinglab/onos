@@ -19,7 +19,8 @@ package org.onosproject.driver.extensions;
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.Ip4Address;
 import org.onlab.util.KryoNamespace;
-import org.onosproject.net.flow.instructions.AbstractExtensionTreatment;
+import org.onosproject.net.flow.AbstractExtension;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.store.serializers.Ip4AddressSerializer;
 
@@ -30,7 +31,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Nicira set tunnel destination extension instruction.
  */
-public class NiciraSetTunnelDst extends AbstractExtensionTreatment {
+public class NiciraSetTunnelDst extends AbstractExtension implements
+        ExtensionTreatment {
 
     private Ip4Address tunnelDst;
 

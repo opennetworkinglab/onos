@@ -16,18 +16,19 @@
 
 package org.onosproject.driver.extensions;
 
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.onlab.util.KryoNamespace;
-import org.onosproject.net.flow.instructions.AbstractExtensionTreatment;
+import org.onosproject.net.flow.AbstractExtension;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
 
 /**
  * Nicira set NSH Context header extension instruction.
  */
-public class NiciraSetNshContextHeader extends AbstractExtensionTreatment {
+public class NiciraSetNshContextHeader extends AbstractExtension implements
+        ExtensionTreatment {
 
     private int nshCh;
     private ExtensionTreatmentType type;

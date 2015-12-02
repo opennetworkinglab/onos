@@ -20,7 +20,8 @@ import com.google.common.base.MoreObjects;
 
 import org.onlab.util.KryoNamespace;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.instructions.AbstractExtensionTreatment;
+import org.onosproject.net.flow.AbstractExtension;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.store.serializers.PortNumberSerializer;
 
@@ -33,7 +34,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Nicira resubmit-table extension instruction.
  */
-public class NiciraResubmitTable extends AbstractExtensionTreatment {
+public class NiciraResubmitTable extends AbstractExtension implements
+        ExtensionTreatment {
 
     //the list of the in port number(PortNumber) and the table(short)
     private List<Object> inPortAndTable = new ArrayList<Object>();

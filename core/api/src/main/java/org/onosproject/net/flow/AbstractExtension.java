@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.flow.instructions;
+package org.onosproject.net.flow;
+
+import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Abstract implementation of the set/get property methods of ExtensionInstruction.
+ * Abstract implementation of the set/get property methods of Extension.
  */
-public abstract class AbstractExtensionTreatment implements ExtensionTreatment {
+public abstract class AbstractExtension implements Extension {
 
     private static final String INVALID_KEY = "Invalid property key: ";
     private static final String INVALID_TYPE = "Given type does not match field type: ";
 
     @Override
-    public <T> void setPropertyValue(String key, T value) throws ExtensionPropertyException {
+    public <T> void setPropertyValue(String key, T value) throws
+            ExtensionPropertyException {
         Class<?> clazz = this.getClass();
         try {
             Field field = clazz.getDeclaredField(key);

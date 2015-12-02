@@ -16,18 +16,19 @@
 
 package org.onosproject.driver.extensions;
 
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.onlab.util.KryoNamespace;
-import org.onosproject.net.flow.instructions.AbstractExtensionTreatment;
+import org.onosproject.net.flow.AbstractExtension;
+import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
 
 /**
  * Nicira set NSH SPI extension instruction.
  */
-public class NiciraSetNshSpi extends AbstractExtensionTreatment {
+public class NiciraSetNshSpi extends AbstractExtension implements
+        ExtensionTreatment {
 
     private int nshSpi;
 

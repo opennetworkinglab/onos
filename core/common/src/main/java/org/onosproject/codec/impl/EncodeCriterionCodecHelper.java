@@ -127,6 +127,7 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.TCP_FLAGS, new FormatUnknown());
         formatMap.put(Criterion.Type.ACTSET_OUTPUT, new FormatUnknown());
         formatMap.put(Criterion.Type.PACKET_TYPE, new FormatUnknown());
+        formatMap.put(Criterion.Type.EXTENSION, new FormatUnknown());
     }
 
     private interface CriterionTypeFormatter {

@@ -20,7 +20,11 @@ import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
@@ -30,6 +34,8 @@ import org.onosproject.net.flow.criteria.ArpPaCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.ExtensionCriterion;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.IPDscpCriterion;
 import org.onosproject.net.flow.criteria.IPEcnCriterion;
@@ -54,12 +60,14 @@ import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.criteria.VlanPcpCriterion;
+import org.onosproject.openflow.controller.ExtensionSelectorInterpreter;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.types.ArpOpcode;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.EthType;
@@ -102,6 +110,7 @@ public abstract class FlowModBuilder {
     private final TrafficSelector selector;
     protected final Long xid;
     protected final Optional<DriverService> driverService;
+    protected final DeviceId deviceId;
 
     /**
      * Creates a new flow mod builder.
@@ -142,6 +151,7 @@ public abstract class FlowModBuilder {
         this.selector = flowRule.selector();
         this.xid = xid.orElse(0L);
         this.driverService = driverService;
+        this.deviceId = flowRule.deviceId();
     }
 
     /**
@@ -446,6 +456,21 @@ public abstract class FlowModBuilder {
                 mBuilder.setExact(MatchField.ARP_TPA,
                                   IPv4Address.of(arpPaCriterion.ip().toInt()));
                 break;
+            case EXTENSION:
+                ExtensionCriterion extensionCriterion = (ExtensionCriterion) c;
+                OFOxm oxm = buildExtensionOxm(extensionCriterion.extensionSelector());
+                if (oxm == null) {
+                    log.warn("Unable to build extension selector");
+                    break;
+                }
+
+                if (oxm.isMasked()) {
+                    mBuilder.setMasked(oxm.getMatchField(), oxm.getValue(), oxm.getMask());
+                } else {
+                    mBuilder.setExact(oxm.getMatchField(), oxm.getValue());
+                }
+
+                break;
             case MPLS_TC:
             case PBB_ISID:
             default:
@@ -471,6 +496,23 @@ public abstract class FlowModBuilder {
      */
     protected OFFactory factory() {
         return factory;
+    }
+
+    private OFOxm buildExtensionOxm(ExtensionSelector extension) {
+        if (!driverService.isPresent()) {
+            log.error("No driver service present");
+            return null;
+        }
+        Driver driver = driverService.get().getDriver(deviceId);
+        if (driver.hasBehaviour(ExtensionSelectorInterpreter.class)) {
+            DefaultDriverHandler handler =
+                    new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
+            ExtensionSelectorInterpreter interpreter = handler.behaviour(ExtensionSelectorInterpreter.class);
+
+            return interpreter.mapSelector(factory(), extension);
+        }
+
+        return null;
     }
 
 }

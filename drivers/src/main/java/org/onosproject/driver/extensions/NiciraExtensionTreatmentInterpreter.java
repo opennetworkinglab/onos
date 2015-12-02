@@ -31,7 +31,7 @@ import org.projectfloodlight.openflow.protocol.oxm.OFOxmTunnelIpv4Dst;
 import org.projectfloodlight.openflow.types.IPv4Address;
 
 /**
- * Interpreter for Nicira OpenFlow extensions.
+ * Interpreter for Nicira OpenFlow treatment extensions.
  */
 public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviour
         implements ExtensionTreatmentInterpreter, ExtensionTreatmentResolver {

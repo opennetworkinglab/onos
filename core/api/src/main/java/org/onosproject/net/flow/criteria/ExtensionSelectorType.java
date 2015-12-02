@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.flow.instructions;
+package org.onosproject.net.flow.criteria;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
@@ -22,36 +22,27 @@ import com.google.common.base.MoreObjects;
 import java.util.Objects;
 
 /**
- * Type of treatment extensions.
+ * Type of selector extensions.
  */
 @Beta
-public final class ExtensionTreatmentType {
+public class ExtensionSelectorType {
 
     /**
-     * A list of well-known named extension instruction type codes.
+     * A list of well-known named extension selector type codes.
      * These numbers have no impact on the actual OF type id.
      */
-    public enum ExtensionTreatmentTypes {
-        // TODO fix type numbers to include experimenter id
-        NICIRA_SET_TUNNEL_DST(0),
-        NICIRA_RESUBMIT(1),
-        NICIRA_SET_NSH_SPI(32),
-        NICIRA_RESUBMIT_TABLE(14),
-        NICIRA_SET_NSH_SI(33),
-        NICIRA_SET_NSH_CH1(34),
-        NICIRA_SET_NSH_CH2(35),
-        NICIRA_SET_NSH_CH3(36),
-        NICIRA_SET_NSH_CH4(37);
+    public enum ExtensionSelectorTypes {
+        PLACEHOLDER(0); // TODO remove when actual extensions are added
 
-        private ExtensionTreatmentType type;
+        private ExtensionSelectorType type;
 
         /**
-         * Creates a new named extension instruction type.
+         * Creates a new named extension selector type.
          *
          * @param type type code
          */
-        ExtensionTreatmentTypes(int type) {
-            this.type = new ExtensionTreatmentType(type);
+        ExtensionSelectorTypes(int type) {
+            this.type = new ExtensionSelectorType(type);
         }
 
         /**
@@ -59,7 +50,7 @@ public final class ExtensionTreatmentType {
          *
          * @return extension type object
          */
-        public ExtensionTreatmentType type() {
+        public ExtensionSelectorType type() {
             return type;
         }
     }
@@ -71,7 +62,7 @@ public final class ExtensionTreatmentType {
      *
      * @param type type code
      */
-    public ExtensionTreatmentType(int type) {
+    public ExtensionSelectorType(int type) {
         this.type = type;
     }
 
@@ -85,8 +76,8 @@ public final class ExtensionTreatmentType {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof ExtensionTreatmentType) {
-            final ExtensionTreatmentType that = (ExtensionTreatmentType) obj;
+        if (obj instanceof ExtensionSelectorType) {
+            final ExtensionSelectorType that = (ExtensionSelectorType) obj;
             return this.type == that.type;
         }
         return false;
@@ -94,7 +85,7 @@ public final class ExtensionTreatmentType {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(ExtensionTreatmentType.class)
+        return MoreObjects.toStringHelper(ExtensionSelectorType.class)
                 .add("type", type)
                 .toString();
     }

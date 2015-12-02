@@ -18,7 +18,6 @@ package org.onosproject.provider.of.flow.impl;
 import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.DefaultDriverData;
@@ -95,7 +94,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
     private static final int OFPCML_NO_BUFFER = 0xffff;
 
     private final TrafficTreatment treatment;
-    private final DeviceId deviceId;
 
     /**
      * Constructor for a flow mod builder for OpenFlow 1.3.
@@ -110,7 +108,6 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
         super(flowRule, factory, xid, driverService);
 
         this.treatment = flowRule.treatment();
-        this.deviceId = flowRule.deviceId();
     }
 
     @Override

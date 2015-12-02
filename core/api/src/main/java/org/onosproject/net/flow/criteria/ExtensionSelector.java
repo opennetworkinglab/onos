@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.flow.instructions;
+package org.onosproject.net.flow.criteria;
 
 import org.onosproject.net.flow.Extension;
 
 /**
- * An extenstion for the treatment API.
+ * An extension for the selector API.
  */
-public interface ExtensionTreatment extends Extension {
+public interface ExtensionSelector extends Extension {
 
     /**
-     * Gets the type of the extension instruction.
+     * Gets the type of the extension selector.
      *
      * @return type
      */
-    ExtensionTreatmentType type();
-
+    ExtensionSelectorType type();
 }

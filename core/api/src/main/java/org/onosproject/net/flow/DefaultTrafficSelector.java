@@ -15,14 +15,8 @@
  */
 package org.onosproject.net.flow;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
@@ -30,12 +24,19 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Default traffic selector implementation.
@@ -376,6 +377,12 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         @Override
         public Builder matchArpOp(int arpOp) {
             return add(Criteria.matchArpOp(arpOp));
+        }
+
+        @Override
+        public TrafficSelector.Builder extension(ExtensionSelector extensionSelector,
+                                                 DeviceId deviceId) {
+            return add(Criteria.extension(extensionSelector, deviceId));
         }
 
         @Override

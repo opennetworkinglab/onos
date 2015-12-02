@@ -36,6 +36,10 @@
                    impl="org.onosproject.driver.extensions.NiciraExtensionTreatmentInterpreter" />
         <behaviour api="org.onosproject.net.behaviour.ExtensionTreatmentResolver"
                    impl="org.onosproject.driver.extensions.NiciraExtensionTreatmentInterpreter" />
+        <behaviour api="org.onosproject.openflow.controller.ExtensionSelectorInterpreter"
+                   impl="org.onosproject.driver.extensions.NiciraExtensionSelectorInterpreter" />
+        <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"
+                   impl="org.onosproject.driver.extensions.NiciraExtensionSelectorInterpreter" />
     </driver>
     <!--This driver is for simulated NETCONF devices through of-config tool on top og OVSDB-->
     <driver name="ovs-netconf" extends="default"

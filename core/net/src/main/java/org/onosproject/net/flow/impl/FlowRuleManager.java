@@ -436,7 +436,7 @@ public class FlowRuleManager
                         log.debug("Adding rule in store, but not on switch {}", rule);
                         flowMissing(rule);
                     } catch (Exception e) {
-                        log.debug("Can't add missing flow rule {}", e.getMessage());
+                        log.debug("Can't add missing flow rule:", e);
                         continue;
                     }
                 }

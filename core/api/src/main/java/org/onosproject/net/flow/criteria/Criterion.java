@@ -177,6 +177,9 @@ public interface Criterion {
         /** ODU (Optical channel Data Unit) signal type. */
         ODU_SIGTYPE,
 
+        /** Extension criterion. */
+        EXTENSION,
+
         /** An empty criterion. */
         DUMMY
     }
