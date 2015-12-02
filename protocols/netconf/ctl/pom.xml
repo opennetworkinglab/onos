@@ -28,6 +28,8 @@
     <artifactId>onos-netconf-ctl</artifactId>
     <packaging>bundle</packaging>
 
+    <description>ONOS NETCONF plugin controller</description>
+
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>

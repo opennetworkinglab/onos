@@ -26,24 +26,17 @@
     </parent>
 
     <artifactId>onos-ovsdb</artifactId>
-    <name>onos-ovsdb</name>
     <packaging>pom</packaging>
 
     <description>ONOS OVSDB southbound plugin</description>
+
+    <modules>
+        <module>api</module>
+        <module>rfc</module>
+        <module>ctl</module>
+    </modules>
+
     <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-misc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-junit</artifactId>
-        </dependency>
         <dependency>
           <groupId>io.netty</groupId>
           <artifactId>netty-buffer</artifactId>
@@ -54,18 +47,4 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
-    <modules>
-        <module>api</module>
-        <module>rfc</module>
-        <module>ctl</module>
-    </modules>
 </project>

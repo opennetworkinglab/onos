@@ -27,4 +27,5 @@
 
     <artifactId>onos-netconf-rfc</artifactId>
     <packaging>bundle</packaging>
+
 </project>
