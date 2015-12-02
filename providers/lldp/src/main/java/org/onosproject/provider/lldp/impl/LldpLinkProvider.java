@@ -570,7 +570,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
                 case DEVICE_AVAILABILITY_CHANGED:
                     if (deviceService.isAvailable(deviceId)) {
                         log.debug("Device up {}", deviceId);
-                        updateDevice(device);
+                        updateDevice(device).ifPresent(ld -> updatePorts(ld, deviceId));
                     } else {
                         log.debug("Device down {}", deviceId);
                         removeDevice(deviceId);
