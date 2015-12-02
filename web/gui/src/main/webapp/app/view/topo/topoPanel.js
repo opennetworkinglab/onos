@@ -32,7 +32,7 @@
         panelOpts = {
             width: 260
         },
-        sumMax = 240,
+        sumMax = 262,
         padTop = 20,
         devPath = 'device';
 
