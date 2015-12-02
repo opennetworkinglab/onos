@@ -53,7 +53,9 @@ public class OpenstackSwitchingRulePopulator {
 
     private static Logger log = LoggerFactory
             .getLogger(OpenstackSwitchingRulePopulator.class);
-    private static final int SWITCHING_RULE_PRIORITY = 50000;
+    private static final int SWITCHING_RULE_PRIORITY = 30000;
+    private static final int EAST_WEST_ROUTING_RULE_PRIORITY = 29000;
+    private static final int TUNNELTAG_RULE_PRIORITY = 30000;
 
     private FlowObjectiveService flowObjectiveService;
     private DriverService driverService;
@@ -87,6 +89,7 @@ public class OpenstackSwitchingRulePopulator {
         openstackPortList = restHandler.getPorts();
     }
 
+
     /**
      * Populates flow rules for the VM created.
      *
@@ -94,8 +97,25 @@ public class OpenstackSwitchingRulePopulator {
      * @param port port for the VM created
      */
     public void populateSwitchingRules(Device device, Port port) {
+        populateFlowRulesForVMSetTunnelTag(device, port);
         populateFlowRulesForTrafficToSameCnode(device, port);
         populateFlowRulesForTrafficToDifferentCnode(device, port);
+    }
+
+    /**
+     * Populate the flow rules for tagging tunnelId according to which inport is came from.
+     *
+     * @param device device to put the rules
+     * @param port port info of the VM
+     */
+    private void populateFlowRulesForVMSetTunnelTag(Device device, Port port) {
+        Ip4Address vmIp = getFixedIpAddressForPort(port.annotations().value("portName"));
+        String portName = port.annotations().value("portName");
+        String vni = getVniForPort(portName);
+
+        if (vmIp != null) {
+            setFlowRuleForVMSetTunnelTag(device.id(), port, vni);
+        }
     }
 
     /**
@@ -118,8 +138,12 @@ public class OpenstackSwitchingRulePopulator {
      */
     private void populateFlowRulesForTrafficToSameCnode(Device device, Port port) {
         Ip4Address vmIp = getFixedIpAddressForPort(port.annotations().value("portName"));
+        String portName = port.annotations().value("portName");
+        String vni = getVniForPort(portName);
+        MacAddress vmMacAddress = getVmMacAddressForPort(portName);
+
         if (vmIp != null) {
-            setFlowRuleForVMsInSameCnode(vmIp, device.id(), port);
+            setFlowRuleForVMsInSameCnode(vmIp, device.id(), port, vni, vmMacAddress);
         }
     }
 
@@ -167,7 +191,7 @@ public class OpenstackSwitchingRulePopulator {
                 .filter(p -> p.id().startsWith(uuid))
                 .findAny().orElse(null);
         if (port == null) {
-            log.warn("No port information for port {}", portName);
+            log.debug("No port information for port {}", portName);
             return null;
         }
 
@@ -229,32 +253,81 @@ public class OpenstackSwitchingRulePopulator {
         return port.macAddress();
     }
 
+    private void setFlowRuleForVMSetTunnelTag(DeviceId deviceId, Port port, String vni) {
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
+        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                .matchInPort(port.number());
+
+        tBuilder.setTunnelId(Long.parseLong(vni));
+
+        ForwardingObjective fo = DefaultForwardingObjective.builder()
+                .withSelector(sBuilder.build())
+                .withTreatment(tBuilder.build())
+                .withPriority(TUNNELTAG_RULE_PRIORITY)
+                .withFlag(ForwardingObjective.Flag.SPECIFIC)
+                .fromApp(appId)
+                .add();
+
+        flowObjectiveService.forward(deviceId, fo);
+    }
+
+
     /**
      * Sets the flow rules for traffic between VMs in the same Cnode.
      *
      * @param ip4Address VM IP address
      * @param id device ID to put rules
      * @param port VM port
+     * @param vni VM VNI
+     * @param vmMacAddress VM MAC address
      */
     private void setFlowRuleForVMsInSameCnode(Ip4Address ip4Address, DeviceId id,
-                                              Port port) {
+                                              Port port, String vni, MacAddress vmMacAddress) {
+
+        //For L2 Switching Case
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(ip4Address.toIpPrefix());
+                .matchIPDst(ip4Address.toIpPrefix())
+                .matchTunnelId(Long.parseLong(vni));
+
         tBuilder.setOutput(port.number());
 
         ForwardingObjective fo = DefaultForwardingObjective.builder()
                 .withSelector(sBuilder.build())
                 .withTreatment(tBuilder.build())
                 .withPriority(SWITCHING_RULE_PRIORITY)
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withFlag(ForwardingObjective.Flag.SPECIFIC)
+                .fromApp(appId)
+                .add();
+
+        flowObjectiveService.forward(id, fo);
+
+        //For L3 Ease-West Routing Case
+        sBuilder = DefaultTrafficSelector.builder();
+        tBuilder = DefaultTrafficTreatment.builder();
+
+        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(ip4Address.toIpPrefix());
+
+        tBuilder.setEthDst(vmMacAddress)
+                .setOutput(port.number());
+
+        fo = DefaultForwardingObjective.builder()
+                .withSelector(sBuilder.build())
+                .withTreatment(tBuilder.build())
+                .withPriority(EAST_WEST_ROUTING_RULE_PRIORITY)
+                .withFlag(ForwardingObjective.Flag.SPECIFIC)
                 .fromApp(appId)
                 .add();
 
         flowObjectiveService.forward(id, fo);
     }
+
 
     /**
      * Sets the flow rules between traffic from VMs in different Cnode.
@@ -271,16 +344,17 @@ public class OpenstackSwitchingRulePopulator {
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
         sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                .matchTunnelId(Long.parseLong(vni))
                 .matchIPDst(vmIp.toIpPrefix());
-        tBuilder.setTunnelId(Long.parseLong(vni))
-                .extension(buildNiciraExtenstion(id, hostIp), id)
+
+        tBuilder.extension(buildNiciraExtenstion(id, hostIp), id)
                 .setOutput(getTunnelPort(id));
 
         ForwardingObjective fo = DefaultForwardingObjective.builder()
                 .withSelector(sBuilder.build())
                 .withTreatment(tBuilder.build())
                 .withPriority(SWITCHING_RULE_PRIORITY)
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .withFlag(ForwardingObjective.Flag.SPECIFIC)
                 .fromApp(appId)
                 .add();
 
