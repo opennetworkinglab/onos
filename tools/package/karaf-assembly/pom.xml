@@ -42,8 +42,8 @@
                         <phase>generate-sources</phase>
                         <configuration>
                             <target>
-                                <exec executable="bash">
-                                    <arg value="${basedir}/onos-assembly"/>
+                                <exec executable="python">
+                                    <arg value="${basedir}/onos-assembly.py"/>
                                 </exec>
                             </target>
                         </configuration>
@@ -70,7 +70,7 @@
                                 <descriptor>file:${basedir}/target/staged-repos.xml</descriptor>
                             </descriptors>
                             <features>
-                                <feature>foo</feature>
+                                <feature>onos-uber-synthetic</feature>
                             </features>
                             <repository>target/repo</repository>
                         </configuration>
