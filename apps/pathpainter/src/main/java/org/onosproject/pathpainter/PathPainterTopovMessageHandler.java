@@ -18,6 +18,7 @@ package org.onosproject.pathpainter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
@@ -33,6 +34,7 @@ import org.onosproject.ui.topo.TopoJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +56,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     private static final String MODE = "mode";
 
     private Set<Link> allPathLinks;
+    private Set<Link> selectedPathLinks;
 
     private enum Mode {
         SHORTEST, DISJOINT, SRLG
@@ -63,9 +66,8 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
 
     private PathService pathService;
 
-    private Mode currentMode = Mode.SHORTEST;
     private ElementId src, dst;
-    private Mode mode = Mode.SHORTEST;
+    private Mode currentMode = Mode.SHORTEST;
     private List<Path> paths;
     private int pathIndex;
 
@@ -86,7 +88,8 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
                 new SetDstHandler(),
                 new SwapSrcDstHandler(),
                 new NextPathHandler(),
-                new PrevPathHandler()
+                new PrevPathHandler(),
+                new SetModeHandler()
         );
     }
 
@@ -163,6 +166,26 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         }
     }
 
+    private final class SetModeHandler extends RequestHandler {
+        public SetModeHandler() {
+            super(PAINTER_SET_MODE);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            String mode = string(payload, MODE);
+            currentMode = (mode.equals("shortest") ?
+                    Mode.SHORTEST : (mode.equals("disjoint") ?
+                    Mode.DISJOINT : Mode.SRLG));
+            //TODO: add support for SRLG
+            if (currentMode.equals(Mode.SHORTEST)) {
+                findAndSendPaths();
+            } else {
+                findAndSendDisjointPaths();
+            }
+        }
+    }
+
     // === ------------
 
     private ElementId elementId(String id) {
@@ -174,9 +197,30 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     }
 
     private void findAndSendPaths() {
-        log.info("src={}; dst={}; mode={}", src, dst, mode);
         if (src != null && dst != null) {
             paths = ImmutableList.copyOf(pathService.getPaths(src, dst));
+            pathIndex = 0;
+
+            ImmutableSet.Builder<Link> builder = ImmutableSet.builder();
+            paths.forEach(path -> path.links().forEach(builder::add));
+            allPathLinks = builder.build();
+        } else {
+            paths = ImmutableList.of();
+            allPathLinks = ImmutableSet.of();
+        }
+        hilightAndSendPaths();
+    }
+
+    private void findAndSendDisjointPaths() {
+        log.info("src={}; dst={}; mode={}", src, dst, currentMode);
+        if (src != null && dst != null) {
+            log.info("test" + src + dst);
+            paths = null;
+            paths = new ArrayList<>();
+            pathService.getDisjointPaths(src, dst).forEach(djp -> {
+                paths.add(djp.primary());
+                paths.add(djp.backup());
+            });
             pathIndex = 0;
 
             ImmutableSet.Builder<Link> builder = ImmutableSet.builder();
@@ -195,9 +239,15 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
 
         // Prepare two working sets; one containing selected path links and
         // the other containing all paths links.
-        Set<Link> selectedPathLinks = paths.isEmpty() ?
-                ImmutableSet.of() : ImmutableSet.copyOf(paths.get(pathIndex).links());
-
+        if (currentMode.equals(Mode.DISJOINT)) {
+            //FIXME: find a way to skip 2 paths for disjoint
+            selectedPathLinks = paths.isEmpty() ?
+                ImmutableSet.of() : Sets.newHashSet(paths.get(pathIndex * 2).links());
+            selectedPathLinks.addAll(Sets.newHashSet(paths.get(pathIndex * 2  + 1).links()));
+        } else {
+            selectedPathLinks = paths.isEmpty() ?
+                    ImmutableSet.of() : Sets.newHashSet(paths.get(pathIndex).links());
+        }
         Highlights highlights = new Highlights();
         for (PathLink plink : linkMap.biLinks()) {
             plink.computeHilight(selectedPathLinks, allPathLinks);

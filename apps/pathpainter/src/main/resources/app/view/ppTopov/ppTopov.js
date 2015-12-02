@@ -76,6 +76,7 @@
     function setMode(mode) {
         if (currentMode === mode) {
             $log.debug('(in mode', mode, 'already)');
+            flash.flash('Already in ' + mode + ' mode');
         } else {
             currentMode = mode;
             wss.sendEvent(modeMessage, {
