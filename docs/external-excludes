@@ -52,3 +52,5 @@ org.onosproject.cord*
 org.onosproject.mfwd*
 org.onosproject.mcast*
 org.onosproject.flowanalyzer
+org.onosproject.grpc*
+protobuf.*
