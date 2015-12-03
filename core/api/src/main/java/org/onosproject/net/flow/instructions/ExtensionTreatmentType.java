@@ -40,7 +40,11 @@ public final class ExtensionTreatmentType {
         NICIRA_SET_NSH_CH1(34),
         NICIRA_SET_NSH_CH2(35),
         NICIRA_SET_NSH_CH3(36),
-        NICIRA_SET_NSH_CH4(37);
+        NICIRA_SET_NSH_CH4(37),
+        NICIRA_MOV_ARP_SHA_TO_THA(2),
+        NICIRA_MOV_ARP_SPA_TO_TPA(3),
+        NICIRA_MOV_ETH_SRC_TO_DST(4),
+        NICIRA_MOV_IP_SRC_TO_DST(5);
 
         private ExtensionTreatmentType type;
 

@@ -68,6 +68,22 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                 ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE.type())) {
             return true;
         }
+        if (extensionTreatmentType.equals(
+                ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SHA_TO_THA.type())) {
+            return true;
+        }
+        if (extensionTreatmentType.equals(
+                ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SPA_TO_TPA.type())) {
+            return true;
+        }
+        if (extensionTreatmentType.equals(
+                ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST.type())) {
+            return true;
+        }
+        if (extensionTreatmentType.equals(
+                ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_IP_SRC_TO_DST.type())) {
+            return true;
+        }
         return false;
     }
 
@@ -102,6 +118,12 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH4.type())) {
             // TODO this will be implemented later
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST.type())
+                || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SPA_TO_TPA.type())
+                || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST.type())
+                || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_IP_SRC_TO_DST.type())) {
+           // TODO this will be implemented later
         }
         return null;
     }
@@ -145,6 +167,18 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                 || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH3.type())
                 || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH4.type())) {
             return new NiciraSetNshContextHeader(type);
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SHA_TO_THA.type())) {
+            return NiciraMoveTreatmentFactory.createNiciraMovArpShaToTha();
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SPA_TO_TPA.type())) {
+            return NiciraMoveTreatmentFactory.createNiciraMovArpSpaToTpa();
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST.type())) {
+            return NiciraMoveTreatmentFactory.createNiciraMovEthSrcToDst();
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_IP_SRC_TO_DST.type())) {
+            return NiciraMoveTreatmentFactory.createNiciraMovIpSrcToDst();
         }
         throw new UnsupportedOperationException(
                 "Driver does not support extension type " + type.toString());
