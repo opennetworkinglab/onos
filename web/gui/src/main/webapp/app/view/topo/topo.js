@@ -304,19 +304,9 @@
             return c.properties.continent === 'South America';
         },
 
-        america: function (c) {
-            var cenAmer = {
-                MEX: 1,
-                GTM: 1,
-                BLZ: 1,
-                HND: 1,
-                SLV: 1,
-                NIC: 1,
-                CRI: 1,
-                PAN: 1
-            };
-            return cenAmer[c.properties.adm0_a3] ||
-                c.properties.adm0_a3 === 'USA' ||
+        ns_america: function (c) {
+            return c.properties.custom === 'US-cont' ||
+                c.properties.subregion === 'Central America' ||
                 c.properties.continent === 'South America';
         },
 
