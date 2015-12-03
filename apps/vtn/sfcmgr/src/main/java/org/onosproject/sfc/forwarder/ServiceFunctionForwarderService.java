@@ -15,29 +15,37 @@
  */
 package org.onosproject.sfc.forwarder;
 
-import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.NshServicePathId;
 import org.onosproject.vtnrsc.PortChain;
 
 /**
  * Abstraction of an entity which provides Service function forwarder.
  */
-public interface ServiceFunctionForwarder {
+public interface ServiceFunctionForwarderService {
 
     /**
-     * Install Service function chain.
+     * Install Forwarding rule.
      *
-     * @param portChain Port chain
+     * @param portChain port-chain
+     * @param nshSPI nsh spi
      */
-    void install(PortChain portChain);
+    void installForwardingRule(PortChain portChain, NshServicePathId nshSPI);
 
     /**
-     * Programs forwarding object for Service Function.
+     * Uninstall Forwarding rule.
      *
-     * @param portChain port chain
-     * @param appid application id
+     * @param portChain port-chain
+     * @param nshSPI nsh spi
+     */
+    void unInstallForwardingRule(PortChain portChain, NshServicePathId nshSPI);
+
+    /**
+     * Prepare forwarding object for Service Function.
+     *
+     * @param portChain port-chain
+     * @param nshSPI nsh spi
      * @param type forwarding objective operation type
      */
-    void programServiceFunctionForwarder(PortChain portChain, ApplicationId appid,
-            Objective.Operation type);
+    void prepareServiceFunctionForwarder(PortChain portChain, NshServicePathId nshSPI, Objective.Operation type);
 }
