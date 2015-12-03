@@ -30,7 +30,10 @@ import org.onosproject.net.topology.PathService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.topo.DeviceHighlight;
 import org.onosproject.ui.topo.Highlights;
+import org.onosproject.ui.topo.HostHighlight;
+import org.onosproject.ui.topo.NodeBadge;
 import org.onosproject.ui.topo.TopoJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +57,11 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
 
     private static final String ID = "id";
     private static final String MODE = "mode";
+    private static final String TYPE = "type";
+    private static final String SWITCH = "switch";
+    private static final String ENDSTATION = "endstation";
+    public static final String DST = "Dst";
+    public static final String SRC = "Src";
 
     private Set<Link> allPathLinks;
 
@@ -66,6 +74,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     private PathService pathService;
 
     private ElementId src, dst;
+    private String srcType, dstType;
     private Mode currentMode = Mode.SHORTEST;
     private List<Path> paths;
     private int pathIndex;
@@ -96,6 +105,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     // === Handler classes
 
     private final class SetSrcHandler extends RequestHandler {
+
         public SetSrcHandler() {
             super(PAINTER_SET_SRC);
         }
@@ -104,10 +114,15 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         public void process(long sid, ObjectNode payload) {
             String id = string(payload, ID);
             src = elementId(id);
+            srcType = string(payload, TYPE);
             if (src.equals(dst)) {
                 dst = null;
             }
-            findAndSendPaths();
+            sendMessage(TopoJson.highlightsMessage(addBadge(new Highlights(),
+                                                            srcType,
+                                                            src.toString(),
+                                                            SRC)));
+            findAndSendPaths(currentMode);
         }
     }
 
@@ -120,10 +135,16 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         public void process(long sid, ObjectNode payload) {
             String id = string(payload, ID);
             dst = elementId(id);
+            dstType = string(payload, TYPE);
             if (src.equals(dst)) {
                 src = null;
             }
-            findAndSendPaths();
+
+            sendMessage(TopoJson.highlightsMessage(addBadge(new Highlights(),
+                                                            dstType,
+                                                            dst.toString(),
+                                                            DST)));
+            findAndSendPaths(currentMode);
         }
     }
 
@@ -137,7 +158,10 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
             ElementId temp = src;
             src = dst;
             dst = temp;
-            findAndSendPaths();
+            String s = srcType;
+            srcType = dstType;
+            dstType = s;
+            findAndSendPaths(currentMode);
         }
     }
 
@@ -177,11 +201,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
                     Mode.SHORTEST : (mode.equals("disjoint") ?
                     Mode.DISJOINT : Mode.SRLG));
             //TODO: add support for SRLG
-            if (currentMode.equals(Mode.SHORTEST)) {
-                findAndSendPaths();
-            } else {
-                findAndSendDisjointPaths();
-            }
+            findAndSendPaths(currentMode);
         }
     }
 
@@ -195,40 +215,40 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         }
     }
 
-    private void findAndSendPaths() {
-        if (src != null && dst != null) {
-            paths = ImmutableList.copyOf(pathService.getPaths(src, dst));
-            pathIndex = 0;
-
-            ImmutableSet.Builder<Link> builder = ImmutableSet.builder();
-            paths.forEach(path -> path.links().forEach(builder::add));
-            allPathLinks = builder.build();
-        } else {
-            paths = ImmutableList.of();
-            allPathLinks = ImmutableSet.of();
-        }
-        hilightAndSendPaths();
-    }
-
-    private void findAndSendDisjointPaths() {
+    private void findAndSendPaths(Mode mode) {
         log.info("src={}; dst={}; mode={}", src, dst, currentMode);
         if (src != null && dst != null) {
-            log.info("test" + src + dst);
-            paths = ImmutableList.copyOf(pathService.getDisjointPaths(src, dst));
             pathIndex = 0;
-
             ImmutableSet.Builder<Link> builder = ImmutableSet.builder();
-            paths.forEach(path -> {
-                DisjointPath dp = (DisjointPath) path;
-                builder.addAll(dp.primary().links());
-                builder.addAll(dp.backup().links());
-            });
-            allPathLinks = builder.build();
+            if (mode.equals(Mode.SHORTEST)) {
+                paths = ImmutableList.copyOf(pathService.getPaths(src, dst));
+                allPathLinks = buildPaths(builder).build();
+            } else if (mode.equals(Mode.DISJOINT)) {
+                paths = ImmutableList.copyOf(pathService.getDisjointPaths(src, dst));
+                allPathLinks = buildDisjointPaths(builder).build();
+            } else {
+                log.info("Unsupported MODE");
+            }
         } else {
             paths = ImmutableList.of();
             allPathLinks = ImmutableSet.of();
         }
         hilightAndSendPaths();
+
+    }
+
+    private ImmutableSet.Builder<Link> buildPaths(ImmutableSet.Builder<Link> pathBuilder) {
+        paths.forEach(path -> path.links().forEach(pathBuilder::add));
+        return pathBuilder;
+    }
+
+    private ImmutableSet.Builder<Link> buildDisjointPaths(ImmutableSet.Builder<Link> pathBuilder) {
+        paths.forEach(path -> {
+            DisjointPath dp = (DisjointPath) path;
+            pathBuilder.addAll(dp.primary().links());
+            pathBuilder.addAll(dp.backup().links());
+        });
+        return pathBuilder;
     }
 
     private void hilightAndSendPaths() {
@@ -240,9 +260,9 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         // Prepare two working sets; one containing selected path links and
         // the other containing all paths links.
         if (currentMode.equals(Mode.DISJOINT)) {
-            DisjointPath dp = (DisjointPath)  paths.get(pathIndex);
+            DisjointPath dp = (DisjointPath) paths.get(pathIndex);
             selectedPathLinks = paths.isEmpty() ?
-                ImmutableSet.of() : Sets.newHashSet(dp.primary().links());
+                    ImmutableSet.of() : Sets.newHashSet(dp.primary().links());
             selectedPathLinks.addAll(dp.backup().links());
         } else {
             selectedPathLinks = paths.isEmpty() ?
@@ -253,23 +273,40 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
             plink.computeHilight(selectedPathLinks, allPathLinks);
             highlights.add(plink.highlight(null));
         }
-
+        if (src != null) {
+            highlights = addBadge(highlights, srcType, src.toString(), SRC);
+        }
+        if (dst != null) {
+            highlights = addBadge(highlights, dstType, dst.toString(), DST);
+        }
         sendMessage(TopoJson.highlightsMessage(highlights));
     }
 
-    /*
-    private void addDeviceBadge(Highlights h, DeviceId devId, int n) {
-        DeviceHighlight dh = new DeviceHighlight(devId.toString());
-        dh.setBadge(createBadge(n));
-        h.add(dh);
+    private Highlights addBadge(Highlights highlights, String type, String elemId, String src) {
+        if (SWITCH.equals(type)) {
+            highlights = addDeviceBadge(highlights, elemId, src);
+        } else if (ENDSTATION.equals(type)) {
+            highlights = addHostBadge(highlights, elemId, src);
+        }
+        return highlights;
     }
 
-    private NodeBadge createBadge(int n) {
-        Status status = n > 3 ? Status.ERROR : Status.WARN;
-        String noun = n > 3 ? "(critical)" : "(problematic)";
-        String msg = "Egress links: " + n + " " + noun;
-        return NodeBadge.number(status, n, msg);
+    private Highlights addDeviceBadge(Highlights h, String elemId, String type) {
+        DeviceHighlight dh = new DeviceHighlight(elemId);
+        dh.setBadge(createBadge(type));
+        h.add(dh);
+        return h;
     }
-   */
+
+    private Highlights addHostBadge(Highlights h, String elemId, String type) {
+        HostHighlight hh = new HostHighlight(elemId);
+        hh.setBadge(createBadge(type));
+        h.add(hh);
+        return h;
+    }
+
+    private NodeBadge createBadge(String type) {
+        return NodeBadge.text(type);
+    }
 
 }

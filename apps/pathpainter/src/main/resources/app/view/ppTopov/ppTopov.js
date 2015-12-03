@@ -47,14 +47,16 @@
 
     function setSrc(node) {
         wss.sendEvent(srcMessage, {
-            id: node.id
+            id: node.id,
+            type: node.type
         });
         flash.flash('Source node: ' + node.id);
     }
 
     function setDst(node) {
         wss.sendEvent(dstMessage, {
-            id: node.id
+            id: node.id,
+            type: node.type
         });
         flash.flash('Destination node: ' + node.id);
     }
