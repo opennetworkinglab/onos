@@ -15,14 +15,11 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
+import com.google.common.collect.ImmutableList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.VlanId;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -30,30 +27,38 @@ import org.onosproject.core.IdGenerator;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
+import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Link;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.provider.ProviderId;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.Link.Type.DIRECT;
-import static org.onosproject.net.NetTestTools.APP_ID;
-import static org.onosproject.net.NetTestTools.PID;
-import static org.onosproject.net.NetTestTools.connectPoint;
+import static org.onosproject.net.NetTestTools.*;
 
 /**
  * Unit tests for PathIntentCompiler.
@@ -85,6 +90,7 @@ public class PathIntentCompilerTest {
     );
     private final int hops = links.size() - 1;
     private PathIntent intent;
+    private PathIntent constraintIntent;
 
     /**
      * Configures objects used in all the test cases.
@@ -96,6 +102,7 @@ public class PathIntentCompilerTest {
         expect(coreService.registerApplication("org.onosproject.net.intent"))
                 .andReturn(appId);
         sut.coreService = coreService;
+        sut.resourceService = new MockResourceService();
 
         Intent.bindIdGenerator(idGenerator);
 
@@ -104,6 +111,14 @@ public class PathIntentCompilerTest {
                 .selector(selector)
                 .treatment(treatment)
                 .priority(PRIORITY)
+                .path(new DefaultPath(pid, links, hops))
+                .build();
+        constraintIntent = PathIntent.builder()
+                .appId(APP_ID)
+                .selector(selector)
+                .treatment(treatment)
+                .priority(PRIORITY)
+                .constraints(ImmutableList.of(new EncapsulationConstraint(EncapsulationType.VLAN)))
                 .path(new DefaultPath(pid, links, hops))
                 .build();
         intentExtensionService = createMock(IntentExtensionService.class);
@@ -168,5 +183,92 @@ public class PathIntentCompilerTest {
         assertThat(rule3.priority(), is(intent.priority()));
 
         sut.deactivate();
+    }
+
+    /**
+     * Tests the compilation behavior of the path intent compiler in case of
+     * encasulation costraint {@link EncapsulationConstraint}.
+     */
+    @Test
+    public void testEncapCompile() {
+        sut.activate();
+
+        List<Intent> compiled = sut.compile(constraintIntent, Collections.emptyList(), Collections.emptySet());
+        assertThat(compiled, hasSize(1));
+
+        Collection<FlowRule> rules = ((FlowRuleIntent) compiled.get(0)).flowRules();
+        assertThat(rules, hasSize(3));
+
+        FlowRule rule1 = rules.stream()
+                .filter(x -> x.deviceId().equals(d1p0.deviceId()))
+                .findFirst()
+                .get();
+        assertThat(rule1.deviceId(), is(d1p0.deviceId()));
+        assertThat(rule1.priority(), is(intent.priority()));
+        verifyEncapSelector(rule1.selector(), d1p0, VlanId.NONE);
+        VlanId vlanToEncap = verifyEncapTreatment(rule1.treatment(), d1p1, true, false);
+
+        FlowRule rule2 = rules.stream()
+                .filter(x -> x.deviceId().equals(d2p0.deviceId()))
+                .findFirst()
+                .get();
+        assertThat(rule2.deviceId(), is(d2p0.deviceId()));
+        assertThat(rule2.priority(), is(intent.priority()));
+        verifyEncapSelector(rule2.selector(), d2p0, vlanToEncap);
+        verifyEncapTreatment(rule2.treatment(), d2p1, false, false);
+
+        FlowRule rule3 = rules.stream()
+                .filter(x -> x.deviceId().equals(d3p0.deviceId()))
+                .findFirst()
+                .get();
+        assertThat(rule3.deviceId(), is(d3p1.deviceId()));
+        assertThat(rule3.priority(), is(intent.priority()));
+        verifyEncapSelector(rule3.selector(), d3p1, vlanToEncap);
+        verifyEncapTreatment(rule3.treatment(), d3p0, false, true);
+
+        sut.deactivate();
+    }
+
+
+    private VlanId verifyEncapTreatment(TrafficTreatment trafficTreatment,
+                                        ConnectPoint egress, boolean isIngress, boolean isEgress) {
+        Set<Instructions.OutputInstruction> ruleOutput = trafficTreatment.allInstructions().stream()
+                .filter(treat -> treat instanceof Instructions.OutputInstruction)
+                .map(treat -> (Instructions.OutputInstruction) treat)
+                .collect(Collectors.toSet());
+        assertThat(ruleOutput, hasSize(1));
+        assertThat((ruleOutput.iterator().next()).port(), is(egress.port()));
+        VlanId vlanToEncap = VlanId.NONE;
+        if (isIngress && !isEgress) {
+            Set<L2ModificationInstruction.ModVlanIdInstruction> vlanRules = trafficTreatment.allInstructions().stream()
+                    .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                    .map(x -> (L2ModificationInstruction.ModVlanIdInstruction) x)
+                    .collect(Collectors.toSet());
+            assertThat(vlanRules, hasSize(1));
+            L2ModificationInstruction.ModVlanIdInstruction vlanRule = vlanRules.iterator().next();
+            assertThat(vlanRule.vlanId().toShort(), greaterThan((short) 0));
+            vlanToEncap = vlanRule.vlanId();
+        } else if (!isIngress && !isEgress) {
+            assertThat(trafficTreatment.allInstructions().stream()
+                               .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                               .collect(Collectors.toSet()), hasSize(0));
+        } else {
+            assertThat(trafficTreatment.allInstructions().stream()
+                               .filter(treat -> treat instanceof L2ModificationInstruction.ModVlanIdInstruction)
+                               .collect(Collectors.toSet()), hasSize(0));
+            assertThat(trafficTreatment.allInstructions().stream()
+                               .filter(treat -> treat instanceof L2ModificationInstruction.PopVlanInstruction)
+                               .collect(Collectors.toSet()), hasSize(1));
+
+        }
+
+        return vlanToEncap;
+
+    }
+
+    private void verifyEncapSelector(TrafficSelector trafficSelector, ConnectPoint ingress, VlanId vlanToMatch) {
+
+        is(DefaultTrafficSelector.builder(selector).matchInPort(ingress.port())
+                   .matchVlanId(vlanToMatch).build());
     }
 }
