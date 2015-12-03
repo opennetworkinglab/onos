@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
@@ -34,7 +35,6 @@ import org.onosproject.ui.topo.TopoJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -56,7 +56,6 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     private static final String MODE = "mode";
 
     private Set<Link> allPathLinks;
-    private Set<Link> selectedPathLinks;
 
     private enum Mode {
         SHORTEST, DISJOINT, SRLG
@@ -215,16 +214,15 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         log.info("src={}; dst={}; mode={}", src, dst, currentMode);
         if (src != null && dst != null) {
             log.info("test" + src + dst);
-            paths = null;
-            paths = new ArrayList<>();
-            pathService.getDisjointPaths(src, dst).forEach(djp -> {
-                paths.add(djp.primary());
-                paths.add(djp.backup());
-            });
+            paths = ImmutableList.copyOf(pathService.getDisjointPaths(src, dst));
             pathIndex = 0;
 
             ImmutableSet.Builder<Link> builder = ImmutableSet.builder();
-            paths.forEach(path -> path.links().forEach(builder::add));
+            paths.forEach(path -> {
+                DisjointPath dp = (DisjointPath) path;
+                builder.addAll(dp.primary().links());
+                builder.addAll(dp.backup().links());
+            });
             allPathLinks = builder.build();
         } else {
             paths = ImmutableList.of();
@@ -237,16 +235,18 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         PathLinkMap linkMap = new PathLinkMap();
         allPathLinks.forEach(linkMap::add);
 
+        Set<Link> selectedPathLinks;
+
         // Prepare two working sets; one containing selected path links and
         // the other containing all paths links.
         if (currentMode.equals(Mode.DISJOINT)) {
-            //FIXME: find a way to skip 2 paths for disjoint
+            DisjointPath dp = (DisjointPath)  paths.get(pathIndex);
             selectedPathLinks = paths.isEmpty() ?
-                ImmutableSet.of() : Sets.newHashSet(paths.get(pathIndex * 2).links());
-            selectedPathLinks.addAll(Sets.newHashSet(paths.get(pathIndex * 2  + 1).links()));
+                ImmutableSet.of() : Sets.newHashSet(dp.primary().links());
+            selectedPathLinks.addAll(dp.backup().links());
         } else {
             selectedPathLinks = paths.isEmpty() ?
-                    ImmutableSet.of() : Sets.newHashSet(paths.get(pathIndex).links());
+                    ImmutableSet.of() : ImmutableSet.copyOf(paths.get(pathIndex).links());
         }
         Highlights highlights = new Highlights();
         for (PathLink plink : linkMap.biLinks()) {
