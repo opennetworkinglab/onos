@@ -8,3 +8,4 @@
 .*/ovsdb/api/.*
 .*/netconf/flow/.*
 .*/vtn/sfcmgr/.*
+/tools/package/yangtools/.*
