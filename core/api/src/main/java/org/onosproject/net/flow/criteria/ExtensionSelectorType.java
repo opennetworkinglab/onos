@@ -32,7 +32,13 @@ public class ExtensionSelectorType {
      * These numbers have no impact on the actual OF type id.
      */
     public enum ExtensionSelectorTypes {
-        PLACEHOLDER(0); // TODO remove when actual extensions are added
+        NICIRA_MATCH_NSH_SPI(0),
+        NICIRA_MATCH_NSH_SI(1),
+        NICIRA_MATCH_NSH_CH1(2),
+        NICIRA_MATCH_NSH_CH2(3),
+        NICIRA_MATCH_NSH_CH3(4),
+        NICIRA_MATCH_NSH_CH4(5);
+
 
         private ExtensionSelectorType type;
 

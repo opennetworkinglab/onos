@@ -50,6 +50,7 @@ public class DefaultMoveExtensionTreatment extends AbstractExtension
      * @param nBits nbits
      * @param src source
      * @param dst destination
+     * @param type extension treatment type
      */
     public DefaultMoveExtensionTreatment(int srcOfs, int dstOfs, int nBits,
                                          int src, int dst, ExtensionTreatmentType type) {
