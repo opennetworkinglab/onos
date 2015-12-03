@@ -57,7 +57,7 @@ public final class BgpPrefixAttrIgpFlags implements BgpValueType {
      * @param bOspfLclAddrBit OSPF local address Bit
      * @param bOspfNSSABit OSPF propagate NSSA Bit
      */
-    BgpPrefixAttrIgpFlags(boolean bisisUpDownBit,
+    public BgpPrefixAttrIgpFlags(boolean bisisUpDownBit,
                           boolean bOspfNoUnicastBit,
                           boolean bOspfLclAddrBit, boolean bOspfNSSABit) {
         this.bisisUpDownBit = bisisUpDownBit;

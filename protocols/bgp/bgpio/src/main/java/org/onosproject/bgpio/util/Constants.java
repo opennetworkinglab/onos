@@ -34,4 +34,11 @@ public final class Constants {
     public static final short AFI_VALUE = 16388;
     public static final byte VPN_SAFI_VALUE = (byte) 0x80;
     public static final byte SAFI_VALUE = 71;
+    public static final int EXTRA_TRAFFIC = 0x01;
+    public static final int UNPROTECTED = 0x02;
+    public static final int SHARED = 0x04;
+    public static final int DEDICATED_ONE_ISTO_ONE = 0x08;
+    public static final int DEDICATED_ONE_PLUS_ONE = 0x10;
+    public static final int ENHANCED = 0x20;
+    public static final int RESERVED = 0x40;
 }

@@ -20,37 +20,20 @@ import org.junit.Test;
 import com.google.common.testing.EqualsTester;
 
 /**
- * Test for MPLS protocol mask attribute.
+ * Test for Protection Type attribute.
  */
 public class BgpLinkAttrProtectionTypeTest {
-    boolean bExtraTraffic = true;
-    boolean bUnprotected = true;
-    boolean bShared = true;
-    boolean bDedOneIstoOne = true;
-    boolean bDedOnePlusOne = true;
-    boolean bEnhanced = true;
+    private final byte linkProtectionType1 = 0x04;
+    private final byte linkProtectionType2 = 0x40;
 
-    boolean bExtraTraffic1 = false;
-    boolean bUnprotected1 = false;
-    boolean bShared1 = false;
-    boolean bDedOneIstoOne1 = false;
-    boolean bDedOnePlusOne1 = false;
-    boolean bEnhanced1 = false;
-
-    private final BgpLinkAttrProtectionType data = BgpLinkAttrProtectionType
-            .of(bExtraTraffic, bUnprotected, bShared, bDedOneIstoOne,
-                bDedOnePlusOne, bEnhanced);
-    private final BgpLinkAttrProtectionType sameAsData = BgpLinkAttrProtectionType
-            .of(bExtraTraffic, bUnprotected, bShared, bDedOneIstoOne,
-                bDedOnePlusOne, bEnhanced);
-    private final BgpLinkAttrProtectionType diffData = BgpLinkAttrProtectionType
-            .of(bExtraTraffic1, bUnprotected1, bShared1, bDedOneIstoOne1,
-                bDedOnePlusOne1, bEnhanced1);
+    private final BgpLinkAttrProtectionType attr1 = BgpLinkAttrProtectionType.of(linkProtectionType1);
+    private final BgpLinkAttrProtectionType sameAsAttr1 = BgpLinkAttrProtectionType.of(linkProtectionType1);
+    private final BgpLinkAttrProtectionType attr2 = BgpLinkAttrProtectionType.of(linkProtectionType2);
 
     @Test
-    public void basics() {
-
-        new EqualsTester().addEqualityGroup(data, sameAsData)
-        .addEqualityGroup(diffData).testEquals();
+    public void testEquality() {
+        new EqualsTester().addEqualityGroup(attr1, sameAsAttr1)
+        .addEqualityGroup(attr2)
+        .testEquals();
     }
 }

@@ -23,6 +23,7 @@ import static org.hamcrest.core.Is.is;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.bgpio.exceptions.BgpParseException;
@@ -41,6 +42,7 @@ import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.IPReachabilityInformationTlv;
 import org.onosproject.bgpio.types.IsIsNonPseudonode;
 import org.onosproject.bgpio.types.IsIsPseudonode;
+import org.onosproject.bgpio.types.LinkStateAttributes;
 import org.onosproject.bgpio.types.Med;
 import org.onosproject.bgpio.types.MpReachNlri;
 import org.onosproject.bgpio.types.MpUnReachNlri;
@@ -48,6 +50,10 @@ import org.onosproject.bgpio.types.Origin;
 import org.onosproject.bgpio.types.NextHop;
 import org.onosproject.bgpio.types.LocalPref;
 import org.onosproject.bgpio.types.Origin.ORIGINTYPE;
+import org.onosproject.bgpio.types.attr.BgpAttrRouterIdV4;
+import org.onosproject.bgpio.types.attr.BgpLinkAttrName;
+import org.onosproject.bgpio.types.attr.BgpPrefixAttrExtRouteTag;
+import org.onosproject.bgpio.types.attr.BgpPrefixAttrIgpFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1492,5 +1498,499 @@ public class BgpUpdateMsgTest {
         message = reader.readFrom(buffer, bgpHeader);
 
         assertThat(message, instanceOf(BgpUpdateMsg.class));
+    }
+
+    //Negative scenarios
+    /**
+     * Wrong length BgpAttrRouterIdV4.
+     */
+    @Test(expected = BgpParseException.class)
+    public void bgpUpdateMessageTest35() throws BgpParseException {
+        byte[] updateMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, 0x00, (byte) 0x95,
+                0x02, 0x00, 0x04,
+                0x18, 0x0a, 0x01, 0x01, //withdrawn routes
+                0x00, 0x7A, //path attribute len
+                0x04, 0x01, 0x01, 0x00, //origin
+                0x40, 0x02, 0x04, 0x02, 0x01, (byte) 0xfd, (byte) 0xe9, //as_path
+                (byte) 0x80, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, //med
+                (byte) 0x80, 0x0e, 0x53, 0x40, 0x04, 0x47, //mpreach
+                0x04, 0x04, 0x00, 0x00, 0x01, //nexthop
+                0x00, //reserved
+                0x00, 0x02, 0x00, 0x46, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x1b, 0x02, 0x00, 0x00,
+                0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00, 0x04,
+                0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x07, 0x19, 0x00,
+                (byte) 0x95, 0x02, 0x50, 0x21, 0x03, 0x01, 0x01, 0x00, 0x1a, 0x02,
+                0x00, 0x00, 0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00,
+                0x04, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x06, 0x19,
+                0x00, (byte) 0x95, 0x02, 0x50, 0x21, //link nlri
+                (byte) 0x80, 0x1d, 0x0f,  //linkstate attr
+                0x04, 0x04, 0x00, 0x06, (byte) 0xbd, 0x59, 0x4c, 0x62, //BgpAttrRouterIdV4
+                0x04, 0x47, 0x00, 0x03, 0x00, 0x00, 0x0a}; //BgpLinkAttrIGPMetric
+
+        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+        buffer.writeBytes(updateMsg);
+
+        BgpMessageReader<BgpMessage> reader = BgpFactories.getGenericReader();
+        BgpHeader bgpHeader = new BgpHeader();
+        reader.readFrom(buffer, bgpHeader);
+    }
+
+    /**
+     * Wrong length BgpLinkAttrIGPMetric.
+     */
+    @Test(expected = BgpParseException.class)
+    public void bgpUpdateMessageTest36() throws BgpParseException {
+        byte[] updateMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, 0x00, (byte) 0x95,
+                0x02, 0x00, 0x04,
+                0x18, 0x0a, 0x01, 0x01, //withdrawn routes
+                0x00, 0x7A, //path attribute len
+                0x04, 0x01, 0x01, 0x00, //origin
+                0x40, 0x02, 0x04, 0x02, 0x01, (byte) 0xfd, (byte) 0xe9, //as_path
+                (byte) 0x80, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, //med
+                (byte) 0x80, 0x0e, 0x53, 0x40, 0x04, 0x47, //mpreach
+                0x04, 0x04, 0x00, 0x00, 0x01, //nexthop
+                0x00, //reserved
+                0x00, 0x02, 0x00, 0x46, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x1b, 0x02, 0x00, 0x00,
+                0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00, 0x04,
+                0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x07, 0x19, 0x00,
+                (byte) 0x95, 0x02, 0x50, 0x21, 0x03, 0x01, 0x01, 0x00, 0x1a, 0x02,
+                0x00, 0x00, 0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00,
+                0x04, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x06, 0x19,
+                0x00, (byte) 0x95, 0x02, 0x50, 0x21, //link nlri
+                (byte) 0x80, 0x1d, 0x0f,  //linkstate attr
+                0x04, 0x04, 0x00, 0x04, (byte) 0xbd, 0x59, 0x4c, 0x62, //BgpAttrRouterIdV4
+                0x04, 0x47, 0x00, 0x02, 0x00, 0x00, 0x0a}; //BgpLinkAttrIGPMetric
+
+        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+        buffer.writeBytes(updateMsg);
+
+        BgpMessageReader<BgpMessage> reader = BgpFactories.getGenericReader();
+        BgpHeader bgpHeader = new BgpHeader();
+        reader.readFrom(buffer, bgpHeader);
+    }
+
+    /**
+     * Wrong length BgpPrefixAttrMetric.
+     */
+    @Test(expected = BgpParseException.class)
+    public void bgpUpdateMessageTest37() throws BgpParseException {
+        byte[] updateMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, 0x00, (byte) 0x96,
+                0x02, 0x00, 0x04,
+                0x18, 0x0a, 0x01, 0x01, //withdrawn routes
+                0x00, 0x7b, //path attribute len
+                0x04, 0x01, 0x01, 0x00, //origin
+                0x40, 0x02, 0x04, 0x02, 0x01, (byte) 0xfd, (byte) 0xe9, //as_path
+                (byte) 0x80, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, //med
+                (byte) 0x80, 0x0e, 0x53, 0x40, 0x04, 0x47, //mpreach
+                0x04, 0x04, 0x00, 0x00, 0x01, //nexthop
+                0x00, //reserved
+                0x00, 0x02, 0x00, 0x46, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x1b, 0x02, 0x00, 0x00,
+                0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00, 0x04,
+                0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x07, 0x19, 0x00,
+                (byte) 0x95, 0x02, 0x50, 0x21, 0x03, 0x01, 0x01, 0x00, 0x1a, 0x02,
+                0x00, 0x00, 0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00,
+                0x04, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x06, 0x19,
+                0x00, (byte) 0x95, 0x02, 0x50, 0x21, //link nlri
+                (byte) 0x80, 0x1d, 0x10,  //linkstate attr
+                0x04, 0x04, 0x00, 0x04, (byte) 0x15, 0x15, 0x15, 0x15, //BgpAttrRouterIdV4
+                  0x04, (byte) 0x83, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00}; //BgpPrefixAttrMetric
+
+        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+        buffer.writeBytes(updateMsg);
+
+        BgpMessageReader<BgpMessage> reader = BgpFactories.getGenericReader();
+        BgpHeader bgpHeader = new BgpHeader();
+        reader.readFrom(buffer, bgpHeader);
+    }
+
+    /**
+     * Wrong length BgpPrefixAttrMetric.
+     */
+    @Test(expected = BgpParseException.class)
+    public void bgpUpdateMessageTest38() throws BgpParseException {
+        byte[] updateMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, 0x00, (byte) 0x96,
+                0x02, 0x00, 0x04,
+                0x18, 0x0a, 0x01, 0x01, //withdrawn routes
+                0x00, 0x7b, //path attribute len
+                0x04, 0x01, 0x01, 0x00, //origin
+                0x40, 0x02, 0x04, 0x02, 0x01, (byte) 0xfd, (byte) 0xe9, //as_path
+                (byte) 0x80, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, //med
+                (byte) 0x80, 0x0e, 0x53, 0x40, 0x04, 0x47, //mpreach
+                0x04, 0x04, 0x00, 0x00, 0x01, //nexthop
+                0x00, //reserved
+                0x00, 0x02, 0x00, 0x46, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x1b, 0x02, 0x00, 0x00,
+                0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00, 0x04,
+                0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x07, 0x19, 0x00,
+                (byte) 0x95, 0x02, 0x50, 0x21, 0x03, 0x01, 0x01, 0x00, 0x1a, 0x02,
+                0x00, 0x00, 0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00,
+                0x04, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x06, 0x19,
+                0x00, (byte) 0x95, 0x02, 0x50, 0x21, //link nlri
+                (byte) 0x80, 0x1d, 0x10,  //linkstate attr
+                0x04, 0x04, 0x00, 0x04, (byte) 0x15, 0x15, 0x15, 0x15, //BgpAttrRouterIdV4
+                  0x04, (byte) 0x83, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00}; //BgpPrefixAttrMetric
+        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+        buffer.writeBytes(updateMsg);
+
+        BgpMessageReader<BgpMessage> reader = BgpFactories.getGenericReader();
+        BgpHeader bgpHeader = new BgpHeader();
+        reader.readFrom(buffer, bgpHeader);
+    }
+
+    /**
+     * Wrong length BgpPrefixAttrOpaqueData.
+     */
+    @Test(expected = BgpParseException.class)
+    public void bgpUpdateMessageTest39() throws BgpParseException {
+        byte[] updateMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, 0x00, (byte) 0x96,
+                0x02, 0x00, 0x04,
+                0x18, 0x0a, 0x01, 0x01, //withdrawn routes
+                0x00, 0x7B, //path attribute len
+                0x04, 0x01, 0x01, 0x00, //origin
+                0x40, 0x02, 0x04, 0x02, 0x01, (byte) 0xfd, (byte) 0xe9, //as_path
+                (byte) 0x80, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, //med
+                (byte) 0x80, 0x0e, 0x53, 0x40, 0x04, 0x47, //mpreach
+                0x04, 0x04, 0x00, 0x00, 0x01, //nexthop
+                0x00, //reserved
+                0x00, 0x02, 0x00, 0x46, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x1b, 0x02, 0x00, 0x00,
+                0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00, 0x04,
+                0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x07, 0x19, 0x00,
+                (byte) 0x95, 0x02, 0x50, 0x21, 0x03, 0x01, 0x01, 0x00, 0x1a, 0x02,
+                0x00, 0x00, 0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00,
+                0x04, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x06, 0x19,
+                0x00, (byte) 0x95, 0x02, 0x50, 0x21, //link nlri
+                (byte) 0x80, 0x1d, 0x10,  //linkstate attr
+                0x04, 0x04, 0x00, 0x04, 0x15, 0x15, 0x15, 0x15, //BgpAttrRouterIdV4
+                0x04, (byte) 0x85, 0x00, 0x06, 0x0a, 0x0a, 0x0a, 0x0a}; //BgpPrefixAttrOpaqueData
+        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+        buffer.writeBytes(updateMsg);
+
+        BgpMessageReader<BgpMessage> reader = BgpFactories.getGenericReader();
+        BgpHeader bgpHeader = new BgpHeader();
+        reader.readFrom(buffer, bgpHeader);
+    }
+
+    /**
+     * Test for LinkStateattribute BgpAttrNodeRouterId and BgpLinkAttrName.
+     *
+     * @throws BgpParseException while parsing update message
+     */
+    @Test
+    public void bgpUpdateMessageTest40() throws BgpParseException {
+        byte[] updateMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, 0x00, (byte) 0x9A,
+                0x02, 0x00, 0x04,
+                0x18, 0x0a, 0x01, 0x01, //withdrawn routes
+                0x00, 0x7F, //path attribute len
+                0x04, 0x01, 0x01, 0x00, //origin
+                0x40, 0x02, 0x04, 0x02, 0x01, (byte) 0xfd, (byte) 0xe9, //as_path
+                (byte) 0x80, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, //med
+                (byte) 0x80, 0x0e, 0x53, 0x40, 0x04, 0x47, //mpreach
+                0x04, 0x04, 0x00, 0x00, 0x01, //nexthop
+                0x00, //reserved
+                0x00, 0x02, 0x00, 0x46, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x1b, 0x02, 0x00, 0x00,
+                0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00, 0x04,
+                0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x07, 0x19, 0x00,
+                (byte) 0x95, 0x02, 0x50, 0x21, 0x03, 0x01, 0x01, 0x00, 0x1a, 0x02,
+                0x00, 0x00, 0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00,
+                0x04, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x06, 0x19,
+                0x00, (byte) 0x95, 0x02, 0x50, 0x21, //link nlri
+                (byte) 0x80, 0x1d, 0x14,  //linkstate attr
+                0x04, 0x04, 0x00, 0x04, (byte) 0x15, 0x15, 0x15, 0x15, //BgpAttrRouterIdV4
+                0x04, 0x4A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x0b}; //BgpLinkAttrName
+        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+        buffer.writeBytes(updateMsg);
+
+        BgpMessageReader<BgpMessage> reader = BgpFactories.getGenericReader();
+        BgpMessage message = null;
+        BgpHeader bgpHeader = new BgpHeader();
+
+        message = reader.readFrom(buffer, bgpHeader);
+
+        assertThat(message, instanceOf(BgpUpdateMsg.class));
+        BgpUpdateMsg other = (BgpUpdateMsg) message;
+
+        byte[] marker = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                    (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                    (byte) 0xff, (byte) 0xff, (byte) 0xff };
+
+        assertThat(other.getHeader().getMarker(), is(marker));
+        assertThat(other.getHeader().getType(), is((byte) 2));
+        assertThat(other.getHeader().getLength(), is((short) 154));
+
+        ListIterator<IpPrefix> listIterator1 = other.withdrawnRoutes().listIterator();
+        byte[] prefix = new byte[] {0x0a, 0x01, 0x01, 0x00};
+
+        while (listIterator1.hasNext()) {
+            IpPrefix testPrefixValue = listIterator1.next();
+            assertThat(testPrefixValue.prefixLength(), is((int) 24));
+            assertThat(testPrefixValue.address().toOctets(), is(prefix));
+        }
+
+        BgpValueType testPathAttribute = null;
+        Origin origin;
+        AsPath aspath;
+        Med med;
+        MpReachNlri mpReach;
+        LinkStateAttributes linkStateAttr;
+        List<BgpValueType> pathAttributeList = new LinkedList<>();
+        BgpPathAttributes pathAttribute = other.bgpPathAttributes();
+        pathAttributeList = pathAttribute.pathAttributes();
+        ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
+        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+
+        testPathAttribute = listIterator.next();
+        origin = (Origin) testPathAttribute;
+        assertThat(origin.origin(), is(originValue));
+
+        testPathAttribute = listIterator.next();
+        aspath = (AsPath) testPathAttribute;
+        ListIterator<Short> listIterator2 = aspath.asPathSeq().listIterator();
+        assertThat(listIterator2.next(), is((short) 65001));
+
+        testPathAttribute = listIterator.next();
+        med = (Med) testPathAttribute;
+        assertThat(med.med(), is(0));
+
+        testPathAttribute = listIterator.next();
+        mpReach = (MpReachNlri) testPathAttribute;
+        assertThat(mpReach.mpReachNlriLen(), is((int) 83));
+        assertThat(mpReach.getType(), is((short) 14));
+
+        List<BgpLSNlri> testMpReachNlri = new LinkedList<>();
+        testMpReachNlri = mpReach.mpReachNlri();
+
+        ListIterator<BgpLSNlri> list1 = testMpReachNlri.listIterator();
+        BgpLSNlri testnlri =  list1.next();
+        NlriType nlriType = org.onosproject.bgpio.protocol.NlriType.LINK;
+        ProtocolType protocolId = org.onosproject.bgpio.protocol.linkstate.
+            BgpNodeLSNlriVer4.ProtocolType.ISIS_LEVEL_TWO;
+        assertThat(testnlri.getIdentifier(), is((long) 0));
+        assertThat(testnlri.getNlriType(), is(nlriType));
+        assertThat(testnlri.getProtocolId(), is(protocolId));
+
+        testPathAttribute = listIterator.next();
+        linkStateAttr = (LinkStateAttributes) testPathAttribute;
+
+        assertThat(linkStateAttr.getType(), is((short) 29));
+        ListIterator<BgpValueType> list = linkStateAttr.linkStateAttributes().listIterator();
+        byte[] ipBytes = new byte[] {(byte) 0x15, 0x15, 0x15, 0x15 };
+        Ip4Address ip4RouterId = Ip4Address.valueOf(ipBytes);
+        assertThat(((BgpAttrRouterIdV4) list.next()).attrRouterId(), is(ip4RouterId));
+        byte[] linkName = new byte[] {0x00, 0x00, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x0b };
+        assertThat(((BgpLinkAttrName) list.next()).attrLinkName(), is(linkName));
+    }
+
+    /**
+     * Test for LinkStateattribute BgpAttrNodeRouterId and BgpPrefixAttrIGPFlags.
+     *
+     * @throws BgpParseException while parsing update message
+     */
+    @Test
+    public void bgpUpdateMessageTest41() throws BgpParseException {
+        byte[] updateMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, 0x00, (byte) 0x93,
+                0x02, 0x00, 0x04,
+                0x18, 0x0a, 0x01, 0x01, //withdrawn routes
+                0x00, 0x78, //path attribute len
+                0x04, 0x01, 0x01, 0x00, //origin
+                0x40, 0x02, 0x04, 0x02, 0x01, (byte) 0xfd, (byte) 0xe9, //as_path
+                (byte) 0x80, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, //med
+                (byte) 0x80, 0x0e, 0x53, 0x40, 0x04, 0x47, //mpreach
+                0x04, 0x04, 0x00, 0x00, 0x01, //nexthop
+                0x00, //reserved
+                0x00, 0x02, 0x00, 0x46, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x1b, 0x02, 0x00, 0x00,
+                0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00, 0x04,
+                0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x07, 0x19, 0x00,
+                (byte) 0x95, 0x02, 0x50, 0x21, 0x03, 0x01, 0x01, 0x00, 0x1a, 0x02,
+                0x00, 0x00, 0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00,
+                0x04, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x06, 0x19,
+                0x00, (byte) 0x95, 0x02, 0x50, 0x21, //link nlri
+                (byte) 0x80, 0x1d, 0x0D,  //linkstate attr
+                0x04, 0x04, 0x00, 0x04, (byte) 0x15, 0x15, 0x15, 0x15, //BgpAttrRouterIdV4
+                0x04, (byte) 0x80, 0x00, 0x01, (byte) 0xA0}; //BgpPrefixAttrIGPFlags
+        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+        buffer.writeBytes(updateMsg);
+
+        BgpMessageReader<BgpMessage> reader = BgpFactories.getGenericReader();
+        BgpMessage message = null;
+        BgpHeader bgpHeader = new BgpHeader();
+
+        message = reader.readFrom(buffer, bgpHeader);
+
+        assertThat(message, instanceOf(BgpUpdateMsg.class));
+        BgpUpdateMsg other = (BgpUpdateMsg) message;
+
+        byte[] marker = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                    (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                    (byte) 0xff, (byte) 0xff, (byte) 0xff };
+
+        assertThat(other.getHeader().getMarker(), is(marker));
+        assertThat(other.getHeader().getType(), is((byte) 2));
+        assertThat(other.getHeader().getLength(), is((short) 147));
+
+        BgpValueType testPathAttribute = null;
+        Origin origin;
+        AsPath aspath;
+        Med med;
+        MpReachNlri mpReach;
+        LinkStateAttributes linkStateAttr;
+        List<BgpValueType> pathAttributeList = new LinkedList<>();
+        BgpPathAttributes pathAttribute = other.bgpPathAttributes();
+        pathAttributeList = pathAttribute.pathAttributes();
+        ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
+        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+
+        testPathAttribute = listIterator.next();
+        origin = (Origin) testPathAttribute;
+        assertThat(origin.origin(), is(originValue));
+
+        testPathAttribute = listIterator.next();
+        aspath = (AsPath) testPathAttribute;
+        ListIterator<Short> listIterator2 = aspath.asPathSeq().listIterator();
+        assertThat(listIterator2.next(), is((short) 65001));
+
+        testPathAttribute = listIterator.next();
+        med = (Med) testPathAttribute;
+        assertThat(med.med(), is(0));
+
+        testPathAttribute = listIterator.next();
+        mpReach = (MpReachNlri) testPathAttribute;
+        List<BgpLSNlri> testMpReachNlri = new LinkedList<>();
+        testMpReachNlri = mpReach.mpReachNlri();
+
+        ListIterator<BgpLSNlri> list1 = testMpReachNlri.listIterator();
+        BgpLSNlri testnlri =  list1.next();
+        NlriType nlriType = org.onosproject.bgpio.protocol.NlriType.LINK;
+        ProtocolType protocolId = org.onosproject.bgpio.protocol.linkstate.
+            BgpNodeLSNlriVer4.ProtocolType.ISIS_LEVEL_TWO;
+        assertThat(testnlri.getIdentifier(), is((long) 0));
+        assertThat(testnlri.getNlriType(), is(nlriType));
+        assertThat(testnlri.getProtocolId(), is(protocolId));
+
+        testPathAttribute = listIterator.next();
+        linkStateAttr = (LinkStateAttributes) testPathAttribute;
+
+        assertThat(linkStateAttr.getType(), is((short) 29));
+        ListIterator<BgpValueType> list = linkStateAttr.linkStateAttributes().listIterator();
+        byte[] ipBytes = new byte[] {(byte) 0x15, 0x15, 0x15, 0x15 };
+        Ip4Address ip4RouterId = Ip4Address.valueOf(ipBytes);
+        assertThat(((BgpAttrRouterIdV4) list.next()).attrRouterId(), is(ip4RouterId));
+        BgpPrefixAttrIgpFlags obj = new BgpPrefixAttrIgpFlags(true, false, true, false);
+        assertThat(((BgpPrefixAttrIgpFlags) list.next()).equals(obj), is(true));
+    }
+
+    /**
+     * Test for LinkStateattribute BgpAttrNodeRouterId and BgpPrefixAttrExtRouteTag.
+     *
+     * @throws BgpParseException while parsing update message
+     */
+    @Test
+    public void bgpUpdateMessageTest42() throws BgpParseException {
+        byte[] updateMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, 0x00, (byte) 0xA2, 0x02, 0x00, 0x04,
+                0x18, 0x0a, 0x01, 0x01, 0x00, (byte) 0x87, 0x04, 0x01, 0x01, 0x00, //origin
+                0x40, 0x02, 0x04, 0x02, 0x01, (byte) 0xfd, (byte) 0xe9, //as_path
+                (byte) 0x80, 0x04, 0x04, 0x00, 0x00, 0x00, 0x00, //med
+                (byte) 0x80, 0x0e, 0x53, 0x40, 0x04, 0x47, //mpreach
+                0x04, 0x04, 0x00, 0x00, 0x01, 0x00, //reserved
+                0x00, 0x02, 0x00, 0x46, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x1b, 0x02, 0x00, 0x00,
+                0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00, 0x04,
+                0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x07, 0x19, 0x00,
+                (byte) 0x95, 0x02, 0x50, 0x21, 0x03, 0x01, 0x01, 0x00, 0x1a, 0x02,
+                0x00, 0x00, 0x04, 0x00, 0x00, 0x08, (byte) 0xae, 0x02, 0x01, 0x00,
+                0x04, 0x02, 0x02, 0x02, 0x02, 0x02, 0x03, 0x00, 0x06, 0x19,
+                0x00, (byte) 0x95, 0x02, 0x50, 0x21, (byte) 0x80, 0x1d, 0x1C,  //linkstate attr
+                0x04, 0x04, 0x00, 0x04, (byte) 0x15, 0x15, 0x15, 0x15, //BgpAttrNodeRouterId
+                0x04, (byte) 0x82, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x02, (byte) 0xBB, (byte) 0xE9, 0x0B,
+                0x00, 0x00, 0x00, 0x00, 0x03, 0x20, 0x6E, 0x1B}; //BgpPrefixAttrExtRouteTag
+        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+        buffer.writeBytes(updateMsg);
+
+        BgpMessageReader<BgpMessage> reader = BgpFactories.getGenericReader();
+        BgpMessage message = null;
+        BgpHeader bgpHeader = new BgpHeader();
+
+        message = reader.readFrom(buffer, bgpHeader);
+
+        assertThat(message, instanceOf(BgpUpdateMsg.class));
+        BgpUpdateMsg other = (BgpUpdateMsg) message;
+
+        byte[] marker = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                    (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                    (byte) 0xff, (byte) 0xff, (byte) 0xff };
+
+        assertThat(other.getHeader().getMarker(), is(marker));
+        assertThat(other.getHeader().getType(), is((byte) 2));
+        assertThat(other.getHeader().getLength(), is((short) 162));
+
+        BgpValueType testPathAttribute = null;
+        Origin origin;
+        AsPath aspath;
+        Med med;
+        MpReachNlri mpReach;
+        LinkStateAttributes linkStateAttr;
+        List<BgpValueType> pathAttributeList = new LinkedList<>();
+        BgpPathAttributes pathAttribute = other.bgpPathAttributes();
+        pathAttributeList = pathAttribute.pathAttributes();
+        ListIterator<BgpValueType> listIterator = pathAttributeList.listIterator();
+        ORIGINTYPE originValue = org.onosproject.bgpio.types.Origin.ORIGINTYPE.IGP;
+
+        testPathAttribute = listIterator.next();
+        origin = (Origin) testPathAttribute;
+        assertThat(origin.origin(), is(originValue));
+
+        testPathAttribute = listIterator.next();
+        aspath = (AsPath) testPathAttribute;
+        ListIterator<Short> listIterator2 = aspath.asPathSeq().listIterator();
+        assertThat(listIterator2.next(), is((short) 65001));
+
+        testPathAttribute = listIterator.next();
+        med = (Med) testPathAttribute;
+        assertThat(med.med(), is(0));
+
+        testPathAttribute = listIterator.next();
+        mpReach = (MpReachNlri) testPathAttribute;
+
+        List<BgpLSNlri> testMpReachNlri = new LinkedList<>();
+        testMpReachNlri = mpReach.mpReachNlri();
+        ListIterator<BgpLSNlri> list1 = testMpReachNlri.listIterator();
+        BgpLSNlri testnlri =  list1.next();
+        ProtocolType protocolId = org.onosproject.bgpio.protocol.linkstate.
+            BgpNodeLSNlriVer4.ProtocolType.ISIS_LEVEL_TWO;
+        assertThat(testnlri.getProtocolId(), is(protocolId));
+
+        testPathAttribute = listIterator.next();
+        linkStateAttr = (LinkStateAttributes) testPathAttribute;
+
+        assertThat(linkStateAttr.getType(), is((short) 29));
+        ListIterator<BgpValueType> list = linkStateAttr.linkStateAttributes().listIterator();
+        byte[] ipBytes = new byte[] {(byte) 0x15, 0x15, 0x15, 0x15 };
+        Ip4Address ip4RouterId = Ip4Address.valueOf(ipBytes);
+        assertThat(((BgpAttrRouterIdV4) list.next()).attrRouterId(), is(ip4RouterId));
+        List<Long> extRouteTag = new LinkedList<>();
+        extRouteTag.add(45869323L);
+        extRouteTag.add(52456987L);
+        assertThat(((BgpPrefixAttrExtRouteTag) list.next()).pfxExtRouteTag(), is(extRouteTag));
     }
 }

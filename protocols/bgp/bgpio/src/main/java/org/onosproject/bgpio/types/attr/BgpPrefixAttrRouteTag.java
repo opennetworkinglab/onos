@@ -38,6 +38,7 @@ public class BgpPrefixAttrRouteTag implements BgpValueType {
             .getLogger(BgpPrefixAttrRouteTag.class);
 
     public static final short ATTR_PREFIX_ROUTETAG = 1153;
+    public static final short SIZE = 4;
 
     /* Prefix Route Tag */
     private List<Integer> pfxRouteTag = new ArrayList<Integer>();
@@ -74,7 +75,7 @@ public class BgpPrefixAttrRouteTag implements BgpValueType {
         ArrayList<Integer> pfxRouteTag = new ArrayList<Integer>();
 
         short lsAttrLength = cb.readShort();
-        int len = lsAttrLength / Integer.SIZE;
+        int len = lsAttrLength / SIZE;
 
         if (cb.readableBytes() < lsAttrLength) {
             Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,

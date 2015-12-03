@@ -21,9 +21,8 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.types.BgpErrorType;
 import org.onosproject.bgpio.types.BgpValueType;
+import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.util.Validation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
@@ -31,70 +30,55 @@ import com.google.common.base.MoreObjects;
  * Implements BGP link protection type attribute.
  */
 public final class BgpLinkAttrProtectionType implements BgpValueType {
-
-    protected static final Logger log = LoggerFactory
-            .getLogger(BgpLinkAttrProtectionType.class);
-
     public static final int ATTRLINK_PROTECTIONTYPE = 1093;
     public static final int LINK_PROTECTION_LEN = 2;
 
-    public static final int EXTRA_TRAFFIC = 0x01;
-    public static final int UNPROTECTED = 0x02;
-    public static final int SHARED = 0x04;
-    public static final int DEDICATED_ONE_ISTO_ONE = 0x08;
-    public static final int DEDICATED_ONE_PLUS_ONE = 0x10;
-    public static final int ENHANCED = 0x20;
+    private byte linkProtectionType;
 
-    /* Link Protection type flags */
-    private final boolean bExtraTraffic;
-    private final boolean bUnprotected;
-    private final boolean bShared;
-    private final boolean bDedOneIstoOne;
-    private final boolean bDedOnePlusOne;
-    private final boolean bEnhanced;
+    /**
+     * Enum to provide Link protection types.
+     */
+    public enum ProtectionType {
+        EXTRA_TRAFFIC(1), UNPROTECTED(2), SHARED(4), DEDICATED_ONE_ISTO_ONE(8),
+        DEDICATED_ONE_PLUS_ONE(0x10), ENHANCED(0x20), RESERVED(0x40);
+        int value;
+
+        /**
+         * Assign val with the value as the link protection type.
+         *
+         * @param val link protection
+         */
+        ProtectionType(int val) {
+            value = val;
+        }
+
+        /**
+         * Returns value of link protection type.
+         *
+         * @return link protection type
+         */
+        public byte type() {
+            return (byte) value;
+        }
+    }
 
     /**
      * Constructor to initialize the value.
      *
-     * @param bExtraTraffic Extra Traffic
-     * @param bUnprotected Unprotected
-     * @param bShared Shared
-     * @param bDedOneIstoOne Dedicated 1:1
-     * @param bDedOnePlusOne Dedicated 1+1
-     * @param bEnhanced Enhanced
+     * @param linkProtectionType link protection type
      */
-    private BgpLinkAttrProtectionType(boolean bExtraTraffic,
-                                      boolean bUnprotected,
-                                      boolean bShared, boolean bDedOneIstoOne,
-                                      boolean bDedOnePlusOne, boolean bEnhanced) {
-        this.bExtraTraffic = bExtraTraffic;
-        this.bUnprotected = bUnprotected;
-        this.bShared = bShared;
-        this.bDedOneIstoOne = bDedOneIstoOne;
-        this.bDedOnePlusOne = bDedOnePlusOne;
-        this.bEnhanced = bEnhanced;
+    public BgpLinkAttrProtectionType(byte linkProtectionType) {
+        this.linkProtectionType = linkProtectionType;
     }
 
     /**
      * Returns object of this class with specified values.
      *
-     * @param bExtraTraffic Extra Traffic
-     * @param bUnprotected Unprotected
-     * @param bShared Shared
-     * @param bDedOneIstoOne Dedicated 1:1
-     * @param bDedOnePlusOne Dedicated 1+1
-     * @param bEnhanced Enhanced
+     * @param linkProtectionType link protection type
      * @return object of BgpLinkAttrProtectionType
      */
-    public static BgpLinkAttrProtectionType of(boolean bExtraTraffic,
-                                               boolean bUnprotected,
-                                               boolean bShared,
-                                               boolean bDedOneIstoOne,
-                                               boolean bDedOnePlusOne,
-                                               boolean bEnhanced) {
-        return new BgpLinkAttrProtectionType(bExtraTraffic, bUnprotected,
-                                             bShared, bDedOneIstoOne,
-                                             bDedOnePlusOne, bEnhanced);
+    public static BgpLinkAttrProtectionType of(byte linkProtectionType) {
+        return new BgpLinkAttrProtectionType(linkProtectionType);
     }
 
     /**
@@ -106,91 +90,43 @@ public final class BgpLinkAttrProtectionType implements BgpValueType {
      */
     public static BgpLinkAttrProtectionType read(ChannelBuffer cb)
             throws BgpParseException {
-        short linkProtectionType;
-        byte higherByte;
         short lsAttrLength = cb.readShort();
 
-        boolean bExtraTraffic;
-        boolean bUnprotected;
-        boolean bShared;
-        boolean bDedOneIstoOne;
-        boolean bDedOnePlusOne;
-        boolean bEnhanced;
-
-        if ((lsAttrLength != LINK_PROTECTION_LEN)
-                || (cb.readableBytes() < lsAttrLength)) {
-            Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
-                                   BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
-                                   lsAttrLength);
+        if ((lsAttrLength != LINK_PROTECTION_LEN) || (cb.readableBytes() < lsAttrLength)) {
+            Validation
+                    .validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR, BgpErrorType.ATTRIBUTE_LENGTH_ERROR, lsAttrLength);
         }
 
-        linkProtectionType = cb.readShort();
-        higherByte = (byte) (linkProtectionType >> 8);
+        byte linkProtectionType = cb.readByte();
+        byte reserved = cb.readByte();
 
-        bExtraTraffic = ((higherByte & (byte) EXTRA_TRAFFIC) == EXTRA_TRAFFIC);
-        bUnprotected = ((higherByte & (byte) UNPROTECTED) == UNPROTECTED);
-        bShared = ((higherByte & (byte) SHARED) == SHARED);
-        bDedOneIstoOne = ((higherByte & (byte) DEDICATED_ONE_ISTO_ONE) == DEDICATED_ONE_ISTO_ONE);
-        bDedOnePlusOne = ((higherByte & (byte) DEDICATED_ONE_PLUS_ONE) == DEDICATED_ONE_PLUS_ONE);
-        bEnhanced = ((higherByte & (byte) ENHANCED) == ENHANCED);
-
-        return BgpLinkAttrProtectionType.of(bExtraTraffic, bUnprotected,
-                                            bShared, bDedOneIstoOne,
-                                            bDedOnePlusOne, bEnhanced);
+        return BgpLinkAttrProtectionType.of(linkProtectionType);
     }
 
     /**
-     * Returns ExtraTraffic Bit.
+     * Returns Link Protection Type.
      *
-     * @return ExtraTraffic Bit
+     * @return Link Protection Type
      */
-    public boolean extraTraffic() {
-        return bExtraTraffic;
-    }
-
-    /**
-     * Returns Unprotected Bit.
-     *
-     * @return Unprotected Bit
-     */
-    public boolean unprotected() {
-        return bUnprotected;
-    }
-
-    /**
-     * Returns Shared Bit.
-     *
-     * @return Shared Bit
-     */
-    public boolean shared() {
-        return bShared;
-    }
-
-    /**
-     * Returns DedOneIstoOne Bit.
-     *
-     * @return DedOneIstoOne Bit
-     */
-    public boolean dedOneIstoOne() {
-        return bDedOneIstoOne;
-    }
-
-    /**
-     * Returns DedOnePlusOne Bit.
-     *
-     * @return DedOnePlusOne Bit
-     */
-    public boolean dedOnePlusOne() {
-        return bDedOnePlusOne;
-    }
-
-    /**
-     * Returns Enhanced Bit.
-     *
-     * @return Enhanced Bit
-     */
-    public boolean enhanced() {
-        return bEnhanced;
+    public ProtectionType protectionType() throws BgpParseException {
+        switch (linkProtectionType) {
+        case Constants.EXTRA_TRAFFIC:
+            return ProtectionType.EXTRA_TRAFFIC;
+        case Constants.UNPROTECTED:
+            return ProtectionType.UNPROTECTED;
+        case Constants.SHARED:
+            return ProtectionType.SHARED;
+        case Constants.DEDICATED_ONE_ISTO_ONE:
+            return ProtectionType.DEDICATED_ONE_ISTO_ONE;
+        case Constants.DEDICATED_ONE_PLUS_ONE:
+            return ProtectionType.DEDICATED_ONE_PLUS_ONE;
+        case Constants.ENHANCED:
+            return ProtectionType.ENHANCED;
+        case Constants.RESERVED:
+            return ProtectionType.RESERVED;
+        default:
+            throw new BgpParseException("Got another type " + linkProtectionType);
+        }
     }
 
     @Override
@@ -200,8 +136,7 @@ public final class BgpLinkAttrProtectionType implements BgpValueType {
 
     @Override
     public int hashCode() {
-        return Objects.hash(bExtraTraffic, bUnprotected, bShared,
-                            bDedOneIstoOne, bDedOnePlusOne, bEnhanced);
+        return Objects.hash(linkProtectionType);
     }
 
     @Override
@@ -212,12 +147,7 @@ public final class BgpLinkAttrProtectionType implements BgpValueType {
 
         if (obj instanceof BgpLinkAttrProtectionType) {
             BgpLinkAttrProtectionType other = (BgpLinkAttrProtectionType) obj;
-            return Objects.equals(bExtraTraffic, other.bExtraTraffic)
-                    && Objects.equals(bUnprotected, other.bUnprotected)
-                    && Objects.equals(bShared, other.bShared)
-                    && Objects.equals(bDedOneIstoOne, other.bDedOneIstoOne)
-                    && Objects.equals(bDedOnePlusOne, other.bDedOnePlusOne)
-                    && Objects.equals(bEnhanced, other.bEnhanced);
+            return Objects.equals(linkProtectionType, other.linkProtectionType);
         }
         return false;
     }
@@ -231,11 +161,8 @@ public final class BgpLinkAttrProtectionType implements BgpValueType {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("bExtraTraffic", bExtraTraffic)
-                .add("bUnprotected", bUnprotected).add("bShared", bShared)
-                .add("bDedOneIstoOne", bDedOneIstoOne)
-                .add("bDedOnePlusOne", bDedOnePlusOne)
-                .add("bEnhanced", bEnhanced).toString();
+                .add("linkProtectionType", linkProtectionType)
+                .toString();
     }
 
     @Override

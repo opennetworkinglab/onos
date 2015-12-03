@@ -56,7 +56,7 @@ public final class BgpAttrNodeFlagBitTlv implements BgpValueType {
      * @param bExternalBit External bit
      * @param bAbrBit ABR Bit
      */
-    private BgpAttrNodeFlagBitTlv(boolean bOverloadBit, boolean bAttachedBit,
+    public BgpAttrNodeFlagBitTlv(boolean bOverloadBit, boolean bAttachedBit,
                                   boolean bExternalBit, boolean bAbrBit) {
         this.bOverloadBit = bOverloadBit;
         this.bAttachedBit = bAttachedBit;

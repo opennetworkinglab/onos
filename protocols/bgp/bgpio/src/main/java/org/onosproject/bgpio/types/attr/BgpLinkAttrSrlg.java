@@ -33,6 +33,7 @@ import com.google.common.base.MoreObjects;
 public class BgpLinkAttrSrlg implements BgpValueType {
 
     public static final short ATTRNODE_SRLG = 1097;
+    public static final short SIZE = 4;
 
     /* Shared Risk Link Group */
     private List<Integer> sRlg = new ArrayList<Integer>();
@@ -69,7 +70,7 @@ public class BgpLinkAttrSrlg implements BgpValueType {
         ArrayList<Integer> sRlg = new ArrayList<Integer>();
 
         short lsAttrLength = cb.readShort();
-        int len = lsAttrLength / Integer.SIZE; // each element is of 4 octets
+        int len = lsAttrLength / SIZE; // each element is of 4 octets
 
         if (cb.readableBytes() < lsAttrLength) {
             Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,

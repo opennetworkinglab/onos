@@ -89,7 +89,7 @@ public class LinkStateAttributes implements BgpValueType {
     public static final short ATTR_PREFIX_OSPF_FWD_ADDR = 1156;
     public static final short ATTR_PREFIX_OPAQUE_ATTR = 1157;
 
-    public static final byte LINKSTATE_ATTRIB_TYPE = 50;
+    public static final byte LINKSTATE_ATTRIB_TYPE = 29;
     public static final byte TYPE_AND_LEN = 4;
     private boolean isLinkStateAttribute = false;
     private List<BgpValueType> linkStateAttribList;
@@ -139,14 +139,14 @@ public class LinkStateAttributes implements BgpValueType {
     public static LinkStateAttributes read(ChannelBuffer cb)
             throws BgpParseException {
 
-        ChannelBuffer tempBuf = cb;
+        ChannelBuffer tempBuf = cb.copy();
         Validation parseFlags = Validation.parseAttributeHeader(cb);
         int len = parseFlags.isShort() ? parseFlags.getLength() + TYPE_AND_LEN
                                       : parseFlags.getLength() + 3;
 
         ChannelBuffer data = tempBuf.readBytes(len);
-        if (!parseFlags.getFirstBit() || parseFlags.getSecondBit()
-                || parseFlags.getThirdBit()) {
+        if (!parseFlags.getFirstBit() && parseFlags.getSecondBit()
+                && parseFlags.getThirdBit()) {
             throw new BgpParseException(BgpErrorType.UPDATE_MESSAGE_ERROR,
                                         BgpErrorType.ATTRIBUTE_FLAGS_ERROR,
                                         data);
