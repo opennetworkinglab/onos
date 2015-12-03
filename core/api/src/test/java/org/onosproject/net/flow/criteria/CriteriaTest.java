@@ -279,6 +279,12 @@ public class CriteriaTest {
     Criterion sameAsMatchOduSignalType1 = Criteria.matchOduSignalType(oduSigType1);
     Criterion matchOduSignalType2 = Criteria.matchOduSignalType(oduSigType2);
 
+    int pbbIsid1 = 1;
+    int pbbIsid2 = 2;
+    Criterion matchPbbIsid1 = Criteria.matchPbbIsid(pbbIsid1);
+    Criterion sameAsMatchPbbIsid1 = Criteria.matchPbbIsid(pbbIsid1);
+    Criterion matchPbbIsid2 = Criteria.matchPbbIsid(pbbIsid2);
+
     /**
      * Checks that a Criterion object has the proper type, and then converts
      * it to the proper type.
@@ -337,6 +343,7 @@ public class CriteriaTest {
         assertThatClassIsImmutable(LambdaCriterion.class);
         assertThatClassIsImmutable(OduSignalIdCriterion.class);
         assertThatClassIsImmutable(OduSignalTypeCriterion.class);
+        assertThatClassIsImmutable(PbbIsidCriterion.class);
     }
 
     // PortCriterion class
@@ -1216,6 +1223,32 @@ public class CriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchOduSignalType1, sameAsMatchOduSignalType1)
                 .addEqualityGroup(matchOduSignalType2)
+                .testEquals();
+    }
+
+    // PbbIsidCriterion class
+
+    /**
+     * Test the matchPbbIsid method.
+     */
+    @Test
+    public void testMatchPbbIsidMethod() {
+        Criterion matchPbbIsid = Criteria.matchPbbIsid(pbbIsid1);
+        PbbIsidCriterion pbbIsidCriterion =
+                checkAndConvert(matchPbbIsid,
+                        Criterion.Type.PBB_ISID,
+                        PbbIsidCriterion.class);
+        assertThat(pbbIsidCriterion.pbbIsid(), is(equalTo(pbbIsid1)));
+    }
+
+    /**
+     * Test the equals() method of the PbbIsidCriterion class.
+     */
+    @Test
+    public void testPbbIsidCriterionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(matchPbbIsid1, sameAsMatchPbbIsid1)
+                .addEqualityGroup(matchPbbIsid2)
                 .testEquals();
     }
 }

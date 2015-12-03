@@ -581,6 +581,16 @@ public final class Criteria {
     }
 
     /**
+     * Creates a match on PBB I-SID field using the specific value.
+     *
+     * @param pbbIsid PBB I-SID
+     * @return match criterion
+     */
+    public static Criterion matchPbbIsid(int pbbIsid) {
+        return new PbbIsidCriterion(pbbIsid);
+    }
+
+    /**
      * Creates an extension criterion for the specified extension selector.
      *
      * @param extensionSelector extension selector

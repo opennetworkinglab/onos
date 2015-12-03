@@ -498,6 +498,7 @@ public abstract class FlowModBuilder {
                 break;
             case MPLS_TC:
             case PBB_ISID:
+                // TODO: need to implement PBB-ISID case when OpenFlowJ is ready
             default:
                 log.warn("Match type {} not yet implemented.", c.type());
             }
