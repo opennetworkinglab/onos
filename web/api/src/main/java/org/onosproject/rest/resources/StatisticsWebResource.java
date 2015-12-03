@@ -60,7 +60,7 @@ public class StatisticsWebResource  extends AbstractWebResource {
 
     /**
      * Get load statistics for all links or for a specific link.
-     * @rsModel StatisticsFlowsLink
+     * @onos.rsModel StatisticsFlowsLink
      * @param deviceId (optional) device ID for a specific link
      * @param port (optional) port number for a specified link
      * @return JSON encoded array lof Load objects
@@ -102,7 +102,7 @@ public class StatisticsWebResource  extends AbstractWebResource {
 
     /**
      * Get table statistics for all tables of all devices.
-     * @rsModel StatisticsFlowsTables
+     * @onos.rsModel StatisticsFlowsTables
      * @return JSON encoded array of table statistics
      */
     @GET
@@ -131,7 +131,7 @@ public class StatisticsWebResource  extends AbstractWebResource {
 
     /**
      * Get table statistics for all tables of a specified device.
-     * @rsModel StatisticsFlowsTables
+     * @onos.rsModel StatisticsFlowsTables
      * @param deviceId device ID
      * @return JSON encoded array of table statistics
      */
@@ -157,7 +157,7 @@ public class StatisticsWebResource  extends AbstractWebResource {
 
     /**
      * Get port statistics of all devices.
-     * @rsModel StatisticsPorts
+     * @onos.rsModel StatisticsPorts
      * @return JSON encoded array of port statistics
      */
     @GET
@@ -186,7 +186,7 @@ public class StatisticsWebResource  extends AbstractWebResource {
 
     /**
      * Get port statistics of a specified devices.
-     * @rsModel StatisticsPorts
+     * @onos.rsModel StatisticsPorts
      * @param deviceId device ID
      * @return JSON encoded array of port statistics
      */

@@ -58,7 +58,7 @@ public class FlowsWebResource extends AbstractWebResource {
 
     /**
      * Get all flow entries. Returns array of all flow rules in the system.
-     * @rsModel Flows
+     * @onos.rsModel Flows
      * @return array of all the intents in the system
      */
     @GET
@@ -80,7 +80,7 @@ public class FlowsWebResource extends AbstractWebResource {
     /**
      * Get flow entries of a device. Returns array of all flow rules for the
      * specified device.
-     * @rsModel Flows
+     * @onos.rsModel Flows
      * @param deviceId device identifier
      * @return flow data as an array
      */
@@ -103,7 +103,7 @@ public class FlowsWebResource extends AbstractWebResource {
     /**
      * Get flow rule. Returns the flow entry specified by the device id and
      * flow rule id.
-     * @rsModel Flows
+     * @onos.rsModel Flows
      * @param deviceId device identifier
      * @param flowId   flow rule identifier
      * @return flow data as an array
@@ -130,7 +130,7 @@ public class FlowsWebResource extends AbstractWebResource {
     /**
      * Create new flow rule. Creates and installs a new flow rule for the
      * specified device.
-     * @rsModel FlowsPost
+     * @onos.rsModel FlowsPost
      * @param deviceId device identifier
      * @param stream   flow rule JSON
      * @return status of the request - CREATED if the JSON is correct,

@@ -71,7 +71,7 @@
                     </groups>
                     <tags>
                         <tag>
-                            <name>rsModel</name>
+                            <name>onos.rsModel</name>
                             <placement>m</placement>
                             <head>Json model for REST api:</head>
                         </tag>

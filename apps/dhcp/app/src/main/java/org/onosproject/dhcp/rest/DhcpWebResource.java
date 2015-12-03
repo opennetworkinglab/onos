@@ -51,7 +51,7 @@ public class DhcpWebResource extends AbstractWebResource {
      * Shows lease, renewal and rebinding times in seconds.
      *
      * @return 200 OK
-     * @rsModel DhcpConfigGet
+     * @onos.rsModel DhcpConfigGet
      */
     @GET
     @Path("config")
@@ -68,7 +68,7 @@ public class DhcpWebResource extends AbstractWebResource {
      * Get all MAC/IP mappings.
      * Shows all MAC/IP mappings held by the DHCP server.
      *
-     * @rsModel DhcpConfigGetMappings
+     * @onos.rsModel DhcpConfigGetMappings
      * @return 200 OK
      */
     @GET
@@ -90,7 +90,7 @@ public class DhcpWebResource extends AbstractWebResource {
      * Get all available IPs.
      * Shows all the IPs in the free pool of the DHCP Server.
      *
-     * @rsModel DhcpConfigGetAvailable
+     * @onos.rsModel DhcpConfigGetAvailable
      * @return 200 OK
      */
     @GET
@@ -108,7 +108,7 @@ public class DhcpWebResource extends AbstractWebResource {
      * Post a new static MAC/IP binding.
      * Registers a static binding to the DHCP server, and displays the current set of bindings.
      *
-     * @rsModel DhcpConfigPut
+     * @onos.rsModel DhcpConfigPut
      * @param stream JSON stream
      * @return 200 OK
      */

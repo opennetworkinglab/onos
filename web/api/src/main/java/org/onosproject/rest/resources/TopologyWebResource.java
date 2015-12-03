@@ -50,7 +50,7 @@ public class TopologyWebResource extends AbstractWebResource {
      * Get overview of current topology.
      *
      * @return topology overview
-     * @rsModel Topology
+     * @onos.rsModel Topology
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -64,7 +64,7 @@ public class TopologyWebResource extends AbstractWebResource {
      * Get overview of topology SCCs.
      *
      * @return topology clusters overview
-     * @rsModel TopologyClusters
+     * @onos.rsModel TopologyClusters
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -82,7 +82,7 @@ public class TopologyWebResource extends AbstractWebResource {
      *
      * @param clusterId id of the cluster to query
      * @return topology cluster details
-     * @rsModel TopologyCluster
+     * @onos.rsModel TopologyCluster
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -106,7 +106,7 @@ public class TopologyWebResource extends AbstractWebResource {
      *
      * @param clusterId id of the cluster to query
      * @return topology cluster devices
-     * @rsModel TopologyClustersDevices
+     * @onos.rsModel TopologyClustersDevices
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -130,7 +130,7 @@ public class TopologyWebResource extends AbstractWebResource {
      *
      * @param clusterId id of the cluster to query
      * @return topology cluster links
-     * @rsModel LinksGet
+     * @onos.rsModel LinksGet
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -180,7 +180,7 @@ public class TopologyWebResource extends AbstractWebResource {
      * @param connectPointString deviceid:portnumber
      * @return JSON representation of true if the connect point is broadcast,
      * false otherwise
-     * @rsModel TopologyBroadcast
+     * @onos.rsModel TopologyBroadcast
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -205,7 +205,7 @@ public class TopologyWebResource extends AbstractWebResource {
      * @param connectPointString deviceid:portnumber
      * @return JSON representation of true if the connect point is broadcast,
      * false otherwise
-     * @rsModel TopologyInfrastructure
+     * @onos.rsModel TopologyInfrastructure
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)

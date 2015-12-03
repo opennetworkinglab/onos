@@ -73,7 +73,7 @@ public class HostsWebResource extends AbstractWebResource {
      * Returns array of all known end-station hosts.
      *
      * @return 200 OK
-     * @rsModel Hosts
+     * @onos.rsModel Hosts
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -89,7 +89,7 @@ public class HostsWebResource extends AbstractWebResource {
      *
      * @param id host identifier
      * @return 200 OK
-     * @rsModel Host
+     * @onos.rsModel Host
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -108,7 +108,7 @@ public class HostsWebResource extends AbstractWebResource {
      * @param mac  host MAC address
      * @param vlan host VLAN identifier
      * @return 200 OK
-     * @rsModel Host
+     * @onos.rsModel Host
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -128,7 +128,7 @@ public class HostsWebResource extends AbstractWebResource {
      * @param stream input JSON
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
-     * @rsModel HostPut
+     * @onos.rsModel HostPut
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)

@@ -243,7 +243,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
                                    String resourcePath, ArrayNode tagArray, ObjectNode definitions) {
         String fullPath = resourcePath, consumes = "", produces = "",
                 comment = javaMethod.getComment();
-        DocletTag tag = javaMethod.getTagByName("rsModel");
+        DocletTag tag = javaMethod.getTagByName("onos.rsModel");
         for (JavaAnnotation annotation : javaMethod.getAnnotations()) {
             String name = annotation.getType().getName();
             if (name.equals(PATH)) {
