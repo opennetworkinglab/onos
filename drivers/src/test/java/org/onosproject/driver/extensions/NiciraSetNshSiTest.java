@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 import org.junit.Test;
+import org.onosproject.net.NshServiceIndex;
 
 import com.google.common.testing.EqualsTester;
 
@@ -28,9 +29,9 @@ import com.google.common.testing.EqualsTester;
  */
 public class NiciraSetNshSiTest {
 
-    final NiciraSetNshSi nshSi1 = new NiciraSetNshSi((byte) 10);
-    final NiciraSetNshSi sameAsNshSi1 = new NiciraSetNshSi((byte) 10);
-    final NiciraSetNshSi nshSi2 = new NiciraSetNshSi((byte) 20);
+    final NiciraSetNshSi nshSi1 = new NiciraSetNshSi(NshServiceIndex.of((short) 10));
+    final NiciraSetNshSi sameAsNshSi1 = new NiciraSetNshSi(NshServiceIndex.of((short) 10));
+    final NiciraSetNshSi nshSi2 = new NiciraSetNshSi(NshServiceIndex.of((short) 20));
 
     /**
      * Checks the operation of equals() methods.
@@ -45,8 +46,8 @@ public class NiciraSetNshSiTest {
      */
     @Test
     public void testConstruction() {
-        final NiciraSetNshSi niciraSetNshSi = new NiciraSetNshSi((byte) 15);
+        final NiciraSetNshSi niciraSetNshSi = new NiciraSetNshSi(NshServiceIndex.of((short) 15));
         assertThat(niciraSetNshSi, is(notNullValue()));
-        assertThat(niciraSetNshSi.nshSi(), is((byte) 15));
+        assertThat(niciraSetNshSi.nshSi().serviceIndex(), is((short) 15));
     }
 }

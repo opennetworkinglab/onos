@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 import org.junit.Test;
+import org.onosproject.net.NshServicePathId;
 
 import com.google.common.testing.EqualsTester;
 
@@ -28,9 +29,9 @@ import com.google.common.testing.EqualsTester;
  */
 public class NiciraSetNshSpiTest {
 
-    final NiciraSetNshSpi nshSpi1 = new NiciraSetNshSpi(10);
-    final NiciraSetNshSpi sameAsNshSpi1 = new NiciraSetNshSpi(10);
-    final NiciraSetNshSpi nshSpi2 = new NiciraSetNshSpi(20);
+    final NiciraSetNshSpi nshSpi1 = new NiciraSetNshSpi(NshServicePathId.of(10));
+    final NiciraSetNshSpi sameAsNshSpi1 = new NiciraSetNshSpi(NshServicePathId.of(10));
+    final NiciraSetNshSpi nshSpi2 = new NiciraSetNshSpi(NshServicePathId.of(20));
 
     /**
      * Checks the operation of equals() methods.
@@ -45,8 +46,8 @@ public class NiciraSetNshSpiTest {
      */
     @Test
     public void testConstruction() {
-        final NiciraSetNshSpi niciraSetNshSpi = new NiciraSetNshSpi(10);
+        final NiciraSetNshSpi niciraSetNshSpi = new NiciraSetNshSpi(NshServicePathId.of(10));
         assertThat(niciraSetNshSpi, is(notNullValue()));
-        assertThat(niciraSetNshSpi.nshSpi(), is(10));
+        assertThat(niciraSetNshSpi.nshSpi().servicePathId(), is(10));
     }
 }

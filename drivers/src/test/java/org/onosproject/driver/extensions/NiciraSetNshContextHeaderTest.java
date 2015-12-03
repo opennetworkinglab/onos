@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 import org.junit.Test;
+import org.onosproject.net.NshContextHeader;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
 import com.google.common.testing.EqualsTester;
@@ -29,15 +30,15 @@ import com.google.common.testing.EqualsTester;
  */
 public class NiciraSetNshContextHeaderTest {
 
-    final NiciraSetNshContextHeader nshCh1 = new NiciraSetNshContextHeader(10,
+    final NiciraSetNshContextHeader nshCh1 = new NiciraSetNshContextHeader(NshContextHeader.of(10),
                                                                            ExtensionTreatmentType.
                                                                            ExtensionTreatmentTypes.
                                                                            NICIRA_SET_NSH_CH1.type());
-    final NiciraSetNshContextHeader sameAsNshCh1 = new NiciraSetNshContextHeader(10,
+    final NiciraSetNshContextHeader sameAsNshCh1 = new NiciraSetNshContextHeader(NshContextHeader.of(10),
                                                                                  ExtensionTreatmentType.
                                                                                  ExtensionTreatmentTypes.
                                                                                  NICIRA_SET_NSH_CH1.type());
-    final NiciraSetNshContextHeader nshCh2 = new NiciraSetNshContextHeader(20,
+    final NiciraSetNshContextHeader nshCh2 = new NiciraSetNshContextHeader(NshContextHeader.of(20),
                                                                            ExtensionTreatmentType.
                                                                            ExtensionTreatmentTypes.
                                                                            NICIRA_SET_NSH_CH1.type());
@@ -55,12 +56,12 @@ public class NiciraSetNshContextHeaderTest {
      */
     @Test
     public void testConstruction() {
-        final NiciraSetNshContextHeader niciraSetNshCh = new NiciraSetNshContextHeader(10,
+        final NiciraSetNshContextHeader niciraSetNshCh = new NiciraSetNshContextHeader(NshContextHeader.of(10),
                                                                                        ExtensionTreatmentType.
                                                                                        ExtensionTreatmentTypes.
                                                                                        NICIRA_SET_NSH_CH1.type());
         assertThat(niciraSetNshCh, is(notNullValue()));
-        assertThat(niciraSetNshCh.nshCh(), is(10));
+        assertThat(niciraSetNshCh.nshCh().nshContextHeader(), is(10));
         assertThat(niciraSetNshCh.type(), is(ExtensionTreatmentType.
                                              ExtensionTreatmentTypes.
                                              NICIRA_SET_NSH_CH1.type()));

@@ -16,13 +16,15 @@
 
 package org.onosproject.driver.extensions;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
+
 import org.onlab.util.KryoNamespace;
+import org.onosproject.net.NshServiceIndex;
 import org.onosproject.net.flow.AbstractExtension;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
-import java.util.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * Nicira set NSH SI extension instruction.
@@ -30,7 +32,7 @@ import java.util.Objects;
 public class NiciraSetNshSi extends AbstractExtension implements
         ExtensionTreatment {
 
-    private byte nshSi;
+    private NshServiceIndex nshSi;
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder().build();
 
@@ -38,7 +40,7 @@ public class NiciraSetNshSi extends AbstractExtension implements
      * Creates a new set nsh si instruction.
      */
     NiciraSetNshSi() {
-        nshSi = 0;
+        nshSi = NshServiceIndex.of((short) 0);
     }
 
     /**
@@ -46,7 +48,7 @@ public class NiciraSetNshSi extends AbstractExtension implements
      *
      * @param nshSi nsh service index
      */
-    NiciraSetNshSi(byte nshSi) {
+    NiciraSetNshSi(NshServiceIndex nshSi) {
         this.nshSi = nshSi;
     }
 
@@ -55,7 +57,7 @@ public class NiciraSetNshSi extends AbstractExtension implements
      *
      * @return nsh service index
      */
-    public byte nshSi() {
+    public NshServiceIndex nshSi() {
         return nshSi;
     }
 
@@ -66,12 +68,12 @@ public class NiciraSetNshSi extends AbstractExtension implements
 
     @Override
     public void deserialize(byte[] data) {
-        nshSi = appKryo.deserialize(data);
+        nshSi = NshServiceIndex.of(appKryo.deserialize(data));
     }
 
     @Override
     public byte[] serialize() {
-        return appKryo.serialize(nshSi);
+        return appKryo.serialize(nshSi.serviceIndex());
     }
 
     @Override

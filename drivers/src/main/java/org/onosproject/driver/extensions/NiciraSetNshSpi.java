@@ -16,13 +16,15 @@
 
 package org.onosproject.driver.extensions;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
+
 import org.onlab.util.KryoNamespace;
+import org.onosproject.net.NshServicePathId;
 import org.onosproject.net.flow.AbstractExtension;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
-import java.util.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * Nicira set NSH SPI extension instruction.
@@ -30,7 +32,7 @@ import java.util.Objects;
 public class NiciraSetNshSpi extends AbstractExtension implements
         ExtensionTreatment {
 
-    private int nshSpi;
+    private NshServicePathId nshSpi;
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder().build();
 
@@ -38,24 +40,24 @@ public class NiciraSetNshSpi extends AbstractExtension implements
      * Creates a new set nsh spi instruction.
      */
     NiciraSetNshSpi() {
-        nshSpi = 0;
+        nshSpi = NshServicePathId.of(0);
     }
 
     /**
      * Creates a new set nsh spi instruction with given spi.
      *
-     * @param nshSpi nsh service path index
+     * @param nshSpi nsh service path id
      */
-    NiciraSetNshSpi(int nshSpi) {
+    NiciraSetNshSpi(NshServicePathId nshSpi) {
         this.nshSpi = nshSpi;
     }
 
     /**
-     * Gets the nsh service path index.
+     * Gets the nsh service path id.
      *
-     * @return nsh service path index
+     * @return nsh service path id
      */
-    public int nshSpi() {
+    public NshServicePathId nshSpi() {
         return nshSpi;
     }
 
@@ -66,12 +68,12 @@ public class NiciraSetNshSpi extends AbstractExtension implements
 
     @Override
     public void deserialize(byte[] data) {
-        nshSpi = appKryo.deserialize(data);
+        nshSpi = NshServicePathId.of(appKryo.deserialize(data));
     }
 
     @Override
     public byte[] serialize() {
-        return appKryo.serialize(nshSpi);
+        return appKryo.serialize(nshSpi.servicePathId());
     }
 
     @Override
@@ -95,7 +97,7 @@ public class NiciraSetNshSpi extends AbstractExtension implements
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("nshSpi", nshSpi)
+                .add("nshSpi", nshSpi.toString())
                 .toString();
     }
 }

@@ -16,13 +16,15 @@
 
 package org.onosproject.driver.extensions;
 
-import com.google.common.base.MoreObjects;
+import java.util.Objects;
+
 import org.onlab.util.KryoNamespace;
+import org.onosproject.net.NshContextHeader;
 import org.onosproject.net.flow.AbstractExtension;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
-import java.util.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * Nicira set NSH Context header extension instruction.
@@ -30,7 +32,7 @@ import java.util.Objects;
 public class NiciraSetNshContextHeader extends AbstractExtension implements
         ExtensionTreatment {
 
-    private int nshCh;
+    private NshContextHeader nshCh;
     private ExtensionTreatmentType type;
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder().build();
@@ -41,7 +43,7 @@ public class NiciraSetNshContextHeader extends AbstractExtension implements
      * @param type extension treatment type
      */
     NiciraSetNshContextHeader(ExtensionTreatmentType type) {
-        this.nshCh = 0;
+        this.nshCh = NshContextHeader.of(0);
         this.type = type;
     }
 
@@ -51,7 +53,7 @@ public class NiciraSetNshContextHeader extends AbstractExtension implements
      * @param nshCh nsh context header
      * @param type extension treatment type
      */
-    NiciraSetNshContextHeader(int nshCh, ExtensionTreatmentType type) {
+    NiciraSetNshContextHeader(NshContextHeader nshCh, ExtensionTreatmentType type) {
         this.nshCh = nshCh;
         this.type = type;
     }
@@ -61,7 +63,7 @@ public class NiciraSetNshContextHeader extends AbstractExtension implements
      *
      * @return nsh context header
      */
-    public int nshCh() {
+    public NshContextHeader nshCh() {
         return nshCh;
     }
 
@@ -72,12 +74,12 @@ public class NiciraSetNshContextHeader extends AbstractExtension implements
 
     @Override
     public void deserialize(byte[] data) {
-        nshCh = appKryo.deserialize(data);
+        nshCh = NshContextHeader.of(appKryo.deserialize(data));
     }
 
     @Override
     public byte[] serialize() {
-        return appKryo.serialize(nshCh);
+        return appKryo.serialize(nshCh.nshContextHeader());
     }
 
     @Override
