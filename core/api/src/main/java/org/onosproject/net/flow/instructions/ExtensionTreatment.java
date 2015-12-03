@@ -19,12 +19,12 @@ package org.onosproject.net.flow.instructions;
 import org.onosproject.net.flow.Extension;
 
 /**
- * An extenstion for the treatment API.
+ * An extension for the treatment API.
  */
 public interface ExtensionTreatment extends Extension {
 
     /**
-     * Gets the type of the extension instruction.
+     * Gets the type of the treatment extension.
      *
      * @return type
      */

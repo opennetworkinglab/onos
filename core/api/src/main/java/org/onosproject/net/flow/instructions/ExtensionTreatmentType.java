@@ -32,11 +32,10 @@ public final class ExtensionTreatmentType {
      * These numbers have no impact on the actual OF type id.
      */
     public enum ExtensionTreatmentTypes {
-        // TODO fix type numbers to include experimenter id
         NICIRA_SET_TUNNEL_DST(0),
         NICIRA_RESUBMIT(1),
-        NICIRA_SET_NSH_SPI(32),
         NICIRA_RESUBMIT_TABLE(14),
+        NICIRA_SET_NSH_SPI(32),
         NICIRA_SET_NSH_SI(33),
         NICIRA_SET_NSH_CH1(34),
         NICIRA_SET_NSH_CH2(35),
@@ -46,7 +45,7 @@ public final class ExtensionTreatmentType {
         private ExtensionTreatmentType type;
 
         /**
-         * Creates a new named extension instruction type.
+         * Creates a new named extension treatment type.
          *
          * @param type type code
          */

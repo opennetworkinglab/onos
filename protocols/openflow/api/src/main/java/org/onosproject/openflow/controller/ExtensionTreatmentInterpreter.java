@@ -24,34 +24,34 @@ import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 
 /**
- * Interprets extension instructions and converts them to/from OpenFlow objects.
+ * Interprets extension treatments and converts them to/from OpenFlow objects.
  */
 @Beta
 public interface ExtensionTreatmentInterpreter extends HandlerBehaviour {
 
     /**
-     * Returns true if the given extension instruction is supported by this
+     * Returns true if the given extension treatment is supported by this
      * driver.
      *
-     * @param extensionTreatmentType extension instruction type
-     * @return true if the instruction is supported, otherwise false
+     * @param extensionTreatmentType extension treatment type
+     * @return true if the extension is supported, otherwise false
      */
     boolean supported(ExtensionTreatmentType extensionTreatmentType);
 
     /**
-     * Maps an extension instruction to an OpenFlow action.
+     * Maps an extension treatment to an OpenFlow action.
      *
      * @param factory OpenFlow factory
-     * @param extensionTreatment extension instruction
+     * @param extensionTreatment extension treatment
      * @return OpenFlow action
      */
     OFAction mapInstruction(OFFactory factory, ExtensionTreatment extensionTreatment);
 
     /**
-     * Maps an OpenFlow action to an extension instruction.
+     * Maps an OpenFlow action to an extension treatment.
      *
      * @param action OpenFlow action
-     * @return extension instruction
+     * @return extension treatment
      */
     ExtensionTreatment mapAction(OFAction action);
 

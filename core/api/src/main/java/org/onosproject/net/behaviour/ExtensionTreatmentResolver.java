@@ -22,13 +22,13 @@ import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
 /**
- * Provides access to the extension implemented by this driver.
+ * Provides access to the extension treatments implemented by this driver.
  */
 @Beta
 public interface ExtensionTreatmentResolver extends HandlerBehaviour {
 
     /**
-     * Gets an extension instruction instance of the specified type, if supported
+     * Gets an extension treatment instance of the specified type, if supported
      * by the driver.
      *
      * @param type type of extension to get
