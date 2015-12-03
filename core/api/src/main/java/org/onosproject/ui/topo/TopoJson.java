@@ -131,6 +131,10 @@ public final class TopoJson {
         if (hh.subdued()) {
             n.put(SUBDUE, true);
         }
+        NodeBadge badge = hh.badge();
+        if (badge != null) {
+            n.set(BADGE, json(badge));
+        }
         return n;
     }
 

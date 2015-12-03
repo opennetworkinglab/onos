@@ -312,8 +312,11 @@
         }
 
         data.hosts.forEach(function (host) {
-            var hdata = api.findNodeById(host.id);
+            var hdata = api.findNodeById(host.id),
+                badgeData = host.badge || null;
+
             if (hdata && !hdata.el.empty()) {
+                hdata.badge = badgeData;
                 if (!host.subdue) {
                     api.unsupNode(hdata.id, less);
                 }

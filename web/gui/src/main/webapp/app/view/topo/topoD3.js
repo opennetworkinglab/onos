@@ -265,6 +265,51 @@
         }
     }
 
+    function updateHostRendering(d) {
+        var node = d.el,
+            dim = icfg.host.radius.withGlyph,
+            box, dx, dy, bsel,
+            bdg = d.badge,
+            bcr = badgeConfig.radius,
+            bcgd = badgeConfig.gdelta;
+
+
+        updateHostLabel(d);
+        
+        // TODO: fine-tune dx, dy for badge placement relative to host Circle.
+            dx = -dim/2;
+            dy = -dim/2;
+
+        // handle badge, if defined
+        if (bdg) {
+            node.select('g.badge').remove();
+
+            bsel = node.append('g')
+                .classed('badge', true)
+                .classed(badgeStatus(bdg), true)
+                .attr('transform', sus.translate(dx + dim, dy));
+
+            bsel.append('circle')
+                .attr('r', bcr);
+
+            if (bdg.txt) {
+                bsel.append('text')
+                    .attr('dy', badgeConfig.yoff)
+                    .attr('text-anchor', 'middle')
+                    .text(bdg.txt);
+            } else if (bdg.gid) {
+                bsel.append('use')
+                    .attr({
+                        width: bcgd * 2,
+                        height: bcgd * 2,
+                        transform: sus.translate(-bcgd, -bcgd),
+                        'xlink:href': '#' + bdg.gid
+                    });
+
+            }
+        }
+    }
+
     function updateHostLabel(d) {
         var label = trimLabel(hostLabel(d));
         d.el.select('text').text(label);
@@ -292,7 +337,7 @@
     }
 
     function hostExisting(d) {
-        updateHostLabel(d);
+        updateHostRendering(d);
         api.posNode(d, true);
     }
 
