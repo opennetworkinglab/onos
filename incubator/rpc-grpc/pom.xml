@@ -122,6 +122,18 @@
         </extensions>
 
         <plugins>
+            <!-- TODO This is included to suppress the generation of javadocs for
+                this package. There is a problem when we try to package the
+                auto-generated code's javadoc into a jar. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <sourcepath>${basedir}/src/main/java/</sourcepath>
+                    <excludePackageNames>org.onosproject.incubator.rpc.grpc</excludePackageNames>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -224,8 +236,7 @@
                         </configuration>
                     </execution>
                 </executions>
-          </plugin>
-
+            </plugin>
         </plugins>
     </build>
 
