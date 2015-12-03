@@ -26,7 +26,12 @@ import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.slf4j.Logger;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Driver for Corsa TTP.
@@ -70,7 +75,14 @@ public class CorsaPipeline extends OVSCorsaPipeline {
                         "Failed to provision vlan/mpls table");
             }
         }));
+    }
 
+    @Override
+    protected Collection<FlowRule> processSpecificSwitch(ForwardingObjective fwd) {
+        /* Not supported by until CorsaPipelineV3 */
+        log.warn("Vlan switching not supported in corsa-v1 driver");
+        fail(fwd, ObjectiveError.UNSUPPORTED);
+        return Collections.emptySet();
     }
 
 }

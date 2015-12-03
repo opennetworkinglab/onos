@@ -84,6 +84,20 @@
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.CorsaSwitchHandshaker"/>
     </driver>
+    <driver name="corsa-v1"
+            manufacturer="Corsa" hwVersion="Corsa Element" swVersion="2.3.1">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.CorsaPipeline"/>
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.CorsaSwitchHandshaker"/>
+    </driver>
+    <driver name="corsa-v3"
+            manufacturer="Corsa" hwVersion="Corsa Element" swVersion="2.3.1">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.CorsaPipelineV3"/>
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.CorsaSwitchHandshaker"/>
+    </driver>
     <driver name="ofdpa" extends="default"
             manufacturer="Broadcom Corp." hwVersion="OF-DPA.*" swVersion="OF-DPA.*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"

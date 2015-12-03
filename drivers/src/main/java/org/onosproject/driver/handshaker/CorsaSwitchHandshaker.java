@@ -15,13 +15,17 @@
  */
 package org.onosproject.driver.handshaker;
 
+import org.onosproject.net.meter.MeterId;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeAlreadyStarted;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeCompleted;
 import org.onosproject.openflow.controller.driver.SwitchDriverSubHandshakeNotStarted;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
+import org.projectfloodlight.openflow.protocol.OFGroupMod;
+import org.projectfloodlight.openflow.protocol.OFGroupType;
 import org.projectfloodlight.openflow.protocol.OFMessage;
+import org.projectfloodlight.openflow.protocol.OFMeterMod;
 import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.TableId;
@@ -57,6 +61,19 @@ public class CorsaSwitchHandshaker extends AbstractOpenFlowSwitch {
                 .build();
 
         sendMsg(Collections.singletonList(fm));
+
+        OFGroupMod gm = factory().buildGroupDelete()
+                .setGroup(OFGroup.ALL)
+                .setGroupType(OFGroupType.ALL)
+                .build();
+
+        sendMsg(Collections.singletonList(gm));
+
+        OFMeterMod mm = factory().buildMeterMod()
+                .setMeterId(MeterId.ALL.id())
+                .build();
+
+        sendMsg(Collections.singletonList(mm));
 
         barrierXid = getNextTransactionId();
         OFBarrierRequest barrier = factory().buildBarrierRequest()

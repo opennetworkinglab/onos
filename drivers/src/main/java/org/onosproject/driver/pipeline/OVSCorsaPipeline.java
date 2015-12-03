@@ -67,6 +67,7 @@ import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupListener;
 import org.onosproject.net.group.GroupService;
+import org.onosproject.net.meter.MeterService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -96,8 +97,8 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
 
 
     protected static final int CONTROLLER_PRIORITY = 255;
-    private static final int DROP_PRIORITY = 0;
-    private static final int HIGHEST_PRIORITY = 0xffff;
+    protected static final int DROP_PRIORITY = 0;
+    protected static final int HIGHEST_PRIORITY = 0xffff;
 
     private final Logger log = getLogger(getClass());
 
@@ -105,6 +106,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
     protected FlowRuleService flowRuleService;
     private CoreService coreService;
     private GroupService groupService;
+    protected MeterService meterService;
     private FlowObjectiveStore flowObjectiveStore;
     protected DeviceId deviceId;
     protected ApplicationId appId;
@@ -140,6 +142,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         coreService = serviceDirectory.get(CoreService.class);
         flowRuleService = serviceDirectory.get(FlowRuleService.class);
         groupService = serviceDirectory.get(GroupService.class);
+        meterService = serviceDirectory.get(MeterService.class);
         flowObjectiveStore = context.store();
 
         groupService.addListener(new InnerGroupListener());
@@ -205,6 +208,7 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 Collection<TrafficTreatment> treatments = nextObjective.next();
                 if (treatments.size() == 1) {
                     TrafficTreatment treatment = treatments.iterator().next();
+                    treatment = processNextTreatment(treatment);
                     GroupBucket bucket =
                             DefaultGroupBucket.createIndirectGroupBucket(treatment);
                     final GroupKey key = new DefaultGroupKey(appKryo.serialize(nextObjective.id()));
@@ -231,6 +235,11 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 log.warn("Unknown next objective type {}", nextObjective.type());
         }
 
+    }
+
+    /* Hook for altering the NextObjective treatment */
+    protected TrafficTreatment processNextTreatment(TrafficTreatment treatment) {
+        return treatment;  /* Keep treatment as is for OVSCorsaPipeline */
     }
 
     private Collection<FlowRule> processForward(ForwardingObjective fwd) {
@@ -301,22 +310,32 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
     private Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
         log.debug("Processing specific forwarding objective");
         TrafficSelector selector = fwd.selector();
+
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
-        if (ethType == null || ethType.ethType().toShort() != Ethernet.TYPE_IPV4) {
-            fail(fwd, ObjectiveError.UNSUPPORTED);
-            return Collections.emptySet();
+        if (ethType != null) {
+            short et = ethType.ethType().toShort();
+            if (et == Ethernet.TYPE_IPV4) {
+                return processSpecificRoute(fwd);
+            } else if (et == Ethernet.TYPE_VLAN) {
+                /* The ForwardingObjective must specify VLAN ethtype in order to use the Transit Circuit */
+                return processSpecificSwitch(fwd);
+            }
         }
 
+        fail(fwd, ObjectiveError.UNSUPPORTED);
+        return Collections.emptySet();
+    }
+
+    private Collection<FlowRule> processSpecificRoute(ForwardingObjective fwd) {
         TrafficSelector filteredSelector =
                 DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPDst(
-                                ((IPCriterion)
-                                        selector.getCriterion(Criterion.Type.IPV4_DST)).ip())
+                                ((IPCriterion) fwd.selector().getCriterion(Criterion.Type.IPV4_DST)).ip())
                         .build();
 
-        TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
+        TrafficTreatment.Builder tb = processSpecificRoutingTreatment();
 
         if (fwd.nextId() != null) {
             NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
@@ -337,20 +356,35 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
                 .withSelector(filteredSelector)
                 .withTreatment(tb.build());
 
+        ruleBuilder = processSpecificRoutingRule(ruleBuilder);
+
         if (fwd.permanent()) {
             ruleBuilder.makePermanent();
         } else {
             ruleBuilder.makeTemporary(fwd.timeout());
         }
 
-        ruleBuilder.forTable(FIB_TABLE);
-
-
         return Collections.singletonList(ruleBuilder.build());
-
     }
 
-    private void processFilter(FilteringObjective filt, boolean install,
+    /* Hook for modifying Route traffic treatment */
+    protected TrafficTreatment.Builder processSpecificRoutingTreatment() {
+        return DefaultTrafficTreatment.builder();
+    }
+
+    /* Hook for modifying Route flow rule */
+    protected FlowRule.Builder processSpecificRoutingRule(FlowRule.Builder rb) {
+        return rb.forTable(FIB_TABLE);
+    }
+
+    protected Collection<FlowRule> processSpecificSwitch(ForwardingObjective fwd) {
+        /* Not supported by until CorsaPipelineV3 */
+        log.warn("Vlan switching not supported in ovs-corsa driver");
+        fail(fwd, ObjectiveError.UNSUPPORTED);
+        return Collections.emptySet();
+    }
+
+    protected void processFilter(FilteringObjective filt, boolean install,
                                              ApplicationId applicationId) {
         // This driver only processes filtering criteria defined with switch
         // ports as the key
@@ -441,19 +475,19 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         }));
     }
 
-    private void pass(Objective obj) {
+    protected void pass(Objective obj) {
         if (obj.context().isPresent()) {
             obj.context().get().onSuccess(obj);
         }
     }
 
-    private void fail(Objective obj, ObjectiveError error) {
+    protected void fail(Objective obj, ObjectiveError error) {
         if (obj.context().isPresent()) {
             obj.context().get().onError(obj, error);
         }
     }
 
-    private void initializePipeline() {
+    protected void initializePipeline() {
         processMacTable(true);
         processVlanMplsTable(true);
         processVlanTable(true);
