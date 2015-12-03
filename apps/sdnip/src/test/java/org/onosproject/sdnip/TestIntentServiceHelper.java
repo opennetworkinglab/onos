@@ -17,6 +17,7 @@ package org.onosproject.sdnip;
 
 import org.easymock.IArgumentMatcher;
 import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentUtils;
 
 import static org.easymock.EasyMock.reportMatcher;
 

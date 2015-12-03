@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package org.onosproject.sdnip;
+package org.onosproject.net.intent;
 
-import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +29,6 @@ public final class IntentUtils {
     private static final Logger log = LoggerFactory.getLogger(IntentUtils.class);
 
     private IntentUtils() {
-
     }
 
     /**

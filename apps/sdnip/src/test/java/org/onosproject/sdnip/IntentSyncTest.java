@@ -45,6 +45,7 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.intent.IntentUtils;
 import org.onosproject.routing.RouteEntry;
 
 import java.util.Collections;

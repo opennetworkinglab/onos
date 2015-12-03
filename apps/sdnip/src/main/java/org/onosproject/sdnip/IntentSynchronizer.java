@@ -30,6 +30,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.IntentUtils;
 import org.onosproject.net.intent.Key;
 import org.onosproject.routing.IntentSynchronizationService;
 import org.slf4j.Logger;
