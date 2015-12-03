@@ -15,15 +15,10 @@
  */
 package org.onosproject.vtnweb.web;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.onosproject.codec.CodecContext;
+import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.vtnrsc.FlowClassifier;
-import org.onosproject.vtnrsc.PortChain;
-import org.onosproject.vtnrsc.PortPair;
-import org.onosproject.vtnrsc.PortPairGroup;
+import org.onosproject.codec.impl.CodecManager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,17 +28,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class SfcCodecContext implements CodecContext {
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final Map<Class<?>, JsonCodec> codecs = new ConcurrentHashMap<>();
+    private final CodecManager codecManager = new CodecManager();
+    private final VtnCodecRegistrator manager = new VtnCodecRegistrator();
 
     /**
      * Constructs a new mock codec context.
      */
     public SfcCodecContext() {
-        codecs.clear();
-        registerCodec(PortPair.class, new PortPairCodec());
-        registerCodec(PortChain.class, new PortChainCodec());
-        registerCodec(PortPairGroup.class, new PortPairGroupCodec());
-        registerCodec(FlowClassifier.class, new FlowClassifierCodec());
+        codecManager.activate();
+        manager.codecService = codecManager;
+        manager.activate();
     }
 
     @Override
@@ -58,20 +52,17 @@ public class SfcCodecContext implements CodecContext {
         return null;
     }
 
-    /**
-     * Registers the specified JSON codec for the given entity class.
-     *
-     * @param entityClass entity class
-     * @param codec       JSON codec
-     * @param <T>         entity type
-     */
-    public <T> void registerCodec(Class<T> entityClass, JsonCodec<T> codec) {
-        codecs.putIfAbsent(entityClass, codec);
-    }
-
-    @SuppressWarnings("unchecked")
     @Override
     public <T> JsonCodec<T> codec(Class<T> entityClass) {
-        return codecs.get(entityClass);
+        return codecManager.getCodec(entityClass);
+    }
+
+    /**
+     * Get the codec manager.
+     *
+     * @return instance of codec manager
+     */
+    public CodecService codecManager() {
+        return codecManager;
     }
 }
