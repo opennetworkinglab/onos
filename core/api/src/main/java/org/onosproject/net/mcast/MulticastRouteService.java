@@ -16,6 +16,7 @@
 package org.onosproject.net.mcast;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.ConnectPoint;
 
 import java.util.List;
@@ -24,7 +25,8 @@ import java.util.List;
  * A service interface for maintaining multicast information.
  */
 @Beta
-public interface MulticastRouteService {
+public interface MulticastRouteService
+        extends ListenerService<McastEvent, McastListener> {
 
     /**
      * Adds a route to the information base.
