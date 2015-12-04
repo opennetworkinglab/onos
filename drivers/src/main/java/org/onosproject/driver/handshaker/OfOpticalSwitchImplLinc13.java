@@ -16,7 +16,13 @@
 package org.onosproject.driver.handshaker;
 
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.DefaultOchSignalComparator;
 import org.onosproject.net.Device;
+import org.onosproject.net.GridType;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.LambdaQuery;
 import org.onosproject.openflow.controller.OpenFlowOpticalSwitch;
 import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
@@ -42,7 +48,6 @@ import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmExpOchSigId;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
-import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.U8;
 
 import java.io.IOException;
@@ -51,7 +56,11 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * LINC-OE Optical Emulator switch class.
@@ -65,10 +74,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * As LINC implements custom OF optical extensions (in contrast to the final standard as specified in
  * ONF TS-022 (March 15, 2015), we need to rewrite flow stat requests and flow mods in {@link #sendMsg(OFMessage)}.
  *
+ * LINC exposes OchSignal resources: 80 lambdas of 50 GHz around ITU-T G.694.1 center frequency 193.1 GHz.
+ *
  */
 public class OfOpticalSwitchImplLinc13
- extends AbstractOpenFlowSwitch implements OpenFlowOpticalSwitch {
+ extends AbstractOpenFlowSwitch implements OpenFlowOpticalSwitch, LambdaQuery {
 
+    private static final int LAMBDA_COUNT = 80;
     private final AtomicBoolean driverHandshakeComplete = new AtomicBoolean(false);
     private long barrierXidToWaitFor = -1;
 
@@ -267,13 +279,13 @@ public class OfOpticalSwitchImplLinc13
     /**
      * Checks if given port is also part of the regular port desc stats, i.e., is the port a tap port.
      *
-     * @param port given OF port
+     * @param port given port number
      * @return true if the port is a tap (OCh), false otherwise (OMS port)
      */
-    private boolean hasPort(OFPort port) {
+    private boolean isOChPort(long port) {
         for (OFPortDescStatsReply reply : this.ports) {
             for (OFPortDesc p : reply.getEntries()) {
-                if (p.getPortNo().equals(port)) {
+                if (p.getPortNo().getPortNumber() == port) {
                     return true;
                 }
             }
@@ -328,7 +340,7 @@ public class OfOpticalSwitchImplLinc13
             short signalType;
 
             // FIXME: use constants once loxi has full optical extensions
-            if (hasPort(p.getPortNo())) {
+            if (isOChPort(p.getPortNo().getPortNumber())) {
                 signalType = 5;      // OCH port
             } else {
                 signalType = 2;      // OMS port
@@ -350,5 +362,24 @@ public class OfOpticalSwitchImplLinc13
     @Override
     public Set<PortDescPropertyType> getPortTypes() {
         return ImmutableSet.of(PortDescPropertyType.OPTICAL_TRANSPORT);
+    }
+
+    @Override
+    public SortedSet<OchSignal> queryLambdas(PortNumber port) {
+        // OCh ports don't have lambdas
+        if (isOChPort(port.toLong())) {
+            return Collections.emptySortedSet();
+        }
+
+        // OMS ports expose 80 lambdas of 50GHz width, centered around the ITU-T center frequency.
+        // We report these with a spacing of 12.5 GHz.
+        List<OchSignal> lambdas = IntStream.range(0, LAMBDA_COUNT)
+                .mapToObj(x -> new OchSignal(GridType.FLEX, ChannelSpacing.CHL_12P5GHZ, x - (LAMBDA_COUNT / 2), 1))
+                .collect(Collectors.toList());
+
+        SortedSet<OchSignal> result = new TreeSet<>(new DefaultOchSignalComparator());
+        result.addAll(lambdas);
+
+        return result;
     }
 }

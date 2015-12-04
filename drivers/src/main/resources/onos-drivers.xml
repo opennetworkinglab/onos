@@ -74,6 +74,8 @@
             swVersion="LINC-OE OpenFlow Software Switch 1.1">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.OfOpticalSwitchImplLinc13"/>
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.driver.handshaker.OfOpticalSwitchImplLinc13"/>
     </driver>
     <driver name="corsa"
             manufacturer="Corsa" hwVersion="Corsa Element" swVersion="2.3.1">
@@ -134,6 +136,8 @@
             manufacturer="calient inc" hwVersion="calient hardware"
             swVersion="ocs switch">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.CalientFiberSwitchHandshaker"/>
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.driver.handshaker.CalientFiberSwitchHandshaker"/>
     </driver>
     <driver name="onosfw" extends="ovs"

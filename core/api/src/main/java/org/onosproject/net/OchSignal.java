@@ -17,6 +17,7 @@ package org.onosproject.net;
 
 import com.google.common.base.MoreObjects;
 import org.onlab.util.Frequency;
+import org.onlab.util.Spectrum;
 
 import java.util.Objects;
 
@@ -32,7 +33,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class OchSignal implements Lambda {
 
-    public static final Frequency CENTER_FREQUENCY = Frequency.ofTHz(193.1);
     public static final Frequency FLEX_GRID_SLOT = Frequency.ofGHz(12.5);
     private static final GridType DEFAULT_OCH_GRIDTYPE = GridType.DWDM;
     private static final ChannelSpacing DEFAULT_CHANNEL_SPACING = ChannelSpacing.CHL_50GHZ;
@@ -78,7 +78,7 @@ public class OchSignal implements Lambda {
 
         this.gridType = DEFAULT_OCH_GRIDTYPE;
         this.channelSpacing = DEFAULT_CHANNEL_SPACING;
-        this.spacingMultiplier = (int) (centerFrequency.subtract(OchSignal.CENTER_FREQUENCY).asHz() / grid.asHz());
+        this.spacingMultiplier = (int) (centerFrequency.subtract(Spectrum.CENTER_FREQUENCY).asHz() / grid.asHz());
         this.slotGranularity = (int) Math.round((double) grid.asHz() / ChannelSpacing.CHL_12P5GHZ.frequency().asHz());
     }
 
@@ -86,7 +86,7 @@ public class OchSignal implements Lambda {
         this.gridType = DEFAULT_OCH_GRIDTYPE;
         this.channelSpacing = channelSpacing;
         this.spacingMultiplier = (int) Math.round((double) centerFrequency.
-                subtract(OchSignal.CENTER_FREQUENCY).asHz() / channelSpacing().frequency().asHz());
+                subtract(Spectrum.CENTER_FREQUENCY).asHz() / channelSpacing().frequency().asHz());
         this.slotGranularity = slotGranularity;
     }
 
@@ -132,7 +132,7 @@ public class OchSignal implements Lambda {
      * @return frequency in MHz
      */
     public Frequency centralFrequency() {
-        return CENTER_FREQUENCY.add(channelSpacing().frequency().multiply(spacingMultiplier));
+        return Spectrum.CENTER_FREQUENCY.add(channelSpacing().frequency().multiply(spacingMultiplier));
     }
 
     /**

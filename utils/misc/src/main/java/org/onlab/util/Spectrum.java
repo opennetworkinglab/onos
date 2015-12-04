@@ -19,11 +19,12 @@ package org.onlab.util;
  * Telecom optical wavelength bands: O, E, S, C, L and U bands.
  *
  * See ITU-T G-Series Recommendations, Supplement 39
+ * See ITU-T G.694.1 for center frequency definition.
  */
 public final class Spectrum {
 
-    private Spectrum() {
-    }
+    // Center frequency
+    public static final Frequency CENTER_FREQUENCY = Frequency.ofTHz(193.1);
 
     // O band (original): 1260 to 1360 nm
     public static final Frequency O_BAND_MIN = Frequency.ofTHz(220.436);
@@ -48,4 +49,7 @@ public final class Spectrum {
     // U band (ultra-long wavelength): 1625 to 1675 nm
     public static final Frequency U_BAND_MIN = Frequency.ofTHz(178.981);
     public static final Frequency U_BAND_MAX = Frequency.ofTHz(184.488);
+
+    private Spectrum() {
+    }
 }
