@@ -15,16 +15,15 @@
  */
 
 
-
 package org.onlab.packet;
 
 import java.nio.ByteBuffer;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.*;
 
 /**
  * Implements ICMP packet format.
- *
  */
 public class ICMP extends BasePacket {
     protected byte icmpType;
@@ -45,8 +44,7 @@ public class ICMP extends BasePacket {
     }
 
     /**
-     * @param icmpType
-     *            to set
+     * @param icmpType to set
      * @return this
      */
     public ICMP setIcmpType(final byte icmpType) {
@@ -62,8 +60,7 @@ public class ICMP extends BasePacket {
     }
 
     /**
-     * @param icmpCode
-     *            code to set
+     * @param icmpCode code to set
      * @return this
      */
     public ICMP setIcmpCode(final byte icmpCode) {
@@ -79,8 +76,7 @@ public class ICMP extends BasePacket {
     }
 
     /**
-     * @param checksum
-     *            the checksum to set
+     * @param checksum the checksum to set
      * @return this
      */
     public ICMP setChecksum(final short checksum) {
@@ -219,5 +215,14 @@ public class ICMP extends BasePacket {
             icmp.payload.setParent(icmp);
             return icmp;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("icmpType", Byte.toString(icmpType))
+                .add("icmpCode", Byte.toString(icmpCode))
+                .add("checksum", Short.toString(checksum))
+                .toString();
     }
 }

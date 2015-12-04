@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-
-
 package org.onlab.packet;
 
 /**
- *
+ * Packet Interface.
  */
 public interface IPacket {
+
     /**
+     * Obtain the packet payload.
      *
      * @return the payload
      */
     IPacket getPayload();
 
     /**
+     * Assign the packet payload.
      *
      * @param packet new payload
      * @return self
@@ -36,12 +37,14 @@ public interface IPacket {
     IPacket setPayload(IPacket packet);
 
     /**
+     * Obtain the parent packet.
      *
      * @return parent packet
      */
     IPacket getParent();
 
     /**
+     * Configure a new parent packet.
      *
      * @param packet new parent
      * @return self
@@ -49,7 +52,7 @@ public interface IPacket {
     IPacket setParent(IPacket packet);
 
     /**
-     * Reset any checksums as needed, and call resetChecksum on all parents.
+     * Reset any checksum as needed, and call resetChecksum on all parents.
      */
     void resetChecksum();
 
@@ -62,7 +65,7 @@ public interface IPacket {
     byte[] serialize();
 
     /**
-     * Deserializes this packet layer and all possible payloads.
+     * Deserialize this packet layer and all possible payloads.
      *
      * NOTE: This method has been deprecated and will be removed in a future
      * release. It is now recommended to use the Deserializer function provided

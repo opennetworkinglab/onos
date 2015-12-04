@@ -17,6 +17,7 @@
 package org.onlab.packet;
 
 import com.google.common.base.Charsets;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -111,6 +112,9 @@ public class DhcpTest {
         PacketTestUtils.testDeserializeTruncated(deserializer, byteHeader);
     }
 
+    /**
+     * Tests deserialize and getters.
+     */
     @Test
     public void testDeserialize() throws Exception {
         DHCP dhcp = deserializer.deserialize(byteHeader, 0, byteHeader.length);
@@ -134,4 +138,28 @@ public class DhcpTest {
         assertEquals(hostNameOption, dhcp.options.get(0));
     }
 
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringDhcp() throws Exception {
+        DHCP dhcp = deserializer.deserialize(byteHeader, 0, byteHeader.length);
+        String str = dhcp.toString();
+
+        assertTrue(StringUtils.contains(str, "opCode=" + opCode));
+        assertTrue(StringUtils.contains(str, "hardwareType=" + hardwareType));
+        assertTrue(StringUtils.contains(str, "hardwareAddressLength=" + hardwareAddressLength));
+        assertTrue(StringUtils.contains(str, "hops=" + hops));
+        assertTrue(StringUtils.contains(str, "transactionId=" + transactionId));
+        assertTrue(StringUtils.contains(str, "seconds=" + seconds));
+        assertTrue(StringUtils.contains(str, "flags=" + flags));
+        assertTrue(StringUtils.contains(str, "clientIPAddress=" + clientIpAddress));
+        assertTrue(StringUtils.contains(str, "yourIPAddress=" + yourIpAddress));
+        assertTrue(StringUtils.contains(str, "serverIPAddress=" + serverIpAddress));
+        assertTrue(StringUtils.contains(str, "gatewayIPAddress=" + gatewayIpAddress));
+        assertTrue(StringUtils.contains(str, "clientHardwareAddress=" + Arrays.toString(clientHardwareAddress)));
+        assertTrue(StringUtils.contains(str, "serverName=" + serverName));
+        assertTrue(StringUtils.contains(str, "bootFileName=" + bootFileName));
+        // TODO: add option unit test
+    }
 }

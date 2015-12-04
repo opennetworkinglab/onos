@@ -15,16 +15,19 @@
  */
 package org.onlab.packet;
 
+import org.slf4j.Logger;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
+import java.util.Arrays;
 
-import static org.slf4j.LoggerFactory.getLogger;
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.packet.PacketUtils.checkInput;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
@@ -331,5 +334,16 @@ public class IGMP extends BasePacket {
         result = prime * result + this.checksum;
         result = prime * result + this.groups.hashCode();
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("igmpType", Byte.toString(igmpType))
+                .add("resField", Byte.toString(resField))
+                .add("checksum", Short.toString(checksum))
+                .add("unsupportTypeData", Arrays.toString(unsupportTypeData))
+                .toString();
+        // TODO: need to handle groups
     }
 }

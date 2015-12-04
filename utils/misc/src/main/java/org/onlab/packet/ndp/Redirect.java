@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -221,5 +222,13 @@ public class Redirect extends BasePacket {
 
             return redirect;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("targetAddress", Arrays.toString(targetAddress))
+                .add("destinationAddress", Arrays.toString(destinationAddress))
+                .toString();
     }
 }

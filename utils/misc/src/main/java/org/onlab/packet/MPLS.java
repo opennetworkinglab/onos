@@ -19,8 +19,12 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
+/**
+ * Representation of an MPLS Packet.
+ */
 public class MPLS extends BasePacket {
     public static final int HEADER_LENGTH = 4;
 
@@ -158,5 +162,15 @@ public class MPLS extends BasePacket {
 
             return mpls;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("label", Integer.toString(label))
+                .add("bos", Byte.toString(bos))
+                .add("ttl", Byte.toString(ttl))
+                .add("protocol", Byte.toString(protocol))
+                .toString();
     }
 }

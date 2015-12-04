@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -295,5 +296,15 @@ public class PIM extends BasePacket {
 
             return pim;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("version", Byte.toString(version))
+                .add("type", Byte.toString(type))
+                .add("reserved", Byte.toString(reserved))
+                .add("checksum", Short.toString(reserved))
+                .toString();
     }
 }

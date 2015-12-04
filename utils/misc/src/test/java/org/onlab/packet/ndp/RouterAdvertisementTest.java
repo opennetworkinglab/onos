@@ -15,6 +15,7 @@
  */
 package org.onlab.packet.ndp;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.packet.DeserializationException;
@@ -136,5 +137,23 @@ public class RouterAdvertisementTest {
 
         assertTrue(ra1.equals(ra1));
         assertFalse(ra1.equals(ra2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringRA() throws Exception {
+        RouterAdvertisement ra = deserializer.deserialize(bytePacket, 0, bytePacket.length);
+        String str = ra.toString();
+
+        assertTrue(StringUtils.contains(str, "currentHopLimit=" + (byte) 3));
+        assertTrue(StringUtils.contains(str, "mFlag=" + (byte) 1));
+        assertTrue(StringUtils.contains(str, "oFlag=" + (byte) 1));
+        assertTrue(StringUtils.contains(str, "routerLifetime=" + (short) 0x258));
+        assertTrue(StringUtils.contains(str, "reachableTime=" + 0x3e8));
+        assertTrue(StringUtils.contains(str, "retransmitTimer=" + 0x1f4));
+
+        // TODO: need to handle options
     }
 }

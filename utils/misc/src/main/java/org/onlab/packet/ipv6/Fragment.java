@@ -25,6 +25,7 @@ import org.onlab.packet.IPv6;
 
 import java.nio.ByteBuffer;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -249,5 +250,15 @@ public class Fragment extends BasePacket implements IExtensionHeader {
 
             return fragment;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("nextHeader", Byte.toString(nextHeader))
+                .add("fragmentOffset", Short.toString(fragmentOffset))
+                .add("moreFragment", Byte.toString(moreFragment))
+                .add("identification", Integer.toString(identification))
+                .toString();
     }
 }

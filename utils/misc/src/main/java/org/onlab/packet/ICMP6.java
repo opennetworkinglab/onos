@@ -29,6 +29,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -362,5 +363,14 @@ public class ICMP6 extends BasePacket {
 
             return icmp6;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("icmpType", Byte.toString(icmpType))
+                .add("icmpCode", Byte.toString(icmpCode))
+                .add("checksum", Short.toString(checksum))
+                .toString();
     }
 }

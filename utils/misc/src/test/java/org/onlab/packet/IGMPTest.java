@@ -93,4 +93,12 @@ public class IGMPTest {
         IGMP igmp = deserializer.deserialize(data, 0, data.length);
         assertTrue(igmp.equals(igmpMembership));
     }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringIgmp() throws Exception {
+        // TODO: add toString unit test
+    }
 }

@@ -95,4 +95,18 @@ public abstract class IGMPGroup {
      * @return The serialized message
      */
     public abstract byte[] serialize(ByteBuffer bb);
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        sb.append("auxInfo= ");
+        sb.append(auxInfo);
+        sb.append("gaddr= ");
+        sb.append(gaddr);
+        sb.append("sources= ");
+        sb.append(sources.toString());
+        sb.append("]");
+        return sb.toString();
+    }
 }

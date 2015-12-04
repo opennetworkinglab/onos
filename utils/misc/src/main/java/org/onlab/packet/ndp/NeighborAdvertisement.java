@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -274,5 +275,15 @@ public class NeighborAdvertisement extends BasePacket {
 
             return neighborAdvertisement;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("routerFlag", Byte.toString(routerFlag))
+                .add("solicitedFlag", Byte.toString(solicitedFlag))
+                .add("overrideFlag", Byte.toString(overrideFlag))
+                .add("targetAddress", Arrays.toString(targetAddress))
+                .toString();
     }
 }

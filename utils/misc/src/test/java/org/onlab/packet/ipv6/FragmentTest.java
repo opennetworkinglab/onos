@@ -16,6 +16,7 @@
 
 package org.onlab.packet.ipv6;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -109,5 +110,19 @@ public class FragmentTest {
 
         assertTrue(frag1.equals(frag1));
         assertFalse(frag1.equals(frag2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringFragment() throws Exception {
+        Fragment frag = deserializer.deserialize(bytePacket, 0, bytePacket.length);
+        String str = frag.toString();
+
+        assertTrue(StringUtils.contains(str, "nextHeader=" + (byte) 0x11));
+        assertTrue(StringUtils.contains(str, "fragmentOffset=" + (short) 0x1f));
+        assertTrue(StringUtils.contains(str, "moreFragment=" + (byte) 1));
+        assertTrue(StringUtils.contains(str, "identification=" + 0x1357));
     }
 }

@@ -16,6 +16,7 @@
 
 package org.onlab.packet.ipv6;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,11 +25,10 @@ import org.onlab.packet.Deserializer;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.UDP;
 
+import java.util.Arrays;
+
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for class {@link BaseOptions}.
@@ -111,5 +111,18 @@ public class BaseOptionsTest {
 
         assertTrue(baseopt1.equals(baseopt1));
         assertFalse(baseopt1.equals(baseopt2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringBaseOptions() throws Exception {
+        BaseOptions baseopt = deserializer.deserialize(bytePacket, 0, bytePacket.length);
+        String str = baseopt.toString();
+
+        assertTrue(StringUtils.contains(str, "nextHeader=" + (byte) 0x11));
+        assertTrue(StringUtils.contains(str, "headerExtLength=" + (byte) 0x00));
+        assertTrue(StringUtils.contains(str, "options=" + Arrays.toString(options)));
     }
 }

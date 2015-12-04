@@ -16,12 +16,14 @@
 
 package org.onlab.packet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for the ICMP class.
@@ -59,6 +61,9 @@ public class ICMPTest {
         PacketTestUtils.testDeserializeTruncated(deserializer, headerBytes);
     }
 
+    /**
+     * Tests deserialize and getters.
+     */
     @Test
     public void testDeserialize() throws Exception {
         ICMP icmp = deserializer.deserialize(headerBytes, 0, headerBytes.length);
@@ -66,5 +71,18 @@ public class ICMPTest {
         assertEquals(icmpType, icmp.getIcmpType());
         assertEquals(icmpCode, icmp.getIcmpCode());
         assertEquals(checksum, icmp.getChecksum());
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringIcmp() throws Exception {
+        ICMP icmp = deserializer.deserialize(headerBytes, 0, headerBytes.length);
+        String str = icmp.toString();
+
+        assertTrue(StringUtils.contains(str, "icmpType=" + icmpType));
+        assertTrue(StringUtils.contains(str, "icmpCode=" + icmpCode));
+        assertTrue(StringUtils.contains(str, "checksum=" + checksum));
     }
 }

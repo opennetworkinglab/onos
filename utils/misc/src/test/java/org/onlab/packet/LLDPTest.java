@@ -89,6 +89,9 @@ public class LLDPTest {
         PacketTestUtils.testDeserializeTruncated(deserializer, bytes);
     }
 
+    /**
+     * Tests deserialize and getters.
+     */
     @Test
     public void testDeserialize() throws Exception {
         LLDP lldp = deserializer.deserialize(bytes, 0, bytes.length);
@@ -111,5 +114,16 @@ public class LLDPTest {
         assertEquals(LLDPOrganizationalTLV.ORGANIZATIONAL_TLV_TYPE, optionalTlv.getType());
         assertEquals(optionalTlvSize, optionalTlv.getLength());
         assertTrue(Arrays.equals(optionalTlvValue, optionalTlv.getValue()));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringLLDP() throws Exception {
+        LLDP lldp = deserializer.deserialize(bytes, 0, bytes.length);
+        String str = lldp.toString();
+
+        // TODO: need to add LLDP toString unit test
     }
 }

@@ -24,10 +24,7 @@ import org.onlab.packet.PacketTestUtils;
 import java.nio.ByteBuffer;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for class {@link RouterSolicitation}.
@@ -110,5 +107,16 @@ public class RouterSolicitationTest {
 
         assertTrue(rs1.equals(rs1));
         assertFalse(rs1.equals(rs2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringRS() throws Exception {
+        RouterSolicitation rs = deserializer.deserialize(bytePacket, 0, bytePacket.length);
+        String str = rs.toString();
+
+        // TODO: need to handle Options
     }
 }

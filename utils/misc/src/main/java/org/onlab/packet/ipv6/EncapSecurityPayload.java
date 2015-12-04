@@ -24,6 +24,7 @@ import org.onlab.packet.IPv6;
 
 import java.nio.ByteBuffer;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -184,5 +185,13 @@ public class EncapSecurityPayload extends BasePacket {
 
             return encapSecurityPayload;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("securityParamIndex", Integer.toString(securityParamIndex))
+                .add("sequence", Integer.toString(sequence))
+                .toString();
     }
 }

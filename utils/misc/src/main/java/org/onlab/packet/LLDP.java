@@ -20,13 +20,15 @@
 package org.onlab.packet;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.*;
 
 /**
- *
+ * Representation of an LLDP Packet.
  */
 public class LLDP extends BasePacket {
     public static final byte CHASSIS_TLV_TYPE = 1;
@@ -59,8 +61,7 @@ public class LLDP extends BasePacket {
     }
 
     /**
-     * @param chassis
-     *            the chassisId to set
+     * @param chassis the chassisId to set
      * @return this
      */
     public LLDP setChassisId(final LLDPTLV chassis) {
@@ -76,8 +77,7 @@ public class LLDP extends BasePacket {
     }
 
     /**
-     * @param portId
-     *            the portId to set
+     * @param portId the portId to set
      * @return this
      */
     public LLDP setPortId(final LLDPTLV portId) {
@@ -93,8 +93,7 @@ public class LLDP extends BasePacket {
     }
 
     /**
-     * @param ttl
-     *            the ttl to set
+     * @param ttl the ttl to set
      * @return this
      */
     public LLDP setTtl(final LLDPTLV ttl) {
@@ -110,8 +109,7 @@ public class LLDP extends BasePacket {
     }
 
     /**
-     * @param optionalTLVList
-     *            the optionalTLVList to set
+     * @param optionalTLVList the optionalTLVList to set
      * @return this
      */
     public LLDP setOptionalTLVList(final List<LLDPTLV> optionalTLVList) {
@@ -162,22 +160,22 @@ public class LLDP extends BasePacket {
                 break;
             }
             switch (tlv.getType()) {
-            case 0x0:
-                // can throw this one away, its just an end delimiter
-                break;
-            case 0x1:
-                this.chassisId = tlv;
-                break;
-            case 0x2:
-                this.portId = tlv;
-                break;
-            case 0x3:
-                this.ttl = tlv;
-                break;
+                case 0x0:
+                    // can throw this one away, its just an end delimiter
+                    break;
+                case 0x1:
+                    this.chassisId = tlv;
+                    break;
+                case 0x2:
+                    this.portId = tlv;
+                    break;
+                case 0x3:
+                    this.ttl = tlv;
+                    break;
 
-            default:
-                this.optionalTLVList.add(tlv);
-                break;
+                default:
+                    this.optionalTLVList.add(tlv);
+                    break;
             }
         } while (tlv.getType() != 0 && bb.hasRemaining());
         return this;
@@ -273,21 +271,21 @@ public class LLDP extends BasePacket {
                     break;
                 }
                 switch (tlv.getType()) {
-                case 0x0:
-                    // can throw this one away, it's just an end delimiter
-                    break;
-                case 0x1:
-                    lldp.chassisId = tlv;
-                    break;
-                case 0x2:
-                    lldp.portId = tlv;
-                    break;
-                case 0x3:
-                    lldp.ttl = tlv;
-                    break;
-                default:
-                    lldp.optionalTLVList.add(tlv);
-                    break;
+                    case 0x0:
+                        // can throw this one away, it's just an end delimiter
+                        break;
+                    case 0x1:
+                        lldp.chassisId = tlv;
+                        break;
+                    case 0x2:
+                        lldp.portId = tlv;
+                        break;
+                    case 0x3:
+                        lldp.ttl = tlv;
+                        break;
+                    default:
+                        lldp.optionalTLVList.add(tlv);
+                        break;
                 }
 
                 currentIndex += tlv.getLength();
@@ -297,4 +295,15 @@ public class LLDP extends BasePacket {
         };
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("chassisId", Arrays.toString(chassisId.getValue()))
+                .add("portId", Arrays.toString(portId.getValue()))
+                .add("ttl", Arrays.toString(ttl.getValue()))
+                .add("ethType", Short.toString(ethType))
+                .toString();
+
+        // TODO: need to handle optionalTLVList
+    }
 }

@@ -26,6 +26,7 @@ import org.onlab.packet.IPv6;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -296,5 +297,16 @@ public class Authentication extends BasePacket implements IExtensionHeader {
 
             return authentication;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("nextHeader", Byte.toString(nextHeader))
+                .add("payloadLength", Byte.toString(payloadLength))
+                .add("securityParamIndex", Integer.toString(securityParamIndex))
+                .add("sequence", Integer.toString(sequence))
+                .add("integrityCheck", Arrays.toString(integrityCheck))
+                .toString();
     }
 }

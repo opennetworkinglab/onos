@@ -26,6 +26,7 @@ import org.onlab.packet.IPv6;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkHeaderLength;
 import static org.onlab.packet.PacketUtils.checkInput;
 
@@ -287,5 +288,16 @@ public class Routing extends BasePacket implements IExtensionHeader {
 
             return routing;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("nextHeader", Byte.toString(nextHeader))
+                .add("headerExtLength", Byte.toString(headerExtLength))
+                .add("routingType", Byte.toString(routingType))
+                .add("segmentsLeft", Byte.toString(segmentsLeft))
+                .add("routingData", Arrays.toString(routingData))
+                .toString();
     }
 }

@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-
-
 package org.onlab.packet;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import static org.onlab.packet.PacketUtils.*;
+import static com.google.common.base.MoreObjects.toStringHelper;
+import static org.onlab.packet.PacketUtils.checkHeaderLength;
+import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
- *
- *
+ * Representation of an ARP Packet.
  */
 public class ARP extends BasePacket {
     public static final short HW_TYPE_ETHERNET = 0x1;
@@ -341,27 +340,6 @@ public class ARP extends BasePacket {
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "ARP [hardwareType=" + this.hardwareType + ", protocolType="
-                + this.protocolType + ", hardwareAddressLength="
-                + this.hardwareAddressLength + ", protocolAddressLength="
-                + this.protocolAddressLength + ", opCode=" + this.opCode
-                + ", senderHardwareAddress="
-                + Arrays.toString(this.senderHardwareAddress)
-                + ", senderProtocolAddress="
-                + Arrays.toString(this.senderProtocolAddress)
-                + ", targetHardwareAddress="
-                + Arrays.toString(this.targetHardwareAddress)
-                + ", targetProtocolAddress="
-                + Arrays.toString(this.targetProtocolAddress) + "]";
-    }
-
     /**
      * Builds an ARP reply based on a request.
      *
@@ -436,4 +414,18 @@ public class ARP extends BasePacket {
         };
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("hardwareType", Short.toString(hardwareType))
+                .add("protocolType", Short.toString(protocolType))
+                .add("hardwareAddressLength", Byte.toString(hardwareAddressLength))
+                .add("protocolAddressLength", Byte.toString(protocolAddressLength))
+                .add("opCode", Short.toString(opCode))
+                .add("senderHardwareAddress", Arrays.toString(senderHardwareAddress))
+                .add("senderProtocolAddress", Arrays.toString(senderProtocolAddress))
+                .add("targetHardwareAddress", Arrays.toString(targetHardwareAddress))
+                .add("targetProtocolAddress", Arrays.toString(targetProtocolAddress))
+                .toString();
+    }
 }

@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkHeaderLength;
 import static org.onlab.packet.PacketUtils.checkInput;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -68,7 +69,7 @@ public class RADIUS extends BasePacket {
     /**
      * Constructs a RADIUS packet with the given code and identifier.
      *
-     * @param code code
+     * @param code       code
      * @param identifier identifier
      */
     public RADIUS(byte code, byte identifier) {
@@ -313,7 +314,7 @@ public class RADIUS extends BasePacket {
      * Sets an attribute in the RADIUS packet.
      *
      * @param attrType the type field of the attribute to set
-     * @param value value to be set
+     * @param value    value to be set
      * @return reference to the attribute object
      */
     public RADIUSAttribute setAttribute(byte attrType, byte[] value) {
@@ -328,7 +329,7 @@ public class RADIUS extends BasePacket {
      * Updates an attribute in the RADIUS packet.
      *
      * @param attrType the type field of the attribute to update
-     * @param value the value to update to
+     * @param value    the value to update to
      * @return reference to the attribute object
      */
     public RADIUSAttribute updateAttribute(byte attrType, byte[] value) {
@@ -420,4 +421,15 @@ public class RADIUS extends BasePacket {
         return this;
     }
 
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("code", Byte.toString(code))
+                .add("identifier", Byte.toString(identifier))
+                .add("length", Short.toString(length))
+                .add("authenticator", Arrays.toString(authenticator))
+                .toString();
+
+        // TODO: need to handle attributes
+    }
 }

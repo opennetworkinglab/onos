@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 public class PIMHello extends BasePacket {
@@ -114,5 +115,14 @@ public class PIMHello extends BasePacket {
             }
             return hello;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("nbrIpAddress", nbrIpAddress.toString())
+                .add("priorityPresent", Boolean.toString(priorityPresent))
+                .toString();
+        // TODO: need to handle options
     }
 }

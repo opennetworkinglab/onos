@@ -18,6 +18,7 @@
 
 package org.onlab.packet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -106,5 +107,18 @@ public class ICMP6Test {
 
         assertTrue(icmp61.equals(icmp61));
         assertFalse(icmp61.equals(icmp62));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringIcmp6() throws Exception {
+        ICMP6 icmp6 = ICMP6.deserializer().deserialize(bytePacket, 0, bytePacket.length);
+        String str = icmp6.toString();
+
+        assertTrue(StringUtils.contains(str, "icmpType=" + ICMP6.ECHO_REQUEST));
+        assertTrue(StringUtils.contains(str, "icmpCode=" + (byte) 0x00));
+        assertTrue(StringUtils.contains(str, "checksum=" + (short) 0x82bc));
     }
 }

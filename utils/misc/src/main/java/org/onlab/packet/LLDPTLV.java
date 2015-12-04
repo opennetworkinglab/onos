@@ -30,6 +30,20 @@ public class LLDPTLV {
     protected short length;
     protected byte[] value;
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        sb.append("type= ");
+        sb.append(type);
+        sb.append("length= ");
+        sb.append(length);
+        sb.append("value= ");
+        sb.append(Arrays.toString(value));
+        sb.append("]");
+        return sb.toString();
+    }
+
     /**
      * @return the type
      */

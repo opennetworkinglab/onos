@@ -16,6 +16,7 @@
 
 package org.onlab.packet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -23,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for MPLS class.
@@ -62,6 +64,9 @@ public class MplsTest {
         PacketTestUtils.testDeserializeTruncated(deserializer, bytes);
     }
 
+    /**
+     * Tests deserialize and getters.
+     */
     @Test
     public void testDeserialize() throws Exception {
         MPLS mpls = deserializer.deserialize(bytes, 0, bytes.length);
@@ -70,5 +75,19 @@ public class MplsTest {
         assertEquals(bos, mpls.bos);
         assertEquals(ttl, mpls.ttl);
         assertEquals(protocol, mpls.protocol);
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringMpls() throws Exception {
+        MPLS mpls = deserializer.deserialize(bytes, 0, bytes.length);
+        String str = mpls.toString();
+
+        assertTrue(StringUtils.contains(str, "label=" + label));
+        assertTrue(StringUtils.contains(str, "bos=" + bos));
+        assertTrue(StringUtils.contains(str, "ttl=" + ttl));
+        assertTrue(StringUtils.contains(str, "protocol=" + protocol));
     }
 }

@@ -21,14 +21,16 @@ package org.onlab.packet;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.packet.PacketUtils.checkInput;
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
- *
+ * Representation of an DHCP Packet.
  */
 public class DHCP extends BasePacket {
     /**
@@ -628,5 +630,26 @@ public class DHCP extends BasePacket {
 
             return dhcp;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("opCode", Byte.toString(opCode))
+                .add("hardwareType", Byte.toString(hardwareType))
+                .add("hardwareAddressLength", Byte.toString(hardwareAddressLength))
+                .add("hops", Byte.toString(hops))
+                .add("transactionId", Integer.toString(transactionId))
+                .add("seconds", Short.toString(seconds))
+                .add("flags", Short.toString(flags))
+                .add("clientIPAddress", Integer.toString(clientIPAddress))
+                .add("yourIPAddress", Integer.toString(yourIPAddress))
+                .add("serverIPAddress", Integer.toString(serverIPAddress))
+                .add("gatewayIPAddress", Integer.toString(gatewayIPAddress))
+                .add("clientHardwareAddress", Arrays.toString(clientHardwareAddress))
+                .add("serverName", serverName)
+                .add("bootFileName", bootFileName)
+                .toString();
+        // TODO: need to handle options
     }
 }

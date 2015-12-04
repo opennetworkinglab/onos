@@ -19,7 +19,9 @@
 package org.onlab.packet;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkHeaderLength;
 import static org.onlab.packet.PacketUtils.checkInput;
 
@@ -53,7 +55,6 @@ public class EAP extends BasePacket {
     protected short length;
     protected byte type;
     protected byte[] data;
-
 
     /**
      * Gets the EAP code.
@@ -260,5 +261,16 @@ public class EAP extends BasePacket {
         result = prime * result + this.length;
         result = prime * result + this.type;
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("code", Byte.toString(code))
+                .add("identifier", Byte.toString(identifier))
+                .add("length", Short.toString(length))
+                .add("type", Byte.toString(type))
+                .add("data", Arrays.toString(data))
+                .toString();
     }
 }

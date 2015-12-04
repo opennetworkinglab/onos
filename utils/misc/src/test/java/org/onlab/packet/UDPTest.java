@@ -18,6 +18,7 @@
 
 package org.onlab.packet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -130,5 +131,19 @@ public class UDPTest {
 
         assertTrue(udp1.equals(udp1));
         assertFalse(udp1.equals(udp2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringUdp() throws Exception {
+        UDP udp = deserializer.deserialize(bytePacketUDP4, 0, bytePacketUDP4.length);
+        String str = udp.toString();
+
+        assertTrue(StringUtils.contains(str, "sourcePort=" + 0x50));
+        assertTrue(StringUtils.contains(str, "destinationPort=" + 0x60));
+        assertTrue(StringUtils.contains(str, "length=" + (short) 8));
+        assertTrue(StringUtils.contains(str, "checksum=" + (short) 0x7bda));
     }
 }

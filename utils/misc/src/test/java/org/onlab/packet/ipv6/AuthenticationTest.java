@@ -16,6 +16,7 @@
 
 package org.onlab.packet.ipv6;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -23,11 +24,10 @@ import org.onlab.packet.Data;
 import org.onlab.packet.Deserializer;
 import org.onlab.packet.UDP;
 
+import java.util.Arrays;
+
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for class {@link Authentication}.
@@ -117,5 +117,20 @@ public class AuthenticationTest {
 
         assertTrue(auth1.equals(auth1));
         assertFalse(auth1.equals(auth2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringAuthentication() throws Exception {
+        Authentication auth = deserializer.deserialize(bytePacket, 0, bytePacket.length);
+        String str = auth.toString();
+
+        assertTrue(StringUtils.contains(str, "nextHeader=" + (byte) 0x11));
+        assertTrue(StringUtils.contains(str, "payloadLength=" + (byte) 0x02));
+        assertTrue(StringUtils.contains(str, "securityParamIndex=" + 0x13572468));
+        assertTrue(StringUtils.contains(str, "sequence=" + 0xffff00));
+        assertTrue(StringUtils.contains(str, "integrityCheck=" + Arrays.toString(icv)));
     }
 }

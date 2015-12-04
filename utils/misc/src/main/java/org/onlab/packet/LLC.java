@@ -20,13 +20,12 @@ package org.onlab.packet;
 
 import java.nio.ByteBuffer;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.*;
 
 /**
  * This class represents an Link Local Control header that is used in Ethernet
  * 802.3.
- *
- *
  */
 public class LLC extends BasePacket {
 
@@ -98,5 +97,14 @@ public class LLC extends BasePacket {
 
             return llc;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("dsap", Byte.toString(dsap))
+                .add("ssap", Byte.toString(ssap))
+                .add("ctrl", Byte.toString(ctrl))
+                .toString();
     }
 }

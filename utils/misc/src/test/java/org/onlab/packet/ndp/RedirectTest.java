@@ -144,4 +144,15 @@ public class RedirectTest {
         assertTrue(rd1.equals(rd1));
         assertFalse(rd1.equals(rd2));
     }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringRedirect() throws Exception {
+        Redirect rd = deserializer.deserialize(bytePacket, 0, bytePacket.length);
+        String str = rd.toString();
+
+        // TODO: need to handle TARGET_ADDRESS and DESTINATION_ADDRESS
+    }
 }

@@ -23,6 +23,7 @@ import org.onlab.packet.IpPrefix;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 public class PIMJoinPrune extends BasePacket {
@@ -267,5 +268,14 @@ public class PIMJoinPrune extends BasePacket {
 
             return jp;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("upstreamAddr", upstreamAddr.toString())
+                .add("holdTime", Short.toString(holdTime))
+                .toString();
+        // TODO: need to handle joinPrunes
     }
 }

@@ -15,6 +15,7 @@
  */
 package org.onlab.packet.ndp;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.packet.DeserializationException;
@@ -25,10 +26,7 @@ import org.onlab.packet.PacketTestUtils;
 import java.nio.ByteBuffer;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for class {@link NeighborAdvertisement}.
@@ -136,5 +134,19 @@ public class NeighborAdvertisementTest {
 
         assertTrue(na1.equals(na1));
         assertFalse(na1.equals(na2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringNA() throws Exception {
+        NeighborAdvertisement na = deserializer.deserialize(bytePacket, 0, bytePacket.length);
+        String str = na.toString();
+
+        assertTrue(StringUtils.contains(str, "routerFlag=" + (byte) 1));
+        assertTrue(StringUtils.contains(str, "solicitedFlag=" + (byte) 1));
+        assertTrue(StringUtils.contains(str, "overrideFlag=" + (byte) 1));
+        // TODO: need to handle TARGET_ADDRESS
     }
 }

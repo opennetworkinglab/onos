@@ -16,6 +16,7 @@
 
 package org.onlab.packet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -78,6 +79,9 @@ public class IPv4Test {
         PacketTestUtils.testDeserializeTruncated(deserializer, headerBytes);
     }
 
+    /**
+     * Tests deserialize and getters.
+     */
     @Test
     public void testDeserialize() throws Exception {
         IPv4 ipv4 = deserializer.deserialize(headerBytes, 0, headerBytes.length);
@@ -95,5 +99,27 @@ public class IPv4Test {
         assertEquals(sourceAddress, ipv4.getSourceAddress());
         assertEquals(destinationAddress, ipv4.getDestinationAddress());
         assertTrue(ipv4.isTruncated());
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringIPv4() throws Exception {
+        IPv4 ipv4 = deserializer.deserialize(headerBytes, 0, headerBytes.length);
+        String str = ipv4.toString();
+
+        assertTrue(StringUtils.contains(str, "version=" + version));
+        assertTrue(StringUtils.contains(str, "headerLength=" + headerLength));
+        assertTrue(StringUtils.contains(str, "diffServ=" + diffServ));
+        assertTrue(StringUtils.contains(str, "totalLength=" + totalLength));
+        assertTrue(StringUtils.contains(str, "identification=" + identification));
+        assertTrue(StringUtils.contains(str, "flags=" + flags));
+        assertTrue(StringUtils.contains(str, "fragmentOffset=" + fragmentOffset));
+        assertTrue(StringUtils.contains(str, "ttl=" + ttl));
+        assertTrue(StringUtils.contains(str, "protocol=" + protocol));
+        assertTrue(StringUtils.contains(str, "checksum=" + checksum));
+        assertTrue(StringUtils.contains(str, "sourceAddress=" + sourceAddress));
+        assertTrue(StringUtils.contains(str, "destinationAddress=" + destinationAddress));
     }
 }

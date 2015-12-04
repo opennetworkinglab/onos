@@ -16,6 +16,7 @@
 
 package org.onlab.packet.ipv6;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,11 +25,10 @@ import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Deserializer;
 import org.onlab.packet.UDP;
 
+import java.util.Arrays;
+
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for class {@link Routing}.
@@ -124,5 +124,20 @@ public class RoutingTest {
 
         assertTrue(routing1.equals(routing1));
         assertFalse(routing1.equals(routing2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringRouting() throws Exception {
+        Routing routing = deserializer.deserialize(bytePacket, 0, bytePacket.length);
+        String str = routing.toString();
+
+        assertTrue(StringUtils.contains(str, "nextHeader=" + (byte) 0x11));
+        assertTrue(StringUtils.contains(str, "headerExtLength=" + (byte) 0x02));
+        assertTrue(StringUtils.contains(str, "routingType=" + (byte) 0x00));
+        assertTrue(StringUtils.contains(str, "segmentsLeft=" + (byte) 0x03));
+        assertTrue(StringUtils.contains(str, "routingData=" + Arrays.toString(routingData)));
     }
 }

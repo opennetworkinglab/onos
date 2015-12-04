@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -380,5 +381,19 @@ public class IPv6 extends BasePacket implements IExtensionHeader {
 
             return ipv6;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("version", Byte.toString(version))
+                .add("trafficClass", Byte.toString(trafficClass))
+                .add("flowLabel", Integer.toString(flowLabel))
+                .add("payloadLength", Short.toString(payloadLength))
+                .add("nextHeader", Byte.toString(nextHeader))
+                .add("hopLimit", Byte.toString(hopLimit))
+                .add("sourceAddress", Arrays.toString(sourceAddress))
+                .add("destinationAddress", Arrays.toString(destinationAddress))
+                .toString();
     }
 }

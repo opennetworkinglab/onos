@@ -16,6 +16,7 @@
 
 package org.onlab.packet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,7 +46,7 @@ public class ArpTest {
     @Before
     public void setUp() {
         ByteBuffer bb = ByteBuffer.allocate(ARP.INITIAL_HEADER_LENGTH +
-                        2 * hwAddressLength + 2 * protoAddressLength);
+                2 * hwAddressLength + 2 * protoAddressLength);
         bb.putShort(ARP.HW_TYPE_ETHERNET);
         bb.putShort(ARP.PROTO_TYPE_IP);
         bb.put(hwAddressLength);
@@ -70,6 +71,9 @@ public class ArpTest {
         PacketTestUtils.testDeserializeTruncated(deserializer, byteHeader);
     }
 
+    /**
+     * Tests deserialize and getters.
+     */
     @Test
     public void testDeserialize() throws Exception {
         ARP arp = deserializer.deserialize(byteHeader, 0, byteHeader.length);
@@ -84,5 +88,20 @@ public class ArpTest {
         assertTrue(Arrays.equals(srcIp.toOctets(), arp.getSenderProtocolAddress()));
         assertTrue(Arrays.equals(targetMac.toBytes(), arp.getTargetHardwareAddress()));
         assertTrue(Arrays.equals(targetIp.toOctets(), arp.getTargetProtocolAddress()));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringArp() throws Exception {
+        ARP arp = deserializer.deserialize(byteHeader, 0, byteHeader.length);
+        String str = arp.toString();
+        assertTrue(StringUtils.contains(str, "hardwareAddressLength=" + hwAddressLength));
+        assertTrue(StringUtils.contains(str, "protocolAddressLength=" + protoAddressLength));
+        assertTrue(StringUtils.contains(str, "senderHardwareAddress=" + Arrays.toString(srcMac.toBytes())));
+        assertTrue(StringUtils.contains(str, "senderProtocolAddress=" + Arrays.toString(srcIp.toOctets())));
+        assertTrue(StringUtils.contains(str, "targetHardwareAddress=" + Arrays.toString(targetMac.toBytes())));
+        assertTrue(StringUtils.contains(str, "targetProtocolAddress=" + Arrays.toString(targetIp.toOctets())));
     }
 }

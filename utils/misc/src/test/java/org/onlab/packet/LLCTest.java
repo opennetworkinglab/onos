@@ -16,12 +16,14 @@
 
 package org.onlab.packet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for LLC class.
@@ -59,6 +61,9 @@ public class LLCTest {
         PacketTestUtils.testDeserializeTruncated(deserializer, bytes);
     }
 
+    /**
+     * Tests deserialize and getters.
+     */
     @Test
     public void testDeserialize() throws Exception {
         LLC llc = deserializer.deserialize(bytes, 0, bytes.length);
@@ -66,5 +71,18 @@ public class LLCTest {
         assertEquals(dsap, llc.getDsap());
         assertEquals(ssap, llc.getSsap());
         assertEquals(ctrl, llc.getCtrl());
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringLLC() throws Exception {
+        LLC llc = deserializer.deserialize(bytes, 0, bytes.length);
+        String str = llc.toString();
+
+        assertTrue(StringUtils.contains(str, "dsap=" + dsap));
+        assertTrue(StringUtils.contains(str, "ssap=" + ssap));
+        assertTrue(StringUtils.contains(str, "ctrl=" + ctrl));
     }
 }

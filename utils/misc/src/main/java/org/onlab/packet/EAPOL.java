@@ -20,6 +20,7 @@ package org.onlab.packet;
 
 import java.nio.ByteBuffer;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkHeaderLength;
 import static org.onlab.packet.PacketUtils.checkInput;
 
@@ -194,6 +195,15 @@ public class EAPOL extends BasePacket {
         }
 
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("version", Byte.toString(version))
+                .add("eapolType", Byte.toString(eapolType))
+                .add("packetLength", Short.toString(packetLength))
+                .toString();
     }
 }
 

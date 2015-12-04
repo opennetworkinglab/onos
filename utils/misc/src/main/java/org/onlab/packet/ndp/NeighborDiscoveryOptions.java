@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -116,6 +117,18 @@ public class NeighborDiscoveryOptions extends BasePacket {
          */
         private int optionWireLength() {
             return 8 * optionLengthField();
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            sb.append("type= ");
+            sb.append(type);
+            sb.append("data= ");
+            sb.append(data);
+            sb.append("]");
+            return sb.toString();
         }
     }
 
@@ -277,5 +290,12 @@ public class NeighborDiscoveryOptions extends BasePacket {
 
             return ndo;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .toString();
+        // TODO: need to handle options
     }
 }

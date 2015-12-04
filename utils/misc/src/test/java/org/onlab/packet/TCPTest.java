@@ -18,6 +18,7 @@
 
 package org.onlab.packet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -159,5 +160,24 @@ public class TCPTest {
 
         assertTrue(tcp1.equals(tcp1));
         assertFalse(tcp1.equals(tcp2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringTcp() throws Exception {
+        TCP tcp = deserializer.deserialize(bytePacketTCP4, 0, bytePacketTCP4.length);
+        String str = tcp.toString();
+
+        assertTrue(StringUtils.contains(str, "sourcePort=" + 0x50));
+        assertTrue(StringUtils.contains(str, "destinationPort=" + 0x60));
+        assertTrue(StringUtils.contains(str, "sequence=" + 0x10));
+        assertTrue(StringUtils.contains(str, "acknowledge=" + 0x20));
+        assertTrue(StringUtils.contains(str, "dataOffset=" + (byte) 0x5));
+        assertTrue(StringUtils.contains(str, "flags=" + (short) 0x2));
+        assertTrue(StringUtils.contains(str, "windowSize=" + (short) 0x1000));
+        assertTrue(StringUtils.contains(str, "checksum=" + (short) 0x1bae));
+        assertTrue(StringUtils.contains(str, "urgentPointer=" + (short) 0x1));
     }
 }

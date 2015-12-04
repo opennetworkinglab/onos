@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.checkInput;
 
 /**
@@ -188,5 +189,13 @@ public class NeighborSolicitation extends BasePacket {
 
             return neighborSolicitation;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("targetAddress", Arrays.toString(targetAddress))
+                .toString();
+        // TODO: need to handle options
     }
 }

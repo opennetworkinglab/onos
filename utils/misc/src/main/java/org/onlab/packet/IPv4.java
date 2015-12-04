@@ -25,10 +25,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onlab.packet.PacketUtils.*;
 
 /**
- *
+ * Implements IPv4 packet format.
  */
 public class IPv4 extends BasePacket {
     public static final byte PROTOCOL_ICMP = 0x1;
@@ -729,5 +730,25 @@ s     */
 
             return ipv4;
         };
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(getClass())
+                .add("version", Byte.toString(version))
+                .add("headerLength", Byte.toString(headerLength))
+                .add("diffServ", Byte.toString(diffServ))
+                .add("totalLength", Short.toString(totalLength))
+                .add("identification", Short.toString(identification))
+                .add("flags", Byte.toString(flags))
+                .add("fragmentOffset", Short.toString(fragmentOffset))
+                .add("ttl", Byte.toString(ttl))
+                .add("protocol", Byte.toString(protocol))
+                .add("checksum", Short.toString(checksum))
+                .add("sourceAddress", Integer.toString(sourceAddress))
+                .add("destinationAddress", Integer.toString(destinationAddress))
+                .add("options", Arrays.toString(options))
+                .add("isTruncated", Boolean.toString(isTruncated))
+                .toString();
     }
 }

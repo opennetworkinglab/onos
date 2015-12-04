@@ -18,6 +18,7 @@
 
 package org.onlab.packet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -150,5 +151,21 @@ public class IPv6Test {
 
         assertTrue(packet1.equals(packet1));
         assertFalse(packet1.equals(packet2));
+    }
+
+    /**
+     * Tests toString.
+     */
+    @Test
+    public void testToStringIPv6() throws Exception {
+        IPv6 ipv6 = deserializer.deserialize(bytePacket, 0, bytePacket.length);
+        String str = ipv6.toString();
+
+        assertTrue(StringUtils.contains(str, "version=" + (byte) 6));
+        assertTrue(StringUtils.contains(str, "trafficClass=" + (byte) 0x93));
+        assertTrue(StringUtils.contains(str, "flowLabel=" + 0x13579));
+        assertTrue(StringUtils.contains(str, "nextHeader=" + IPv6.PROTOCOL_UDP));
+        assertTrue(StringUtils.contains(str, "hopLimit=" + (byte) 32));
+        // TODO: test IPv6 source and destination address
     }
 }

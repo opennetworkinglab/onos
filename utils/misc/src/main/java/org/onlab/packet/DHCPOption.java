@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-
-
 package org.onlab.packet;
 
 import java.util.Arrays;
 
 /**
- *
+ * Representation of DHCPOption field.
  */
 public class DHCPOption {
     protected byte code;
@@ -36,8 +34,7 @@ public class DHCPOption {
     }
 
     /**
-     * @param code
-     *            the code to set
+     * @param code the code to set
      * @return this
      */
     public DHCPOption setCode(final byte code) {
@@ -53,8 +50,7 @@ public class DHCPOption {
     }
 
     /**
-     * @param length
-     *            the length to set
+     * @param length the length to set
      * @return this
      */
     public DHCPOption setLength(final byte length) {
@@ -70,8 +66,7 @@ public class DHCPOption {
     }
 
     /**
-     * @param data
-     *            the data to set
+     * @param data the data to set
      * @return this
      */
     public DHCPOption setData(final byte[] data) {

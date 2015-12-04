@@ -14,48 +14,32 @@
  * limitations under the License.
  */
 
-
-
 package org.onlab.packet;
 
 /**
- *
- *
+ * Base packet class.
  */
 public abstract class BasePacket implements IPacket {
+
     protected IPacket parent;
     protected IPacket payload;
 
-    /**
-     * @return the parent
-     */
     @Override
     public IPacket getParent() {
         return this.parent;
     }
 
-    /**
-     * @param parent
-     *            the parent to set
-     */
     @Override
     public IPacket setParent(final IPacket parent) {
         this.parent = parent;
         return this;
     }
 
-    /**
-     * @return the payload
-     */
     @Override
     public IPacket getPayload() {
         return this.payload;
     }
 
-    /**
-     * @param payload
-     *            the payload to set
-     */
     @Override
     public IPacket setPayload(final IPacket payload) {
         this.payload = payload;
@@ -69,11 +53,6 @@ public abstract class BasePacket implements IPacket {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#hashCode()
-     */
     @Override
     public int hashCode() {
         final int prime = 6733;
@@ -83,11 +62,6 @@ public abstract class BasePacket implements IPacket {
         return result;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) {
