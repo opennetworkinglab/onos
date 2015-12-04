@@ -149,6 +149,10 @@
             rx: 4
         },
         host: {
+            badge: {
+                dx: 14,
+                dy: -14
+            },
             radius: {
                 noGlyph: 9,
                 withGlyph: 14

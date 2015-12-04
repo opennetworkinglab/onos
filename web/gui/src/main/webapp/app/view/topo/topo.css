@@ -452,7 +452,7 @@ html[data-platform='iPad'] #topo-p-detail {
 }
 
 #ov-topo svg .node .badge.badgeInfo circle {
-    fill: #ccf;
+    fill: #99d;
 }
 
 #ov-topo svg .node .badge.badgeWarn circle {
@@ -464,7 +464,7 @@ html[data-platform='iPad'] #topo-p-detail {
 }
 
 #ov-topo svg .node .badge use {
-    fill: white;
+    fill: white !important;
 }
 
 #ov-topo svg .node .badge.badgeInfo use {
@@ -472,7 +472,7 @@ html[data-platform='iPad'] #topo-p-detail {
 }
 
 #ov-topo svg .node .badge text {
-    fill: white;
+    fill: white !important;
 }
 
 #ov-topo svg .node .badge.badgeInfo text {
