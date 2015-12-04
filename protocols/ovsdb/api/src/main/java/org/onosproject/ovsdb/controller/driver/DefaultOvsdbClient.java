@@ -578,16 +578,7 @@ public class DefaultOvsdbClient
             return false;
         }
 
-        String bridgeUuid = getBridgeUuid(bridgeName);
-        if (bridgeUuid != null) {
-            log.warn("Bridge {} is already exist", bridgeName);
-            // remove existing one and re-create?
-            return false;
-        }
-
         Bridge bridge = (Bridge) TableGenerator.createTable(dbSchema, OvsdbTable.BRIDGE);
-        bridge.setName(bridgeName);
-
         Set<String> failMode = new HashSet<>(Arrays.asList("secure"));
         bridge.setFailMode(failMode);
 
@@ -598,9 +589,15 @@ public class DefaultOvsdbClient
         options.put("datapath-id", dpid);
         bridge.setOtherConfig(options);
 
-        bridgeUuid = insertConfig(OvsdbConstant.BRIDGE, "_uuid",
-                                  OvsdbConstant.DATABASENAME, "bridges",
-                                  ovsUuid, bridge.getRow());
+        String bridgeUuid = getBridgeUuid(bridgeName);
+        if (bridgeUuid == null) {
+            bridge.setName(bridgeName);
+            bridgeUuid = insertConfig(OvsdbConstant.BRIDGE, "_uuid",
+                                      OvsdbConstant.DATABASENAME, "bridges",
+                                      ovsUuid, bridge.getRow());
+        } else {
+            updateConfig(OvsdbConstant.BRIDGE, "_uuid", bridgeUuid, bridge.getRow());
+        }
 
         if (bridgeUuid != null) {
             createPort(bridgeName, bridgeName);
