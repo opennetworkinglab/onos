@@ -71,7 +71,6 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
      * (non-Javadoc)
      * @see org.onosproject.driver.pipeline.OFDPA2Pipeline#processVlanIdFilter
      */
-
     @Override
     protected List<FlowRule> processVlanIdFilter(PortCriterion portCriterion,
                                                  VlanIdCriterion vidCriterion,
@@ -267,16 +266,18 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         }
 
         if (fwd.nextId() != null) {
-            NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
-            List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
-            // we only need the top level group's key to point the flow to it
-            Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
-            if (group == null) {
-                log.warn("The group left!");
-                fail(fwd, ObjectiveError.GROUPMISSING);
-                return Collections.emptySet();
+            NextGroup next = getGroupForNextObjective(fwd.nextId());
+            if (next != null) {
+                List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
+                // we only need the top level group's key to point the flow to it
+                Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
+                if (group == null) {
+                    log.warn("The group left!");
+                    fail(fwd, ObjectiveError.GROUPMISSING);
+                    return Collections.emptySet();
+                }
+                tb.deferred().group(group.id());
             }
-            tb.deferred().group(group.id());
         }
         tb.transition(ACL_TABLE);
         FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()

@@ -48,6 +48,7 @@ import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.flowobjective.ObjectiveEvent;
+import org.onosproject.net.flowobjective.ObjectiveEvent.Type;
 import org.onosproject.net.group.GroupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -381,19 +382,19 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     private class InternalStoreDelegate implements FlowObjectiveStoreDelegate {
         @Override
         public void notify(ObjectiveEvent event) {
-            log.debug("Received notification of obj event {}", event);
-            Set<PendingNext> pending = pendingForwards.remove(event.subject());
+            if (event.type() == Type.ADD) {
+                log.debug("Received notification of obj event {}", event);
+                Set<PendingNext> pending = pendingForwards.remove(event.subject());
 
-            if (pending == null) {
-                log.debug("Nothing pending for this obj event");
-                return;
+                if (pending == null) {
+                    log.debug("Nothing pending for this obj event");
+                    return;
+                }
+
+                log.debug("Processing pending forwarding objectives {}", pending.size());
+                pending.forEach(p -> getDevicePipeliner(p.deviceId())
+                                .forward(p.forwardingObjective()));
             }
-
-            log.debug("Processing pending forwarding objectives {}", pending.size());
-
-            pending.forEach(p -> getDevicePipeliner(p.deviceId())
-                    .forward(p.forwardingObjective()));
-
         }
     }
 

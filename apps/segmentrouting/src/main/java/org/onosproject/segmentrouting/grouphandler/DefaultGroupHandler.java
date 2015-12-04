@@ -32,11 +32,13 @@ import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -49,6 +51,7 @@ import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceProperties;
 import org.onosproject.store.service.EventuallyConsistentMap;
@@ -71,9 +74,11 @@ public class DefaultGroupHandler {
     protected MacAddress nodeMacAddr = null;
     protected LinkService linkService;
     protected FlowObjectiveService flowObjectiveService;
-
+    // local store for neighbor-device-ids and the set of ports on this device
+    // that connect to the same neighbor
     protected ConcurrentHashMap<DeviceId, Set<PortNumber>> devicePortMap =
             new ConcurrentHashMap<>();
+    //local store for ports on this device connected to neighbor-device-id
     protected ConcurrentHashMap<PortNumber, DeviceId> portDeviceMap =
             new ConcurrentHashMap<>();
     protected EventuallyConsistentMap<
@@ -225,26 +230,33 @@ public class DefaultGroupHandler {
                 deviceId,
                 nsSet);
         for (NeighborSet ns : nsSet) {
-            // Create the new bucket to be updated
-            TrafficTreatment.Builder tBuilder =
-                    DefaultTrafficTreatment.builder();
-            tBuilder.setOutput(newLink.src().port())
-                    .setEthDst(dstMac)
-                    .setEthSrc(nodeMacAddr);
-            if (ns.getEdgeLabel() != NeighborSet.NO_EDGE_LABEL) {
-                tBuilder.pushMpls()
-                        .copyTtlOut()
-                        .setMpls(MplsLabel.mplsLabel(ns.getEdgeLabel()));
-            }
-
             Integer nextId = nsNextObjStore.
                     get(new NeighborSetNextObjectiveStoreKey(deviceId, ns));
             if (nextId != null && isMaster) {
-                NextObjective.Builder nextObjBuilder = DefaultNextObjective
-                        .builder().withId(nextId)
-                        .withType(NextObjective.Type.HASHED).fromApp(appId);
+                // Create the new bucket to be updated
+                TrafficTreatment.Builder tBuilder =
+                        DefaultTrafficTreatment.builder();
+                tBuilder.setOutput(newLink.src().port())
+                    .setEthDst(dstMac)
+                    .setEthSrc(nodeMacAddr);
+                if (ns.getEdgeLabel() != NeighborSet.NO_EDGE_LABEL) {
+                    tBuilder.pushMpls()
+                        .copyTtlOut()
+                        .setMpls(MplsLabel.mplsLabel(ns.getEdgeLabel()));
+                }
+                // setup metadata to pass to nextObjective - indicate the vlan on egress
+                // if needed by the switch pipeline. Since hashed next-hops are always to
+                // other neighboring routers, there is no subnet assigned on those ports.
+                TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder();
+                metabuilder.matchVlanId(
+                    VlanId.vlanId(SegmentRoutingManager.ASSIGNED_VLAN_NO_SUBNET));
 
-                nextObjBuilder.addTreatment(tBuilder.build());
+                NextObjective.Builder nextObjBuilder = DefaultNextObjective.builder()
+                        .withId(nextId)
+                        .withType(NextObjective.Type.HASHED)
+                        .addTreatment(tBuilder.build())
+                        .withMeta(metabuilder.build())
+                        .fromApp(appId);
                 log.info("**linkUp in device {}: Adding Bucket "
                         + "with Port {} to next object id {}",
                         deviceId,
@@ -253,6 +265,18 @@ public class DefaultGroupHandler {
                 NextObjective nextObjective = nextObjBuilder.
                         addToExisting(new SRNextObjectiveContext(deviceId));
                 flowObjectiveService.next(deviceId, nextObjective);
+
+                // the addition of a bucket may actually change the neighborset
+                // update the global store
+                /*
+                Set<DeviceId> neighbors = new HashSet<DeviceId>(ns.getDeviceIds());
+                boolean newadd = neighbors.add(newLink.dst().deviceId());
+                if (newadd) {
+                    NeighborSet nsnew = new NeighborSet(neighbors, ns.getEdgeLabel());
+                    nsNextObjStore.put(new NeighborSetNextObjectiveStoreKey(deviceId, nsnew),
+                                       nextId);
+                    nsNextObjStore.remove(new NeighborSetNextObjectiveStoreKey(deviceId, ns));
+                }*/
             } else if (isMaster) {
                 log.warn("linkUp in device {}, but global store has no record "
                         + "for neighbor-set {}", deviceId, ns);
@@ -265,7 +289,7 @@ public class DefaultGroupHandler {
      *
      * @param port port number that has gone down
      */
-    public void portDown(PortNumber port) {
+    public void portDown(PortNumber port, boolean isMaster) {
         if (portDeviceMap.get(port) == null) {
             log.warn("portDown: unknown port");
             return;
@@ -292,40 +316,50 @@ public class DefaultGroupHandler {
                 .filter((ns) -> (ns.getDeviceIds()
                         .contains(portDeviceMap.get(port))))
                 .collect(Collectors.toSet());
-        log.trace("portDown: nsNextObjStore contents for device {}:",
-                  deviceId,
-                  nsSet);
+        log.debug("portDown: nsNextObjStore contents for device {}:{}",
+                  deviceId, nsSet);
         for (NeighborSet ns : nsSet) {
-            // Create the bucket to be removed
-            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment
-                    .builder();
-            tBuilder.setOutput(port)
-                    .setEthDst(dstMac)
-                    .setEthSrc(nodeMacAddr);
-            if (ns.getEdgeLabel() != NeighborSet.NO_EDGE_LABEL) {
-                tBuilder.pushMpls()
-                        .copyTtlOut()
-                        .setMpls(MplsLabel.mplsLabel(ns.getEdgeLabel()));
-            }
-
             Integer nextId = nsNextObjStore.
                     get(new NeighborSetNextObjectiveStoreKey(deviceId, ns));
-            if (nextId != null) {
-                NextObjective.Builder nextObjBuilder = DefaultNextObjective
-                        .builder().withType(NextObjective.Type.SIMPLE).withId(nextId).fromApp(appId);
-
-                nextObjBuilder.addTreatment(tBuilder.build());
-
+            if (nextId != null && isMaster) {
                 log.info("**portDown in device {}: Removing Bucket "
                         + "with Port {} to next object id {}",
                         deviceId,
                         port,
                         nextId);
-                // should do removefromexisting and only if master
-                /*NextObjective nextObjective = nextObjBuilder.
-                        remove(new SRNextObjectiveContext(deviceId));
+                // Create the bucket to be removed
+                TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment
+                        .builder();
+                tBuilder.setOutput(port)
+                    .setEthDst(dstMac)
+                    .setEthSrc(nodeMacAddr);
+                if (ns.getEdgeLabel() != NeighborSet.NO_EDGE_LABEL) {
+                    tBuilder.pushMpls()
+                        .copyTtlOut()
+                        .setMpls(MplsLabel.mplsLabel(ns.getEdgeLabel()));
+                }
+                NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                        .builder()
+                        .withType(NextObjective.Type.HASHED) //same as original
+                        .withId(nextId)
+                        .fromApp(appId)
+                        .addTreatment(tBuilder.build());
+                NextObjective nextObjective = nextObjBuilder.
+                        removeFromExisting(new SRNextObjectiveContext(deviceId));
 
-                flowObjectiveService.next(deviceId, nextObjective);*/
+                flowObjectiveService.next(deviceId, nextObjective);
+
+                // the removal of a bucket may actually change the neighborset
+                // update the global store
+                /*
+                Set<DeviceId> neighbors = new HashSet<DeviceId>(ns.getDeviceIds());
+                boolean removed = neighbors.remove(portDeviceMap.get(port));
+                if (removed) {
+                    NeighborSet nsnew = new NeighborSet(neighbors, ns.getEdgeLabel());
+                    nsNextObjStore.put(new NeighborSetNextObjectiveStoreKey(deviceId, nsnew),
+                                       nextId);
+                    nsNextObjStore.remove(new NeighborSetNextObjectiveStoreKey(deviceId, ns));
+                }*/
             }
 
         }
@@ -716,6 +750,22 @@ public class DefaultGroupHandler {
         }
 
         return false;
+    }
+
+    public void removeAllGroups() {
+        for (Map.Entry<NeighborSetNextObjectiveStoreKey, Integer> entry:
+                nsNextObjStore.entrySet()) {
+            removeGroup(entry.getValue());
+        }
+        for (Map.Entry<PortNextObjectiveStoreKey, Integer> entry:
+                portNextObjStore.entrySet()) {
+            removeGroup(entry.getValue());
+        }
+        for (Map.Entry<SubnetNextObjectiveStoreKey, Integer> entry:
+                subnetNextObjStore.entrySet()) {
+            removeGroup(entry.getValue());
+        }
+        // should probably clean local stores port-neighbor
     }
 
     protected static class SRNextObjectiveContext implements ObjectiveContext {

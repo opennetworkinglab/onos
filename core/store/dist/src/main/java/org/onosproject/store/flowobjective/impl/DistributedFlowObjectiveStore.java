@@ -79,10 +79,9 @@ public class DistributedFlowObjectiveStore
         log.info("Stopped");
     }
 
-
     @Override
     public void putNextGroup(Integer nextId, NextGroup group) {
-        nextGroups.putIfAbsent(nextId, group.data());
+        nextGroups.put(nextId, group.data());
         notifyDelegate(new ObjectiveEvent(ObjectiveEvent.Type.ADD, nextId));
     }
 
@@ -90,6 +89,16 @@ public class DistributedFlowObjectiveStore
     public NextGroup getNextGroup(Integer nextId) {
         Versioned<byte[]> versionGroup = nextGroups.get(nextId);
         if (versionGroup != null) {
+            return new DefaultNextGroup(versionGroup.value());
+        }
+        return null;
+    }
+
+    @Override
+    public NextGroup removeNextGroup(Integer nextId) {
+        Versioned<byte[]> versionGroup = nextGroups.remove(nextId);
+        if (versionGroup != null) {
+            notifyDelegate(new ObjectiveEvent(ObjectiveEvent.Type.REMOVE, nextId));
             return new DefaultNextGroup(versionGroup.value());
         }
         return null;

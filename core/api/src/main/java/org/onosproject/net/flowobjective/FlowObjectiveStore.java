@@ -27,7 +27,8 @@ public interface FlowObjectiveStore
         extends Store<ObjectiveEvent, FlowObjectiveStoreDelegate> {
 
     /**
-     * Adds a NextGroup to the store.
+     * Adds a NextGroup to the store, by mapping it to the nextId as key,
+     * and replacing any previous mapping.
      *
      * @param nextId an integer
      * @param group a next group opaque object
@@ -36,10 +37,20 @@ public interface FlowObjectiveStore
 
     /**
      * Fetch a next group from the store.
-     * @param nextId an integer
-     * @return a next group
+     *
+     * @param nextId an integer used as key
+     * @return a next group, or null if group was not found
      */
     NextGroup getNextGroup(Integer nextId);
+
+    /**
+     * Remove a next group mapping from the store.
+     *
+     * @param nextId  the key to remove from the store.
+     * @return the next group which mapped to the nextId and is now removed, or
+     *          null if no group mapping existed in the store
+     */
+    NextGroup removeNextGroup(Integer nextId);
 
     /**
      * Allocates a next objective id. This id is globally unique

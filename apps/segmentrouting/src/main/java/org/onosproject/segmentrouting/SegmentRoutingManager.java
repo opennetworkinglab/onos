@@ -597,11 +597,20 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     } else if (event.type() == DeviceEvent.Type.DEVICE_ADDED ||
                             event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
                             event.type() == DeviceEvent.Type.DEVICE_UPDATED) {
-                        if (deviceService.isAvailable(((Device) event.subject()).id())) {
+                        DeviceId deviceId = ((Device) event.subject()).id();
+                        if (deviceService.isAvailable(deviceId)) {
                             log.info("Processing device event {} for available device {}",
                                      event.type(), ((Device) event.subject()).id());
                             processDeviceAdded((Device) event.subject());
-                        }
+                        } /* else {
+                            if (event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED) {
+                                // availability changed and not available - dev gone
+                                DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
+                                if (groupHandler != null) {
+                                    groupHandler.removeAllGroups();
+                                }
+                            }
+                        }*/
                     } else if (event.type() == DeviceEvent.Type.PORT_REMOVED) {
                         processPortRemoved((Device) event.subject(),
                                            ((DeviceEvent) event).port());
@@ -655,7 +664,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         log.debug("A link {} was removed", link.toString());
         DefaultGroupHandler groupHandler = groupHandlerMap.get(link.src().deviceId());
         if (groupHandler != null) {
-            groupHandler.portDown(link.src().port());
+            groupHandler.portDown(link.src().port(),
+                                  mastershipService.isLocalMaster(link.src().deviceId()));
         }
         log.trace("Starting optimized route population process");
         defaultRoutingHandler.populateRoutingRulesForLinkStatusChange(link);
@@ -711,7 +721,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         log.debug("Port {} was removed", port.toString());
         DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
         if (groupHandler != null) {
-            groupHandler.portDown(port.number());
+            groupHandler.portDown(port.number(),
+                                  mastershipService.isLocalMaster(device.id()));
         }
     }
 
