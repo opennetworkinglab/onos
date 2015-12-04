@@ -17,9 +17,12 @@ package org.onosproject.vtn.table;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.vtnrsc.SegmentationId;
+
 
 /**
  * ArpService interface providing the rules in ARP table which is Table(10).
@@ -32,13 +35,14 @@ public interface ArpService {
      * Action: set arp_operation, move arp_eth_src to arp_eth_dst, set arp_eth_src,
      * move arp_ip_src to arp_ip_dst, set arp_ip_src, set output port.
      *
+     * @param hander DriverHandler
      * @param deviceId Device Id
      * @param dstIP destination ip
      * @param matchVni the vni of the source network (l2vni)
      * @param dstMac destination mac
      * @param type the operation type of the flow rules
      */
-    void programArpRules(DeviceId deviceId, IpAddress dstIP,
+    void programArpRules(DriverHandler hander, DeviceId deviceId, IpAddress dstIP,
                                 SegmentationId matchVni, MacAddress dstMac,
                                 Objective.Operation type);
 }
