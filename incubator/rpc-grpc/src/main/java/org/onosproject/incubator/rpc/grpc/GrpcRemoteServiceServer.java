@@ -21,6 +21,7 @@ import static org.onosproject.incubator.rpc.grpc.GrpcDeviceUtils.translate;
 import static org.onosproject.net.DeviceId.deviceId;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -47,11 +48,15 @@ import org.onosproject.grpc.Device.UpdatePortStatistics;
 import org.onosproject.grpc.Device.UpdatePorts;
 import org.onosproject.grpc.DeviceProviderRegistryRpcGrpc;
 import org.onosproject.grpc.DeviceProviderRegistryRpcGrpc.DeviceProviderRegistryRpc;
+import org.onosproject.grpc.LinkProviderServiceRpcGrpc;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
+import org.onosproject.net.link.LinkProvider;
+import org.onosproject.net.link.LinkProviderRegistry;
+import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -59,6 +64,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import io.grpc.Server;
@@ -68,13 +74,15 @@ import io.grpc.stub.StreamObserver;
 // gRPC Server on Metro-side
 // Translates request received on RPC channel, and calls corresponding Service on
 // Metro-ONOS cluster.
+
+// Currently supports DeviceProviderRegistry, LinkProviderService
 /**
  * Server side implementation of gRPC based RemoteService.
  */
 @Component(immediate = true)
 public class GrpcRemoteServiceServer {
 
-    private static final String RPC_PROVIDER_NAME = "org.onosproject.rpc.provider.grpc";
+    static final String RPC_PROVIDER_NAME = "org.onosproject.rpc.provider.grpc";
 
     // TODO pick a number
     public static final int DEFAULT_LISTEN_PORT = 11984;
@@ -84,6 +92,9 @@ public class GrpcRemoteServiceServer {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry deviceProviderRegistry;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkProviderRegistry linkProviderRegistry;
+
 
     @Property(name = "listenPort", intValue = DEFAULT_LISTEN_PORT,
             label = "Port to listen on")
@@ -91,6 +102,11 @@ public class GrpcRemoteServiceServer {
 
     private Server server;
     private final Set<DeviceProviderServerProxy> registeredProviders = Sets.newConcurrentHashSet();
+
+    // scheme -> ...
+    // updates must be guarded by synchronizing `this`
+    private final Map<String, LinkProviderService> linkProviderServices = Maps.newConcurrentMap();
+    private final Map<String, LinkProvider> linkProviders = Maps.newConcurrentMap();
 
     @Activate
     protected void activate(ComponentContext context) throws IOException {
@@ -100,6 +116,7 @@ public class GrpcRemoteServiceServer {
         try {
             server  = NettyServerBuilder.forPort(listenPort)
                     .addService(DeviceProviderRegistryRpcGrpc.bindService(new DeviceProviderRegistryServerProxy()))
+                    .addService(LinkProviderServiceRpcGrpc.bindService(new LinkProviderServiceServerProxy(this)))
                     .build().start();
         } catch (IOException e) {
             log.error("Failed to start gRPC server", e);
@@ -117,12 +134,49 @@ public class GrpcRemoteServiceServer {
 
         server.shutdown();
         // Should we wait for shutdown?
+
+        unregisterLinkProviders();
+
         log.info("Stopped");
     }
 
     @Modified
     public void modified(ComponentContext context) {
         // TODO support dynamic reconfiguration and restarting server?
+    }
+
+    /**
+     * Registers {@link StubLinkProvider} for given ProviderId scheme.
+     *
+     * DO NOT DIRECTLY CALL THIS METHOD.
+     * Only expected to be called from {@link #getLinkProviderServiceFor(String)}.
+     *
+     * @param scheme ProviderId scheme.
+     * @return {@link LinkProviderService} registered.
+     */
+    private synchronized LinkProviderService registerStubLinkProvider(String scheme) {
+        StubLinkProvider provider = new StubLinkProvider(scheme);
+        linkProviders.put(scheme, provider);
+        return linkProviderRegistry.register(provider);
+    }
+
+    /**
+     * Unregisters all registered LinkProviders.
+     */
+    private synchronized void unregisterLinkProviders() {
+        linkProviders.values().forEach(linkProviderRegistry::unregister);
+        linkProviders.clear();
+        linkProviderServices.clear();
+    }
+
+    /**
+     * Gets or creates {@link LinkProviderService} registered for given ProviderId scheme.
+     *
+     * @param scheme ProviderId scheme.
+     * @return {@link LinkProviderService}
+     */
+    protected LinkProviderService getLinkProviderServiceFor(String scheme) {
+        return linkProviderServices.computeIfAbsent(scheme, this::registerStubLinkProvider);
     }
 
     // RPC Server-side code

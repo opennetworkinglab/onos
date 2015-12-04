@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.onosproject.incubator.rpc.RemoteServiceContext;
 import org.onosproject.net.device.DeviceProviderRegistry;
+import org.onosproject.net.link.LinkProviderRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +50,7 @@ public class GrpcRemoteServiceContext implements RemoteServiceContext {
     public GrpcRemoteServiceContext(ManagedChannel channel) {
         this.channel = checkNotNull(channel);
         services.put(DeviceProviderRegistry.class, new DeviceProviderRegistryClientProxy(channel));
+        services.put(LinkProviderRegistry.class, new LinkProviderRegistryClientProxy(channel));
     }
 
 
