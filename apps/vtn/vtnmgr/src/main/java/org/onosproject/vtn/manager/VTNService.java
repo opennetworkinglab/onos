@@ -17,6 +17,7 @@ package org.onosproject.vtn.manager;
 
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
+import org.onosproject.vtnrsc.event.VtnRscEventFeedback;
 
 /**
  * VTN application that applies configuration and flows to the device.
@@ -66,5 +67,33 @@ public interface VTNService {
      * @param host a VM
      */
     void onHostVanished(Host host);
+
+    /**
+     * Applies east west flows when neutron created router interface.
+     *
+     * @param l3Feedback VtnrscEventFeedback
+     */
+    void onRouterInterfaceDetected(VtnRscEventFeedback l3Feedback);
+
+    /**
+     * Remove east west flows when neutron removed router interface.
+     *
+     * @param l3Feedback VtnrscEventFeedback
+     */
+    void onRouterInterfaceVanished(VtnRscEventFeedback l3Feedback);
+
+    /**
+     * Applies north south flows when neutron bind floating ip.
+     *
+     * @param l3Feedback VtnrscEventFeedback
+     */
+    void onFloatingIpDetected(VtnRscEventFeedback l3Feedback);
+
+    /**
+     * Applies north south flows when neutron unbind floating ip.
+     *
+     * @param l3Feedback VtnrscEventFeedback
+     */
+    void onFloatingIpVanished(VtnRscEventFeedback l3Feedback);
 
 }

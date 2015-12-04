@@ -72,6 +72,7 @@ public class VirtualPortManager implements VirtualPortService {
     private static final String NETWORKID_NOT_NULL = "NetworkId  cannot be null";
     private static final String DEVICEID_NOT_NULL = "DeviceId  cannot be null";
     private static final String FIXEDIP_NOT_NULL = "FixedIp  cannot be null";
+    private static final String IP_NOT_NULL = "Ip  cannot be null";
 
     protected Map<VirtualPortId, VirtualPort> vPortStore;
     protected ApplicationId appId;
@@ -141,6 +142,27 @@ public class VirtualPortManager implements VirtualPortService {
                 }
             }
         });
+        if (vPorts.size() == 0) {
+            return null;
+        }
+        return vPorts.get(0);
+    }
+
+    @Override
+    public VirtualPort getPort(TenantNetworkId networkId, IpAddress ip) {
+        checkNotNull(networkId, NETWORKID_NOT_NULL);
+        checkNotNull(ip, IP_NOT_NULL);
+        List<VirtualPort> vPorts = new ArrayList<>();
+        vPortStore.values().stream().filter(p -> p.networkId().equals(networkId))
+                .forEach(p -> {
+                    Iterator<FixedIp> fixedIps = p.fixedIps().iterator();
+                    while (fixedIps.hasNext()) {
+                        if (fixedIps.next().ip().equals(ip)) {
+                            vPorts.add(p);
+                            break;
+                        }
+                    }
+                });
         if (vPorts.size() == 0) {
             return null;
         }

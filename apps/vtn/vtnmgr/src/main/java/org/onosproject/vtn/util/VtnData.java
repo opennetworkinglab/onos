@@ -17,12 +17,20 @@ package org.onosproject.vtn.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.vtnrsc.FixedIp;
+import org.onosproject.vtnrsc.TenantNetworkId;
+import org.onosproject.vtnrsc.VirtualPort;
+import org.onosproject.vtnrsc.VirtualPortId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,6 +100,80 @@ public final class VtnData {
                     }
                 });
         return localTunnelPorts;
+    }
+
+    /**
+     * Get VirtualPort.
+     *
+     * @param vPortStore EventuallyConsistentMap of VirtualPort
+     * @param vPortId VirtualPortId of the VirtualPort
+     * @return VirtualPort
+     */
+    public static VirtualPort getPort(EventuallyConsistentMap<VirtualPortId, VirtualPort> vPortStore,
+                                      VirtualPortId vPortId) {
+        if (vPortStore != null) {
+            return vPortStore.get(vPortId);
+        }
+        return null;
+    }
+
+    /**
+     * Get VirtualPort.
+     *
+     * @param vPortStore EventuallyConsistentMap of VirtualPort
+     * @param fixedIP FixedIp of the VirtualPort
+     * @return VirtualPort
+     */
+    public static VirtualPort getPort(EventuallyConsistentMap<VirtualPortId, VirtualPort> vPortStore,
+                                      FixedIp fixedIP) {
+        if (vPortStore != null) {
+            List<VirtualPort> vPorts = new ArrayList<>();
+            vPortStore.values().stream().forEach(p -> {
+                Iterator<FixedIp> fixedIps = p.fixedIps().iterator();
+                while (fixedIps.hasNext()) {
+                    if (fixedIps.next().equals(fixedIP)) {
+                        vPorts.add(p);
+                        break;
+                    }
+                }
+            });
+            if (vPorts.size() == 0) {
+                return null;
+            }
+            return vPorts.get(0);
+        }
+        return null;
+    }
+
+    /**
+     * Get VirtualPort.
+     *
+     * @param vPortStore EventuallyConsistentMap of VirtualPort
+     * @param networkId TenantNetworkId of the VirtualPort
+     * @param ip IpAddress of the VirtualPort
+     * @return VirtualPort
+     */
+    public static VirtualPort getPort(EventuallyConsistentMap<VirtualPortId, VirtualPort> vPortStore,
+                                      TenantNetworkId networkId, IpAddress ip) {
+        if (vPortStore != null) {
+            List<VirtualPort> vPorts = new ArrayList<>();
+            vPortStore.values().stream()
+                    .filter(p -> p.networkId().equals(networkId))
+                    .forEach(p -> {
+                        Iterator<FixedIp> fixedIps = p.fixedIps().iterator();
+                        while (fixedIps.hasNext()) {
+                            if (fixedIps.next().ip().equals(ip)) {
+                                vPorts.add(p);
+                                break;
+                            }
+                        }
+                    });
+            if (vPorts.size() == 0) {
+                return null;
+            }
+            return vPorts.get(0);
+        }
+        return null;
     }
 
 }
