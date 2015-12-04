@@ -173,6 +173,8 @@
             manufacturer="ECI Telecom" hwVersion="Optical.*" swVersion="V_1_0">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.OFOpticalSwitch13"/>
+        <behaviour api="org.onosproject.net.behaviour.TributarySlotQuery"
+                   impl="org.onosproject.driver.query.DefaultTributarySlotQuery" />
     </driver>
     <driver name="aos" extends="ofdpa"
             manufacturer="Accton" hwVersion=".*" swVersion="1.*">

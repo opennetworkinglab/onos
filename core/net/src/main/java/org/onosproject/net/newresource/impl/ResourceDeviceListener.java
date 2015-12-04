@@ -16,20 +16,18 @@
 package org.onosproject.net.newresource.impl;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Port;
-import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TributarySlot;
-import org.onosproject.net.OduSignalType;
 import org.onosproject.net.behaviour.LambdaQuery;
 import org.onosproject.net.behaviour.MplsQuery;
+import org.onosproject.net.behaviour.TributarySlotQuery;
 import org.onosproject.net.behaviour.VlanQuery;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -43,11 +41,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -58,16 +54,10 @@ final class ResourceDeviceListener implements DeviceListener {
 
     private static final Logger log = LoggerFactory.getLogger(ResourceDeviceListener.class);
 
-    private static final int TOTAL_ODU2_TRIBUTARY_SLOTS = 8;
-    private static final int TOTAL_ODU4_TRIBUTARY_SLOTS = 80;
-    private static final List<TributarySlot> ENTIRE_ODU2_TRIBUTARY_SLOTS = getEntireOdu2TributarySlots();
-    private static final List<TributarySlot> ENTIRE_ODU4_TRIBUTARY_SLOTS = getEntireOdu4TributarySlots();
-
     private final ResourceAdminService adminService;
     private final DeviceService deviceService;
     private final DriverService driverService;
     private final ExecutorService executor;
-
 
     /**
      * Creates an instance with the specified ResourceAdminService and ExecutorService.
@@ -156,29 +146,13 @@ final class ResourceDeviceListener implements DeviceListener {
             }
 
             // for Tributary slots
-            // TODO: need to define Behaviour to make a query about OCh port
-            switch (port.type()) {
-                case OCH:
-                    // register ODU TributarySlots against the OCH port
-                    registerTributarySlotsResources(((OchPort) port).signalType(), portPath);
-                    break;
-                default:
-                    break;
+            Set<TributarySlot> tSlots = queryTributarySlots(device.id(), port.number());
+            if (!tSlots.isEmpty()) {
+                adminService.registerResources(tSlots.stream()
+                                               .map(portPath::child)
+                                               .collect(Collectors.toList()));
             }
         });
-    }
-
-    private void registerTributarySlotsResources(OduSignalType oduSignalType, ResourcePath portPath) {
-        switch (oduSignalType) {
-            case ODU2:
-                adminService.registerResources(Lists.transform(ENTIRE_ODU2_TRIBUTARY_SLOTS, portPath::child));
-                break;
-            case ODU4:
-                adminService.registerResources(Lists.transform(ENTIRE_ODU4_TRIBUTARY_SLOTS, portPath::child));
-                break;
-            default:
-                break;
-        }
     }
 
     private void unregisterPortResource(Device device, Port port) {
@@ -260,14 +234,26 @@ final class ResourceDeviceListener implements DeviceListener {
         }
     }
 
-    private static List<TributarySlot> getEntireOdu2TributarySlots() {
-        return IntStream.rangeClosed(1, TOTAL_ODU2_TRIBUTARY_SLOTS)
-                .mapToObj(TributarySlot::of)
-                .collect(Collectors.toList());
-    }
-    private static List<TributarySlot> getEntireOdu4TributarySlots() {
-        return IntStream.rangeClosed(1, TOTAL_ODU4_TRIBUTARY_SLOTS)
-                .mapToObj(TributarySlot::of)
-                .collect(Collectors.toList());
+    private Set<TributarySlot> queryTributarySlots(DeviceId device, PortNumber port) {
+        try {
+            // DriverHandler does not provide a way to check if a
+            // behaviour is supported.
+            Driver driver = driverService.getDriver(device);
+            if (driver == null || !driver.hasBehaviour(TributarySlotQuery.class)) {
+                return Collections.emptySet();
+            }
+            DriverHandler handler = driverService.createHandler(device);
+            if (handler == null) {
+                return Collections.emptySet();
+            }
+            TributarySlotQuery query = handler.behaviour(TributarySlotQuery.class);
+            if (query != null) {
+                return query.queryTributarySlots(port);
+            } else {
+                return Collections.emptySet();
+            }
+        } catch (ItemNotFoundException e) {
+            return Collections.emptySet();
+        }
     }
 }
