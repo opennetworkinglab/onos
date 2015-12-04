@@ -26,6 +26,9 @@ import org.onosproject.net.ElementId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.topology.GeoDistanceLinkWeight;
+import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
@@ -62,11 +65,12 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     private static final String ENDSTATION = "endstation";
     public static final String DST = "Dst";
     public static final String SRC = "Src";
+    private static LinkWeight linkData;
 
     private Set<Link> allPathLinks;
 
     private enum Mode {
-        SHORTEST, DISJOINT, SRLG
+        SHORTEST, DISJOINT, GEODATA, SRLG, INVALID
     }
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -87,6 +91,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
         pathService = directory.get(PathService.class);
+        linkData = new GeoDistanceLinkWeight(directory.get(DeviceService.class));
     }
 
     @Override
@@ -165,6 +170,8 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         }
     }
 
+
+
     private final class NextPathHandler extends RequestHandler {
         public NextPathHandler() {
             super(PAINTER_NEXT_PATH);
@@ -197,9 +204,23 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         @Override
         public void process(long sid, ObjectNode payload) {
             String mode = string(payload, MODE);
-            currentMode = (mode.equals("shortest") ?
-                    Mode.SHORTEST : (mode.equals("disjoint") ?
-                    Mode.DISJOINT : Mode.SRLG));
+            switch (mode) {
+                case "shortest":
+                    currentMode = Mode.SHORTEST;
+                    break;
+                case "disjoint":
+                    currentMode = Mode.DISJOINT;
+                    break;
+                case "geodata":
+                    currentMode = Mode.GEODATA;
+                    break;
+                case "srlg":
+                    currentMode = Mode.SRLG;
+                    break;
+                default:
+                    currentMode = Mode.INVALID;
+                    break;
+            }
             //TODO: add support for SRLG
             findAndSendPaths(currentMode);
         }
@@ -226,6 +247,9 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
             } else if (mode.equals(Mode.DISJOINT)) {
                 paths = ImmutableList.copyOf(pathService.getDisjointPaths(src, dst));
                 allPathLinks = buildDisjointPaths(builder).build();
+            } else if (mode.equals(Mode.GEODATA)) {
+                paths = ImmutableList.copyOf(pathService.getPaths(src, dst, linkData));
+                allPathLinks = buildPaths(builder).build();
             } else {
                 log.info("Unsupported MODE");
             }
