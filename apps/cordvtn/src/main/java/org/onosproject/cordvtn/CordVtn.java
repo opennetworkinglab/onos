@@ -282,6 +282,14 @@ public class CordVtn implements CordVtnService {
         return state != null && state.equals(NodeState.COMPLETE);
     }
 
+    @Override
+    public void createServiceDependency(ServiceId tenantServiceId, ServiceId providerServiceId) {
+    }
+
+    @Override
+    public void removeServiceDependency(ServiceId tenantServiceId, ServiceId providerServiceId) {
+    }
+
     /**
      * Returns state of a given cordvtn node.
      *
