@@ -23,9 +23,11 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.OchPort;
+import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TributarySlot;
 import org.onosproject.net.OduSignalType;
+import org.onosproject.net.behaviour.LambdaQuery;
 import org.onosproject.net.behaviour.MplsQuery;
 import org.onosproject.net.behaviour.VlanQuery;
 import org.onosproject.net.device.DeviceEvent;
@@ -37,7 +39,9 @@ import org.onosproject.net.newresource.ResourcePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -123,6 +127,14 @@ final class ResourceDeviceListener implements DeviceListener {
                 adminService.registerResources(Lists.transform(ENTIRE_MPLS_LABELS, portPath::child));
             }
 
+            // for Lambdas
+            SortedSet<OchSignal> lambdas = queryLambdas(device.id(), port.number());
+            if (!lambdas.isEmpty()) {
+                adminService.registerResources(lambdas.stream()
+                                               .map(portPath::child)
+                                               .collect(Collectors.toList()));
+            }
+
             // for Tributary slots
             // TODO: need to define Behaviour to make a query about OCh port
             switch (port.type()) {
@@ -152,6 +164,19 @@ final class ResourceDeviceListener implements DeviceListener {
     private void unregisterPortResource(Device device, Port port) {
         ResourcePath resource = ResourcePath.discrete(device.id(), port.number());
         executor.submit(() -> adminService.unregisterResources(resource));
+    }
+
+    private SortedSet<OchSignal> queryLambdas(DeviceId did, PortNumber port) {
+        try {
+            DriverHandler handler = driverService.createHandler(did);
+            if (handler == null) {
+                return Collections.emptySortedSet();
+            }
+            LambdaQuery query = handler.behaviour(LambdaQuery.class);
+            return query.queryLambdas(port);
+        } catch (ItemNotFoundException e) {
+            return Collections.emptySortedSet();
+        }
     }
 
     private boolean isVlanEnabled(DeviceId device, PortNumber port) {
