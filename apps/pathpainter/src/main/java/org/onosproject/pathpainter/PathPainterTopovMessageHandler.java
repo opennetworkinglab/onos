@@ -30,6 +30,9 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.topology.GeoDistanceLinkWeight;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
+import org.onosproject.net.topology.TopologyEvent;
+import org.onosproject.net.topology.TopologyListener;
+import org.onosproject.net.topology.TopologyService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
@@ -50,6 +53,7 @@ import java.util.Set;
  */
 public class PathPainterTopovMessageHandler extends UiMessageHandler {
 
+    private static final String PAINTER_CLEAR = "ppTopovClear";
     private static final String PAINTER_SET_SRC = "ppTopovSetSrc";
     private static final String PAINTER_SET_DST = "ppTopovSetDst";
     private static final String PAINTER_SWAP_SRC_DST = "ppTopovSwapSrcDst";
@@ -67,7 +71,10 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     public static final String SRC = "Src";
     private static LinkWeight linkData;
 
+    private final TopologyListener topologyListener = new InternalTopologyListener();
+
     private Set<Link> allPathLinks;
+    private boolean listenersRemoved;
 
     private enum Mode {
         SHORTEST, DISJOINT, GEODATA, SRLG, INVALID
@@ -83,6 +90,8 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     private List<Path> paths;
     private int pathIndex;
 
+    protected TopologyService topologyService;
+
 
     // ===============-=-=-=-=-=-======================-=-=-=-=-=-=-================================
 
@@ -91,12 +100,22 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
         pathService = directory.get(PathService.class);
+        topologyService = directory.get(TopologyService.class);
         linkData = new GeoDistanceLinkWeight(directory.get(DeviceService.class));
+        addListeners();
+    }
+
+
+    @Override
+    public void destroy() {
+        removeListeners();
+        super.destroy();
     }
 
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
+                new ClearHandler(),
                 new SetSrcHandler(),
                 new SetDstHandler(),
                 new SwapSrcDstHandler(),
@@ -108,6 +127,20 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
 
     // === -------------------------
     // === Handler classes
+
+    private final class ClearHandler extends RequestHandler {
+
+        public ClearHandler() {
+            super(PAINTER_CLEAR);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            src = null;
+            dst = null;
+            sendMessage(TopoJson.highlightsMessage(new Highlights()));
+        }
+    }
 
     private final class SetSrcHandler extends RequestHandler {
 
@@ -331,6 +364,25 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
 
     private NodeBadge createBadge(String type) {
         return NodeBadge.text(type);
+    }
+
+    private synchronized void addListeners() {
+        listenersRemoved = false;
+        topologyService.addListener(topologyListener);
+    }
+    private synchronized void removeListeners() {
+        if (!listenersRemoved) {
+            listenersRemoved = true;
+            topologyService.removeListener(topologyListener);
+        }
+    }
+
+    // Link event listener.
+    private class InternalTopologyListener implements TopologyListener {
+        @Override
+        public void event(TopologyEvent event) {
+            findAndSendPaths(currentMode);
+        }
     }
 
 }

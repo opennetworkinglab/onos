@@ -19,6 +19,13 @@
         glyphId: 'topo',
         tooltip: 'Path Painter Topo Overlay',
 
+        activate: function () {
+            $log.debug("Path painter topology overlay ACTIVATED");
+        },
+        deactivate: function () {
+            pps.clear();
+            $log.debug("Path painter topology overlay DEACTIVATED");
+        },
         // These glyphs get installed using the overlayId as a prefix.
         // e.g. 'src' is installed as 'pp-overlay-src'
         // They can be referenced (from this overlay) as '*src'
@@ -121,13 +128,6 @@
                 'V24.6H49.5l0,8.9 M39.1,54.2l2.9,2.3l10.3-20.8l-2.7-2.1L39.1,54.2z M47.2,46.4'
 
             }
-        },
-
-        activate: function () {
-            $log.debug("Path painter topology overlay ACTIVATED");
-        },
-        deactivate: function () {
-            $log.debug("Path painter topology overlay DEACTIVATED");
         },
 
         // detail panel button definitions

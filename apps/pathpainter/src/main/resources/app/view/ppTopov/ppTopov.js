@@ -31,6 +31,7 @@
         swapMessage = 'ppTopovSwapSrcDst',
         modeMessage = 'ppTopovSetMode',
         nextPathMessage = 'ppTopovNextPath',
+        clearMessage = 'ppTopovClear',
         prevPathMessage = 'ppTopovPrevPath';
 
     // internal state
@@ -44,6 +45,10 @@
     // === ---------------------------
     // === Main API functions
 
+    function clear() {
+        wss.sendEvent(clearMessage);
+        flash.flash('Source node: ' + node.id);
+    }
 
     function setSrc(node) {
         wss.sendEvent(srcMessage, {
@@ -107,7 +112,8 @@
                 setMode: setMode,
                 nextPath: nextPath,
                 prevPath: prevPath,
-                swapSrcDst: swapSrcDst
+                swapSrcDst: swapSrcDst,
+                clear: clear
             };
         }]);
 }());

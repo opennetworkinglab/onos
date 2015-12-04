@@ -37,6 +37,12 @@ public class PathPainterTopovOverlay extends UiTopoOverlay {
     }
 
     @Override
+    public void deactivate() {
+        super.deactivate();
+        log.debug("PathPainterOverlay Deactivated");
+    }
+
+    @Override
     public void modifyDeviceDetails(PropertyPanel pp, DeviceId deviceId) {
         pp.addButton(SRC_BUTTON).addButton(DST_BUTTON);
     }
