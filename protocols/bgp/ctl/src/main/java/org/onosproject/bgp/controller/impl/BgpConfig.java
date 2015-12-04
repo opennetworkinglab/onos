@@ -67,6 +67,7 @@ public class BgpConfig implements BgpCfg {
         this.holdTime = DEFAULT_HOLD_TIMER;
         this.maxConnRetryTime = DEFAULT_CONN_RETRY_TIME;
         this.maxConnRetryCount = DEFAULT_CONN_RETRY_COUNT;
+        this.lsCapability = true;
     }
 
     @Override
