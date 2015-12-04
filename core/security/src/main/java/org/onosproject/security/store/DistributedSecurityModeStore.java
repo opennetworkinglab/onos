@@ -303,14 +303,4 @@ public class DistributedSecurityModeStore
         }
         return locations;
     }
-
-    @Override
-    public void setDelegate(SecurityModeStoreDelegate delegate) {
-        super.setDelegate(delegate);
-    }
-
-    @Override
-    public void unsetDelegate(SecurityModeStoreDelegate delegate) {
-        super.setDelegate(delegate);
-    }
 }

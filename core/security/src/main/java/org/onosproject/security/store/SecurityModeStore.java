@@ -101,4 +101,5 @@ public interface SecurityModeStore extends Store<SecurityModeEvent, SecurityMode
      * @param permissionSet array of PermissionInfo
      */
     void acceptPolicy(ApplicationId appId, Set<Permission> permissionSet);
+
 }

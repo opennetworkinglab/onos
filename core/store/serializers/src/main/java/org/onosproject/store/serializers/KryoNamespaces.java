@@ -186,6 +186,7 @@ import org.onosproject.net.resource.link.LinkResourceRequest;
 import org.onosproject.net.resource.link.MplsLabel;
 import org.onosproject.net.resource.link.MplsLabelResourceAllocation;
 import org.onosproject.net.resource.link.MplsLabelResourceRequest;
+import org.onosproject.security.Permission;
 import org.onosproject.store.Timestamp;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.SetEvent;
@@ -286,6 +287,7 @@ public final class KryoNamespaces {
                     ApplicationState.class,
                     ApplicationRole.class,
                     DefaultApplication.class,
+                    Permission.class,
                     Device.Type.class,
                     Port.Type.class,
                     ChassisId.class,

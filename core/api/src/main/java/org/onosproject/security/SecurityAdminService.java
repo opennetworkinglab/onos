@@ -74,6 +74,4 @@ public interface SecurityAdminService {
      * @return Map of list of permissions sorted by permission type
      */
     Map<Integer, List<Permission>> getPrintableRequestedPermissions(ApplicationId appId);
-
-
 }
