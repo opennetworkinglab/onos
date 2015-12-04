@@ -25,7 +25,6 @@ package org.onosproject.net;
  */
 public final class AnnotationKeys {
 
-
     // Prohibit instantiation
     private AnnotationKeys() {
     }
@@ -81,6 +80,12 @@ public final class AnnotationKeys {
     public static final String DURABLE = "durable";
 
     /**
+     * Annotation key for link metric; used by
+     * {@link org.onosproject.net.topology.MetricLinkWeight} function.
+     */
+    public static final String METRIC = "metric";
+
+    /**
      * Annotation key for latency.
      *
      * @deprecated since Cardinal
@@ -112,8 +117,14 @@ public final class AnnotationKeys {
      */
     public static final String ROUTER_ID = "routerId";
 
+    /**
+     * Annotation key for the static lambda.
+     */
     public static final String STATIC_LAMBDA = "staticLambda";
 
+    /**
+     * Annotation key for the static port.
+     */
     public static final String STATIC_PORT = "staticPort";
 
     /**

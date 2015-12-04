@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 public final class BasicLinkOperator implements ConfigOperator {
 
     private static final long DEF_BANDWIDTH = -1L;
+    private static final double DEF_METRIC = -1;
     private static final Duration DEF_DURATION = Duration.ofNanos(-1L);
     private static final Logger log = getLogger(BasicLinkOperator.class);
 
@@ -77,6 +78,9 @@ public final class BasicLinkOperator implements ConfigOperator {
      */
     public static SparseAnnotations combine(BasicLinkConfig cfg, SparseAnnotations an) {
         DefaultAnnotations.Builder b = DefaultAnnotations.builder();
+        if (cfg.metric() != DEF_METRIC) {
+            b.set(AnnotationKeys.METRIC, String.valueOf(cfg.metric()));
+        }
         if (cfg.latency() != DEF_DURATION) {
             b.set(AnnotationKeys.LATENCY, cfg.latency().toString());
         }

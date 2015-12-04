@@ -168,7 +168,7 @@ public class NullProviders {
 
 
     @Activate
-    public void activate(ComponentContext context) {
+    public void activate() {
         cfgService.registerProperties(getClass());
 
         deviceProviderService = deviceProviderRegistry.register(deviceProvider);
@@ -180,7 +180,7 @@ public class NullProviders {
     }
 
     @Deactivate
-    public void deactivate(ComponentContext context) {
+    public void deactivate() {
         cfgService.unregisterProperties(getClass(), false);
         tearDown();
 
