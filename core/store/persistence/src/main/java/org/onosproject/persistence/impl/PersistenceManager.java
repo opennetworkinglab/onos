@@ -46,8 +46,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service
 public class PersistenceManager implements PersistenceService {
 
-    private static final String DATABASE_PATH = System.getProperty("karaf.data", "./data/localDB");
-    private static final String ENCLOSING_FOLDER = System.getProperty("karaf.data", "./data");
+    private static final String DATABASE_PATH = "../data/localDB";
+    private static final String ENCLOSING_FOLDER = "../data";
 
     static final String MAP_PREFIX = "map:";
 
