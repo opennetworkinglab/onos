@@ -15,13 +15,13 @@
  */
 package org.onosproject.vtnrsc.portpair;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.vtnrsc.PortPair;
 import org.onosproject.vtnrsc.PortPairId;
-
 /**
  * Service for interacting with the inventory of port pairs.
  */
-public interface PortPairService {
+public interface PortPairService extends ListenerService<PortPairEvent, PortPairListener> {
 
     /**
      * Returns if the port pair is existed.
@@ -77,18 +77,4 @@ public interface PortPairService {
      * @return true if the give port pair is deleted successfully.
      */
     boolean removePortPair(PortPairId portPairId);
-
-    /**
-     * Adds the specified listener to Port-Pair manager.
-     *
-     * @param listener Port-Pair listener
-     */
-    void addListener(PortPairListener listener);
-
-    /**
-     * Removes the specified listener to Port-Pair manager.
-     *
-     * @param listener Port-Pair listener
-     */
-    void removeListener(PortPairListener listener);
 }
