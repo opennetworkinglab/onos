@@ -52,6 +52,10 @@ function build_stage_dir() {
 
     if [ -d $ONOS_ROOT/tools/package/karaf-assembly/target/repo ]; then
         cp -r $ONOS_ROOT/tools/package/karaf-assembly/target/repo/* $ONOS_STAGE/$KARAF_DIST/system
+        #FIXME we need to add onos-features manually
+        mkdir -p $ONOS_STAGE/$KARAF_DIST/system/org/onosproject/onos-features/$ONOS_POM_VERSION
+        cp $M2_REPO/org/onosproject/onos-features/$ONOS_POM_VERSION/onos-features* \
+           $ONOS_STAGE/$KARAF_DIST/system/org/onosproject/onos-features/$ONOS_POM_VERSION
     else
         # TODO: Deprecated so remove when confident staging works.
         # Stage the ONOS bundles, but only those that match the version
