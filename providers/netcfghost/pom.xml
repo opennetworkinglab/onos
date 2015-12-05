@@ -33,7 +33,6 @@
     <url>http://onosproject.org</url>
 
     <properties>
-        <onos.version>1.4.0-SNAPSHOT</onos.version>
         <onos.app.name>org.onosproject.netcfghostprovider</onos.app.name>
         <onos.app.origin>ON.Lab</onos.app.origin>
     </properties>
@@ -42,13 +41,11 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
-            <version>${onos.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
-            <version>${onos.version}</version>
         </dependency>
 
         <dependency>
@@ -56,14 +53,6 @@
             <artifactId>junit</artifactId>
             <version>4.11</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-api</artifactId>
-            <version>${onos.version}</version>
-            <scope>test</scope>
-            <classifier>tests</classifier>
         </dependency>
 
         <dependency>

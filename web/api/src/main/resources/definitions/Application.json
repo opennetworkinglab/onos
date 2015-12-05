@@ -25,7 +25,7 @@
     },
     "version": {
       "type": "string",
-      "example": "1.4.0.SNAPSHOT"
+      "example": "1.2.3"
     },
     "description": {
       "type": "string",
@@ -48,7 +48,7 @@
     },
     "featuresRepo": {
       "type": "string",
-      "example": "mvn:org.onosproject/onos-app-cip/1.4.0-SNAPSHOT/xml/features"
+      "example": "mvn:org.onosproject/onos-app-cip/1.2.3/xml/features"
     },
     "features": {
       "type": "array",

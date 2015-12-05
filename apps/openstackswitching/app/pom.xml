@@ -31,7 +31,6 @@
 
     <description>SONA Openstack Switching  applications</description>
     <properties>
-        <onos.version>1.4.0-SNAPSHOT</onos.version>
         <onos.app.name>org.onosproject.openstackswitching</onos.app.name>
         <web.context>/onos/openstackswitching</web.context>
         <api.version>1.0.0</api.version>

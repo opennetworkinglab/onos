@@ -41,7 +41,7 @@ sed -i "" -E "s/Version\.version\(\"[^\"]*\"\)/Version.version(\"$NEW_VERSION\")
 
 # Augment the version in archetypes tree.
 mvn -f tools/package/archetypes/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit
-for atype in api bundle cli ui; do
+for atype in api bundle cli ui uitab uitopo; do
     pom="tools/package/archetypes/$atype/src/main/resources/archetype-resources/pom.xml"
     sed -i "" -E "1,/<onos.version>/s/<onos.version>[^<]*</<onos.version>$NEW_VERSION</g" $pom
 done
@@ -51,6 +51,3 @@ sed -i "" -E "s/-DarchetypeVersion=[^\"]*/-DarchetypeVersion=$NEW_VERSION/g" $ON
 perl -i -0pe "s#<artifactId>cord-gui<.*\n.*version>#<artifactId>cord-gui</artifactId>\n    <version>$NEW_VERSION</version>#" $ONOS_ROOT/apps/demo/cord-gui/pom.xml
 sed -i "" -E "s#demo/cord-gui/target/cord-gui-.*\.war#demo/cord-gui/target/cord-gui-$NEW_VERSION.war#" $ONOS_ROOT/apps/demo/cord-gui/src/scripts/pullwar.sh
 sed -i "" -E "s#CORD=./cord-gui-.*\.war#CORD=./cord-gui-$NEW_VERSION.war#" $ONOS_ROOT/apps/demo/cord-gui/src/scripts/run.me
-
-# Augment the acl app
-sed -i "" -E "s/<onos.version>[^<]*</<onos.version>$NEW_VERSION</g" $ONOS_ROOT/apps/acl/pom.xml
