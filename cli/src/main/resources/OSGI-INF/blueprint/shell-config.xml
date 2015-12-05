@@ -295,6 +295,29 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.ResourcesCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+                <ref component-id="portNumberCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.AllocationsCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+                <ref component-id="portNumberCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.cli.net.TestAllocateResource"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+                <ref component-id="portNumberCompleter"/>
+            </completers>
+        </command>
+
+        <!-- Should deprecate following 3 commands soon. -->
+        <command>
             <action class="org.onosproject.cli.net.ResourceAllocationsCommand"/>
             <completers>
                 <ref component-id="connectPointCompleter"/>
@@ -487,6 +510,7 @@
     <bean id="componentPropertyNameCompleter" class="org.onosproject.cli.cfg.ComponentPropertyNameCompleter"/>
     <bean id="nodeIdCompleter" class="org.onosproject.cli.NodeIdCompleter"/>
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
+    <bean id="portNumberCompleter" class="org.onosproject.cli.net.PortNumberCompleter"/>
     <bean id="clusterIdCompleter" class="org.onosproject.cli.net.ClusterIdCompleter"/>
     <bean id="roleCompleter" class="org.onosproject.cli.net.RoleCompleter"/>
     <bean id="hostIdCompleter" class="org.onosproject.cli.net.HostIdCompleter"/>
