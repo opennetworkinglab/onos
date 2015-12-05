@@ -172,7 +172,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     public boolean unregisterResources(List<ResourcePath> resources) {
         checkNotNull(resources);
 
-        return store.register(resources);
+        return store.unregister(resources);
     }
 
     private class InternalStoreDelegate implements ResourceStoreDelegate {

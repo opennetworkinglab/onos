@@ -35,7 +35,7 @@ public class ResourceAllocation {
      * Creates an instance with the specified subject, resource and consumer.
      *
      * @param resource resource of the subject
-     * @param consumer consumer ot this resource
+     * @param consumer consumer of this resource
      */
     public ResourceAllocation(ResourcePath resource, ResourceConsumer consumer) {
         this.resource = checkNotNull(resource);

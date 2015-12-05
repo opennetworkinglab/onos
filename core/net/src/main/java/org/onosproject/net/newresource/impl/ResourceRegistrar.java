@@ -53,12 +53,13 @@ public final class ResourceRegistrar {
 
     @Activate
     public void activate() {
-        deviceListener = new ResourceDeviceListener(adminService, driverService, executor);
+        deviceListener = new ResourceDeviceListener(adminService, deviceService, driverService, executor);
         deviceService.addListener(deviceListener);
     }
 
     @Deactivate
     public void deactivate() {
         deviceService.removeListener(deviceListener);
+        executor.shutdownNow();
     }
 }

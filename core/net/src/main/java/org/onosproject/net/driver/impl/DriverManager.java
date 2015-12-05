@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -166,8 +167,13 @@ public class DriverManager extends DefaultDriverProvider implements DriverAdminS
         Device device = nullIsNotFound(deviceService.getDevice(deviceId), NO_DEVICE);
         String driverName = device.annotations().value(DRIVER);
         if (driverName != null) {
-            return getDriver(driverName);
+            try {
+                return getDriver(driverName);
+            } catch (ItemNotFoundException e) {
+                log.warn("Specified driver {} not found, falling back.", driverName);
+            }
         }
+
         return nullIsNotFound(getDriver(device.manufacturer(),
                                         device.hwVersion(), device.swVersion()),
                               NO_DRIVER);

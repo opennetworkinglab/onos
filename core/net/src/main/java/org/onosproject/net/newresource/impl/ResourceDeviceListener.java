@@ -32,6 +32,8 @@ import org.onosproject.net.behaviour.MplsQuery;
 import org.onosproject.net.behaviour.VlanQuery;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.newresource.ResourceAdminService;
@@ -67,18 +69,22 @@ final class ResourceDeviceListener implements DeviceListener {
     private static final List<TributarySlot> ENTIRE_ODU4_TRIBUTARY_SLOTS = getEntireOdu4TributarySlots();
 
     private final ResourceAdminService adminService;
+    private final DeviceService deviceService;
     private final DriverService driverService;
     private final ExecutorService executor;
+
 
     /**
      * Creates an instance with the specified ResourceAdminService and ExecutorService.
      *
      * @param adminService instance invoked to register resources
+     * @param deviceService {@link DeviceService} to be used.
      * @param executor executor used for processing resource registration
      */
-    ResourceDeviceListener(ResourceAdminService adminService, DriverService driverService,
+    ResourceDeviceListener(ResourceAdminService adminService, DeviceService deviceService, DriverService driverService,
                            ExecutorService executor) {
         this.adminService = checkNotNull(adminService);
+        this.deviceService = checkNotNull(deviceService);
         this.driverService = checkNotNull(driverService);
         this.executor = checkNotNull(executor);
     }
@@ -93,8 +99,21 @@ final class ResourceDeviceListener implements DeviceListener {
             case DEVICE_REMOVED:
                 unregisterDeviceResource(device);
                 break;
+            case DEVICE_AVAILABILITY_CHANGED:
+                if (deviceService.isAvailable(device.id())) {
+                    registerDeviceResource(device);
+                    // TODO: do we need to walk the ports?
+                } else {
+                    unregisterDeviceResource(device);
+                }
+                break;
             case PORT_ADDED:
-                registerPortResource(device, event.port());
+            case PORT_UPDATED:
+                if (event.port().isEnabled()) {
+                    registerPortResource(device, event.port());
+                } else {
+                    unregisterPortResource(device, event.port());
+                }
                 break;
             case PORT_REMOVED:
                 unregisterPortResource(device, event.port());
@@ -168,12 +187,22 @@ final class ResourceDeviceListener implements DeviceListener {
 
     private SortedSet<OchSignal> queryLambdas(DeviceId did, PortNumber port) {
         try {
+            // DriverHandler does not provide a way to check if a
+            // behaviour is supported.
+            Driver driver = driverService.getDriver(did);
+            if (driver == null || !driver.hasBehaviour(LambdaQuery.class)) {
+                return Collections.emptySortedSet();
+            }
             DriverHandler handler = driverService.createHandler(did);
             if (handler == null) {
                 return Collections.emptySortedSet();
             }
             LambdaQuery query = handler.behaviour(LambdaQuery.class);
-            return query.queryLambdas(port);
+            if (query != null) {
+                return query.queryLambdas(port);
+            } else {
+                return Collections.emptySortedSet();
+            }
         } catch (ItemNotFoundException e) {
             return Collections.emptySortedSet();
         }
@@ -181,6 +210,14 @@ final class ResourceDeviceListener implements DeviceListener {
 
     private boolean isVlanEnabled(DeviceId device, PortNumber port) {
         try {
+            // DriverHandler does not provide a way to check if a
+            // behaviour is supported.
+            Driver driver = driverService.getDriver(device);
+            if (driver == null || !driver.hasBehaviour(VlanQuery.class)) {
+                // device does not support this
+                return false;
+            }
+
             DriverHandler handler = driverService.createHandler(device);
             if (handler == null) {
                 return false;
@@ -195,6 +232,13 @@ final class ResourceDeviceListener implements DeviceListener {
 
     private boolean isMplsEnabled(DeviceId device, PortNumber port) {
         try {
+            // DriverHandler does not provide a way to check if a
+            // behaviour is supported.
+            Driver driver = driverService.getDriver(device);
+            if (driver == null || !driver.hasBehaviour(MplsQuery.class)) {
+                // device does not support this
+                return false;
+            }
             DriverHandler handler = driverService.createHandler(device);
             if (handler == null) {
                 return false;

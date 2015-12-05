@@ -197,7 +197,7 @@ class LINCSwitch(OpticalSwitch):
         self.configDict[ 'uri' ] = 'of:' + self.dpid
         self.configDict[ 'annotations' ] = self.annotations
         self.configDict[ 'annotations' ].setdefault('name', self.name)
-        self.configDict[ 'hw' ] = 'LINC-OE'
+        self.configDict[ 'hw' ] = 'linc-oe'
         self.configDict[ 'mfr' ] = 'Linc'
         self.configDict[ 'mac' ] = 'ffffffffffff' + self.dpid[-2] + self.dpid[-1]
         self.configDict[ 'type' ] = self.switchType
