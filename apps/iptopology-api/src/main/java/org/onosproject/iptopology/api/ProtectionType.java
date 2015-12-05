@@ -17,6 +17,8 @@ package org.onosproject.iptopology.api;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -41,6 +43,24 @@ public class ProtectionType {
         LinkProtectionType(int val) {
             value = val;
         }
+
+        static Map<Integer, LinkProtectionType> map = new HashMap<>();
+
+        static {
+           for (LinkProtectionType type : LinkProtectionType.values()) {
+              map.put(type.value, type);
+           }
+        }
+
+        /**
+         * A method that returns enum value.
+         *
+         * @param value link protection type
+         * @return Enum value
+         */
+        public static LinkProtectionType getEnumType(int value) {
+            return map.get(value);
+         }
 
         /**
          * Provides Link protection type.
