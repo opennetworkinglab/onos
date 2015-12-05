@@ -388,7 +388,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return new PropertyPanel("ONOS Summary", "node")
             .addProp(Properties.VERSION, version)
             .addSeparator()
-            .addProp(Properties.DEVICES, topology.deviceCount())
+            .addProp(Properties.DEVICES,  deviceService.getDeviceCount())
             .addProp(Properties.LINKS, topology.linkCount())
             .addProp(Properties.HOSTS, hostService.getHostCount())
             .addProp(Properties.TOPOLOGY_SSCS, topology.clusterCount())
