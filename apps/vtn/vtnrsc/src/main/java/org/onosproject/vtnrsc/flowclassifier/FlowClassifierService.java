@@ -15,13 +15,14 @@
  */
 package org.onosproject.vtnrsc.flowclassifier;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.FlowClassifierId;
 
 /**
  * Provides Services for Flow Classifier.
  */
-public interface FlowClassifierService {
+public interface FlowClassifierService extends ListenerService<FlowClassifierEvent, FlowClassifierListener> {
 
     /**
      * Check whether Flow Classifier is present based on given Flow Classifier
@@ -79,18 +80,4 @@ public interface FlowClassifierService {
      *         false
      */
     boolean removeFlowClassifier(FlowClassifierId id);
-
-    /**
-     * Adds the specified listener to Flow-Classifier manager.
-     *
-     * @param listener Flow-Classifier listener
-     */
-    void addListener(FlowClassifierListener listener);
-
-    /**
-     * Removes the specified listener to Flow-Classifier manager.
-     *
-     * @param listener Flow-Classifier listener
-     */
-    void removeListener(FlowClassifierListener listener);
 }
