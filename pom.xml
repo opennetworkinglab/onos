@@ -54,7 +54,6 @@
 
         <module>tools/package/archetypes</module>
         <module>tools/package/branding</module>
-        <module>tools/package/karaf-assembly</module>
         <module>tools/package/maven-plugin</module>
         <module>tools/build/conf</module>
     </modules>
