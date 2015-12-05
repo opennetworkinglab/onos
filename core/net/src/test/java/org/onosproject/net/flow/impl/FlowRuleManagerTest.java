@@ -269,22 +269,18 @@ public class FlowRuleManagerTest {
 
     @Test
     public void flowRemoved() {
-
         FlowRule f1 = addFlowRule(1);
         FlowRule f2 = addFlowRule(2);
         StoredFlowEntry fe1 = new DefaultFlowEntry(f1);
         FlowEntry fe2 = new DefaultFlowEntry(f2);
 
-
         providerService.pushFlowMetrics(DID, ImmutableList.of(fe1, fe2));
         service.removeFlowRules(f1);
 
+        //FIXME modification of "stored" flow entry outside of store
         fe1.setState(FlowEntryState.REMOVED);
 
-
-
         providerService.flowRemoved(fe1);
-
 
         validateEvents(RULE_ADD_REQUESTED, RULE_ADD_REQUESTED, RULE_ADDED,
                 RULE_ADDED, RULE_REMOVE_REQUESTED, RULE_REMOVED);
@@ -301,7 +297,6 @@ public class FlowRuleManagerTest {
 
         providerService.flowRemoved(fe3);
         validateEvents();
-
     }
 
     @Test

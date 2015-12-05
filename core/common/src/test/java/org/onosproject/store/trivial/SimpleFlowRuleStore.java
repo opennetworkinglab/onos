@@ -220,6 +220,7 @@ public class SimpleFlowRuleStore
             for (StoredFlowEntry stored : entries) {
                 if (stored.equals(rule)) {
                     synchronized (stored) {
+                        //FIXME modification of "stored" flow entry outside of flow table
                         stored.setBytes(rule.bytes());
                         stored.setLife(rule.life());
                         stored.setPackets(rule.packets());

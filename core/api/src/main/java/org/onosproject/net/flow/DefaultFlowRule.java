@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.flow;
 
+import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
@@ -282,6 +283,11 @@ public class DefaultFlowRule implements FlowRule {
     @Override
     public int tableId() {
         return tableId;
+    }
+
+    @Beta
+    public long created() {
+        return created;
     }
 
     public static Builder builder() {

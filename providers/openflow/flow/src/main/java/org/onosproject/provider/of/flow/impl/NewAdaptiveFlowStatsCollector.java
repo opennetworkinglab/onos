@@ -416,6 +416,7 @@ public class NewAdaptiveFlowStatsCollector {
                                    + " AdaptiveStats collection thread for {}",
                            sw.getStringId());
 
+                   //FIXME modification of "stored" flow entry outside of store
                    stored.setLastSeen();
                    continue;
                } else if (fe.life() < stored.life()) {
@@ -428,11 +429,13 @@ public class NewAdaptiveFlowStatsCollector {
                                ", new life=" + fe.life() + ", old life=" + stored.life() +
                                ", new lastSeen=" + fe.lastSeen() + ", old lastSeen=" + stored.lastSeen());
                    // go next
+                   //FIXME modification of "stored" flow entry outside of store
                    stored.setLastSeen();
                    continue;
                }
 
                // update now
+               //FIXME modification of "stored" flow entry outside of store
                stored.setLife(fe.life());
                stored.setPackets(fe.packets());
                stored.setBytes(fe.bytes());

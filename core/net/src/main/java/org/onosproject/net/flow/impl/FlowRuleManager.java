@@ -311,6 +311,7 @@ public class FlowRuleManager
                     } catch (UnsupportedOperationException e) {
                         log.warn(e.getMessage());
                         if (flowRule instanceof DefaultFlowEntry) {
+                            //FIXME modification of "stored" flow entry outside of store
                             ((DefaultFlowEntry) flowRule).setState(FlowEntry.FlowEntryState.FAILED);
                         }
                     }
@@ -323,9 +324,7 @@ public class FlowRuleManager
                 log.debug("Flow {} removed", flowRule);
                 post(event);
             }
-
         }
-
 
         private void extraneousFlow(FlowRule flowRule) {
             checkNotNull(flowRule, FLOW_RULE_NULL);
@@ -335,13 +334,11 @@ public class FlowRuleManager
             log.debug("Flow {} is on switch but not in store.", flowRule);
         }
 
-
         private void flowAdded(FlowEntry flowEntry) {
             checkNotNull(flowEntry, FLOW_RULE_NULL);
             checkValidity();
 
             if (checkRuleLiveness(flowEntry, store.getFlowEntry(flowEntry))) {
-
                 FlowRuleEvent event = store.addOrUpdateFlowRule(flowEntry);
                 if (event == null) {
                     log.debug("No flow store event generated.");
@@ -353,7 +350,6 @@ public class FlowRuleManager
                 log.debug("Removing flow rules....");
                 removeFlowRules(flowEntry);
             }
-
         }
 
         private boolean checkRuleLiveness(FlowEntry swRule, FlowEntry storedRule) {
