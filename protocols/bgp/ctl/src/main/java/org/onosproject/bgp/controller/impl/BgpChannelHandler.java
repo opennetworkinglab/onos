@@ -472,21 +472,12 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         log.info("[exceptionCaught]: " + e.toString());
 
         if (e.getCause() instanceof ReadTimeoutException) {
-            if ((ChannelState.OPENWAIT == state) || (ChannelState.OPENSENT == state)) {
-
-                // When ReadTimeout timer is expired in OPENWAIT/OPENSENT state, it is considered
-                sendNotification(BgpErrorType.HOLD_TIMER_EXPIRED, (byte) 0, null);
-                channel.close();
-                state = ChannelState.IDLE;
-                return;
-            } else if (ChannelState.OPENCONFIRM == state) {
-
-                // When ReadTimeout timer is expired in OPENCONFIRM state.
-                sendNotification(BgpErrorType.HOLD_TIMER_EXPIRED, (byte) 0, null);
-                channel.close();
-                state = ChannelState.IDLE;
-                return;
-            }
+            // device timeout
+            log.error("Disconnecting device {} due to read timeout", getPeerInfoString());
+            sendNotification(BgpErrorType.HOLD_TIMER_EXPIRED, (byte) 0, null);
+            state = ChannelState.IDLE;
+            ctx.getChannel().close();
+            return;
         } else if (e.getCause() instanceof ClosedChannelException) {
             log.debug("Channel for bgp {} already closed", getPeerInfoString());
         } else if (e.getCause() instanceof IOException) {
@@ -495,7 +486,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                 // still print stack trace if debug is enabled
                 log.debug("StackTrace for previous Exception: ", e.getCause());
             }
-            channel.close();
+            ctx.getChannel().close();
         } else if (e.getCause() instanceof BgpParseException) {
             byte[] data = new byte[] {};
             BgpParseException errMsg = (BgpParseException) e.getCause();
@@ -512,7 +503,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
             log.warn("Could not process message: queue full");
         } else {
             log.error("Error while processing message from peer " + getPeerInfoString() + "state " + this.state);
-            channel.close();
+            ctx.getChannel().close();
         }
     }
 
