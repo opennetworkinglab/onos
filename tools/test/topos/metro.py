@@ -86,8 +86,8 @@ class Domain(object):
 class OpticalDomain(Domain):
     """ An emulated optical metro core. It is Domain 0. """
     def build(self):
-        oean = { "optical.regens": 0 }
         for i in range (1,4):
+            oean = { "optical.regens": 0 }
             self.addSwitch('OE%s' % i, dpid='0000ffffffffff0%s' % i, annotations=oean, cls=LINCSwitch)
 
         an = { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1000, "durable": "true" }
