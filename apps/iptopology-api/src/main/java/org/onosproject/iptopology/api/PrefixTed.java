@@ -17,6 +17,8 @@ package org.onosproject.iptopology.api;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 import org.onlab.packet.IpAddress;
@@ -26,22 +28,13 @@ import org.onlab.packet.IpAddress;
  */
 public class PrefixTed {
     private final IgpFlags igpFlags;
-    private final RouteTag routeTag;
-    private final ExtendedRouteTag extendedRouteTag;
+    private final List<RouteTag> routeTag;
+    private final List<ExtendedRouteTag> extendedRouteTag;
     private final Metric metric;
     private final IpAddress fwdingAddress;
 
     /**
-     * Constructor to initialize its parameters.
-     *
-     * @param igpFlags igp flags
-     * @param routeTag ospf route tag
-     * @param extendedRouteTag isis route tag
-     * @param metric prefix metric
-     * @param fwdingAddress forwarding address
-     */
-    /**
-     * Constructor to initialize its parameters.
+     * Constructor to initialize its fields.
      *
      * @param igpFlags IS-IS and OSPF flags assigned to the prefix
      * @param routeTag IGP (ISIS or OSPF) tags of the prefix
@@ -49,7 +42,7 @@ public class PrefixTed {
      * @param metric metric of the prefix
      * @param fwdingAddress OSPF forwarding address
      */
-    public PrefixTed(IgpFlags igpFlags, RouteTag routeTag, ExtendedRouteTag extendedRouteTag,
+    public PrefixTed(IgpFlags igpFlags, List<RouteTag> routeTag, List<ExtendedRouteTag> extendedRouteTag,
             Metric metric, IpAddress fwdingAddress) {
         this.igpFlags = igpFlags;
         this.routeTag = routeTag;
@@ -72,7 +65,7 @@ public class PrefixTed {
      *
      * @return IGP route tag.
      */
-    public RouteTag routeTag() {
+    public List<RouteTag> routeTag() {
         return routeTag;
     }
 
@@ -81,7 +74,7 @@ public class PrefixTed {
      *
      * @return extended IS-IS route tag
      */
-    public ExtendedRouteTag extendedRouteTag() {
+    public List<ExtendedRouteTag> extendedRouteTag() {
         return extendedRouteTag;
     }
 
@@ -103,7 +96,6 @@ public class PrefixTed {
         return fwdingAddress;
     }
 
-
     @Override
     public int hashCode() {
         return Objects.hash(igpFlags, routeTag, extendedRouteTag, metric, fwdingAddress);
@@ -117,9 +109,41 @@ public class PrefixTed {
 
         if (obj instanceof PrefixTed) {
             PrefixTed other = (PrefixTed) obj;
-            return Objects.equals(igpFlags, other.igpFlags) && Objects.equals(extendedRouteTag, other.extendedRouteTag)
-                   && Objects.equals(routeTag, other.routeTag) && Objects.equals(metric, other.metric)
-                   && Objects.equals(fwdingAddress, other.fwdingAddress);
+            Iterator<RouteTag> objListIterator = other.routeTag.iterator();
+            int countOtherCommonRouteTag = other.routeTag.size();
+            int countCommonRouteTag = routeTag.size();
+
+            Iterator<ExtendedRouteTag> objListIterator1 = other.extendedRouteTag.iterator();
+            int countOtherCommonExtRouteTag = other.extendedRouteTag.size();
+            int countCommonExtRouteTag = extendedRouteTag.size();
+
+            boolean isCommonRouteType = true;
+            boolean isCommonExtRouteType = true;
+            if (countOtherCommonRouteTag != countCommonRouteTag
+                    || countOtherCommonExtRouteTag != countCommonExtRouteTag) {
+                return false;
+            } else {
+                while (objListIterator.hasNext() && isCommonRouteType) {
+                    RouteTag subTlv = objListIterator.next();
+                    if (routeTag.contains(subTlv) && other.routeTag.contains(subTlv)) {
+                        isCommonRouteType = Objects.equals(routeTag.get(routeTag.indexOf(subTlv)),
+                                other.routeTag.get(other.routeTag.indexOf(subTlv)));
+                    } else {
+                        isCommonRouteType = false;
+                    }
+                }
+                while (objListIterator1.hasNext() && isCommonExtRouteType) {
+                    ExtendedRouteTag subTlv = objListIterator1.next();
+                    if (extendedRouteTag.contains(subTlv) && other.extendedRouteTag.contains(subTlv)) {
+                        isCommonExtRouteType = Objects.equals(extendedRouteTag.get(extendedRouteTag.indexOf(subTlv)),
+                                other.extendedRouteTag.get(other.extendedRouteTag.indexOf(subTlv)));
+                    } else {
+                        isCommonExtRouteType = false;
+                    }
+                }
+                return isCommonRouteType && isCommonExtRouteType && Objects.equals(igpFlags, other.igpFlags)
+                        && Objects.equals(metric, other.metric) && Objects.equals(fwdingAddress, other.fwdingAddress);
+            }
         }
         return false;
     }
