@@ -15,13 +15,14 @@
  */
 package org.onosproject.vtnrsc.portpairgroup;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.vtnrsc.PortPairGroup;
 import org.onosproject.vtnrsc.PortPairGroupId;
 
 /**
  * Service for interacting with the inventory of port pair groups.
  */
-public interface PortPairGroupService {
+public interface PortPairGroupService extends ListenerService<PortPairGroupEvent, PortPairGroupListener> {
 
     /**
      * Returns if the port pair group is existed.
@@ -77,18 +78,4 @@ public interface PortPairGroupService {
      * @return true if the give port pair group is deleted successfully.
      */
     boolean removePortPairGroup(PortPairGroupId portPairGroupId);
-
-    /**
-     * Adds the specified listener to Port-Pair-Group manager.
-     *
-     * @param listener Port-Pair-Group listener
-     */
-    void addListener(PortPairGroupListener listener);
-
-    /**
-     * Removes the specified listener to Port-Pair-Group manager.
-     *
-     * @param listener Port-Pair-Group listener
-     */
-    void removeListener(PortPairGroupListener listener);
 }
