@@ -1,8 +1,3 @@
-package org.onosproject.driver.pipeline;
-
-/**
- * Created by mcpark on 15. 12. 3.
- */
 /*
  * Copyright 2015 Open Networking Laboratory
  *
@@ -18,6 +13,7 @@ package org.onosproject.driver.pipeline;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.driver.pipeline;
 
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
