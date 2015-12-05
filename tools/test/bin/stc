@@ -3,7 +3,7 @@
 #   System Test Coordinator
 #-------------------------------------------------------------------------------
 
-VER=1.4.0-SNAPSHOT
+VER=1.4.0-rc1
 JAR=~/.m2/repository/org/onosproject/onlab-stc/$VER/onlab-stc-$VER.jar
 SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 

@@ -5,7 +5,7 @@
 
 STC_ROOT=${STC_ROOT:-$(dirname $0)/..}
 cd $STC_ROOT
-VER=1.4.0-SNAPSHOT
+VER=1.4.0-rc1
 
 PATH=$PWD/bin:$PATH
 

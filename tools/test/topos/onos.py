@@ -62,7 +62,7 @@ class ONOS( Controller ):
    
     def start( self ):
         if self.inNamespace:
-            instanceOpts = ( '-furl mvn:org.onosproject/onos-features/1.4.0-SNAPSHOT/xml/features '
+            instanceOpts = ( '-furl mvn:org.onosproject/onos-features/1.4.0-rc1/xml/features '
                              '-s 8101' )
             if self.ip is not None:
                 instanceOpts += (' -a %s' % self.IP() )

@@ -33,7 +33,7 @@
     <groupId>org.onosproject</groupId>
     <artifactId>onos</artifactId>
     <packaging>pom</packaging>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.4.0-rc1</version>
 
     <name>${project.artifactId}</name>
     <description>Open Network Operating System root project</description>
