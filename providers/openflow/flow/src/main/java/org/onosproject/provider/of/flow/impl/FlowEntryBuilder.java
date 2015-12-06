@@ -49,6 +49,7 @@ import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
 import org.projectfloodlight.openflow.protocol.action.OFActionEnqueue;
@@ -157,50 +158,59 @@ public class FlowEntryBuilder {
     }
 
     public FlowEntry build(FlowEntryState... state) {
-        FlowRule rule;
-        switch (this.type) {
-            case STAT:
-                rule = DefaultFlowRule.builder()
-                        .forDevice(DeviceId.deviceId(Dpid.uri(dpid)))
-                        .withSelector(buildSelector())
-                        .withTreatment(buildTreatment())
-                        .withPriority(stat.getPriority())
-                        .makeTemporary(stat.getIdleTimeout())
-                        .withCookie(stat.getCookie().getValue())
-                        .forTable(stat.getTableId().getValue())
-                        .build();
+        FlowRule.Builder builder;
+        try {
+            switch (this.type) {
+                case STAT:
+                    builder = DefaultFlowRule.builder()
+                            .forDevice(DeviceId.deviceId(Dpid.uri(dpid)))
+                            .withSelector(buildSelector())
+                            .withTreatment(buildTreatment())
+                            .withPriority(stat.getPriority())
+                            .makeTemporary(stat.getIdleTimeout())
+                            .withCookie(stat.getCookie().getValue())
+                            .forTable(stat.getTableId().getValue());
 
-                return new DefaultFlowEntry(rule, FlowEntryState.ADDED,
-                                      stat.getDurationSec(), stat.getPacketCount().getValue(),
-                                      stat.getByteCount().getValue());
-            case REMOVED:
-                rule = DefaultFlowRule.builder()
-                        .forDevice(DeviceId.deviceId(Dpid.uri(dpid)))
-                        .withSelector(buildSelector())
-                        .withPriority(removed.getPriority())
-                        .makeTemporary(removed.getIdleTimeout())
-                        .withCookie(removed.getCookie().getValue())
-                        .forTable(removed.getTableId().getValue())
-                        .build();
+                    return new DefaultFlowEntry(builder.build(), FlowEntryState.ADDED,
+                                                stat.getDurationSec(),
+                                                stat.getPacketCount().getValue(),
+                                                stat.getByteCount().getValue());
+                case REMOVED:
+                    builder = DefaultFlowRule.builder()
+                            .forDevice(DeviceId.deviceId(Dpid.uri(dpid)))
+                            .withSelector(buildSelector())
+                            .withPriority(removed.getPriority())
+                            .makeTemporary(removed.getIdleTimeout())
+                            .withCookie(removed.getCookie().getValue());
+                    if (removed.getVersion() != OFVersion.OF_10) {
+                        builder.forTable(removed.getTableId().getValue());
+                    }
 
-                return new DefaultFlowEntry(rule, FlowEntryState.REMOVED, removed.getDurationSec(),
-                                      removed.getPacketCount().getValue(), removed.getByteCount().getValue());
-            case MOD:
-                FlowEntryState flowState = state.length > 0 ? state[0] : FlowEntryState.FAILED;
-                rule = DefaultFlowRule.builder()
-                        .forDevice(DeviceId.deviceId(Dpid.uri(dpid)))
-                        .withSelector(buildSelector())
-                        .withTreatment(buildTreatment())
-                        .withPriority(flowMod.getPriority())
-                        .makeTemporary(flowMod.getIdleTimeout())
-                        .withCookie(flowMod.getCookie().getValue())
-                        .forTable(flowMod.getTableId().getValue())
-                        .build();
+                    return new DefaultFlowEntry(builder.build(), FlowEntryState.REMOVED,
+                                                removed.getDurationSec(),
+                                                removed.getPacketCount().getValue(),
+                                                removed.getByteCount().getValue());
+                case MOD:
+                    FlowEntryState flowState = state.length > 0 ? state[0] : FlowEntryState.FAILED;
+                    builder = DefaultFlowRule.builder()
+                            .forDevice(DeviceId.deviceId(Dpid.uri(dpid)))
+                            .withSelector(buildSelector())
+                            .withTreatment(buildTreatment())
+                            .withPriority(flowMod.getPriority())
+                            .makeTemporary(flowMod.getIdleTimeout())
+                            .withCookie(flowMod.getCookie().getValue());
+                    if (flowMod.getVersion() != OFVersion.OF_10) {
+                        builder.forTable(flowMod.getTableId().getValue());
+                    }
 
-                return new DefaultFlowEntry(rule, flowState, 0, 0, 0);
-            default:
-                log.error("Unknown flow type : {}", this.type);
-                return null;
+                    return new DefaultFlowEntry(builder.build(), flowState, 0, 0, 0);
+                default:
+                    log.error("Unknown flow type : {}", this.type);
+                    return null;
+            }
+        } catch (UnsupportedOperationException e) {
+            log.warn("Error building flow entry", e);
+            return null;
         }
 
     }
