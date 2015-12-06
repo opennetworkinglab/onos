@@ -293,7 +293,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
                                                    + param + ".json");
                     String lines = Files.readLines(config, Charsets.UTF_8).stream().reduce((t, u) -> t + u).
                             get();
-                    lines = lines.replaceAll("\\s+","");
+                    lines = lines.replaceAll("\\s+", "");
                     definitions.putPOJO(param, lines);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -352,7 +352,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
     private String getIOType(JavaAnnotation annotation) {
         if (annotation.getNamedParameter("value").toString().equals(JSON)) {
             return "application/json";
-        } else if (annotation.getNamedParameter("value").toString().equals(OCTET_STREAM)){
+        } else if (annotation.getNamedParameter("value").toString().equals(OCTET_STREAM)) {
             return "application/octet_stream";
         }
         return "";
@@ -408,15 +408,21 @@ public class OnosSwaggerMojo extends AbstractMojo {
             }
             for (DocletTag p : javaMethod.getTagsByName("param")) {
                 if (p.getValue().contains(annotationName)) {
-                    try {
-                        String description = p.getValue().split(" ", 2)[1].trim();
+                    String description = "";
+                    if (p.getValue().split(" ", 2).length >= 2) {
+                        description = p.getValue().split(" ", 2)[1].trim();
                         if (description.contains("optional")) {
                             required = false;
                         }
-                        individualParameterNode.put("description", description);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    } else {
+                        getLog().warn(String.format(
+                                    "No description for parameter \"%s\" in " +
+                                    "method \"%s\" in %s (line %d)",
+                                      p.getValue(), javaMethod.getName(),
+                                      javaMethod.getDeclaringClass().getName(),
+                                      javaMethod.getLineNumber()));
                     }
+                    individualParameterNode.put("description", description);
                 }
             }
             individualParameterNode.put("required", required);

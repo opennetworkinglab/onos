@@ -54,6 +54,7 @@
 
         <module>tools/package/archetypes</module>
         <module>tools/package/branding</module>
+        <module>tools/package/maven-plugin</module>
     </modules>
 
     <url>http://onosproject.org/</url>
@@ -79,6 +80,7 @@
         <copycat.version>0.5.0.onos</copycat.version>
         <!-- FIXME update to release version before Emu release -->
         <openflowj.version>0.9.2.onos-SNAPSHOT</openflowj.version>
+        <onos-maven-plugin.version>1.7-SNAPSHOT</onos-maven-plugin.version>
         <karaf.version>3.0.3</karaf.version>
         <jersey.version>1.19</jersey.version>
     </properties>
@@ -654,7 +656,7 @@
                 <plugin>
                     <groupId>org.onosproject</groupId>
                     <artifactId>onos-maven-plugin</artifactId>
-                    <version>1.6</version>
+                    <version>${onos-maven-plugin.version}</version>
                     <executions>
                         <execution>
                             <id>cfg</id>
