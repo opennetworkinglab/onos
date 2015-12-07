@@ -408,5 +408,13 @@ public class OpenFlowGroupProviderTest {
             return null;
         }
 
+        @Override
+        public void addEventListener(OpenFlowEventListener listener) {
+        }
+
+        @Override
+        public void removeEventListener(OpenFlowEventListener listener) {
+        }
+
     }
 }

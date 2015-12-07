@@ -140,6 +140,12 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private final InternalDeviceProvider listener = new InternalDeviceProvider();
 
+    private final IncomingMessageProvider inMsgListener = new IncomingMessageProvider();
+
+    private final OutgoingMessageProvider outMsgListener = new OutgoingMessageProvider();
+
+    private boolean isCtrlMsgMonitor;
+
     // TODO: We need to make the poll interval configurable.
     static final int POLL_INTERVAL = 5;
     @Property(name = "PortStatsPollFrequency", intValue = POLL_INTERVAL,
@@ -161,6 +167,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         providerService = providerRegistry.register(this);
         controller.addListener(listener);
         controller.addEventListener(listener);
+
         connectInitialDevices();
         LOG.info("Started");
     }
@@ -264,6 +271,31 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         LOG.debug("Accepting mastership role change for device {}", deviceId);
     }
 
+
+    /**
+     * Enable OpenFlow control message monitoring.
+     */
+    public void enableCtrlMsgMonitor() {
+        isCtrlMsgMonitor = true;
+        controller.addEventListener(inMsgListener);
+        for (OpenFlowSwitch sw : controller.getSwitches()) {
+            sw.addEventListener(outMsgListener);
+        }
+        LOG.info("Enable control message monitoring.");
+    }
+
+    /**
+     * Disable OpenFlow control message monitoring.
+     */
+    public void disableCtrlMsgMonitor() {
+        isCtrlMsgMonitor = false;
+        controller.removeEventListener(inMsgListener);
+        for (OpenFlowSwitch sw: controller.getSwitches()) {
+            sw.removeEventListener(outMsgListener);
+        }
+        LOG.info("Disable control message monitoring");
+    }
+
     private void pushPortMetrics(Dpid dpid, List<OFPortStatsEntry> portStatsEntries) {
         DeviceId deviceId = DeviceId.deviceId(dpid.uri(dpid));
         Collection<PortStatistics> stats = buildPortStatistics(deviceId, portStatsEntries);
@@ -304,6 +336,32 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     }
 
+    /**
+     * A listener for incoming OpenFlow messages.
+     */
+    private class IncomingMessageProvider implements OpenFlowEventListener {
+
+        @Override
+        public void handleMessage(Dpid dpid, OFMessage msg) {
+            if (isCtrlMsgMonitor) {
+                // TODO: feed the control message stats via ControlMetricsServiceFactory
+            }
+        }
+    }
+
+    /**
+     * A listener for outgoing OpenFlow messages.
+     */
+    private class OutgoingMessageProvider implements OpenFlowEventListener {
+
+        @Override
+        public void handleMessage(Dpid dpid, OFMessage msg) {
+            if (isCtrlMsgMonitor) {
+                // TODO: feed the control message stats via ControlMetricsServiceFactory
+            }
+        }
+    }
+
     private class InternalDeviceProvider implements OpenFlowSwitchListener, OpenFlowEventListener {
 
         private HashMap<Dpid, List<OFPortStatsEntry>> portStatsReplies = new HashMap<>();
@@ -317,6 +375,11 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             OpenFlowSwitch sw = controller.getSwitch(dpid);
             if (sw == null) {
                 return;
+            }
+
+            if (isCtrlMsgMonitor) {
+                // start to monitor the outgoing control messages
+                sw.addEventListener(outMsgListener);
             }
 
             ChassisId cId = new ChassisId(dpid.value());
@@ -358,6 +421,14 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             PortStatsCollector collector = collectors.remove(dpid);
             if (collector != null) {
                 collector.stop();
+            }
+
+            OpenFlowSwitch sw = controller.getSwitch(dpid);
+            if (sw != null) {
+                if (isCtrlMsgMonitor) {
+                    // stop monitoring the outgoing control messages
+                    sw.removeEventListener(outMsgListener);
+                }
             }
         }
 

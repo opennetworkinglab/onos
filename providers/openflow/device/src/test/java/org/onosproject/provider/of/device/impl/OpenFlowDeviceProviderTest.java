@@ -398,6 +398,14 @@ public class OpenFlowDeviceProviderTest {
             return "1.2.3.4:1";
         }
 
+        @Override
+        public void addEventListener(OpenFlowEventListener listener) {
+        }
+
+        @Override
+        public void removeEventListener(OpenFlowEventListener listener) {
+        }
+
     }
 
 }

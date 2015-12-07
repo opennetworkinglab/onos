@@ -24,12 +24,12 @@ import java.util.concurrent.Future;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.openflow.ExecutorServiceAdapter;
-import org.onosproject.openflow.MockOfFeaturesReply;
-import org.onosproject.openflow.MockOfPacketIn;
 import org.onosproject.openflow.MockOfPortStatus;
-import org.onosproject.openflow.OfMessageAdapter;
 import org.onosproject.openflow.OpenFlowSwitchListenerAdapter;
 import org.onosproject.openflow.OpenflowSwitchDriverAdapter;
+import org.onosproject.openflow.MockOfFeaturesReply;
+import org.onosproject.openflow.MockOfPacketIn;
+import org.onosproject.openflow.OfMessageAdapter;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowPacketContext;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
@@ -143,14 +143,16 @@ public class OpenFlowControllerImplPacketsTest {
     }
 
     /**
-     * Tests a packet in operation.
+     * Tests a packet in listen operation.
      */
     @Test
-    public void testPacketIn() {
+    public void testPacketInListen() {
         agent.addConnectedSwitch(dpid1, switch1);
         OFMessage packetInPacket = new MockOfPacketIn();
         controller.processPacket(dpid1, packetInPacket);
         assertThat(packetListener.contexts(), hasSize(1));
+        assertThat(executorService.submittedMessages(), hasSize(1));
+        assertThat(executorService.submittedMessages().get(0), is(packetInPacket));
     }
 
     /**
@@ -163,5 +165,17 @@ public class OpenFlowControllerImplPacketsTest {
         controller.processPacket(dpid1, errorPacket);
         assertThat(executorService.submittedMessages(), hasSize(1));
         assertThat(executorService.submittedMessages().get(0), is(errorPacket));
+    }
+
+    /**
+     * Tests a packet in operation.
+     */
+    @Test
+    public void testFlowRemoved() {
+        agent.addConnectedSwitch(dpid1, switch1);
+        OFMessage flowRemovedPacket = new MockOfFlowRemoved();
+        controller.processPacket(dpid1, flowRemovedPacket);
+        assertThat(executorService.submittedMessages(), hasSize(1));
+        assertThat(executorService.submittedMessages().get(0), is(flowRemovedPacket));
     }
 }

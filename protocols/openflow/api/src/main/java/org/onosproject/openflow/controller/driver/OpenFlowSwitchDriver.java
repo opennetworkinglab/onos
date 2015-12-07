@@ -217,5 +217,4 @@ public interface OpenFlowSwitchDriver extends OpenFlowSwitch, HandlerBehaviour {
      * @param message an OpenFlow message
      */
     void sendHandshakeMessage(OFMessage message);
-
 }

@@ -272,10 +272,13 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             for (PacketListener p : ofPacketListener.values()) {
                 p.handlePacket(pktCtx);
             }
+            executorMsgs.submit(new OFMessageHandler(dpid, msg));
             break;
         // TODO: Consider using separate threadpool for sensitive messages.
         //    ie. Back to back error could cause us to starve.
         case FLOW_REMOVED:
+            executorMsgs.submit(new OFMessageHandler(dpid, msg));
+            break;
         case ERROR:
             executorMsgs.submit(new OFMessageHandler(dpid, msg));
             break;
@@ -625,6 +628,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         }
     }
 
+    /**
+     * OpenFlow message handler for incoming control messages.
+     */
     protected final class OFMessageHandler implements Runnable {
 
         protected final OFMessage msg;
@@ -641,7 +647,5 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 listener.handleMessage(dpid, msg);
             }
         }
-
     }
-
 }
