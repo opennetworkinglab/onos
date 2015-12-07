@@ -17,6 +17,8 @@ package org.onosproject.iptopology.api;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -40,6 +42,24 @@ public class RouteType {
         Type(int val) {
             value = val;
         }
+
+        static Map<Integer, Type> map = new HashMap<>();
+
+        static {
+           for (Type type : Type.values()) {
+              map.put(type.value, type);
+           }
+        }
+
+        /**
+         * A method that returns enum value.
+         *
+         * @param value route type
+         * @return Enum value
+         */
+        public static Type getEnumType(int value) {
+            return map.get(value);
+         }
 
         /**
          * Provides route type.
