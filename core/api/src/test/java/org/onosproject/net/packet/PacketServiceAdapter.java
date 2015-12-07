@@ -16,9 +16,11 @@
 package org.onosproject.net.packet;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.TrafficSelector;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Test adapter for packet service.
@@ -43,11 +45,25 @@ public class PacketServiceAdapter implements PacketService {
     }
 
     @Override
-    public void requestPackets(TrafficSelector selector, PacketPriority priority, ApplicationId appId) {
+    public void requestPackets(TrafficSelector selector, PacketPriority priority,
+                               ApplicationId appId) {
     }
 
     @Override
-    public void cancelPackets(TrafficSelector selector, PacketPriority priority, ApplicationId appId) {
+    public void requestPackets(TrafficSelector selector, PacketPriority priority,
+                               ApplicationId appId, Optional<DeviceId> deviceId) {
+
+    }
+
+    @Override
+    public void cancelPackets(TrafficSelector selector, PacketPriority priority,
+                              ApplicationId appId) {
+    }
+
+    @Override
+    public void cancelPackets(TrafficSelector selector, PacketPriority priority,
+                              ApplicationId appId, Optional<DeviceId> deviceId) {
+
     }
 
     @Override

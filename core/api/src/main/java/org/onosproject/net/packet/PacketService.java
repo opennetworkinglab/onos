@@ -17,9 +17,11 @@ package org.onosproject.net.packet;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.TrafficSelector;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service for intercepting data plane packets and for emitting synthetic
@@ -66,8 +68,24 @@ public interface PacketService {
      * @param priority the priority of the rule
      * @param appId    the application ID of the requester
      */
+    @Deprecated
     void requestPackets(TrafficSelector selector, PacketPriority priority,
                         ApplicationId appId);
+
+
+    /**
+     * Requests that packets matching the given selector are punted from the
+     * dataplane to the controller. If a deviceId is specified then the
+     * packet request is only installed at the device represented by that
+     * deviceId.
+     *
+     * @param selector the traffic selector used to match packets
+     * @param priority the priority of the rule
+     * @param appId    the application ID of the requester
+     * @param deviceId an optional deviceId
+     */
+    void requestPackets(TrafficSelector selector, PacketPriority priority,
+                        ApplicationId appId, Optional<DeviceId> deviceId);
 
     /**
      * Cancels previous packet requests for packets matching the given
@@ -77,8 +95,24 @@ public interface PacketService {
      * @param priority the priority of the rule
      * @param appId    the application ID of the requester
      */
+    @Deprecated
     void cancelPackets(TrafficSelector selector, PacketPriority priority,
                        ApplicationId appId);
+
+    /**
+     * Cancels previous packet requests for packets matching the given
+     * selector to be punted from the dataplane to the controller. If a
+     * deviceId is specified then the packet request is only withdrawn from
+     * the device represented by that deviceId.
+     *
+     * @param selector the traffic selector used to match packets
+     * @param priority the priority of the rule
+     * @param appId    the application ID of the requester
+     * @param deviceId an optional deviceId
+     */
+    void cancelPackets(TrafficSelector selector, PacketPriority priority,
+                       ApplicationId appId, Optional<DeviceId> deviceId);
+
 
     /**
      * Returns list of all existing requests ordered by priority.

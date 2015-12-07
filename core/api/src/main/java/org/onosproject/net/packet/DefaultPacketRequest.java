@@ -19,9 +19,11 @@ import com.google.common.base.MoreObjects;
 
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.TrafficSelector;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Default implementation of a packet request.
@@ -31,22 +33,24 @@ public final class DefaultPacketRequest implements PacketRequest {
     private final PacketPriority priority;
     private final ApplicationId appId;
     private final NodeId nodeId;
+    private final Optional<DeviceId> deviceId;
+
 
     /**
      * Creates a new packet request.
-     *
-     * @param selector  traffic selector
+     *  @param selector  traffic selector
      * @param priority  intercept priority
      * @param appId     application id
      * @param nodeId    identifier of node where request originated
+     * @param deviceId  device id
      */
     public DefaultPacketRequest(TrafficSelector selector, PacketPriority priority,
-                                ApplicationId appId,
-                                NodeId nodeId) {
+                                ApplicationId appId, NodeId nodeId, Optional<DeviceId> deviceId) {
         this.selector = selector;
         this.priority = priority;
         this.appId = appId;
         this.nodeId = nodeId;
+        this.deviceId = deviceId;
     }
 
     @Override
@@ -64,6 +68,10 @@ public final class DefaultPacketRequest implements PacketRequest {
         return appId;
     }
 
+    public Optional<DeviceId> deviceId() {
+        return deviceId;
+    }
+
     @Override
     public NodeId nodeId() {
         return nodeId;
@@ -71,7 +79,7 @@ public final class DefaultPacketRequest implements PacketRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hash(selector, priority, appId, nodeId);
+        return Objects.hash(selector, priority, appId, nodeId, deviceId);
     }
 
     @Override
@@ -86,7 +94,8 @@ public final class DefaultPacketRequest implements PacketRequest {
         return Objects.equals(this.selector, other.selector)
                 && Objects.equals(this.priority, other.priority)
                 && Objects.equals(this.appId, other.appId)
-                && Objects.equals(this.nodeId, other.nodeId);
+                && Objects.equals(this.nodeId, other.nodeId)
+                && Objects.equals(this.deviceId, other.deviceId);
     }
 
     @Override
@@ -95,6 +104,8 @@ public final class DefaultPacketRequest implements PacketRequest {
                 .add("selector", selector)
                 .add("priority", priority)
                 .add("appId", appId)
-                .add("nodeId", nodeId).toString();
+                .add("nodeId", nodeId)
+                .add("applies to", deviceId.isPresent() ? deviceId.get() : "all")
+                .toString();
     }
 }

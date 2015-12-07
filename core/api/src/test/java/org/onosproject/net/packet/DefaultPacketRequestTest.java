@@ -24,6 +24,8 @@ import org.onosproject.net.flow.TrafficSelector;
 
 import com.google.common.testing.EqualsTester;
 
+import java.util.Optional;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
@@ -42,27 +44,27 @@ public class DefaultPacketRequestTest {
             new DefaultPacketRequest(DefaultTrafficSelector.emptySelector(),
                                      PacketPriority.CONTROL,
                                      NetTestTools.APP_ID,
-                                     NetTestTools.NODE_ID);
+                                     NetTestTools.NODE_ID, Optional.empty());
     private final DefaultPacketRequest sameAsacketRequest1 =
             new DefaultPacketRequest(DefaultTrafficSelector.emptySelector(),
                                      PacketPriority.CONTROL,
                                      NetTestTools.APP_ID,
-                                     NetTestTools.NODE_ID);
+                                     NetTestTools.NODE_ID, Optional.empty());
     private final DefaultPacketRequest packetRequest2 =
             new DefaultPacketRequest(selector,
                                      PacketPriority.CONTROL,
                                      NetTestTools.APP_ID,
-                                     NetTestTools.NODE_ID);
+                                     NetTestTools.NODE_ID, Optional.empty());
     private final DefaultPacketRequest packetRequest3 =
             new DefaultPacketRequest(DefaultTrafficSelector.emptySelector(),
                                      PacketPriority.REACTIVE,
                                      NetTestTools.APP_ID,
-                                     NetTestTools.NODE_ID);
+                                     NetTestTools.NODE_ID, Optional.empty());
     private final DefaultPacketRequest packetRequest4 =
             new DefaultPacketRequest(DefaultTrafficSelector.emptySelector(),
                                      PacketPriority.CONTROL,
                                      new DefaultApplicationId(1, "foo"),
-                                     new NodeId("node1"));
+                                     new NodeId("node1"), Optional.empty());
 
     /**
      * Tests the operation of the equals(), toAstring() and hashCode() methods.
