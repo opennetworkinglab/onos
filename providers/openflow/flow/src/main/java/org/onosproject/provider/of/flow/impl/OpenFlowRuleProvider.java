@@ -219,7 +219,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
     private void createCollector(OpenFlowSwitch sw) {
         if (adaptiveFlowSampling) {
             // NewAdaptiveFlowStatsCollector Constructor
-            NewAdaptiveFlowStatsCollector fsc = new NewAdaptiveFlowStatsCollector(sw, flowPollFrequency);
+            NewAdaptiveFlowStatsCollector fsc =
+                    new NewAdaptiveFlowStatsCollector(driverService, sw, flowPollFrequency);
             fsc.start();
             afsCollectors.put(new Dpid(sw.getId()), fsc);
         } else {

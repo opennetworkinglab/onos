@@ -92,6 +92,14 @@
             manufacturer="Broadcom Corp." hwVersion="OF-DPA.*" swVersion="OF-DPA.*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OFDPA2Pipeline"/>
+        <behaviour api="org.onosproject.openflow.controller.ExtensionTreatmentInterpreter"
+                   impl="org.onosproject.driver.extensions.OfdpaExtensionTreatmentInterpreter" />
+        <behaviour api="org.onosproject.net.behaviour.ExtensionTreatmentResolver"
+                   impl="org.onosproject.driver.extensions.OfdpaExtensionTreatmentInterpreter" />
+        <behaviour api="org.onosproject.openflow.controller.ExtensionSelectorInterpreter"
+                   impl="org.onosproject.driver.extensions.OfdpaExtensionSelectorInterpreter" />
+        <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"
+                   impl="org.onosproject.driver.extensions.OfdpaExtensionSelectorInterpreter" />
     </driver>
     <driver name="pmc-olt" extends="default"
             manufacturer="PMC GPON Networks" hwVersion="PASffffffff v-1" swVersion="vOLT.*">

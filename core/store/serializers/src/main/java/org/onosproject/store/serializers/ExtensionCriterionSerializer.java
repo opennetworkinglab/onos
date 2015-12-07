@@ -22,52 +22,50 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
+import org.onosproject.net.behaviour.ExtensionSelectorResolver;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
-import org.onosproject.net.flow.instructions.ExtensionTreatment;
-import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
-import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.criteria.ExtensionCriterion;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
+import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 
 /**
- * Serializer for extension instructions.
+ * Serializer for extension criteria.
  */
-public class ExtensionInstructionSerializer extends
-        Serializer<Instructions.ExtensionInstructionWrapper> {
+public class ExtensionCriterionSerializer extends Serializer<ExtensionCriterion> {
 
     /**
-     * Constructs a extension instruction serializer.
+     * Constructs a extension criterion serializer.
      */
-    public ExtensionInstructionSerializer() {
+    public ExtensionCriterionSerializer() {
         super(false, true);
     }
 
     @Override
-    public void write(Kryo kryo, Output output, Instructions.ExtensionInstructionWrapper object) {
-        kryo.writeClassAndObject(output, object.extensionInstruction().type());
+    public void write(Kryo kryo, Output output, ExtensionCriterion object) {
+        kryo.writeClassAndObject(output, object.extensionSelector().type());
         kryo.writeClassAndObject(output, object.deviceId());
-        kryo.writeClassAndObject(output, object.extensionInstruction().serialize());
+        kryo.writeClassAndObject(output, object.extensionSelector().serialize());
     }
 
     @Override
-    public Instructions.ExtensionInstructionWrapper read(Kryo kryo, Input input,
-                                                         Class<Instructions.ExtensionInstructionWrapper> type) {
-        ExtensionTreatmentType exType = (ExtensionTreatmentType) kryo.readClassAndObject(input);
+    public ExtensionCriterion read(Kryo kryo, Input input,
+            Class<ExtensionCriterion> type) {
+        ExtensionSelectorType exType = (ExtensionSelectorType) kryo.readClassAndObject(input);
         DeviceId deviceId = (DeviceId) kryo.readClassAndObject(input);
 
         DriverService driverService = DefaultServiceDirectory.getService(DriverService.class);
         DriverHandler handler = new DefaultDriverHandler(
                 new DefaultDriverData(driverService.getDriver(deviceId), deviceId));
 
-        ExtensionTreatmentResolver resolver = handler.behaviour(ExtensionTreatmentResolver.class);
-        ExtensionTreatment instruction = resolver.getExtensionInstruction(exType);
+        ExtensionSelectorResolver resolver = handler.behaviour(ExtensionSelectorResolver.class);
+        ExtensionSelector selector = resolver.getExtensionSelector(exType);
 
         byte[] bytes = (byte[]) kryo.readClassAndObject(input);
-
-        instruction.deserialize(bytes);
-
-        return Instructions.extension(instruction, deviceId);
+        selector.deserialize(bytes);
+        return Criteria.extension(selector, deviceId);
     }
 }

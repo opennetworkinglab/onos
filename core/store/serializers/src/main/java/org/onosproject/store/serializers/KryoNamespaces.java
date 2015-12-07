@@ -108,6 +108,8 @@ import org.onosproject.net.flow.criteria.ArpPaCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.ExtensionCriterion;
+import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.IPDscpCriterion;
 import org.onosproject.net.flow.criteria.IPEcnCriterion;
@@ -482,6 +484,8 @@ public final class KryoNamespaces {
             .register(new DefaultOutboundPacketSerializer(), DefaultOutboundPacket.class)
             .register(new AnnotationsSerializer(), DefaultAnnotations.class)
             .register(new ExtensionInstructionSerializer(), Instructions.ExtensionInstructionWrapper.class)
+            .register(new ExtensionCriterionSerializer(), ExtensionCriterion.class)
+            .register(ExtensionSelectorType.class)
             .register(ExtensionTreatmentType.class)
             .register(Versioned.class)
             .register(MapEvent.class)

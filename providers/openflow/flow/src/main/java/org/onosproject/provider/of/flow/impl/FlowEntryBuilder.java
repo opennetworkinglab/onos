@@ -43,12 +43,16 @@ import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.ExtensionSelectorType.ExtensionSelectorTypes;
+import org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.ExtensionSelectorInterpreter;
 import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
 import org.projectfloodlight.openflow.protocol.OFFlowMod;
 import org.projectfloodlight.openflow.protocol.OFFlowRemoved;
 import org.projectfloodlight.openflow.protocol.OFFlowStatsEntry;
+import org.projectfloodlight.openflow.protocol.OFMatchV3;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionCircuit;
@@ -137,7 +141,6 @@ public class FlowEntryBuilder {
     public FlowEntryBuilder(Dpid dpid, OFFlowRemoved removed, DriverService driverService) {
         this.match = removed.getMatch();
         this.removed = removed;
-
         this.dpid = dpid;
         this.instructions = null;
         this.stat = null;
@@ -288,6 +291,14 @@ public class FlowEntryBuilder {
 
     private TrafficTreatment.Builder buildActions(List<OFAction> actions,
                                                   TrafficTreatment.Builder builder) {
+        DriverHandler driverHandler = getDriver(dpid);
+        ExtensionTreatmentInterpreter treatmentInterpreter;
+        if (driverHandler.hasBehaviour(ExtensionTreatmentInterpreter.class)) {
+            treatmentInterpreter = driverHandler.behaviour(ExtensionTreatmentInterpreter.class);
+        } else {
+            treatmentInterpreter = null;
+        }
+
         for (OFAction act : actions) {
             switch (act.getType()) {
                 case OUTPUT:
@@ -312,7 +323,6 @@ public class FlowEntryBuilder {
                     OFActionSetDlSrc dlsrc = (OFActionSetDlSrc) act;
                     builder.setEthSrc(
                             MacAddress.valueOf(dlsrc.getDlAddr().getLong()));
-
                     break;
                 case SET_NW_DST:
                     OFActionSetNwDst nwdst = (OFActionSetNwDst) act;
@@ -332,11 +342,8 @@ public class FlowEntryBuilder {
                         short lambda = ((OFOxmOchSigidBasic) ct.getField()).getValue().getChannelNumber();
                         builder.add(Instructions.modL0Lambda(Lambda.indexedLambda(lambda)));
                     }  else if (exp.getExperimenter() == 0x2320) {
-                        DriverHandler driver = getDriver(dpid);
-                        ExtensionTreatmentInterpreter interpreter = driver
-                                .behaviour(ExtensionTreatmentInterpreter.class);
-                        if (interpreter != null) {
-                            builder.extension(interpreter.mapAction(exp),
+                        if (treatmentInterpreter != null) {
+                            builder.extension(treatmentInterpreter.mapAction(exp),
                                               DeviceId.deviceId(Dpid.uri(dpid)));
                         }
                     } else {
@@ -405,6 +412,14 @@ public class FlowEntryBuilder {
 
 
     private void handleSetField(TrafficTreatment.Builder builder, OFActionSetField action) {
+        DriverHandler driverHandler = getDriver(dpid);
+        ExtensionTreatmentInterpreter treatmentInterpreter;
+        if (driverHandler.hasBehaviour(ExtensionTreatmentInterpreter.class)) {
+            treatmentInterpreter = driverHandler.behaviour(ExtensionTreatmentInterpreter.class);
+        } else {
+            treatmentInterpreter = null;
+        }
+
         OFOxm<?> oxm = action.getField();
         switch (oxm.getMatchField().id) {
         case VLAN_PCP:
@@ -413,9 +428,15 @@ public class FlowEntryBuilder {
             builder.setVlanPcp(vlanpcp.getValue().getValue());
             break;
         case VLAN_VID:
-            @SuppressWarnings("unchecked")
-            OFOxm<OFVlanVidMatch> vlanvid = (OFOxm<OFVlanVidMatch>) oxm;
-            builder.setVlanId(VlanId.vlanId(vlanvid.getValue().getVlan()));
+            if (treatmentInterpreter != null &&
+                    treatmentInterpreter.supported(ExtensionTreatmentTypes.OFDPA_SET_VLAN_ID.type())) {
+                builder.extension(treatmentInterpreter.mapAction(action),
+                        DeviceId.deviceId(Dpid.uri(dpid)));
+            } else {
+                @SuppressWarnings("unchecked")
+                OFOxm<OFVlanVidMatch> vlanvid = (OFOxm<OFVlanVidMatch>) oxm;
+                builder.setVlanId(VlanId.vlanId(vlanvid.getValue().getVlan()));
+            }
             break;
         case ETH_DST:
             @SuppressWarnings("unchecked")
@@ -475,10 +496,9 @@ public class FlowEntryBuilder {
             builder.setUdpSrc(TpPort.tpPort(udpsrc.getValue().getPort()));
             break;
         case TUNNEL_IPV4_DST:
-            DriverHandler driver = getDriver(dpid);
-            ExtensionTreatmentInterpreter interpreter = driver.behaviour(ExtensionTreatmentInterpreter.class);
-            if (interpreter != null) {
-                builder.extension(interpreter.mapAction(action), DeviceId.deviceId(Dpid.uri(dpid)));
+            if (treatmentInterpreter != null &&
+                    treatmentInterpreter.supported(ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST.type())) {
+                builder.extension(treatmentInterpreter.mapAction(action), DeviceId.deviceId(Dpid.uri(dpid)));
             }
             break;
        case EXP_ODU_SIG_ID:
@@ -567,6 +587,14 @@ public class FlowEntryBuilder {
         Ip6Prefix ip6Prefix;
         Ip4Address ip;
 
+        DriverHandler driverHandler = getDriver(dpid);
+        ExtensionSelectorInterpreter selectorInterpreter;
+        if (driverHandler.hasBehaviour(ExtensionSelectorInterpreter.class)) {
+            selectorInterpreter = driverHandler.behaviour(ExtensionSelectorInterpreter.class);
+        } else {
+            selectorInterpreter = null;
+        }
+
         TrafficSelector.Builder builder = DefaultTrafficSelector.builder();
         for (MatchField<?> field : match.getMatchFields()) {
             switch (field.id) {
@@ -596,22 +624,33 @@ public class FlowEntryBuilder {
                 builder.matchEthType((short) ethType);
                 break;
             case VLAN_VID:
-                VlanId vlanId = null;
-                if (match.isPartiallyMasked(MatchField.VLAN_VID)) {
-                    Masked<OFVlanVidMatch> masked = match.getMasked(MatchField.VLAN_VID);
-                    if (masked.getValue().equals(OFVlanVidMatch.PRESENT)
-                            && masked.getMask().equals(OFVlanVidMatch.PRESENT)) {
-                        vlanId = VlanId.ANY;
+                if (selectorInterpreter != null &&
+                        selectorInterpreter.supported(ExtensionSelectorTypes.OFDPA_MATCH_VLAN_VID.type())) {
+                    if (match.getVersion().equals(OFVersion.OF_13)) {
+                        OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.VLAN_VID);
+                        builder.extension(selectorInterpreter.mapOxm(oxm),
+                                DeviceId.deviceId(Dpid.uri(dpid)));
+                    } else {
+                        break;
                     }
                 } else {
-                    if (!match.get(MatchField.VLAN_VID).isPresentBitSet()) {
-                        vlanId = VlanId.NONE;
+                    VlanId vlanId = null;
+                    if (match.isPartiallyMasked(MatchField.VLAN_VID)) {
+                        Masked<OFVlanVidMatch> masked = match.getMasked(MatchField.VLAN_VID);
+                        if (masked.getValue().equals(OFVlanVidMatch.PRESENT)
+                                && masked.getMask().equals(OFVlanVidMatch.PRESENT)) {
+                            vlanId = VlanId.ANY;
+                        }
                     } else {
-                        vlanId = VlanId.vlanId(match.get(MatchField.VLAN_VID).getVlan());
+                        if (!match.get(MatchField.VLAN_VID).isPresentBitSet()) {
+                            vlanId = VlanId.NONE;
+                        } else {
+                            vlanId = VlanId.vlanId(match.get(MatchField.VLAN_VID).getVlan());
+                        }
                     }
-                }
-                if (vlanId != null) {
-                    builder.matchVlanId(vlanId);
+                    if (vlanId != null) {
+                        builder.matchVlanId(vlanId);
+                    }
                 }
                 break;
             case VLAN_PCP:

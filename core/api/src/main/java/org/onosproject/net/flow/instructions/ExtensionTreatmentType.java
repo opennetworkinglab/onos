@@ -34,6 +34,10 @@ public final class ExtensionTreatmentType {
     public enum ExtensionTreatmentTypes {
         NICIRA_SET_TUNNEL_DST(0),
         NICIRA_RESUBMIT(1),
+        NICIRA_MOV_ARP_SHA_TO_THA(2),
+        NICIRA_MOV_ARP_SPA_TO_TPA(3),
+        NICIRA_MOV_ETH_SRC_TO_DST(4),
+        NICIRA_MOV_IP_SRC_TO_DST(5),
         NICIRA_RESUBMIT_TABLE(14),
         NICIRA_SET_NSH_SPI(32),
         NICIRA_SET_NSH_SI(33),
@@ -41,10 +45,7 @@ public final class ExtensionTreatmentType {
         NICIRA_SET_NSH_CH2(35),
         NICIRA_SET_NSH_CH3(36),
         NICIRA_SET_NSH_CH4(37),
-        NICIRA_MOV_ARP_SHA_TO_THA(2),
-        NICIRA_MOV_ARP_SPA_TO_TPA(3),
-        NICIRA_MOV_ETH_SRC_TO_DST(4),
-        NICIRA_MOV_IP_SRC_TO_DST(5);
+        OFDPA_SET_VLAN_ID(64);
 
         private ExtensionTreatmentType type;
 

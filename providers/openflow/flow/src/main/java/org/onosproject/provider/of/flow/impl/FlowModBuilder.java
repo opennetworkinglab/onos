@@ -240,7 +240,7 @@ public abstract class FlowModBuilder {
                     mBuilder.setExact(MatchField.VLAN_VID, OFVlanVidMatch.NONE);
                 } else {
                     mBuilder.setExact(MatchField.VLAN_VID,
-                                      OFVlanVidMatch.ofVlanVid(VlanVid.ofVlan(vid.vlanId().toShort())));
+                            OFVlanVidMatch.ofVlanVid(VlanVid.ofVlan(vid.vlanId().toShort())));
                 }
                 break;
             case VLAN_PCP:

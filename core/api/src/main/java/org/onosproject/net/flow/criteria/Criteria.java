@@ -615,9 +615,9 @@ public final class Criteria {
      *
      * @param extensionSelector extension selector
      * @param deviceId device ID
-     * @return match criterion
+     * @return match extension criterion
      */
-    public static Criterion extension(ExtensionSelector extensionSelector,
+    public static ExtensionCriterion extension(ExtensionSelector extensionSelector,
                                       DeviceId deviceId) {
         return new ExtensionCriterion(extensionSelector, deviceId);
     }

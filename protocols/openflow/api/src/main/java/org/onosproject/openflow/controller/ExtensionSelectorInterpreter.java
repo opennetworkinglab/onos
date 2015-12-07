@@ -43,7 +43,7 @@ public interface ExtensionSelectorInterpreter extends HandlerBehaviour {
      *
      * @param factory OpenFlow factory
      * @param extensionSelector extension selector
-     * @return OpenFlow action
+     * @return OpenFlow OXM
      */
     OFOxm<?> mapSelector(OFFactory factory, ExtensionSelector extensionSelector);
 

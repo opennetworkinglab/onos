@@ -230,6 +230,13 @@ public class RoutingRulePopulator {
     public boolean populateIpRuleForRouter(DeviceId deviceId,
                                            IpPrefix ipPrefix, DeviceId destSw,
                                            Set<DeviceId> nextHops) {
+        // TODO: OFDPA does not support /32 with ECMP group at this moment.
+        //       Use /31 instead
+        IpPrefix effectivePrefix =
+                (ipPrefix.prefixLength() == IpPrefix.MAX_INET_MASK_LENGTH) ?
+                        IpPrefix.valueOf(ipPrefix.getIp4Prefix().address(), 31) :
+                        ipPrefix;
+
         int segmentId;
         try {
             segmentId = config.getSegmentId(destSw);
@@ -239,7 +246,7 @@ public class RoutingRulePopulator {
         }
 
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        sbuilder.matchIPDst(ipPrefix);
+        sbuilder.matchIPDst(effectivePrefix);
         sbuilder.matchEthType(Ethernet.TYPE_IPV4);
         TrafficSelector selector = sbuilder.build();
 
@@ -277,7 +284,7 @@ public class RoutingRulePopulator {
                 .makePermanent()
                 .nextStep(nextId)
                 .withSelector(selector)
-                .withPriority(2000 * ipPrefix.prefixLength())
+                .withPriority(2000 * effectivePrefix.prefixLength())
                 .withFlag(ForwardingObjective.Flag.SPECIFIC);
         if (treatment != null) {
             fwdBuilder.withTreatment(treatment);

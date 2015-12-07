@@ -37,8 +37,8 @@ public class ExtensionSelectorType {
         NICIRA_MATCH_NSH_CH1(2),
         NICIRA_MATCH_NSH_CH2(3),
         NICIRA_MATCH_NSH_CH3(4),
-        NICIRA_MATCH_NSH_CH4(5);
-
+        NICIRA_MATCH_NSH_CH4(5),
+        OFDPA_MATCH_VLAN_VID(16);
 
         private ExtensionSelectorType type;
 
