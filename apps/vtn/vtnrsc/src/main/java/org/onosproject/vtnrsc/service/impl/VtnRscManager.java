@@ -156,6 +156,7 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
 
     @Activate
     public void activate() {
+        eventDispatcher.addSink(VtnRscEvent.class, listenerRegistry);
         hostService.addListener(hostListener);
         floatingIpService.addListener(floatingIpListener);
         routerService.addListener(routerListener);
@@ -189,6 +190,7 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
 
     @Deactivate
     public void deactivate() {
+        eventDispatcher.removeSink(VtnRscEvent.class);
         hostService.removeListener(hostListener);
         floatingIpService.removeListener(floatingIpListener);
         routerService.removeListener(routerListener);
