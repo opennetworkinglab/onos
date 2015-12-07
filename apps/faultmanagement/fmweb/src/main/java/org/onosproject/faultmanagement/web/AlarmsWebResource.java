@@ -103,7 +103,7 @@ public class AlarmsWebResource extends AbstractWebResource {
      * Update book-keeping fields on the alarm. Returns an up-to-date version of the alarm. Some of its fields may have
      * been updated since the REST client last retrieved the alarm being updated.
      *
-     * @param alarmIdPath
+     * @param alarmIdPath alarm id path
      * @param stream input JSON
      * @return updated JSON encoded alarm
      */
