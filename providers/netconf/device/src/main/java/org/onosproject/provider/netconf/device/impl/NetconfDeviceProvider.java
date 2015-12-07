@@ -49,6 +49,7 @@ import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceListener;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.util.Map;
 
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
@@ -192,11 +193,23 @@ public class NetconfDeviceProvider extends AbstractProvider
         if (cfg != null) {
             log.info("cfg {}", cfg);
             try {
-                cfg.getDevicesAddresses().stream().forEach(addr -> controller
-                        .connectDevice(new NetconfDeviceInfo(addr.name(),
-                                                             addr.password(),
-                                                             addr.ip(),
-                                                             addr.port())));
+                cfg.getDevicesAddresses().stream()
+                        .forEach(addr -> {
+                                     try {
+                                         controller.connectDevice(
+                                                 new NetconfDeviceInfo(addr.name(),
+                                                                       addr.password(),
+                                                                       addr.ip(),
+                                                                       addr.port()));
+                                     } catch (IOException e) {
+                                         log.warn("Can't connect to NETCONF " +
+                                                          "device on {}:{}",
+                                                            addr.ip(),
+                                                            addr.port());
+                                     }
+                                 }
+                        );
+
             } catch (ConfigException e) {
                 log.error("Cannot read config error " + e);
             }

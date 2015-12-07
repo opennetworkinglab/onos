@@ -91,9 +91,9 @@ public class NetconfControllerImpl implements NetconfController {
     }
 
     @Override
-    public NetconfDevice connectDevice(NetconfDeviceInfo deviceInfo) {
+    public NetconfDevice connectDevice(NetconfDeviceInfo deviceInfo) throws IOException {
         if (netconfDeviceMap.containsKey(deviceInfo.getDeviceId())) {
-            log.warn("Device {} is already present");
+            log.info("Device {} is already present");
             return netconfDeviceMap.get(deviceInfo.getDeviceId());
         } else {
             log.info("Creating NETCONF device {}", deviceInfo);
@@ -110,19 +110,13 @@ public class NetconfControllerImpl implements NetconfController {
         }
     }
 
-    private NetconfDevice createDevice(NetconfDeviceInfo deviceInfo) {
+    private NetconfDevice createDevice(NetconfDeviceInfo deviceInfo) throws IOException {
         NetconfDevice netconfDevice = null;
-        try {
-            netconfDevice = new NetconfDeviceImpl(deviceInfo);
-            for (NetconfDeviceListener l : netconfDeviceListeners) {
-                l.deviceAdded(deviceInfo);
-            }
-            netconfDeviceMap.put(deviceInfo.getDeviceId(), netconfDevice);
-        } catch (IOException e) {
-            throw new IllegalStateException("Cannot create NETCONF device " +
-                                                    "with device Info: " +
-                                                    deviceInfo + " \n" + e);
+        netconfDevice = new NetconfDeviceImpl(deviceInfo);
+        for (NetconfDeviceListener l : netconfDeviceListeners) {
+            l.deviceAdded(deviceInfo);
         }
+        netconfDeviceMap.put(deviceInfo.getDeviceId(), netconfDevice);
         return netconfDevice;
     }
 
