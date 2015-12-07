@@ -33,6 +33,7 @@ public final class TopoJson {
     static final String HOSTS = "hosts";
     static final String LINKS = "links";
     static final String SUBDUE = "subdue";
+    static final String DELAY = "delay";
 
     static final String ID = "id";
     static final String LABEL = "label";
@@ -98,6 +99,10 @@ public final class TopoJson {
         Highlights.Amount toSubdue = highlights.subdueLevel();
         if (!toSubdue.equals(Highlights.Amount.ZERO)) {
             payload.put(SUBDUE, toSubdue.toString());
+        }
+        int delay = highlights.delayMs();
+        if (delay > 0) {
+            payload.put(DELAY, delay);
         }
         return payload;
     }
