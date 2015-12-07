@@ -67,18 +67,17 @@ public interface CordVtnService {
     List<CordVtnNode> getNodes();
 
     /**
-     * Creates a dependency between two services.
+     * Creates dependencies for a given tenant service.
      *
-     * @param tenantServiceId id of the service which has a dependency
-     * @param providerServiceId id of the service which provides dependency
+     * @param tenantCordServiceId id of the service which has a dependency
+     * @param providerCordServiceId id of the service which provide dependency
      */
-    void createServiceDependency(ServiceId tenantServiceId, ServiceId providerServiceId);
+    void createServiceDependency(CordServiceId tenantCordServiceId, CordServiceId providerCordServiceId);
 
     /**
-     * Removes a dependency between two services.
+     * Removes all dependencies from a given tenant service.
      *
-     * @param tenantServiceId id of the service which has a dependency
-     * @param providerServiceId id of the service which provides dependency
+     * @param tenantCordServiceId id of the service which has a dependency
      */
-    void removeServiceDependency(ServiceId tenantServiceId, ServiceId providerServiceId);
+    void removeServiceDependency(CordServiceId tenantCordServiceId);
 }

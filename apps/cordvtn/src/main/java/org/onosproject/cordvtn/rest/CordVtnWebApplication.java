@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.cordvtn.rest;
 
-import org.apache.felix.scr.annotations.Component;
-import org.onosproject.rest.AbstractApiDocRegistrator;
-import org.onosproject.rest.ApiDocProvider;
+import org.onlab.rest.AbstractWebApplication;
 
-@Component(immediate = true)
-public class ApiDocRegistrator extends AbstractApiDocRegistrator {
-    public ApiDocRegistrator() {
-        super(new ApiDocProvider("/onos/cordvtn",
-                                 "CORD VTN Service REST API",
-                                 ApiDocRegistrator.class.getClassLoader()));
+import java.util.Set;
+
+/**
+ * CORD VTN Web application.
+ */
+public class CordVtnWebApplication extends AbstractWebApplication {
+    @Override
+    public Set<Class<?>> getClasses() {
+        return getClasses(ServiceDependencyWebResource.class);
     }
 }

@@ -19,30 +19,33 @@ import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Representation of service identifier.
  */
-public final class ServiceId {
+public final class CordServiceId {
 
-    private final long serviceId;
+    private final String id;
 
     /**
      * Default constructor.
      *
-     * @param serviceId service identifier
+     * @param id service identifier
      */
-    private ServiceId(long serviceId) {
-        this.serviceId = serviceId;
+    private CordServiceId(String id) {
+        this.id = id;
     }
 
     /**
-     * Returns the ServiceId with value.
+     * Returns the CordServiceId with value.
      *
-     * @param serviceId service id
-     * @return ServiceId
+     * @param id service id
+     * @return CordServiceId
      */
-    public static ServiceId of(long serviceId) {
-        return new ServiceId(serviceId);
+    public static CordServiceId of(String id) {
+        checkNotNull(id);
+        return new CordServiceId(id);
     }
 
     /**
@@ -50,13 +53,13 @@ public final class ServiceId {
      *
      * @return service id
      */
-    public long serviceId() {
-        return serviceId;
+    public String id() {
+        return id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(serviceId);
+        return Objects.hash(id);
     }
 
     @Override
@@ -64,17 +67,17 @@ public final class ServiceId {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof ServiceId)) {
+        if (!(obj instanceof CordServiceId)) {
             return false;
         }
-        final ServiceId other = (ServiceId) obj;
-        return Objects.equals(this.serviceId, other.serviceId);
+        final CordServiceId other = (CordServiceId) obj;
+        return Objects.equals(this.id, other.id);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("serviceId", serviceId)
+                .add("id", id)
                 .toString();
     }
 }

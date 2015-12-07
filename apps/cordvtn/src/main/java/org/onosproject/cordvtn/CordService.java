@@ -21,7 +21,7 @@ import org.onlab.packet.IpPrefix;
 
 import java.util.Objects;
 
-public final class Service {
+public final class CordService {
 
     enum ServiceType {
         PRIVATE,
@@ -31,8 +31,8 @@ public final class Service {
         PUBLIC_INDIRECT
     }
 
-    private final ServiceId serviceId;
-    private final String networkId;
+    private final CordServiceId id;
+    private final long segmentationId;
     private final ServiceType serviceType;
     private final IpPrefix serviceIpRange;
     private final IpAddress serviceIp;
@@ -40,16 +40,16 @@ public final class Service {
     /**
      * Default constructor.
      *
-     * @param serviceId service id
-     * @param networkId OpenStack Neutron network id
+     * @param id service id, which is identical to OpenStack network id
+     * @param segmentationId segmentation id, which is identical to VNI
      * @param serviceType service type
      * @param serviceIpRange service ip range
      * @param serviceIp service ip
      */
-    public Service(ServiceId serviceId, String networkId, ServiceType serviceType,
+    public CordService(CordServiceId id, long segmentationId, ServiceType serviceType,
                    IpPrefix serviceIpRange, IpAddress serviceIp) {
-        this.serviceId = serviceId;
-        this.networkId = networkId;
+        this.id = id;
+        this.segmentationId = segmentationId;
         this.serviceType = serviceType;
         this.serviceIpRange = serviceIpRange;
         this.serviceIp = serviceIp;
@@ -60,17 +60,17 @@ public final class Service {
      *
      * @return service id
      */
-    public ServiceId serviceId() {
-        return serviceId;
+    public CordServiceId id() {
+        return id;
     }
 
     /**
-     * Returns OpenStack Neutron network ID of this service.
+     * Returns segmentation ID of this service.
      *
-     * @return network id
+     * @return segmentation id
      */
-    public String networkId() {
-        return networkId;
+    public long segmentationId() {
+        return segmentationId;
     }
 
     /**
@@ -102,7 +102,7 @@ public final class Service {
 
     @Override
     public int hashCode() {
-        return Objects.hash(serviceId);
+        return Objects.hash(id);
     }
 
     @Override
@@ -110,18 +110,18 @@ public final class Service {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof Service)) {
+        if (!(obj instanceof CordService)) {
             return false;
         }
-        final Service other = (Service) obj;
-        return Objects.equals(this.serviceId, other.serviceId);
+        final CordService other = (CordService) obj;
+        return Objects.equals(this.id, other.id);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("serviceId", serviceId)
-                .add("networkId", networkId)
+                .add("id", id)
+                .add("segmentationId", segmentationId)
                 .add("serviceType", serviceType)
                 .add("serviceIpRange", serviceIpRange)
                 .add("serviceIp", serviceIp)

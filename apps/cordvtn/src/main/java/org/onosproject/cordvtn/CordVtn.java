@@ -277,11 +277,19 @@ public class CordVtn implements CordVtnService {
     }
 
     @Override
-    public void createServiceDependency(ServiceId tenantServiceId, ServiceId providerServiceId) {
+    public void createServiceDependency(CordServiceId tenantCordServiceId,
+                                        CordServiceId providerCordServiceId) {
+        CordService tenantService = getCordService(tenantCordServiceId);
+        CordService providerService = getCordService(providerCordServiceId);
+
+        // TODO populate flow rules to create service dependency
     }
 
     @Override
-    public void removeServiceDependency(ServiceId tenantServiceId, ServiceId providerServiceId) {
+    public void removeServiceDependency(CordServiceId tenantCordServiceId) {
+        CordService tenantService = getCordService(tenantCordServiceId);
+
+        //TODO uninstall flow rules to remove service dependency
     }
 
     /**
@@ -685,6 +693,23 @@ public class CordVtn implements CordVtnService {
             log.debug("Not a valid host with {}", vPort.macAddress());
             return null;
         }
+    }
+
+    /**
+     * Returns OpenStack network associated with a given CORD service.
+     *
+     * @param serviceId service id
+     * @return cord service, or null if it fails to get network from OpenStack
+     */
+    private CordService getCordService(CordServiceId serviceId) {
+        OpenstackNetwork vNet = openstackService.network(serviceId.id());
+        if (vNet == null) {
+            log.warn("Couldn't find OpenStack network for service {}", serviceId.id());
+            return null;
+        }
+
+        // TODO create CordService with network/subnet information from Neutron
+        return null;
     }
 
     /**
