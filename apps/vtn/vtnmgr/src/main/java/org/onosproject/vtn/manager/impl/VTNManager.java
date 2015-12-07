@@ -201,7 +201,6 @@ public class VTNManager implements VTNService {
     private static final String HOSTS_OF_SUBNET = "hostsOfSubnet";
     private static final String EX_PORT_OF_DEVICE = "exPortOfDevice";
     private static final String DEFAULT_IP = "0.0.0.0";
-    private static final String PORT_MAC = "portMac";
     private static final int SUBNET_NUM = 2;
 
     private EventuallyConsistentMap<VirtualPortId, VirtualPort> vPortStore;
@@ -407,8 +406,12 @@ public class VTNManager implements VTNService {
             return;
         }
         if (type == Objective.Operation.ADD) {
+            // Save external port
+            Port export = getExPort(device.id());
+            exPortOfDevice.put(device.id(), export);
             switchOfLocalHostPorts.put(device.id(), new NetworkOfLocalHostPorts());
         } else if (type == Objective.Operation.REMOVE) {
+            exPortOfDevice.remove(device.id());
             switchOfLocalHostPorts.remove(device.id());
         }
         Iterable<Device> devices = deviceService.getAvailableDevices();
@@ -898,7 +901,8 @@ public class VTNManager implements VTNService {
         TenantNetwork fipNetwork = tenantNetworkService
                 .getNetwork(fipPort.networkId());
         // L3 downlink traffic flow
-        MacAddress exPortMac = MacAddress.valueOf(exPort.annotations().value(PORT_MAC));
+        MacAddress exPortMac = MacAddress.valueOf(exPort.annotations()
+                                                  .value(AnnotationKeys.PORT_MAC));
         classifierService.programArpClassifierRules(deviceId, floatingIp.floatingIp(),
                                                     fipNetwork.segmentationId(),
                                                     operation);
