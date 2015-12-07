@@ -15,6 +15,9 @@
  */
 package org.onosproject.iptopology.api;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Abstraction of Router ID to identify the router with a distinct IP address.
  */
@@ -34,6 +37,24 @@ public interface RouteIdentifier {
         ProtocolType(int val) {
             value = val;
         }
+
+        static Map<Integer, ProtocolType> map = new HashMap<>();
+
+        static {
+           for (ProtocolType type : ProtocolType.values()) {
+              map.put(type.value, type);
+           }
+        }
+
+        /**
+         * A method that returns enum value.
+         *
+         * @param value protocol type
+         * @return Enum value
+         */
+        public static ProtocolType getEnumType(int value) {
+            return map.get(value);
+         }
 
         /**
          * Provides Protocol ID.
