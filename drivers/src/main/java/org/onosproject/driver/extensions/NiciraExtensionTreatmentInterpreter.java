@@ -25,6 +25,9 @@ import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
 import org.projectfloodlight.openflow.protocol.OFActionType;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
+import org.projectfloodlight.openflow.protocol.action.OFActionNicira;
+import org.projectfloodlight.openflow.protocol.action.OFActionNiciraMove;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmTunnelIpv4Dst;
@@ -35,6 +38,13 @@ import org.projectfloodlight.openflow.types.IPv4Address;
  */
 public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviour
         implements ExtensionTreatmentInterpreter, ExtensionTreatmentResolver {
+
+    private static final int TYPE_NICIRA = 0x2320;
+    private static final int SUB_TYPE_MOVE = 6;
+    private static final int SRC_ARP_SHA = 0x00012206;
+    private static final int SRC_ARP_SPA = 0x00002004;
+    private static final int SRC_ETH = 0x00000406;
+    private static final int SRC_IP = 0x00000e04;
 
     @Override
     public boolean supported(ExtensionTreatmentType extensionTreatmentType) {
@@ -129,11 +139,19 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
             return factory.actions().niciraSetNshc4(niciraNshch.nshCh().nshContextHeader());
         }
-        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST.type())
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SHA_TO_THA.type())
                 || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SPA_TO_TPA.type())
                 || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST.type())
                 || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_IP_SRC_TO_DST.type())) {
-           // TODO this will be implemented later
+            MoveExtensionTreatment mov = (MoveExtensionTreatment) extensionTreatment;
+            OFActionNiciraMove.Builder action = factory.actions()
+                    .buildNiciraMove();
+            action.setDstOfs(mov.dstOffset());
+            action.setSrcOfs(mov.srcOffset());
+            action.setNBits(mov.nBits());
+            action.setSrc(mov.src());
+            action.setDst(mov.dst());
+            return action.build();
         }
         return null;
     }
@@ -150,6 +168,34 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             default:
                 throw new UnsupportedOperationException(
                         "Driver does not support extension type " + oxm.getMatchField().id);
+            }
+        }
+        if (action.getType().equals(OFActionType.EXPERIMENTER)) {
+            OFActionExperimenter experimenter = (OFActionExperimenter) action;
+            if (Long.valueOf(experimenter.getExperimenter())
+                    .intValue() == TYPE_NICIRA) {
+                OFActionNicira nicira = (OFActionNicira) experimenter;
+                if (nicira.getSubtype() == SUB_TYPE_MOVE) {
+                    OFActionNiciraMove moveAction = (OFActionNiciraMove) nicira;
+                    switch (Long.valueOf(moveAction.getSrc()).intValue()) {
+                    case SRC_ARP_SHA:
+                        return NiciraMoveTreatmentFactory
+                                .createNiciraMovArpShaToTha();
+                    case SRC_ETH:
+                        return NiciraMoveTreatmentFactory
+                                .createNiciraMovEthSrcToDst();
+                    case SRC_IP:
+                        return NiciraMoveTreatmentFactory
+                                .createNiciraMovIpSrcToDst();
+                    case SRC_ARP_SPA:
+                        return NiciraMoveTreatmentFactory
+                                .createNiciraMovArpSpaToTpa();
+                    default:
+                        throw new UnsupportedOperationException("Driver does not support move from "
+                                + moveAction.getSrc() + " to "
+                                + moveAction.getDst());
+                    }
+                }
             }
         }
         return null;

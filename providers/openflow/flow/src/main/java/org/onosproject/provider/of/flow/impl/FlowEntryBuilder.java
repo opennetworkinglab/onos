@@ -329,6 +329,14 @@ public class FlowEntryBuilder {
                         OFActionCircuit ct = (OFActionCircuit) exp;
                         short lambda = ((OFOxmOchSigidBasic) ct.getField()).getValue().getChannelNumber();
                         builder.add(Instructions.modL0Lambda(Lambda.indexedLambda(lambda)));
+                    }  else if (exp.getExperimenter() == 0x2320) {
+                        DriverHandler driver = getDriver(dpid);
+                        ExtensionTreatmentInterpreter interpreter = driver
+                                .behaviour(ExtensionTreatmentInterpreter.class);
+                        if (interpreter != null) {
+                            builder.extension(interpreter.mapAction(exp),
+                                              DeviceId.deviceId(Dpid.uri(dpid)));
+                        }
                     } else {
                         log.warn("Unsupported OFActionExperimenter {}", exp.getExperimenter());
                     }

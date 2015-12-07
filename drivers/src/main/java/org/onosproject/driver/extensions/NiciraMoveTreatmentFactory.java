@@ -91,7 +91,7 @@ public final class NiciraMoveTreatmentFactory {
         int dstOfs = 0;
         int nBits = 32;
         int srcIp = 0x00000e04;
-        int dstIp = 0x00001006;
+        int dstIp = 0x00001004;
         return new DefaultMoveExtensionTreatment(srcOfs, dstOfs, nBits, srcIp,
                                                  dstIp,
                                                  ExtensionTreatmentType.ExtensionTreatmentTypes
