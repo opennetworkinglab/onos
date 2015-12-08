@@ -47,6 +47,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -133,6 +134,9 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry cfgRegistry;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterMetadataService clusterMetadataService;
+
     private LinkProviderService providerService;
 
     private ScheduledExecutorService executor;
@@ -185,6 +189,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
     public static final String CONFIG_KEY = "suppression";
     public static final String FEATURE_NAME = "linkDiscovery";
+    public static final String FINGERPRINT_FEATURE_NAME = "fingerprint";
 
     private final Set<ConfigFactory<?, ?>> factories = ImmutableSet.of(
             new ConfigFactory<ApplicationId, SuppressionConfig>(APP_SUBJECT_FACTORY,
@@ -207,6 +212,13 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
                 @Override
                 public LinkDiscoveryFromPort createConfig() {
                     return new LinkDiscoveryFromPort();
+                }
+            },
+            new ConfigFactory<DeviceId, FingerprintProbeFromDevice>(DEVICE_SUBJECT_FACTORY,
+                    FingerprintProbeFromDevice.class, FINGERPRINT_FEATURE_NAME) {
+                @Override
+                public FingerprintProbeFromDevice createConfig() {
+                    return new FingerprintProbeFromDevice();
                 }
             }
     );
@@ -385,6 +397,14 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         return isBlacklisted(new ConnectPoint(port.element().id(), port.number()));
     }
 
+    private boolean isFingerprinted(DeviceId did) {
+        FingerprintProbeFromDevice cfg = cfgRegistry.getConfig(did, FingerprintProbeFromDevice.class);
+        if (cfg == null) {
+            return false;
+        }
+        return cfg.enabled();
+    }
+
     /**
      * Updates discovery helper for specified device.
      *
@@ -405,6 +425,11 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         }
         LinkDiscovery ld = discoverers.computeIfAbsent(device.id(),
                                      did -> new LinkDiscovery(device, context));
+        if (isFingerprinted(device.id())) {
+            ld.enableFingerprint();
+        } else {
+            ld.disableFingerprint();
+        }
         if (ld.isStopped()) {
             ld.start();
         }
@@ -715,6 +740,11 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         public void touchLink(LinkKey key) {
             linkTimes.put(key, System.currentTimeMillis());
         }
+
+        @Override
+        public String fingerprint() {
+            return clusterMetadataService.getClusterMetadata().getName();
+        }
     }
 
     static final EnumSet<NetworkConfigEvent.Type> CONFIG_CHANGED
@@ -758,6 +788,15 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
                         Port port = deviceService.getPort(did, cp.port());
                         updateDevice(device).ifPresent(ld -> updatePort(ld, port));
                     }
+                }
+
+            } else if (event.configClass() == FingerprintProbeFromDevice.class &&
+                    CONFIG_CHANGED.contains(event.type())) {
+
+                if (event.subject() instanceof DeviceId) {
+                    final DeviceId did = (DeviceId) event.subject();
+                    Device device = deviceService.getDevice(did);
+                    updateDevice(device);
                 }
 
             } else if (event.configClass().equals(SuppressionConfig.class) &&

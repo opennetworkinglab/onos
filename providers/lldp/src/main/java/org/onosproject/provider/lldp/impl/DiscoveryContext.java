@@ -66,4 +66,11 @@ interface DiscoveryContext {
      * @param key link key
      */
     void touchLink(LinkKey key);
+
+    /**
+     * Returns the cluster-wide unique identifier.
+     *
+     * @return the cluster identifier
+     */
+    String fingerprint();
 }

@@ -15,14 +15,21 @@
  */
 package org.onlab.packet;
 
+import java.util.HashMap;
+
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import org.apache.commons.lang.ArrayUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import static org.onlab.packet.LLDPOrganizationalTLV.OUI_LENGTH;
+import static org.onlab.packet.LLDPOrganizationalTLV.SUBTYPE_LENGTH;
+
 /**
- *  ONOS LLDP containing organizational TLV for ONOS device dicovery.
+ *  ONOS LLDP containing organizational TLV for ONOS device discovery.
  */
 public class ONOSLLDP extends LLDP {
 
@@ -37,12 +44,16 @@ public class ONOSLLDP extends LLDP {
     public static final byte[] BDDP_MULTICAST = {(byte) 0xff, (byte) 0xff,
             (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
 
-    private static final byte NAME_SUBTYPE = 1;
-    private static final byte DEVICE_SUBTYPE = 2;
-    private static final short NAME_LENGTH = 4; //1 for subtype + 3 for OUI
-    private static final short DEVICE_LENGTH = 4; //1 for subtype + 3 for OUI
-    private final LLDPOrganizationalTLV nameTLV = new LLDPOrganizationalTLV();
-    private final LLDPOrganizationalTLV deviceTLV =  new LLDPOrganizationalTLV();
+    protected static final byte NAME_SUBTYPE = 1;
+    protected static final byte DEVICE_SUBTYPE = 2;
+    protected static final byte DOMAIN_SUBTYPE = 3;
+
+    private static final short NAME_LENGTH = OUI_LENGTH + SUBTYPE_LENGTH;
+    private static final short DEVICE_LENGTH = OUI_LENGTH + SUBTYPE_LENGTH;
+    private static final short DOMAIN_LENGTH = OUI_LENGTH + SUBTYPE_LENGTH;
+
+    private final HashMap<Byte, LLDPOrganizationalTLV> opttlvs =
+            Maps.<Byte, LLDPOrganizationalTLV>newHashMap();
 
     // TLV constants: type, size and subtype
     // Organizationally specific TLV also have packet offset and contents of TLV
@@ -57,18 +68,24 @@ public class ONOSLLDP extends LLDP {
 
     private static final byte TTL_TLV_TYPE = 3;
 
-
     private final byte[] ttlValue = new byte[] {0, 0x78};
 
-    public ONOSLLDP() {
+    // Only needs to be accessed from LinkProbeFactory.
+    protected ONOSLLDP(byte ... subtype) {
         super();
+        for (byte st : subtype) {
+            opttlvs.put(st, new LLDPOrganizationalTLV());
+        }
+        // guarantee the following (name and device) TLVs exist
+        opttlvs.putIfAbsent(NAME_SUBTYPE, new LLDPOrganizationalTLV());
+        opttlvs.putIfAbsent(DEVICE_SUBTYPE, new LLDPOrganizationalTLV());
         setName(DEFAULT_NAME);
         setDevice(DEFAULT_DEVICE);
-        setOptionalTLVList(Lists.<LLDPTLV>newArrayList(nameTLV, deviceTLV));
+
+        setOptionalTLVList(Lists.<LLDPTLV>newArrayList(opttlvs.values()));
         setTtl(new LLDPTLV().setType(TTL_TLV_TYPE)
                        .setLength((short) ttlValue.length)
                        .setValue(ttlValue));
-
     }
 
     private ONOSLLDP(LLDP lldp) {
@@ -79,17 +96,31 @@ public class ONOSLLDP extends LLDP {
     }
 
     public void setName(String name) {
-        nameTLV.setLength((short) (name.length() + NAME_LENGTH));
-        nameTLV.setInfoString(name);
-        nameTLV.setSubType(NAME_SUBTYPE);
-        nameTLV.setOUI(ONLAB_OUI);
+        LLDPOrganizationalTLV nametlv = opttlvs.get(NAME_SUBTYPE);
+        nametlv.setLength((short) (name.length() + NAME_LENGTH));
+        nametlv.setInfoString(name);
+        nametlv.setSubType(NAME_SUBTYPE);
+        nametlv.setOUI(ONLAB_OUI);
     }
 
     public void setDevice(String device) {
-        deviceTLV.setInfoString(device);
-        deviceTLV.setLength((short) (device.length() + DEVICE_LENGTH));
-        deviceTLV.setSubType(DEVICE_SUBTYPE);
-        deviceTLV.setOUI(ONLAB_OUI);
+        LLDPOrganizationalTLV devicetlv = opttlvs.get(DEVICE_SUBTYPE);
+        devicetlv.setInfoString(device);
+        devicetlv.setLength((short) (device.length() + DEVICE_LENGTH));
+        devicetlv.setSubType(DEVICE_SUBTYPE);
+        devicetlv.setOUI(ONLAB_OUI);
+    }
+
+    public void setDomainInfo(String domainId) {
+        LLDPOrganizationalTLV domaintlv = opttlvs.get(DOMAIN_SUBTYPE);
+        if (domaintlv == null) {
+            // maybe warn people not to set this if remote probes aren't.
+            return;
+        }
+        domaintlv.setInfoString(domainId);
+        domaintlv.setLength((short) (domainId.length() + DOMAIN_LENGTH));
+        domaintlv.setSubType(DOMAIN_SUBTYPE);
+        domaintlv.setOUI(ONLAB_OUI);
     }
 
     public void setChassisId(final ChassisId chassisId) {
@@ -139,6 +170,24 @@ public class ONOSLLDP extends LLDP {
         return null;
     }
 
+    /**
+     * Gets the TLV associated with remote probing. This TLV will be null if
+     * remote probing is disabled.
+     *
+     * @return A TLV containing domain ID, or null.
+     */
+    public LLDPOrganizationalTLV getDomainTLV() {
+        for (LLDPTLV tlv : this.getOptionalTLVList()) {
+            if (tlv.getType() == LLDPOrganizationalTLV.ORGANIZATIONAL_TLV_TYPE) {
+                LLDPOrganizationalTLV orgTLV =  (LLDPOrganizationalTLV) tlv;
+                if (orgTLV.getSubType() == DOMAIN_SUBTYPE) {
+                    return orgTLV;
+                }
+            }
+        }
+        return null;
+    }
+
     public String getNameString() {
         LLDPOrganizationalTLV tlv = getNameTLV();
         if (tlv != null) {
@@ -149,6 +198,14 @@ public class ONOSLLDP extends LLDP {
 
     public String getDeviceString() {
         LLDPOrganizationalTLV tlv = getDeviceTLV();
+        if (tlv != null) {
+            return new String(tlv.getInfoString(), StandardCharsets.UTF_8);
+        }
+        return null;
+    }
+
+    public String getDomainString() {
+        LLDPOrganizationalTLV tlv = getDomainTLV();
         if (tlv != null) {
             return new String(tlv.getInfoString(), StandardCharsets.UTF_8);
         }
@@ -176,5 +233,41 @@ public class ONOSLLDP extends LLDP {
            }
         }
         return null;
+    }
+
+    /**
+     * Creates a link probe for link discovery/verification.
+     *
+     * @param deviceId The device ID as a String
+     * @param chassisId The chassis ID of the device
+     * @param portNum Port number of port to send probe out of
+     * @return ONOSLLDP probe message
+     */
+    public static ONOSLLDP onosLLDP(String deviceId, ChassisId chassisId, int portNum) {
+        ONOSLLDP probe = new ONOSLLDP(NAME_SUBTYPE, DEVICE_SUBTYPE);
+        probe.setPortId(portNum);
+        probe.setDevice(deviceId);
+        probe.setChassisId(chassisId);
+        return probe;
+    }
+
+    /**
+     * Creates a link probe carrying a fingerprint unique to the ONOS cluster managing
+     * link discovery/verification.
+     *
+     * @param deviceId The device ID as a String
+     * @param chassisId The chassis ID of the device
+     * @param portNum Port number of port to send probe out of
+     * @param domainId The cluster's fingerprint
+     * @return ONOSLLDP probe message
+     */
+    public static ONOSLLDP fingerprintedLLDP(
+            String deviceId, ChassisId chassisId, int portNum, String domainId) {
+        ONOSLLDP probe = new ONOSLLDP(NAME_SUBTYPE, DEVICE_SUBTYPE, DOMAIN_SUBTYPE);
+        probe.setPortId(portNum);
+        probe.setDevice(deviceId);
+        probe.setChassisId(chassisId);
+        probe.setDomainInfo(domainId);
+        return probe;
     }
 }
