@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipServiceAdapter;
@@ -105,6 +106,11 @@ public class DistributedGroupStoreTest {
         @Override
         public MastershipRole getLocalRole(DeviceId deviceId) {
             return MastershipRole.MASTER;
+        }
+
+        @Override
+        public NodeId getMasterFor(DeviceId deviceId) {
+            return new NodeId("foo");
         }
     }
 

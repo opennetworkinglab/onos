@@ -16,6 +16,7 @@
 package org.onosproject.store.group.impl;
 
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
@@ -28,6 +29,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.NewConcurrentHashMap;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipService;
@@ -63,6 +65,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -276,16 +279,22 @@ public class DistributedGroupStore
      */
     @Override
     public Iterable<Group> getGroups(DeviceId deviceId) {
-        // flatten and make iterator unmodifiable
-        return FluentIterable.from(getGroupStoreKeyMap().values())
-                .filter(input -> input.deviceId().equals(deviceId))
-                .transform(input -> input);
+        // Let ImmutableSet.copyOf do the type conversion
+        return ImmutableSet.copyOf(getStoredGroups(deviceId));
     }
 
     private Iterable<StoredGroupEntry> getStoredGroups(DeviceId deviceId) {
-        // flatten and make iterator unmodifiable
-        return FluentIterable.from(getGroupStoreKeyMap().values())
-                .filter(input -> input.deviceId().equals(deviceId));
+        NodeId master = mastershipService.getMasterFor(deviceId);
+        if (master == null) {
+            log.debug("Failed to getGroups: No master for {}", deviceId);
+            return Collections.emptySet();
+        }
+
+        Set<StoredGroupEntry> storedGroups = getGroupStoreKeyMap().values()
+                .stream()
+                .filter(input -> input.deviceId().equals(deviceId))
+                .collect(Collectors.toSet());
+        return ImmutableSet.copyOf(storedGroups);
     }
 
     /**
