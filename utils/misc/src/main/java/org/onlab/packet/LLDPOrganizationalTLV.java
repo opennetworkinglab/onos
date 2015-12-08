@@ -30,7 +30,7 @@
 package org.onlab.packet;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -124,8 +124,7 @@ public class LLDPOrganizationalTLV extends LLDPTLV {
      * @return This LLDP Organizationally Specific TLV.
      */
     public LLDPOrganizationalTLV setInfoString(final String infoString) {
-        final byte[] infoStringBytes = infoString.getBytes(Charset
-                .forName("UTF-8"));
+        final byte[] infoStringBytes = infoString.getBytes(StandardCharsets.UTF_8);
         return this.setInfoString(infoStringBytes);
     }
 

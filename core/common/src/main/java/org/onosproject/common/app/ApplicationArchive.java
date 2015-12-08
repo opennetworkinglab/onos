@@ -44,7 +44,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
 import java.util.List;
 import java.util.Locale;
@@ -213,7 +213,7 @@ public class ApplicationArchive
 
     // Returns the substring of maximum possible length from the specified bytes.
     private String substring(byte[] bytes, int length) {
-        return new String(bytes, 0, Math.min(bytes.length, length), Charset.forName("UTF-8"));
+        return new String(bytes, 0, Math.min(bytes.length, length), StandardCharsets.UTF_8);
     }
 
     /**
