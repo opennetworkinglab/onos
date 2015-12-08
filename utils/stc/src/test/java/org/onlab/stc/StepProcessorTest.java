@@ -50,7 +50,7 @@ public class StepProcessorTest {
 
     @Test
     public void basics() {
-        Step step = new Step("foo", "ls " + DIR.getAbsolutePath(), null, null, null);
+        Step step = new Step("foo", "ls " + DIR.getAbsolutePath(), null, null, null, 0);
         StepProcessor processor = new StepProcessor(step, DIR, delegate, step.command());
         processor.run();
         assertTrue("should be started", delegate.started);

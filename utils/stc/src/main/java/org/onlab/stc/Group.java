@@ -35,9 +35,10 @@ public class Group extends Step {
      * @param env     default path to file to be sourced into the environment
      * @param cwd     default path to current working directory for the step
      * @param group   optional group to which this step belongs
+     * @param delay   seconds to delay before executing
      */
-    public Group(String name, String command, String env, String cwd, Group group) {
-        super(name, command, env, cwd, group);
+    public Group(String name, String command, String env, String cwd, Group group, int delay) {
+        super(name, command, env, cwd, group, delay);
     }
 
     /**

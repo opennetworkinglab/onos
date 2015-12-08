@@ -38,6 +38,7 @@ class StepProcessor implements Runnable {
     private static final String NEGATE_CODE = "!";
 
     private static final int FAIL = -1;
+    private static final int SECONDS = 1_000;
 
     static String launcher = "stc-launcher ";
 
@@ -67,12 +68,26 @@ class StepProcessor implements Runnable {
     @Override
     public void run() {
         delegate.onStart(step, command);
+        delayIfNeeded();
         int code = execute();
         boolean ignoreCode = step.env() != null && step.env.equals(IGNORE_CODE);
         boolean negateCode = step.env() != null && step.env.equals(NEGATE_CODE);
         Status status = ignoreCode || code == 0 && !negateCode || code != 0 && negateCode ?
                 SUCCEEDED : FAILED;
         delegate.onCompletion(step, status);
+    }
+
+    /**
+     * Pauses if the step requires it.
+     */
+    private void delayIfNeeded() {
+        if (step.delay() > 0) {
+            try {
+                Thread.sleep(step.delay() * SECONDS);
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Interrupted", e);
+            }
+        }
     }
 
     /**

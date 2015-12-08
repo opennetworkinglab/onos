@@ -36,24 +36,25 @@ public class StepTest {
 
     @Before
     public void setUp() throws ConfigurationException {
-        parent = new Group("parent", null, null, null, null);
+        parent = new Group("parent", null, null, null, null, 0);
     }
 
     @Test
     public void basics() {
-        Step step = new Step(NAME, CMD, ENV, CWD, parent);
+        Step step = new Step(NAME, CMD, ENV, CWD, parent, 1);
         assertEquals("incorrect name", NAME, step.name());
         assertEquals("incorrect command", CMD, step.command());
         assertEquals("incorrect env", ENV, step.env());
         assertEquals("incorrect cwd", CWD, step.cwd());
         assertSame("incorrect group", parent, step.group());
+        assertEquals("incorrect delay", 1, step.delay());
     }
 
     @Test
     public void equality() {
-        Step s1 = new Step(NAME, CMD, null, null, parent);
-        Step s2 = new Step(NAME, CMD, ENV, CWD, null);
-        Step s3 = new Step("foo", null, null, null, parent);
+        Step s1 = new Step(NAME, CMD, null, null, parent, 0);
+        Step s2 = new Step(NAME, CMD, ENV, CWD, null, 0);
+        Step s3 = new Step("foo", null, null, null, parent, 0);
         new EqualsTester()
                 .addEqualityGroup(s1, s2)
                 .addEqualityGroup(s3)

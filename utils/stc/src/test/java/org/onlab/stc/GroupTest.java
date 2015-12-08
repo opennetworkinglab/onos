@@ -28,23 +28,24 @@ public class GroupTest extends StepTest {
 
     @Test
     public void basics() {
-        Group group = new Group(NAME, CMD, ENV, CWD, parent);
+        Group group = new Group(NAME, CMD, ENV, CWD, parent, 1);
         assertEquals("incorrect name", NAME, group.name());
         assertEquals("incorrect command", CMD, group.command());
         assertEquals("incorrect env", ENV, group.env());
         assertEquals("incorrect cwd", CWD, group.cwd());
         assertSame("incorrect group", parent, group.group());
+        assertEquals("incorrect delay", 1, group.delay());
 
-        Step step = new Step("step", null, null, null, group);
+        Step step = new Step("step", null, null, null, group, 0);
         group.addChild(step);
         assertSame("incorrect child", step, group.children().iterator().next());
     }
 
     @Test
     public void equality() {
-        Group g1 = new Group(NAME, CMD, null, null, parent);
-        Group g2 = new Group(NAME, CMD, ENV, CWD, null);
-        Group g3 = new Group("foo", null, null, null, parent);
+        Group g1 = new Group(NAME, CMD, null, null, parent, 0);
+        Group g2 = new Group(NAME, CMD, ENV, CWD, null, 0);
+        Group g3 = new Group("foo", null, null, null, parent, 0);
         new EqualsTester()
                 .addEqualityGroup(g1, g2)
                 .addEqualityGroup(g3)

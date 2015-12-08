@@ -32,6 +32,7 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.lang.Integer.parseInt;
 import static org.onlab.graph.DepthFirstSearch.EdgeType.BACK_EDGE;
 import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
 import static org.onlab.stc.Scenario.loadScenario;
@@ -56,6 +57,7 @@ public class Compiler {
     private static final String COMMAND = "[@exec]";
     private static final String ENV = "[@env]";
     private static final String CWD = "[@cwd]";
+    private static final String DELAY = "[@delay]";
     private static final String REQUIRES = "[@requires]";
     private static final String IF = "[@if]";
     private static final String UNLESS = "[@unless]";
@@ -245,9 +247,10 @@ public class Compiler {
         String command = expand(cfg.getString(COMMAND, parentGroup != null ? parentGroup.command() : null), true);
         String env = expand(cfg.getString(ENV, parentGroup != null ? parentGroup.env() : null));
         String cwd = expand(cfg.getString(CWD, parentGroup != null ? parentGroup.cwd() : null));
+        int delay = parseInt(expand(cfg.getString(DELAY, parentGroup != null ? "" + parentGroup.delay() : "0")));
 
-        print("step name=%s command=%s env=%s cwd=%s", name, command, env, cwd);
-        Step step = new Step(name, command, env, cwd, parentGroup);
+        print("step name=%s command=%s env=%s cwd=%s delay=%d", name, command, env, cwd, delay);
+        Step step = new Step(name, command, env, cwd, parentGroup, delay);
         registerStep(step, cfg, namespace, parentGroup);
     }
 
@@ -264,9 +267,10 @@ public class Compiler {
         String command = expand(cfg.getString(COMMAND, parentGroup != null ? parentGroup.command() : null), true);
         String env = expand(cfg.getString(ENV, parentGroup != null ? parentGroup.env() : null));
         String cwd = expand(cfg.getString(CWD, parentGroup != null ? parentGroup.cwd() : null));
+        int delay = parseInt(expand(cfg.getString(DELAY, parentGroup != null ? "" + parentGroup.delay() : "0")));
 
-        print("group name=%s command=%s env=%s cwd=%s", name, command, env, cwd);
-        Group group = new Group(name, command, env, cwd, parentGroup);
+        print("group name=%s command=%s env=%s cwd=%s delay=%d", name, command, env, cwd, delay);
+        Group group = new Group(name, command, env, cwd, parentGroup, delay);
         if (registerStep(group, cfg, namespace, parentGroup)) {
             compile(cfg, namespace, group);
         }

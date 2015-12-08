@@ -73,7 +73,7 @@
               exec="mvn clean install"/>
         <step name="Install-REST-App" requires="^,~Verify-UI-Topo"
               exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
-        <Xstep name="Verify-REST-App" requires="^" delay="2"
+        <step name="Verify-REST-App" requires="^" delay="2"
               exec="curl --fail -isS --user ${ONOS_WEB_USER}:${ONOS_WEB_PASS} http://${OCI}:8181/onos/test-app/sample"/>
 
         <step name="Uninstall-App" requires="^"

@@ -32,6 +32,7 @@ public class Step implements Vertex {
     protected final String env;
     protected final String cwd;
     protected final Group group;
+    protected final int delay;
 
     /**
      * Creates a new test step.
@@ -41,10 +42,12 @@ public class Step implements Vertex {
      * @param env     path to file to be sourced into the environment
      * @param cwd     path to current working directory for the step
      * @param group   optional group to which this step belongs
+     * @param delay   seconds to delay before executing
      */
-    public Step(String name, String command, String env, String cwd, Group group) {
+    public Step(String name, String command, String env, String cwd, Group group, int delay) {
         this.name = checkNotNull(name, "Name cannot be null");
         this.group = group;
+        this.delay = delay;
 
         // Set the command, environment and cwd
         // If one is not given use the value from the enclosing group
@@ -98,6 +101,14 @@ public class Step implements Vertex {
         return group;
     }
 
+    /**
+     * Returns the start delay in seconds.
+     *
+     * @return number of seconds
+     */
+    public int delay() {
+        return delay;
+    }
 
     @Override
     public int hashCode() {
@@ -124,6 +135,7 @@ public class Step implements Vertex {
                 .add("env", env)
                 .add("cwd", cwd)
                 .add("group", group)
+                .add("delay", delay)
                 .toString();
     }
 }
