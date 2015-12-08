@@ -191,7 +191,7 @@ public class ControllerTest {
         controller.setConfigParams(properties);
         controller.start(null, new MockDriverService());
 
-        assertThat(controller.serverSslEngine, notNullValue());
+        assertThat(controller.sslContext, notNullValue());
 
         controller.stop();
         boolean removed = keystore.delete();

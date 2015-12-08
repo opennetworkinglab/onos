@@ -16,12 +16,11 @@
 
 package org.onosproject.openflow.controller.impl;
 
-import java.util.concurrent.ThreadPoolExecutor;
-
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.execution.ExecutionHandler;
+import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
 import org.jboss.netty.util.ExternalResourceReleasable;
@@ -30,7 +29,9 @@ import org.jboss.netty.util.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Creates a ChannelPipeline for a server-side openflow channel.
@@ -40,7 +41,8 @@ public class OpenflowPipelineFactory
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final SSLEngine sslEngine;
+
+    private final SSLContext sslContext;
     protected Controller controller;
     protected ThreadPoolExecutor pipelineExecutor;
     protected Timer timer;
@@ -49,14 +51,14 @@ public class OpenflowPipelineFactory
 
     public OpenflowPipelineFactory(Controller controller,
                                    ThreadPoolExecutor pipelineExecutor,
-                                   SSLEngine sslEngine) {
+                                   SSLContext sslContext) {
         super();
         this.controller = controller;
         this.pipelineExecutor = pipelineExecutor;
         this.timer = new HashedWheelTimer();
         this.idleHandler = new IdleStateHandler(timer, 20, 25, 0);
         this.readTimeoutHandler = new ReadTimeoutHandler(timer, 30);
-        this.sslEngine = sslEngine;
+        this.sslContext = sslContext;
     }
 
     @Override
@@ -64,10 +66,18 @@ public class OpenflowPipelineFactory
         OFChannelHandler handler = new OFChannelHandler(controller);
 
         ChannelPipeline pipeline = Channels.pipeline();
-        if (sslEngine != null) {
+        if (sslContext != null) {
             log.info("OpenFlow SSL enabled.");
-            pipeline.addLast("ssl",
-                             new org.jboss.netty.handler.ssl.SslHandler(sslEngine));
+            SSLEngine sslEngine = sslContext.createSSLEngine();
+
+            sslEngine.setNeedClientAuth(true);
+            sslEngine.setUseClientMode(false);
+            sslEngine.setEnabledProtocols(sslEngine.getSupportedProtocols());
+            sslEngine.setEnabledCipherSuites(sslEngine.getSupportedCipherSuites());
+            sslEngine.setEnableSessionCreation(true);
+
+            SslHandler sslHandler = new SslHandler(sslEngine);
+            pipeline.addLast("ssl", sslHandler);
         } else {
             log.info("OpenFlow SSL disabled");
         }

@@ -23,6 +23,7 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.DefaultDriverData;
@@ -41,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.lang.management.ManagementFactory;
@@ -94,7 +94,7 @@ public class Controller {
     protected String tsLocation;
     protected char[] ksPwd;
     protected char[] tsPwd;
-    protected SSLEngine serverSslEngine;
+    protected SSLContext sslContext;
 
     // Perf. related configuration
     protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
@@ -132,7 +132,7 @@ public class Controller {
             bootstrap.setOption("child.sendBufferSize", Controller.SEND_BUFFER_SIZE);
 
             ChannelPipelineFactory pfact =
-                    new OpenflowPipelineFactory(this, null, serverSslEngine);
+                    new OpenflowPipelineFactory(this, null, sslContext);
             bootstrap.setPipelineFactory(pfact);
             cg = new DefaultChannelGroup();
             openFlowPorts.forEach(port -> {
@@ -239,16 +239,10 @@ public class Controller {
         ks.load(new FileInputStream(ksLocation), ksPwd);
         kmf.init(ks, ksPwd);
 
-        SSLContext serverContext = SSLContext.getInstance("TLS");
-        serverContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
+        sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
 
-        serverSslEngine = serverContext.createSSLEngine();
 
-        serverSslEngine.setNeedClientAuth(true);
-        serverSslEngine.setUseClientMode(false);
-        serverSslEngine.setEnabledProtocols(serverSslEngine.getSupportedProtocols());
-        serverSslEngine.setEnabledCipherSuites(serverSslEngine.getSupportedCipherSuites());
-        serverSslEngine.setEnableSessionCreation(true);
     }
 
     // **************
