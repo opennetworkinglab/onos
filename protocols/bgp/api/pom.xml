@@ -45,46 +45,4 @@
             <artifactId>onos-api</artifactId>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <artifactSet>
-                        <excludes>
-                            <exclude>io.netty:netty</exclude>
-                            <exclude>com.google.guava:guava</exclude>
-                            <exclude>org.slf4j:slfj-api</exclude>
-                            <exclude>ch.qos.logback:logback-core</exclude>
-                            <exclude>ch.qos.logback:logback-classic</exclude>
-                            <exclude>com.google.code.findbugs:annotations</exclude>
-                        </excludes>
-                    </artifactSet>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <configuration>
-                    <instructions>
-                        <Export-Package>
-                            org.onosproject.bgp.*,org.onosproject.bgpio.*,org.onosproject.bgp.controller
-                        </Export-Package>
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>
