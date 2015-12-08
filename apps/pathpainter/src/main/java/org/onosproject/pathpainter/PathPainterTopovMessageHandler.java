@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Skeletal ONOS UI Topology-Overlay message handler.
+ * ONOS UI PathPainter Topology-Overlay message handler.
  */
 public class PathPainterTopovMessageHandler extends UiMessageHandler {
 
@@ -69,12 +69,16 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     private static final String ENDSTATION = "endstation";
     public static final String DST = "Dst";
     public static final String SRC = "Src";
-    private static LinkWeight linkData;
+    // Delay for showHighlights event processing on GUI client side to
+    // account for addLink animation.
+    public static final int DELAY_MS = 1100;
 
     private final TopologyListener topologyListener = new InternalTopologyListener();
 
     private Set<Link> allPathLinks;
     private boolean listenersRemoved;
+    private LinkWeight linkData;
+    private int highlightDelay;
 
     private enum Mode {
         SHORTEST, DISJOINT, GEODATA, SRLG, INVALID
@@ -204,7 +208,6 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     }
 
 
-
     private final class NextPathHandler extends RequestHandler {
         public NextPathHandler() {
             super(PAINTER_NEXT_PATH);
@@ -326,6 +329,9 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
                     ImmutableSet.of() : ImmutableSet.copyOf(paths.get(pathIndex).links());
         }
         Highlights highlights = new Highlights();
+        if (highlightDelay > 0) {
+            highlights.delay(highlightDelay);
+        }
         for (PathLink plink : linkMap.biLinks()) {
             plink.computeHilight(selectedPathLinks, allPathLinks);
             highlights.add(plink.highlight(null));
@@ -370,6 +376,7 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
         listenersRemoved = false;
         topologyService.addListener(topologyListener);
     }
+
     private synchronized void removeListeners() {
         if (!listenersRemoved) {
             listenersRemoved = true;
@@ -381,7 +388,9 @@ public class PathPainterTopovMessageHandler extends UiMessageHandler {
     private class InternalTopologyListener implements TopologyListener {
         @Override
         public void event(TopologyEvent event) {
+            highlightDelay = DELAY_MS;
             findAndSendPaths(currentMode);
+            highlightDelay = 0;
         }
     }
 
