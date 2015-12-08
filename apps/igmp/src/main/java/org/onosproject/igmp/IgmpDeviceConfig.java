@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.igmp.impl;
 
-import org.onlab.packet.IGMP;
-import org.onosproject.net.ConnectPoint;
+package org.onosproject.igmp;
+
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.Config;
 
 /**
- * Process IGMP Query messages.
+ * Config object for access device data.
  */
-public final class IGMPProcessQuery {
-
-    // Hide the default constructor.
-    private IGMPProcessQuery() {
-    }
+public class IgmpDeviceConfig extends Config<DeviceId> {
 
     /**
-     * Process the IGMP Membership Query message.
+     * Gets the device information.
      *
-     * @param igmp The deserialzed IGMP message
-     * @param receivedFrom the ConnectPoint this message came from.
+     * @return device information
      */
-    public static void processQuery(IGMP igmp, ConnectPoint receivedFrom) {
+    public IgmpDeviceData getDevice() {
+        return new IgmpDeviceData(subject());
     }
-
 }

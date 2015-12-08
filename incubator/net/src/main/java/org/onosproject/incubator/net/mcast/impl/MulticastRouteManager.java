@@ -21,25 +21,19 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.packet.IpPrefix;
-import org.onlab.util.KryoNamespace;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.mcast.McastEvent;
 import org.onosproject.net.mcast.McastListener;
 import org.onosproject.net.mcast.McastRoute;
+import org.onosproject.net.mcast.McastStore;
+import org.onosproject.net.mcast.McastStoreDelegate;
 import org.onosproject.net.mcast.MulticastRouteService;
-import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -52,38 +46,18 @@ public class MulticastRouteManager
         implements MulticastRouteService {
     //TODO: add MulticastRouteAdminService
 
-    private static final String MCASTRIB = "mcast-rib-table";
-
     private Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private StorageService storageService;
+    private final McastStoreDelegate delegate = new InternalMcastStoreDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private CoreService coreService;
-
-
-    protected ApplicationId appId;
-    protected ConsistentMap<McastRoute, MulticastData> mcastRoutes;
+    protected McastStore store;
 
     @Activate
     public void activate() {
 
         eventDispatcher.addSink(McastEvent.class, listenerRegistry);
-
-        appId = coreService.registerApplication("org.onosproject.mcastrib");
-
-        mcastRoutes = storageService.<McastRoute, MulticastData>consistentMapBuilder()
-                .withApplicationId(appId)
-                .withName(MCASTRIB)
-                .withSerializer(Serializer.using(KryoNamespace.newBuilder().register(
-                        MulticastData.class,
-                        McastRoute.class,
-                        McastRoute.Type.class,
-                        IpPrefix.class,
-                        List.class,
-                        ConnectPoint.class
-                ).build())).build();
+        store.setDelegate(delegate);
 
         log.info("Started");
     }
@@ -95,80 +69,55 @@ public class MulticastRouteManager
 
     @Override
     public void add(McastRoute route) {
-        mcastRoutes.put(route, MulticastData.empty());
-        post(new McastEvent(McastEvent.Type.ROUTE_ADDED, route, null, null));
+        checkNotNull(route, "Route cannot be null");
+        store.storeRoute(route, McastStore.Type.ADD);
     }
 
     @Override
     public void remove(McastRoute route) {
-        mcastRoutes.remove(route);
-        post(new McastEvent(McastEvent.Type.ROUTE_REMOVED, route, null, null));
+        checkNotNull(route, "Route cannot be null");
+        store.storeRoute(route, McastStore.Type.REMOVE);
     }
 
     @Override
     public void addSource(McastRoute route, ConnectPoint connectPoint) {
-        Versioned<MulticastData> d = mcastRoutes.compute(route, (k, v) -> {
-            if (v.isEmpty()) {
-                return new MulticastData(connectPoint);
-            } else {
-                log.warn("Route {} is already in use.", route);
-                return v;
-            }
-        });
-
-        if (d != null) {
-            post(new McastEvent(McastEvent.Type.SOURCE_ADDED,
-                                route, null, connectPoint));
-        }
+        checkNotNull(route, "Route cannot be null");
+        checkNotNull(connectPoint, "Source cannot be null");
+        store.storeSource(route, connectPoint);
     }
 
     @Override
     public void addSink(McastRoute route, ConnectPoint connectPoint) {
-        AtomicReference<ConnectPoint> source = new AtomicReference<>();
-        mcastRoutes.compute(route, (k, v) -> {
-            if (!v.isEmpty()) {
-                v.appendSink(connectPoint);
-                source.set(v.source());
-            } else {
-                log.warn("Route {} does not exist");
-            }
-            return v;
-        });
+        checkNotNull(route, "Route cannot be null");
+        checkNotNull(connectPoint, "Sink cannot be null");
+        store.storeSink(route, connectPoint, McastStore.Type.ADD);
 
-        if (source.get() != null) {
-            post(new McastEvent(McastEvent.Type.SINK_ADDED, route,
-                                connectPoint, source.get()));
-        }
     }
 
 
     @Override
     public void removeSink(McastRoute route, ConnectPoint connectPoint) {
-        AtomicReference<ConnectPoint> source = new AtomicReference<>();
-        mcastRoutes.compute(route, (k, v) -> {
-            if (v.removeSink(connectPoint)) {
-                source.set(v.source());
-            }
-            return v;
-        });
 
-        if (source.get() != null) {
-            post(new McastEvent(McastEvent.Type.SINK_REMOVED, route,
-                                connectPoint, source.get()));
-        }
+        checkNotNull(route, "Route cannot be null");
+        checkNotNull(connectPoint, "Sink cannot be null");
+
+        store.storeSink(route, connectPoint, McastStore.Type.REMOVE);
     }
 
     @Override
     public ConnectPoint fetchSource(McastRoute route) {
-        MulticastData d = mcastRoutes.asJavaMap().getOrDefault(route,
-                                                               MulticastData.empty());
-        return d.source();
+        return store.sourceFor(route);
     }
 
     @Override
-    public List<ConnectPoint> fetchSinks(McastRoute route) {
-        MulticastData d = mcastRoutes.asJavaMap().getOrDefault(route,
-                                                               MulticastData.empty());
-        return d.sinks();
+    public Set<ConnectPoint> fetchSinks(McastRoute route) {
+        return store.sinksFor(route);
+    }
+
+    private class InternalMcastStoreDelegate implements McastStoreDelegate {
+        @Override
+        public void notify(McastEvent event) {
+            post(event);
+        }
     }
 }

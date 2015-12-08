@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.igmp.impl;
+package org.onosproject.igmp;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
@@ -30,8 +31,13 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.IGMP;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.mcast.McastRoute;
+import org.onosproject.net.mcast.MulticastRouteService;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
@@ -39,12 +45,20 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 
+import java.util.Optional;
+
 /**
  * Internet Group Management Protocol.
  */
 @Component(immediate = true)
-public class IGMPComponent {
+public class IgmpSnoop {
     private final Logger log = getLogger(getClass());
+
+    private static final String DEFAULT_MCAST_ADDR = "224.0.0.0/4";
+
+    @Property(name = "multicastAddress",
+            label = "Define the multicast base raneg to listen to")
+    private String multicastAddress = DEFAULT_MCAST_ADDR;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
@@ -52,7 +66,13 @@ public class IGMPComponent {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
-    private IGMPPacketProcessor processor = new IGMPPacketProcessor();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry networkConfig;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MulticastRouteService multicastService;
+
+    private IgmpPacketProcessor processor = new IgmpPacketProcessor();
     private static ApplicationId appId;
 
     @Activate
@@ -61,11 +81,16 @@ public class IGMPComponent {
 
         packetService.addProcessor(processor, PacketProcessor.director(1));
 
-        // Build a traffic selector for all multicast traffic
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchEthType(Ethernet.TYPE_IPV4);
-        selector.matchIPProtocol(IPv4.PROTOCOL_IGMP);
-        packetService.requestPackets(selector.build(), PacketPriority.REACTIVE, appId);
+        networkConfig.getSubjects(DeviceId.class, IgmpDeviceConfig.class).forEach(
+                subject -> {
+                    IgmpDeviceConfig config = networkConfig.getConfig(subject,
+                                                                      IgmpDeviceConfig.class);
+                    if (config != null) {
+                        IgmpDeviceData data = config.getDevice();
+                        submitPacketRequests(data.deviceId());
+                    }
+                }
+        );
 
         log.info("Started");
     }
@@ -77,10 +102,21 @@ public class IGMPComponent {
         log.info("Stopped");
     }
 
+    private void submitPacketRequests(DeviceId deviceId) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(Ethernet.TYPE_IPV4);
+        selector.matchIPProtocol(IPv4.PROTOCOL_IGMP);
+        packetService.requestPackets(selector.build(),
+                                     PacketPriority.REACTIVE,
+                                     appId,
+                                     Optional.of(deviceId));
+
+    }
+
     /**
      * Packet processor responsible for handling IGMP packets.
      */
-    private class IGMPPacketProcessor implements PacketProcessor {
+    private class IgmpPacketProcessor implements PacketProcessor {
 
         @Override
         public void process(PacketContext context) {
@@ -107,15 +143,16 @@ public class IGMPComponent {
             IPv4 ip = (IPv4) ethPkt.getPayload();
             IpAddress gaddr = IpAddress.valueOf(ip.getDestinationAddress());
             IpAddress saddr = Ip4Address.valueOf(ip.getSourceAddress());
-            log.debug("Packet (" + saddr.toString() + ", " + gaddr.toString() +
-                    "\tingress port: " + context.inPacket().receivedFrom().toString());
+            log.debug("Packet ({}, {}) -> ingress port: {}", saddr, gaddr,
+                      context.inPacket().receivedFrom());
+
 
             if (ip.getProtocol() != IPv4.PROTOCOL_IGMP) {
                 log.debug("IGMP Picked up a non IGMP packet.");
                 return;
             }
 
-            IpPrefix mcast = IpPrefix.valueOf("224.0.0.0/4");
+            IpPrefix mcast = IpPrefix.valueOf(DEFAULT_MCAST_ADDR);
             if (!mcast.contains(gaddr)) {
                 log.debug("IGMP Picked up a non multicast packet.");
                 return;
@@ -125,8 +162,6 @@ public class IGMPComponent {
                 log.debug("IGMP Picked up a packet with a multicast source address.");
                 return;
             }
-            IpPrefix spfx = IpPrefix.valueOf(saddr, 32);
-            IpPrefix gpfx = IpPrefix.valueOf(gaddr, 32);
 
             IGMP igmp = (IGMP) ip.getPayload();
             switch (igmp.getIgmpType()) {
@@ -136,14 +171,14 @@ public class IGMPComponent {
                     break;
 
                 case IGMP.TYPE_IGMPV3_MEMBERSHIP_QUERY:
-                    IGMPProcessQuery.processQuery(igmp, pkt.receivedFrom());
+                    processQuery(igmp, pkt.receivedFrom());
                     break;
 
                 case IGMP.TYPE_IGMPV1_MEMBERSHIP_REPORT:
                 case IGMP.TYPE_IGMPV2_MEMBERSHIP_REPORT:
                 case IGMP.TYPE_IGMPV2_LEAVE_GROUP:
                     log.debug("IGMP version 1 & 2 message types are not currently supported. Message type: " +
-                            igmp.getIgmpType());
+                                      igmp.getIgmpType());
                     break;
 
                 default:
@@ -151,5 +186,17 @@ public class IGMPComponent {
                     break;
             }
         }
+    }
+
+    private void processQuery(IGMP pkt, ConnectPoint location) {
+        pkt.getGroups().forEach(group -> group.getSources().forEach(src -> {
+
+            McastRoute route = new McastRoute(src,
+                                              group.getGaddr(),
+                                              McastRoute.Type.IGMP);
+            multicastService.add(route);
+            multicastService.addSink(route, location);
+
+        }));
     }
 }

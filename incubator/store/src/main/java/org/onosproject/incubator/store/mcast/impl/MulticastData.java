@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.incubator.net.mcast.impl;
+package org.onosproject.incubator.store.mcast.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.onosproject.net.ConnectPoint;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -30,40 +31,33 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class MulticastData {
 
-    private final ConnectPoint source;
-    private final List<ConnectPoint> sinks;
-    private final boolean isEmpty;
+    private final AtomicReference<ConnectPoint> source =
+            new AtomicReference<>();
+    private final Set<ConnectPoint> sinks;
+    private final AtomicBoolean isEmpty = new AtomicBoolean();
 
     private MulticastData() {
-        this.source = null;
-        this.sinks = Collections.EMPTY_LIST;
-        isEmpty = true;
-    }
-
-    public MulticastData(ConnectPoint source, List<ConnectPoint> sinks) {
-        this.source = checkNotNull(source, "Multicast source cannot be null.");
-        this.sinks = checkNotNull(sinks, "List of sinks cannot be null.");
-        isEmpty = false;
-    }
-
-    public MulticastData(ConnectPoint source, ConnectPoint sink) {
-        this.source = checkNotNull(source, "Multicast source cannot be null.");
-        this.sinks = Lists.newArrayList(checkNotNull(sink, "Sink cannot be null."));
-        isEmpty = false;
+        this.sinks = Sets.newConcurrentHashSet();
+        isEmpty.set(true);
     }
 
     public MulticastData(ConnectPoint source) {
-        this.source = checkNotNull(source, "Multicast source cannot be null.");
-        this.sinks = Lists.newArrayList();
-        isEmpty = false;
+        this.source.set(checkNotNull(source, "Multicast source cannot be null."));
+        this.sinks = Sets.newConcurrentHashSet();
+        isEmpty.set(false);
     }
 
     public ConnectPoint source() {
-        return source;
+        return source.get();
     }
 
-    public List<ConnectPoint> sinks() {
-        return ImmutableList.copyOf(sinks);
+    public Set<ConnectPoint> sinks() {
+        return ImmutableSet.copyOf(sinks);
+    }
+
+    public void setSource(ConnectPoint source) {
+        isEmpty.set(false);
+        this.source.set(source);
     }
 
     public void appendSink(ConnectPoint sink) {
@@ -75,7 +69,7 @@ public final class MulticastData {
     }
 
     public boolean isEmpty() {
-        return isEmpty;
+        return isEmpty.get();
     }
 
     public static MulticastData empty() {

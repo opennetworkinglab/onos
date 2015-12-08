@@ -17,4 +17,4 @@
 /**
  * IGMP implementation.
  */
-package org.onosproject.igmp.impl;
+package org.onosproject.igmp;

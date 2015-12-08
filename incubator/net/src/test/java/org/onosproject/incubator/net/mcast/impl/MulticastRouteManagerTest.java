@@ -16,15 +16,17 @@
 package org.onosproject.incubator.net.mcast.impl;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.incubator.store.mcast.impl.DistributedMcastStore;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.mcast.McastEvent;
@@ -44,16 +46,16 @@ import static org.onosproject.net.NetTestTools.injectEventDispatcher;
  */
 public class MulticastRouteManagerTest {
 
-    McastRoute r1 = new McastRoute(IpPrefix.valueOf("1.1.1.1/8"),
-                                   IpPrefix.valueOf("1.1.1.2/8"),
+    McastRoute r1 = new McastRoute(IpAddress.valueOf("1.1.1.1"),
+                                   IpAddress.valueOf("1.1.1.2"),
                                    McastRoute.Type.IGMP);
 
-    McastRoute r11 = new McastRoute(IpPrefix.valueOf("1.1.1.1/8"),
-                                    IpPrefix.valueOf("1.1.1.2/8"),
+    McastRoute r11 = new McastRoute(IpAddress.valueOf("1.1.1.1"),
+                                    IpAddress.valueOf("1.1.1.2"),
                                     McastRoute.Type.STATIC);
 
-    McastRoute r2 = new McastRoute(IpPrefix.valueOf("2.2.2.1/8"),
-                                   IpPrefix.valueOf("2.2.2.2/8"),
+    McastRoute r2 = new McastRoute(IpAddress.valueOf("2.2.2.1"),
+                                   IpAddress.valueOf("2.2.2.2"),
                                    McastRoute.Type.PIM);
 
     ConnectPoint cp1 = new ConnectPoint(did("1"), PortNumber.portNumber(1));
@@ -66,13 +68,17 @@ public class MulticastRouteManagerTest {
 
     private List<McastEvent> events;
 
+    private DistributedMcastStore mcastStore;
+
     @Before
     public void setUp() throws Exception {
         manager = new MulticastRouteManager();
+        mcastStore = new DistributedMcastStore();
+        TestUtils.setField(mcastStore, "storageService", new TestStorageService());
         injectEventDispatcher(manager, new TestEventDispatcher());
-        TestUtils.setField(manager, "storageService", new TestStorageService());
-        TestUtils.setField(manager, "coreService", new TestCoreService());
         events = Lists.newArrayList();
+        manager.store = mcastStore;
+        mcastStore.activate();
         manager.activate();
         manager.addListener(listener);
     }
@@ -81,13 +87,13 @@ public class MulticastRouteManagerTest {
     public void tearDown() {
         manager.removeListener(listener);
         manager.deactivate();
+        mcastStore.deactivate();
     }
 
     @Test
     public void testAdd() {
         manager.add(r1);
 
-        assertEquals("Add failed", manager.mcastRoutes.size(), 1);
         validateEvents(McastEvent.Type.ROUTE_ADDED);
     }
 
@@ -97,48 +103,39 @@ public class MulticastRouteManagerTest {
 
         manager.remove(r1);
 
-        assertEquals("Remove failed", manager.mcastRoutes.size(), 0);
+
         validateEvents(McastEvent.Type.ROUTE_ADDED, McastEvent.Type.ROUTE_REMOVED);
     }
 
     @Test
     public void testAddSource() {
-        manager.add(r1);
-
         manager.addSource(r1, cp1);
 
-        validateEvents(McastEvent.Type.ROUTE_ADDED, McastEvent.Type.SOURCE_ADDED);
+        validateEvents(McastEvent.Type.SOURCE_ADDED);
         assertEquals("Route is not equal", cp1, manager.fetchSource(r1));
     }
 
     @Test
     public void testAddSink() {
-        manager.add(r1);
-
-        manager.addSource(r1, cp1);
         manager.addSink(r1, cp1);
 
-        validateEvents(McastEvent.Type.ROUTE_ADDED,
-                       McastEvent.Type.SOURCE_ADDED,
-                       McastEvent.Type.SINK_ADDED);
-        assertEquals("Route is not equal", Lists.newArrayList(cp1), manager.fetchSinks(r1));
+        validateEvents(McastEvent.Type.SINK_ADDED);
+        assertEquals("Route is not equal", Sets.newHashSet(cp1), manager.fetchSinks(r1));
     }
 
     @Test
     public void testRemoveSink() {
-        manager.add(r1);
 
         manager.addSource(r1, cp1);
         manager.addSink(r1, cp1);
         manager.addSink(r1, cp2);
         manager.removeSink(r1, cp2);
 
-        validateEvents(McastEvent.Type.ROUTE_ADDED,
-                       McastEvent.Type.SOURCE_ADDED,
+        validateEvents(McastEvent.Type.SOURCE_ADDED,
                        McastEvent.Type.SINK_ADDED,
                        McastEvent.Type.SINK_ADDED,
                        McastEvent.Type.SINK_REMOVED);
-        assertEquals("Route is not equal", Lists.newArrayList(cp1), manager.fetchSinks(r1));
+        assertEquals("Route is not equal", Sets.newHashSet(cp1), manager.fetchSinks(r1));
     }
 
     private void validateEvents(McastEvent.Type... evs) {

@@ -17,9 +17,6 @@ package org.onosproject.net.mcast;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.event.AbstractEvent;
-import org.onosproject.net.ConnectPoint;
-
-import java.util.Optional;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -28,10 +25,8 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * sinks or sources.
  */
 @Beta
-public class McastEvent extends AbstractEvent<McastEvent.Type, McastRoute> {
+public class McastEvent extends AbstractEvent<McastEvent.Type, McastRouteInfo> {
 
-    private final Optional<ConnectPoint> sink;
-    private final Optional<ConnectPoint> source;
 
     public enum Type {
         /**
@@ -60,59 +55,15 @@ public class McastEvent extends AbstractEvent<McastEvent.Type, McastRoute> {
         SINK_REMOVED
     }
 
-    private McastEvent(McastEvent.Type type, McastRoute subject) {
+    public McastEvent(McastEvent.Type type, McastRouteInfo subject) {
         super(type, subject);
-        sink = Optional.empty();
-        source = Optional.empty();
     }
 
-    private McastEvent(McastEvent.Type type, McastRoute subject, long time) {
-        super(type, subject, time);
-        sink = Optional.empty();
-        source = Optional.empty();
-    }
-
-    public McastEvent(McastEvent.Type type, McastRoute subject,
-                      ConnectPoint sink,
-                      ConnectPoint source) {
-        super(type, subject);
-        this.sink = Optional.ofNullable(sink);
-        this.source = Optional.ofNullable(source);
-    }
-
-    public McastEvent(McastEvent.Type type, McastRoute subject, long time,
-                       ConnectPoint sink,
-                       ConnectPoint source) {
-        super(type, subject, time);
-        this.sink = Optional.ofNullable(sink);
-        this.source = Optional.ofNullable(source);
-    }
-
-    /**
-     * The sink which has been removed or added. The field may not be set
-     * if the sink has not been detected yet or has been removed.
-     *
-     * @return an optional connect point
-     */
-    public Optional<ConnectPoint> sink() {
-        return sink;
-    }
-
-    /**
-     * The source which has been removed or added.
-
-     * @return an optional connect point
-     */
-    public Optional<ConnectPoint> source() {
-        return source;
-    }
 
     @Override
     public String toString() {
         return toStringHelper(this)
                 .add("type", type())
-                .add("route", subject())
-                .add("source", source)
-                .add("sinks", sink).toString();
+                .add("info", subject()).toString();
     }
 }

@@ -17,7 +17,7 @@ package org.onosproject.net.mcast;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -46,11 +46,11 @@ public class McastRoute {
         STATIC
     }
 
-    private final IpPrefix source;
-    private final IpPrefix group;
+    private final IpAddress source;
+    private final IpAddress group;
     private final Type type;
 
-    public McastRoute(IpPrefix source, IpPrefix group, Type type) {
+    public McastRoute(IpAddress source, IpAddress group, Type type) {
         checkNotNull(source, "Multicast route must have a source");
         checkNotNull(group, "Multicast route must specify a group address");
         checkNotNull(type, "Must indicate what type of route");
@@ -64,7 +64,7 @@ public class McastRoute {
      *
      * @return an ip address
      */
-    public IpPrefix source() {
+    public IpAddress source() {
         return source;
     }
 
@@ -73,7 +73,7 @@ public class McastRoute {
      *
      * @return an ip address
      */
-    public IpPrefix group() {
+    public IpAddress group() {
         return group;
     }
 
