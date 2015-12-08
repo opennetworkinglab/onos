@@ -25,9 +25,13 @@ import org.onosproject.net.resource.link.LinkResourceService;
 
 /**
  * Lists allocations by link. Lists all allocations if link is unspecified.
+ *
+ * @deprecated in Emu release
  */
+@Deprecated
 @Command(scope = "onos", name = "resource-allocations",
-        description = "Lists allocations by link. Lists all allocations if link is unspecified.")
+        description = "Lists allocations by link. Lists all allocations if link is unspecified."
+                    + "[Using deprecated LinkResourceService]")
 public class ResourceAllocationsCommand extends AbstractShellCommand {
 
     private static final String FMT = "src=%s/%s, dst=%s/%s, type=%s%s";

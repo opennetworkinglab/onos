@@ -26,9 +26,13 @@ import org.onosproject.net.resource.ResourceRequest;
 
 /**
  * Lists allocations by link.
+ *
+ * @deprecated in Emu release
  */
+@Deprecated
 @Command(scope = "onos", name = "resource-available",
-         description = "Lists available resources by link")
+         description = "Lists available resources by link"
+                     + "[Using deprecated LinkResourceService]")
 public class ResourceAvailableCommand extends AbstractShellCommand {
 
     private static final String FMT = "src=%s/%s, dst=%s/%s, type=%s%s";

@@ -35,9 +35,13 @@ import java.util.Set;
 
 /**
  * Commands to test out LinkResourceManager directly.
+ *
+ * @deprecated in Emu release
  */
+@Deprecated
 @Command(scope = "onos", name = "resource-request",
-        description = "request or remove resources")
+        description = "request or remove resources"
+                    + "[Using deprecated LinkResourceService]")
 public class LinkResourceTestCommand extends AbstractShellCommand {
 
     // default is bandwidth.
