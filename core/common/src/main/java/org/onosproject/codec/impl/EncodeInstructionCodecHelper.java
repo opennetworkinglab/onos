@@ -87,8 +87,6 @@ public final class EncodeInstructionCodecHelper {
      * Encode an L1 modification instruction.
      *
      * @param result json node that the instruction attributes are added to
-     * @param instruction The L1 instruction
-     * @param context context of the request
      */
     private void encodeL1(ObjectNode result) {
         L1ModificationInstruction instruction =
@@ -244,7 +242,7 @@ public final class EncodeInstructionCodecHelper {
             case OUTPUT:
                 final Instructions.OutputInstruction outputInstruction =
                         (Instructions.OutputInstruction) instruction;
-                result.put(InstructionCodec.PORT, outputInstruction.port().toLong());
+                result.put(InstructionCodec.PORT, outputInstruction.port().toString());
                 break;
 
             case DROP:

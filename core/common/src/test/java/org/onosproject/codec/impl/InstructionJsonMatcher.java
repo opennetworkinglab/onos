@@ -93,18 +93,31 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
      */
     private boolean matchOutputInstruction(JsonNode instructionJson,
                                            Description description) {
-        OutputInstruction instructionToMatch = (OutputInstruction) instruction;
-
         final String jsonType = instructionJson.get("type").textValue();
+        OutputInstruction instructionToMatch = (OutputInstruction) instruction;
         if (!instructionToMatch.type().name().equals(jsonType)) {
             description.appendText("type was " + jsonType);
             return false;
         }
 
-        final long jsonPort = instructionJson.get("port").asLong();
-        if (instructionToMatch.port().toLong() != jsonPort) {
-            description.appendText("port was " + jsonPort);
-            return false;
+        if (instructionJson.get("port").isLong() ||
+                instructionJson.get("port").isInt()) {
+            final long jsonPort = instructionJson.get("port").asLong();
+            if (instructionToMatch.port().toLong() != (jsonPort)) {
+                description.appendText("port was " + jsonPort);
+                return false;
+            }
+        } else if (instructionJson.get("port").isTextual()) {
+            final String jsonPort = instructionJson.get("port").textValue();
+            if (!instructionToMatch.port().toString().equals(jsonPort)) {
+                description.appendText("port was " + jsonPort);
+                return false;
+            }
+        } else {
+            final String jsonPort = instructionJson.get("port").toString();
+            description.appendText("Unmathcing types ");
+            description.appendText("instructionToMatch " + instructionToMatch.port().toString());
+            description.appendText("jsonPort " + jsonPort);
         }
 
         return true;

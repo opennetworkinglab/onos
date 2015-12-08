@@ -240,9 +240,22 @@ public final class DecodeInstructionCodecHelper {
         String type = json.get(InstructionCodec.TYPE).asText();
 
         if (type.equals(Instruction.Type.OUTPUT.name())) {
-            PortNumber portNumber =
-                    PortNumber.portNumber(nullIsIllegal(json.get(InstructionCodec.PORT),
-                            InstructionCodec.PORT + InstructionCodec.MISSING_MEMBER_MESSAGE).asLong());
+            PortNumber portNumber;
+            if (json.get(InstructionCodec.PORT).isLong() || json.get(InstructionCodec.PORT).isInt()) {
+                portNumber = PortNumber
+                        .portNumber(nullIsIllegal(json.get(InstructionCodec.PORT)
+                                                          .asLong(), InstructionCodec.PORT
+                                                          + InstructionCodec.MISSING_MEMBER_MESSAGE));
+            } else if (json.get(InstructionCodec.PORT).isTextual()) {
+                portNumber = PortNumber
+                        .fromString(nullIsIllegal(json.get(InstructionCodec.PORT)
+                                                          .textValue(), InstructionCodec.PORT
+                                                          + InstructionCodec.MISSING_MEMBER_MESSAGE));
+            } else {
+                throw new IllegalArgumentException("Port value "
+                                                           + json.get(InstructionCodec.PORT).toString()
+                                                           + " is not supported");
+            }
             return Instructions.createOutput(portNumber);
         } else if (type.equals(Instruction.Type.DROP.name())) {
             return Instructions.createDrop();

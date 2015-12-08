@@ -15,17 +15,18 @@
  */
 package org.onosproject.net;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.primitives.UnsignedLongs;
+
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Representation of a port number.
@@ -67,6 +68,7 @@ public final class PortNumber {
 
         /**
          * PortNumber instance for the logical port.
+         *
          * @return {@link PortNumber}
          */
         public PortNumber instance() {
@@ -145,6 +147,38 @@ public final class PortNumber {
     }
 
     /**
+     * Returns PortNumber instance from String representation.
+     *
+     * @param s String representation equivalent to {@link PortNumber#toString()}
+     * @return {@link PortNumber} instance
+     * @throws IllegalArgumentException if given String was malformed
+     */
+    public static PortNumber fromString(String s) {
+        checkNotNull(s);
+        checkArgument(!s.isEmpty(), "cannot be empty");
+
+        if (isAsciiDecimal(s.charAt(0))) {
+            // unsigned decimal string
+            return portNumber(s);
+        } else if (s.startsWith("[")) {
+            // named PortNumber
+            Matcher matcher = NAMED.matcher(s);
+            checkArgument(matcher.matches(), "Invalid named PortNumber %s", s);
+
+            String name = matcher.group("name");
+            String num = matcher.group("num");
+            return portNumber(UnsignedLongs.parseUnsignedLong(num), name);
+        }
+
+        // Logical
+        if (s.startsWith("UNKNOWN(") && s.endsWith(")")) {
+            return portNumber(s.substring("UNKNOWN(".length(), s.length() - 1));
+        } else {
+            return Logical.valueOf(s).instance;
+        }
+    }
+
+    /**
      * Indicates whether or not this port number is a reserved logical one or
      * whether it corresponds to a normal physical port of a device or NIC.
      *
@@ -205,38 +239,6 @@ public final class PortNumber {
 
     private static boolean isAsciiDecimal(char c) {
         return '0' <= c  && c <= '9';
-    }
-
-    /**
-     * Returns PortNumber instance from String representation.
-     *
-     * @param s String representation equivalent to {@link PortNumber#toString()}
-     * @return {@link PortNumber} instance
-     * @throws IllegalArgumentException if given String was malformed
-     */
-    public static PortNumber fromString(String s) {
-        checkNotNull(s);
-        checkArgument(!s.isEmpty(), "cannot be empty");
-
-        if (isAsciiDecimal(s.charAt(0))) {
-            // unsigned decimal string
-            return portNumber(s);
-        } else if (s.startsWith("[")) {
-            // named PortNumber
-            Matcher matcher = NAMED.matcher(s);
-            checkArgument(matcher.matches(), "Invalid named PortNumber %s", s);
-
-            String name = matcher.group("name");
-            String num = matcher.group("num");
-            return portNumber(UnsignedLongs.parseUnsignedLong(num), name);
-        }
-
-        // Logical
-        if (s.startsWith("UNKNOWN(") && s.endsWith(")")) {
-            return portNumber(s.substring("UNKNOWN(".length(), s.length() - 1));
-        } else {
-            return Logical.valueOf(s).instance;
-        }
     }
 
     @Override

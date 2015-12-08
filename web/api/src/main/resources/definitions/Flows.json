@@ -118,9 +118,8 @@
                       "example": "OUTPUT"
                     },
                     "port": {
-                      "type": "integer",
-                      "format": "int64",
-                      "example": -3
+                      "type": "string",
+                      "example": "CONTROLLER"
                     }
                   }
                 }

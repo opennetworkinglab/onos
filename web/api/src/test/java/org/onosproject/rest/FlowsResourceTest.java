@@ -55,6 +55,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.rest.resources.CoreWebApplication;
 
 import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
@@ -249,6 +250,10 @@ public class FlowsResourceTest extends ResourceTest {
                 .andReturn(rules.get(deviceId1)).anyTimes();
         expect(mockFlowService.getFlowEntries(deviceId2))
                 .andReturn(rules.get(deviceId2)).anyTimes();
+    }
+
+    public FlowsResourceTest() {
+        super(CoreWebApplication.class);
     }
 
     /**
