@@ -73,7 +73,7 @@ public class AlarmsManager implements AlarmService {
     private final AtomicLong alarmIdGenerator = new AtomicLong(0);
 
     @Override
-    public Alarm update(final Alarm replacement) {
+    public Alarm update(Alarm replacement) {
 
         final Alarm found = alarms.get(replacement.id());
         if (found == null) {
@@ -87,14 +87,14 @@ public class AlarmsManager implements AlarmService {
     }
 
     @Override
-    public int getActiveAlarmCount(final DeviceId deviceId) {
+    public int getActiveAlarmCount(DeviceId deviceId) {
         //TODO
         throw new UnsupportedOperationException(NOT_SUPPORTED_YET);
     }
     private static final String NOT_SUPPORTED_YET = "Not supported yet.";
 
     @Override
-    public Alarm getAlarm(final AlarmId alarmId) {
+    public Alarm getAlarm(AlarmId alarmId) {
         return nullIsNotFound(
                 alarms.get(alarmId),
                 "Alarm is not found");
@@ -113,7 +113,7 @@ public class AlarmsManager implements AlarmService {
 
     }
 
-    private static DefaultAlarm generateFake(final DeviceId deviceId, final AlarmId alarmId) {
+    private static DefaultAlarm generateFake(DeviceId deviceId, AlarmId alarmId) {
 
         return new DefaultAlarm.Builder(
                 alarmId, deviceId, "NE is not reachable", Alarm.SeverityLevel.MAJOR, System.currentTimeMillis()).
@@ -125,36 +125,36 @@ public class AlarmsManager implements AlarmService {
     }
 
     @Override
-    public Set<Alarm> getAlarms(final Alarm.SeverityLevel severity) {
+    public Set<Alarm> getAlarms(Alarm.SeverityLevel severity) {
         //TODO
         throw new UnsupportedOperationException(NOT_SUPPORTED_YET);
     }
 
     @Override
-    public Set<Alarm> getAlarms(final DeviceId deviceId) {
+    public Set<Alarm> getAlarms(DeviceId deviceId) {
         //TODO
         throw new UnsupportedOperationException(NOT_SUPPORTED_YET);
     }
 
     @Override
-    public Set<Alarm> getAlarms(final DeviceId deviceId, final AlarmEntityId source) {
+    public Set<Alarm> getAlarms(DeviceId deviceId, AlarmEntityId source) {
         //TODO
         throw new UnsupportedOperationException(NOT_SUPPORTED_YET);
     }
 
     @Override
-    public Set<Alarm> getAlarmsForLink(final ConnectPoint src, final ConnectPoint dst) {
+    public Set<Alarm> getAlarmsForLink(ConnectPoint src, ConnectPoint dst) {
         //TODO
         throw new UnsupportedOperationException(NOT_SUPPORTED_YET);
     }
 
     @Override
-    public Set<Alarm> getAlarmsForFlow(final DeviceId deviceId, final long flowId) {
+    public Set<Alarm> getAlarmsForFlow(DeviceId deviceId, long flowId) {
         //TODO
         throw new UnsupportedOperationException(NOT_SUPPORTED_YET);
     }
 
-    private void discoverAlarmsForDevice(final DeviceId deviceId) {
+    private void discoverAlarmsForDevice(DeviceId deviceId) {
         final AlarmId alarmId = new AlarmId(alarmIdGenerator.incrementAndGet());
 
         // TODO In a new thread invoke SNMP Provider with DeviceId and device type and when done update our of alarms
@@ -166,14 +166,14 @@ public class AlarmsManager implements AlarmService {
     private class InternalAlarmListener implements AlarmListener {
 
         @Override
-        public void event(final AlarmEvent event) {
+        public void event(AlarmEvent event) {
             // TODO
             throw new UnsupportedOperationException(NOT_SUPPORTED_YET);
         }
     }
 
     @Activate
-    public void activate(final ComponentContext context) {
+    public void activate(ComponentContext context) {
         log.info("Activate ...");
         appId = coreService.registerApplication("org.onos.faultmanagement.alarms");
         idGenerator = coreService.getIdGenerator("alarm-ids");
@@ -185,7 +185,7 @@ public class AlarmsManager implements AlarmService {
     }
 
     @Deactivate
-    public void deactivate(final ComponentContext context) {
+    public void deactivate(ComponentContext context) {
         log.info("Deactivate ...");
         //     cfgService.unregisterProperties(getClass(), false);
 
@@ -193,7 +193,7 @@ public class AlarmsManager implements AlarmService {
     }
 
     @Modified
-    public boolean modified(final ComponentContext context) {
+    public boolean modified(ComponentContext context) {
         log.info("context={}", context);
         if (context == null) {
             log.info("No configuration file");
@@ -209,7 +209,7 @@ public class AlarmsManager implements AlarmService {
         return true;
     }
 
-    private void discover(final String ipaddresses) {
+    private void discover(String ipaddresses) {
         for (String deviceEntry : ipaddresses.split(",")) {
             final DeviceId deviceId = DeviceId.deviceId(deviceEntry);
             if (deviceId != null) {

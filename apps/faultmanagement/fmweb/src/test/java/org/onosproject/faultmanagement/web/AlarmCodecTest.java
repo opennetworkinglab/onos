@@ -107,7 +107,7 @@ public class AlarmCodecTest {
 
     }
 
-    private void assertCommon(final Alarm alarm) {
+    private void assertCommon(Alarm alarm) {
         assertThat(alarm.id(), is(new AlarmId(10L)));
         assertThat(alarm.description(), is("NE is not reachable"));
         assertThat(alarm.source(), is(AlarmEntityId.NONE));
@@ -124,9 +124,9 @@ public class AlarmCodecTest {
      *
      * @param resourceName resource to use to read the JSON for the rule
      * @return decoded flow rule
-     * @throws IOException if processing the resource failsdecode
+     * @throws IOException if processing the resource fails to decode
      */
-    private Alarm getDecodedAlarm(final JsonCodec<Alarm> codec, final String resourceName) throws IOException {
+    private Alarm getDecodedAlarm(JsonCodec<Alarm> codec, String resourceName) throws IOException {
         final InputStream jsonStream = AlarmCodecTest.class
                 .getResourceAsStream(resourceName);
         final JsonNode json = context.mapper().readTree(jsonStream);

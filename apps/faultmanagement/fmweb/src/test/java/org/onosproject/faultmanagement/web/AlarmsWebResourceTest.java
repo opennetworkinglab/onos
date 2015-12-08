@@ -41,8 +41,7 @@ public class AlarmsWebResourceTest extends ResourceTest {
         final CodecManager codecService = new CodecManager();
         codecService.activate();
 
-        final ServiceDirectory testDirectory
-                = new TestServiceDirectory()
+        final ServiceDirectory testDirectory = new TestServiceDirectory()
                 // Currently no alarms-service implemented
                 // .add(AlarmsService.class, alarmsService)
                 .add(CodecService.class, codecService);

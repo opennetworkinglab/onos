@@ -38,7 +38,7 @@ public final class AlarmCodec extends JsonCodec<Alarm> {
     private final Logger log = getLogger(getClass());
 
     @Override
-    public ObjectNode encode(final Alarm alarm, final CodecContext context) {
+    public ObjectNode encode(Alarm alarm, CodecContext context) {
         checkNotNull(alarm, "Alarm cannot be null");
 
         return context.mapper().createObjectNode()
@@ -60,7 +60,7 @@ public final class AlarmCodec extends JsonCodec<Alarm> {
     }
 
     @Override
-    public Alarm decode(final ObjectNode json, final CodecContext context) {
+    public Alarm decode(ObjectNode json, CodecContext context) {
         if (json == null || !json.isObject()) {
             return null;
         }
@@ -76,8 +76,7 @@ public final class AlarmCodec extends JsonCodec<Alarm> {
         final JsonNode jsonTimeCleared = json.get("timeCleared");
         final Long timeCleared = jsonTimeCleared == null || jsonTimeCleared.isNull() ? null : jsonTimeCleared.asLong();
 
-        final Alarm.SeverityLevel severity
-                = Alarm.SeverityLevel.valueOf(json.get("severity").asText().toUpperCase());
+        final Alarm.SeverityLevel severity = Alarm.SeverityLevel.valueOf(json.get("severity").asText().toUpperCase());
 
         final Boolean serviceAffecting = json.get("serviceAffecting").asBoolean();
         final Boolean acknowledged = json.get("acknowledged").asBoolean();

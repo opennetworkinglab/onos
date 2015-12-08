@@ -59,7 +59,7 @@ public class AlarmsWebResource extends AbstractWebResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAlarms(@DefaultValue("false") @QueryParam("includeCleared") final boolean includeCleared
+    public Response getAlarms(@DefaultValue("false") @QueryParam("includeCleared") boolean includeCleared
     ) {
 
         log.info("Requesting all alarms, includeCleared={}", includeCleared);
@@ -86,7 +86,7 @@ public class AlarmsWebResource extends AbstractWebResource {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAlarm(@PathParam("id") final String id) {
+    public Response getAlarm(@PathParam("id") String id) {
         log.info("HTTP GET alarm for id={}", id);
 
         final AlarmId alarmId = toAlarmId(id);
@@ -109,7 +109,7 @@ public class AlarmsWebResource extends AbstractWebResource {
     @Path("{alarm_id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response update(@PathParam("alarm_id") final String alarmIdPath, final InputStream stream) {
+    public Response update(@PathParam("alarm_id") String alarmIdPath, InputStream stream) {
         log.info("PUT NEW ALARM at /{}", alarmIdPath);
 
         try {
@@ -134,7 +134,7 @@ public class AlarmsWebResource extends AbstractWebResource {
         }
     }
 
-    private static AlarmId toAlarmId(final String id) {
+    private static AlarmId toAlarmId(String id) {
         try {
             return AlarmId.valueOf(Long.parseLong(id));
         } catch (NumberFormatException ex) {

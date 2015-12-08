@@ -28,12 +28,12 @@ public final class AlarmJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> 
 
     private final Alarm alarm;
 
-    private AlarmJsonMatcher(final Alarm alarm) {
+    private AlarmJsonMatcher(Alarm alarm) {
         this.alarm = alarm;
     }
 
     @Override
-    public boolean matchesSafely(final JsonNode jsonAlarm, final Description description) {
+    public boolean matchesSafely(JsonNode jsonAlarm, Description description) {
         final String jsonAlarmId = jsonAlarm.get("id").asText();
         final String alarmId = Long.toString(alarm.id().fingerprint());
         if (!jsonAlarmId.equals(alarmId)) {
@@ -119,7 +119,7 @@ public final class AlarmJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> 
     }
 
     @Override
-    public void describeTo(final Description description) {
+    public void describeTo(Description description) {
         description.appendText(alarm.toString());
     }
 
@@ -129,7 +129,7 @@ public final class AlarmJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> 
      * @param alarm alarm object we are looking for
      * @return matcher
      */
-    public static AlarmJsonMatcher matchesAlarm(final Alarm alarm) {
+    public static AlarmJsonMatcher matchesAlarm(Alarm alarm) {
         return new AlarmJsonMatcher(alarm);
     }
 }

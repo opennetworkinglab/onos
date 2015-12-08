@@ -43,7 +43,7 @@ public class SNMPAlarmProvider extends AbstractProvider implements AlarmProvider
     }
 
     @Override
-    public void triggerProbe(final DeviceId deviceId) {
+    public void triggerProbe(DeviceId deviceId) {
 
         // TODO in shout term should this just be synchronous and return result?
         LOG.info("Run a SNMP discovery for device at {} when done invoke on AlarmProviderService", deviceId);
