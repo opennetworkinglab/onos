@@ -112,7 +112,13 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
     @Override
     public Versioned<V> computeIf(K key, Predicate<? super V> condition,
                                   BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-        return null;
+        return version(map.compute(key, (k, existingValue) -> {
+            if (condition.test(existingValue)) {
+                return remappingFunction.apply(k, existingValue);
+            } else {
+                return existingValue;
+            }
+        }));
     }
 
     @Override
