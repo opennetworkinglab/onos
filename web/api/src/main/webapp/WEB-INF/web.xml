@@ -45,37 +45,8 @@
         <servlet-name>JAX-RS Service</servlet-name>
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
-        </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.config.property.classnames</param-name>
-            <param-value>
-                org.onosproject.rest.exceptions.EntityNotFoundMapper,
-                org.onosproject.rest.exceptions.ServiceNotFoundMapper,
-                org.onosproject.rest.exceptions.NotFoundMapper,
-                org.onosproject.rest.exceptions.ServerErrorMapper,
-                org.onosproject.rest.exceptions.BadRequestMapper,
-                org.onosproject.rest.exceptions.WebApplicationExceptionMapper,
-                org.onosproject.rest.exceptions.IllegalArgumentExceptionMapper,
-                org.onosproject.rest.exceptions.IllegalStateExceptionMapper,
-                org.onosproject.rest.resources.JsonBodyWriter,
-
-                org.onosproject.rest.resources.ApiDocResource,
-                org.onosproject.rest.resources.ApplicationsWebResource,
-                org.onosproject.rest.resources.ComponentConfigWebResource,
-                org.onosproject.rest.resources.NetworkConfigWebResource,
-                org.onosproject.rest.resources.ClusterWebResource,
-                org.onosproject.rest.resources.DevicesWebResource,
-                org.onosproject.rest.resources.LinksWebResource,
-                org.onosproject.rest.resources.HostsWebResource,
-                org.onosproject.rest.resources.IntentsWebResource,
-                org.onosproject.rest.resources.FlowsWebResource,
-                org.onosproject.rest.resources.TopologyWebResource,
-                org.onosproject.rest.resources.ConfigWebResource,
-                org.onosproject.rest.resources.PathsWebResource,
-                org.onosproject.rest.resources.StatisticsWebResource
-            </param-value>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>org.onosproject.rest.resources.CoreWebApplication</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>

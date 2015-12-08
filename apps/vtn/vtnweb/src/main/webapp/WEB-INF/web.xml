@@ -42,41 +42,17 @@
     -->
 
     <servlet>
-        <servlet-name>VTNRSC JAX-RS Service</servlet-name>
+        <servlet-name>JAX-RS Service</servlet-name>
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
-            <param-value>com.sun.jersey.api.core.ClassNamesResourceConfig</param-value>
-        </init-param>
-        <init-param>
-            <param-name>com.sun.jersey.config.property.classnames</param-name>
-            <param-value>
-                org.onosproject.rest.exceptions.EntityNotFoundMapper,
-                org.onosproject.rest.exceptions.ServiceNotFoundMapper,
-                org.onosproject.rest.exceptions.NotFoundMapper,
-                org.onosproject.rest.exceptions.ServerErrorMapper,
-                org.onosproject.rest.exceptions.BadRequestMapper,
-                org.onosproject.rest.exceptions.WebApplicationExceptionMapper,
-                org.onosproject.rest.exceptions.IllegalArgumentExceptionMapper,
-                org.onosproject.rest.exceptions.IllegalStateExceptionMapper,
-                org.onosproject.rest.resources.JsonBodyWriter,
-
-                org.onosproject.vtnweb.resources.TenantNetworkWebResource,
-                org.onosproject.vtnweb.resources.SubnetWebResource,
-                org.onosproject.vtnweb.resources.VirtualPortWebResource,
-                org.onosproject.vtnweb.resources.FlowClassifierWebResource,
-                org.onosproject.vtnweb.resources.PortChainWebResource,
-                org.onosproject.vtnweb.resources.PortPairGroupWebResource,
-                org.onosproject.vtnweb.resources.PortPairWebResource,
-                org.onosproject.vtnweb.resources.FloatingIpWebResource,
-                org.onosproject.vtnweb.resources.RouterWebResource
-            </param-value>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>org.onosproject.vtnweb.resources.VtnWebApplication</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>VTNRSC JAX-RS Service</servlet-name>
+        <servlet-name>JAX-RS Service</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
 </web-app>

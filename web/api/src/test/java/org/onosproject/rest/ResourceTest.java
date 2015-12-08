@@ -18,6 +18,7 @@ package org.onosproject.rest;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+import com.sun.jersey.spi.container.servlet.ServletContainer;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
@@ -26,6 +27,23 @@ import com.sun.jersey.test.framework.WebAppDescriptor;
  * Base class for REST API tests.  Performs common configuration operations.
  */
 public class ResourceTest extends JerseyTest {
+
+    /**
+     * Creates a new web-resource test.
+     */
+    public ResourceTest() {
+        super();
+    }
+
+    /**
+     * Creates a new web-resource test initialized according to the specified
+     * web application class.
+     */
+    protected ResourceTest(Class<?> webAppClass) {
+        super(new WebAppDescriptor.Builder("javax.ws.rs.Application",
+                                           webAppClass.getCanonicalName())
+                      .servletClass(ServletContainer.class).build());
+    }
 
     /**
      * Assigns an available port for the test.

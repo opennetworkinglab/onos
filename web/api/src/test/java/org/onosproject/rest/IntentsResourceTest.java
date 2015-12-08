@@ -15,13 +15,12 @@
  */
 package org.onosproject.rest;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.util.Collections;
-import java.util.HashSet;
-
-import javax.ws.rs.core.MediaType;
-
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
@@ -44,24 +43,16 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MockIdGenerator;
+import org.onosproject.rest.resources.CoreWebApplication;
 
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
+import javax.ws.rs.core.MediaType;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.util.Collections;
+import java.util.HashSet;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.easymock.EasyMock.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.onosproject.net.intent.IntentTestsMocks.MockIntent;
@@ -75,6 +66,10 @@ public class IntentsResourceTest extends ResourceTest {
     final HashSet<Intent> intents = new HashSet<>();
     private static final ApplicationId APP_ID = new DefaultApplicationId(1, "test");
     private IdGenerator mockGenerator;
+
+    public IntentsResourceTest() {
+        super(CoreWebApplication.class);
+    }
 
     private class MockResource implements NetworkResource {
         int id;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.rest.exceptions;
+
+package org.onlab.rest.exceptions;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
-import java.io.IOException;
-
 /**
- * Mapper for IO exceptions to the BAD_REQUEST response code.
+ * Mapper for illegal argument exceptions to the BAD_REQUEST response code.
  */
 @Provider
-public class BadRequestMapper extends AbstractMapper<IOException> {
+public class IllegalArgumentExceptionMapper extends AbstractMapper<IllegalArgumentException> {
     @Override
     protected Response.Status responseStatus() {
         return Response.Status.BAD_REQUEST;
     }
 }
+

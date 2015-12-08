@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.rest.exceptions;
+
+package org.onlab.rest.exceptions;
+
+import org.slf4j.Logger;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
-import com.sun.jersey.api.NotFoundException;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Mapper for api not found exceptions to the NOT_FOUND response code.
+ * Mapper for service not found exceptions to the INTERNAL_SERVER_ERROR response code.
  */
 @Provider
-public class NotFoundMapper extends AbstractMapper<NotFoundException> {
-
+public class ServerErrorMapper extends AbstractMapper<RuntimeException> {
+    private static final Logger log = getLogger(ServerErrorMapper.class);
     @Override
     protected Response.Status responseStatus() {
-        return Response.Status.NOT_FOUND;
+        log.warn("Unhandled REST exception", error);
+        return Response.Status.INTERNAL_SERVER_ERROR;
     }
-
 }

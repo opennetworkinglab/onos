@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.rest.exceptions;
 
-import org.onlab.util.ItemNotFoundException;
+package org.onosproject.dhcp.rest;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
+import org.onlab.rest.AbstractWebApplication;
+
+import java.util.Set;
 
 /**
- * Mapper for service not found exceptions to the NOT_FOUND response code.
+ * DHCP Web application.
  */
-@Provider
-public class EntityNotFoundMapper extends AbstractMapper<ItemNotFoundException> {
+public class DhcpWebApplication extends AbstractWebApplication {
     @Override
-    protected Response.Status responseStatus() {
-        return Response.Status.NOT_FOUND;
+    public Set<Class<?>> getClasses() {
+        return getClasses(DhcpWebResource.class);
     }
 }

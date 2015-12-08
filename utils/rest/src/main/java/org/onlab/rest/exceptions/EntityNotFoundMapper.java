@@ -13,24 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.rest.exceptions;
+
+package org.onlab.rest.exceptions;
+
+import org.onlab.util.ItemNotFoundException;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
-import org.slf4j.Logger;
-
-import static org.slf4j.LoggerFactory.getLogger;
-
 /**
- * Mapper for service not found exceptions to the INTERNAL_SERVER_ERROR response code.
+ * Mapper for service not found exceptions to the NOT_FOUND response code.
  */
 @Provider
-public class ServerErrorMapper extends AbstractMapper<RuntimeException> {
-    private static final Logger log = getLogger(ServerErrorMapper.class);
+public class EntityNotFoundMapper extends AbstractMapper<ItemNotFoundException> {
     @Override
     protected Response.Status responseStatus() {
-        log.warn("Unhandled REST exception", error);
-        return Response.Status.INTERNAL_SERVER_ERROR;
+        return Response.Status.NOT_FOUND;
     }
 }

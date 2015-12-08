@@ -13,20 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.rest.exceptions;
-
-import org.onlab.osgi.ServiceNotFoundException;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
 
 /**
- * Mapper for service not found exceptions to the SERVICE_UNAVAILABLE response code.
+ * Various exception mappers to map errors to proper response status codes.
  */
-@Provider
-public class ServiceNotFoundMapper extends AbstractMapper<ServiceNotFoundException> {
-    @Override
-    protected Response.Status responseStatus() {
-        return Response.Status.SERVICE_UNAVAILABLE;
-    }
-}
+package org.onlab.rest.exceptions;

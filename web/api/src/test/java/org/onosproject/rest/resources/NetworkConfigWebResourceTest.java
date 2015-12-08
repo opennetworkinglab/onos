@@ -189,6 +189,10 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
         }
     }
 
+    public NetworkConfigWebResourceTest() {
+        super(CoreWebApplication.class);
+    }
+
     /**
      * Sets up mocked config service.
      */

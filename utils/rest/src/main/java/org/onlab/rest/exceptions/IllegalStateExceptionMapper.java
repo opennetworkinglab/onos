@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2014-2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,19 @@
  * limitations under the License.
  */
 
+package org.onlab.rest.exceptions;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
+
 /**
- * Various exception mappers to map errors to proper response status codes.
+ * Mapper for illegal state exceptions to the BAD_REQUEST response code.
  */
-package org.onosproject.rest.exceptions;
+@Provider
+public class IllegalStateExceptionMapper extends AbstractMapper<IllegalStateException> {
+    @Override
+    protected Response.Status responseStatus() {
+        return Response.Status.CONFLICT;
+    }
+}
+
