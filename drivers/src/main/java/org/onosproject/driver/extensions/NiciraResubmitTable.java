@@ -17,6 +17,7 @@
 package org.onosproject.driver.extensions;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Maps;
 
 import org.onlab.util.KryoNamespace;
 import org.onosproject.net.PortNumber;
@@ -25,8 +26,8 @@ import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.store.serializers.PortNumberSerializer;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -37,13 +38,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class NiciraResubmitTable extends AbstractExtension implements
         ExtensionTreatment {
 
-    //the list of the in port number(PortNumber) and the table(short)
-    private List<Object> inPortAndTable = new ArrayList<Object>();
+    private static final PortNumber DEFAULT_IN_PORT = PortNumber.portNumber(65528);
+
+    private PortNumber inPort;
+    private short table;
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder()
-            .register(ArrayList.class)
             .register(new PortNumberSerializer(), PortNumber.class)
-            .register(short.class)
+            .register(Map.class).register(HashMap.class)
             .register(byte[].class)
             .build();
 
@@ -51,26 +53,50 @@ public class NiciraResubmitTable extends AbstractExtension implements
      * Creates a new resubmit-table instruction.
      */
     NiciraResubmitTable() {
-        inPortAndTable = null;
+        inPort = DEFAULT_IN_PORT;
+        table = -1;
     }
 
     /**
      * Creates a new resubmit-table instruction with a particular inPort and table.
      *
-     * @param inPortAndTable the list of in port number and table
+     * @param inPort the in port number
+     * @param table table
      */
-    public NiciraResubmitTable(List<Object> inPortAndTable) {
-        checkNotNull(inPortAndTable);
-        this.inPortAndTable = inPortAndTable;
+    public NiciraResubmitTable(PortNumber inPort, short table) {
+        checkNotNull(inPort);
+        checkNotNull(table);
+        this.inPort = inPort;
+        this.table = table;
     }
 
     /**
-     * Gets the inPortAndTable.
+     * Creates a new resubmit-table instruction with a particular table.
      *
-     * @return inPortAndTable
+     * @param table table
      */
-    public List<Object> inPortAndTable() {
-        return inPortAndTable;
+    public NiciraResubmitTable(short table) {
+        checkNotNull(table);
+        this.inPort = DEFAULT_IN_PORT;
+        this.table = table;
+    }
+
+    /**
+     * Gets the inPort.
+     *
+     * @return inPort
+     */
+    public PortNumber inPort() {
+        return inPort;
+    }
+
+    /**
+     * Gets the table.
+     *
+     * @return table
+     */
+    public short table() {
+        return table;
     }
 
     @Override
@@ -80,17 +106,22 @@ public class NiciraResubmitTable extends AbstractExtension implements
 
     @Override
     public void deserialize(byte[] data) {
-        inPortAndTable = appKryo.deserialize(data);
+        Map<String, Object> values = appKryo.deserialize(data);
+        inPort = (PortNumber) values.get("inPort");
+        table = (short) values.get("table");
     }
 
     @Override
     public byte[] serialize() {
-        return appKryo.serialize(inPortAndTable);
+        Map<String, Object> values = Maps.newHashMap();
+        values.put("inPort", inPort);
+        values.put("table", table);
+        return appKryo.serialize(values);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(inPortAndTable);
+        return Objects.hash(inPort, table);
     }
 
     @Override
@@ -100,8 +131,8 @@ public class NiciraResubmitTable extends AbstractExtension implements
         }
         if (obj instanceof NiciraResubmitTable) {
             NiciraResubmitTable that = (NiciraResubmitTable) obj;
-            return Objects.equals(inPortAndTable, that.inPortAndTable);
-
+            return Objects.equals(inPort, that.inPort)
+                    && (table == that.table);
         }
         return false;
     }
@@ -109,6 +140,8 @@ public class NiciraResubmitTable extends AbstractExtension implements
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("inPortAndTable", inPortAndTable).toString();
+                .add("inPort", inPort)
+                .add("table", table)
+                .toString();
     }
 }

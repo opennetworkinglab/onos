@@ -17,6 +17,8 @@
 package org.onosproject.driver.extensions;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Maps;
+
 import org.onlab.util.KryoNamespace;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.AbstractExtension;
@@ -24,6 +26,8 @@ import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.store.serializers.PortNumberSerializer;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -33,10 +37,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class NiciraResubmit extends AbstractExtension implements ExtensionTreatment  {
 
+    private static final short DEFAULT_TABLE_ID = 0;
+
     private PortNumber inPort;
+    private short table;
 
     private final KryoNamespace appKryo = new KryoNamespace.Builder()
             .register(new PortNumberSerializer(), PortNumber.class)
+            .register(Map.class).register(HashMap.class)
             .register(byte[].class)
             .build();
 
@@ -45,6 +53,7 @@ public class NiciraResubmit extends AbstractExtension implements ExtensionTreatm
      */
     NiciraResubmit() {
         inPort = null;
+        table = DEFAULT_TABLE_ID;
     }
 
     /**
@@ -55,6 +64,7 @@ public class NiciraResubmit extends AbstractExtension implements ExtensionTreatm
     public NiciraResubmit(PortNumber inPort) {
         checkNotNull(inPort);
         this.inPort = inPort;
+        this.table = DEFAULT_TABLE_ID;
     }
 
     /**
@@ -66,6 +76,15 @@ public class NiciraResubmit extends AbstractExtension implements ExtensionTreatm
         return inPort;
     }
 
+    /**
+     * Gets the table.
+     *
+     * @return table
+     */
+    public short table() {
+        return table;
+    }
+
     @Override
     public ExtensionTreatmentType type() {
         return ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type();
@@ -73,17 +92,22 @@ public class NiciraResubmit extends AbstractExtension implements ExtensionTreatm
 
     @Override
     public void deserialize(byte[] data) {
-        inPort = appKryo.deserialize(data);
+        Map<String, Object> values = appKryo.deserialize(data);
+        inPort = (PortNumber) values.get("inPort");
+        table = (short) values.get("table");
     }
 
     @Override
     public byte[] serialize() {
-        return appKryo.serialize(inPort);
+        Map<String, Object> values = Maps.newHashMap();
+        values.put("inPort", inPort);
+        values.put("table", table);
+        return appKryo.serialize(values);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(inPort);
+        return Objects.hash(inPort, table);
     }
 
     @Override
@@ -93,8 +117,8 @@ public class NiciraResubmit extends AbstractExtension implements ExtensionTreatm
         }
         if (obj instanceof NiciraResubmit) {
             NiciraResubmit that = (NiciraResubmit) obj;
-            return Objects.equals(inPort, that.inPort);
-
+            return Objects.equals(inPort, that.inPort)
+                          && (table == that.table());
         }
         return false;
     }
@@ -103,6 +127,7 @@ public class NiciraResubmit extends AbstractExtension implements ExtensionTreatm
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("inPort", inPort)
+                .add("table", table)
                 .toString();
     }
 }

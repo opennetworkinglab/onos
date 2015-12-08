@@ -96,13 +96,17 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                     IPv4Address.of(tunnelDst.tunnelDst().toInt())));
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT.type())) {
-            // TODO this will be implemented later
+            NiciraResubmit resubmit = (NiciraResubmit) extensionTreatment;
+            return factory.actions().niciraResubmit((int) resubmit.inPort().toLong(),
+                                                  resubmit.table());
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
             // TODO this will be implemented later
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE.type())) {
-            // TODO this will be implemented later
+            NiciraResubmitTable resubmitTable = (NiciraResubmitTable) extensionTreatment;
+            return factory.actions().niciraResubmitTable((int) resubmitTable.inPort().toLong(),
+                                                         resubmitTable.table());
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SI.type())) {
             // TODO this will be implemented later
