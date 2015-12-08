@@ -22,4 +22,5 @@
     <artifact>mvn:${project.groupId}/onos-bgp-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgp-ctl/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgp-provider-topology/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-bgp-provider-cfg/${project.version}</artifact>
 </app>

@@ -22,5 +22,6 @@
         <bundle>mvn:${project.groupId}/onos-bgp-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-bgp-ctl/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-bgp-provider-topology/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-bgp-provider-cfg/${project.version}</bundle>
     </feature>
 </features>
