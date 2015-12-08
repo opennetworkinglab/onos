@@ -113,6 +113,42 @@ public class DistributedHostStore
         log.info("Stopped");
     }
 
+    private boolean shouldUpdate(DefaultHost existingHost,
+                                 ProviderId providerId,
+                                 HostId hostId,
+                                 HostDescription hostDescription,
+                                 boolean replaceIPs) {
+        if (existingHost == null) {
+            return true;
+        }
+
+        if (!Objects.equals(existingHost.providerId(), providerId) ||
+                !Objects.equals(existingHost.mac(), hostDescription.hwAddress()) ||
+                !Objects.equals(existingHost.vlan(), hostDescription.vlan()) ||
+                !Objects.equals(existingHost.location(), hostDescription.location())) {
+            return true;
+        }
+
+        if (replaceIPs) {
+            if (!Objects.equals(hostDescription.ipAddress(),
+                                existingHost.ipAddresses())) {
+                return true;
+            }
+        } else {
+            if (!existingHost.ipAddresses().containsAll(hostDescription.ipAddress())) {
+                return true;
+            }
+        }
+
+        // check to see if any of the annotations provided by hostDescription
+        // differ from those in the existing host
+        return hostDescription.annotations().keys().stream()
+                    .anyMatch(k -> !Objects.equals(hostDescription.annotations().value(k),
+                                                   existingHost.annotations().value(k)));
+
+
+    }
+
     // TODO No longer need to return HostEvent
     @Override
     public HostEvent createOrUpdateHost(ProviderId providerId,
@@ -120,9 +156,10 @@ public class DistributedHostStore
                                         HostDescription hostDescription,
                                         boolean replaceIPs) {
         // TODO: We need a way to detect conflicting changes and abort update.
-        //       (BOC) Compute might do this for us.
-
-        hosts.compute(hostId, (id, existingHost) -> {
+        host.computeIf(hostId,
+                       existingHost -> shouldUpdate(existingHost, providerId, hostId,
+                                                    hostDescription, replaceIPs),
+                       (id, existingHost) -> {
             HostLocation location = hostDescription.location();
 
             final Set<IpAddress> addresses;
