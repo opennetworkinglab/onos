@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.packet;
 
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.TrafficSelector;
 
@@ -44,4 +45,10 @@ public interface PacketRequest {
      */
     ApplicationId appId();
 
+    /**
+     * Obtain the node id.
+     *
+     * @return an node id
+     */
+    NodeId nodeId();
 }

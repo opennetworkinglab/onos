@@ -17,12 +17,15 @@ package org.onosproject.net.packet.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Device;
@@ -87,6 +90,9 @@ public class PacketManager
     private CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -105,11 +111,13 @@ public class PacketManager
     private final List<ProcessorEntry> processors = Lists.newCopyOnWriteArrayList();
 
     private ApplicationId appId;
+    private NodeId localNodeId;
 
     @Activate
     public void activate() {
         eventHandlingExecutor = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/net/packet", "event-handler"));
+        localNodeId = clusterService.getLocalNode().id();
         appId = coreService.getAppId(CoreService.CORE_APP_NAME);
         store.setDelegate(delegate);
         deviceService.addListener(deviceListener);
@@ -167,7 +175,7 @@ public class PacketManager
         checkNotNull(selector, "Selector cannot be null");
         checkNotNull(appId, "Application ID cannot be null");
 
-        PacketRequest request = new DefaultPacketRequest(selector, priority, appId);
+        PacketRequest request = new DefaultPacketRequest(selector, priority, appId, localNodeId);
         store.requestPackets(request);
     }
 
@@ -178,7 +186,7 @@ public class PacketManager
         checkNotNull(selector, "Selector cannot be null");
         checkNotNull(appId, "Application ID cannot be null");
 
-        PacketRequest request = new DefaultPacketRequest(selector, priority, appId);
+        PacketRequest request = new DefaultPacketRequest(selector, priority, appId, localNodeId);
         store.cancelPackets(request);
     }
 

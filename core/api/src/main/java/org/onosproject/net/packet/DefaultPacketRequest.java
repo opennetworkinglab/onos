@@ -16,6 +16,8 @@
 package org.onosproject.net.packet;
 
 import com.google.common.base.MoreObjects;
+
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.TrafficSelector;
 
@@ -28,6 +30,7 @@ public final class DefaultPacketRequest implements PacketRequest {
     private final TrafficSelector selector;
     private final PacketPriority priority;
     private final ApplicationId appId;
+    private final NodeId nodeId;
 
     /**
      * Creates a new packet request.
@@ -35,29 +38,40 @@ public final class DefaultPacketRequest implements PacketRequest {
      * @param selector  traffic selector
      * @param priority  intercept priority
      * @param appId     application id
+     * @param nodeId    identifier of node where request originated
      */
     public DefaultPacketRequest(TrafficSelector selector, PacketPriority priority,
-                                ApplicationId appId) {
+                                ApplicationId appId,
+                                NodeId nodeId) {
         this.selector = selector;
         this.priority = priority;
         this.appId = appId;
+        this.nodeId = nodeId;
     }
 
+    @Override
     public TrafficSelector selector() {
         return selector;
     }
 
+    @Override
     public PacketPriority priority() {
         return priority;
     }
 
+    @Override
     public ApplicationId appId() {
         return appId;
     }
 
     @Override
+    public NodeId nodeId() {
+        return nodeId;
+    }
+
+    @Override
     public int hashCode() {
-        return Objects.hash(selector, priority, appId);
+        return Objects.hash(selector, priority, appId, nodeId);
     }
 
     @Override
@@ -71,7 +85,8 @@ public final class DefaultPacketRequest implements PacketRequest {
         final DefaultPacketRequest other = (DefaultPacketRequest) obj;
         return Objects.equals(this.selector, other.selector)
                 && Objects.equals(this.priority, other.priority)
-                && Objects.equals(this.appId, other.appId);
+                && Objects.equals(this.appId, other.appId)
+                && Objects.equals(this.nodeId, other.nodeId);
     }
 
     @Override
@@ -79,6 +94,7 @@ public final class DefaultPacketRequest implements PacketRequest {
         return MoreObjects.toStringHelper(this.getClass())
                 .add("selector", selector)
                 .add("priority", priority)
-                .add("appId", appId).toString();
+                .add("appId", appId)
+                .add("nodeId", nodeId).toString();
     }
 }

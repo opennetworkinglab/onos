@@ -16,6 +16,7 @@
 package org.onosproject.net.packet;
 
 import org.junit.Test;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.NetTestTools;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -40,23 +41,28 @@ public class DefaultPacketRequestTest {
     private final DefaultPacketRequest packetRequest1 =
             new DefaultPacketRequest(DefaultTrafficSelector.emptySelector(),
                                      PacketPriority.CONTROL,
-                                     NetTestTools.APP_ID);
+                                     NetTestTools.APP_ID,
+                                     NetTestTools.NODE_ID);
     private final DefaultPacketRequest sameAsacketRequest1 =
             new DefaultPacketRequest(DefaultTrafficSelector.emptySelector(),
                                      PacketPriority.CONTROL,
-                                     NetTestTools.APP_ID);
+                                     NetTestTools.APP_ID,
+                                     NetTestTools.NODE_ID);
     private final DefaultPacketRequest packetRequest2 =
             new DefaultPacketRequest(selector,
                                      PacketPriority.CONTROL,
-                                     NetTestTools.APP_ID);
+                                     NetTestTools.APP_ID,
+                                     NetTestTools.NODE_ID);
     private final DefaultPacketRequest packetRequest3 =
             new DefaultPacketRequest(DefaultTrafficSelector.emptySelector(),
                                      PacketPriority.REACTIVE,
-                                     NetTestTools.APP_ID);
+                                     NetTestTools.APP_ID,
+                                     NetTestTools.NODE_ID);
     private final DefaultPacketRequest packetRequest4 =
             new DefaultPacketRequest(DefaultTrafficSelector.emptySelector(),
                                      PacketPriority.CONTROL,
-                                     new DefaultApplicationId(1, "foo"));
+                                     new DefaultApplicationId(1, "foo"),
+                                     new NodeId("node1"));
 
     /**
      * Tests the operation of the equals(), toAstring() and hashCode() methods.
