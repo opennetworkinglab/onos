@@ -594,19 +594,8 @@
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>2.5.3</version>
+                    <version>3.0.1</version>
                     <extensions>true</extensions>
-                    <!--
-                        Drop following dependency when the below bug fix is published
-                        https://issues.apache.org/jira/browse/FELIX-4556
-                    -->
-                    <dependencies>
-                        <dependency>
-                            <groupId>biz.aQute.bnd</groupId>
-                            <artifactId>bndlib</artifactId>
-                            <version>2.4.0</version>
-                        </dependency>
-                    </dependencies>
                 </plugin>
 
                 <plugin>
