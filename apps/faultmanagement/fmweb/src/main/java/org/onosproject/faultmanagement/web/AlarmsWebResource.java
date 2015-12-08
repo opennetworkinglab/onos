@@ -34,7 +34,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import org.onosproject.codec.CodecService;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -50,7 +49,6 @@ public class AlarmsWebResource extends AbstractWebResource {
     private final Logger log = getLogger(getClass());
 
     public AlarmsWebResource() {
-        get(CodecService.class).registerCodec(Alarm.class, new AlarmCodec());
     }
 
     /**

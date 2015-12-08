@@ -15,15 +15,12 @@
  */
 package org.onosproject.faultmanagement.web;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.onosproject.codec.CodecContext;
+import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
-
+import org.onosproject.codec.impl.CodecManager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 
 /**
  * Mock codec context for use in codec unit tests.
@@ -31,15 +28,16 @@ import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 public class AlarmCodecContext implements CodecContext {
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final Map<Class<?>, JsonCodec> codecs = new ConcurrentHashMap<>();
+    private final CodecManager codecManager = new CodecManager();
+    private final AlarmCodecRegistrator manager = new AlarmCodecRegistrator();
 
     /**
      * Constructs a new mock codec context.
      */
     public AlarmCodecContext() {
-        codecs.clear();
-        registerCodec(Alarm.class, new AlarmCodec());
-
+        codecManager.activate();
+        manager.codecService = codecManager;
+        manager.activate();
     }
 
     @Override
@@ -50,24 +48,20 @@ public class AlarmCodecContext implements CodecContext {
     @SuppressWarnings("unchecked")
     @Override
     public <T> T getService(Class<T> serviceClass) {
-        // TODO
         return null;
     }
 
-    /**
-     * Registers the specified JSON codec for the given entity class.
-     *
-     * @param entityClass entity class
-     * @param codec       JSON codec
-     * @param <T>         entity type
-     */
-    public <T> void registerCodec(Class<T> entityClass, JsonCodec<T> codec) {
-        codecs.putIfAbsent(entityClass, codec);
-    }
-
-    @SuppressWarnings("unchecked")
     @Override
     public <T> JsonCodec<T> codec(Class<T> entityClass) {
-        return codecs.get(entityClass);
+        return codecManager.getCodec(entityClass);
+    }
+
+    /**
+     * Get the codec manager.
+     *
+     * @return instance of codec manager
+     */
+    public CodecService codecManager() {
+        return codecManager;
     }
 }
