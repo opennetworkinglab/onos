@@ -19,6 +19,8 @@ package org.onosproject.netconf.ctl;
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -27,10 +29,12 @@ import java.io.IOException;
  */
 public class NetconfDeviceImpl implements NetconfDevice {
 
+    public static final Logger log = LoggerFactory
+            .getLogger(NetconfSessionImpl.class);
+
     private NetconfDeviceInfo netconfDeviceInfo;
     private boolean deviceState = false;
     private NetconfSession netconfSession;
-    //private String config;
 
     public NetconfDeviceImpl(NetconfDeviceInfo deviceInfo) throws IOException {
         netconfDeviceInfo = deviceInfo;
@@ -40,7 +44,6 @@ public class NetconfDeviceImpl implements NetconfDevice {
             throw new IOException("Cannot create connection and session", e);
         }
         deviceState = true;
-        //config = netconfSession.getConfig("running");
     }
 
     @Override
@@ -56,7 +59,11 @@ public class NetconfDeviceImpl implements NetconfDevice {
     @Override
     public void disconnect() {
         deviceState = false;
-        netconfSession.close();
+        try {
+            netconfSession.close();
+        } catch (IOException e) {
+            log.warn("Cannot communicate with the device {} ", netconfDeviceInfo);
+        }
     }
 
     @Override

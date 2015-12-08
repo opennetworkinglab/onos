@@ -89,5 +89,4 @@ public class NetconfProviderConfig extends Config<ApplicationId> {
         }
     }
 
-
 }

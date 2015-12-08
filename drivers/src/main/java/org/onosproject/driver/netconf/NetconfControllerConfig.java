@@ -27,6 +27,7 @@ import org.onosproject.netconf.NetconfDevice;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,10 +50,14 @@ public class NetconfControllerConfig extends AbstractHandlerBehaviour
         DeviceId ofDeviceId = handler.data().deviceId();
         Preconditions.checkNotNull(controller, "Netconf controller is null");
         List<ControllerInfo> controllers = new ArrayList<>();
-        controllers.addAll(XmlConfigParser.parseStreamControllers(XmlConfigParser.
-                loadXml(new ByteArrayInputStream(controller.
-                        getDevicesMap().get(ofDeviceId).getSession().
-                        getConfig("running").getBytes(StandardCharsets.UTF_8)))));
+        try {
+            controllers.addAll(XmlConfigParser.parseStreamControllers(XmlConfigParser.
+                    loadXml(new ByteArrayInputStream(controller.
+                            getDevicesMap().get(ofDeviceId).getSession().
+                            getConfig("running").getBytes(StandardCharsets.UTF_8)))));
+        } catch (IOException e) {
+            log.error("Cannot comunicate to device {} ", ofDeviceId);
+        }
         return controllers;
     }
 
@@ -65,19 +70,26 @@ public class NetconfControllerConfig extends AbstractHandlerBehaviour
         try {
             NetconfDevice device = controller.getNetconfDevice(deviceId);
             log.warn("provider map {}", controller.getDevicesMap());
-            String config = XmlConfigParser.createControllersConfig(
-                    XmlConfigParser.loadXml(getClass().getResourceAsStream("controllers.xml")),
-                    XmlConfigParser.loadXml(
-                            new ByteArrayInputStream(device.getSession()
-                                                             .getConfig("running")
-                                                             .getBytes(
-                                                                     StandardCharsets.UTF_8))),
-                    "running", "merge", "create", controllers
-            );
+            String config = null;
+            try {
+                config = XmlConfigParser.createControllersConfig(
+                        XmlConfigParser.loadXml(getClass().getResourceAsStream("controllers.xml")),
+                        XmlConfigParser.loadXml(
+                                new ByteArrayInputStream(device.getSession()
+                                                                 .getConfig("running")
+                                                                 .getBytes(
+                                                                         StandardCharsets.UTF_8))),
+                        "running", "merge", "create", controllers
+                );
+            } catch (IOException e) {
+                log.error("Cannot comunicate to device {} , exception {}", deviceId, e.getMessage());
+            }
             device.getSession().editConfig(config.substring(config.indexOf("-->") + 3));
         } catch (NullPointerException e) {
             log.warn("No NETCONF device with requested parameters " + e);
             throw new NullPointerException("No NETCONF device with requested parameters " + e);
+        } catch (IOException e) {
+            log.error("Cannot comunicate to device {} , exception {}", deviceId, e.getMessage());
         }
 
     }

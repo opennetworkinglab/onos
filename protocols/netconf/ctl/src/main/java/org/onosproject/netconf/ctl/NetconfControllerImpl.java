@@ -80,20 +80,19 @@ public class NetconfControllerImpl implements NetconfController {
 
     @Override
     public NetconfDevice getNetconfDevice(IpAddress ip, int port) {
-        NetconfDevice device = null;
         for (DeviceId info : netconfDeviceMap.keySet()) {
             if (IpAddress.valueOf(info.uri().getHost()).equals(ip) &&
                     info.uri().getPort() == port) {
                 return netconfDeviceMap.get(info);
             }
         }
-        return device;
+        return null;
     }
 
     @Override
     public NetconfDevice connectDevice(NetconfDeviceInfo deviceInfo) throws IOException {
         if (netconfDeviceMap.containsKey(deviceInfo.getDeviceId())) {
-            log.info("Device {} is already present");
+            log.warn("Device {} is already present", deviceInfo);
             return netconfDeviceMap.get(deviceInfo.getDeviceId());
         } else {
             log.info("Creating NETCONF device {}", deviceInfo);
@@ -104,7 +103,7 @@ public class NetconfControllerImpl implements NetconfController {
     @Override
     public void removeDevice(NetconfDeviceInfo deviceInfo) {
         if (netconfDeviceMap.containsKey(deviceInfo.getDeviceId())) {
-            log.warn("Device {} is not present");
+            log.warn("Device {} is not present", deviceInfo);
         } else {
             stopDevice(deviceInfo);
         }

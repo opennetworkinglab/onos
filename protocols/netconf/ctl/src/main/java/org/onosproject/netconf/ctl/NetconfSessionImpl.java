@@ -18,6 +18,7 @@ package org.onosproject.netconf.ctl;
 
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
+import ch.ethz.ssh2.StreamGobbler;
 import com.google.common.base.Preconditions;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfSession;
@@ -29,8 +30,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -50,11 +50,9 @@ public class NetconfSessionImpl implements NetconfSession {
     private BufferedReader bufferReader = null;
     private PrintWriter out = null;
     private int messageID = 0;
-
+    //TODO inject these capabilites from yang model provided by app
     private List<String> deviceCapabilities =
-            new ArrayList<>(
-                    Arrays.asList("urn:ietf:params:netconf:base:1.0"));
-
+            Collections.singletonList("urn:ietf:params:netconf:base:1.0");
     private String serverCapabilities;
     private String endpattern = "]]>]]>";
 
@@ -98,8 +96,8 @@ public class NetconfSessionImpl implements NetconfSession {
         try {
             sshSession = netconfConnection.openSession();
             sshSession.startSubSystem("netconf");
-            bufferReader = new BufferedReader(new InputStreamReader(
-                    sshSession.getStdout()));
+            bufferReader = new BufferedReader(new InputStreamReader(new StreamGobbler(
+                    sshSession.getStdout())));
             out = new PrintWriter(sshSession.getStdin());
             sendHello();
         } catch (IOException e) {
@@ -127,51 +125,50 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
-    public String doRPC(String request) {
-        String reply = "ERROR";
-        try {
-            reply = doRequest(request);
-            if (checkReply(reply)) {
-                return reply;
-            } else {
-                return "ERROR " + reply;
-            }
-        } catch (IOException e) {
-            log.error("Problem in the reading from the SSH connection " + e);
-        }
-        return reply;
+    public String doRPC(String request) throws IOException {
+        String reply = doRequest(request);
+        return checkReply(reply) ? reply : "ERROR " + reply;
     }
 
     private String doRequest(String request) throws IOException {
-        log.info("sshState " + sshSession.getState() + "request" + request);
-        if (sshSession.getState() != 2) {
-            try {
-                startSshSession();
-            } catch (IOException e) {
-                log.info("the connection had to be reopened");
-                startConnection();
-            }
-            sendHello();
-        }
-        log.info("sshState after" + sshSession.getState());
+        //log.info("sshState " + sshSession.getState() + "request" + request);
+        checkAndRestablishSession();
+        //log.info("sshState after" + sshSession.getState());
         out.print(request);
         out.flush();
         messageID++;
         return readOne();
     }
 
+    private void checkAndRestablishSession() throws IOException {
+        if (sshSession.getState() != 2) {
+            try {
+                startSshSession();
+            } catch (IOException e) {
+                log.info("the connection had to be reopened");
+                try {
+                    startConnection();
+                } catch (IOException e2) {
+                    log.error("No connection {} for device, exception {}", netconfConnection, e2);
+                    throw new IOException(e.getMessage());
+                    //TODO remove device from ONOS
+                }
+            }
+        }
+    }
+
     @Override
-    public String get(String request) {
+    public String get(String request) throws IOException {
         return doRPC(request);
     }
 
     @Override
-    public String getConfig(String targetConfiguration) {
+    public String getConfig(String targetConfiguration) throws IOException {
         return getConfig(targetConfiguration, null);
     }
 
     @Override
-    public String getConfig(String targetConfiguration, String configurationSchema) {
+    public String getConfig(String targetConfiguration, String configurationSchema) throws IOException {
         StringBuilder rpc = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         rpc.append("<rpc message-id=\"" + messageID + "\"  "
                            + "xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
@@ -187,30 +184,19 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append("</get-config>\n");
         rpc.append("</rpc>\n");
         rpc.append(endpattern);
-        String reply = null;
-        try {
-            reply = doRequest(rpc.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return checkReply(reply) ? reply : null;
+        String reply = doRequest(rpc.toString());
+        return checkReply(reply) ? reply : "ERROR " + reply;
     }
 
     @Override
-    public boolean editConfig(String newConfiguration) {
+    public boolean editConfig(String newConfiguration) throws IOException {
         newConfiguration = newConfiguration + endpattern;
-        String reply = null;
-        try {
-            reply = doRequest(newConfiguration);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return checkReply(reply);
+        return checkReply(doRequest(newConfiguration));
     }
 
     @Override
-    public boolean copyConfig(String targetConfiguration, String newConfiguration) {
+    public boolean copyConfig(String targetConfiguration, String newConfiguration)
+            throws IOException {
         newConfiguration = newConfiguration.trim();
         if (!newConfiguration.startsWith("<configuration>")) {
             newConfiguration = "<configuration>" + newConfiguration
@@ -229,18 +215,11 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append("</copy-config>");
         rpc.append("</rpc>");
         rpc.append(endpattern);
-        String reply = null;
-        try {
-            reply = doRequest(rpc.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return checkReply(reply);
+        return checkReply(doRequest(rpc.toString()));
     }
 
     @Override
-    public boolean deleteConfig(String targetConfiguration) {
+    public boolean deleteConfig(String targetConfiguration) throws IOException {
         if (targetConfiguration.equals("running")) {
             log.warn("Target configuration for delete operation can't be \"running\"",
                      targetConfiguration);
@@ -256,18 +235,11 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append("</delete-config>");
         rpc.append("</rpc>");
         rpc.append(endpattern);
-        String reply = null;
-        try {
-            reply = doRequest(rpc.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return checkReply(reply);
+        return checkReply(doRequest(rpc.toString()));
     }
 
     @Override
-    public boolean lock() {
+    public boolean lock() throws IOException {
         StringBuilder rpc = new StringBuilder("<?xml version=\"1.0\" " +
                                                       "encoding=\"UTF-8\"?>");
         rpc.append("<rpc>");
@@ -278,17 +250,11 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append("</lock>");
         rpc.append("</rpc>");
         rpc.append(endpattern);
-        String reply = null;
-        try {
-            reply = doRequest(rpc.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return checkReply(reply);
+        return checkReply(doRequest(rpc.toString()));
     }
 
     @Override
-    public boolean unlock() {
+    public boolean unlock() throws IOException {
         StringBuilder rpc = new StringBuilder("<?xml version=\"1.0\" " +
                                                       "encoding=\"UTF-8\"?>");
         rpc.append("<rpc>");
@@ -299,21 +265,15 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append("</unlock>");
         rpc.append("</rpc>");
         rpc.append(endpattern);
-        String reply = null;
-        try {
-            reply = doRequest(rpc.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return checkReply(reply);
+        return checkReply(doRequest(rpc.toString()));
     }
 
     @Override
-    public boolean close() {
+    public boolean close() throws IOException {
         return close(false);
     }
 
-    private boolean close(boolean force) {
+    private boolean close(boolean force) throws IOException {
         StringBuilder rpc = new StringBuilder();
         rpc.append("<rpc>");
         if (force) {
@@ -324,7 +284,7 @@ public class NetconfSessionImpl implements NetconfSession {
         rpc.append("<close-configuration/>");
         rpc.append("</rpc>");
         rpc.append(endpattern);
-        return checkReply(rpc.toString()) ? true : close(true);
+        return checkReply(doRequest(rpc.toString())) || close(true);
     }
 
     @Override

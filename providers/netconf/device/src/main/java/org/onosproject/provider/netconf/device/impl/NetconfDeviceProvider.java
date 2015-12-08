@@ -40,7 +40,6 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.netconf.NetconfController;
@@ -66,8 +65,8 @@ public class NetconfDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
+    //    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+//    protected DeviceService deviceService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetconfController controller; //where is initiated ?
 
@@ -156,7 +155,6 @@ public class NetconfDeviceProvider extends AbstractProvider
         public void deviceAdded(NetconfDeviceInfo nodeId) {
             Preconditions.checkNotNull(nodeId, ISNOTNULL);
             DeviceId deviceId = nodeId.getDeviceId();
-            //TODO filter for not netconf devices
             //Netconf configuration object
             ChassisId cid = new ChassisId();
             String ipAddress = nodeId.ip().toString();
@@ -191,7 +189,6 @@ public class NetconfDeviceProvider extends AbstractProvider
     private void connectDevices() {
         NetconfProviderConfig cfg = cfgService.getConfig(appId, NetconfProviderConfig.class);
         if (cfg != null) {
-            log.info("cfg {}", cfg);
             try {
                 cfg.getDevicesAddresses().stream()
                         .forEach(addr -> {
@@ -204,8 +201,8 @@ public class NetconfDeviceProvider extends AbstractProvider
                                      } catch (IOException e) {
                                          log.warn("Can't connect to NETCONF " +
                                                           "device on {}:{}",
-                                                            addr.ip(),
-                                                            addr.port());
+                                                  addr.ip(),
+                                                  addr.port());
                                      }
                                  }
                         );

@@ -68,7 +68,7 @@ public class NetconfDeviceInfo {
      * @param password  the password for the device
      * @param ipAddress the ip address
      * @param port      the tcp port
-     * @param keyString the string cointaing the key.
+     * @param keyString the string containing the key.
      */
     public NetconfDeviceInfo(String name, String password, IpAddress ipAddress,
                              int port, String keyString) {
