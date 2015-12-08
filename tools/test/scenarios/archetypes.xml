@@ -62,6 +62,20 @@
         <step name="Verify-UI-Topo" requires="^"
               exec="onos-check-views ${OCI} id=sample"/>
 
+        <step name="Clean-Up-For-REST-App" cwd="${WORKSPACE}/tmp" env="~" requires="Reinstall-App-With-UI-Topo"
+              exec="rm -r test-app"/>
+
+        <step name="Create-REST-App" cwd="${WORKSPACE}/tmp" requires="^"
+              exec="onos-create-app app org.test.app test-app 1.2.3 org.test.app -DinteractiveMode=false"/>
+        <step name="Create-REST-Overlay" requires="^"
+              exec="onos-create-app rest org.test.app test-app 1.2.3 org.test.app -DinteractiveMode=false"/>
+        <step name="Build-REST-App" requires="^"
+              exec="mvn clean install"/>
+        <step name="Install-REST-App" requires="^,~Verify-UI-Topo"
+              exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
+        <Xstep name="Verify-REST-App" requires="^" delay="2"
+              exec="curl --fail -isS --user ${ONOS_WEB_USER}:${ONOS_WEB_PASS} http://${OCI}:8181/onos/test-app/sample"/>
+
         <step name="Uninstall-App" requires="^"
               exec="onos-app ${OCI} uninstall org.foo.app"/>
     </group>

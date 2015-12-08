@@ -37,6 +37,7 @@
         <module>api</module>
         <module>bundle</module>
         <module>cli</module>
+        <module>rest</module>
         <module>ui</module>
         <module>uitab</module>
         <module>uitopo</module>
