@@ -536,7 +536,9 @@ class LINCSwitch(OpticalSwitch):
         for link in LINCSwitch.opticalJSON[ 'links' ]:
             linkDict = {}
             linkDict[ 'type' ] = link[ 'type' ]
-            linkDict.update(link[ 'annotations' ])
+            # FIXME: Clean up unnecessary link/device attributes, then re-enable annotations
+            linkDict['durable'] = True
+            # linkDict.update(link[ 'annotations' ])
 
             linkSubj = link[ 'src' ] + '-' + link[ 'dst' ]
             links[ linkSubj ] = { 'basic': linkDict }

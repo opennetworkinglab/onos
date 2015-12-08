@@ -26,14 +26,14 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.util.Frequency;
 import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultOchSignalComparator;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Link;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OchSignalType;
-import org.onosproject.net.OmsPort;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
@@ -53,6 +53,7 @@ import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -64,11 +65,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * An intent compiler for {@link org.onosproject.net.intent.OpticalConnectivityIntent}.
  */
-// For now, remove component designation until dependency on the new resource manager is available.
 @Component(immediate = true)
 public class OpticalConnectivityIntentCompiler implements IntentCompiler<OpticalConnectivityIntent> {
 
     protected static final Logger log = LoggerFactory.getLogger(OpticalConnectivityIntentCompiler.class);
+    // By default, allocate 50 GHz lambdas (4 slots of 12.5 GHz) for each intent.
+    private static final int SLOT_COUNT = 4;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentExtensionService intentManager;
@@ -133,16 +135,15 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                         srcOchPort.lambda().channelSpacing(),
                         srcOchPort.lambda().slotGranularity());
             } else if (!srcOchPort.isTunable() || !dstOchPort.isTunable()) {
-                // FIXME: also check OCh port
+                // FIXME: also check destination OCh port
                 ochSignal = srcOchPort.lambda();
             } else {
                 // Request and reserve lambda on path
-                IndexedLambda lambda = assignWavelength(intent, path);
-                if (lambda == null) {
+                List<OchSignal> lambdas = assignWavelength(intent, path);
+                if (lambdas.isEmpty()) {
                     continue;
                 }
-                OmsPort omsPort = (OmsPort) deviceService.getPort(path.src().deviceId(), path.src().port());
-                ochSignal = new OchSignal((int) lambda.index(), omsPort.maxFrequency(), omsPort.grid());
+                ochSignal = OchSignal.toFixedGrid(lambdas, ChannelSpacing.CHL_50GHZ);
             }
 
             // Create installable optical path intent
@@ -174,48 +175,77 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
      * @param path path in WDM topology
      * @return first available lambda allocated
      */
-    private IndexedLambda assignWavelength(Intent intent, Path path) {
-        Set<IndexedLambda> lambdas = findCommonLambdasOverLinks(path.links());
+    private List<OchSignal> assignWavelength(Intent intent, Path path) {
+        Set<OchSignal> lambdas = findCommonLambdasOverLinks(path.links());
         if (lambdas.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
 
-        IndexedLambda minLambda = findFirstLambda(lambdas);
+        List<OchSignal> minLambda = findFirstLambda(lambdas, slotCount());
         List<ResourcePath> lambdaResources = path.links().stream()
                 .flatMap(x -> Stream.of(
                         ResourcePath.discrete(x.src().deviceId(), x.src().port()),
                         ResourcePath.discrete(x.dst().deviceId(), x.dst().port())
                 ))
-                .map(x -> x.child(minLambda))
+                .flatMap(x -> minLambda.stream().map(l -> x.child(l)))
                 .collect(Collectors.toList());
 
         List<ResourceAllocation> allocations = resourceService.allocate(intent.id(), lambdaResources);
         if (allocations.isEmpty()) {
             log.info("Resource allocation for {} failed (resource request: {})", intent, lambdaResources);
-            return null;
+            return Collections.emptyList();
         }
 
         return minLambda;
     }
 
-    private Set<IndexedLambda> findCommonLambdasOverLinks(List<Link> links) {
+    /**
+     * Get the number of 12.5 GHz slots required for the path.
+     *
+     * For now this returns a constant value of 4 (i.e., fixed grid 50 GHz slot),
+     * but in the future can depend on optical reach, line rate, transponder port capabilities, etc.
+     *
+     * @return number of slots
+     */
+    private int slotCount() {
+        return SLOT_COUNT;
+    }
+
+    private Set<OchSignal> findCommonLambdasOverLinks(List<Link> links) {
         return links.stream()
                 .flatMap(x -> Stream.of(
                         ResourcePath.discrete(x.src().deviceId(), x.src().port()),
                         ResourcePath.discrete(x.dst().deviceId(), x.dst().port())
                 ))
                 .map(resourceService::getAvailableResources)
-                .map(x -> Iterables.filter(x, r -> r.last() instanceof IndexedLambda))
-                .map(x -> Iterables.transform(x, r -> (IndexedLambda) r.last()))
-                .map(x -> (Set<IndexedLambda>) ImmutableSet.copyOf(x))
+                .map(x -> Iterables.filter(x, r -> r.last() instanceof OchSignal))
+                .map(x -> Iterables.transform(x, r -> (OchSignal) r.last()))
+                .map(x -> (Set<OchSignal>) ImmutableSet.copyOf(x))
                 .reduce(Sets::intersection)
                 .orElse(Collections.emptySet());
     }
 
-    private IndexedLambda findFirstLambda(Set<IndexedLambda> lambdas) {
-        return lambdas.stream()
-                .findFirst()
-                .get();
+    /**
+     * Returns list of consecutive resources in given set of lambdas.
+     *
+     * @param lambdas list of lambdas
+     * @param count number of consecutive lambdas to return
+     * @return list of consecutive lambdas
+     */
+    private List<OchSignal> findFirstLambda(Set<OchSignal> lambdas, int count) {
+        // Sort available lambdas
+        List<OchSignal> lambdaList = new ArrayList<>(lambdas);
+        lambdaList.sort(new DefaultOchSignalComparator());
+
+        // Look ahead by count and ensure spacing multiplier is as expected (i.e., no gaps)
+        for (int i = 0; i < lambdaList.size() - count; i++) {
+            if (lambdaList.get(i).spacingMultiplier() + 2 * count ==
+                    lambdaList.get(i + count).spacingMultiplier()) {
+                return lambdaList.subList(i, i + count);
+            }
+        }
+
+        return Collections.emptyList();
     }
 
     private ConnectPoint staticPort(ConnectPoint connectPoint) {

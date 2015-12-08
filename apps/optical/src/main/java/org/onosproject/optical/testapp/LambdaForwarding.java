@@ -15,11 +15,6 @@
  */
 package org.onosproject.optical.testapp;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
@@ -44,9 +39,17 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.slf4j.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Sample reactive forwarding application.
+ *
+ * @deprecated in Emu (ONOS 1.4).
  */
+@Deprecated
 //@Component(immediate = true)
 public class LambdaForwarding {
 

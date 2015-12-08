@@ -59,6 +59,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -74,7 +75,7 @@ import java.util.stream.IntStream;
  * As LINC implements custom OF optical extensions (in contrast to the final standard as specified in
  * ONF TS-022 (March 15, 2015), we need to rewrite flow stat requests and flow mods in {@link #sendMsg(OFMessage)}.
  *
- * LINC exposes OchSignal resources: 80 lambdas of 50 GHz around ITU-T G.694.1 center frequency 193.1 GHz.
+ * LINC exposes OchSignal resources: 80 lambdas of 50 GHz (fixed grid) around ITU-T G.694.1 center frequency 193.1 GHz.
  *
  */
 public class OfOpticalSwitchImplLinc13
@@ -224,8 +225,9 @@ public class OfOpticalSwitchImplLinc13
             }
 
             OFActionSetField sf = (OFActionSetField) action;
-            if (!(sf instanceof OFOxmExpOchSigId)) {
+            if (!(sf.getField() instanceof OFOxmExpOchSigId)) {
                 newActions.add(action);
+                continue;
             }
 
             OFOxmExpOchSigId oxm = (OFOxmExpOchSigId) sf.getField();
@@ -259,7 +261,6 @@ public class OfOpticalSwitchImplLinc13
             OFFlowMod fm = (OFFlowMod) msg;
             newMatch = rewriteMatch(fm.getMatch());
             List<OFAction> actions = rewriteActions(fm.getActions());
-
             newMsg = fm.createBuilder().setMatch(newMatch).setActions(actions).build();
         }
 
@@ -371,15 +372,10 @@ public class OfOpticalSwitchImplLinc13
             return Collections.emptySortedSet();
         }
 
-        // OMS ports expose 80 lambdas of 50GHz width, centered around the ITU-T center frequency.
-        // We report these with a spacing of 12.5 GHz.
-        List<OchSignal> lambdas = IntStream.range(0, LAMBDA_COUNT)
-                .mapToObj(x -> new OchSignal(GridType.FLEX, ChannelSpacing.CHL_12P5GHZ, x - (LAMBDA_COUNT / 2), 1))
-                .collect(Collectors.toList());
-
-        SortedSet<OchSignal> result = new TreeSet<>(new DefaultOchSignalComparator());
-        result.addAll(lambdas);
-
-        return result;
+        // OMS ports expose 80 fixed grid lambdas of 50GHz width, centered around the ITU-T center frequency 193.1 THz.
+        Supplier<SortedSet<OchSignal>> supplier = () -> new TreeSet<>(new DefaultOchSignalComparator());
+        return IntStream.range(0, LAMBDA_COUNT)
+                .mapToObj(x -> new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, x - (LAMBDA_COUNT / 2), 4))
+                .collect(Collectors.toCollection(supplier));
     }
 }

@@ -16,10 +16,18 @@
 package org.onosproject.net;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.util.Frequency;
 import org.onlab.util.Spectrum;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -33,14 +41,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class OchSignal implements Lambda {
 
-    public static final Frequency FLEX_GRID_SLOT = Frequency.ofGHz(12.5);
+    public static final Set<Integer> FIXED_GRID_SLOT_GRANULARITIES = ImmutableSet.of(1, 2, 4, 8);
     private static final GridType DEFAULT_OCH_GRIDTYPE = GridType.DWDM;
     private static final ChannelSpacing DEFAULT_CHANNEL_SPACING = ChannelSpacing.CHL_50GHZ;
 
-
     private final GridType gridType;
     private final ChannelSpacing channelSpacing;
-    // Frequency = 193.1 THz + spacingMultiplier * channelSpacing
+    // Nominal central frequency = 193.1 THz + spacingMultiplier * channelSpacing
     private final int spacingMultiplier;
     // Slot width = slotGranularity * 12.5 GHz
     private final int slotGranularity;
@@ -118,9 +125,9 @@ public class OchSignal implements Lambda {
     }
 
     /**
-     * Returns slow width granularity.
+     * Returns slot width granularity.
      *
-     * @return slow width granularity
+     * @return slot width granularity
      */
     public int slotGranularity() {
         return slotGranularity;
@@ -141,7 +148,56 @@ public class OchSignal implements Lambda {
      * @return slot width
      */
     public Frequency slotWidth() {
-        return FLEX_GRID_SLOT.multiply(slotGranularity);
+        return ChannelSpacing.CHL_12P5GHZ.frequency().multiply(slotGranularity);
+    }
+
+    /**
+     * Convert fixed grid OCh signal to sorted set of flex grid slots with 6.25 GHz spacing and 12.5 GHz slot width.
+     *
+     * @param ochSignal fixed grid lambda
+     * @return sorted set of flex grid OCh lambdas
+     */
+    public static SortedSet<OchSignal> toFlexGrid(OchSignal ochSignal) {
+        checkArgument(ochSignal.gridType() != GridType.FLEX);
+        checkArgument(ochSignal.channelSpacing() != ChannelSpacing.CHL_6P25GHZ);
+        checkArgument(FIXED_GRID_SLOT_GRANULARITIES.contains(ochSignal.slotGranularity()));
+
+        int startMultiplier = (int) (1 - ochSignal.slotGranularity() +
+                ochSignal.spacingMultiplier() * ochSignal.channelSpacing().frequency().asHz() /
+                        ChannelSpacing.CHL_6P25GHZ.frequency().asHz());
+
+        Supplier<SortedSet<OchSignal>> supplier = () -> new TreeSet<>(new DefaultOchSignalComparator());
+        return IntStream.range(0, ochSignal.slotGranularity())
+                .mapToObj(i -> new OchSignal(GridType.FLEX, ChannelSpacing.CHL_6P25GHZ, startMultiplier + 2 * i, 1))
+                .collect(Collectors.toCollection(supplier));
+    }
+
+    /**
+     * Convert list of lambdas with flex grid 6.25 GHz spacing and 12.5 GHz width into fixed grid OCh signal.
+     *
+     * @param lambdas list of flex grid lambdas in sorted order
+     * @param spacing desired fixed grid spacing
+     * @return fixed grid lambda
+     */
+    public static OchSignal toFixedGrid(List<OchSignal> lambdas, ChannelSpacing spacing) {
+        // Number of slots of 12.5 GHz that fit into requested spacing
+        int ratio = (int) (spacing.frequency().asHz() / ChannelSpacing.CHL_12P5GHZ.frequency().asHz());
+        checkArgument(lambdas.size() == ratio);
+        lambdas.forEach(x -> checkArgument(x.gridType() == GridType.FLEX));
+        lambdas.forEach(x -> checkArgument(x.channelSpacing() == ChannelSpacing.CHL_6P25GHZ));
+        lambdas.forEach(x -> checkArgument(x.slotGranularity() == 1));
+        // Consecutive lambdas (multiplier increments by 2 because spacing is 6.25 GHz but slot width is 12.5 GHz)
+        IntStream.range(1, lambdas.size())
+                .forEach(i -> checkArgument(
+                        lambdas.get(i).spacingMultiplier() == lambdas.get(i - 1).spacingMultiplier() + 2));
+        // Is center frequency compatible with requested spacing
+        Frequency center = lambdas.get(ratio / 2).centralFrequency().subtract(ChannelSpacing.CHL_6P25GHZ.frequency());
+        checkArgument(Spectrum.CENTER_FREQUENCY.subtract(center).asHz() % spacing.frequency().asHz() == 0);
+
+        // Multiplier sits in middle of given lambdas, then convert from 6.25 to requested spacing
+        int spacingMultiplier = (lambdas.get(ratio / 2).spacingMultiplier() + 1) / (ratio * 2);
+
+        return new OchSignal(GridType.DWDM, spacing, spacingMultiplier, lambdas.size());
     }
 
     @Override

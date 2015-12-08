@@ -25,6 +25,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Implementation of indexed lambda criterion.
  */
+@Deprecated
 public class IndexedLambdaCriterion implements Criterion {
 
     private final IndexedLambda lambda;
