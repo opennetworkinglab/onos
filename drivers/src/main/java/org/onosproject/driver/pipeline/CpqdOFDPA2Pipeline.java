@@ -258,7 +258,11 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
         if (fwd.treatment() != null) {
             for (Instruction i : fwd.treatment().allInstructions()) {
-                tb.add(i);
+                /*
+                 * NOTE: OF-DPA does not support immediate instruction in
+                 * L3 unicast and MPLS table.
+                 */
+                tb.deferred().add(i);
             }
         }
 

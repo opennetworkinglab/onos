@@ -766,7 +766,11 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         boolean popMpls = false;
         if (fwd.treatment() != null) {
             for (Instruction i : fwd.treatment().allInstructions()) {
-                tb.add(i);
+                /*
+                 * NOTE: OF-DPA does not support immediate instruction in
+                 * L3 unicast and MPLS table.
+                 */
+                tb.deferred().add(i);
                 if (i instanceof L2ModificationInstruction &&
                     ((L2ModificationInstruction) i).subtype() == L2SubType.MPLS_POP) {
                         popMpls = true;
@@ -1155,16 +1159,15 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
         }
 
-        if (vlanid == null) {
-            //use the vlanid associated with the port
-            vlanid = port2Vlan.get(PortNumber.portNumber(portNum));
-        }
-
         if (vlanid == null && meta != null) {
             // use metadata if available
             Criterion vidCriterion = meta.getCriterion(Type.VLAN_VID);
             if (vidCriterion != null) {
                 vlanid = ((VlanIdCriterion) vidCriterion).vlanId();
+            }
+            // if vlan is not set, use the vlan in metadata for outerTtb
+            if (vlanid != null && !setVlan) {
+                outerTtb.setVlanId(vlanid);
             }
         }
 
