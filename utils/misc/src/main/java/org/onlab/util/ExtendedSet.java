@@ -45,8 +45,8 @@ public class ExtendedSet<E> implements Set<E> {
 
     /**
      * Returns set element that is equal to the specified object.
-     * @param o
-     * @return
+     * @param o object
+     * @return set element that is equal to the input argument or null if no such set element exists
      */
     public E get(Object o) {
         return map.get(o);

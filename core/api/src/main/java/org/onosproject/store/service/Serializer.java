@@ -53,6 +53,24 @@ public interface Serializer {
         return using(Arrays.asList(kryo));
     }
 
+    /**
+     * Creates a new Serializer instance from a KryoNamespace and some additional classes.
+     *
+     * @param namespace kryo namespace
+     * @param classes variable length array of classes to register
+     * @return Serializer instance
+     */
+    static Serializer using(KryoNamespace namespace, Class<?>... classes) {
+        return using(Arrays.asList(namespace), classes);
+    }
+
+    /**
+     * Creates a new Serializer instance from a list of KryoNamespaces and some additional classes.
+     *
+     * @param namespaces kryo namespaces
+     * @param classes variable length array of classes to register
+     * @return Serializer instance
+     */
     static Serializer using(List<KryoNamespace> namespaces, Class<?>... classes) {
         KryoNamespace.Builder builder = new KryoNamespace.Builder();
         namespaces.forEach(builder::register);
