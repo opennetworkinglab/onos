@@ -20,6 +20,8 @@ import org.onosproject.store.Timestamp;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Representation of a value in EventuallyConsistentMap.
  *
@@ -42,7 +44,7 @@ public class MapValue<V> implements Comparable<MapValue<V>> {
 
     public MapValue(V value, Timestamp timestamp) {
         this.value = value;
-        this.timestamp = timestamp;
+        this.timestamp = checkNotNull(timestamp, "Timestamp cannot be null");
     }
 
     public boolean isTombstone() {
@@ -67,7 +69,10 @@ public class MapValue<V> implements Comparable<MapValue<V>> {
     }
 
     public boolean isNewerThan(MapValue<V> other) {
-        return timestamp.isNewerThan(other.timestamp);
+        if (other == null) {
+            return true;
+        }
+        return this.timestamp.isNewerThan(other.timestamp);
     }
 
     public boolean isNewerThan(Timestamp timestamp) {
