@@ -3,8 +3,8 @@
         "org.onosproject.openstackswitching" : {
             "openstackswitching" : {
                  "do_not_push_flows" : "false",
-                 "neutron_server" : "http://127.0.0.1:9696/v2.0/",
-                 "keystone_server" : "http://127.0.0.1:5000/v2.0/",
+                 "neutron_server" : "http://10.40.101.209:9696/v2.0/",
+                 "keystone_server" : "http://10.40.101.209:5000/v2.0/",
 		 "user_name" : "admin",
                  "password" : "nova"
              }
@@ -29,26 +29,43 @@
         },
         "org.onosproject.cordvtn" : {
             "cordvtn" : {
-                "ovsdbNodes" : [
+                "nodes" : [
                     {
-                        "host" : "compute-01",
-                        "ip" : "128.199.162.106",
-                        "port" : "6640",
+                        "hostname" : "compute-01",
+                        "ovsdbIp" : "10.40.101.208",
+                        "ovsdbPort" : "6640",
                         "bridgeId" : "of:0000000000000001"
                      },
                      {
-                        "host" : "compute-02",
-                        "ip" : "103.253.145.133",
-                        "port" : "6640",
+                        "hostname" : "compute-02",
+                        "ovsdbIp" : "10.40.101.227",
+                        "ovsdbPort" : "6640",
                         "bridgeId" : "of:0000000000000002"
                      },
                      {
-                         "host" : "network",
-                         "ip" : "128.199.125.11",
-                         "port" : "6640",
+                         "hostname" : "network",
+                         "ovsdbIp" : "10.40.101.209",
+                         "ovsdbPort" : "6640",
                          "bridgeId" : "of:0000000000000003"
                      }
                 ]
+            }
+        }
+    },
+    "devices" : {
+        "of:0000000000000001" : {
+            "basic" : {
+                "driver" : "sona"
+            }
+        },
+        "of:0000000000000002" : {
+            "basic" : {
+                "driver" : "sona"
+            }
+        },
+        "of:0000000000000003" : {
+            "basic" : {
+                "driver" : "sona"
             }
         }
     }

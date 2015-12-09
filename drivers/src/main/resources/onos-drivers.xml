@@ -153,5 +153,10 @@
     <driver name="aos" extends="ofdpa"
             manufacturer="Accton" hwVersion=".*" swVersion="1.*">
     </driver>
+    <driver name="sona" extends="ovs"
+            manufacturer="" hwVersion="" swVersion="">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.OpenstackPipeline"/>
+    </driver>
 </drivers>
 
