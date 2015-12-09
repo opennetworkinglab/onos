@@ -83,6 +83,10 @@
         <onos-maven-plugin.version>1.7-SNAPSHOT</onos-maven-plugin.version>
         <karaf.version>3.0.3</karaf.version>
         <jersey.version>1.19</jersey.version>
+        <!-- TODO argLine was originally added maven-surfire-plugin configuration
+                  to fix locale errors for non-US developers. However, it breaks
+                  SonarQube's test coverage, so moving here for now. -->
+        <argLine>-Duser.language=en -Duser.region=US</argLine>
     </properties>
 
     <distributionManagement>
@@ -502,6 +506,12 @@
                 <artifactId>joda-time</artifactId>
                 <version>2.5</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>3.0.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -526,6 +536,15 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
         </dependency>
+        <!-- TODO sonar-maven-plugin prints the following ERROR many times:
+                      Class not found: javax.annotation.Nullable
+                  The following dependency alleviates this problem, but perhaps
+                  it can be better located in the future. -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -546,11 +565,10 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
+                    <!-- TODO newer version available -->
                     <version>2.18.1</version>
                     <configuration>
-                        <argLine>-Duser.language=en -Duser.region=US</argLine>
-                        <redirectTestOutputToFile>true
-                        </redirectTestOutputToFile>
+                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         <printSummary>true</printSummary>
                         <excludedGroups>org.onlab.junit.IntegrationTest
                         </excludedGroups>
@@ -574,7 +592,10 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>2.3.1</version>
+                    <version>2.6</version>
+                    <configuration>
+                        <skipIfEmpty>true</skipIfEmpty>
+                    </configuration>
                     <executions>
                         <execution>
                             <phase>package</phase>
