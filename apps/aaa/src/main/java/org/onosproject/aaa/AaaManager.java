@@ -192,11 +192,11 @@ public class AaaManager {
                 new ThreadFactoryBuilder()
                         .setNameFormat("AAA-radius-%d").build());
         executor.execute(radiusListener);
+        log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        appId = coreService.registerApplication("org.onosproject.aaa");
         withdrawIntercepts();
         // de-register and null our handler
         packetService.removeProcessor(processor);
@@ -204,6 +204,7 @@ public class AaaManager {
         StateMachine.destroyMaps();
         radiusSocket.close();
         executor.shutdownNow();
+        log.info("Stopped");
     }
 
     protected void sendRadiusPacket(RADIUS radiusPacket) {
