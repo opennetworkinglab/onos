@@ -41,6 +41,8 @@ import org.onosproject.store.service.Versioned;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+
 import net.kuujo.copycat.Task;
 import net.kuujo.copycat.cluster.Cluster;
 import net.kuujo.copycat.resource.ResourceState;
@@ -185,7 +187,8 @@ public class DefaultAsyncConsistentMapTest {
         @Override
         public CompletableFuture<Boolean> mapContainsValue(String mapName,
                                                            byte[] value) {
-            return CompletableFuture.completedFuture(map.containsValue(value));
+            return CompletableFuture.completedFuture(Maps.transformValues(map, Versioned::value)
+                                                     .containsValue(value));
         }
 
         @Override
