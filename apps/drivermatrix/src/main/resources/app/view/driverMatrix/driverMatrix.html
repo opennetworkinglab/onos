@@ -1,0 +1,46 @@
+<!-- partial HTML -->
+<div id="ov-driver-matrix">
+    <div class="tabular-header">
+        <h2>Items ({{tableData.length}} total)</h2>
+        <div class="ctrl-btns">
+            <div class="refresh" ng-class="{active: autoRefresh}"
+                 icon icon-id="refresh" icon-size="36"
+                 tooltip tt-msg="autoRefreshTip"
+                 ng-click="toggleRefresh()"></div>
+        </div>
+    </div>
+
+    <div class="summary-list" onos-table-resize>
+
+        <div class="table-header" onos-sortable-header>
+            <table>
+                <tr>
+                    <td colId="id" sortable>Item ID </td>
+                    <td colId="label" sortable>Label </td>
+                    <td colId="code" sortable>Code </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-body">
+            <table>
+                <tr ng-if="!tableData.length" class="no-data">
+                    <td colspan="3">
+                        No Items found
+                    </td>
+                </tr>
+
+                <tr ng-repeat="item in tableData track by $index"
+                    ng-click="selectCallback($event, item)"
+                    ng-class="{selected: item.id === selId}">
+                    <td>{{item.id}}</td>
+                    <td>{{item.label}}</td>
+                    <td>{{item.code}}</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
+    <ov-driver-matrix-item-details-panel></ov-driver-matrix-item-details-panel>
+</div>
