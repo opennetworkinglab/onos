@@ -104,6 +104,7 @@
              description="ONOS core incubator components">
         <feature>onos-core</feature>
         <bundle>mvn:org.onosproject/onos-incubator-net/@ONOS-VERSION</bundle>
+        <bundle>mvn:org.onosproject/onos-incubator-core/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-incubator-store/@ONOS-VERSION</bundle>
         <bundle>mvn:org.onosproject/onos-incubator-rpc/@ONOS-VERSION</bundle>
     </feature>
