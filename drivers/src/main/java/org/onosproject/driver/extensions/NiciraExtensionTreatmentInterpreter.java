@@ -100,28 +100,34 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             return factory.actions().niciraResubmit((int) resubmit.inPort().toLong(),
                                                   resubmit.table());
         }
-        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
-            // TODO this will be implemented later
-        }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE.type())) {
             NiciraResubmitTable resubmitTable = (NiciraResubmitTable) extensionTreatment;
             return factory.actions().niciraResubmitTable((int) resubmitTable.inPort().toLong(),
                                                          resubmitTable.table());
         }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI.type())) {
+            NiciraSetNshSpi niciraNshSpi = (NiciraSetNshSpi) extensionTreatment;
+            return factory.actions().niciraSetNsp(niciraNshSpi.nshSpi().servicePathId());
+        }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SI.type())) {
-            // TODO this will be implemented later
+            NiciraSetNshSi niciraNshSi = (NiciraSetNshSi) extensionTreatment;
+            return factory.actions().niciraSetNsp(niciraNshSi.nshSi().serviceIndex());
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH1.type())) {
-            // TODO this will be implemented later
+            NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
+            return factory.actions().niciraSetNshc1(niciraNshch.nshCh().nshContextHeader());
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH2.type())) {
-            // TODO this will be implemented later
+            NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
+            return factory.actions().niciraSetNshc2(niciraNshch.nshCh().nshContextHeader());
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH3.type())) {
-            // TODO this will be implemented later
+            NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
+            return factory.actions().niciraSetNshc3(niciraNshch.nshCh().nshContextHeader());
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_CH4.type())) {
-            // TODO this will be implemented later
+            NiciraSetNshContextHeader niciraNshch = (NiciraSetNshContextHeader) extensionTreatment;
+            return factory.actions().niciraSetNshc4(niciraNshch.nshCh().nshContextHeader());
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST.type())
                 || type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SPA_TO_TPA.type())
