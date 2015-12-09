@@ -97,7 +97,7 @@ public class OpenstackSwitchingRulePopulator {
      * @param port port for the VM created
      */
     public void populateSwitchingRules(Device device, Port port) {
-        populateFlowRulesForVMSetTunnelTag(device, port);
+        populateFlowRulesForTunnelTag(device, port);
         populateFlowRulesForTrafficToSameCnode(device, port);
         populateFlowRulesForTrafficToDifferentCnode(device, port);
     }
@@ -108,13 +108,13 @@ public class OpenstackSwitchingRulePopulator {
      * @param device device to put the rules
      * @param port port info of the VM
      */
-    private void populateFlowRulesForVMSetTunnelTag(Device device, Port port) {
+    private void populateFlowRulesForTunnelTag(Device device, Port port) {
         Ip4Address vmIp = getFixedIpAddressForPort(port.annotations().value("portName"));
         String portName = port.annotations().value("portName");
         String vni = getVniForPort(portName);
 
         if (vmIp != null) {
-            setFlowRuleForVMSetTunnelTag(device.id(), port, vni);
+            setFlowRuleForTunnelTag(device.id(), port, vni);
         }
     }
 
@@ -253,7 +253,7 @@ public class OpenstackSwitchingRulePopulator {
         return port.macAddress();
     }
 
-    private void setFlowRuleForVMSetTunnelTag(DeviceId deviceId, Port port, String vni) {
+    private void setFlowRuleForTunnelTag(DeviceId deviceId, Port port, String vni) {
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
@@ -301,26 +301,6 @@ public class OpenstackSwitchingRulePopulator {
                 .withSelector(sBuilder.build())
                 .withTreatment(tBuilder.build())
                 .withPriority(SWITCHING_RULE_PRIORITY)
-                .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                .fromApp(appId)
-                .add();
-
-        flowObjectiveService.forward(id, fo);
-
-        //For L3 Ease-West Routing Case
-        sBuilder = DefaultTrafficSelector.builder();
-        tBuilder = DefaultTrafficTreatment.builder();
-
-        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(ip4Address.toIpPrefix());
-
-        tBuilder.setEthDst(vmMacAddress)
-                .setOutput(port.number());
-
-        fo = DefaultForwardingObjective.builder()
-                .withSelector(sBuilder.build())
-                .withTreatment(tBuilder.build())
-                .withPriority(EAST_WEST_ROUTING_RULE_PRIORITY)
                 .withFlag(ForwardingObjective.Flag.SPECIFIC)
                 .fromApp(appId)
                 .add();
