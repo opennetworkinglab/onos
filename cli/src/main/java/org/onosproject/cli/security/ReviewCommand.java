@@ -114,6 +114,7 @@ public class ReviewCommand extends AbstractShellCommand {
                         print("\t[Other] " + perm.getClass().getSimpleName() +
                                 " " + perm.getName() + " (" + perm.getActions() + ")");
                     }
+                    break;
                 default:
                     break;
             }

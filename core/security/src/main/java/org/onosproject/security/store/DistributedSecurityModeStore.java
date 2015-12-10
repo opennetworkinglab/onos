@@ -232,6 +232,7 @@ public class DistributedSecurityModeStore
                         break;
                     case SECURED:
                         notifyDelegate(new SecurityModeEvent(SecurityModeEvent.Type.POLICY_ACCEPTED, appId));
+                        break;
                     default:
                         break;
                 }

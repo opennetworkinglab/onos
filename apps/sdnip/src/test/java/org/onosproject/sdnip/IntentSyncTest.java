@@ -216,7 +216,7 @@ public class IntentSyncTest extends AbstractIntentTest {
         // Compose a intent, which is equal to intent5 but the id is different.
         MultiPointToSinglePointIntent intent5New =
                 staticIntentBuilder(intent5, routeEntry5, "00:00:00:00:00:01");
-        assertThat(IntentUtils.equals(intent5, intent5New), is(true));
+        assertThat(IntentUtils.intentsAreEqual(intent5, intent5New), is(true));
         assertFalse(intent5.equals(intent5New));
 
         MultiPointToSinglePointIntent intent6 = intentBuilder(

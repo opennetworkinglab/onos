@@ -78,7 +78,7 @@ public class OpenstackRestHandler {
             OpenstackNetworkCodec networkCodec = new OpenstackNetworkCodec();
             networkList.forEach(n -> openstackNetworks.add(networkCodec.decode((ObjectNode) n, null)));
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("getNetworks()", e);
         }
 
         log.debug("networks response:" + response);
@@ -106,7 +106,7 @@ public class OpenstackRestHandler {
             OpenstackPortCodec portCodec = new OpenstackPortCodec();
             portList.forEach(p -> openstackPorts.add(portCodec.decode((ObjectNode) p, null)));
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("getPorts()", e);
         }
 
         log.debug("port response:" + response);
@@ -134,7 +134,7 @@ public class OpenstackRestHandler {
             OpenstackSubnetCodec subnetCodec = new OpenstackSubnetCodec();
             subnetList.forEach(s -> subnets.add(subnetCodec.decode((ObjectNode) s, null)));
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn("getSubnets()", e);
         }
 
         log.debug("subnets response:" + response);
@@ -163,7 +163,7 @@ public class OpenstackRestHandler {
                 ObjectNode node = (ObjectNode) mapper.readTree(response);
                 tokenId = node.path("access").path("token").path("id").asText();
             } catch (IOException e) {
-                e.printStackTrace();
+                log.warn("getToken()", e);
             }
             log.debug("token response:" + response);
         }

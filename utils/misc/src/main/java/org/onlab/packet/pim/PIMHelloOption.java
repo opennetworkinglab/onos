@@ -85,6 +85,7 @@ public class PIMHelloOption {
             case OPT_ADDRLIST:
                 this.optLength = 0;   // We don't know what the length will be yet.
                 this.optValue = null;
+                break;
 
             default:
                 //log.error("Unkown option type: " + type + "\n" );

@@ -36,6 +36,7 @@ import java.util.List;
  * Produces ONOS component configuration catalogue resources.
  */
 @Mojo(name = "cfg", defaultPhase = LifecyclePhase.GENERATE_RESOURCES)
+@java.lang.SuppressWarnings("squid:S1148")
 public class OnosCfgMojo extends AbstractMojo {
 
     private static final String COMPONENT = "org.apache.felix.scr.annotations.Component";

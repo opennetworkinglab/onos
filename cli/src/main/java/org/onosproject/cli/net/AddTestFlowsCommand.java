@@ -63,6 +63,7 @@ public class AddTestFlowsCommand extends AbstractShellCommand {
     String numOfRuns = null;
 
     @Override
+    @java.lang.SuppressWarnings("squid:S1148")
     protected void execute() {
         FlowRuleService flowService = get(FlowRuleService.class);
         DeviceService deviceService = get(DeviceService.class);

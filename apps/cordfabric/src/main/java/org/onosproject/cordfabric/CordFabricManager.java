@@ -425,6 +425,7 @@ public class CordFabricManager implements FabricService {
                         deviceService.isAvailable(event.subject().id())) {
                     setupDefaultFlows();
                 }
+                break;
             default:
                 break;
             }

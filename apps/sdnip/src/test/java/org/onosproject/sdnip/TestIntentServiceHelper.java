@@ -84,7 +84,7 @@ public final class TestIntentServiceHelper {
             Intent providedIntent = (Intent) object;
             providedString = providedIntent.toString();
 
-            return IntentUtils.equals(intent, providedIntent);
+            return IntentUtils.intentsAreEqual(intent, providedIntent);
         }
     }
 

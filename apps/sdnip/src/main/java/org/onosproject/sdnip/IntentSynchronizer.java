@@ -184,7 +184,7 @@ public class IntentSynchronizer implements IntentSynchronizationService {
                 intentsToAdd.add(localIntent);
             } else {
                 IntentState state = intentService.getIntentState(serviceIntent.key());
-                if (!IntentUtils.equals(serviceIntent, localIntent) || state == null ||
+                if (!IntentUtils.intentsAreEqual(serviceIntent, localIntent) || state == null ||
                         state == IntentState.WITHDRAW_REQ ||
                         state == IntentState.WITHDRAWING ||
                         state == IntentState.WITHDRAWN) {

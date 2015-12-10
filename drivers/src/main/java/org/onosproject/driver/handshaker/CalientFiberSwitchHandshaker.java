@@ -87,8 +87,7 @@ public class CalientFiberSwitchHandshaker
         try {
             sendHandshakeOFExperimenterPortDescRequest();
         } catch (IOException e) {
-            log.error("Exception while sending experimenter port desc:", e.getMessage());
-            e.printStackTrace();
+            log.error("Exception while sending experimenter port desc:", e);
         }
 
     }

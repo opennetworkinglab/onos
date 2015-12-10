@@ -135,7 +135,7 @@ public class PeerConnectivityManager {
 
             buildSpeakerIntents(bgpSpeaker).forEach(i -> {
                 PointToPointIntent intent = existingIntents.remove(i.key());
-                if (intent == null || !IntentUtils.equals(i, intent)) {
+                if (intent == null || !IntentUtils.intentsAreEqual(i, intent)) {
                     peerIntents.put(i.key(), i);
                     intentSynchronizer.submit(i);
                 }

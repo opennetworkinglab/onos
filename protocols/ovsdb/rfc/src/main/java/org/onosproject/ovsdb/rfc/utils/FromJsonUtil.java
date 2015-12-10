@@ -223,7 +223,7 @@ public final class FromJsonUtil {
             JsonNode jsonNode = input.get(i);
             Operation operation = operations.get(i);
             if (jsonNode != null && jsonNode.size() > 0) {
-                if (i >= operations.size() || operation.getOp() != "select") {
+                if (i >= operations.size() || !operation.getOp().equals("select")) {
                     OperationResult or = objectMapper.convertValue(jsonNode, OperationResult.class);
                     operationResults.add(or);
                 } else {
