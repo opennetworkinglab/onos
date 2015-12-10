@@ -17,12 +17,18 @@
 package org.onosproject.sdnip;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
@@ -37,6 +43,7 @@ import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.IntentSynchronizationService;
+import org.onosproject.routing.RoutingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,40 +58,49 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * FIB component of SDN-IP.
  */
-public class SdnIpFib implements FibListener {
+@Component(immediate = true)
+public class SdnIpFib {
     private Logger log = LoggerFactory.getLogger(getClass());
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected InterfaceService interfaceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected IntentSynchronizationService intentSynchronizer;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected RoutingService routingService;
+
+    private final InternalFibListener fibListener = new InternalFibListener();
 
     private static final int PRIORITY_OFFSET = 100;
     private static final int PRIORITY_MULTIPLIER = 5;
     protected static final ImmutableList<Constraint> CONSTRAINTS
             = ImmutableList.of(new PartialFailureConstraint());
 
-    private final Map<IpPrefix, MultiPointToSinglePointIntent> routeIntents;
+    private final Map<IpPrefix, MultiPointToSinglePointIntent> routeIntents
+            = new ConcurrentHashMap<>();
 
-    private final ApplicationId appId;
-    private final InterfaceService interfaceService;
-    private final IntentSynchronizationService intentSynchronizer;
+    private ApplicationId appId;
 
-    /**
-     * Class constructor.
-     *
-     * @param appId application ID to use when generating intents
-     * @param interfaceService interface service
-     * @param intentSynchronizer intent synchronizer
-     */
-    public SdnIpFib(ApplicationId appId, InterfaceService interfaceService,
-                    IntentSynchronizationService intentSynchronizer) {
-        routeIntents = new ConcurrentHashMap<>();
+    @Activate
+    public void activate() {
+        appId = coreService.getAppId(SdnIp.SDN_IP_APP);
 
-        this.appId = appId;
-        this.interfaceService = interfaceService;
-        this.intentSynchronizer = intentSynchronizer;
+        routingService.addFibListener(fibListener);
+        routingService.start();
     }
 
+    @Deactivate
+    public void deactivate() {
+        // TODO remove listener
+        routingService.stop();
+    }
 
-    @Override
-    public void update(Collection<FibUpdate> updates,
-                       Collection<FibUpdate> withdraws) {
+    private void update(Collection<FibUpdate> updates, Collection<FibUpdate> withdraws) {
         int submitCount = 0, withdrawCount = 0;
         //
         // NOTE: Semantically, we MUST withdraw existing intents before
@@ -222,6 +238,13 @@ public class SdnIpFib implements FibListener {
                 .priority(priority)
                 .constraints(CONSTRAINTS)
                 .build();
+    }
+
+    private class InternalFibListener implements FibListener {
+        @Override
+        public void update(Collection<FibUpdate> updates, Collection<FibUpdate> withdraws) {
+            SdnIpFib.this.update(updates, withdraws);
+        }
     }
 
 }

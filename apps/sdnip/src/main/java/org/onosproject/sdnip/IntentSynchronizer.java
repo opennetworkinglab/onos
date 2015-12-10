@@ -15,101 +15,117 @@
  */
 package org.onosproject.sdnip;
 
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static org.onlab.util.Tools.groupedThreads;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipEvent;
+import org.onosproject.cluster.LeadershipEventListener;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.Key;
+import org.onosproject.routing.IntentSynchronizationAdminService;
+import org.onosproject.routing.IntentSynchronizationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
-import org.onosproject.core.ApplicationId;
-import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentUtils;
-import org.onosproject.net.intent.Key;
-import org.onosproject.routing.IntentSynchronizationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 
 /**
- * Synchronizes intents between the in-memory intent store and the
- * IntentService.
+ * Synchronizes intents between an in-memory intent store and the IntentService.
  */
-public class IntentSynchronizer implements IntentSynchronizationService {
+@Service
+@Component(immediate = true)
+public class IntentSynchronizer implements IntentSynchronizationService,
+        IntentSynchronizationAdminService {
 
-    private static final Logger log =
-        LoggerFactory.getLogger(IntentSynchronizer.class);
+    private static final Logger log = LoggerFactory.getLogger(IntentSynchronizer.class);
 
-    private final ApplicationId appId;
-    private final IntentService intentService;
+    private static final String APP_NAME = "org.onosproject.intentsynchronizer";
 
-    private final Map<Key, Intent> intents;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
 
-    //
-    // State to deal with the Leader election and pushing Intents
-    //
-    private final ExecutorService intentsSynchronizerExecutor;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LeadershipService leadershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected IntentService intentService;
+
+    private ApplicationId appId;
+
+    private final InternalLeadershipListener leadershipEventListener =
+            new InternalLeadershipListener();
+
+    private final Map<Key, Intent> intents = new ConcurrentHashMap<>();
+
+    private ExecutorService intentsSynchronizerExecutor;
+
     private volatile boolean isElectedLeader = false;
     private volatile boolean isActivatedLeader = false;
 
-    /**
-     * Class constructor.
-     *
-     * @param appId the Application ID
-     * @param intentService the intent service
-     */
-    public IntentSynchronizer(ApplicationId appId, IntentService intentService) {
-        this(appId, intentService,
-                newSingleThreadExecutor(groupedThreads("onos/" + appId, "sync")));
+    @Activate
+    public void activate() {
+        intentsSynchronizerExecutor = createExecutor();
+
+        this.appId = coreService.registerApplication(APP_NAME);
+
+        leadershipService.addListener(leadershipEventListener);
+        leadershipService.runForLeadership(appId.name());
+
+        log.info("Started");
     }
 
-    /**
-     * Class constructor.
-     *
-     * @param appId the Application ID
-     * @param intentService the intent service
-     * @param executorService executor service for synchronization thread
-     */
-    public IntentSynchronizer(ApplicationId appId, IntentService intentService,
-                       ExecutorService executorService) {
-        this.appId = appId;
-        this.intentService = intentService;
+    @Deactivate
+    public void deactivate() {
+        leadershipService.withdraw(appId.name());
+        leadershipService.removeListener(leadershipEventListener);
 
-        intents = new ConcurrentHashMap<>();
-
-        intentsSynchronizerExecutor = executorService;
-    }
-
-    /**
-     * Starts the synchronizer.
-     */
-    public void start() {
-
-    }
-
-    /**
-     * Stops the synchronizer.
-     */
-    public void stop() {
         synchronized (this) {
-            // Stop the thread(s)
             intentsSynchronizerExecutor.shutdownNow();
-            log.info("Intents Synchronizer Executor shutdown completed");
-
         }
+
+        log.info("Stopped");
     }
 
     /**
-     * Withdraws all intents.
+     * Creates an executor that will be used for synchronization tasks.
+     * <p>
+     * Can be overridden to change the type of executor used.
+     * </p>
+     *
+     * @return executor service
      */
+    protected ExecutorService createExecutor() {
+        return newSingleThreadExecutor(groupedThreads("onos/" + appId, "sync"));
+    }
+
+    @Override
     public void removeIntents() {
         if (!isElectedLeader) {
-            // only leader will withdraw intents
+            // Only leader will withdraw intents
             return;
         }
 
@@ -152,18 +168,19 @@ public class IntentSynchronizer implements IntentSynchronizationService {
      *
      * @param isLeader true if this instance is now the leader, otherwise false
      */
-    public void leaderChanged(boolean isLeader) {
+    private void leaderChanged(boolean isLeader) {
         log.debug("Leader changed: {}", isLeader);
 
         if (!isLeader) {
             this.isElectedLeader = false;
             this.isActivatedLeader = false;
-            return;                     // Nothing to do
+            // Nothing to do
+            return;
         }
         this.isActivatedLeader = false;
         this.isElectedLeader = true;
 
-        // Run the synchronization method off-thread
+        // Run the synchronization task
         intentsSynchronizerExecutor.execute(this::synchronizeIntents);
     }
 
@@ -232,10 +249,49 @@ public class IntentSynchronizer implements IntentSynchronizationService {
         }
 
         if (isElectedLeader) {
-            isActivatedLeader = true;       // Allow push of Intents
+            // Allow push of Intents
+            isActivatedLeader = true;
         } else {
             isActivatedLeader = false;
         }
         log.debug("Intent synchronization completed");
+    }
+
+    @Override
+    public void modifyPrimary(boolean isPrimary) {
+        leaderChanged(isPrimary);
+    }
+
+    /**
+     * A listener for leadership events.
+     */
+    private class InternalLeadershipListener implements LeadershipEventListener {
+
+        @Override
+        public void event(LeadershipEvent event) {
+            if (!event.subject().topic().equals(appId.name())) {
+                // Not our topic: ignore
+                return;
+            }
+            if (!Objects.equals(event.subject().leader(),
+                    clusterService.getLocalNode().id())) {
+                // The event is not about this instance: ignore
+                return;
+            }
+
+            switch (event.type()) {
+            case LEADER_ELECTED:
+                log.info("IntentSynchronizer gained leadership");
+                leaderChanged(true);
+                break;
+            case LEADER_BOOTED:
+                log.info("IntentSynchronizer lost leadership");
+                leaderChanged(false);
+                break;
+            case LEADER_REELECTED:
+            default:
+                break;
+            }
+        }
     }
 }

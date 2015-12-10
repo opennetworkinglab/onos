@@ -28,6 +28,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
@@ -42,8 +43,10 @@ import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.routing.FibEntry;
+import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.IntentSynchronizationService;
+import org.onosproject.routing.RoutingServiceAdapter;
 import org.onosproject.routing.config.BgpPeer;
 import org.onosproject.routing.config.RoutingConfigurationService;
 
@@ -90,6 +93,8 @@ public class SdnIpFibTest extends AbstractIntentTest {
 
     private static final ApplicationId APPID = TestApplicationId.create("SDNIP");
 
+    private FibListener fibListener;
+
     @Before
     public void setUp() throws Exception {
         super.setUp();
@@ -106,7 +111,13 @@ public class SdnIpFibTest extends AbstractIntentTest {
 
         intentSynchronizer = createMock(IntentSynchronizationService.class);
 
-        sdnipFib = new SdnIpFib(APPID, interfaceService, intentSynchronizer);
+        sdnipFib = new SdnIpFib();
+        sdnipFib.routingService = new TestRoutingService();
+        sdnipFib.coreService = new TestCoreService();
+        sdnipFib.interfaceService = interfaceService;
+        sdnipFib.intentSynchronizer = intentSynchronizer;
+
+        sdnipFib.activate();
     }
 
     /**
@@ -242,7 +253,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
 
         // Send in the UPDATE FibUpdate
         FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE, fibEntry);
-        sdnipFib.update(Collections.singleton(fibUpdate), Collections.emptyList());
+        fibListener.update(Collections.singleton(fibUpdate), Collections.emptyList());
 
         verify(intentSynchronizer);
     }
@@ -295,7 +306,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
 
         // Send in the UPDATE FibUpdate
         FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE, fibEntry);
-        sdnipFib.update(Collections.singleton(fibUpdate), Collections.emptyList());
+        fibListener.update(Collections.singleton(fibUpdate), Collections.emptyList());
 
         verify(intentSynchronizer);
     }
@@ -354,7 +365,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
         // Send in the UPDATE FibUpdate
         FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.UPDATE,
                 fibEntryUpdate);
-        sdnipFib.update(Collections.singletonList(fibUpdate),
+        fibListener.update(Collections.singletonList(fibUpdate),
                 Collections.emptyList());
 
         verify(intentSynchronizer);
@@ -410,8 +421,23 @@ public class SdnIpFibTest extends AbstractIntentTest {
 
         // Send in the DELETE FibUpdate
         FibUpdate fibUpdate = new FibUpdate(FibUpdate.Type.DELETE, fibEntry);
-        sdnipFib.update(Collections.emptyList(), Collections.singletonList(fibUpdate));
+        fibListener.update(Collections.emptyList(), Collections.singletonList(fibUpdate));
 
         verify(intentSynchronizer);
+    }
+
+    private class TestCoreService extends CoreServiceAdapter {
+        @Override
+        public ApplicationId getAppId(String name) {
+            return APPID;
+        }
+    }
+
+    private class TestRoutingService extends RoutingServiceAdapter {
+
+        @Override
+        public void addFibListener(FibListener fibListener) {
+            SdnIpFibTest.this.fibListener = fibListener;
+        }
     }
 }

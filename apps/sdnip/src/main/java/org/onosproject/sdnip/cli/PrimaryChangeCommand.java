@@ -18,10 +18,10 @@ package org.onosproject.sdnip.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.routing.SdnIpService;
+import org.onosproject.routing.IntentSynchronizationAdminService;
 
 /**
- * Command to change whether this SDNIP instance is primary or not.
+ * Command to change whether this instance's intent synchronizer is primary.
  */
 @Command(scope = "onos", name = "sdnip-set-primary",
          description = "Changes the primary status of this SDN-IP instance")
@@ -34,7 +34,7 @@ public class PrimaryChangeCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        get(SdnIpService.class).modifyPrimary(isPrimary);
+        get(IntentSynchronizationAdminService.class).modifyPrimary(isPrimary);
     }
 
 }

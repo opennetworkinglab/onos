@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.routing;
 
 /**
- * Service interface exported by SDN-IP.
+ * Administrative APIs for managing intent synchronization.
  */
-public interface SdnIpService {
+public interface IntentSynchronizationAdminService {
 
     /**
      * Changes whether this SDN-IP instance is the primary or not based on the
@@ -29,11 +30,7 @@ public interface SdnIpService {
     void modifyPrimary(boolean isPrimary);
 
     /**
-     * Gets the intent synchronization service.
-     *
-     * @return intent synchronization service
+     * Withdraws all intents.
      */
-    // TODO fix service resolution in SDN-IP
-    IntentSynchronizationService getIntentSynchronizationService();
-
+    void removeIntents();
 }

@@ -29,7 +29,9 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.TestApplicationId;
+import org.onosproject.cluster.LeadershipServiceAdapter;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -43,14 +45,15 @@ import org.onosproject.net.intent.AbstractIntentTest;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
+import org.onosproject.net.intent.IntentUtils;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
-import org.onosproject.net.intent.IntentUtils;
 import org.onosproject.routing.RouteEntry;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -88,7 +91,8 @@ public class IntentSyncTest extends AbstractIntentTest {
     private IntentSynchronizer intentSynchronizer;
     private final Set<Interface> interfaces = Sets.newHashSet();
 
-    private static final ApplicationId APPID = TestApplicationId.create("SDNIP");
+    private static final ApplicationId APPID =
+            TestApplicationId.create("intent-sync-test");
 
     @Before
     public void setUp() throws Exception {
@@ -98,8 +102,13 @@ public class IntentSyncTest extends AbstractIntentTest {
 
         intentService = createMock(IntentService.class);
 
-        intentSynchronizer = new IntentSynchronizer(APPID, intentService,
-                MoreExecutors.newDirectExecutorService());
+        intentSynchronizer = new TestIntentSynchronizer();
+
+        intentSynchronizer.coreService = new TestCoreService();
+        intentSynchronizer.leadershipService = new TestLeadershipService();
+        intentSynchronizer.intentService = intentService;
+
+        intentSynchronizer.activate();
     }
 
     /**
@@ -268,7 +277,7 @@ public class IntentSyncTest extends AbstractIntentTest {
         // Give the leadership to the intent synchronizer. It will now attempt
         // to synchronize the intents in the store with the intents it has
         // recorded based on the earlier user input.
-        intentSynchronizer.leaderChanged(true);
+        intentSynchronizer.modifyPrimary(true);
 
         verify(intentService);
     }
@@ -290,7 +299,7 @@ public class IntentSyncTest extends AbstractIntentTest {
 
         // Give the intent synchronizer leadership so it will submit intents
         // to the intent service
-        intentSynchronizer.leaderChanged(true);
+        intentSynchronizer.modifyPrimary(true);
 
         // Test the submit
         intentSynchronizer.submit(intent);
@@ -303,7 +312,7 @@ public class IntentSyncTest extends AbstractIntentTest {
         reset(intentService);
         replay(intentService);
 
-        intentSynchronizer.leaderChanged(false);
+        intentSynchronizer.modifyPrimary(false);
 
         intentSynchronizer.submit(intent);
 
@@ -328,7 +337,7 @@ public class IntentSyncTest extends AbstractIntentTest {
 
         // Give the intent synchronizer leadership so it will submit intents
         // to the intent service
-        intentSynchronizer.leaderChanged(true);
+        intentSynchronizer.modifyPrimary(true);
 
         // Test the submit then withdraw
         intentSynchronizer.submit(intent);
@@ -342,7 +351,7 @@ public class IntentSyncTest extends AbstractIntentTest {
         reset(intentService);
         replay(intentService);
 
-        intentSynchronizer.leaderChanged(false);
+        intentSynchronizer.modifyPrimary(false);
 
         intentSynchronizer.submit(intent);
         intentSynchronizer.withdraw(intent);
@@ -417,5 +426,23 @@ public class IntentSyncTest extends AbstractIntentTest {
         TestUtils.setField(intentNew,
                 "ingressPoints", intent.ingressPoints());
         return intentNew;
+    }
+
+    private class TestIntentSynchronizer extends IntentSynchronizer {
+        @Override
+        protected ExecutorService createExecutor() {
+            return MoreExecutors.newDirectExecutorService();
+        }
+    }
+
+    private class TestCoreService extends CoreServiceAdapter {
+        @Override
+        public ApplicationId registerApplication(String name) {
+            return APPID;
+        }
+    }
+
+    private class TestLeadershipService extends LeadershipServiceAdapter {
+
     }
 }

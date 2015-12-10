@@ -47,9 +47,9 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.routing.IntentRequestListener;
+import org.onosproject.routing.IntentSynchronizationService;
 import org.onosproject.routing.RouteEntry;
 import org.onosproject.routing.RoutingService;
-import org.onosproject.routing.SdnIpService;
 import org.onosproject.routing.config.RoutingConfigurationService;
 import org.slf4j.Logger;
 
@@ -86,7 +86,7 @@ public class SdnIpReactiveRouting {
     protected RoutingService routingService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected SdnIpService sdnIpService;
+    protected IntentSynchronizationService intentSynchronizer;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RoutingConfigurationService config;
@@ -109,8 +109,7 @@ public class SdnIpReactiveRouting {
         appId = coreService.registerApplication(APP_NAME);
 
         intentRequestListener = new ReactiveRoutingFib(appId, hostService,
-                config, interfaceService,
-                sdnIpService.getIntentSynchronizationService());
+                config, interfaceService, intentSynchronizer);
 
         packetService.addProcessor(processor, PacketProcessor.director(2));
         requestIntercepts();

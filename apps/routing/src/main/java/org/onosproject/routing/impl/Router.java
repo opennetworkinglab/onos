@@ -35,7 +35,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
@@ -107,9 +106,6 @@ public class Router implements RoutingService {
     protected BgpService bgpService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected InterfaceService interfaceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RoutingConfigurationService routingConfigurationService;
 
     private ExecutorService bgpUpdatesExecutor;
@@ -123,7 +119,7 @@ public class Router implements RoutingService {
                 new DefaultByteArrayNodeFactory());
 
         routesWaitingOnArp = Multimaps.synchronizedSetMultimap(
-                HashMultimap.<IpAddress, RouteEntry>create());
+                HashMultimap.create());
 
         coreService.registerApplication(ROUTER_APP_ID);
 
