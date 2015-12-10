@@ -210,10 +210,41 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
     @Override
     public OpenstackNetwork network(String networkId) {
-        Collection<OpenstackNetwork> networks = restHandler.getNetworks();
-        return networks.stream()
-                .filter(n -> n.id().equals(networkId))
-                .findFirst().orElse(null);
+        try {
+            Collection<OpenstackSubnet> subnets = restHandler.getSubnets().stream()
+                    .filter(s -> s.networkId().equals(networkId))
+                    .collect(Collectors.toList());
+
+            Collection<OpenstackNetwork> networks = restHandler.getNetworks();
+            OpenstackNetwork openstackNetwork = networks.stream()
+                    .filter(n -> n.id().equals(networkId))
+                    .findFirst().get();
+
+            return OpenstackNetwork.builder()
+                    .id(openstackNetwork.id())
+                    .name(openstackNetwork.name())
+                    .networkType(openstackNetwork.networkType())
+                    .segmentId(openstackNetwork.segmentId())
+                    .tenantId(openstackNetwork.tenantId())
+                    .subnets(subnets)
+                    .build();
+        } catch (NoSuchElementException e) {
+            log.warn("There is no network infor for net ID {}", networkId);
+            return null;
+        }
+    }
+
+    @Override
+    public OpenstackSubnet subnet(String subnetId) {
+        Collection<OpenstackSubnet> subnets = restHandler.getSubnets();
+        try {
+            return subnets.stream()
+                    .filter(s -> s.id().equals(subnetId))
+                    .findFirst().get();
+        } catch (NoSuchElementException e) {
+            log.warn("There is no subnet info for subnet ID {}", subnetId);
+            return null;
+        }
     }
 
     private void processDeviceAdded(Device device) {
