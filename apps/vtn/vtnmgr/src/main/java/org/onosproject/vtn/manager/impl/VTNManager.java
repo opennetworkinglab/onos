@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -84,8 +85,12 @@ import org.onosproject.vtn.table.DnatService;
 import org.onosproject.vtn.table.L2ForwardService;
 import org.onosproject.vtn.table.L3ForwardService;
 import org.onosproject.vtn.table.SnatService;
+import org.onosproject.vtn.table.impl.ArpServiceImpl;
 import org.onosproject.vtn.table.impl.ClassifierServiceImpl;
+import org.onosproject.vtn.table.impl.DnatServiceImpl;
 import org.onosproject.vtn.table.impl.L2ForwardServiceImpl;
+import org.onosproject.vtn.table.impl.L3ForwardServiceImpl;
+import org.onosproject.vtn.table.impl.SnatServiceImpl;
 import org.onosproject.vtn.util.DataPathIdGenerator;
 import org.onosproject.vtn.util.VtnConfig;
 import org.onosproject.vtn.util.VtnData;
@@ -94,9 +99,6 @@ import org.onosproject.vtnrsc.BindingHostId;
 import org.onosproject.vtnrsc.DefaultVirtualPort;
 import org.onosproject.vtnrsc.FixedIp;
 import org.onosproject.vtnrsc.FloatingIp;
-import org.onosproject.vtnrsc.Router;
-import org.onosproject.vtnrsc.RouterGateway;
-import org.onosproject.vtnrsc.RouterId;
 import org.onosproject.vtnrsc.RouterInterface;
 import org.onosproject.vtnrsc.SecurityGroup;
 import org.onosproject.vtnrsc.SegmentationId;
@@ -110,7 +112,6 @@ import org.onosproject.vtnrsc.event.VtnRscEvent;
 import org.onosproject.vtnrsc.event.VtnRscEventFeedback;
 import org.onosproject.vtnrsc.event.VtnRscListener;
 import org.onosproject.vtnrsc.floatingip.FloatingIpService;
-import org.onosproject.vtnrsc.router.RouterService;
 import org.onosproject.vtnrsc.routerinterface.RouterInterfaceService;
 import org.onosproject.vtnrsc.service.VtnRscService;
 import org.onosproject.vtnrsc.subnet.SubnetService;
@@ -173,9 +174,6 @@ public class VTNManager implements VTNService {
     protected FloatingIpService floatingIpService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected RouterService routerService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RouterInterfaceService routerInterfaceService;
 
     private ApplicationId appId;
@@ -190,10 +188,10 @@ public class VTNManager implements VTNService {
     private final DeviceListener deviceListener = new InnerDeviceListener();
     private final VtnRscListener l3EventListener = new VtnL3EventListener();
 
+    private static String exPortName = "eth0";
     private static final String IFACEID = "ifaceid";
     private static final String CONTROLLER_IP_KEY = "ipaddress";
     public static final String DRIVER_NAME = "onosfw";
-    private static final String EX_PORT_NAME = "eth0";
     private static final String VIRTUALPORT = "vtn-virtual-port";
     private static final String SWITCHES_OF_CONTROLLER = "switchesOfController";
     private static final String SWITCH_OF_LOCAL_HOST_PORTS = "switchOfLocalHostPorts";
@@ -215,9 +213,14 @@ public class VTNManager implements VTNService {
         appId = coreService.registerApplication(APP_ID);
         classifierService = new ClassifierServiceImpl(appId);
         l2ForwardService = new L2ForwardServiceImpl(appId);
+        arpService = new ArpServiceImpl(appId);
+        l3ForwardService = new L3ForwardServiceImpl(appId);
+        snatService = new SnatServiceImpl(appId);
+        dnatService = new DnatServiceImpl(appId);
 
         deviceService.addListener(deviceListener);
         hostService.addListener(hostListener);
+        vtnRscService.addListener(l3EventListener);
 
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                                 .register(KryoNamespaces.API)
@@ -307,7 +310,7 @@ public class VTNManager implements VTNService {
             config.driver(DRIVER_NAME);
             configService.applyConfig(deviceId, BasicDeviceConfig.class, config.node());
             // Add Bridge
-            VtnConfig.applyBridgeConfig(handler, dpid, EX_PORT_NAME);
+            VtnConfig.applyBridgeConfig(handler, dpid, exPortName);
             log.info("A new ovs is created in node {}", localIp.toString());
             switchesOfController.put(localIp, true);
         }
@@ -470,6 +473,28 @@ public class VTNManager implements VTNService {
         VirtualPort virtualPort = virtualPortService.getPort(virtualPortId);
         if (virtualPort == null) {
             virtualPort = VtnData.getPort(vPortStore, virtualPortId);
+        }
+        Iterator<FixedIp> fixip = virtualPort.fixedIps().iterator();
+        SubnetId subnetId = null;
+        if (fixip.hasNext()) {
+            subnetId = fixip.next().subnetId();
+        }
+        if (subnetId != null) {
+            Map<HostId, Host> hosts = new ConcurrentHashMap();
+            if (hostsOfSubnet.get(subnetId) != null) {
+                hosts = hostsOfSubnet.get(subnetId);
+            }
+            if (type == Objective.Operation.ADD) {
+                hosts.put(host.id(), host);
+                hostsOfSubnet.put(subnetId, hosts);
+            } else if (type == Objective.Operation.REMOVE) {
+                hosts.remove(host.id());
+                if (hosts.size() != 0) {
+                    hostsOfSubnet.put(subnetId, hosts);
+                } else {
+                    hostsOfSubnet.remove(subnetId);
+                }
+            }
         }
 
         Iterable<Device> devices = deviceService.getAvailableDevices();
@@ -887,15 +912,8 @@ public class VTNManager implements VTNService {
         List gwIpMac = getGwIpAndMac(vmPort);
         IpAddress dstVmGwIp = (IpAddress) gwIpMac.get(0);
         MacAddress dstVmGwMac = (MacAddress) gwIpMac.get(1);
-        FixedIp fixedGwIp = getGwFixedIp(floatingIp);
-        MacAddress fGwMac = null;
-        if (fixedGwIp != null) {
-            VirtualPort gwPort = virtualPortService.getPort(fixedGwIp);
-            if (gwPort == null) {
-                gwPort = VtnData.getPort(vPortStore, fixedGwIp);
-            }
-            fGwMac = gwPort.macAddress();
-        }
+        List fGwIpMac = getGwIpAndMac(fipPort);
+        MacAddress fGwMac = (MacAddress) fGwIpMac.get(1);
         TenantNetwork vmNetwork = tenantNetworkService
                 .getNetwork(vmPort.networkId());
         TenantNetwork fipNetwork = tenantNetworkService
@@ -947,7 +965,7 @@ public class VTNManager implements VTNService {
         Port exPort = null;
         for (Port port : ports) {
             String portName = port.annotations().value(AnnotationKeys.PORT_NAME);
-            if (portName != null && portName.equals(EX_PORT_NAME)) {
+            if (portName != null && portName.equals(exPortName)) {
                 exPort = port;
                 break;
             }
@@ -975,21 +993,6 @@ public class VTNManager implements VTNService {
         list.add(gwIp);
         list.add(gwMac);
         return list;
-    }
-
-    private FixedIp getGwFixedIp(FloatingIp floatingIp) {
-        RouterId routerId = floatingIp.routerId();
-        Router router = routerService.getRouter(routerId);
-        RouterGateway routerGateway = router.externalGatewayInfo();
-        Iterable<FixedIp> externalFixedIps = routerGateway.externalFixedIps();
-        FixedIp fixedGwIp = null;
-        if (externalFixedIps != null) {
-            Iterator<FixedIp> exFixedIps = externalFixedIps.iterator();
-            if (exFixedIps.hasNext()) {
-                fixedGwIp = exFixedIps.next();
-            }
-        }
-        return fixedGwIp;
     }
 
     private void applyHostMonitoredL3Rules(Host host,
@@ -1059,5 +1062,9 @@ public class VTNManager implements VTNService {
             applyNorthSouthL3Flows(deviceId, host, port, fipPort, floatingIp,
                                    l3vni, exPort, operation);
         }
+    }
+
+    public static void setExPortName(String name) {
+        exPortName = name;
     }
 }
