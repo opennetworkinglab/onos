@@ -106,6 +106,8 @@ public class NettyMessaging implements MessagingService {
     protected char[] ksPwd;
     protected char[] tsPwd;
 
+    @SuppressWarnings("squid:S1181")
+    // We really need to catch Throwable due to netty native epoll() handling
     private void initEventLoopGroup() {
         // try Epoll first and if that does work, use nio.
         try {

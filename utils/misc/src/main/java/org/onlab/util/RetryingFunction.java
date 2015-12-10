@@ -42,6 +42,8 @@ public class RetryingFunction<U, V> implements Function<U, V> {
         this.maxDelayBetweenRetries = maxDelayBetweenRetries;
     }
 
+    @SuppressWarnings("squid:S1181")
+    // Yes we really do want to catch Throwable
     @Override
     public V apply(U input) {
         int retryAttempts = 0;

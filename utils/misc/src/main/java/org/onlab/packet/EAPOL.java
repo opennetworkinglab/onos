@@ -148,6 +148,28 @@ public class EAPOL extends BasePacket {
         return result;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof EAPOL)) {
+            return false;
+        }
+        EAPOL that = (EAPOL) o;
+
+        if (this.version != that.version) {
+            return false;
+        }
+        if (this.eapolType != that.eapolType) {
+            return false;
+        }
+        if (this.packetLength != that.packetLength) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Deserializer for EAPOL packets.
      *
