@@ -164,8 +164,9 @@
                             com.google.common.*,
                             org.onlab.packet.*,
                             org.onlab.rest.*,
-                            org.onosproject.*,
+                            org.onlab.osgi.*,
                             org.onlab.util.*,
+                            org.onosproject.*,
                             org.jboss.netty.util.*
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>

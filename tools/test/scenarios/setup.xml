@@ -33,15 +33,16 @@
             <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
                   requires="Install-${#},~Secure-SSH"/>
 
-            <step name="Check-Nodes-${#}" exec="onos-check-nodes ${OC#}"
+            <step name="Check-Nodes-${#}" exec="onos-check-nodes ${OC#}" delay="3"
                   requires="~Wait-for-Start-${#}"/>
-            <step name="Check-Logs-${#}" exec="onos-check-logs ${OC#}"
-                  requires="~Wait-for-Start-${#}"/>
-            <step name="Check-Components-${#}"
+            <step name="Check-Components-${#}" delay="5"
                   exec="onos-check-components ${OC#}"
-                  requires="~Wait-for-Start-${#},"/>
-            <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#} ${ONOS_APPS} includes"
                   requires="~Wait-for-Start-${#}"/>
+
+            <step name="Check-Logs-${#}" exec="onos-check-logs ${OC#}"
+                  requires="~Check-Components-${#}"/>
+            <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#} ${ONOS_APPS} includes"
+                  requires="~Check-Components-${#}"/>
         </parallel>
     </group>
 </scenario>

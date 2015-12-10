@@ -61,6 +61,7 @@ public class AppUiComponent {
     // Application UI extension
     protected UiExtension extension =
             new UiExtension.Builder(getClass().getClassLoader(), uiViews)
+                    .resourcePath(VIEW_ID)
                     .messageHandlerFactory(messageHandlerFactory)
                     .build();
 
