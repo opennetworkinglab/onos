@@ -230,7 +230,7 @@ public class SfcManagerTest {
         // create port chain
         portChain = portChainBuilder.setId(portChainId).setTenantId(tenantId).setName(name).setDescription(description)
                 .setPortPairGroups(portPairGroupList).setFlowClassifiers(flowClassifierList).build();
-        sfcService.onPortChainCreated(portChain);
+        //sfcService.onPortChainCreated(portChain);
     }
 
     /**
@@ -264,6 +264,6 @@ public class SfcManagerTest {
         // create port chain
         portChain = portChainBuilder.setId(portChainId).setTenantId(tenantId).setName(name).setDescription(description)
                 .setPortPairGroups(portPairGroupList).setFlowClassifiers(flowClassifierList).build();
-        sfcService.onPortChainDeleted(portChain);
+        //sfcService.onPortChainDeleted(portChain);
     }
 }

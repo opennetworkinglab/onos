@@ -23,9 +23,20 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.ItemNotFoundException;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.NshServicePathId;
+import org.onosproject.sfc.forwarder.ServiceFunctionForwarderService;
+import org.onosproject.sfc.forwarder.impl.ServiceFunctionForwarderImpl;
+import org.onosproject.sfc.installer.FlowClassifierInstallerService;
+import org.onosproject.sfc.installer.impl.FlowClassifierInstallerImpl;
+import org.onosproject.sfc.manager.NshSpiIdGenerators;
 import org.onosproject.sfc.manager.SfcService;
 import org.onosproject.vtnrsc.PortPair;
 import org.onosproject.vtnrsc.PortPairId;
@@ -37,6 +48,7 @@ import org.onosproject.vtnrsc.PortChain;
 import org.onosproject.vtnrsc.PortChainId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.event.VtnRscEvent;
+import org.onosproject.vtnrsc.event.VtnRscEventFeedback;
 import org.onosproject.vtnrsc.event.VtnRscListener;
 import org.onosproject.vtnrsc.service.VtnRscService;
 
@@ -59,12 +71,18 @@ public class SfcManager implements SfcService {
     protected CoreService coreService;
 
     protected ApplicationId appId;
+    private ServiceFunctionForwarderService serviceFunctionForwarderService;
+    private FlowClassifierInstallerService flowClassifierInstallerService;
 
     private final VtnRscListener vtnRscListener = new InnerVtnRscListener();
+
+    private ConcurrentMap<PortChainId, NshServicePathId> nshSpiPortChainMap = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
         appId = coreService.registerApplication(APP_ID);
+        serviceFunctionForwarderService = new ServiceFunctionForwarderImpl(appId);
+        flowClassifierInstallerService = new FlowClassifierInstallerImpl(appId);
 
         vtnRscService.addListener(vtnRscListener);
 
@@ -93,43 +111,43 @@ public class SfcManager implements SfcService {
         public void event(VtnRscEvent event) {
 
             if (VtnRscEvent.Type.PORT_PAIR_PUT == event.type()) {
-                PortPair portPair = (PortPair) event.subject();
+                PortPair portPair = ((VtnRscEventFeedback) event.subject()).portPair();
                 onPortPairCreated(portPair);
             } else if (VtnRscEvent.Type.PORT_PAIR_DELETE == event.type()) {
-                PortPair portPair = (PortPair) event.subject();
+                PortPair portPair = ((VtnRscEventFeedback) event.subject()).portPair();
                 onPortPairDeleted(portPair);
             } else if (VtnRscEvent.Type.PORT_PAIR_UPDATE == event.type()) {
-                PortPair portPair = (PortPair) event.subject();
+                PortPair portPair = ((VtnRscEventFeedback) event.subject()).portPair();
                 onPortPairDeleted(portPair);
                 onPortPairCreated(portPair);
             } else if (VtnRscEvent.Type.PORT_PAIR_GROUP_PUT == event.type()) {
-                PortPairGroup portPairGroup = (PortPairGroup) event.subject();
+                PortPairGroup portPairGroup = ((VtnRscEventFeedback) event.subject()).portPairGroup();
                 onPortPairGroupCreated(portPairGroup);
             } else if (VtnRscEvent.Type.PORT_PAIR_GROUP_DELETE == event.type()) {
-                PortPairGroup portPairGroup = (PortPairGroup) event.subject();
+                PortPairGroup portPairGroup = ((VtnRscEventFeedback) event.subject()).portPairGroup();
                 onPortPairGroupDeleted(portPairGroup);
             } else if (VtnRscEvent.Type.PORT_PAIR_GROUP_UPDATE == event.type()) {
-                PortPairGroup portPairGroup = (PortPairGroup) event.subject();
+                PortPairGroup portPairGroup = ((VtnRscEventFeedback) event.subject()).portPairGroup();
                 onPortPairGroupDeleted(portPairGroup);
                 onPortPairGroupCreated(portPairGroup);
             } else if (VtnRscEvent.Type.FLOW_CLASSIFIER_PUT == event.type()) {
-                FlowClassifier flowClassifier = (FlowClassifier) event.subject();
+                FlowClassifier flowClassifier = ((VtnRscEventFeedback) event.subject()).flowClassifier();
                 onFlowClassifierCreated(flowClassifier);
             } else if (VtnRscEvent.Type.FLOW_CLASSIFIER_DELETE == event.type()) {
-                FlowClassifier flowClassifier = (FlowClassifier) event.subject();
+                FlowClassifier flowClassifier = ((VtnRscEventFeedback) event.subject()).flowClassifier();
                 onFlowClassifierDeleted(flowClassifier);
             } else if (VtnRscEvent.Type.FLOW_CLASSIFIER_UPDATE == event.type()) {
-                FlowClassifier flowClassifier = (FlowClassifier) event.subject();
+                FlowClassifier flowClassifier = ((VtnRscEventFeedback) event.subject()).flowClassifier();
                 onFlowClassifierDeleted(flowClassifier);
                 onFlowClassifierCreated(flowClassifier);
             } else if (VtnRscEvent.Type.PORT_CHAIN_PUT == event.type()) {
-                PortChain portChain = (PortChain) event.subject();
+                PortChain portChain = (PortChain) ((VtnRscEventFeedback) event.subject()).portChain();
                 onPortChainCreated(portChain);
             } else if (VtnRscEvent.Type.PORT_CHAIN_DELETE == event.type()) {
-                PortChain portChain = (PortChain) event.subject();
+                PortChain portChain = (PortChain) ((VtnRscEventFeedback) event.subject()).portChain();
                 onPortChainDeleted(portChain);
             } else if (VtnRscEvent.Type.PORT_CHAIN_UPDATE == event.type()) {
-                PortChain portChain = (PortChain) event.subject();
+                PortChain portChain = (PortChain) ((VtnRscEventFeedback) event.subject()).portChain();
                 onPortChainDeleted(portChain);
                 onPortChainCreated(portChain);
             }
@@ -174,13 +192,33 @@ public class SfcManager implements SfcService {
 
     @Override
     public void onPortChainCreated(PortChain portChain) {
-         log.debug("onPortChainCreated");
-         //TODO: Apply forwarding rule on port-chain creation.
+        NshServicePathId nshSPI;
+        log.info("onPortChainCreated");
+        if (nshSpiPortChainMap.containsKey(portChain.portChainId())) {
+            nshSPI = nshSpiPortChainMap.get(portChain.portChainId());
+        } else {
+            nshSPI = NshServicePathId.of(NshSpiIdGenerators.create());
+            nshSpiPortChainMap.put(portChain.portChainId(), nshSPI);
+        }
+
+        // install in OVS.
+        flowClassifierInstallerService.installFlowClassifier(portChain, nshSPI);
+        serviceFunctionForwarderService.installForwardingRule(portChain, nshSPI);
     }
 
     @Override
     public void onPortChainDeleted(PortChain portChain) {
-        log.debug("onPortChainDeleted");
-        //TODO: Apply forwarding rule on port-chain deletion.
+        log.info("onPortChainDeleted");
+        if (!nshSpiPortChainMap.containsKey(portChain.portChainId())) {
+            throw new ItemNotFoundException("Unable to find NSH SPI");
+        }
+
+        NshServicePathId nshSPI = nshSpiPortChainMap.get(portChain.portChainId());
+        // uninstall from OVS.
+        flowClassifierInstallerService.unInstallFlowClassifier(portChain, nshSPI);
+        serviceFunctionForwarderService.unInstallForwardingRule(portChain, nshSPI);
+
+        // remove SPI. No longer it will be used.
+        nshSpiPortChainMap.remove(nshSPI);
     }
 }
