@@ -109,6 +109,8 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
 
     /**
      * Explicit constructor.
+     *
+     * @param appId Application id
      */
     public ServiceFunctionForwarderImpl(ApplicationId appId) {
         this.appId = checkNotNull(appId, APP_ID_NOT_NULL);
@@ -160,6 +162,8 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
      * @param currentPortPairGroup current port-pair-group
      * @param nextPortPairGroup next port-pair-group
      * @param listGrpIterator pointer to port-pair-group list
+     * @param nshSPI nsh service path id
+     * @param type objective type
      */
     public void pushServiceFunctionForwarder(PortPairGroup currentPortPairGroup, PortPairGroup nextPortPairGroup,
             ListIterator<PortPairGroupId> listGrpIterator, NshServicePathId nshSPI, Objective.Operation type) {
