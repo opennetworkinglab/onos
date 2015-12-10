@@ -20,20 +20,28 @@ import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.Exten
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_NSH_SPI;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Component;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
 import org.onosproject.net.NshServicePathId;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
@@ -49,6 +57,7 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective.Flag;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.Objective.Operation;
+import org.onosproject.net.host.HostService;
 import org.onosproject.sfc.installer.FlowClassifierInstallerService;
 import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.FlowClassifierId;
@@ -63,11 +72,14 @@ import org.onosproject.vtnrsc.portpair.PortPairService;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
 import org.onosproject.vtnrsc.service.VtnRscService;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
+
 import org.slf4j.Logger;
 
 /**
  * Provides flow classifier installer implementation.
  */
+@Component(immediate = true)
+@Service
 public class FlowClassifierInstallerImpl implements FlowClassifierInstallerService {
 
     private final Logger log = getLogger(getClass());
@@ -89,6 +101,12 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
 
     protected FlowObjectiveService flowObjectiveService;
     protected ApplicationId appId;
@@ -168,7 +186,7 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
         // Vxlan tunnel port for NSH header(Vxlan + NSH).
         TpPort nshDstPort = TpPort.tpPort(6633);
 
-        if (flowClassifier.srcPort() != null) {
+        if ((flowClassifier.srcPort() != null) && (!flowClassifier.srcPort().portId().isEmpty())) {
             deviceIdfromFc = vtnRscService.getSFToSFFMaping(flowClassifier.srcPort());
             deviceId = deviceIdfromFc;
         } else {
@@ -197,25 +215,31 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
     public TrafficSelector.Builder packTrafficSelector(FlowClassifier flowClassifier) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
 
-        if (flowClassifier.srcIpPrefix() != null) {
+        if ((flowClassifier.srcIpPrefix() != null) && (flowClassifier.srcIpPrefix().prefixLength() != 0)) {
             selector.matchIPSrc(flowClassifier.srcIpPrefix());
         }
-        if (flowClassifier.dstIpPrefix() != null) {
+
+        if ((flowClassifier.dstIpPrefix() != null) && (flowClassifier.dstIpPrefix().prefixLength() != 0)) {
             selector.matchIPDst(flowClassifier.dstIpPrefix());
         }
 
-        if (flowClassifier.protocol() != null) {
+        if ((flowClassifier.protocol() != null) && (!flowClassifier.protocol().isEmpty())) {
             selector.add(Criteria.matchIPProtocol(Short.parseShort(flowClassifier.protocol())));
         }
-        if ((flowClassifier.etherType() != null)
-                && (flowClassifier.etherType() == "IPv4" || flowClassifier.etherType() == "IPv6")) {
-            selector.matchEthType(Short.parseShort((flowClassifier.etherType())));
+
+        if (((flowClassifier.etherType() != null) && (!flowClassifier.etherType().isEmpty()))
+                && (flowClassifier.etherType().equals("IPv4") || flowClassifier.etherType().equals("IPv6"))) {
+            if (flowClassifier.etherType().equals("IPv4")) {
+                selector.matchEthType(Ethernet.TYPE_IPV4);
+            } else {
+                selector.matchEthType(Ethernet.TYPE_IPV6);
+            }
         }
 
         List<TpPort> srcPortRange = new LinkedList<>();
         List<TpPort> dstPortRange = new LinkedList<>();
-        if ((flowClassifier.minSrcPortRange() != NULL) && flowClassifier.maxSrcPortRange() != NULL
-                && flowClassifier.minDstPortRange() != NULL && flowClassifier.maxDstPortRange() != NULL) {
+        if ((flowClassifier.minSrcPortRange() != 0) && flowClassifier.maxSrcPortRange() != 0
+                && flowClassifier.minDstPortRange() != 0 && flowClassifier.maxDstPortRange() != 0) {
 
             for (int port = flowClassifier.minSrcPortRange(); port <= flowClassifier.maxSrcPortRange(); port++) {
                 srcPortRange.add(TpPort.tpPort(port));
@@ -250,6 +274,17 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
                                                TpPort nshDstPort, DeviceId deviceIdfromFc, DeviceId deviceIdfromPp,
                                                NshServicePathId nshSPI, FlowClassifier flowClassifier) {
         TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+
+        Host host = hostService.getHost(HostId.hostId(srcMacAddress));
+        PortNumber port = host.location().port();
+        if (deviceIdfromPp != null) {
+            treatmentBuilder.setOutput(port);
+        } else if (deviceIdfromFc != null) {
+            treatmentBuilder.setVlanId((VlanId.vlanId(Short.parseShort((vtnRscService.getL3vni(flowClassifier
+                    .tenantId()).toString())))));
+        }
+
+        // Set NSH
         DriverHandler handler = driverService.createHandler(deviceId);
         ExtensionTreatmentResolver resolver = handler.behaviour(ExtensionTreatmentResolver.class);
         ExtensionTreatment nspIdTreatment = resolver.getExtensionInstruction(NICIRA_SET_NSH_SPI.type());
@@ -269,13 +304,6 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
         } catch (Exception e) {
             log.error("Failed to get extension instruction to set Nsh Si Id {}", deviceId);
         }
-
-        if (deviceIdfromPp != null) {
-            treatmentBuilder.setEthSrc(srcMacAddress);
-        } else if (deviceIdfromFc != null) {
-            treatmentBuilder.setVlanId((VlanId.vlanId(Short.parseShort((vtnRscService.getL3vni(flowClassifier
-                    .tenantId()).toString())))));
-        }
         return treatmentBuilder;
     }
 
@@ -290,8 +318,8 @@ public class FlowClassifierInstallerImpl implements FlowClassifierInstallerServi
     public void sendServiceFunctionForwarder(TrafficSelector.Builder selector, TrafficTreatment.Builder treatment,
             DeviceId deviceId, Objective.Operation type) {
         ForwardingObjective.Builder objective = DefaultForwardingObjective.builder().withTreatment(treatment.build())
-                .withSelector(selector.build()).fromApp(appId).makePermanent().withFlag(Flag.SPECIFIC).withPriority(
-                        L3FWD_PRIORITY);
+                .withSelector(selector.build()).fromApp(appId).makePermanent().withFlag(Flag.VERSATILE)
+                .withPriority(L3FWD_PRIORITY);
 
         if (type.equals(Objective.Operation.ADD)) {
             log.debug("flowClassifierRules-->ADD");
