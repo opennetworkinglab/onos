@@ -301,8 +301,8 @@ public class DefaultFlowRule implements FlowRule {
         private Integer priority;
         private DeviceId deviceId;
         private Integer tableId = 0;
-        private TrafficSelector selector;
-        private TrafficTreatment treatment;
+        private TrafficSelector selector = DefaultTrafficSelector.builder().build();
+        private TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();
         private Integer timeout;
         private Boolean permanent;
 
