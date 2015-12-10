@@ -34,48 +34,48 @@ public final class AlarmJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> 
 
     @Override
     public boolean matchesSafely(JsonNode jsonAlarm, Description description) {
-        final String jsonAlarmId = jsonAlarm.get("id").asText();
-        final String alarmId = Long.toString(alarm.id().fingerprint());
+        String jsonAlarmId = jsonAlarm.get("id").asText();
+        String alarmId = Long.toString(alarm.id().fingerprint());
         if (!jsonAlarmId.equals(alarmId)) {
             description.appendText("alarm id was " + jsonAlarmId);
             return false;
         }
 
-        final String jsonDeviceId = jsonAlarm.get("deviceId").asText();
-        final String alarmDeviceId = alarm.deviceId().toString();
+        String jsonDeviceId = jsonAlarm.get("deviceId").asText();
+        String alarmDeviceId = alarm.deviceId().toString();
         if (!jsonDeviceId.equals(alarmDeviceId)) {
             description.appendText("DeviceId was " + jsonDeviceId);
             return false;
         }
 
 
-        final String jsonDescription = jsonAlarm.get("description").asText();
-        final String alarmDesc = alarm.description();
+        String jsonDescription = jsonAlarm.get("description").asText();
+        String alarmDesc = alarm.description();
         if (!jsonDescription.equals(alarmDesc)) {
             description.appendText("description was " + jsonDescription);
             return false;
         }
 
-        final long jsonTimeRaised = jsonAlarm.get("timeRaised").asLong();
-        final long timeRaised = alarm.timeRaised();
+        long jsonTimeRaised = jsonAlarm.get("timeRaised").asLong();
+        long timeRaised = alarm.timeRaised();
         if (timeRaised != jsonTimeRaised) {
             description.appendText("timeRaised was " + jsonTimeRaised);
             return false;
         }
 
 
-        final long jsonTimeUpdated = jsonAlarm.get("timeUpdated").asLong();
-        final long timeUpdated = alarm.timeUpdated();
+        long jsonTimeUpdated = jsonAlarm.get("timeUpdated").asLong();
+        long timeUpdated = alarm.timeUpdated();
         if (timeUpdated != jsonTimeUpdated) {
             description.appendText("timeUpdated was " + jsonTimeUpdated);
             return false;
         }
 
-        final JsonNode jsonTimeClearedNode = jsonAlarm.get("timeCleared");
+        JsonNode jsonTimeClearedNode = jsonAlarm.get("timeCleared");
 
         if (alarm.timeCleared() != null) {
-            final Long jsonTimeCleared = jsonTimeClearedNode.longValue();
-            final Long timeCleared = alarm.timeCleared();
+            Long jsonTimeCleared = jsonTimeClearedNode.longValue();
+            Long timeCleared = alarm.timeCleared();
 
             if (!timeCleared.equals(jsonTimeCleared)) {
                 description.appendText("Time Cleared was " + jsonTimeCleared);
@@ -89,18 +89,18 @@ public final class AlarmJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> 
             }
         }
 
-        final String jsonSeverity = jsonAlarm.get("severity").asText();
-        final String severity = alarm.severity().toString();
+        String jsonSeverity = jsonAlarm.get("severity").asText();
+        String severity = alarm.severity().toString();
         if (!severity.equals(jsonSeverity)) {
             description.appendText("severity was " + jsonSeverity);
             return false;
         }
 
-        final JsonNode jsonAlarmNode = jsonAlarm.get("source");
+        JsonNode jsonAlarmNode = jsonAlarm.get("source");
 
         if (alarm.source() != null) {
-            final String jsonSource = jsonAlarmNode.textValue();
-            final String source = alarm.source().toString();
+            String jsonSource = jsonAlarmNode.textValue();
+            String source = alarm.source().toString();
 
             if (!source.equals(jsonSource)) {
                 description.appendText("source was " + jsonSource);

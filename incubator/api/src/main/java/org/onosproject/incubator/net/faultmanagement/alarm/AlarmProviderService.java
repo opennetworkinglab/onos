@@ -16,6 +16,7 @@
 package org.onosproject.incubator.net.faultmanagement.alarm;
 
 
+import com.google.common.annotations.Beta;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.ProviderService;
 
@@ -24,6 +25,7 @@ import java.util.Collection;
 /**
  * The interface Alarm provider service.
  */
+@Beta
 public interface AlarmProviderService extends ProviderService<AlarmProvider> {
 
     /**

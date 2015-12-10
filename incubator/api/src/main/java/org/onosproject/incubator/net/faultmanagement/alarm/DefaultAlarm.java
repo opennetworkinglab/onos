@@ -145,14 +145,16 @@ public final class DefaultAlarm implements Alarm {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, deviceId, description,
-                source, timeRaised, timeUpdated, timeCleared, severity,
+        // id or timeRaised or timeUpdated may differ
+        return Objects.hash(deviceId, description,
+                source, timeCleared, severity,
                 isServiceAffecting, isAcknowledged,
                 isManuallyClearable, assignedUser);
     }
 
     @Override
     public boolean equals(final Object obj) {
+        // Make sure equals() is tune with hashCode() so works ok in a hashSet !
         if (obj == null) {
             return false;
         }
@@ -160,9 +162,8 @@ public final class DefaultAlarm implements Alarm {
             return false;
         }
         final DefaultAlarm other = (DefaultAlarm) obj;
-        if (!Objects.equals(this.id, other.id)) {
-            return false;
-        }
+
+        // id or timeRaised or timeUpdated may differ
         if (!Objects.equals(this.deviceId, other.deviceId)) {
             return false;
         }
@@ -172,12 +173,7 @@ public final class DefaultAlarm implements Alarm {
         if (!Objects.equals(this.source, other.source)) {
             return false;
         }
-        if (this.timeRaised != other.timeRaised) {
-            return false;
-        }
-        if (this.timeUpdated != other.timeUpdated) {
-            return false;
-        }
+
         if (!Objects.equals(this.timeCleared, other.timeCleared)) {
             return false;
         }
@@ -219,11 +215,11 @@ public final class DefaultAlarm implements Alarm {
 
     public static class Builder {
 
-        // Manadatory fields ..
-        private final AlarmId id;
+        // Manadatory fields when constructing alarm ...
+        private AlarmId id;
         private final DeviceId deviceId;
         private final String description;
-        private final SeverityLevel severity;
+        private SeverityLevel severity;
         private final long timeRaised;
 
         // Optional fields ..
@@ -236,8 +232,8 @@ public final class DefaultAlarm implements Alarm {
         private String assignedUser = null;
 
         public Builder(final Alarm alarm) {
-            this(alarm.id(), alarm.deviceId(), alarm.description(), alarm.severity(), alarm.timeRaised());
-            this.source = AlarmEntityId.NONE;
+            this(alarm.deviceId(), alarm.description(), alarm.severity(), alarm.timeRaised());
+            this.source = alarm.source();
             this.timeUpdated = alarm.timeUpdated();
             this.timeCleared = alarm.timeCleared();
             this.isServiceAffecting = alarm.serviceAffecting();
@@ -247,10 +243,10 @@ public final class DefaultAlarm implements Alarm {
 
         }
 
-        public Builder(final AlarmId id, final DeviceId deviceId,
+        public Builder(final DeviceId deviceId,
                 final String description, final SeverityLevel severity, final long timeRaised) {
             super();
-            this.id = id;
+            this.id = AlarmId.NONE;
             this.deviceId = deviceId;
             this.description = description;
             this.severity = severity;
@@ -272,6 +268,17 @@ public final class DefaultAlarm implements Alarm {
         public Builder withTimeCleared(final Long timeCleared) {
             this.timeCleared = timeCleared;
             return this;
+        }
+
+        public Builder withId(final AlarmId id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder clear() {
+            this.severity = SeverityLevel.CLEARED;
+            final long now = System.currentTimeMillis();
+            return withTimeCleared(now).withTimeUpdated(now);
         }
 
         public Builder withServiceAffecting(final boolean isServiceAffecting) {

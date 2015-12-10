@@ -38,10 +38,10 @@ public class AlarmsWebResourceTest extends ResourceTest {
     @Before
     public void setUp() {
 
-        final CodecManager codecService = new CodecManager();
+        CodecManager codecService = new CodecManager();
         codecService.activate();
 
-        final ServiceDirectory testDirectory = new TestServiceDirectory()
+        ServiceDirectory testDirectory = new TestServiceDirectory()
                 // Currently no alarms-service implemented
                 // .add(AlarmsService.class, alarmsService)
                 .add(CodecService.class, codecService);
@@ -51,8 +51,8 @@ public class AlarmsWebResourceTest extends ResourceTest {
     @Test
     @Ignore
     public void getAllAlarms() {
-        final WebResource rs = resource();
-        final String response = rs.path("/alarms").get(String.class);
+        WebResource rs = resource();
+        String response = rs.path("/alarms").get(String.class);
         // Ensure hard-coded alarms returned okay
         assertThat(response, containsString("\"NE is not reachable\","));
         assertThat(response, containsString("\"Equipment Missing\","));
@@ -61,8 +61,8 @@ public class AlarmsWebResourceTest extends ResourceTest {
     @Test
     @Ignore
     public void getAlarm() {
-        final WebResource rs = resource();
-        final String response = rs.path("/alarms/1").get(String.class);
+        WebResource rs = resource();
+        String response = rs.path("/alarms/1").get(String.class);
         // Ensure hard-coded alarms returned okay
         assertThat(response, containsString("\"NE is not reachable\","));
         assertThat(response, not(containsString("\"Equipment Missing\",")));

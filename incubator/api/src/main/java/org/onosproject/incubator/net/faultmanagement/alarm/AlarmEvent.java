@@ -15,51 +15,64 @@
  */
 package org.onosproject.incubator.net.faultmanagement.alarm;
 
+import java.util.Set;
 import org.onosproject.event.AbstractEvent;
+import org.onosproject.net.DeviceId;
 
 /**
- * Entity that represents Alarm events.
+ * Entity that represents Alarm events. Note: although the event will itself have a time, consumers may be more
+ * interested in the times embedded in the alarms themselves.
+ *
  */
-public class AlarmEvent extends AbstractEvent<AlarmEvent.Type, Alarm> {
+public class AlarmEvent extends AbstractEvent<AlarmEvent.Type, Set<Alarm>> {
 
+    private final DeviceId deviceRefreshed;
 
     /**
-     * Creates an event of a given type and for the specified alarm and the
-     * current time.
+     * Creates an event due to one or more notification.
      *
-     * @param type  topology event type
-     * @param alarm the alarm
+     * @param alarms the set one or more of alarms.
      */
-    public AlarmEvent(Type type, Alarm alarm) {
-        super(type, alarm);
+    public AlarmEvent(Set<Alarm> alarms) {
+        super(Type.NOTIFICATION, alarms);
+        deviceRefreshed = null;
     }
 
     /**
-     * Creates an event of a given type and for the specified alarm and time.
+     * Creates an event due to alarm discovery for a device.
      *
-     * @param type  link event type
-     * @param alarm the alarm
-     * @param time  occurrence time
+     * @param alarms the set of alarms.
+     * @param deviceRefreshed if of refreshed device, populated after a de-discovery
      */
-    public AlarmEvent(Type type, Alarm alarm,
-                      long time) {
-        super(type, alarm, time);
+    public AlarmEvent(Set<Alarm> alarms,
+            DeviceId deviceRefreshed) {
+        super(Type.DEVICE_DISCOVERY, alarms);
+        this.deviceRefreshed = deviceRefreshed;
+
     }
 
     /**
-     * Type of alarm events.
+     * Gets which device was refreshed.
+     *
+     * @return the refreshed device, or null if event related to a asynchronous notification(s)
+     */
+    public DeviceId getDeviceRefreshed() {
+        return deviceRefreshed;
+    }
+
+    /**
+     * Type of alarm event.
      */
     public enum Type {
-        /**
-         * A Raised Alarm.
-         */
-        RAISE,
 
         /**
-         * A Cleared Alarm.
+         * Individual alarm(s) updated.
          */
-        CLEAR
+        NOTIFICATION,
+        /**
+         * Alarm set updated for a given device.
+         */
+        DEVICE_DISCOVERY,
     }
-
 
 }

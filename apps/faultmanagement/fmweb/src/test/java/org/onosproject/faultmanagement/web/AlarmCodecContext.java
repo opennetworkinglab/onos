@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Mock codec context for use in codec unit tests.
  */
-public class AlarmCodecContext implements CodecContext {
+public final class AlarmCodecContext implements CodecContext {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final CodecManager codecManager = new CodecManager();

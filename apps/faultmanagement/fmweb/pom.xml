@@ -124,6 +124,7 @@
                             com.fasterxml.jackson.core,
                             org.apache.karaf.shell.commands,
                             org.apache.commons.lang.math.*,
+                            org.apache.commons.lang.*,
                             com.google.common.*,
                             org.onlab.packet.*,
                             org.onlab.rest.*,

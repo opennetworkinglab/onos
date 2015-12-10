@@ -21,4 +21,6 @@
 
     <artifact>mvn:${project.groupId}/onos-app-fm-mgr/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-fm-web/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-fm-gui/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-fm-cli/${project.version}</artifact>
 </app>

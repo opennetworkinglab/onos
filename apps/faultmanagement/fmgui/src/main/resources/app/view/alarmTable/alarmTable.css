@@ -1,0 +1,35 @@
+/* css for alarm table view */
+
+#ov-alarm-table h2 {
+    display: inline-block;
+}
+
+/* Panel Styling */
+#ov-alarm-table-item-details-panel.floatpanel {
+    position: absolute;
+    top: 115px;
+}
+
+.light #ov-alarm-table-item-details-panel.floatpanel {
+    background-color: rgb(229, 234, 237);
+}
+.dark #ov-alarm-table-item-details-panel.floatpanel {
+    background-color: #3A4042;
+}
+
+#ov-alarm-table-item-details-panel h3 {
+    margin: 0;
+    font-size: large;
+}
+
+#ov-alarm-table-item-details-panel h4 {
+    margin: 0;
+}
+
+#ov-alarm-table-item-details-panel td {
+    padding: 5px;
+}
+#ov-alarm-table-item-details-panel td.label {
+    font-style: italic;
+    opacity: 0.8;
+}

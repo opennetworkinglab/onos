@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
+ * Copyright 2015 Open Networking Laboratory
+=======
  * Copyright 2014 Open Networking Laboratory
+>>>>>>> master
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +19,6 @@
  */
 
 /**
- * Provider that uses SNMP as a means of discovering alarms on devices.
+ * Provider that will support SNMP alarm discoveries.
  */
 package org.onosproject.provider.snmp.alarm.impl;

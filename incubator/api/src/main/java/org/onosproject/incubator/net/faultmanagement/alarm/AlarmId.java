@@ -16,11 +16,9 @@
 package org.onosproject.incubator.net.faultmanagement.alarm;
 
 import com.google.common.annotations.Beta;
-
 import java.util.Objects;
-
 import static com.google.common.base.MoreObjects.toStringHelper;
-
+import static com.google.common.base.Preconditions.checkArgument;
 /**
  * Alarm identifier suitable as an external key.
  * <p>
@@ -30,14 +28,20 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public final class AlarmId {
 
     private final long id;
+    public static final AlarmId NONE = new AlarmId();
 
     /**
      * Instantiates a new Alarm id.
      *
      * @param id the id
      */
-    public AlarmId(final long id) {
+    private AlarmId(long id) {
+        checkArgument(id != 0L, "id must be non-zero");
         this.id = id;
+    }
+
+    private AlarmId() {
+        this.id = 0L;
     }
 
     /**
@@ -46,7 +50,7 @@ public final class AlarmId {
      * @param value long value
      * @return intent identifier
      */
-    public static AlarmId valueOf(final long value) {
+    public static AlarmId alarmId(long value) {
         return new AlarmId(value);
     }
 
@@ -65,12 +69,12 @@ public final class AlarmId {
     }
 
     @Override
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj instanceof AlarmId) {
-            final AlarmId other = (AlarmId) obj;
+            AlarmId other = (AlarmId) obj;
             return Objects.equals(this.id, other.id);
         }
         return false;

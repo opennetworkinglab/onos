@@ -66,28 +66,29 @@ public final class AlarmCodec extends JsonCodec<Alarm> {
         }
 
         log.debug("id={}, full json={} ", json.get("id"), json);
-        final Long id = json.get("id").asLong();
+        Long id = json.get("id").asLong();
 
-        final DeviceId deviceId = DeviceId.deviceId(json.get("deviceId").asText());
-        final String description = json.get("description").asText();
-        final Long timeRaised = json.get("timeRaised").asLong();
-        final Long timeUpdated = json.get("timeUpdated").asLong();
+        DeviceId deviceId = DeviceId.deviceId(json.get("deviceId").asText());
+        String description = json.get("description").asText();
+        Long timeRaised = json.get("timeRaised").asLong();
+        Long timeUpdated = json.get("timeUpdated").asLong();
 
-        final JsonNode jsonTimeCleared = json.get("timeCleared");
-        final Long timeCleared = jsonTimeCleared == null || jsonTimeCleared.isNull() ? null : jsonTimeCleared.asLong();
+        JsonNode jsonTimeCleared = json.get("timeCleared");
+        Long timeCleared = jsonTimeCleared == null || jsonTimeCleared.isNull() ? null : jsonTimeCleared.asLong();
 
-        final Alarm.SeverityLevel severity = Alarm.SeverityLevel.valueOf(json.get("severity").asText().toUpperCase());
+        Alarm.SeverityLevel severity = Alarm.SeverityLevel.valueOf(json.get("severity").asText().toUpperCase());
 
-        final Boolean serviceAffecting = json.get("serviceAffecting").asBoolean();
-        final Boolean acknowledged = json.get("acknowledged").asBoolean();
-        final Boolean manuallyClearable = json.get("manuallyClearable").asBoolean();
+        Boolean serviceAffecting = json.get("serviceAffecting").asBoolean();
+        Boolean acknowledged = json.get("acknowledged").asBoolean();
+        Boolean manuallyClearable = json.get("manuallyClearable").asBoolean();
 
-        final JsonNode jsonAssignedUser = json.get("assignedUser");
-        final String assignedUser
+        JsonNode jsonAssignedUser = json.get("assignedUser");
+        String assignedUser
                 = jsonAssignedUser == null || jsonAssignedUser.isNull() ? null : jsonAssignedUser.asText();
 
         return new DefaultAlarm.Builder(
-                AlarmId.valueOf(id), deviceId, description, severity, timeRaised).forSource(AlarmEntityId.NONE).
+                deviceId, description, severity, timeRaised).forSource(AlarmEntityId.NONE).
+                withId(AlarmId.alarmId(id)).
                 withTimeUpdated(timeUpdated).
                 withTimeCleared(timeCleared).
                 withServiceAffecting(serviceAffecting).

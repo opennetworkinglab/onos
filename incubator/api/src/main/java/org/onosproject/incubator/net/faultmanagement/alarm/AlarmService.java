@@ -16,60 +16,65 @@
 package org.onosproject.incubator.net.faultmanagement.alarm;
 
 import com.google.common.annotations.Beta;
-//import org.onosproject.event.ListenerService;
+import java.util.Map;
 
 import java.util.Set;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 
 /**
- * Service for interacting with the alarm handling of devices. Unless stated
- * otherwise method return active AND recently-cleared alarms.
+ * Service for interacting with the alarm handling of devices. Unless stated otherwise, getter methods
+ * return active AND recently-cleared alarms.
  */
 @Beta
 public interface AlarmService {
-// extends ListenerService<AlarmEvent, AlarmListener> {
 
     /**
-     * Alarm should be updated in ONOS's internal representation; only
-     * administration/book-keeping fields may be updated. Attempting to update
-     * fields which are mapped directly from device is prohibited.
+     * Update book-keeping (ie administrative) fields for the alarm matching the specified identifier.
      *
-     * @param replacement alarm with updated book-keeping fields
-     * @return updated alarm (including any recent device derived changes)
-
-     * @throws java.lang.IllegalStateException if attempt to update not allowed
-     * fields.
+     * @param id alarm identifier
+     * @param isAcknowledged new acknowledged state
+     * @param assignedUser new assigned user, null clear
+     * @return updated alarm (including any recent device-derived changes)
+     *
      */
-    Alarm update(Alarm replacement);
+    Alarm updateBookkeepingFields(AlarmId id, boolean isAcknowledged, String assignedUser);
 
     /**
-     * Returns the number of ACTIVE alarms on a device.
+     * Returns summary of alarms on a given device.
      *
      * @param deviceId the device
-     * @return number of alarms
+     * @return map of severity (if applicable) vs alarm counts; empty map if either the device has no alarms or
+     * identified device is not managed.
      */
-    int getActiveAlarmCount(DeviceId deviceId);
+    Map<Alarm.SeverityLevel, Long> getAlarmCounts(DeviceId deviceId);
+
+    /**
+     * Returns summary of alarms on all devices.
+     *
+     * @return map of severity (if applicable) vs alarm counts; empty map if no alarms.
+     */
+    Map<Alarm.SeverityLevel, Long> getAlarmCounts();
 
     /**
      * Returns the alarm with the specified identifier.
      *
      * @param alarmId alarm identifier
-     * @return alarm or null if one with the given identifier is not known
+     * @return alarm matching id; null if no alarm matches the identifier.
      */
     Alarm getAlarm(AlarmId alarmId);
 
     /**
      * Returns all of the alarms.
      *
-     * @return the alarms
+     * @return set of alarms; empty set if no alarms
      */
     Set<Alarm> getAlarms();
 
     /**
      * Returns all of the ACTIVE alarms. Recently cleared alarms excluded.
      *
-     * @return the alarms
+     * @return set of alarms; empty set if no alarms
      */
     Set<Alarm> getActiveAlarms();
 
@@ -77,16 +82,15 @@ public interface AlarmService {
      * Returns the alarms with the specified severity.
      *
      * @param severity the alarm severity
-     * @return the active alarms with a particular severity
+     * @return set of alarms with a particular severity; empty set if no alarms
      */
     Set<Alarm> getAlarms(Alarm.SeverityLevel severity);
 
     /**
-     * Returns the alarm for a given device, regardless of source within that
-     * device.
+     * Returns the alarm matching a given device, regardless of source within that device.
      *
-     * @param deviceId the device
-     * @return the alarms
+     * @param deviceId the device to use when searching alarms.
+     * @return set of alarms; empty set if no alarms
      */
     Set<Alarm> getAlarms(DeviceId deviceId);
 
@@ -95,7 +99,7 @@ public interface AlarmService {
      *
      * @param deviceId the device
      * @param source the source within the device
-     * @return the alarms
+     * @return set of alarms; empty set if no alarms
      */
     Set<Alarm> getAlarms(DeviceId deviceId, AlarmEntityId source);
 
@@ -104,7 +108,7 @@ public interface AlarmService {
      *
      * @param src one end of the link
      * @param dst one end of the link
-     * @return the alarms
+     * @return set of alarms; empty set if no alarms
      */
     Set<Alarm> getAlarmsForLink(ConnectPoint src, ConnectPoint dst);
 
@@ -113,9 +117,9 @@ public interface AlarmService {
      *
      * @param deviceId the device
      * @param flowId the flow
-     * @return the alarms
+     * @return set of alarms; empty set if no alarms
      */
     Set<Alarm> getAlarmsForFlow(DeviceId deviceId, long flowId);
 
-// Support retrieving alarms affecting other ONOS entity types may be added in future release
+    // TODO Support retrieving alarms affecting other entity types may be added in future release
 }

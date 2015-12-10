@@ -36,37 +36,26 @@ import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
 public class AlarmCodecTest {
 
     private final AlarmCodecContext context = new AlarmCodecContext();
+    private static final AlarmId ALARM_ID = AlarmId.alarmId(44);
 
     // Use this to check handling for miminal Alarm
     private final Alarm alarmMinimumFields = new DefaultAlarm.Builder(
-            new AlarmId(44),
-            DeviceId.deviceId("of:2222000000000000"),
-            "NE unreachable",
-            Alarm.SeverityLevel.CLEARED,
-            1).
-            build();
+            DeviceId.deviceId("of:2222000000000000"), "NE unreachable", Alarm.SeverityLevel.CLEARED, 1
+    ).withId(ALARM_ID).build();
 
     // Use this to check handling for fully populated Alarm
     private final Alarm alarmWithSource = new DefaultAlarm.Builder(
-            new AlarmId(44),
-            DeviceId.deviceId("of:2222000000000000"),
-            "NE unreachable",
-            Alarm.SeverityLevel.CLEARED, 1).
-            forSource(AlarmEntityId.alarmEntityId("port:1/2/3/4")).
-            withTimeUpdated(2).
-            withTimeCleared(3L).
-            withServiceAffecting(true).
-            withAcknowledged(true).
-            withManuallyClearable(true).
+            DeviceId.deviceId("of:2222000000000000"), "NE unreachable", Alarm.SeverityLevel.CLEARED, 1
+    ).withId(ALARM_ID).forSource(AlarmEntityId.alarmEntityId("port:1/2/3/4")).withTimeUpdated(2).withTimeCleared(3L).
+            withServiceAffecting(true).withAcknowledged(true).withManuallyClearable(true).
             withAssignedUser("the assigned user").build();
 
     @Test
     public void alarmCodecTestWithOptionalFieldMissing() {
-        //context.registerService(AlarmService.class, new AlarmServiceAdapter());
-        final JsonCodec<Alarm> codec = context.codec(Alarm.class);
+        JsonCodec<Alarm> codec = context.codec(Alarm.class);
         assertThat(codec, is(notNullValue()));
 
-        final ObjectNode alarmJson = codec.encode(alarmMinimumFields, context);
+        ObjectNode alarmJson = codec.encode(alarmMinimumFields, context);
         assertThat(alarmJson, notNullValue());
         assertThat(alarmJson, matchesAlarm(alarmMinimumFields));
 
@@ -74,10 +63,10 @@ public class AlarmCodecTest {
 
     @Test
     public void alarmCodecTestWithOptionalField() {
-        final JsonCodec<Alarm> codec = context.codec(Alarm.class);
+        JsonCodec<Alarm> codec = context.codec(Alarm.class);
         assertThat(codec, is(notNullValue()));
 
-        final ObjectNode alarmJson = codec.encode(alarmWithSource, context);
+        ObjectNode alarmJson = codec.encode(alarmWithSource, context);
         assertThat(alarmJson, notNullValue());
         assertThat(alarmJson, matchesAlarm(alarmWithSource));
 
@@ -85,9 +74,9 @@ public class AlarmCodecTest {
 
     @Test
     public void verifyMinimalAlarmIsEncoded() throws Exception {
-        final JsonCodec<Alarm> alarmCodec = context.codec(Alarm.class);
+        JsonCodec<Alarm> alarmCodec = context.codec(Alarm.class);
 
-        final Alarm alarm = getDecodedAlarm(alarmCodec, "alarm-minimal.json");
+        Alarm alarm = getDecodedAlarm(alarmCodec, "alarm-minimal.json");
         assertCommon(alarm);
 
         assertThat(alarm.timeCleared(), nullValue());
@@ -97,9 +86,9 @@ public class AlarmCodecTest {
 
     @Test
     public void verifyFullyLoadedAlarmIsEncoded() throws Exception {
-        final JsonCodec<Alarm> alarmCodec = context.codec(Alarm.class);
+        JsonCodec<Alarm> alarmCodec = context.codec(Alarm.class);
 
-        final Alarm alarm = getDecodedAlarm(alarmCodec, "alarm-full.json");
+        Alarm alarm = getDecodedAlarm(alarmCodec, "alarm-full.json");
         assertCommon(alarm);
 
         assertThat(alarm.timeCleared(), is(2222L));
@@ -108,7 +97,7 @@ public class AlarmCodecTest {
     }
 
     private void assertCommon(Alarm alarm) {
-        assertThat(alarm.id(), is(new AlarmId(10L)));
+        assertThat(alarm.id(), is(AlarmId.alarmId(10L)));
         assertThat(alarm.description(), is("NE is not reachable"));
         assertThat(alarm.source(), is(AlarmEntityId.NONE));
         assertThat(alarm.timeRaised(), is(999L));
@@ -127,14 +116,14 @@ public class AlarmCodecTest {
      * @throws IOException if processing the resource fails to decode
      */
     private Alarm getDecodedAlarm(JsonCodec<Alarm> codec, String resourceName) throws IOException {
-        final InputStream jsonStream = AlarmCodecTest.class
-                .getResourceAsStream(resourceName);
-        final JsonNode json = context.mapper().readTree(jsonStream);
-        assertThat(json, notNullValue());
-        final Alarm result = codec.decode((ObjectNode) json, context);
-        assertThat(result, notNullValue());
-        return result;
+        try (InputStream jsonStream = AlarmCodecTest.class
+                .getResourceAsStream(resourceName)) {
+            JsonNode json = context.mapper().readTree(jsonStream);
+            assertThat(json, notNullValue());
+            Alarm result = codec.decode((ObjectNode) json, context);
+            assertThat(result, notNullValue());
+            return result;
+        }
     }
-
 
 }

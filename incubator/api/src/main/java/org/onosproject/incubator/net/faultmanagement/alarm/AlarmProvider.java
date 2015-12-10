@@ -24,14 +24,25 @@ import org.onosproject.net.provider.Provider;
 public interface AlarmProvider extends Provider {
 
     /**
-     * Triggers an asynchronous discovery of the alarms on the specified device,
-     * intended to refresh internal alarm model for the device. An indirect
-     * result of this should be invocation of
-     * {@link org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderService#updateAlarmList} )}
-     * at some later point in time.
+     * Triggers an asynchronous discovery of the alarms on the specified device, intended to refresh internal alarm
+     * model for the device. An indirect result of this should be a event sent later with discovery result ie a set of
+     * alarms.
      *
      * @param deviceId ID of device to be probed
      */
     void triggerProbe(DeviceId deviceId);
 
+    /**
+     * Register a listener for alarms.
+     *
+     * @param listener the listener to notify
+     */
+    void addAlarmListener(AlarmListener listener);
+
+    /**
+     * Unregister a listener.
+     *
+     * @param listener the listener to unregister
+     */
+    void removeAlarmListener(AlarmListener listener);
 }

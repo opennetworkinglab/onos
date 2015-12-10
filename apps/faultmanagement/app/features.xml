@@ -21,5 +21,7 @@
         <feature>onos-drivers</feature>
         <bundle>mvn:${project.groupId}/onos-app-fm-mgr/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-fm-web/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-app-fm-gui/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-app-fm-cli/${project.version}</bundle>
     </feature>
 </features>
