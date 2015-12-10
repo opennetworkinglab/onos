@@ -31,11 +31,15 @@ public interface ClassifierService {
 
     /**
      * Add Classifier device for sfc.
+     *
+     * @param deviceId device id
      */
     void addClassifier(DeviceId deviceId);
 
     /**
      * Remove Classifier device for sfc.
+     *
+     * @param deviceId deviceId
      */
     void removeClassifier(DeviceId deviceId);
 }
