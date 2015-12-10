@@ -22,8 +22,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
+
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.MacAddress;
@@ -31,7 +34,10 @@ import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.behaviour.ExtensionSelectorResolver;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
 import org.onosproject.net.NshServicePathId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -43,6 +49,7 @@ import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.host.HostService;
 import org.onosproject.net.flowobjective.ForwardingObjective.Flag;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.service.VtnRscService;
@@ -63,8 +70,12 @@ import org.slf4j.Logger;
 /**
  * Provides Service Function Forwarder implementation.
  */
+@Component(immediate = true)
+@Service
 public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderService {
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected HostService hostService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -152,8 +163,6 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
      */
     public void pushServiceFunctionForwarder(PortPairGroup currentPortPairGroup, PortPairGroup nextPortPairGroup,
             ListIterator<PortPairGroupId> listGrpIterator, NshServicePathId nshSPI, Objective.Operation type) {
-        MacAddress srcMacAddress = null;
-        MacAddress dstMacAddress = null;
         DeviceId deviceId = null;
         DeviceId currentDeviceId = null;
         DeviceId nextDeviceId = null;
@@ -176,11 +185,9 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
             if (deviceId == null) {
                 deviceId = currentDeviceId;
             }
-            srcMacAddress = virtualPortService.getPort(VirtualPortId.portId(portPair.ingress())).macAddress();
-            dstMacAddress = virtualPortService.getPort(VirtualPortId.portId(portPair.egress())).macAddress();
 
             // pack traffic selector
-            TrafficSelector.Builder selector = packTrafficSelector(deviceId, srcMacAddress, dstMacAddress, nshSPI);
+            TrafficSelector.Builder selector = packTrafficSelector(deviceId, portPair, nshSPI);
 
             // Get the required information on port pairs from destination port
             // pair group
@@ -216,16 +223,16 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
      * Pack Traffic selector.
      *
      * @param deviceId device id
-     * @param srcMacAddress source mac-address
-     * @param dstMacAddress destination mac-address
+     * @param portPair port-pair
      * @param nshSPI nsh spi
      * @return traffic treatment
      */
-    public TrafficSelector.Builder packTrafficSelector(DeviceId deviceId, MacAddress srcMacAddress,
-            MacAddress dstMacAddress, NshServicePathId nshSPI) {
+    public TrafficSelector.Builder packTrafficSelector(DeviceId deviceId, PortPair portPair, NshServicePathId nshSPI) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchEthSrc(srcMacAddress);
-        selector.matchEthDst(dstMacAddress);
+        MacAddress dstMacAddress = virtualPortService.getPort(VirtualPortId.portId(portPair.egress())).macAddress();
+        Host host = hostService.getHost(HostId.hostId(dstMacAddress));
+        PortNumber port = host.location().port();
+        selector.matchInPort(port);
 
         DriverHandler handler = driverService.createHandler(deviceId);
         ExtensionSelectorResolver resolver = handler.behaviour(ExtensionSelectorResolver.class);
@@ -238,6 +245,7 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
         }
 
         selector.extension(nspSpiSelector, deviceId);
+
         return selector;
     }
 
@@ -252,19 +260,19 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
     public TrafficTreatment.Builder packTrafficTreatment(DeviceId currentDeviceId, DeviceId nextDeviceId,
             PortPair portPair) {
         MacAddress srcMacAddress = null;
-        MacAddress dstMacAddress = null;
 
         // Check the treatment whether destination SF is on same OVS or in
         // different OVS.
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         if (currentDeviceId.equals(nextDeviceId)) {
             srcMacAddress = virtualPortService.getPort(VirtualPortId.portId(portPair.ingress())).macAddress();
-            dstMacAddress = virtualPortService.getPort(VirtualPortId.portId(portPair.egress())).macAddress();
-            treatment.setEthSrc(srcMacAddress);
-            treatment.setEthDst(dstMacAddress);
+
+            Host host = hostService.getHost(HostId.hostId(srcMacAddress));
+            PortNumber port = host.location().port();
+            treatment.setOutput(port);
         } else {
-            treatment.setVlanId(VlanId.vlanId(Short.parseShort((vtnRscService.getL3vni(portPair
-                    .tenantId()).toString()))));
+            VlanId vlanId = VlanId.vlanId(Short.parseShort((vtnRscService.getL3vni(portPair.tenantId()).toString())));
+            treatment.setVlanId(vlanId);
         }
 
         return treatment;
@@ -281,7 +289,7 @@ public class ServiceFunctionForwarderImpl implements ServiceFunctionForwarderSer
     public void sendServiceFunctionForwarder(TrafficSelector.Builder selector, TrafficTreatment.Builder treatment,
             DeviceId deviceId, Objective.Operation type) {
         ForwardingObjective.Builder objective = DefaultForwardingObjective.builder().withTreatment(treatment.build())
-                .withSelector(selector.build()).fromApp(appId).makePermanent().withFlag(Flag.SPECIFIC);
+                .withSelector(selector.build()).fromApp(appId).makePermanent().withFlag(Flag.VERSATILE);
         if (type.equals(Objective.Operation.ADD)) {
             log.debug("ADD");
             flowObjectiveService.forward(deviceId, objective.add());

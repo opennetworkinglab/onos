@@ -20,6 +20,7 @@
     <description>${project.description}</description>
 
     <artifact>mvn:${project.groupId}/onos-app-vtn-mgr/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-sfc-mgr/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-vtn-web/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-vtn-rsc/${project.version}</artifact>
 </app>

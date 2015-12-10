@@ -39,6 +39,11 @@
             <artifactId>onos-app-vtn-mgr</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-sfc-mgr</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
