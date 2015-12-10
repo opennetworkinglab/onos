@@ -36,7 +36,7 @@ import java.util.List;
  * calculated. The paths are snapshot paths at the point of the class
  * instantiation.
  */
-public class ECMPShortestPathGraph {
+public class EcmpShortestPathGraph {
     LinkedList<DeviceId> deviceQueue = new LinkedList<>();
     LinkedList<Integer> distanceQueue = new LinkedList<>();
     HashMap<DeviceId, Integer> deviceSearched = new HashMap<>();
@@ -46,7 +46,7 @@ public class ECMPShortestPathGraph {
     DeviceId rootDevice;
     private SegmentRoutingManager srManager;
     private static final Logger log = LoggerFactory
-            .getLogger(ECMPShortestPathGraph.class);
+            .getLogger(EcmpShortestPathGraph.class);
 
     /**
      * Constructor.
@@ -55,7 +55,7 @@ public class ECMPShortestPathGraph {
      * @param linkListToAvoid link list to avoid
      * @param deviceIdListToAvoid device list to avoid
      */
-    public ECMPShortestPathGraph(DeviceId rootDevice, List<String> deviceIdListToAvoid,
+    public EcmpShortestPathGraph(DeviceId rootDevice, List<String> deviceIdListToAvoid,
                                  List<Link> linkListToAvoid) {
         this.rootDevice = rootDevice;
         calcECMPShortestPathGraph(deviceIdListToAvoid, linkListToAvoid);
@@ -67,7 +67,7 @@ public class ECMPShortestPathGraph {
      * @param rootDevice root of the BFS tree
      * @param srManager SegmentRoutingManager object
      */
-    public ECMPShortestPathGraph(DeviceId rootDevice, SegmentRoutingManager srManager) {
+    public EcmpShortestPathGraph(DeviceId rootDevice, SegmentRoutingManager srManager) {
         this.rootDevice = rootDevice;
         this.srManager = srManager;
         calcECMPShortestPathGraph();
