@@ -74,8 +74,10 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
         String etherType = nullIsIllegal(json.get(ETHER_TYPE), ETHER_TYPE + MISSING_MEMBER_MESSAGE).asText();
         resultBuilder.setEtherType(etherType);
 
-        String protocol = (json.get(PROTOCOL)).asText();
-        resultBuilder.setProtocol(protocol);
+        if (json.get(PROTOCOL) != null && !(json.get(PROTOCOL)).asText().equals("null")) {
+            String protocol = (json.get(PROTOCOL)).asText();
+            resultBuilder.setProtocol(protocol);
+        }
 
         int minSrcPortRange = (json.get(MIN_SRC_PORT_RANGE)).asInt();
         resultBuilder.setMinSrcPortRange(minSrcPortRange);
@@ -89,23 +91,23 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
         int maxDstPortRange = (json.get(MAX_DST_PORT_RANGE)).asInt();
         resultBuilder.setMaxDstPortRange(maxDstPortRange);
 
-        String srcIpPrefix = (json.get(SRC_IP_PREFIX)).asText();
-        if (!srcIpPrefix.isEmpty()) {
+        if (json.get(SRC_IP_PREFIX) != null && !(json.get(SRC_IP_PREFIX)).asText().equals("null")) {
+            String srcIpPrefix = (json.get(SRC_IP_PREFIX)).asText();
             resultBuilder.setSrcIpPrefix(IpPrefix.valueOf(srcIpPrefix));
         }
 
-        String dstIpPrefix = (json.get(DST_IP_PREFIX)).asText();
-        if (!dstIpPrefix.isEmpty()) {
+        if (json.get(DST_IP_PREFIX) != null && !(json.get(DST_IP_PREFIX)).asText().equals("null")) {
+            String dstIpPrefix = (json.get(DST_IP_PREFIX)).asText();
             resultBuilder.setDstIpPrefix(IpPrefix.valueOf(dstIpPrefix));
         }
 
-        String srcPort = json.get(SRC_PORT) != null ? (json.get(SRC_PORT)).asText() : "";
-        if (!srcPort.isEmpty()) {
+        if (json.get(SRC_PORT) != null && !(json.get(SRC_PORT)).asText().equals("null")) {
+            String srcPort = (json.get(SRC_PORT)).asText();
             resultBuilder.setSrcPort(VirtualPortId.portId(srcPort));
         }
 
-        String dstPort = json.get(DST_PORT) != null ? (json.get(DST_PORT)).asText() : "";
-        if (!dstPort.isEmpty()) {
+        if (json.get(DST_PORT) != null && !(json.get(DST_PORT)).asText().equals("null")) {
+            String dstPort = (json.get(DST_PORT)).asText();
             resultBuilder.setDstPort(VirtualPortId.portId(dstPort));
         }
         return resultBuilder.build();
@@ -114,8 +116,8 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
     @Override
     public ObjectNode encode(FlowClassifier flowClassifier, CodecContext context) {
         checkNotNull(flowClassifier, "flowClassifier cannot be null");
-        ObjectNode result = context.mapper().createObjectNode()
-                .put(FLOW_CLASSIFIER_ID, flowClassifier.flowClassifierId().toString())
+        ObjectNode result = context.mapper().createObjectNode();
+        result.put(FLOW_CLASSIFIER_ID, flowClassifier.flowClassifierId().toString())
                 .put(TENANT_ID, flowClassifier.tenantId().toString())
                 .put(NAME, flowClassifier.name())
                 .put(DESCRIPTION, flowClassifier.description())
@@ -124,11 +126,29 @@ public final class FlowClassifierCodec extends JsonCodec<FlowClassifier> {
                 .put(MIN_SRC_PORT_RANGE, flowClassifier.minSrcPortRange())
                 .put(MAX_SRC_PORT_RANGE, flowClassifier.maxSrcPortRange())
                 .put(MIN_DST_PORT_RANGE, flowClassifier.minDstPortRange())
-                .put(MAX_DST_PORT_RANGE, flowClassifier.maxDstPortRange())
-                .put(SRC_IP_PREFIX, flowClassifier.srcIpPrefix().toString())
-                .put(DST_IP_PREFIX, flowClassifier.dstIpPrefix().toString())
-                .put(SRC_PORT, flowClassifier.srcPort().toString())
-                .put(DST_PORT, flowClassifier.dstPort().toString());
+                .put(MAX_DST_PORT_RANGE, flowClassifier.maxDstPortRange());
+
+        if (flowClassifier.srcIpPrefix() != null) {
+            result.put(SRC_IP_PREFIX, flowClassifier.srcIpPrefix().toString());
+        } else {
+            result.put(SRC_IP_PREFIX, "null");
+        }
+        if (flowClassifier.dstIpPrefix() != null) {
+            result.put(DST_IP_PREFIX, flowClassifier.dstIpPrefix().toString());
+        } else {
+            result.put(DST_IP_PREFIX, "null");
+        }
+
+        if (flowClassifier.srcPort() != null) {
+            result.put(SRC_PORT, flowClassifier.srcPort().toString());
+        } else {
+            result.put(SRC_PORT, "null");
+        }
+        if (flowClassifier.dstPort() != null) {
+            result.put(DST_PORT, flowClassifier.dstPort().toString());
+        } else {
+            result.put(DST_PORT, "null");
+        }
         return result;
     }
 }
