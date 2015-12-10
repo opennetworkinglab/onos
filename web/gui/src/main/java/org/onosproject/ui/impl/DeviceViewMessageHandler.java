@@ -18,6 +18,7 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
@@ -86,6 +87,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
     private static final String NAME = "name";
     private static final String WARN = "warn";
 
+    private static final String NONE = "none";
 
     private static final String[] COL_IDS = {
             AVAILABLE, AVAILABLE_IID, TYPE_IID,
@@ -178,6 +180,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             MastershipService ms = get(MastershipService.class);
             Device device = service.getDevice(deviceId);
             ObjectNode data = objectNode();
+            NodeId masterFor = ms.getMasterFor(deviceId);
 
             data.put(ID, deviceId.toString());
             data.put(NAME, deviceName(device));
@@ -188,7 +191,7 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
             data.put(SW, device.swVersion());
             data.put(SERIAL, device.serialNumber());
             data.put(CHASSIS_ID, device.chassisId().toString());
-            data.put(MASTER_ID, ms.getMasterFor(deviceId).toString());
+            data.put(MASTER_ID, masterFor != null ? masterFor.toString() : NONE);
             data.put(PROTOCOL, deviceProtocol(device));
 
             ArrayNode ports = arrayNode();

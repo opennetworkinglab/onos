@@ -186,12 +186,16 @@ public class UiWebSocket
             UiMessageHandlerFactory factory = ext.messageHandlerFactory();
             if (factory != null) {
                 factory.newHandlers().forEach(handler -> {
-                    handler.init(this, directory);
-                    handler.messageTypes().forEach(type -> handlers.put(type, handler));
+                    try {
+                        handler.init(this, directory);
+                        handler.messageTypes().forEach(type -> handlers.put(type, handler));
 
-                    // need to inject the overlay cache into topology message handler
-                    if (handler instanceof TopologyViewMessageHandler) {
-                        ((TopologyViewMessageHandler) handler).setOverlayCache(overlayCache);
+                        // need to inject the overlay cache into topology message handler
+                        if (handler instanceof TopologyViewMessageHandler) {
+                            ((TopologyViewMessageHandler) handler).setOverlayCache(overlayCache);
+                        }
+                    } catch (Exception e) {
+                        log.warn("Unable to setup handler {} due to", handler, e);
                     }
                 });
             }

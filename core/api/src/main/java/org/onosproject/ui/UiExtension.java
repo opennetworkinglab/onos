@@ -15,6 +15,7 @@
  */
 package org.onosproject.ui;
 
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +45,7 @@ public final class UiExtension {
     private final UiMessageHandlerFactory messageHandlerFactory;
     private final UiTopoOverlayFactory topoOverlayFactory;
 
+    private boolean isValid = true;
 
     // private constructor - only the builder calls this
     private UiExtension(ClassLoader cl, String path, List<UiView> views,
@@ -81,7 +83,7 @@ public final class UiExtension {
      * @return contributed view descriptors
      */
     public List<UiView> views() {
-        return views;
+        return isValid ? views : ImmutableList.of();
     }
 
     /**
@@ -118,6 +120,7 @@ public final class UiExtension {
     private InputStream getStream(String path) {
         InputStream stream = classLoader.getResourceAsStream(path);
         if (stream == null) {
+            isValid = false;
             log.warn("Unable to find resource {}", path);
         }
         return stream;
