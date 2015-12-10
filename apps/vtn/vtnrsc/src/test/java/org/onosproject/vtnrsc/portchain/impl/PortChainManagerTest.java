@@ -31,6 +31,9 @@ import org.onosproject.vtnrsc.PortChain;
 import org.onosproject.vtnrsc.DefaultPortChain;
 import org.onosproject.vtnrsc.DefaultFlowClassifier;
 import org.onosproject.vtnrsc.util.VtnStorageServiceTest;
+import org.onosproject.common.event.impl.TestEventDispatcher;
+
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 
 /**
  * Unit tests for PortChainManager class.
@@ -55,6 +58,7 @@ public class PortChainManagerTest {
     public void testCreatePortChain() {
         // initialize port chain manager
         portChainMgr.storageService = storageService;
+        injectEventDispatcher(portChainMgr, new TestEventDispatcher());
         portChainMgr.activate();
 
         // create list of Port Pair Groups.

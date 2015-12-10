@@ -30,6 +30,8 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.EventuallyConsistentMapEvent;
+import org.onosproject.store.service.EventuallyConsistentMapListener;
 import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
@@ -50,16 +52,21 @@ public class PortChainManager extends AbstractListenerManager<PortChainEvent, Po
 
     private static final String PORT_CHAIN_ID_NULL = "PortChain ID cannot be null";
     private static final String PORT_CHAIN_NULL = "PortChain cannot be null";
-    private static final String LISTENER_NOT_NULL = "Listener cannot be null";
+    private static final String EVENT_NOT_NULL = "event cannot be null";
 
     private final Logger log = getLogger(getClass());
     private EventuallyConsistentMap<PortChainId, PortChain> portChainStore;
+
+    private EventuallyConsistentMapListener<PortChainId, PortChain> portChainListener =
+            new InnerPortChainStoreListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
     @Activate
     public void activate() {
+
+        eventDispatcher.addSink(PortChainEvent.class, listenerRegistry);
 
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
@@ -71,11 +78,14 @@ public class PortChainManager extends AbstractListenerManager<PortChainEvent, Po
                 .withName("portchainstore").withSerializer(serializer)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp()).build();
 
+        portChainStore.addListener(portChainListener);
+
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        eventDispatcher.removeSink(PortChainEvent.class);
         portChainStore.destroy();
         log.info("Stopped");
     }
@@ -146,5 +156,36 @@ public class PortChainManager extends AbstractListenerManager<PortChainEvent, Po
             return false;
         }
         return true;
+    }
+
+    private class InnerPortChainStoreListener
+            implements
+            EventuallyConsistentMapListener<PortChainId, PortChain> {
+
+        @Override
+        public void event(EventuallyConsistentMapEvent<PortChainId, PortChain> event) {
+            checkNotNull(event, EVENT_NOT_NULL);
+            PortChain portChain = event.value();
+            if (EventuallyConsistentMapEvent.Type.PUT == event.type()) {
+                notifyListeners(new PortChainEvent(
+                        PortChainEvent.Type.PORT_CHAIN_PUT,
+                        portChain));
+            }
+            if (EventuallyConsistentMapEvent.Type.REMOVE == event.type()) {
+                notifyListeners(new PortChainEvent(
+                        PortChainEvent.Type.PORT_CHAIN_DELETE,
+                        portChain));
+            }
+        }
+    }
+
+    /**
+     * Notifies specify event to all listeners.
+     *
+     * @param event port chain event
+     */
+    private void notifyListeners(PortChainEvent event) {
+        checkNotNull(event, EVENT_NOT_NULL);
+        post(event);
     }
 }
