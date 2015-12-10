@@ -73,6 +73,7 @@ public class BgpLinkAttrUnRsrvdLinkBandwidth implements BgpValueType {
      * Reads the BGP link attributes of Maximum link bandwidth.
      *
      * @param cb Channel buffer
+     * @param sType returns the tag value
      * @return object of type BgpLinkAttrMaxLinkBandwidth
      * @throws BgpParseException while parsing BgpLinkAttrMaxLinkBandwidth
      */

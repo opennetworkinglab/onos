@@ -107,6 +107,7 @@ public final class BgpLinkAttrProtectionType implements BgpValueType {
      * Returns Link Protection Type.
      *
      * @return Link Protection Type
+     * @throws BgpParseException when failed to parse link protection type
      */
     public ProtectionType protectionType() throws BgpParseException {
         switch (linkProtectionType) {
