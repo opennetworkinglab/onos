@@ -29,6 +29,9 @@ import org.onosproject.vtnrsc.FlowClassifierId;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.FlowClassifier;
 import org.onosproject.vtnrsc.util.VtnStorageServiceTest;
+import org.onosproject.common.event.impl.TestEventDispatcher;
+
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 
 /**
  * Unit tests for FlowClassifierManager class.
@@ -61,6 +64,7 @@ public class FlowClassifierManagerTest {
     public void testCreateFlowClassifier() {
         // initialize flow classifier manager
         flowClassifierMgr.storageService = storageService;
+        injectEventDispatcher(flowClassifierMgr, new TestEventDispatcher());
         flowClassifierMgr.activate();
 
         // create flow classifier
