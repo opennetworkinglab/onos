@@ -17,6 +17,7 @@ package org.onosproject.iptopology.api;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -53,7 +54,7 @@ public class IsoNodeId implements RouteIdentifier {
 
     @Override
     public int hashCode() {
-        return Objects.hash(isoNodeId, type);
+        return Objects.hash(Arrays.hashCode(isoNodeId), type);
     }
 
     @Override
@@ -64,15 +65,29 @@ public class IsoNodeId implements RouteIdentifier {
 
         if (obj instanceof IsoNodeId) {
             IsoNodeId other = (IsoNodeId) obj;
-            return Objects.equals(isoNodeId, other.isoNodeId) && Objects.equals(type, other.type);
+            return Arrays.equals(isoNodeId, other.isoNodeId) && Objects.equals(type, other.type);
         }
         return false;
     }
 
+    /*
+     * Get iso node ID in specified string format.
+     */
+    private String isoNodeIdString() {
+        if (isoNodeId != null) {
+            int p1 = (int) isoNodeId[0] << 8 | (int) isoNodeId[1];
+            int p2 = (int) isoNodeId[2] << 8 | (int) isoNodeId[3];
+            int p3 = (int) isoNodeId[4] << 8 | (int) isoNodeId[5];
+
+            return String.format("%1$d.%2$d.%3$d", p1, p2, p3);
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
-        return toStringHelper(this)
-                .add("isoNodeId", isoNodeId)
+        return toStringHelper(this).omitNullValues()
+                .add("isoNodeId", isoNodeIdString())
                 .add("type", type)
                 .toString();
     }
