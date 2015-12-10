@@ -29,6 +29,9 @@ import org.onosproject.vtnrsc.PortPairGroupId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.DefaultPortPairGroup;
 import org.onosproject.vtnrsc.util.VtnStorageServiceTest;
+import org.onosproject.common.event.impl.TestEventDispatcher;
+
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 
 /**
  * Unit tests for PortPairGroupManager class.
@@ -51,6 +54,7 @@ public class PortPairGroupManagerTest {
     public void testCreatePortPairGroup() {
         // initialize port pair group manager
         portPairGroupMgr.storageService = storageService;
+        injectEventDispatcher(portPairGroupMgr, new TestEventDispatcher());
         portPairGroupMgr.activate();
 
         // create port-pair-id list

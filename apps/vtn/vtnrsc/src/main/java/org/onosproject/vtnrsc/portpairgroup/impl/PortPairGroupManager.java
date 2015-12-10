@@ -30,6 +30,8 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.EventuallyConsistentMapEvent;
+import org.onosproject.store.service.EventuallyConsistentMapListener;
 import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
@@ -51,17 +53,21 @@ public class PortPairGroupManager extends AbstractListenerManager<PortPairGroupE
     private static final String PORT_PAIR_GROUP_ID_NULL = "PortPairGroup ID cannot be null";
     private static final String PORT_PAIR_GROUP_NULL = "PortPairGroup cannot be null";
     private static final String LISTENER_NOT_NULL = "Listener cannot be null";
+    private static final String EVENT_NOT_NULL = "event cannot be null";
 
     private final Logger log = getLogger(getClass());
 
     private EventuallyConsistentMap<PortPairGroupId, PortPairGroup> portPairGroupStore;
+
+    private EventuallyConsistentMapListener<PortPairGroupId, PortPairGroup> portPairGroupListener =
+            new InnerPortPairGroupStoreListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
     @Activate
     public void activate() {
-
+        eventDispatcher.addSink(PortPairGroupEvent.class, listenerRegistry);
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(MultiValuedTimestamp.class)
@@ -72,11 +78,14 @@ public class PortPairGroupManager extends AbstractListenerManager<PortPairGroupE
                 .withName("portpairgroupstore").withSerializer(serializer)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp()).build();
 
+        portPairGroupStore.addListener(portPairGroupListener);
+
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        eventDispatcher.removeSink(PortPairGroupEvent.class);
         portPairGroupStore.destroy();
         log.info("Stopped");
     }
@@ -147,5 +156,37 @@ public class PortPairGroupManager extends AbstractListenerManager<PortPairGroupE
             return false;
         }
         return true;
+    }
+
+
+    private class InnerPortPairGroupStoreListener
+            implements
+            EventuallyConsistentMapListener<PortPairGroupId, PortPairGroup> {
+
+        @Override
+        public void event(EventuallyConsistentMapEvent<PortPairGroupId, PortPairGroup> event) {
+            checkNotNull(event, EVENT_NOT_NULL);
+            PortPairGroup portPairGroup = event.value();
+            if (EventuallyConsistentMapEvent.Type.PUT == event.type()) {
+                notifyListeners(new PortPairGroupEvent(
+                        PortPairGroupEvent.Type.PORT_PAIR_GROUP_PUT,
+                        portPairGroup));
+            }
+            if (EventuallyConsistentMapEvent.Type.REMOVE == event.type()) {
+                notifyListeners(new PortPairGroupEvent(
+                        PortPairGroupEvent.Type.PORT_PAIR_GROUP_DELETE,
+                        portPairGroup));
+            }
+        }
+    }
+
+    /**
+     * Notifies specify event to all listeners.
+     *
+     * @param event PortPairGroup event
+     */
+    private void notifyListeners(PortPairGroupEvent event) {
+        checkNotNull(event, EVENT_NOT_NULL);
+        post(event);
     }
 }
