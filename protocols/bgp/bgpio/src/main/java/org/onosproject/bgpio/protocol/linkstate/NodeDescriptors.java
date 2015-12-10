@@ -182,9 +182,13 @@ public class NodeDescriptors {
                 break;
             case IGP_ROUTERID_TYPE:
                 if (protocolId == IS_IS_LEVEL_1_PROTOCOL_ID || protocolId == IS_IS_LEVEL_2_PROTOCOL_ID) {
-                    if (length == ISISNONPSEUDONODE_LEN) {
+                    boolean isNonPseudoNode = true;
+                    if ((length == ISISPSEUDONODE_LEN) && (tempCb.getByte(ISISPSEUDONODE_LEN - 1) != 0)) {
+                        isNonPseudoNode = false;
+                    }
+                    if (isNonPseudoNode) {
                         tlv = IsIsNonPseudonode.read(tempCb);
-                    } else if (length == ISISPSEUDONODE_LEN) {
+                    } else {
                         tlv = IsIsPseudonode.read(tempCb);
                     }
                 } else if (protocolId == OSPF_V2_PROTOCOL_ID || protocolId == OSPF_V3_PROTOCOL_ID) {
