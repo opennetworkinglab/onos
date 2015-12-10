@@ -395,10 +395,6 @@ public class CordVtn implements CordVtnService {
         }
 
         if (!getOvsdbConnectionState(node)) {
-            // FIXME remove existing OVSDB device to work around OVSDB device re-connect issue
-            if (deviceService.getDevice(node.ovsdbId()) != null) {
-                adminService.removeDevice(node.ovsdbId());
-            }
             controller.connect(node.ovsdbIp(), node.ovsdbPort());
         }
     }
@@ -419,11 +415,6 @@ public class CordVtn implements CordVtnService {
         if (getOvsdbConnectionState(node)) {
             OvsdbClientService ovsdbClient = getOvsdbClient(node);
             ovsdbClient.disconnect();
-        }
-
-        // FIXME remove existing OVSDB device to work around OVSDB device re-connect issue
-        if (deviceService.getDevice(node.ovsdbId()) != null) {
-            adminService.removeDevice(node.ovsdbId());
         }
     }
 
@@ -830,7 +821,9 @@ public class CordVtn implements CordVtnService {
 
         @Override
         public void disconnected(Device device) {
-            log.info("OVSDB {} is disconnected", device.id());
+            if (!deviceService.isAvailable(device.id())) {
+                adminService.removeDevice(device.id());
+            }
         }
     }
 
