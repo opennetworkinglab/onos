@@ -30,6 +30,8 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.EventuallyConsistentMapEvent;
+import org.onosproject.store.service.EventuallyConsistentMapListener;
 import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
@@ -51,10 +53,14 @@ public class PortPairManager extends AbstractListenerManager<PortPairEvent, Port
     private static final String PORT_PAIR_ID_NULL = "PortPair ID cannot be null";
     private static final String PORT_PAIR_NULL = "PortPair cannot be null";
     private static final String LISTENER_NOT_NULL = "Listener cannot be null";
+    private static final String EVENT_NOT_NULL = "event cannot be null";
 
     private final Logger log = getLogger(getClass());
 
     private EventuallyConsistentMap<PortPairId, PortPair> portPairStore;
+
+    private EventuallyConsistentMapListener<PortPairId, PortPair> portPairListener =
+            new InnerPortPairStoreListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
@@ -62,6 +68,7 @@ public class PortPairManager extends AbstractListenerManager<PortPairEvent, Port
     @Activate
     public void activate() {
 
+        eventDispatcher.addSink(PortPairEvent.class, listenerRegistry);
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(MultiValuedTimestamp.class)
@@ -73,11 +80,14 @@ public class PortPairManager extends AbstractListenerManager<PortPairEvent, Port
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
+        portPairStore.addListener(portPairListener);
+
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        eventDispatcher.removeSink(PortPairEvent.class);
         portPairStore.destroy();
         log.info("Stopped");
     }
@@ -144,5 +154,36 @@ public class PortPairManager extends AbstractListenerManager<PortPairEvent, Port
             return false;
         }
         return true;
+    }
+
+    private class InnerPortPairStoreListener
+            implements
+            EventuallyConsistentMapListener<PortPairId, PortPair> {
+
+        @Override
+        public void event(EventuallyConsistentMapEvent<PortPairId, PortPair> event) {
+            checkNotNull(event, EVENT_NOT_NULL);
+            PortPair portPair = event.value();
+            if (EventuallyConsistentMapEvent.Type.PUT == event.type()) {
+                notifyListeners(new PortPairEvent(
+                        PortPairEvent.Type.PORT_PAIR_PUT,
+                        portPair));
+            }
+            if (EventuallyConsistentMapEvent.Type.REMOVE == event.type()) {
+                notifyListeners(new PortPairEvent(
+                        PortPairEvent.Type.PORT_PAIR_DELETE,
+                        portPair));
+            }
+        }
+    }
+
+    /**
+     * Notifies specify event to all listeners.
+     *
+     * @param event port pair event
+     */
+    private void notifyListeners(PortPairEvent event) {
+        checkNotNull(event, EVENT_NOT_NULL);
+        post(event);
     }
 }
