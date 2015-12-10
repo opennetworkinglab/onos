@@ -227,6 +227,10 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
             checkNotNull(event, EVENT_NOT_NULL);
             Host host = event.subject();
             String ifaceId = host.annotations().value(IFACEID);
+            if (ifaceId == null) {
+                log.error("The ifaceId of Host is null");
+                return;
+            }
             VirtualPortId hPortId = VirtualPortId.portId(ifaceId);
             TenantId tenantId = virtualPortService.getPort(hPortId).tenantId();
             DeviceId deviceId = host.location().deviceId();
@@ -477,18 +481,21 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
         checkNotNull(deviceId, DEVICEID_NOT_NULL);
         checkNotNull(tenantId, TENANTID_NOT_NULL);
         Set<Host> hostSet = hostService.getConnectedHosts(deviceId);
-        for (Host h : hostSet) {
-            String ifaceId = h.annotations().value(IFACEID);
-            VirtualPortId hPortId = VirtualPortId.portId(ifaceId);
-            if (virtualPortService.getPort(hPortId).tenantId() != tenantId) {
-                hostSet.remove(h);
-            } else {
-                if (!isServiceFunction(hPortId)) {
-                    hostSet.remove(h);
+        Set<Host> sfcHostSet = new HashSet<Host>();
+        if (hostSet != null) {
+            for (Host h : hostSet) {
+                String ifaceId = h.annotations().value(IFACEID);
+                if (ifaceId != null) {
+                    VirtualPortId hPortId = VirtualPortId.portId(ifaceId);
+                    if (virtualPortService.getPort(hPortId).tenantId().tenantId()
+                            .equals(tenantId.tenantId())
+                            && isServiceFunction(hPortId)) {
+                        sfcHostSet.add(h);
+                    }
                 }
             }
         }
-        if (hostSet.size() == 1 && hostSet.contains(host)) {
+        if (sfcHostSet.size() == 1 && sfcHostSet.contains(host)) {
             return true;
         }
         return false;
@@ -509,18 +516,21 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
         checkNotNull(deviceId, DEVICEID_NOT_NULL);
         checkNotNull(tenantId, TENANTID_NOT_NULL);
         Set<Host> hostSet = hostService.getConnectedHosts(deviceId);
-        for (Host h : hostSet) {
-            String ifaceId = h.annotations().value(IFACEID);
-            VirtualPortId hPortId = VirtualPortId.portId(ifaceId);
-            if (virtualPortService.getPort(hPortId).tenantId() != tenantId) {
-                hostSet.remove(h);
-            } else {
-                if (isServiceFunction(hPortId)) {
-                    hostSet.remove(h);
+        Set<Host> sfcHostSet = new HashSet<Host>();
+        if (hostSet != null) {
+            for (Host h : hostSet) {
+                String ifaceId = h.annotations().value(IFACEID);
+                if (ifaceId != null) {
+                    VirtualPortId hPortId = VirtualPortId.portId(ifaceId);
+                    if (virtualPortService.getPort(hPortId).tenantId().tenantId()
+                            .equals(tenantId.tenantId())
+                            && !isServiceFunction(hPortId)) {
+                        sfcHostSet.add(h);
+                    }
                 }
             }
         }
-        if (hostSet.size() == 1 && hostSet.contains(host)) {
+        if (sfcHostSet.size() == 1 && sfcHostSet.contains(host)) {
             return true;
         }
         return false;
