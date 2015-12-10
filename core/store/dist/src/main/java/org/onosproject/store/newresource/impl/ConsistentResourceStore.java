@@ -86,6 +86,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 .build();
 
         childMap.put(ResourcePath.ROOT, ImmutableList.of());
+        log.info("Started");
     }
 
     @Override

@@ -27,6 +27,7 @@ import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
+import org.onosproject.store.service.ConsistentMapException.ConcurrentModification;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
@@ -293,7 +294,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
                         if (v.updated()) {
                             return v.newValue();
                         } else {
-                            throw new ConsistentMapException.ConcurrentModification();
+                            throw new ConcurrentModification("Concurrent update to " + name + " detected");
                         }
                     });
         });
