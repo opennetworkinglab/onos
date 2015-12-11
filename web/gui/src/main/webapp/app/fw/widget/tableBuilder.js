@@ -21,11 +21,11 @@
     'use strict';
 
     // injected refs
-    var $log, $interval, $timeout, fs, wss;
+    var $log, $interval, $timeout, fs, wss, ls;
 
     // constants
     var refreshInterval = 2000,
-        loadingWait = 500;
+        tardyWait = 500;
 
     // example params to buildTable:
     // {
@@ -49,21 +49,20 @@
             onResp = fs.isF(o.respCb),
             idKey = o.idKey || 'id',
             oldTableData = [],
-            loaded = false,
-            refreshPromise, loadingPromise;
+            refreshPromise,
+            tardyPromise;
 
         o.scope.tableData = [];
         o.scope.changedData = [];
         o.scope.sortParams = {};
-        o.scope.loading = true;
         o.scope.autoRefresh = true;
         o.scope.autoRefreshTip = 'Toggle auto refresh';
 
         // === websocket functions --------------------
         // response
         function respCb(data) {
-            loaded = true;
-            o.scope.loading = false;
+            cancelTardy();
+            ls.stop();
             o.scope.tableData = data[root];
             onResp && onResp();
 
@@ -85,23 +84,28 @@
         handlers[resp] = respCb;
         wss.bindHandlers(handlers);
 
+        // handle "loading..." animation
+        function scheduleTardy() {
+            tardyPromise = $timeout(ls.start, tardyWait);
+        }
+
+        function cancelTardy() {
+            if (tardyPromise) {
+                $timeout.cancel(tardyPromise);
+                tardyPromise = null;
+            }
+        }
+
         // request
         function sortCb(params) {
             var p = angular.extend({}, params, o.query);
-            wss.sendEvent(req, p);
-            stillLoading();
+            if (wss.isConnected()) {
+                wss.sendEvent(req, p);
+                scheduleTardy();
+            }
         }
         o.scope.sortCallback = sortCb;
 
-        // show loading wheel if it's taking a while for the server to respond
-        function stillLoading() {
-            loaded = false;
-            loadingPromise = $timeout(function () {
-                if (!loaded) {
-                    o.scope.loading = true;
-                }
-            }, loadingWait);
-        }
 
         // === selecting a row functions ----------------
         function selCb($event, selRow) {
@@ -112,19 +116,23 @@
         o.scope.selectCallback = selCb;
 
         // === autoRefresh functions ------------------
-        function startRefresh() {
-            refreshPromise = $interval(function () {
+        function fetchDataIfNotWaiting() {
+            if (!tardyPromise) {
                 if (fs.debugOn('widget')) {
                     $log.debug('Refreshing ' + root + ' page');
                 }
                 sortCb(o.scope.sortParams);
-            }, refreshInterval);
+            }
+        }
+
+        function startRefresh() {
+            refreshPromise = $interval(fetchDataIfNotWaiting, refreshInterval);
         }
 
         function stopRefresh() {
-            if (angular.isDefined(refreshPromise)) {
+            if (refreshPromise) {
                 $interval.cancel(refreshPromise);
-                refreshPromise = undefined;
+                refreshPromise = null;
             }
         }
 
@@ -138,10 +146,7 @@
         o.scope.$on('$destroy', function () {
             wss.unbindHandlers(handlers);
             stopRefresh();
-            if (angular.isDefined(loadingPromise)) {
-                $timeout.cancel(loadingPromise);
-                loadingPromise = undefined;
-            }
+            cancelTardy();
         });
 
         sortCb();
@@ -151,13 +156,15 @@
     angular.module('onosWidget')
         .factory('TableBuilderService',
         ['$log', '$interval', '$timeout', 'FnService', 'WebSocketService',
+            'LoadingService',
 
-            function (_$log_, _$interval_, _$timeout_, _fs_, _wss_) {
+            function (_$log_, _$interval_, _$timeout_, _fs_, _wss_, _ls_) {
                 $log = _$log_;
                 $interval = _$interval_;
                 $timeout = _$timeout_;
                 fs = _fs_;
                 wss = _wss_;
+                ls = _ls_;
 
                 return {
                     buildTable: buildTable

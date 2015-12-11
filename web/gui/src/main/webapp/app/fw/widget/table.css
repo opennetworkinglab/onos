@@ -22,31 +22,6 @@ div.summary-list {
     border-spacing: 0;
 }
 
-div.loading-wheel {
-    display: inline-block;
-    position: absolute;
-    margin-top: 40px;
-    left: 47%;
-    animation: spin reverse 2s ease infinite;
-    z-index: 1000;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-div.loading-wheel svg.embeddedIcon g.icon .glyph {
-    opacity: .8;
-}
-.light div.loading-wheel svg.embeddedIcon g.icon .glyph {
-    fill: #964949;
-}
-.dark div.loading-wheel svg.embeddedIcon g.icon .glyph {
-    fill: whitesmoke;
-}
-
 div.summary-list table {
     border-collapse: collapse;
     table-layout: fixed;

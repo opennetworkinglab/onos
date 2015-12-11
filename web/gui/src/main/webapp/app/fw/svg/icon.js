@@ -45,8 +45,6 @@
         upArrow: 'triangleUp',
         downArrow: 'triangleDown',
 
-        loading: 'loading',
-
         appInactive: 'unknown',
 
         devIcon_SWITCH: 'switch',

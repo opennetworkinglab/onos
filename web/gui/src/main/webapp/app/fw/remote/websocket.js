@@ -323,7 +323,8 @@
                 unbindHandlers: unbindHandlers,
                 addOpenListener: addOpenListener,
                 removeOpenListener: removeOpenListener,
-                sendEvent: sendEvent
+                sendEvent: sendEvent,
+                isConnected: function () { return wsUp; }
             };
         }
     ]);
