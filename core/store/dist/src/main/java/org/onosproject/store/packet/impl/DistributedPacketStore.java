@@ -68,7 +68,7 @@ public class DistributedPacketStore
 
     private final Logger log = getLogger(getClass());
 
-    private static final int MAX_BACKOFF = 10;
+    private static final int MAX_BACKOFF = 50;
 
     // TODO: make this configurable.
     private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 4;
@@ -177,8 +177,8 @@ public class DistributedPacketStore
 
         private void add(PacketRequest request) {
             AtomicBoolean firstRequest =
-                    retryable(this::addInternal, ConsistentMapException.class,
-                              3, MAX_BACKOFF).apply(request);
+                    retryable(this::addInternal, ConsistentMapException.ConcurrentModification.class,
+                              Integer.MAX_VALUE, MAX_BACKOFF).apply(request);
             if (firstRequest.get() && delegate != null) {
                 // The instance that makes the first request will push to all devices
                 delegate.requestPackets(request);
@@ -205,8 +205,8 @@ public class DistributedPacketStore
 
         private void remove(PacketRequest request) {
             AtomicBoolean removedLast =
-                    retryable(this::removeInternal, ConsistentMapException.class,
-                              3, MAX_BACKOFF).apply(request);
+                    retryable(this::removeInternal, ConsistentMapException.ConcurrentModification.class,
+                              Integer.MAX_VALUE, MAX_BACKOFF).apply(request);
             if (removedLast.get() && delegate != null) {
                 // The instance that removes the last request will remove from all devices
                 delegate.cancelPackets(request);
