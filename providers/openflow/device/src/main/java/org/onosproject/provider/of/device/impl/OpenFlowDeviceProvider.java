@@ -167,7 +167,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public void deactivate(ComponentContext context) {
         cfgService.unregisterProperties(getClass(), false);
         controller.removeListener(listener);
-        disconnectDevices();
         providerRegistry.unregister(this);
         collectors.values().forEach(PortStatsCollector::stop);
         providerService = null;
@@ -208,11 +207,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             psc.start();
             collectors.put(new Dpid(sw.getId()), psc);
         }
-    }
-
-    private void disconnectDevices() {
-        // Only disconnect the devices for which we are currently master.
-        controller.getMasterSwitches().forEach(sw -> listener.switchRemoved(new Dpid(sw.getId())));
     }
 
     @Override
