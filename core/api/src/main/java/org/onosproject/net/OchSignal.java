@@ -15,7 +15,6 @@
  */
 package org.onosproject.net;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.util.Frequency;
 import org.onlab.util.Spectrum;
@@ -251,11 +250,12 @@ public class OchSignal implements Lambda {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("gridType", gridType)
-                .add("channelSpacing", channelSpacing)
-                .add("spacingMultiplier", spacingMultiplier)
-                .add("slotGranularity", slotGranularity)
-                .toString();
+        return String.format("%s{%+d×%.2fGHz ± %.2fGHz}",
+                this.getClass().getSimpleName(),
+                spacingMultiplier,
+                (double) slotGranularity * channelSpacing.frequency().asHz()
+                        / Frequency.ofGHz(1).asHz(),
+                (double) slotGranularity * ChannelSpacing.CHL_12P5GHZ.frequency().asHz()
+                        / Frequency.ofGHz(1).asHz() / 2.0);
     }
 }
