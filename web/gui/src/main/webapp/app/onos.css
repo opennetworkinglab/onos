@@ -58,3 +58,15 @@ body.dark {
 .dark #view h2 {
     color: #CE5650;
 }
+
+#eegg {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    box-shadow: 2px 2px 24px 5px #888;
+    background-color: #eee;
+    margin: 0px;
+    padding: 10px;
+}

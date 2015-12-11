@@ -34,6 +34,23 @@
             viewGestures: []
         };
 
+    var eegg = '', eeggMax = 'shiftONOS', eeggMin = 'shiftO';
+
+    function layEgg(lastKey) {
+        eegg += lastKey;
+        if (eeggMax.indexOf(eegg) == 0) {
+            if (eeggMax == eegg) {
+                d3.select('body').append('div').attr('id', 'eegg').append('img').attr('src', 'data/img/eegg.png');
+                setTimeout(function () { d3.select('#eegg').remove(); }, 3000);
+                eegg = '';
+            }
+            return true;
+        } else if (eeggMin != eegg) {
+            eegg = '';
+        }
+        return false;
+    }
+
     function whatKey(code) {
         switch (code) {
             case 13: return 'enter';
@@ -81,6 +98,8 @@
         d3.event.stopPropagation();
 
         if (enabled) {
+            if (layEgg(key)) return;
+
             // global callback?
             if (gcb && gcb(token, key, keyCode, event)) {
                 // if the event was 'handled', we are done
