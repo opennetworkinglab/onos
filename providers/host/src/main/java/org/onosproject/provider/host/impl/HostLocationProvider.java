@@ -67,8 +67,11 @@ import org.slf4j.Logger;
 
 import java.util.Dictionary;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -117,6 +120,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                     "Host Location Provider; default is false")
     private boolean ipv6NeighborDiscovery = false;
 
+    protected ExecutorService eventHandler;
+
     /**
      * Creates an OpenFlow host provider.
      */
@@ -128,7 +133,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.provider.host");
-
+        eventHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/host-loc-provider", "event-handler"));
         providerService = providerRegistry.register(this);
         packetService.addProcessor(processor, PacketProcessor.advisor(1));
         deviceService.addListener(deviceListener);
@@ -147,6 +152,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         providerRegistry.unregister(this);
         packetService.removeProcessor(processor);
         deviceService.removeListener(deviceListener);
+        eventHandler.shutdown();
         providerService = null;
         log.info("Stopped");
     }
@@ -392,6 +398,10 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
+            eventHandler.execute(() -> handleEvent(event));
+        }
+
+        private void handleEvent(DeviceEvent event) {
             Device device = event.subject();
             switch (event.type()) {
                 case DEVICE_ADDED:

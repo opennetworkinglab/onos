@@ -16,6 +16,8 @@
 package org.onosproject.provider.host.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.MoreExecutors;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -170,6 +172,8 @@ public class HostLocationProviderTest {
         provider.hostService = hostService;
 
         provider.activate(CTX_FOR_NO_REMOVE);
+
+        provider.eventHandler = MoreExecutors.newDirectExecutorService();
     }
 
     @Test
