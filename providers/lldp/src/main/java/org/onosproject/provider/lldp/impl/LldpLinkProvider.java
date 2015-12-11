@@ -27,6 +27,7 @@ import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FAC
 import static org.onosproject.net.config.basics.SubjectFactories.CONNECT_POINT_SUBJECT_FACTORY;
 import static org.onosproject.net.config.basics.SubjectFactories.DEVICE_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.cluster.ClusterMetadata.NO_NAME;
 
 import java.util.Dictionary;
 import java.util.EnumSet;
@@ -47,6 +48,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cluster.ClusterMetadata;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
@@ -426,6 +428,7 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
             removeDevice(device.id());
             return Optional.empty();
         }
+
         LinkDiscovery ld = discoverers.computeIfAbsent(device.id(),
                                      did -> new LinkDiscovery(device, context));
         if (isFingerprinted(device.id())) {
@@ -749,7 +752,13 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
         @Override
         public String fingerprint() {
-            return clusterMetadataService.getClusterMetadata().getName();
+            ClusterMetadata mdata = clusterMetadataService.getClusterMetadata();
+            return mdata == null ? NO_NAME : mdata.getName();
+        }
+
+        @Override
+        public DeviceService deviceService() {
+            return deviceService;
         }
     }
 

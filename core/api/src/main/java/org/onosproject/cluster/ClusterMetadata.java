@@ -38,6 +38,9 @@ import com.google.common.collect.Sets;
  */
 public final class ClusterMetadata {
 
+    // Name to use when the ClusterMetadataService is in transient state
+    public static final String NO_NAME = "";
+
     private String name;
     private Set<ControllerNode> nodes;
     private Set<Partition> partitions;

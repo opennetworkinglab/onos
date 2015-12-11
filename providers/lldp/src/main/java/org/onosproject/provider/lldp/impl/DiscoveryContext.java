@@ -17,6 +17,7 @@ package org.onosproject.provider.lldp.impl;
 
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.LinkKey;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.packet.PacketService;
 
@@ -45,6 +46,13 @@ interface DiscoveryContext {
      * @return packet service
      */
     PacketService packetService();
+
+    /**
+     * Returns the DeviceService reference.
+     *
+     * @return the device service interface
+     */
+    DeviceService deviceService();
 
     /**
      * Returns the probe rate in millis.

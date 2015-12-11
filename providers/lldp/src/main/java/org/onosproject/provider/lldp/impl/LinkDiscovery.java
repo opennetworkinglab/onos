@@ -43,6 +43,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.flow.DefaultTrafficTreatment.builder;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.cluster.ClusterMetadata.NO_NAME;
 
 /**
  * Run discovery process from a physical switch. Ports are initially labeled as
@@ -159,6 +160,10 @@ class LinkDiscovery implements TimerTask {
 
         ONOSLLDP onoslldp = ONOSLLDP.parseONOSLLDP(eth);
         if (onoslldp != null) {
+            if (notMy(onoslldp)) {
+                return true;
+            }
+
             PortNumber srcPort = portNumber(onoslldp.getPort());
             PortNumber dstPort = packetContext.inPacket().receivedFrom().port();
             DeviceId srcDeviceId = DeviceId.deviceId(onoslldp.getDeviceString());
@@ -182,6 +187,26 @@ class LinkDiscovery implements TimerTask {
         return false;
     }
 
+    // true if *NOT* this cluster's own probe.
+    private boolean notMy(ONOSLLDP onoslldp) {
+        if (onoslldp.getDomainTLV() == null) {
+            // not finger-printed - but we can check the source
+            DeviceId src = DeviceId.deviceId(onoslldp.getDeviceString());
+            if (context.deviceService().getDevice(src) == null) {
+                return true;
+            }
+            return false;
+        }
+
+        String us = context.fingerprint();
+        String them = onoslldp.getDomainString();
+        // if: Our and/or their MetadataService in poorly state, conservative 'yes'
+        if (NO_NAME.equals(us) || NO_NAME.equals(them)) {
+            return true;
+        } else {
+            return !us.equals(them);
+        }
+    }
 
     /**
      * Execute this method every t milliseconds. Loops over all ports
