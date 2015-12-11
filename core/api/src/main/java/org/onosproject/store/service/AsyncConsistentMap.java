@@ -245,6 +245,16 @@ public interface AsyncConsistentMap<K, V> {
     CompletableFuture<Boolean> remove(K key, long version);
 
     /**
+     * Replaces the entry for the specified key only if there is any value
+     * which associated with specified key.
+     *
+     * @param key key with which the specified value is associated
+     * @param value value expected to be associated with the specified key
+     * @return the previous value associated with the specified key or null
+     */
+    CompletableFuture<Versioned<V>> replace(K key, V value);
+
+    /**
      * Replaces the entry for the specified key only if currently mapped
      * to the specified value.
      *

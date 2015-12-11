@@ -156,6 +156,11 @@ public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
     }
 
     @Override
+    public Versioned<V> replace(K key, V value) {
+        return complete(asyncMap.replace(key, value));
+    }
+
+    @Override
     public boolean replace(K key, V oldValue, V newValue) {
         return complete(asyncMap.replace(key, oldValue, newValue));
     }

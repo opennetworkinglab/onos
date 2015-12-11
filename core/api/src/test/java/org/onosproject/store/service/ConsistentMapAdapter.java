@@ -123,6 +123,11 @@ public class ConsistentMapAdapter<K, V> implements ConsistentMap<K, V> {
     }
 
     @Override
+    public Versioned<V> replace(K key, V value) {
+        return null;
+    }
+
+    @Override
     public boolean replace(K key, V oldValue, V newValue) {
         return false;
     }

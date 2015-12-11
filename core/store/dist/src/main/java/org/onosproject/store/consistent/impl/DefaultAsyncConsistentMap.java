@@ -392,6 +392,16 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
     }
 
     @Override
+    public CompletableFuture<Versioned<V>> replace(K key, V value) {
+        checkNotNull(key, ERROR_NULL_KEY);
+        checkNotNull(value, ERROR_NULL_VALUE);
+        final MeteringAgent.Context timer = monitor.startTimer(REPLACE);
+        return updateAndGet(key, Match.ifNotNull(), Match.any(), value)
+                .whenComplete((r, e) -> timer.stop(e))
+                .thenApply(v -> v.oldValue());
+    }
+
+    @Override
     public CompletableFuture<Boolean> replace(K key, V oldValue, V newValue) {
         checkNotNull(key, ERROR_NULL_KEY);
         checkNotNull(oldValue, ERROR_NULL_VALUE);
