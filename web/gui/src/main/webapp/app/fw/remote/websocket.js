@@ -21,7 +21,7 @@
     'use strict';
 
     // injected refs
-    var $log, $loc, fs, ufs, wsock, vs;
+    var $log, $loc, fs, ufs, wsock, vs, ls;
 
     // internal state
     var webSockOpts,            // web socket options
@@ -105,6 +105,7 @@
         var gsucc;
 
         $log.info('Web socket closed');
+        ls.stop();
         wsUp = false;
 
         if (gsucc = findGuiSuccessor()) {
@@ -301,15 +302,16 @@
     angular.module('onosRemote')
     .factory('WebSocketService',
         ['$log', '$location', 'FnService', 'UrlFnService', 'WSock',
-            'VeilService',
+            'VeilService', 'LoadingService',
 
-        function (_$log_, _$loc_, _fs_, _ufs_, _wsock_, _vs_) {
+        function (_$log_, _$loc_, _fs_, _ufs_, _wsock_, _vs_, _ls_) {
             $log = _$log_;
             $loc = _$loc_;
             fs = _fs_;
             ufs = _ufs_;
             wsock = _wsock_;
             vs = _vs_;
+            ls = _ls_;
 
             bindHandlers(builtinHandlers);
 
