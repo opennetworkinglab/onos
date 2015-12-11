@@ -83,7 +83,11 @@ public class OpenstackPortCodec extends JsonCodec<OpenstackPort> {
         String deviceId = portInfo.path(DEVICE_ID).asText();
 
         OpenstackPort.Builder openstackPortBuilder = OpenstackPort.builder();
-        openstackPortBuilder.portStatus(OpenstackPort.PortStatus.valueOf(status))
+        OpenstackPort.PortStatus portStatus =
+                status.equals("N/A") ? OpenstackPort.PortStatus.NA :
+                        OpenstackPort.PortStatus.valueOf(status);
+
+        openstackPortBuilder.portStatus(portStatus)
                 .name(name)
                 .adminState(adminStateUp)
                 .netwrokId(networkId)
