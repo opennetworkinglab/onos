@@ -278,7 +278,9 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                             .forEach(vmPort -> {
                                         OpenstackPort osPort = rulePopulator.openstackPort(vmPort);
                                         if (osPort != null) {
-                                            rulePopulator.populateSwitchingRules(device, vmPort);
+                                            if (!doNotPushFlows) {
+                                                rulePopulator.populateSwitchingRules(device, vmPort);
+                                            }
                                             registerDhcpInfo(osPort);
                                         } else {
                                             log.warn("No openstackPort information for port {}", vmPort);
