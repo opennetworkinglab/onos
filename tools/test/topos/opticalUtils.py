@@ -469,16 +469,15 @@ class LINCSwitch(OpticalSwitch):
             devs = response.get('devices')
 
             # Wait for all devices to be registered. There is a chance that this is only a subgraph.
-            if (len(devices) > len(devs)):
-                continue
+            if (len(devices) == len(devs)):
 
-            # Wait for all devices to available
-            available = True
-            for d in devs:
-                if d['id'] in devlist:
-                    available &= d['available']
-            if available:
-                break
+                # Wait for all devices to available
+                available = True
+                for d in devs:
+                    if d['id'] in devlist:
+                        available &= d['available']
+                if available:
+                    break
 
             if (time >= TIMEOUT):
                 error('***ERROR: ONOS did not register devices within %s seconds\n' % TIMEOUT)
