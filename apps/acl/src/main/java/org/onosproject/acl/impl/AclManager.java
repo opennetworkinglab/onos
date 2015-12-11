@@ -156,6 +156,7 @@ public class AclManager implements AclService {
     @Deactivate
     public void deactivate() {
         hostService.removeListener(hostListener);
+        // TODO can be replaced with this.clearAcl()
         flowRuleService.removeFlowRulesById(appId);
         aclStore.clearAcl();
         log.info("Stopped");

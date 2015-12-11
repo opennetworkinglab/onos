@@ -72,7 +72,7 @@ public class LambdaForwarding {
 
     @Activate
     public void activate() {
-        appId = coreService.registerApplication("org.onosproject.fwd");
+        appId = coreService.registerApplication("org.onosproject.lambdafwd");
 
         uglyMap.put(DeviceId.deviceId("of:0000ffffffffff01"), 1);
         uglyMap.put(DeviceId.deviceId("of:0000ffffffffff02"), 2);

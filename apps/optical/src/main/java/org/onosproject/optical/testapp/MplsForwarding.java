@@ -68,8 +68,7 @@ public class MplsForwarding {
 
     @Activate
     public void activate() {
-        appId = coreService.registerApplication("org.onosproject.testapp" +
-                                                        ".mplsfwd");
+        appId = coreService.registerApplication("org.onosproject.mplsfwd");
 
         uglyMap.put(DeviceId.deviceId("of:0000000000000001"), 1);
         uglyMap.put(DeviceId.deviceId("of:0000000000000002"), 2);
