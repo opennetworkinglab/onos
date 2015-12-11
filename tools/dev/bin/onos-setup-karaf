@@ -24,7 +24,7 @@ function validateIp {
 while [[ $# > 0 ]]; do
 case $1 in
     clean)
-        # Clean the previous Karaf directory if requested and if it exists.
+        echo "Removing existing karaf, apps, and config directories..."
         CLEAN="true"
         [ -d $KARAF_ROOT ] && rm -fr $KARAF_ROOT $STAGE/apps $STAGE/config
     ;;
