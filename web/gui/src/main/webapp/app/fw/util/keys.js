@@ -21,7 +21,11 @@
     'use strict';
 
     // references to injected services
-    var $log, fs, ts, ns, qhs;
+    var $log, $timeout, fs, ts, ns, qhs;
+
+    // constants
+    var eeggMin = 'shiftO',
+        eeggMax = 'shiftONOS';
 
     // internal state
     var enabled = true,
@@ -32,20 +36,21 @@
             viewKeys: {},
             viewFn: null,
             viewGestures: []
-        };
+        },
+        eegg = '';
 
-    var eegg = '', eeggMax = 'shiftONOS', eeggMin = 'shiftO';
-
-    function layEgg(lastKey) {
-        eegg += lastKey;
-        if (eeggMax.indexOf(eegg) == 0) {
-            if (eeggMax == eegg) {
-                d3.select('body').append('div').attr('id', 'eegg').append('img').attr('src', 'data/img/eegg.png');
-                setTimeout(function () { d3.select('#eegg').remove(); }, 3000);
+    function layEgg(key) {
+        eegg += key;
+        if (eeggMax.indexOf(eegg) === 0) {
+            if (eegg === eeggMax) {
+                d3.select('body').append('div').attr('id', 'eegg')
+                    .append('img').attr('src', 'data/img/eegg.png');
+                $timeout(function () { d3.select('#eegg').remove(); }, 3000);
                 eegg = '';
             }
             return true;
-        } else if (eeggMin != eegg) {
+        }
+        if (eegg !== eeggMin) {
             eegg = '';
         }
         return false;
@@ -218,10 +223,11 @@
 
     angular.module('onosUtil')
     .factory('KeyService',
-        ['$log', 'FnService', 'ThemeService', 'NavService',
+        ['$log', '$timeout', 'FnService', 'ThemeService', 'NavService',
 
-        function (_$log_, _fs_, _ts_, _ns_) {
+        function (_$log_, _$timeout_, _fs_, _ts_, _ns_) {
             $log = _$log_;
+            $timeout = _$timeout_;
             fs = _fs_;
             ts = _ts_;
             ns = _ns_;
