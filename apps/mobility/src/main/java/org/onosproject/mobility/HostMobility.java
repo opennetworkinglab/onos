@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 package org.onosproject.mobility;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -64,22 +67,26 @@ public class HostMobility {
     protected CoreService coreService;
 
     private ApplicationId appId;
+    private ExecutorService eventHandler;
 
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.mobility");
+        eventHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/app-mobility", "event-handler"));
         hostService.addListener(new InternalHostListener());
         log.info("Started with Application ID {}", appId.id());
     }
 
     @Deactivate
     public void deactivate() {
+        // TODO we never actually add any flow rules
         flowRuleService.removeFlowRulesById(appId);
+        eventHandler.shutdown();
         log.info("Stopped");
     }
 
     public class InternalHostListener
-    implements HostListener {
+        implements HostListener {
 
         @Override
         public void event(HostEvent event) {
@@ -91,14 +98,12 @@ public class HostMobility {
                     break;
                 case HOST_MOVED:
                     log.info("Host {} has moved; cleaning up.", event.subject());
-                    cleanup(event.subject());
+                    eventHandler.execute(() -> cleanup(event.subject()));
                     break;
 
                 default:
                     break;
-
             }
-
         }
 
         /**
@@ -129,12 +134,9 @@ public class HostMobility {
                     }
                 }
             }
-
             return flowRules;
         }
-
     }
-
 }
 
 
