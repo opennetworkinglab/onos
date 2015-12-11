@@ -23,10 +23,10 @@ import java.util.Objects;
  * This class provides implementation IS-IS and OSPF flags assigned to the prefix.
  */
 public class IgpFlags {
-    private final boolean isisUpDown;
-    private final boolean ospfNoUnicast;
-    private final boolean ospfLclAddr;
-    private final boolean ospfNssa;
+    private final Boolean isisUpDown;
+    private final Boolean ospfNoUnicast;
+    private final Boolean ospfLclAddr;
+    private final Boolean ospfNssa;
 
     /**
      * Constructor to initialize its parameters.
@@ -36,8 +36,8 @@ public class IgpFlags {
      * @param ospfLclAddr OSPF local address
      * @param ospfNssa OSPF propagate NSSA
      */
-     public IgpFlags(boolean isisUpDown, boolean ospfNoUnicast, boolean ospfLclAddr,
-                     boolean ospfNssa) {
+     public IgpFlags(Boolean isisUpDown, Boolean ospfNoUnicast, Boolean ospfLclAddr,
+                     Boolean ospfNssa) {
          this.isisUpDown = isisUpDown;
          this.ospfNoUnicast = ospfNoUnicast;
          this.ospfLclAddr = ospfLclAddr;
@@ -47,36 +47,36 @@ public class IgpFlags {
     /**
      * Provides information whether IS-IS is Up/Down.
      *
-     * @return IS-IS Up/Down bit enabled or not
+     * @return IS-IS Up/Down bit enabled or not or null if is not configured
      */
-    public boolean isisUpDown() {
+    public Boolean isisUpDown() {
         return isisUpDown;
     }
 
     /**
      * Provides information whether OSPF is unicast or not.
      *
-     * @return OSPF no unicast Bit set or not
+     * @return OSPF no unicast Bit set or not or null if is not configured
      */
-    public boolean ospfNoUnicast() {
+    public Boolean ospfNoUnicast() {
         return ospfNoUnicast;
     }
 
     /**
      * Provides information on OSPF local address.
      *
-     * @return OSPF local address Bit set or not
+     * @return OSPF local address Bit set or not or null if is not configured
      */
-    public boolean ospfLclAddr() {
+    public Boolean ospfLclAddr() {
         return ospfLclAddr;
     }
 
     /**
      * Provides information on OSPF propagate NSSA.
      *
-     * @return OSPF propagate NSSA Bit set or not
+     * @return OSPF propagate NSSA Bit set or not or null if is not configured
      */
-    public boolean ospfNssa() {
+    public Boolean ospfNssa() {
         return ospfNssa;
     }
 
