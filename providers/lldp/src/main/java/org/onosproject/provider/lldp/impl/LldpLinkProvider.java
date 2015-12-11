@@ -45,6 +45,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
+import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
@@ -77,6 +78,7 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.service.ConsistentMapException;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -98,6 +100,9 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
 
     // When a Device/Port has this annotation, do not send out LLDP/BDDP
     public static final String NO_LLDP = "no-lldp";
+
+    private static final int MAX_RETRIES = 5;
+    private static final int RETRY_DELAY = 1_000; // millis
 
     private final Logger log = getLogger(getClass());
 
@@ -227,15 +232,22 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         SuppressionConfig cfg = cfgRegistry.getConfig(appId, SuppressionConfig.class);
         if (cfg == null) {
             // If no configuration is found, register default.
-            cfg = cfgRegistry.addConfig(appId, SuppressionConfig.class);
-            cfg.deviceTypes(DEFAULT_RULES.getSuppressedDeviceType())
-               .annotation(DEFAULT_RULES.getSuppressedAnnotation())
-               .apply();
+            cfg = Tools.retryable(this::setDefaultSuppressionConfig,
+                                  ConsistentMapException.class,
+                                  MAX_RETRIES, RETRY_DELAY).get();
         }
         cfgListener.reconfigureSuppressionRules(cfg);
 
         modified(context);
         log.info("Started");
+    }
+
+    private SuppressionConfig setDefaultSuppressionConfig() {
+        SuppressionConfig cfg = cfgRegistry.addConfig(appId, SuppressionConfig.class);
+        cfg.deviceTypes(DEFAULT_RULES.getSuppressedDeviceType())
+           .annotation(DEFAULT_RULES.getSuppressedAnnotation())
+           .apply();
+        return cfg;
     }
 
     @Deactivate
