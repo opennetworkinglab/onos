@@ -232,7 +232,7 @@ public final class IpAssignment {
         public IpAssignment build() {
             validateInputs();
             return new IpAssignment(ipAddress, leasePeriod, timeStamp, assignmentStatus, subnetMask,
-                    dhcpServer, domainServer, routerAddress, rangeNotEnforced);
+                    dhcpServer, routerAddress, domainServer, rangeNotEnforced);
         }
 
         public Builder ipAddress(Ip4Address addr) {
