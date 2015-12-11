@@ -78,7 +78,10 @@ public class OchSignal implements Lambda {
      * @param channel channel number
      * @param maxFrequency maximum frequency
      * @param grid grid spacing frequency
+     *
+     * @deprecated in Emu (ONOS 1.4).
      */
+    @Deprecated
     public OchSignal(int channel, Frequency maxFrequency, Frequency grid) {
         // Calculate center frequency
         Frequency centerFrequency = maxFrequency.subtract(grid.multiply(channel - 1));
@@ -89,6 +92,7 @@ public class OchSignal implements Lambda {
         this.slotGranularity = (int) Math.round((double) grid.asHz() / ChannelSpacing.CHL_12P5GHZ.frequency().asHz());
     }
 
+    @Deprecated
     public OchSignal(Frequency centerFrequency, ChannelSpacing channelSpacing, int slotGranularity) {
         this.gridType = DEFAULT_OCH_GRIDTYPE;
         this.channelSpacing = channelSpacing;
