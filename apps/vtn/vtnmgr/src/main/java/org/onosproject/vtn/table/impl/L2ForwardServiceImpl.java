@@ -98,7 +98,7 @@ public final class L2ForwardServiceImpl implements L2ForwardService {
                     treatment.setOutput(outPort);
                 }
             }
-            if (type.equals(Objective.Operation.REMOVE) && inPort == lp) {
+            if (type == Objective.Operation.REMOVE && inPort.equals(lp)) {
                 flag = false;
             }
             treatment.group(new DefaultGroupId(GROUP_ID));

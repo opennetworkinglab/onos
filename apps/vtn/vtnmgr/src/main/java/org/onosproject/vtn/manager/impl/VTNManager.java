@@ -378,6 +378,8 @@ public class VTNManager implements VTNService {
         applyHostMonitoredL2Rules(host, Objective.Operation.REMOVE);
         // apply L3 openflow rules
         applyHostMonitoredL3Rules(host, Objective.Operation.REMOVE);
+        VirtualPortId virtualPortId = VirtualPortId.portId(ifaceId);
+        vPortStore.remove(virtualPortId);
     }
 
     private void programTunnelConfig(DeviceId localDeviceId, IpAddress localIp,
@@ -535,7 +537,6 @@ public class VTNManager implements VTNService {
                                               localTunnelPorts,
                                               type);
         } else if (type == Objective.Operation.REMOVE) {
-            vPortStore.remove(virtualPortId);
             if (networkOflocalHostPorts != null) {
                 l2ForwardService.programLocalBcastRules(deviceId, segmentationId,
                                                         inPort, networkOflocalHostPorts,
