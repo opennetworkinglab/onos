@@ -20,7 +20,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 
 import org.onosproject.bgp.controller.BgpCfg;
 import org.onosproject.core.ApplicationId;
@@ -45,7 +44,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  * BGP config provider to validate and populate the configuration.
  */
 @Component(immediate = true)
-@Service
 public class BgpCfgProvider extends AbstractProvider {
 
     private static final Logger log = getLogger(BgpCfgProvider.class);
@@ -127,7 +125,11 @@ public class BgpCfgProvider extends AbstractProvider {
 
         nodes = config.bgpPeer();
         for (int i = 0; i < nodes.size(); i++) {
+            String connectMode = nodes.get(i).connectMode();
             bgpConfig.addPeer(nodes.get(i).hostname(), nodes.get(i).asNumber(), nodes.get(i).holdTime());
+            if (connectMode.equals(BgpAppConfig.PEER_CONNECT_ACTIVE)) {
+                bgpConfig.connectPeer(nodes.get(i).hostname());
+            }
         }
     }
 

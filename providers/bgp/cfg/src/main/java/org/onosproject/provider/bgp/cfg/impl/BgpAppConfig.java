@@ -52,6 +52,9 @@ public class BgpAppConfig extends Config<ApplicationId> {
     public static final String PEER_IP = "peerIp";
     public static final String REMOTE_AS = "remoteAs";
     public static final String PEER_HOLD_TIME = "peerHoldTime";
+    public static final String PEER_CONNECT_MODE = "connectMode";
+    public static final String PEER_CONNECT_PASSIVE = "passive";
+    public static final String PEER_CONNECT_ACTIVE = "active";
 
     static final int MAX_SHORT_AS_NUMBER = 65535;
     static final long MAX_LONG_AS_NUMBER = 4294967295L;
@@ -229,12 +232,15 @@ public class BgpAppConfig extends Config<ApplicationId> {
      */
     public boolean validateBgpPeers() {
         List<BgpPeerConfig> nodes;
+        String connectMode;
 
         nodes = bgpPeer();
         for (int i = 0; i < nodes.size(); i++) {
+            connectMode = nodes.get(i).connectMode();
             if ((IpAddress.valueOf(nodes.get(i).hostname()) == null) ||
                     !validateRemoteAs(nodes.get(i).asNumber()) ||
-                    !validatePeerHoldTime(nodes.get(i).holdTime())) {
+                    !validatePeerHoldTime(nodes.get(i).holdTime()) ||
+                    !(connectMode.equals(PEER_CONNECT_ACTIVE) || connectMode.equals(PEER_CONNECT_PASSIVE))) {
                 return false;
             }
         }
@@ -258,7 +264,8 @@ public class BgpAppConfig extends Config<ApplicationId> {
         jsonNodes.forEach(jsonNode -> nodes.add(new BgpPeerConfig(
                 jsonNode.path(PEER_IP).asText(),
                 jsonNode.path(REMOTE_AS).asInt(),
-                jsonNode.path(PEER_HOLD_TIME).asInt())));
+                jsonNode.path(PEER_HOLD_TIME).asInt(),
+                jsonNode.path(PEER_CONNECT_MODE).asText())));
 
         return nodes;
     }
@@ -271,11 +278,13 @@ public class BgpAppConfig extends Config<ApplicationId> {
         private final String hostname;
         private final int asNumber;
         private final short holdTime;
+        private final String connectMode;
 
-        public BgpPeerConfig(String hostname, int asNumber, int holdTime) {
+        public BgpPeerConfig(String hostname, int asNumber, int holdTime, String connectMode) {
             this.hostname = checkNotNull(hostname);
             this.asNumber = asNumber;
             this.holdTime = (short) holdTime;
+            this.connectMode = connectMode;
         }
 
         /**
@@ -303,6 +312,15 @@ public class BgpAppConfig extends Config<ApplicationId> {
          */
         public short holdTime() {
             return this.holdTime;
+        }
+
+        /**
+         * Returns connection mode for the peer node.
+         *
+         * @return active or passive connection
+         */
+        public String connectMode() {
+            return this.connectMode;
         }
     }
 }
