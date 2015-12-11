@@ -24,19 +24,22 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.ChannelSpacing.CHL_12P5GHZ;
+import static org.onosproject.net.ChannelSpacing.CHL_6P25GHZ;
+import static org.onosproject.net.GridType.DWDM;
+import static org.onosproject.net.GridType.FLEX;
 
 /**
  * Implementation of Lambda representing OCh (Optical Channel) Signal.
  *
  * <p>
  * See ITU G.709 "Interfaces for the Optical Transport Network (OTN)".
+ *     ITU G.694.1 "Spectral grids for WDM applications: DWDM frequency grid".
  * </p>
  */
 public class OchSignal implements Lambda {
@@ -70,6 +73,26 @@ public class OchSignal implements Lambda {
         this.spacingMultiplier = spacingMultiplier;
         checkArgument(slotGranularity > 0, "slotGranularity must be larger than 0, received %s", slotGranularity);
         this.slotGranularity = slotGranularity;
+    }
+
+    /**
+     * Creates an instance of {@link OchSignal} representing a flex grid frequency slot.
+     * @param index     slot index (relative to "the center frequency" 193.1THz)
+     * @return FlexGrid {@link OchSignal}
+     */
+    public static OchSignal newFlexGridSlot(int index) {
+        return new OchSignal(FLEX, CHL_6P25GHZ, index, 1);
+    }
+
+    /**
+     * Creates an instance of {@link OchSignal} representing a fixed DWDM frequency slot.
+     * @param spacing   channel spacing
+     * @param index     slot index (relative to "the center frequency" 193.1THz)
+     * @return DWDM {@link OchSignal}
+     */
+    public static OchSignal newDwdmSlot(ChannelSpacing spacing, int index) {
+        return new OchSignal(DWDM, spacing, index,
+                             (int) (spacing.frequency().asHz() / CHL_12P5GHZ.frequency().asHz()));
     }
 
     /**
@@ -170,10 +193,9 @@ public class OchSignal implements Lambda {
                 ochSignal.spacingMultiplier() * ochSignal.channelSpacing().frequency().asHz() /
                         ChannelSpacing.CHL_6P25GHZ.frequency().asHz());
 
-        Supplier<SortedSet<OchSignal>> supplier = () -> new TreeSet<>(new DefaultOchSignalComparator());
         return IntStream.range(0, ochSignal.slotGranularity())
                 .mapToObj(i -> new OchSignal(GridType.FLEX, ChannelSpacing.CHL_6P25GHZ, startMultiplier + 2 * i, 1))
-                .collect(Collectors.toCollection(supplier));
+                .collect(Collectors.toCollection(DefaultOchSignalComparator::newOchSignalTreeSet));
     }
 
     /**
@@ -199,7 +221,10 @@ public class OchSignal implements Lambda {
         checkArgument(Spectrum.CENTER_FREQUENCY.subtract(center).asHz() % spacing.frequency().asHz() == 0);
 
         // Multiplier sits in middle of given lambdas, then convert from 6.25 to requested spacing
-        int spacingMultiplier = (lambdas.get(ratio / 2).spacingMultiplier() + 1) / (ratio * 2);
+        int spacingMultiplier = lambdas.stream()
+            .mapToInt(OchSignal::spacingMultiplier)
+            .sum() / lambdas.size()
+            / (int) (spacing.frequency().asHz() / CHL_6P25GHZ.frequency().asHz());
 
         return new OchSignal(GridType.DWDM, spacing, spacingMultiplier, lambdas.size());
     }
