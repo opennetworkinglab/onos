@@ -40,7 +40,8 @@ public class CoreWebApplication extends AbstractWebApplication {
                           TopologyWebResource.class,
                           ConfigWebResource.class,
                           PathsWebResource.class,
-                          StatisticsWebResource.class
+                          StatisticsWebResource.class,
+                          MetricsWebResource.class
         );
     }
 }

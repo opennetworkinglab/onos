@@ -102,7 +102,9 @@
                             org.onlab.osgi.*,
                             org.onlab.packet.*,
                             org.onlab.rest.*,
-                            org.onosproject.*
+                            org.onosproject.*,
+                            org.onlab.metrics.*,
+                            com.codahale.metrics.*
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

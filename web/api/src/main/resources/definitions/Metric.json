@@ -1,0 +1,165 @@
+{
+  "type": "object",
+  "title": "metric",
+  "required": [
+    "name",
+    "metric"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "example": "cpu"
+    },
+    "metric": {
+      "type": "object",
+      "title": "metric",
+      "optional": [
+        "counter",
+        "gauge",
+        "meter",
+        "histogram",
+        "timer"
+      ],
+      "properties": {
+        "counter": {
+          "type": "object",
+          "required": [
+            "counter"
+          ],
+          "properties": {
+            "counter": {
+              "type": "integer",
+              "example": "1"
+            }
+          }
+        },
+        "gauge": {
+          "type": "object",
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "value": "string",
+            "example": "1"
+          }
+        },
+        "meter": {
+          "type": "object",
+          "required": [
+            "counter",
+            "mean_rate",
+            "1_min_rate",
+            "5_min_rate",
+            "15_min_rate"
+          ],
+          "properties": {
+            "counter": {
+              "type": "integer",
+              "example": "1"
+            },
+            "mean_rate": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "1_min_rate": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "5_min_rate": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "15_min_rate": {
+              "type": "double",
+              "example": "1.0"
+            }
+          }
+        },
+        "histogram": {
+          "type": "object",
+          "required": [
+            "counter",
+            "mean",
+            "min",
+            "max",
+            "stddev"
+          ],
+          "properties": {
+            "counter": {
+              "type": "integer",
+              "example": "1"
+            },
+            "mean": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "min": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "max": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "stddev": {
+              "type": "double",
+              "example": "1.0"
+            }
+          }
+        },
+        "timer": {
+          "type": "object",
+          "required": [
+            "counter",
+            "mean_rate",
+            "1_min_rate",
+            "5_min_rate",
+            "15_min_rate",
+            "mean",
+            "min",
+            "max",
+            "stddev"
+          ],
+          "properties": {
+            "counter": {
+              "type": "integer",
+              "example": "1"
+            },
+            "mean_rate": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "1_min_rate": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "5_min_rate": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "15_min_rate": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "mean": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "min": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "max": {
+              "type": "double",
+              "example": "1.0"
+            },
+            "stddev": {
+              "type": "double",
+              "example": "1.0"
+            }
+          }
+        }
+      }
+    }
+  }
+}

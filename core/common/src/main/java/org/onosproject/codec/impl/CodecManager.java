@@ -15,6 +15,7 @@
  */
 package org.onosproject.codec.impl;
 
+import com.codahale.metrics.Metric;
 import com.google.common.collect.ImmutableSet;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -104,6 +105,7 @@ public class CodecManager implements CodecService {
         registerCodec(Load.class, new LoadCodec());
         registerCodec(TableStatisticsEntry.class, new TableStatisticsEntryCodec());
         registerCodec(PortStatistics.class, new PortStatisticsCodec());
+        registerCodec(Metric.class, new MetricCodec());
         log.info("Started");
     }
 
