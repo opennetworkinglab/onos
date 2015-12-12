@@ -23,7 +23,7 @@ onos-change-version $NEW_VERSION
 export ONOS_VERSION=$NEW_VERSION
 
 # Build ONOS & deploy to staging repo using the release profile.
-onos-build && onos-package && mvn -Prelease clean deploy -DskipTests
+onos-build && onos-package --tar --zip && mvn -Prelease clean deploy -DskipTests
 
 # Build ONOS docs
 onos-build-docs
