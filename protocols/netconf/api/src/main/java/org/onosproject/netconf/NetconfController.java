@@ -19,7 +19,6 @@ package org.onosproject.netconf;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -48,8 +47,9 @@ public interface NetconfController {
      *
      * @param deviceInfo info about the device to add
      * @return NetconfDevice Netconf device
+     * @throws NetconfException when device is not available
      */
-    NetconfDevice connectDevice(NetconfDeviceInfo deviceInfo) throws IOException;
+    NetconfDevice connectDevice(NetconfDeviceInfo deviceInfo) throws NetconfException;
 
     /**
      * Removes a Netconf device.

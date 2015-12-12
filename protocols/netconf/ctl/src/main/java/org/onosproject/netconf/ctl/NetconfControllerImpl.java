@@ -26,11 +26,11 @@ import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceListener;
+import org.onosproject.netconf.NetconfException;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -90,9 +90,9 @@ public class NetconfControllerImpl implements NetconfController {
     }
 
     @Override
-    public NetconfDevice connectDevice(NetconfDeviceInfo deviceInfo) throws IOException {
+    public NetconfDevice connectDevice(NetconfDeviceInfo deviceInfo) throws NetconfException {
         if (netconfDeviceMap.containsKey(deviceInfo.getDeviceId())) {
-            log.warn("Device {} is already present", deviceInfo);
+            log.info("Device {} is already present", deviceInfo);
             return netconfDeviceMap.get(deviceInfo.getDeviceId());
         } else {
             log.info("Creating NETCONF device {}", deviceInfo);
@@ -109,9 +109,8 @@ public class NetconfControllerImpl implements NetconfController {
         }
     }
 
-    private NetconfDevice createDevice(NetconfDeviceInfo deviceInfo) throws IOException {
-        NetconfDevice netconfDevice = null;
-        netconfDevice = new NetconfDeviceImpl(deviceInfo);
+    private NetconfDevice createDevice(NetconfDeviceInfo deviceInfo) throws NetconfException {
+        NetconfDevice netconfDevice = new NetconfDeviceImpl(deviceInfo);
         for (NetconfDeviceListener l : netconfDeviceListeners) {
             l.deviceAdded(deviceInfo);
         }

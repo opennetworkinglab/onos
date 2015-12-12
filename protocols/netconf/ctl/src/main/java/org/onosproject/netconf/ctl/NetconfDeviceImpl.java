@@ -18,6 +18,7 @@ package org.onosproject.netconf.ctl;
 
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfDeviceInfo;
+import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +37,13 @@ public class NetconfDeviceImpl implements NetconfDevice {
     private boolean deviceState = false;
     private NetconfSession netconfSession;
 
-    public NetconfDeviceImpl(NetconfDeviceInfo deviceInfo) throws IOException {
+    public NetconfDeviceImpl(NetconfDeviceInfo deviceInfo) throws NetconfException {
         netconfDeviceInfo = deviceInfo;
         try {
             netconfSession = new NetconfSessionImpl(netconfDeviceInfo);
         } catch (IOException e) {
-            throw new IOException("Cannot create connection and session", e);
+            throw new NetconfException("Cannot create connection and session for device " +
+                                               deviceInfo, e);
         }
         deviceState = true;
     }
