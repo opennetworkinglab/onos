@@ -17,6 +17,7 @@ package org.onosproject.net.device;
 
 import org.junit.Test;
 import org.onlab.packet.ChassisId;
+import org.onosproject.net.DefaultAnnotations;
 
 import java.net.URI;
 
@@ -35,12 +36,13 @@ public class DefaultDeviceDescriptionTest {
     private static final String SW = "3.9.1";
     private static final String SN = "43311-12345";
     private static final ChassisId CID = new ChassisId();
-
+    private static final DefaultAnnotations DA =
+            DefaultAnnotations.builder().set("Key", "Value").build();
 
     @Test
     public void basics() {
         DeviceDescription device =
-                new DefaultDeviceDescription(DURI, SWITCH, MFR, HW, SW, SN, CID);
+                new DefaultDeviceDescription(DURI, SWITCH, MFR, HW, SW, SN, CID, DA);
         assertEquals("incorrect uri", DURI, device.deviceUri());
         assertEquals("incorrect type", SWITCH, device.type());
         assertEquals("incorrect manufacturer", MFR, device.manufacturer());
@@ -49,6 +51,7 @@ public class DefaultDeviceDescriptionTest {
         assertEquals("incorrect serial", SN, device.serialNumber());
         assertTrue("incorrect toString", device.toString().contains("uri=of:foo"));
         assertTrue("Incorrect chassis", device.chassisId().value() == 0);
+        assertTrue("incorrect annotatios", device.toString().contains("Key=Value"));
     }
 
 }

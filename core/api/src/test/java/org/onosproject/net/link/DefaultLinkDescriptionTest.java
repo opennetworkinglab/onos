@@ -16,10 +16,12 @@
 package org.onosproject.net.link;
 
 import org.junit.Test;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.DefaultLinkTest.cp;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.Link.Type.DIRECT;
@@ -33,13 +35,16 @@ public class DefaultLinkDescriptionTest {
     private static final DeviceId DID1 = deviceId("of:foo");
     private static final DeviceId DID2 = deviceId("of:bar");
     private static final PortNumber P1 = portNumber(1);
+    private static final DefaultAnnotations DA =
+            DefaultAnnotations.builder().set("Key", "Value").build();
 
     @Test
     public void basics() {
-        LinkDescription desc = new DefaultLinkDescription(cp(DID1, P1), cp(DID2, P1), DIRECT);
+        LinkDescription desc = new DefaultLinkDescription(cp(DID1, P1), cp(DID2, P1), DIRECT, DA);
         assertEquals("incorrect src", cp(DID1, P1), desc.src());
         assertEquals("incorrect dst", cp(DID2, P1), desc.dst());
         assertEquals("incorrect type", DIRECT, desc.type());
+        assertTrue("incorrect annotatios", desc.toString().contains("Key=Value"));
     }
 
 }

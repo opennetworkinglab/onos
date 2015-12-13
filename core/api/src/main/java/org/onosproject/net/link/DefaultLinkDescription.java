@@ -68,7 +68,9 @@ public class DefaultLinkDescription extends AbstractDescription
         return MoreObjects.toStringHelper(this)
                 .add("src", src())
                 .add("dst", dst())
-                .add("type", type()).toString();
+                .add("type", type())
+                .add("annotations", annotations())
+                .toString();
     }
 
     @Override
