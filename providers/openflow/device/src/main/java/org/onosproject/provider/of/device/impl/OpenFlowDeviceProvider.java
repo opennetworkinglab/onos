@@ -120,6 +120,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private static final Logger LOG = getLogger(OpenFlowDeviceProvider.class);
 
+    //TODO consider renaming KBPS and MBPS (as they are used to convert by division)
+    private static final long KBPS = 1_000;
     private static final long MBPS = 1_000 * 1_000;
     private static final Frequency FREQ100 = Frequency.ofGHz(100);
     private static final Frequency FREQ193_1 = Frequency.ofTHz(193.1);
@@ -669,7 +671,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         private long portSpeed(OFPortDesc port) {
             if (port.getVersion() == OFVersion.OF_13) {
-                return port.getCurrSpeed() / MBPS;
+                // Note: getCurrSpeed() returns a value in kbps (this also applies to OF_11 and OF_12)
+                return port.getCurrSpeed() / KBPS;
             }
 
             PortSpeed portSpeed = PortSpeed.SPEED_NONE;
