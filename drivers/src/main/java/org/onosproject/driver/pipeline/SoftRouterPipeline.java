@@ -275,7 +275,9 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         selector.matchVlanId(v.vlanId());
         selector.matchEthDst(e.mac());
         selector.matchEthType(Ethernet.TYPE_IPV4);
-        treatment.popVlan();
+        if (!v.vlanId().equals(VlanId.NONE)) {
+            treatment.popVlan();
+        }
         treatment.transition(FIB_TABLE); // all other IPs to the FIB table
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)

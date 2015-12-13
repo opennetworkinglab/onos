@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
@@ -279,20 +280,23 @@ public class SingleSwitchFibInstaller {
 
             NextHop nextHop = new NextHop(entry.nextHopIp(), entry.nextHopMac(), groupKey);
 
-            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
                     .setEthSrc(egressIntf.mac())
-                    .setEthDst(nextHop.mac())
-                    .pushVlan()
-                    .setVlanId(egressIntf.vlan())
-                    .setVlanPcp((byte) 0)
-                    .setOutput(egressIntf.connectPoint().port())
-                    .build();
+                    .setEthDst(nextHop.mac());
+
+            if (!egressIntf.vlan().equals(VlanId.NONE)) {
+                treatment.pushVlan()
+                        .setVlanId(egressIntf.vlan())
+                        .setVlanPcp((byte) 0);
+            }
+
+            treatment.setOutput(egressIntf.connectPoint().port());
 
             int nextId = flowObjectiveService.allocateNextId();
 
             NextObjective nextObjective = DefaultNextObjective.builder()
                     .withId(nextId)
-                    .addTreatment(treatment)
+                    .addTreatment(treatment.build())
                     .withType(NextObjective.Type.SIMPLE)
                     .fromApp(appId)
                     .add(); // TODO add callbacks
