@@ -238,6 +238,7 @@ public class BgpPrefixLSIdentifier implements Comparable<Object> {
             return 0;
         }
         int result = this.localNodeDescriptors.compareTo(((BgpPrefixLSIdentifier) o).localNodeDescriptors);
+        boolean tlvFound = false;
         if (result != 0) {
             return result;
         } else {
@@ -249,20 +250,24 @@ public class BgpPrefixLSIdentifier implements Comparable<Object> {
                 } else {
                     return -1;
                 }
-           }
+            }
 
             ListIterator<BgpValueType> listIterator = prefixDescriptor.listIterator();
-            ListIterator<BgpValueType> listIteratorOther = ((BgpPrefixLSIdentifier) o).prefixDescriptor.listIterator();
             while (listIterator.hasNext()) {
-                BgpValueType tlv = listIterator.next();
-                if (prefixDescriptor.contains(tlv) && ((BgpPrefixLSIdentifier) o).prefixDescriptor.contains(tlv)) {
-                    int res = prefixDescriptor.get(prefixDescriptor.indexOf(tlv)).compareTo(
-                            ((BgpPrefixLSIdentifier) o).prefixDescriptor
-                                    .get(((BgpPrefixLSIdentifier) o).prefixDescriptor.indexOf(tlv)));
-                    if (res != 0) {
-                        return res;
+                BgpValueType tlv1 = listIterator.next();
+                for (BgpValueType tlv : ((BgpPrefixLSIdentifier) o).prefixDescriptor) {
+                    if (tlv.getType() == tlv1.getType()) {
+                        result = prefixDescriptor.get(prefixDescriptor.indexOf(tlv1)).compareTo(
+                                ((BgpPrefixLSIdentifier) o).prefixDescriptor
+                                        .get(((BgpPrefixLSIdentifier) o).prefixDescriptor.indexOf(tlv)));
+                        if (result != 0) {
+                            return result;
+                        }
+                        tlvFound = true;
+                        break;
                     }
-                } else {
+                }
+                if (!tlvFound) {
                     return 1;
                 }
             }

@@ -234,31 +234,42 @@ public class NodeDescriptors {
                 .toString();
     }
 
+    /**
+     * Compares this and o object.
+     *
+     * @param o object to be compared with this object
+     * @return which object is greater
+     */
     public int compareTo(Object o) {
         if (this.equals(o)) {
             return 0;
         }
         ListIterator<BgpValueType> listIterator = subTlvs.listIterator();
-        ListIterator<BgpValueType> listIteratorOther = ((NodeDescriptors) o).subTlvs.listIterator();
         int countOtherSubTlv = ((NodeDescriptors) o).subTlvs.size();
         int countObjSubTlv = subTlvs.size();
+        boolean tlvFound = false;
         if (countOtherSubTlv != countObjSubTlv) {
-             if (countOtherSubTlv > countObjSubTlv) {
-                 return 1;
-             } else {
-                 return -1;
-             }
+            if (countOtherSubTlv > countObjSubTlv) {
+                return 1;
+            } else {
+                return -1;
+            }
         } else {
             while (listIterator.hasNext()) {
-            BgpValueType tlv = listIterator.next();
+                BgpValueType tlv1 = listIterator.next();
                 log.debug("NodeDescriptor compare subtlv's");
-                if (subTlvs.contains(tlv) && ((NodeDescriptors) o).subTlvs.contains(tlv)) {
-                    int result = subTlvs.get(subTlvs.indexOf(tlv)).compareTo(
-                            ((NodeDescriptors) o).subTlvs.get(((NodeDescriptors) o).subTlvs.indexOf(tlv)));
-                    if (result != 0) {
-                        return result;
+                for (BgpValueType tlv : ((NodeDescriptors) o).subTlvs) {
+                    if (tlv.getType() == tlv1.getType()) {
+                        int result = subTlvs.get(subTlvs.indexOf(tlv1)).compareTo(
+                                ((NodeDescriptors) o).subTlvs.get(((NodeDescriptors) o).subTlvs.indexOf(tlv)));
+                        if (result != 0) {
+                            return result;
+                        }
+                        tlvFound = true;
+                        break;
                     }
-                } else {
+                }
+                if (!tlvFound) {
                     return 1;
                 }
             }
