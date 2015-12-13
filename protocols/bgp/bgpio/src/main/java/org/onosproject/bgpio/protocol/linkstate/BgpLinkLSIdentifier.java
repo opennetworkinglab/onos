@@ -261,6 +261,7 @@ public class BgpLinkLSIdentifier implements Comparable<Object> {
         if (this.equals(o)) {
             return 0;
         }
+        boolean tlvFound = false;
         int result = this.localNodeDescriptors.compareTo(((BgpLinkLSIdentifier) o).localNodeDescriptors);
         if (result != 0) {
             return result;
@@ -275,19 +276,23 @@ public class BgpLinkLSIdentifier implements Comparable<Object> {
                 } else {
                     return -1;
                 }
-           }
+            }
             ListIterator<BgpValueType> listIterator = linkDescriptor.listIterator();
-            ListIterator<BgpValueType> listIteratorOther = ((BgpLinkLSIdentifier) o).linkDescriptor.listIterator();
             while (listIterator.hasNext()) {
-                BgpValueType tlv = listIterator.next();
-                if (linkDescriptor.contains(tlv) && ((BgpLinkLSIdentifier) o).linkDescriptor.contains(tlv)) {
-                    int res = linkDescriptor.get(linkDescriptor.indexOf(tlv)).compareTo(
-                            ((BgpLinkLSIdentifier) o).linkDescriptor.get(((BgpLinkLSIdentifier) o).linkDescriptor
-                                    .indexOf(tlv)));
-                    if (res != 0) {
-                        return res;
+                BgpValueType tlv1 = listIterator.next();
+                for (BgpValueType tlv : ((BgpLinkLSIdentifier) o).linkDescriptor) {
+                    if (tlv.getType() == tlv1.getType()) {
+                        result = linkDescriptor.get(linkDescriptor.indexOf(tlv1)).compareTo(
+                                ((BgpLinkLSIdentifier) o).linkDescriptor.get(((BgpLinkLSIdentifier) o).linkDescriptor
+                                        .indexOf(tlv)));
+                        if (result != 0) {
+                            return result;
+                        }
+                        tlvFound = true;
+                        break;
                     }
-                } else {
+                }
+                if (!tlvFound) {
                     return 1;
                 }
             }
