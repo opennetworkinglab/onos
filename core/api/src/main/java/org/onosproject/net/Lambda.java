@@ -24,7 +24,10 @@ public interface Lambda {
      *
      * @param lambda index number
      * @return an instance
+     *
+     * @deprecated in Emu (1.4.0)
      */
+    @Deprecated
     static Lambda indexedLambda(long lambda) {
         return new IndexedLambda(lambda);
     }
