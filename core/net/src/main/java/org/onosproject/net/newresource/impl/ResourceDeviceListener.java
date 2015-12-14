@@ -63,7 +63,11 @@ final class ResourceDeviceListener implements DeviceListener {
     private static final int MAX_VLAN_ID = VlanId.MAX_VLAN;
     private static final List<VlanId> ENTIRE_VLAN_IDS = getEntireVlans();
 
-    private static final int MAX_MPLS_LABEL = 1048576;
+    // Ref: http://www.iana.org/assignments/mpls-label-values/mpls-label-values.xhtml
+    // Smallest non-reserved MPLS label
+    private static final int MIN_UNRESERVED_LABEL = 0x10;
+    // Max non-reserved MPLS label = 239
+    private static final int MAX_UNRESERVED_LABEL = 0xEF;
     private static final List<MplsLabel> ENTIRE_MPLS_LABELS = getEntireMplsLabels();
 
     private static final int TOTAL_ODU2_TRIBUTARY_SLOTS = 8;
@@ -264,8 +268,7 @@ final class ResourceDeviceListener implements DeviceListener {
     }
 
     private static List<MplsLabel> getEntireMplsLabels() {
-        // potentially many objects are created
-        return IntStream.range(0, MAX_MPLS_LABEL)
+        return IntStream.range(MIN_UNRESERVED_LABEL, MAX_UNRESERVED_LABEL + 1)
                 .mapToObj(MplsLabel::mplsLabel)
                 .collect(Collectors.toList());
     }
