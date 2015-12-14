@@ -18,9 +18,9 @@ package org.onosproject.maven;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
+import com.google.gson.JsonParser;
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.DocletTag;
 import com.thoughtworks.qdox.model.JavaAnnotation;
@@ -36,6 +36,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -51,6 +52,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 @Mojo(name = "swagger", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public class OnosSwaggerMojo extends AbstractMojo {
     private final ObjectMapper mapper = new ObjectMapper();
+    private final JsonParser jsonParser = new JsonParser();
 
     private static final String JSON_FILE = "swagger.json";
     private static final String GEN_SRC = "generated-sources";
@@ -291,10 +293,7 @@ public class OnosSwaggerMojo extends AbstractMojo {
                 try {
                     File config = new File(definitionsDirectory.getAbsolutePath() + "/"
                                                    + param + ".json");
-                    String lines = Files.readLines(config, Charsets.UTF_8).stream().reduce((t, u) -> t + u).
-                            get();
-                    lines = lines.replaceAll("\\s+", "");
-                    definitions.putPOJO(param, lines);
+                    definitions.putPOJO(param, jsonParser.parse(new FileReader(config)));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
