@@ -583,19 +583,22 @@ public class VTNManager implements VTNService {
                             .behaviour(BridgeConfig.class);
                     Collection<BridgeDescription> bridgeDescriptions = bridgeConfig
                             .getBridges();
-                    Set<PortNumber> ports = bridgeConfig.getPortNumbers();
                     Iterator<BridgeDescription> it = bridgeDescriptions
                             .iterator();
-                    if (it.hasNext()) {
+                    while (it.hasNext()) {
                         BridgeDescription sw = it.next();
-                        ports.stream()
-                                .filter(p -> p.name()
-                                        .equalsIgnoreCase(tunnelName))
-                                .forEach(p -> {
-                            l2ForwardService.programTunnelOut(sw.deviceId(),
-                                                              segmentationId, p,
-                                                              dstMac, type, ipAddress);
-                        });
+                        if (sw.bridgeName().name().equals(VtnConfig.DEFAULT_BRIDGE_NAME)) {
+                            List<Port> ports = deviceService.getPorts(sw.deviceId());
+                            ports.stream()
+                                    .filter(p -> p.annotations().value(AnnotationKeys.PORT_NAME)
+                                            .equalsIgnoreCase(tunnelName))
+                                    .forEach(p -> {
+                                l2ForwardService.programTunnelOut(sw.deviceId(),
+                                                                  segmentationId, p.number(),
+                                                                  dstMac, type, ipAddress);
+                            });
+                            break;
+                        }
                     }
                 });
     }

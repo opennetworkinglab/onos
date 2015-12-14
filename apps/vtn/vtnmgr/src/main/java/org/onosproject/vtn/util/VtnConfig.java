@@ -37,7 +37,7 @@ import org.onosproject.net.driver.DriverHandler;
  */
 public final class VtnConfig {
 
-    private static final String DEFAULT_BRIDGE_NAME = "br-int";
+    public static final String DEFAULT_BRIDGE_NAME = "br-int";
     private static final String DEFAULT_TUNNEL = "vxlan-0.0.0.0";
     private static final Map<String, String> DEFAULT_TUNNEL_OPTIONS = new HashMap<String, String>() {
         {
