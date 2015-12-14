@@ -15,18 +15,25 @@
  */
 package org.onosproject.net.flow.instructions;
 
+import java.util.List;
+
 import org.junit.Test;
+import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
+import org.onosproject.core.DefaultGroupId;
+import org.onosproject.core.GroupId;
 import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.IndexedLambda;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.meter.MeterId;
 
 import com.google.common.testing.EqualsTester;
 
@@ -38,8 +45,8 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.junit.UtilityClassChecker.assertThatClassIsUtility;
-import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.OduSignalId.oduSignalId;
+import static org.onosproject.net.PortNumber.portNumber;
 
 /**
  * Unit tests for the Instructions class.
@@ -47,7 +54,7 @@ import static org.onosproject.net.OduSignalId.oduSignalId;
 public class InstructionsTest {
 
     /**
-     * Checks that a Criterion object has the proper type, and then converts
+     * Checks that an Instruction object has the proper type, and then converts
      * it to the proper type.
      *
      * @param instruction Instruction object to convert
@@ -65,7 +72,7 @@ public class InstructionsTest {
     }
 
     /**
-     * Checks the equals() and toString() methods of a Criterion class.
+     * Checks the equals() and toString() methods of a Instruction class.
      *
      * @param c1 first object to compare
      * @param c1match object that should be equal to the first
@@ -102,10 +109,50 @@ public class InstructionsTest {
         assertThatClassIsImmutable(L2ModificationInstruction.ModEtherInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModVlanIdInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModVlanPcpInstruction.class);
+        assertThatClassIsImmutable(L2ModificationInstruction.PopVlanInstruction.class);
         assertThatClassIsImmutable(L3ModificationInstruction.ModIPInstruction.class);
         assertThatClassIsImmutable(L3ModificationInstruction.ModIPv6FlowLabelInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.ModMplsLabelInstruction.class);
         assertThatClassIsImmutable(L2ModificationInstruction.PushHeaderInstructions.class);
+        assertThatClassIsImmutable(L2ModificationInstruction.ModMplsBosInstruction.class);
+        assertThatClassIsImmutable(L2ModificationInstruction.ModMplsTtlInstruction.class);
+        assertThatClassIsImmutable(L2ModificationInstruction.ModTunnelIdInstruction.class);
+    }
+
+    //  NoActionInstruction
+
+    private final Instructions.NoActionInstruction noAction1 = Instructions.createNoAction();
+    private final Instructions.NoActionInstruction noAction2 = Instructions.createNoAction();
+
+    /**
+     * Test the createNoAction method.
+     */
+    @Test
+    public void testCreateNoActionMethod() {
+        Instructions.NoActionInstruction instruction = Instructions.createNoAction();
+        checkAndConvert(instruction,
+                        Instruction.Type.NOACTION,
+                        Instructions.NoActionInstruction.class);
+    }
+
+    /**
+     * Test the equals() method of the NoActionInstruction class.
+     */
+
+    @Test
+    public void testNoActionInstructionEquals() throws Exception {
+        new EqualsTester()
+                .addEqualityGroup(noAction1, noAction2)
+                .testEquals();
+    }
+
+    /**
+     * Test the hashCode() method of the NoActionInstruction class.
+     */
+
+    @Test
+    public void testNoActionInstructionHashCode() {
+        assertThat(noAction1.hashCode(), is(equalTo(noAction2.hashCode())));
     }
 
     //  DropInstruction
@@ -448,7 +495,7 @@ public class InstructionsTest {
     }
 
     /**
-     * Test the hashCode() method of the ModEtherInstruction class.
+     * Test the hashCode() method of the ModVlanPcp class.
      */
 
     @Test
@@ -630,7 +677,7 @@ public class InstructionsTest {
     }
 
     /**
-     * Test the equals(), hashCode and toString() methods of the
+     * Test the equals(), hashCode() and toString() methods of the
      * ModMplsLabelInstruction class.
      */
     @Test
@@ -763,4 +810,583 @@ public class InstructionsTest {
         assertThat(modTransportPortInstruction1.hashCode(),
                    is(not(equalTo(modTransportPortInstruction2.hashCode()))));
     }
+
+    //  GroupInstruction
+
+    private final GroupId groupId1 = new DefaultGroupId(1);
+    private final GroupId groupId2 = new DefaultGroupId(2);
+    private final Instruction groupInstruction1 = Instructions.createGroup(groupId1);
+    private final Instruction sameAsGroupInstruction1 = Instructions.createGroup(groupId1);
+    private final Instruction groupInstruction2 = Instructions.createGroup(groupId2);
+
+    /**
+     * Test the create group method.
+     */
+    @Test
+    public void testCreateGroupMethod() {
+        final Instruction instruction = Instructions.createGroup(groupId1);
+        final Instructions.GroupInstruction groupInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.GROUP,
+                                Instructions.GroupInstruction.class);
+        assertThat(groupInstruction.groupId(), is(equalTo(groupId1)));
+    }
+
+    /**
+     * Test the equals() method of the GroupInstruction class.
+     */
+
+    @Test
+    public void testGroupInstructionEquals() {
+        checkEqualsAndToString(groupInstruction1,
+                               sameAsGroupInstruction1,
+                               groupInstruction2);
+    }
+
+    //  SetQueueInstruction
+
+    private final Instruction setQueueInstruction1 = Instructions.setQueue(1, port1);
+    private final Instruction sameAsSetQueueInstruction1 = Instructions.setQueue(1, port1);
+    private final Instruction setQueueInstruction2 = Instructions.setQueue(1, port2);
+
+    /**
+     * Test the set queue method.
+     */
+    @Test
+    public void testSetQueueMethod() {
+        final Instruction instruction = Instructions.setQueue(2, port2);
+        final Instructions.SetQueueInstruction setQueueInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.QUEUE,
+                                Instructions.SetQueueInstruction.class);
+        assertThat(setQueueInstruction.queueId(), is(2L));
+        assertThat(setQueueInstruction.port(), is(port2));
+    }
+
+    /**
+     * Test the equals() method of the SetQueueInstruction class.
+     */
+    @Test
+    public void testSetQueueInstructionEquals() {
+        checkEqualsAndToString(setQueueInstruction1,
+                               sameAsSetQueueInstruction1,
+                               setQueueInstruction2);
+    }
+
+    //  MeterInstruction
+
+    MeterId meterId1 = MeterId.meterId(1);
+    MeterId meterId2 = MeterId.meterId(2);
+    private final Instruction meterInstruction1 = Instructions.meterTraffic(meterId1);
+    private final Instruction sameAsMeterInstruction1 = Instructions.meterTraffic(meterId1);
+    private final Instruction meterInstruction2 = Instructions.meterTraffic(meterId2);
+
+    /**
+     * Test the meter traffic method.
+     */
+    @Test
+    public void testMeterTrafficMethod() {
+        final Instruction instruction = Instructions.meterTraffic(meterId1);
+        final Instructions.MeterInstruction meterInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.METER,
+                                Instructions.MeterInstruction.class);
+        assertThat(meterInstruction.meterId(), is(meterId1));
+    }
+
+    /**
+     * Test the equals() method of the MeterInstruction class.
+     */
+    @Test
+    public void testMeterTrafficInstructionEquals() {
+        checkEqualsAndToString(meterInstruction1,
+                               sameAsMeterInstruction1,
+                               meterInstruction2);
+    }
+
+    //  TableTypeTransition
+
+    private final Instruction transitionInstruction1 = Instructions.transition(1);
+    private final Instruction sameAsTransitionInstruction1 = Instructions.transition(1);
+    private final Instruction transitionInstruction2 = Instructions.transition(2);
+
+    /**
+     * Test the transition method.
+     */
+    @Test
+    public void testTransitionMethod() {
+        final Instruction instruction = Instructions.transition(1);
+        final Instructions.TableTypeTransition tableInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.TABLE,
+                                Instructions.TableTypeTransition.class);
+        assertThat(tableInstruction.tableId(), is(1));
+    }
+
+    /**
+     * Test the equals() method of the TableTypeTransition class.
+     */
+    @Test
+    public void testTableTypeTransitionInstructionEquals() {
+        checkEqualsAndToString(transitionInstruction1,
+                               sameAsTransitionInstruction1,
+                               transitionInstruction2);
+    }
+
+    //  MetadataInstruction
+
+    long metadata1 = 111L;
+    long metadataMask1 = 222L;
+    long metadata2 = 333L;
+    long metadataMask2 = 444L;
+
+    private final Instruction metadataInstruction1 =
+            Instructions.writeMetadata(metadata1, metadataMask1);
+    private final Instruction sameAsMetadataInstruction1 =
+            Instructions.writeMetadata(metadata1, metadataMask1);
+    private final Instruction metadataInstruction2 =
+            Instructions.writeMetadata(metadata2, metadataMask2);
+
+    /**
+     * Test the write metadata method.
+     */
+    @Test
+    public void testWriteMetadataMethod() {
+        final Instruction instruction =
+                Instructions.writeMetadata(metadata1, metadataMask1);
+        final Instructions.MetadataInstruction metadataInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.METADATA,
+                                Instructions.MetadataInstruction.class);
+        assertThat(metadataInstruction.metadata(), is(metadata1));
+        assertThat(metadataInstruction.metadataMask(), is(metadataMask1));
+    }
+
+    /**
+     * Test the equals() method of the MetadataInstruction class.
+     */
+    @Test
+    public void testInstructionEquals() {
+        checkEqualsAndToString(metadataInstruction1,
+                               sameAsMetadataInstruction1,
+                               metadataInstruction2);
+    }
+
+    //  ExtensionInstructionWrapper
+
+    class MockExtensionTreatment implements ExtensionTreatment {
+        int type;
+
+        MockExtensionTreatment(int type) {
+            this.type = type;
+        }
+        @Override
+        public ExtensionTreatmentType type() {
+            return new ExtensionTreatmentType(type);
+        }
+
+        @Override
+        public <T> void setPropertyValue(String key, T value) throws ExtensionPropertyException {
+
+        }
+
+        @Override
+        public <T> T getPropertyValue(String key) throws ExtensionPropertyException {
+            return null;
+        }
+
+        @Override
+        public List<String> getProperties() {
+            return null;
+        }
+
+        @Override
+        public byte[] serialize() {
+            return new byte[0];
+        }
+
+        @Override
+        public void deserialize(byte[] data) {
+
+        }
+    }
+
+    ExtensionTreatment extensionTreatment1 = new MockExtensionTreatment(111);
+    ExtensionTreatment extensionTreatment2 = new MockExtensionTreatment(222);
+
+    DeviceId deviceId1 = DeviceId.deviceId("of:1");
+    DeviceId deviceId2 = DeviceId.deviceId("of:2");
+
+    private final Instruction extensionInstruction1 =
+            Instructions.extension(extensionTreatment1, deviceId1);
+    private final Instruction sameAsExtensionInstruction1 =
+            Instructions.extension(extensionTreatment1, deviceId1);
+    private final Instruction extensionInstruction2 =
+            Instructions.extension(extensionTreatment2, deviceId2);
+
+    /**
+     * Test the extension method.
+     */
+    @Test
+    public void testExtensionMethod() {
+        final Instruction instruction =
+                Instructions.extension(extensionTreatment1, deviceId1);
+        final Instructions.ExtensionInstructionWrapper extensionInstructionWrapper =
+                checkAndConvert(instruction,
+                                Instruction.Type.EXTENSION,
+                                Instructions.ExtensionInstructionWrapper.class);
+        assertThat(extensionInstructionWrapper.deviceId(), is(deviceId1));
+        assertThat(extensionInstructionWrapper.extensionInstruction(), is(extensionTreatment1));
+    }
+
+    /**
+     * Test the equals() method of the ExtensionInstructionWrapper class.
+     */
+    @Test
+    public void testExtensionInstructionWrapperEquals() {
+        checkEqualsAndToString(extensionInstruction1,
+                               sameAsExtensionInstruction1,
+                               extensionInstruction2);
+    }
+
+    //  PushHeaderInstructions
+
+    private final EthType ethType1 = new EthType(1);
+    private final EthType ethType2 = new EthType(2);
+    private final Instruction pushHeaderInstruction1 = Instructions.popMpls(ethType1);
+    private final Instruction sameAsPushHeaderInstruction1 = Instructions.popMpls(ethType1);
+    private final Instruction pushHeaderInstruction2 = Instructions.popMpls(ethType2);
+
+    /**
+     * Test the pushMpls method.
+     */
+    @Test
+    public void testPushMplsMethod() {
+        final Instruction instruction = Instructions.pushMpls();
+        final L2ModificationInstruction.PushHeaderInstructions pushHeaderInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L2MODIFICATION,
+                                L2ModificationInstruction.PushHeaderInstructions.class);
+        assertThat(pushHeaderInstruction.ethernetType().toString(),
+                   is(EthType.EtherType.MPLS_MULTICAST.toString()));
+        assertThat(pushHeaderInstruction.subtype(),
+                   is(L2ModificationInstruction.L2SubType.MPLS_PUSH));
+    }
+
+    /**
+     * Test the popMpls method.
+     */
+    @Test
+    public void testPopMplsMethod() {
+        final Instruction instruction = Instructions.popMpls();
+        final L2ModificationInstruction.PushHeaderInstructions pushHeaderInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L2MODIFICATION,
+                                L2ModificationInstruction.PushHeaderInstructions.class);
+        assertThat(pushHeaderInstruction.ethernetType().toString(),
+                   is(EthType.EtherType.MPLS_MULTICAST.toString()));
+        assertThat(pushHeaderInstruction.subtype(),
+                   is(L2ModificationInstruction.L2SubType.MPLS_POP));
+    }
+
+    /**
+     * Test the popMpls(EtherType) method.
+     */
+    @Test
+    public void testPopMplsEthertypeMethod() {
+        final Instruction instruction = Instructions.popMpls(new EthType(1));
+        final L2ModificationInstruction.PushHeaderInstructions pushHeaderInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L2MODIFICATION,
+                                L2ModificationInstruction.PushHeaderInstructions.class);
+        assertThat(pushHeaderInstruction.ethernetType().toShort(), is((short) 1));
+        assertThat(pushHeaderInstruction.subtype(),
+                   is(L2ModificationInstruction.L2SubType.MPLS_POP));
+    }
+
+    /**
+     * Test the pushVlan method.
+     */
+    @Test
+    public void testPushVlanMethod() {
+        final Instruction instruction = Instructions.pushVlan();
+        final L2ModificationInstruction.PushHeaderInstructions pushHeaderInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L2MODIFICATION,
+                                L2ModificationInstruction.PushHeaderInstructions.class);
+        assertThat(pushHeaderInstruction.ethernetType().toString(),
+                   is(EthType.EtherType.VLAN.toString()));
+        assertThat(pushHeaderInstruction.subtype(),
+                   is(L2ModificationInstruction.L2SubType.VLAN_PUSH));
+    }
+
+    /**
+     * Tests the equals(), hashCode() and toString() methods of the
+     * PushHeaderInstructions class.
+     */
+
+    @Test
+    public void testPushHeaderInstructionsEquals() {
+        checkEqualsAndToString(pushHeaderInstruction1,
+                               sameAsPushHeaderInstruction1,
+                               pushHeaderInstruction2);
+    }
+
+    //  ModMplsTtlInstruction
+
+    private final Instruction modMplsTtlInstruction1 = Instructions.decMplsTtl();
+    private final Instruction sameAsModMplsTtlInstruction1 = Instructions.decMplsTtl();
+
+    /**
+     * Test the modMplsBos() method.
+     */
+    @Test
+    public void testDecMplsTtlMethod() {
+        final Instruction instruction = Instructions.decMplsTtl();
+        final L2ModificationInstruction.ModMplsTtlInstruction modMplsTtlInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L2MODIFICATION,
+                                L2ModificationInstruction.ModMplsTtlInstruction.class);
+        assertThat(modMplsTtlInstruction.subtype(),
+                   is(L2ModificationInstruction.L2SubType.DEC_MPLS_TTL));
+    }
+
+    /**
+     * Tests the equals(), hashCode() and toString() methods of the
+     * PushHeaderInstructions class.
+     */
+
+    @Test
+    public void testMplsTtlInstructionsEquals() {
+        new EqualsTester()
+                .addEqualityGroup(modMplsTtlInstruction1, sameAsModMplsTtlInstruction1)
+                .testEquals();
+    }
+
+    //  ModMplsBosInstruction
+
+    private final Instruction modMplsBosInstruction1 = Instructions.modMplsBos(true);
+    private final Instruction sameAsModMplsBosInstruction1 = Instructions.modMplsBos(true);
+    private final Instruction modMplsBosInstruction2 = Instructions.modMplsBos(false);
+
+    /**
+     * Test the modMplsBos() method.
+     */
+    @Test
+    public void testModMplsBosMethod() {
+        final Instruction instruction = Instructions.modMplsBos(true);
+        final L2ModificationInstruction.ModMplsBosInstruction modMplsBosInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L2MODIFICATION,
+                                L2ModificationInstruction.ModMplsBosInstruction.class);
+        assertThat(modMplsBosInstruction.subtype(),
+                   is(L2ModificationInstruction.L2SubType.MPLS_BOS));
+        assertThat(modMplsBosInstruction.mplsBos(), is(true));
+    }
+
+    /**
+     * Tests the equals(), hashCode() and toString() methods of the
+     * PushHeaderInstructions class.
+     */
+
+    @Test
+    public void testMplsBosInstructionsEquals() {
+        checkEqualsAndToString(modMplsBosInstruction1,
+                               sameAsModMplsBosInstruction1,
+                               modMplsBosInstruction2);
+    }
+
+    //  PopVlanInstruction
+
+    private final Instruction popVlanInstruction1 = Instructions.popVlan();
+    private final Instruction sameAsPopVlanInstruction1 = Instructions.popVlan();
+
+    /**
+     * Test the popVlan method.
+     */
+    @Test
+    public void testPopVlanMethod() {
+        final Instruction instruction = Instructions.popVlan();
+        final L2ModificationInstruction.PopVlanInstruction popVlanInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L2MODIFICATION,
+                                L2ModificationInstruction.PopVlanInstruction.class);
+        assertThat(popVlanInstruction.subtype(),
+                   is(L2ModificationInstruction.L2SubType.VLAN_POP));
+    }
+
+    /**
+     * Tests the equals(), hashCode() and toString() methods of the
+     * PushHeaderInstructions class.
+     */
+
+    @Test
+    public void testPopVlanInstructionsEquals() {
+        new EqualsTester()
+                .addEqualityGroup(popVlanInstruction1, sameAsPopVlanInstruction1)
+                .testEquals();
+    }
+
+    //  ModArpIPInstruction
+
+    private final Instruction modArpIPInstruction1 = Instructions.modArpSpa(ip41);
+    private final Instruction sameAsModArpIPInstruction1 = Instructions.modArpSpa(ip41);
+    private final Instruction modArpIPInstruction2 = Instructions.modArpSpa(ip42);
+
+    /**
+     * Test the modArpSpa() method.
+     */
+    @Test
+    public void testModArpSpaMethod() {
+        final Instruction instruction = Instructions.modArpSpa(ip41);
+        final L3ModificationInstruction.ModArpIPInstruction modArpIPInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L3MODIFICATION,
+                                L3ModificationInstruction.ModArpIPInstruction.class);
+        assertThat(modArpIPInstruction.subtype(),
+                   is(L3ModificationInstruction.L3SubType.ARP_SPA));
+        assertThat(modArpIPInstruction.ip(), is(ip41));
+    }
+
+    /**
+     * Tests the equals(), hashCode() and toString() methods of the
+     * ModArpIPInstruction class.
+     */
+
+    @Test
+    public void testModArpIPInstructionEquals() {
+        checkEqualsAndToString(modArpIPInstruction1,
+                               sameAsModArpIPInstruction1,
+                               modArpIPInstruction2);
+    }
+
+    //  ModArpEthInstruction
+
+    private final Instruction modArpEthInstruction1 = Instructions.modArpSha(mac1);
+    private final Instruction sameAsModArpEthInstruction1 = Instructions.modArpSha(mac1);
+    private final Instruction modArpEthInstruction2 = Instructions.modArpSha(mac2);
+
+    /**
+     * Test the modArpSha() method.
+     */
+    @Test
+    public void testModArpShaMethod() {
+        final Instruction instruction = Instructions.modArpSha(mac1);
+        final L3ModificationInstruction.ModArpEthInstruction modArpEthInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L3MODIFICATION,
+                                L3ModificationInstruction.ModArpEthInstruction.class);
+        assertThat(modArpEthInstruction.subtype(),
+                   is(L3ModificationInstruction.L3SubType.ARP_SHA));
+        assertThat(modArpEthInstruction.mac(), is(mac1));
+    }
+
+    /**
+     * Tests the equals(), hashCode() and toString() methods of the
+     * ModArpIPInstruction class.
+     */
+
+    @Test
+    public void testModArpEthInstructionEquals() {
+        checkEqualsAndToString(modArpEthInstruction1,
+                               sameAsModArpEthInstruction1,
+                               modArpEthInstruction2);
+    }
+
+    //  ModArpOpInstruction
+
+    private final Instruction modArpOpInstruction1 = Instructions.modL3ArpOp((short) 1);
+    private final Instruction sameAsModArpOpInstruction1 = Instructions.modL3ArpOp((short) 1);
+    private final Instruction modArpOpInstruction2 = Instructions.modL3ArpOp((short) 2);
+
+    /**
+     * Test the modL3ArpOp() method.
+     */
+    @Test
+    public void testModArpModL3ArpOpMethod() {
+        final Instruction instruction = Instructions.modL3ArpOp((short) 1);
+        final L3ModificationInstruction.ModArpOpInstruction modArpEthInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L3MODIFICATION,
+                                L3ModificationInstruction.ModArpOpInstruction.class);
+        assertThat(modArpEthInstruction.subtype(),
+                   is(L3ModificationInstruction.L3SubType.ARP_OP));
+        assertThat(modArpEthInstruction.op(), is(1L));
+    }
+
+    /**
+     * Tests the equals(), hashCode() and toString() methods of the
+     * ModArpIPInstruction class.
+     */
+
+    @Test
+    public void testModArpOpInstructionEquals() {
+        checkEqualsAndToString(modArpOpInstruction1,
+                               sameAsModArpOpInstruction1,
+                               modArpOpInstruction2);
+    }
+
+    //  ModTtlInstruction
+
+    private final Instruction modArpTtlInstruction1 = Instructions.copyTtlIn();
+    private final Instruction sameAsModArpTtlInstruction1 = Instructions.copyTtlIn();
+    private final Instruction modArpTtlInstruction2 = Instructions.copyTtlOut();
+    private final Instruction modArpTtlInstruction3 = Instructions.decNwTtl();
+
+    /**
+     * Test the copyTtlIn() method.
+     */
+    @Test
+    public void testCopyTtlInMethod() {
+        final Instruction instruction = Instructions.copyTtlIn();
+        final L3ModificationInstruction.ModTtlInstruction modTtlInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L3MODIFICATION,
+                                L3ModificationInstruction.ModTtlInstruction.class);
+        assertThat(modTtlInstruction.subtype(),
+                   is(L3ModificationInstruction.L3SubType.TTL_IN));
+    }
+
+    /**
+     * Test the copyTtlOut() method.
+     */
+    @Test
+    public void testCopyTtlOutMethod() {
+        final Instruction instruction = Instructions.copyTtlOut();
+        final L3ModificationInstruction.ModTtlInstruction modTtlInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L3MODIFICATION,
+                                L3ModificationInstruction.ModTtlInstruction.class);
+        assertThat(modTtlInstruction.subtype(),
+                   is(L3ModificationInstruction.L3SubType.TTL_OUT));
+    }
+
+    /**
+     * Test the decNwTtl() method.
+     */
+    @Test
+    public void testDecNwTtlOutMethod() {
+        final Instruction instruction = Instructions.decNwTtl();
+        final L3ModificationInstruction.ModTtlInstruction modTtlInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L3MODIFICATION,
+                                L3ModificationInstruction.ModTtlInstruction.class);
+        assertThat(modTtlInstruction.subtype(),
+                   is(L3ModificationInstruction.L3SubType.DEC_TTL));
+    }
+
+    /**
+     * Tests the equals(), hashCode() and toString() methods of the
+     * ModArpIPInstruction class.
+     */
+
+    @Test
+    public void testModTtlInstructionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(modArpTtlInstruction1, sameAsModArpTtlInstruction1)
+                .addEqualityGroup(modArpTtlInstruction2)
+                .addEqualityGroup(modArpTtlInstruction3)
+                .testEquals();
+    }
+
 }
