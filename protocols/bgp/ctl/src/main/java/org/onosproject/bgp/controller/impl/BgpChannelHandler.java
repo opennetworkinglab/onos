@@ -361,6 +361,13 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
 
     }
 
+    //Stop keepalive timer
+    private void stopKeepAliveTimer() {
+        if ((keepAliveTimer != null) && (keepAliveTimer.getKeepAliveTimer() != null)) {
+            keepAliveTimer.getKeepAliveTimer().cancel();
+        }
+    }
+
     // *************************
     // Channel handler methods
     // *************************
@@ -457,9 +464,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                 duplicateBGPIdFound = Boolean.FALSE;
             }
 
-            if (null != keepAliveTimer) {
-                keepAliveTimer.getKeepAliveTimer().cancel();
-            }
+           stopKeepAliveTimer();
         } else {
             bgpconfig.setPeerConnState(peerAddr, BgpPeerCfg.State.IDLE);
             log.warn("No bgp ip in channelHandler registered for " + "disconnected peer {}", getPeerInfoString());
@@ -476,6 +481,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
             log.error("Disconnecting device {} due to read timeout", getPeerInfoString());
             sendNotification(BgpErrorType.HOLD_TIMER_EXPIRED, (byte) 0, null);
             state = ChannelState.IDLE;
+            stopKeepAliveTimer();
             ctx.getChannel().close();
             return;
         } else if (e.getCause() instanceof ClosedChannelException) {
@@ -486,6 +492,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                 // still print stack trace if debug is enabled
                 log.debug("StackTrace for previous Exception: ", e.getCause());
             }
+            stopKeepAliveTimer();
             ctx.getChannel().close();
         } else if (e.getCause() instanceof BgpParseException) {
             byte[] data = new byte[] {};
@@ -502,6 +509,7 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
         } else if (e.getCause() instanceof RejectedExecutionException) {
             log.warn("Could not process message: queue full");
         } else {
+            stopKeepAliveTimer();
             log.error("Error while processing message from peer " + getPeerInfoString() + "state " + this.state);
             ctx.getChannel().close();
         }
