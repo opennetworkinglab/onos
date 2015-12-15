@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
+import json
+
 from mininet.net import Mininet
 from mininet.node import UserSwitch, DefaultController, RemoteController, Host
 from mininet.topo import Topo
-from mininet.log import setLogLevel, info
+from mininet.log import  setLogLevel, info, error, warn
 from mininet.cli import CLI
 from mininet.link import OVSIntf
+from mininet.util import quietRun
 
 from opticalUtils import LINCSwitch, LINCLink
 
@@ -33,6 +36,7 @@ class Domain(object):
         self.__ctrls[name] = args if args else {}
         return name
 
+    # Note: This method will return the name of the swich, not the switch object
     def addSwitch(self, name, **args):
         self.__switches[name] = args if args else {}
         return name
@@ -90,10 +94,12 @@ class OpticalDomain(Domain):
             oean = { "optical.regens": 0 }
             self.addSwitch('OE%s' % i, dpid='0000ffffffffff0%s' % i, annotations=oean, cls=LINCSwitch)
 
+        # ROADM port number OE"1" -> OE'2' = "1"'2'00
+        # leaving port number up to 100 open for use by Och port
         an = { "durable": "true" }
-        self.addLink('OE1', 'OE2', port1=50, port2=30, annotations=an, cls=LINCLink)
-        self.addLink('OE2', 'OE3', port1=50, port2=30, annotations=an, cls=LINCLink)
-        self.addLink('OE3', 'OE1', port1=50, port2=30, annotations=an, cls=LINCLink)
+        self.addLink('OE1', 'OE2', port1=1200, port2=2100, annotations=an, cls=LINCLink)
+        self.addLink('OE2', 'OE3', port1=2300, port2=3200, annotations=an, cls=LINCLink)
+        self.addLink('OE3', 'OE1', port1=3100, port2=1300, annotations=an, cls=LINCLink)
 
 class FabricDomain(Domain):
     """
@@ -139,10 +145,11 @@ class FabricDomain(Domain):
         domains to the core.  name: the UserSwitch to connect the OVS to.
         """
         self.__tether = self.addSwitch(tname, dpid=tdpid)
+        # Note: OVS port number '1' reserved for port facing the fabric
         self.addLink(tname, name, port1=1)
 
     def getTether(self):
-        """ get connection point of this fabric to the core """
+        """ get the switch name of this fabric facing the core """
         return self.__tether
 
 
@@ -156,10 +163,6 @@ class IpHost(Host):
         mtu = "ifconfig "+self.name+"-eth0 mtu 1490"
         self.cmd(mtu)
         self.cmd('ip route add default via %s' % self.gateway)
-
-# fixed port numbers for attachment points (APs) between CORD and metro domains
-OVS_AP=2
-OE_AP=10
 
 def setup(argv):
     domains = []
@@ -180,6 +183,16 @@ def setup(argv):
         for j in range (len(ctls)):
             f.addController('c%s%s' % (i,j), controller=RemoteController, ip=ctls[j])
 
+    # netcfg for each domains
+    # Note: Separate netcfg for domain0 is created in opticalUtils
+    domainCfgs = []
+    for i in range (0,len(ctlsets)):
+        cfg = {}
+        cfg['devices'] = {}
+        cfg['ports'] = {}
+        cfg['links'] = {}
+        domainCfgs.append(cfg)
+
     # make/setup Mininet object
     net = Mininet()
     for d in domains:
@@ -187,10 +200,19 @@ def setup(argv):
         d.injectInto(net)
 
     # connect COs to core - sort of hard-wired at this moment
+    # adding cross-connect links
     for i in range(1,len(domains)):
-        an = { "bandwidth": 100000, "durable": "true" }
-        net.addLink(domains[i].getTether(), d0.getSwitches('OE%s' % i),
-                    port1=OVS_AP, port2=OE_AP, speed=10000, annotations=an, cls=LINCLink)
+        # add 10 cross-connect links between domains
+        xcPortNo=2
+        ochPortNo=10
+        for j in range(0, 10):
+            an = { "bandwidth": 10, "durable": "true" }
+            net.addLink(domains[i].getTether(), d0.getSwitches('OE%s' % i),
+                        port1=xcPortNo+j, port2=ochPortNo+j, speed=10000, annotations=an, cls=LINCLink)
+
+            xcId = 'of:' + domains[i].getSwitches(name=domains[i].getTether()).dpid + '/' + str(xcPortNo+j)
+            ochId = 'of:' + d0.getSwitches('OE%s' % i).dpid + '/' + str(ochPortNo+j)
+            domainCfgs[i]['ports'][xcId] = {'cross-connect': {'remote': ochId}}
 
     # fire everything up
     net.build()
@@ -202,6 +224,22 @@ def setup(argv):
     cfgnet.links = net.links
     cfgnet.controllers = d0.getControllers()
     LINCSwitch.bootOE(cfgnet, d0.getSwitches())
+
+    # send netcfg json to each CO-ONOS
+    for i in range(1,len(domains)):
+        info('*** Pushing Topology.json to CO-ONOS %d\n' % i)
+        filename = 'Topology%d.json' % i
+        with open(filename, 'w') as outfile:
+            json.dump(domainCfgs[i], outfile, indent=4, separators=(',', ': '))
+
+        output = quietRun('%s/tools/test/bin/onos-netcfg %s %s &'\
+                           % (LINCSwitch.onosDir,
+                              domains[i].getControllers()[0].ip,
+                              filename), shell=True)
+        # successful output contains the two characters '{}'
+        # if there is more output than this, there is an issue
+        if output.strip('{}'):
+            warn('***WARNING: Could not push topology file to ONOS: %s\n' % output)
 
     CLI(net)
     net.stop()

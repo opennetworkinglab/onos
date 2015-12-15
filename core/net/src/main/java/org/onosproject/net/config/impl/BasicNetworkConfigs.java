@@ -83,6 +83,7 @@ public class BasicNetworkConfigs {
                     return new BasicLinkConfig();
                 }
             },
+            // TODO move this optical specific configuration out to optical app
             new ConfigFactory<ConnectPoint, OpticalPortConfig>(CONNECT_POINT_SUBJECT_FACTORY,
                                                                OpticalPortConfig.class,
                                                                "optical") {
