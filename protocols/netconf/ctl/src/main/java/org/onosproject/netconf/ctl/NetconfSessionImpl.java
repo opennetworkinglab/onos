@@ -195,6 +195,29 @@ public class NetconfSessionImpl implements NetconfSession {
     }
 
     @Override
+    public boolean editConfig(String targetConfiguration, String mode, String newConfiguration)
+            throws IOException {
+        newConfiguration = newConfiguration.trim();
+        StringBuilder rpc = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        rpc.append("<rpc message-id=\"" + messageID + "\"  "
+                           + "xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
+        rpc.append("<edit-config>");
+        rpc.append("<target>");
+        rpc.append("<" + targetConfiguration + "/>");
+        rpc.append("</target>");
+        rpc.append("<default-operation>");
+        rpc.append(mode);
+        rpc.append("</default-operation>");
+        rpc.append("<config>");
+        rpc.append(newConfiguration);
+        rpc.append("</config>");
+        rpc.append("</edit-config>");
+        rpc.append("</rpc>");
+        rpc.append(endpattern);
+        return checkReply(doRequest(rpc.toString()));
+    }
+
+    @Override
     public boolean copyConfig(String targetConfiguration, String newConfiguration)
             throws IOException {
         newConfiguration = newConfiguration.trim();
@@ -322,6 +345,7 @@ public class NetconfSessionImpl implements NetconfSession {
                 return true;
             }
         }
+        log.warn("Error in reply {}", reply);
         return false;
     }
 

@@ -28,6 +28,7 @@ public interface NetconfSession {
 
     /**
      * Retrives the requested configuration, different from get-config.
+     *
      * @param request the XML containing the request to the server.
      * @return device running configuration
      */
@@ -35,6 +36,7 @@ public interface NetconfSession {
 
     /**
      * Executes an RPC to the server.
+     *
      * @param request the XML containing the RPC for the server.
      * @return Server response or ERROR
      */
@@ -67,6 +69,16 @@ public interface NetconfSession {
      */
 
     boolean editConfig(String newConfiguration) throws IOException;
+
+    /**
+     * Retrives part of the specified configuration based on the filterSchema.
+     * @param targetConfiguration the targetConfiguration to change
+     * @param mode selected mode to change the configuration
+     * @param newConfiguration configuration to set
+     * @return true if the configuration was edited correctly
+     */
+    boolean editConfig(String targetConfiguration, String mode, String newConfiguration)
+            throws IOException;
 
     /**
      * Copies the new configuration, an Url or a complete configuration xml tree
@@ -105,6 +117,7 @@ public interface NetconfSession {
     /**
      * Closes the Netconf session with the device.
      * the first time it tries gracefully, then kills it forcefully
+     *
      * @return true if closed
      */
     boolean close() throws IOException;
@@ -125,6 +138,7 @@ public interface NetconfSession {
 
     /**
      * Sets the device capabilities.
+     *
      * @param capabilities list of capabilities the device has.
      */
     void setDeviceCapabilities(List<String> capabilities);
