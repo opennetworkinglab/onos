@@ -40,6 +40,10 @@
                    impl="org.onosproject.driver.extensions.NiciraExtensionSelectorInterpreter" />
         <behaviour api="org.onosproject.net.behaviour.ExtensionSelectorResolver"
                    impl="org.onosproject.driver.extensions.NiciraExtensionSelectorInterpreter" />
+        <behaviour api="org.onosproject.net.behaviour.VlanQuery"
+                   impl="org.onosproject.driver.query.FullVlanAvailable" />
+        <behaviour api="org.onosproject.net.behaviour.MplsQuery"
+                   impl="org.onosproject.driver.query.FullMplsAvailable" />
     </driver>
     <!--This driver is for simulated NETCONF devices through of-config tool on top og OVSDB-->
     <driver name="ovs-netconf" extends="default"

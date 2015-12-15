@@ -13,28 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net.behaviour;
-
-import com.google.common.annotations.Beta;
-
-import java.util.Set;
-
-import org.onlab.packet.MplsLabel;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.driver.HandlerBehaviour;
 
 /**
- * A HandlerBehaviour to check the capability of MPLS.
+ * Implementations of the query driver behaviours.
  */
-@Beta
-public interface MplsQuery extends HandlerBehaviour {
-
-    /**
-     * Returns set of MplsLabels which can be used at the port.
-     *
-     * @param port to be checked for the available resources.
-     * @return Set of MplsLabels which can be used at the port.
-     */
-    Set<MplsLabel> queryMplsLabels(PortNumber port);
-
-}
+package org.onosproject.driver.query;

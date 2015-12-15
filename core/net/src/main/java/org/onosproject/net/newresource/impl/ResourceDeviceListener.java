@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.newresource.impl;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
@@ -44,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -57,16 +59,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 final class ResourceDeviceListener implements DeviceListener {
 
     private static final Logger log = LoggerFactory.getLogger(ResourceDeviceListener.class);
-
-    private static final int MAX_VLAN_ID = VlanId.MAX_VLAN;
-    private static final List<VlanId> ENTIRE_VLAN_IDS = getEntireVlans();
-
-    // Ref: http://www.iana.org/assignments/mpls-label-values/mpls-label-values.xhtml
-    // Smallest non-reserved MPLS label
-    private static final int MIN_UNRESERVED_LABEL = 0x10;
-    // Max non-reserved MPLS label = 239
-    private static final int MAX_UNRESERVED_LABEL = 0xEF;
-    private static final List<MplsLabel> ENTIRE_MPLS_LABELS = getEntireMplsLabels();
 
     private static final int TOTAL_ODU2_TRIBUTARY_SLOTS = 8;
     private static final int TOTAL_ODU4_TRIBUTARY_SLOTS = 80;
@@ -142,13 +134,19 @@ final class ResourceDeviceListener implements DeviceListener {
             adminService.registerResources(portPath);
 
             // for VLAN IDs
-            if (isVlanEnabled(device.id(), port.number())) {
-                adminService.registerResources(Lists.transform(ENTIRE_VLAN_IDS, portPath::child));
+            Set<VlanId> vlans = queryVlanIds(device.id(), port.number());
+            if (!vlans.isEmpty()) {
+                adminService.registerResources(vlans.stream()
+                                               .map(portPath::child)
+                                               .collect(Collectors.toList()));
             }
 
             // for MPLS labels
-            if (isMplsEnabled(device.id(), port.number())) {
-                adminService.registerResources(Lists.transform(ENTIRE_MPLS_LABELS, portPath::child));
+            Set<MplsLabel> mplsLabels = queryMplsLabels(device.id(), port.number());
+            if (!mplsLabels.isEmpty()) {
+                adminService.registerResources(mplsLabels.stream()
+                                               .map(portPath::child)
+                                               .collect(Collectors.toList()));
             }
 
             // for Lambdas
@@ -215,59 +213,53 @@ final class ResourceDeviceListener implements DeviceListener {
         }
     }
 
-    private boolean isVlanEnabled(DeviceId device, PortNumber port) {
+    private Set<VlanId> queryVlanIds(DeviceId device, PortNumber port) {
         try {
             // DriverHandler does not provide a way to check if a
             // behaviour is supported.
             Driver driver = driverService.getDriver(device);
             if (driver == null || !driver.hasBehaviour(VlanQuery.class)) {
                 // device does not support this
-                return false;
+                return ImmutableSet.of();
             }
 
             DriverHandler handler = driverService.createHandler(device);
             if (handler == null) {
-                return false;
+                return ImmutableSet.of();
             }
 
             VlanQuery query = handler.behaviour(VlanQuery.class);
-            return query != null && query.isEnabled(port);
+            if (query == null) {
+                return ImmutableSet.of();
+            }
+            return query.queryVlanIds(port);
         } catch (ItemNotFoundException e) {
-            return false;
+            return ImmutableSet.of();
         }
     }
 
-    private boolean isMplsEnabled(DeviceId device, PortNumber port) {
+    private Set<MplsLabel> queryMplsLabels(DeviceId device, PortNumber port) {
         try {
             // DriverHandler does not provide a way to check if a
             // behaviour is supported.
             Driver driver = driverService.getDriver(device);
             if (driver == null || !driver.hasBehaviour(MplsQuery.class)) {
                 // device does not support this
-                return false;
+                return ImmutableSet.of();
             }
             DriverHandler handler = driverService.createHandler(device);
             if (handler == null) {
-                return false;
+                return ImmutableSet.of();
             }
 
             MplsQuery query = handler.behaviour(MplsQuery.class);
-            return query != null && query.isEnabled(port);
+            if (query == null) {
+                return ImmutableSet.of();
+            }
+            return query.queryMplsLabels(port);
         } catch (ItemNotFoundException e) {
-            return false;
+            return ImmutableSet.of();
         }
-    }
-
-    private static List<VlanId> getEntireVlans() {
-        return IntStream.range(0, MAX_VLAN_ID)
-                .mapToObj(x -> VlanId.vlanId((short) x))
-                .collect(Collectors.toList());
-    }
-
-    private static List<MplsLabel> getEntireMplsLabels() {
-        return IntStream.range(MIN_UNRESERVED_LABEL, MAX_UNRESERVED_LABEL + 1)
-                .mapToObj(MplsLabel::mplsLabel)
-                .collect(Collectors.toList());
     }
 
     private static List<TributarySlot> getEntireOdu2TributarySlots() {
