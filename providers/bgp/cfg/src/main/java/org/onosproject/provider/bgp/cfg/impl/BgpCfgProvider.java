@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 
 import org.onosproject.bgp.controller.BgpCfg;
+import org.onosproject.bgp.controller.BgpPeerCfg;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.config.ConfigFactory;
@@ -36,7 +37,12 @@ import org.onosproject.bgp.controller.BgpController;
 import org.slf4j.Logger;
 import org.osgi.service.component.ComponentContext;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -86,6 +92,7 @@ public class BgpCfgProvider extends AbstractProvider {
         appId = coreService.registerApplication(PROVIDER_ID);
         configService.addListener(configListener);
         configRegistry.registerConfigFactory(configFactory);
+        readConfiguration();
         log.info("BGP cfg provider started");
     }
 
@@ -134,6 +141,93 @@ public class BgpCfgProvider extends AbstractProvider {
     }
 
     /**
+     * Read the configuration and update it to the BGP-LS south bound protocol.
+     */
+    private void updateConfiguration() {
+        BgpCfg bgpConfig = null;
+        List<BgpAppConfig.BgpPeerConfig> nodes;
+        TreeMap<String, BgpPeerCfg> bgpPeerTree;
+        bgpConfig = bgpController.getConfig();
+        BgpPeerCfg peer = null;
+        BgpAppConfig config = configRegistry.getConfig(appId, BgpAppConfig.class);
+
+        if (config == null) {
+            log.warn("No configuration found");
+            return;
+        }
+
+
+        /* Update the self configuration */
+        if (bgpController.connectedPeerCount() == 0) {
+            bgpConfig.setRouterId(config.routerId());
+            bgpConfig.setAsNumber(config.localAs());
+            bgpConfig.setLsCapability(config.lsCapability());
+            bgpConfig.setHoldTime(config.holdTime());
+            bgpConfig.setMaxSession(config.maxSession());
+            bgpConfig.setLargeASCapability(config.largeAsCapability());
+        } else {
+            log.info(" Self configuration cannot be modified as there is existing connections ");
+        }
+
+        /* update the peer configuration */
+        bgpPeerTree = bgpConfig.getPeerTree();
+        if (bgpPeerTree.isEmpty()) {
+            log.info("There are no BGP peers to iterate");
+        } else {
+            Set set = bgpPeerTree.entrySet();
+            Iterator i = set.iterator();
+            List<BgpPeerCfg> absPeerList = new ArrayList<BgpPeerCfg>();
+
+            boolean exists = false;
+
+            while (i.hasNext()) {
+                Map.Entry me = (Map.Entry) i.next();
+                peer = (BgpPeerCfg) me.getValue();
+
+                nodes = config.bgpPeer();
+                for (int j = 0; j < nodes.size(); j++) {
+                    String peerIp = nodes.get(j).hostname();
+                    if (peerIp.equals(peer.getPeerRouterId())) {
+
+                        if (bgpConfig.isPeerConnectable(peer.getPeerRouterId())) {
+                            peer.setAsNumber(nodes.get(j).asNumber());
+                            peer.setHoldtime(nodes.get(j).holdTime());
+                            log.debug("Peer neighbor IP successfully modified :" + peer.getPeerRouterId());
+                        } else {
+                            log.debug("Peer neighbor IP cannot be modified :" + peer.getPeerRouterId());
+                        }
+
+                        nodes.remove(j);
+                        exists = true;
+                        break;
+                    }
+                }
+
+                if (!exists) {
+                    absPeerList.add(peer);
+                    exists = false;
+                }
+            }
+
+            /* Remove the absent nodes. */
+            for (int j = 0; j < absPeerList.size(); j++) {
+                bgpConfig.removePeer(absPeerList.get(j).getPeerRouterId());
+            }
+        }
+
+
+        nodes = config.bgpPeer();
+        for (int i = 0; i < nodes.size(); i++) {
+            String connectMode = nodes.get(i).connectMode();
+            bgpConfig.addPeer(nodes.get(i).hostname(), nodes.get(i).asNumber(), nodes.get(i).holdTime());
+            if (connectMode.equals(BgpAppConfig.PEER_CONNECT_ACTIVE)) {
+                bgpConfig.connectPeer(nodes.get(i).hostname());
+            }
+        }
+
+    }
+
+    /**
      * BGP config listener to populate the configuration.
      */
     private class InternalConfigListener implements NetworkConfigListener {
@@ -149,7 +243,7 @@ public class BgpCfgProvider extends AbstractProvider {
                     readConfiguration();
                     break;
                 case CONFIG_UPDATED:
-                    readConfiguration();
+                    updateConfiguration();
                     break;
                 case CONFIG_REMOVED:
                 default:
