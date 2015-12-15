@@ -57,9 +57,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -373,9 +371,8 @@ public class OfOpticalSwitchImplLinc13
         }
 
         // OMS ports expose 80 fixed grid lambdas of 50GHz width, centered around the ITU-T center frequency 193.1 THz.
-        Supplier<SortedSet<OchSignal>> supplier = () -> new TreeSet<>(new DefaultOchSignalComparator());
         return IntStream.range(0, LAMBDA_COUNT)
                 .mapToObj(x -> new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, x - (LAMBDA_COUNT / 2), 4))
-                .collect(Collectors.toCollection(supplier));
+                .collect(Collectors.toCollection(DefaultOchSignalComparator::newOchSignalTreeSet));
     }
 }

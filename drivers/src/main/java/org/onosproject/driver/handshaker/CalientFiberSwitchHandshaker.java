@@ -49,9 +49,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -209,12 +207,11 @@ public class CalientFiberSwitchHandshaker
                 ChannelSpacing.CHL_12P5GHZ.frequency().asHz();
         long stopSpacingMultiplier = Spectrum.O_BAND_MAX.subtract(Spectrum.CENTER_FREQUENCY).asHz() /
                 ChannelSpacing.CHL_12P5GHZ.frequency().asHz();
-        Supplier<SortedSet<OchSignal>> supplier = () -> new TreeSet<>(new DefaultOchSignalComparator());
 
         // Only consider odd values for the multiplier (for easy mapping to fixed grid)
         return IntStream.rangeClosed((int) startSpacingMultiplier, (int) stopSpacingMultiplier)
                 .filter(i -> i % 2 == 1)
                 .mapToObj(i -> new OchSignal(GridType.FLEX, ChannelSpacing.CHL_6P25GHZ, i, 1))
-                .collect(Collectors.toCollection(supplier));
+                .collect(Collectors.toCollection(DefaultOchSignalComparator::newOchSignalTreeSet));
     }
 }

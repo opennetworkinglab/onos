@@ -45,9 +45,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -206,10 +204,9 @@ final class ResourceDeviceListener implements DeviceListener {
             }
             LambdaQuery query = handler.behaviour(LambdaQuery.class);
             if (query != null) {
-                Supplier<SortedSet<OchSignal>> supplier = () -> new TreeSet<>(new DefaultOchSignalComparator());
                 return query.queryLambdas(port).stream()
                         .flatMap(x -> OchSignal.toFlexGrid(x).stream())
-                        .collect(Collectors.toCollection(supplier));
+                        .collect(Collectors.toCollection(DefaultOchSignalComparator::newOchSignalTreeSet));
             } else {
                 return Collections.emptySortedSet();
             }
