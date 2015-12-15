@@ -53,7 +53,6 @@ import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-
 /**
  * Provides implementation of the meter service APIs.
  */

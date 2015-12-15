@@ -17,213 +17,74 @@ package org.onosproject.pim.impl;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.PIM;
-import org.onlab.packet.VlanId;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.incubator.net.intf.Interface;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.packet.DefaultOutboundPacket;
-import org.onosproject.net.packet.InboundPacket;
-import org.onosproject.net.packet.OutboundPacket;
-import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.packet.PacketPriority;
-import org.onosproject.net.packet.PacketProcessor;
-import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
-
-import java.nio.ByteBuffer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Handing Incoming and outgoing PIM packets.
+ * This class will process PIM packets.
  */
-public final class PIMPacketHandler {
+public class PIMPacketHandler {
+
     private final Logger log = getLogger(getClass());
 
-    private static PIMPacketHandler instance = null;
-
-    private PacketService packetService;
-    private PIMPacketProcessor processor = new PIMPacketProcessor();
-    private MacAddress pimDestinationMac = MacAddress.valueOf("01:00:5E:00:00:0d");
-
-    // Utility class
-    private PIMPacketHandler() {}
-
-    public static PIMPacketHandler getInstance() {
-        if (null == instance) {
-            instance = new PIMPacketHandler();
-        }
-        return instance;
+    /**
+     * Constructor for this class.
+     */
+    public PIMPacketHandler() {
     }
 
     /**
-     * Initialize the packet handling service.
+     * Sanitize and process the packet.
+     * TODO: replace ConnectPoint with PIMInterface when PIMInterface has been added.
      *
-     * @param ps the packetService
-     * @param appId our application ID
+     * @param ethPkt the packet starting with the Ethernet header.
+     * @param pimi the PIM Interface the packet arrived on.
      */
-    public void initialize(PacketService ps, ApplicationId appId) {
-        packetService = ps;
+    public void processPacket(Ethernet ethPkt, PIMInterface pimi) {
+        checkNotNull(ethPkt);
+        checkNotNull(pimi);
 
-        // Build a traffic selector for all multicast traffic
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchEthType(Ethernet.TYPE_IPV4);
-        selector.matchIPProtocol(IPv4.PROTOCOL_PIM);
-        packetService.requestPackets(selector.build(), PacketPriority.REACTIVE, appId);
-
-        packetService.addProcessor(processor, PacketProcessor.director(1));
-    }
-
-    /**
-     * Shutdown the packet handling service.
-     */
-    public void stop() {
-        packetService.removeProcessor(processor);
-        processor = null;
-    }
-
-    /**
-     * Packet processor responsible for handling IGMP packets.
-     */
-    public class PIMPacketProcessor implements PacketProcessor {
-        private final Logger log = getLogger(getClass());
-
-        @Override
-        public void process(PacketContext context) {
-            // Stop processing if the packet has been handled, since we
-            // can't do any more to it.
-            if (context.isHandled()) {
-                return;
-            }
-
-            InboundPacket pkt = context.inPacket();
-            if (pkt == null) {
-                return;
-            }
-
-            Ethernet ethPkt = pkt.parsed();
-            if (ethPkt == null) {
-                return;
-            }
-
-            /*
-             * IPv6 MLD packets are handled by ICMP6. We'll only deal
-             * with IPv4.
-             */
-            if (ethPkt.getEtherType() != Ethernet.TYPE_IPV4) {
-                return;
-            }
-
-            IPv4 ip = (IPv4) ethPkt.getPayload();
-            IpAddress gaddr = IpAddress.valueOf(ip.getDestinationAddress());
-            IpAddress saddr = Ip4Address.valueOf(ip.getSourceAddress());
-            log.debug("Packet (" + saddr.toString() + ", " + gaddr.toString() +
-                    "\tingress port: " + context.inPacket().receivedFrom().toString());
-
-            if (ip.getProtocol() != IPv4.PROTOCOL_PIM) {
-                log.debug("PIM Picked up a non PIM packet: IP protocol: " + ip.getProtocol());
-                return;
-            }
-
-            // TODO: check incoming to be PIM.PIM_ADDRESS or "Our" address.
-            IpPrefix spfx = IpPrefix.valueOf(saddr, 32);
-            IpPrefix gpfx = IpPrefix.valueOf(gaddr, 32);
-
-            PIM pim = (PIM) ip.getPayload();
-            switch (pim.getPimMsgType()) {
-
-                case PIM.TYPE_HELLO:
-                    processHello(ethPkt, context.inPacket().receivedFrom());
-                    break;
-
-                case PIM.TYPE_JOIN_PRUNE_REQUEST:
-                    // Create the function
-                    break;
-
-                case PIM.TYPE_ASSERT:
-                case PIM.TYPE_BOOTSTRAP:
-                case PIM.TYPE_CANDIDATE_RP_ADV:
-                case PIM.TYPE_GRAFT:
-                case PIM.TYPE_GRAFT_ACK:
-                case PIM.TYPE_REGISTER:
-                case PIM.TYPE_REGISTER_STOP:
-                    log.debug("Unsupported PIM message type: " + pim.getPimMsgType());
-                    break;
-
-                default:
-                    log.debug("Unkown PIM message type: " + pim.getPimMsgType());
-                    break;
-            }
+        // Sanitize the ethernet header to ensure it is IPv4.  IPv6 we'll deal with later
+        if (ethPkt.getEtherType() != Ethernet.TYPE_IPV4) {
+            log.debug("Recieved a non IPv4 packet");
+            return;
         }
 
-        /**
-         * Process incoming hello message, we will need the Macaddress and IP address of the sender.
-         *
-         * @param ethPkt the ethernet header
-         * @param receivedFrom the connect point we recieved this message from
-         */
-        private void processHello(Ethernet ethPkt, ConnectPoint receivedFrom) {
-            checkNotNull(ethPkt);
-            checkNotNull(receivedFrom);
-
-            // It is a problem if we don't have the
-            PIMInterfaces pintfs = PIMInterfaces.getInstance();
-            PIMInterface intf = pintfs.getInterface(receivedFrom);
-            if (intf == null) {
-                log.error("We received a PIM message on an interface we were not supposed to");
-                return;
-            }
-            intf.processHello(ethPkt, receivedFrom);
-        }
-    }
-
-    // Create an ethernet header and serialize then send
-    public void sendPacket(PIM pim, PIMInterface pimIntf) {
-
-        Interface theInterface = pimIntf.getInterface();
-
-        // Create the ethernet packet
-        Ethernet eth = new Ethernet();
-        eth.setDestinationMACAddress(pimDestinationMac);
-        eth.setSourceMACAddress(theInterface.mac());
-        eth.setEtherType(Ethernet.TYPE_IPV4);
-        if (theInterface.vlan() != VlanId.NONE) {
-            eth.setVlanID(theInterface.vlan().toShort());
+        // Get the IP header
+        IPv4 ip = (IPv4) ethPkt.getPayload();
+        if (ip.getProtocol() != IPv4.PROTOCOL_PIM) {
+            log.debug("Received a non PIM IP packet");
+            return;
         }
 
-        // Create the IP Packet
-        IPv4 ip = new IPv4();
-        ip.setVersion((byte) 4);
-        ip.setTtl((byte) 20);
-        ip.setProtocol(IPv4.PROTOCOL_PIM);
-        ip.setChecksum((short) 0);
-        ip.setSourceAddress(checkNotNull(pimIntf.getIpAddress()).getIp4Address().toInt());
-        ip.setDestinationAddress(PIM.PIM_ADDRESS.getIp4Address().toInt());
-        eth.setPayload(ip);
-        ip.setParent(eth);
+        // Get the address of our the neighbor that sent this packet to us.
+        IpAddress nbraddr = IpAddress.valueOf(ip.getDestinationAddress());
+        log.debug("Packet " + nbraddr.toString() + " received on port " + pimi.toString());
 
-        // Now set pim
-        ip.setPayload(pim);
-        pim.setParent(ip);
+        // Get the PIM header
+        PIM pim = (PIM) ip.getPayload();
+        checkNotNull(pim);
 
-        ConnectPoint cp = theInterface.connectPoint();
-        checkNotNull(cp);
+        // Process the pim packet
+        switch (pim.getPimMsgType()) {
 
-        TrafficTreatment treat = DefaultTrafficTreatment.builder().setOutput(cp.port()).build();
-        ByteBuffer bb = ByteBuffer.wrap(eth.serialize());
-        OutboundPacket packet = new DefaultOutboundPacket(cp.deviceId(), treat, bb);
-        checkNotNull(packet);
+            case PIM.TYPE_HELLO:
+                pimi.processHello(ethPkt);
+                log.debug("Received a PIM hello packet");
+                break;
 
-        packetService.emit(packet);
+            case PIM.TYPE_JOIN_PRUNE_REQUEST:
+                pimi.processJoinPrune(ethPkt);
+                log.debug("Received a PIM Join/Prune message");
+                break;
+
+            default:
+                log.debug("Recieved unsupported PIM type: " + pim.getPimMsgType());
+                break;
+        }
     }
 }
