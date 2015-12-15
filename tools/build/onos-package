@@ -222,10 +222,15 @@ esac
 shift
 done
 
+#TODO consider moving this block to build_stage_dir
 # Run karaf assembly to collect artifacts for off-line installations.
 aux=/tmp/assembly-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
-cd $ONOS_ROOT/tools/package/karaf-assembly && mvn clean install > $aux 2>&1
+#TODO possibly merge with MAVEN_OPTS, also M2_REPO must be set for the reasons
+[ -n "$M2_REPO" ] && args="-Dmaven.repo.local=$M2_REPO" || args=""
+cd $ONOS_ROOT/tools/package/karaf-assembly &&
+  mvn $args clean install > $aux 2>&1 ||
+  ( echo "Failed to run karaf-assembly" && exit 1 )
 
 # Before starting make sure the environment is clan - delete onos staging folder
 clean_stage_dir
