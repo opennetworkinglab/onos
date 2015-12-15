@@ -37,6 +37,7 @@ public class CoreWebApplication extends AbstractWebApplication {
                           HostsWebResource.class,
                           IntentsWebResource.class,
                           FlowsWebResource.class,
+                          GroupsWebResource.class,
                           TopologyWebResource.class,
                           ConfigWebResource.class,
                           PathsWebResource.class,

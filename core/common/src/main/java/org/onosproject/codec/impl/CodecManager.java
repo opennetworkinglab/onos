@@ -17,7 +17,6 @@ package org.onosproject.codec.impl;
 
 import com.codahale.metrics.Metric;
 import com.google.common.collect.ImmutableSet;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -35,11 +34,11 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.Port;
+import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TableStatisticsEntry;
-import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;

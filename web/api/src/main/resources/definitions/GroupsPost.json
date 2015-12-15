@@ -1,0 +1,84 @@
+{
+  "type": "object",
+  "title": "group",
+  "required": [
+    "type",
+    "deviceId",
+    "appCookie",
+    "groupId",
+    "buckets"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "example": "ALL"
+    },
+    "deviceId": {
+      "type": "string",
+      "example": "of:0000000000000001"
+    },
+    "appCookie": {
+      "type": "string",
+      "example": "1"
+    },
+    "groupId": {
+      "type": "string",
+      "example": "1"
+    },
+    "buckets": {
+      "type": "array",
+      "xml": {
+        "name": "buckets",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "buckets",
+        "required": [
+          "treatment",
+          "weight",
+          "watchPort",
+          "watchGroup"
+        ],
+        "properties": {
+          "treatment": {
+            "type": "object",
+            "title": "treatment",
+            "required": [
+              "instructions",
+              "deferred"
+            ],
+            "properties": {
+              "instructions": {
+                "type": "array",
+                "title": "treatment",
+                "required": [
+                  "properties",
+                  "port"
+                ],
+                "items": {
+                  "type": "object",
+                  "title": "instructions",
+                  "required": [
+                    "type",
+                    "port"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "example": "OUTPUT"
+                    },
+                    "port": {
+                      "type": "string",
+                      "example": "2"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
