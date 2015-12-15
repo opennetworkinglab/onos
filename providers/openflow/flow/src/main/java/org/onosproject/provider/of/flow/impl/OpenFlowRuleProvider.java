@@ -147,6 +147,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
         controller.addListener(listener);
         controller.addEventListener(listener);
 
+        modified(context);
+
         pendingBatches = createBatchCache();
 
         createCollectors();
