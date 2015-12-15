@@ -42,8 +42,6 @@ public class BgpConfig extends Config<ApplicationId> {
     public static final String NAME = "name";
     public static final String PEERS = "peers";
 
-    // TODO add methods for updating config
-
     /**
      * Gets the set of configured BGP speakers.
      *

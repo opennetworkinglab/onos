@@ -350,10 +350,9 @@ public class SingleSwitchFibInstaller {
             fob.withKey(Criteria.matchInPort(intf.connectPoint().port()))
                     .addCondition(Criteria.matchEthDst(intf.mac()))
                     .addCondition(Criteria.matchVlanId(intf.vlan()));
-            intf.ipAddresses().stream()
-                    .forEach(ipaddr -> fob.addCondition(
-                            Criteria.matchIPDst(
-                                    IpPrefix.valueOf(ipaddr.ipAddress(), 32))));
+
+            fob.withPriority(PRIORITY_OFFSET);
+
             fob.permit().fromApp(appId);
             flowObjectiveService.filter(
                     deviceId,

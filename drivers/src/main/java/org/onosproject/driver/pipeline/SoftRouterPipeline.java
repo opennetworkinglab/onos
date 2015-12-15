@@ -17,13 +17,11 @@ package org.onosproject.driver.pipeline;
 
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
@@ -56,7 +54,6 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -81,8 +78,6 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
     protected DeviceId deviceId;
     protected ApplicationId appId;
     private ApplicationId driverId;
-    private Collection<Filter> filters;
-    private Collection<ForwardingObjective> pendingVersatiles;
 
     private KryoNamespace appKryo = new KryoNamespace.Builder()
         .register(DummyGroup.class)
@@ -101,9 +96,7 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         flowObjectiveStore = context.store();
         driverId = coreService.registerApplication(
                 "org.onosproject.driver.SoftRouterPipeline");
-        filters = Collections.newSetFromMap(new ConcurrentHashMap<Filter, Boolean>());
-        pendingVersatiles = Collections.newSetFromMap(
-                                new ConcurrentHashMap<ForwardingObjective, Boolean>());
+
         initializePipeline();
     }
 
@@ -192,7 +185,6 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         }
     }
 
-
     private void initializePipeline() {
         //Drop rules for both tables
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -239,8 +231,10 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
                                ApplicationId applicationId) {
         // This driver only processes filtering criteria defined with switch
         // ports as the key
-        PortCriterion p; EthCriterion e = null; VlanIdCriterion v = null;
-        Collection<IPCriterion> ips = new ArrayList<IPCriterion>();
+        PortCriterion p;
+        EthCriterion e = null;
+        VlanIdCriterion v = null;
+
         if (!filt.key().equals(Criteria.dummy()) &&
                 filt.key().type() == Criterion.Type.IN_PORT) {
             p = (PortCriterion) filt.key();
@@ -258,8 +252,6 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
                 e = (EthCriterion) c;
             } else if (c.type() == Criterion.Type.VLAN_VID) {
                 v = (VlanIdCriterion) c;
-            } else if (c.type() == Criterion.Type.IPV4_DST) {
-                ips.add((IPCriterion) c);
             } else {
                 log.error("Unsupported filter {}", c);
                 fail(filt, ObjectiveError.UNSUPPORTED);
@@ -272,13 +264,14 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
         selector.matchInPort(p.port());
-        selector.matchVlanId(v.vlanId());
+
         selector.matchEthDst(e.mac());
+        selector.matchVlanId(v.vlanId());
         selector.matchEthType(Ethernet.TYPE_IPV4);
         if (!v.vlanId().equals(VlanId.NONE)) {
             treatment.popVlan();
         }
-        treatment.transition(FIB_TABLE); // all other IPs to the FIB table
+        treatment.transition(FIB_TABLE);
         FlowRule rule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
                 .withSelector(selector.build())
@@ -288,38 +281,6 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
                 .makePermanent()
                 .forTable(FILTER_TABLE).build();
         ops =  ops.add(rule);
-
-        for (IPCriterion ipaddr : ips) {
-            log.debug("adding IP filtering rules in FILTER table: {}", ipaddr.ip());
-            selector = DefaultTrafficSelector.builder();
-            treatment = DefaultTrafficTreatment.builder();
-            selector.matchInPort(p.port());
-            selector.matchVlanId(v.vlanId());
-            selector.matchEthDst(e.mac());
-            selector.matchEthType(Ethernet.TYPE_IPV4);
-            selector.matchIPDst(ipaddr.ip()); // router IPs to the controller
-            treatment.setOutput(PortNumber.CONTROLLER);
-            rule = DefaultFlowRule.builder()
-                    .forDevice(deviceId)
-                    .withSelector(selector.build())
-                    .withTreatment(treatment.build())
-                    .withPriority(HIGHEST_PRIORITY)
-                    .fromApp(applicationId)
-                    .makePermanent()
-                    .forTable(FILTER_TABLE).build();
-            ops =  ops.add(rule);
-        }
-
-        // cache for later use
-        Filter filter = new Filter(p, e, v, ips);
-        filters.add(filter);
-        // apply any pending versatile forwarding objectives
-        for (ForwardingObjective fwd : pendingVersatiles) {
-            Collection<FlowRule> ret = processVersatilesWithFilters(filter, fwd);
-            for (FlowRule fr : ret) {
-                ops.add(fr);
-            }
-        }
 
         ops = install ? ops.add(rule) : ops.remove(rule);
         // apply filtering flow rules
@@ -360,69 +321,20 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
      *          subsystem. May return empty collection in case of failures.
      */
     private Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
-        if (filters.isEmpty()) {
-            pendingVersatiles.add(fwd);
-            return Collections.emptySet();
-        }
-        Collection<FlowRule> flowrules = new ArrayList<FlowRule>();
-        for (Filter filter : filters) {
-            flowrules.addAll(processVersatilesWithFilters(filter, fwd));
-        }
+        Collection<FlowRule> flowrules = new ArrayList<>();
+
+        FlowRule rule = DefaultFlowRule.builder()
+                .withSelector(fwd.selector())
+                .withTreatment(fwd.treatment())
+                .makePermanent()
+                .forDevice(deviceId)
+                .fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .build();
+
+        flowrules.add(rule);
+
         return flowrules;
-    }
-
-    private Collection<FlowRule> processVersatilesWithFilters(
-                Filter filt, ForwardingObjective fwd) {
-        log.info("Processing versatile forwarding objective");
-        Collection<FlowRule> flows = new ArrayList<FlowRule>();
-        TrafficSelector match = fwd.selector();
-        EthTypeCriterion ethType =
-                (EthTypeCriterion) match.getCriterion(Criterion.Type.ETH_TYPE);
-        if (ethType == null) {
-            log.error("Versatile forwarding objective must include ethType");
-            fail(fwd, ObjectiveError.UNKNOWN);
-            return Collections.emptySet();
-        }
-
-        if (ethType.ethType().toShort() == Ethernet.TYPE_ARP) {
-            // need to install ARP request & reply flow rules for each interface filter
-
-            // rule for ARP replies
-            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            selector.matchInPort(filt.port());
-            selector.matchVlanId(filt.vlanId());
-            selector.matchEthDst(filt.mac());
-            selector.matchEthType(Ethernet.TYPE_ARP);
-            FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
-                    .fromApp(fwd.appId())
-                    .withPriority(fwd.priority())
-                    .forDevice(deviceId)
-                    .withSelector(selector.build())
-                    .withTreatment(fwd.treatment())
-                    .makePermanent()
-                    .forTable(FILTER_TABLE);
-            flows.add(ruleBuilder.build());
-
-            //rule for ARP requests
-            selector = DefaultTrafficSelector.builder();
-            selector.matchInPort(filt.port());
-            selector.matchVlanId(filt.vlanId());
-            selector.matchEthDst(MacAddress.BROADCAST);
-            selector.matchEthType(Ethernet.TYPE_ARP);
-            ruleBuilder = DefaultFlowRule.builder()
-                    .fromApp(fwd.appId())
-                    .withPriority(fwd.priority())
-                    .forDevice(deviceId)
-                    .withSelector(selector.build())
-                    .withTreatment(fwd.treatment())
-                    .makePermanent()
-                    .forTable(FILTER_TABLE);
-            flows.add(ruleBuilder.build());
-
-            return flows;
-        }
-        // not handling other versatile flows
-        return Collections.emptySet();
     }
 
     /**
@@ -498,35 +410,6 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         TrafficTreatment treatment = nextObj.next().iterator().next();
         flowObjectiveStore.putNextGroup(nextObj.id(),
                                         new DummyGroup(treatment));
-    }
-
-    private class Filter {
-        private PortCriterion port;
-        private VlanIdCriterion vlan;
-        private EthCriterion eth;
-
-        @SuppressWarnings("unused")
-        private Collection<IPCriterion> ips;
-
-        public Filter(PortCriterion p, EthCriterion e, VlanIdCriterion v,
-                      Collection<IPCriterion> ips) {
-            this.eth = e;
-            this.port = p;
-            this.vlan = v;
-            this.ips = ips;
-        }
-
-        public PortNumber port() {
-            return port.port();
-        }
-
-        public VlanId vlanId() {
-            return vlan.vlanId();
-        }
-
-        public MacAddress mac() {
-            return eth.mac();
-        }
     }
 
     private class DummyGroup implements NextGroup {

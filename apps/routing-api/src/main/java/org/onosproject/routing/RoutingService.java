@@ -17,6 +17,7 @@ package org.onosproject.routing;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.routing.config.BgpConfig;
+import org.onosproject.routing.config.RouterConfig;
 
 import java.util.Collection;
 
@@ -28,6 +29,7 @@ public interface RoutingService {
     String ROUTER_APP_ID = "org.onosproject.router";
 
     Class<BgpConfig> CONFIG_CLASS = BgpConfig.class;
+    Class<RouterConfig> ROUTER_CONFIG_CLASS = RouterConfig.class;
 
     /**
      * Starts the routing service.

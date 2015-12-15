@@ -98,7 +98,7 @@ public class ComponentManager implements ComponentService {
 
         org.apache.felix.scr.Component component = components[0];
 
-        if (component.getState() != org.apache.felix.scr.Component.STATE_ACTIVE) {
+        if (component.getState() == org.apache.felix.scr.Component.STATE_DISABLED) {
             log.info("Enabling component {}", name);
             component.enable();
         }
