@@ -225,14 +225,14 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                                    OFGroupDescStatsReply groupDescStatsReply) {
 
         Map<Integer, Group> groups = Maps.newHashMap();
-
+        Dpid dpid = Dpid.dpid(deviceId.uri());
 
         for (OFGroupDescStatsEntry entry: groupDescStatsReply.getEntries()) {
             int id = entry.getGroup().getGroupNumber();
             GroupId groupId = new DefaultGroupId(id);
             GroupDescription.Type type = getGroupType(entry.getGroupType());
-            GroupBuckets buckets = new GroupBucketEntryBuilder(entry.getBuckets(),
-                    entry.getGroupType()).build();
+            GroupBuckets buckets = new GroupBucketEntryBuilder(dpid, entry.getBuckets(),
+                    entry.getGroupType(), driverService).build();
             DefaultGroup group = new DefaultGroup(groupId, deviceId, type, buckets);
             groups.put(id, group);
         }

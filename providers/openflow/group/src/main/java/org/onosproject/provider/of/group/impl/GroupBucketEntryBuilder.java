@@ -23,14 +23,22 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.DefaultGroupId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Lambda;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.ExtensionTreatmentInterpreter;
 import org.projectfloodlight.openflow.protocol.OFBucket;
 import org.projectfloodlight.openflow.protocol.OFGroupType;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
@@ -56,6 +64,7 @@ import org.projectfloodlight.openflow.protocol.oxm.OFOxmOchSigidBasic;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.U32;
+import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
@@ -69,20 +78,28 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class GroupBucketEntryBuilder {
 
+    private Dpid dpid;
     private List<OFBucket> ofBuckets;
     private OFGroupType type;
+    private DriverService driverService;
 
     private final Logger log = getLogger(getClass());
+
 
     /**
      * Creates a builder.
      *
+     * @param dpid dpid
      * @param ofBuckets list of OFBucket
      * @param type Group type
+     * @param driverService driver service
      */
-    public GroupBucketEntryBuilder(List<OFBucket> ofBuckets, OFGroupType type) {
+    public GroupBucketEntryBuilder(Dpid dpid, List<OFBucket> ofBuckets, OFGroupType type,
+                                   DriverService driverService) {
+        this.dpid = dpid;
         this.ofBuckets = ofBuckets;
         this.type = type;
+        this.driverService = driverService;
     }
 
     /**
@@ -192,7 +209,7 @@ public class GroupBucketEntryBuilder {
                     break;
                 case SET_FIELD:
                     OFActionSetField setField = (OFActionSetField) act;
-                    handleSetField(builder, setField.getField());
+                    handleSetField(builder, setField);
                     break;
                 case POP_MPLS:
                     OFActionPopMpls popMpls = (OFActionPopMpls) act;
@@ -243,7 +260,8 @@ public class GroupBucketEntryBuilder {
         return builder.build();
     }
 
-    private void handleSetField(TrafficTreatment.Builder builder, OFOxm<?> oxm) {
+    private void handleSetField(TrafficTreatment.Builder builder, OFActionSetField action) {
+        OFOxm<?> oxm = action.getField();
         switch (oxm.getMatchField().id) {
             case VLAN_PCP:
                 @SuppressWarnings("unchecked")
@@ -286,6 +304,18 @@ public class GroupBucketEntryBuilder {
                 @SuppressWarnings("unchecked")
                 OFOxm<U8> mplsBos = (OFOxm<U8>) oxm;
                 builder.setMplsBos(mplsBos.getValue() == U8.ZERO ? false : true);
+                break;
+            case TUNNEL_ID:
+                @SuppressWarnings("unchecked")
+                OFOxm<U64> tunnelId = (OFOxm<U64>) oxm;
+                builder.setTunnelId(tunnelId.getValue().getValue());
+                break;
+            case TUNNEL_IPV4_DST:
+                DriverHandler driver = getDriver(dpid);
+                ExtensionTreatmentInterpreter interpreter = driver.behaviour(ExtensionTreatmentInterpreter.class);
+                if (interpreter != null) {
+                    builder.extension(interpreter.mapAction(action), DeviceId.deviceId(Dpid.uri(dpid)));
+                }
                 break;
             case ARP_OP:
             case ARP_SHA:
@@ -336,12 +366,18 @@ public class GroupBucketEntryBuilder {
             case SCTP_SRC:
             case TCP_DST:
             case TCP_SRC:
-            case TUNNEL_ID:
             case UDP_DST:
             case UDP_SRC:
             default:
                 log.warn("Set field type {} not yet implemented.", oxm.getMatchField().id);
                 break;
         }
+    }
+
+    private DriverHandler getDriver(Dpid dpid) {
+        DeviceId deviceId = DeviceId.deviceId(Dpid.uri(dpid));
+        Driver driver = driverService.getDriver(deviceId);
+        DriverHandler handler = new DefaultDriverHandler(new DefaultDriverData(driver, deviceId));
+        return handler;
     }
 }
