@@ -105,6 +105,8 @@ public class DistributedHostStore
 
         hosts = host.asJavaMap();
 
+        prevHosts.putAll(hosts);
+
         host.addListener(hostLocationTracker);
 
         log.info("Started");
@@ -293,19 +295,25 @@ public class DistributedHostStore
         @Override
         public void event(MapEvent<HostId, DefaultHost> event) {
             DefaultHost host = checkNotNull(event.value().value());
-            if (event.type() == MapEvent.Type.INSERT) {
-                Host prevHost = prevHosts.put(host.id(), host);
-                if (prevHost == null) {
+            Host prevHost = prevHosts.put(host.id(), host);
+            switch (event.type()) {
+                case INSERT:
                     notifyDelegate(new HostEvent(HOST_ADDED, host));
-                } else if (!Objects.equals(prevHost.location(), host.location())) {
-                    notifyDelegate(new HostEvent(HOST_MOVED, host, prevHost));
-                } else if (!Objects.equals(prevHost, host)) {
-                    notifyDelegate(new HostEvent(HOST_UPDATED, host, prevHost));
-                }
-            } else if (event.type() == MapEvent.Type.REMOVE) {
-                if (prevHosts.remove(host.id()) != null) {
-                    notifyDelegate(new HostEvent(HOST_REMOVED, host));
-                }
+                    break;
+                case UPDATE:
+                    if (!Objects.equals(prevHost.location(), host.location())) {
+                        notifyDelegate(new HostEvent(HOST_MOVED, host, prevHost));
+                    } else if (!Objects.equals(prevHost, host)) {
+                        notifyDelegate(new HostEvent(HOST_UPDATED, host, prevHost));
+                    }
+                    break;
+                case REMOVE:
+                    if (prevHosts.remove(host.id()) != null) {
+                        notifyDelegate(new HostEvent(HOST_REMOVED, host));
+                    }
+                    break;
+                default:
+                    log.warn("Unknown map event type: {}", event.type());
             }
         }
     }
