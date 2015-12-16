@@ -117,6 +117,7 @@ import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
 import org.onosproject.net.flow.criteria.IndexedLambdaCriterion;
 import org.onosproject.net.flow.criteria.LambdaCriterion;
 import org.onosproject.net.flow.criteria.MetadataCriterion;
+import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
@@ -337,6 +338,7 @@ public final class KryoNamespaces {
                     IPv6NDTargetAddressCriterion.class,
                     IPv6NDLinkLayerAddressCriterion.class,
                     MplsCriterion.class,
+                    MplsBosCriterion.class,
                     TunnelIdCriterion.class,
                     IPv6ExthdrFlagsCriterion.class,
                     LambdaCriterion.class,
