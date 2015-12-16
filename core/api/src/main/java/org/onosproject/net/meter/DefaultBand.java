@@ -45,12 +45,12 @@ public final class DefaultBand implements Band, BandEntry {
     }
 
     @Override
-    public long burst() {
+    public Long burst() {
         return burstSize;
     }
 
     @Override
-    public short dropPrecedence() {
+    public Short dropPrecedence() {
         return prec;
     }
 

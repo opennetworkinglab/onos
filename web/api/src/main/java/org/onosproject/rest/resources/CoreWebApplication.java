@@ -28,21 +28,22 @@ public class CoreWebApplication extends AbstractWebApplication {
     @Override
     public Set<Class<?>> getClasses() {
         return getClasses(ApiDocResource.class,
-                          ApplicationsWebResource.class,
-                          ComponentConfigWebResource.class,
-                          NetworkConfigWebResource.class,
-                          ClusterWebResource.class,
-                          DevicesWebResource.class,
-                          LinksWebResource.class,
-                          HostsWebResource.class,
-                          IntentsWebResource.class,
-                          FlowsWebResource.class,
-                          GroupsWebResource.class,
-                          TopologyWebResource.class,
-                          ConfigWebResource.class,
-                          PathsWebResource.class,
-                          StatisticsWebResource.class,
-                          MetricsWebResource.class
+                ApplicationsWebResource.class,
+                ComponentConfigWebResource.class,
+                NetworkConfigWebResource.class,
+                ClusterWebResource.class,
+                DevicesWebResource.class,
+                LinksWebResource.class,
+                HostsWebResource.class,
+                IntentsWebResource.class,
+                FlowsWebResource.class,
+                GroupsWebResource.class,
+                MetersWebResource.class,
+                TopologyWebResource.class,
+                ConfigWebResource.class,
+                PathsWebResource.class,
+                StatisticsWebResource.class,
+                MetricsWebResource.class
         );
     }
 }
