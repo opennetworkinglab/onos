@@ -187,163 +187,163 @@ class BigOpticalTopo( Topo ):
 
     
   
-		# Optical Links between the ROADMs (although Distance is not used; we should keep these for future reference)
-		self.addLink( O1, O18, port1=100, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 334, "durable": "true" }, cls=LINCLink )  # ABLNTXRO  DLLSTXTL
-		self.addLink( O1, O21, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 768, "durable": "true" }, cls=LINCLink )  # ABLNTXRO  ELPSTXMA
-		self.addLink( O3, O16, port1=100, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 265, "durable": "true" }, cls=LINCLink )  # ALBYNYSS  CMBRMA01
-		self.addLink( O3, O66, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 239, "durable": "true" }, cls=LINCLink )  # ALBYNYSS  SYRCNYSU
-		self.addLink( O2, O18, port1=100, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1134, "durable": "true" }, cls=LINCLink )  # ALBQNMMA  DLLSTXTL
-		self.addLink( O2, O19, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 646, "durable": "true" }, cls=LINCLink )  # ALBQNMMA  DNVRCOMA
-		self.addLink( O2, O21, port1=102, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 444, "durable": "true" }, cls=LINCLink )  # ALBQNMMA  ELPSTXMA
-		self.addLink( O2, O30, port1=103, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 931, "durable": "true" }, cls=LINCLink )  # ALBQNMMA  LSVGNV02
-		self.addLink( O4, O8, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 271, "durable": "true" }, cls=LINCLink )  # ATLNGATL  BRHMALMT
-		self.addLink( O4, O12, port1=102, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 436, "durable": "true" }, cls=LINCLink )  # ATLNGATL  CHRLNCCA
-		self.addLink( O4, O26, port1=103, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 566, "durable": "true" }, cls=LINCLink )  # ATLNGATL  JCVLFLCL
-		self.addLink( O75, O25, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 283, "durable": "true" }, cls=LINCLink )  # AUSTTXGR  HSTNTX01
-		self.addLink( O75, O57, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 141, "durable": "true" }, cls=LINCLink )  # AUSTTXGR  SNANTXCA
-		self.addLink( O7, O46, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 170, "durable": "true" }, cls=LINCLink )  # BLTMMDCH  PHLAPASL
-		self.addLink( O7, O48, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 378, "durable": "true" }, cls=LINCLink )  # BLTMMDCH  PITBPADG
-		self.addLink( O7, O70, port1=103, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 68, "durable": "true" }, cls=LINCLink )  # BLTMMDCH  WASHDCSW
-		self.addLink( O10, O25, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 491, "durable": "true" }, cls=LINCLink )  # BTRGLAMA  HSTNTX01
-		self.addLink( O10, O39, port1=102, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 144, "durable": "true" }, cls=LINCLink )  # BTRGLAMA  NWORLAMA
-		self.addLink( O6, O9, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 724, "durable": "true" }, cls=LINCLink )  # BLNGMTMA  BSMRNDJC
-		self.addLink( O6, O19, port1=102, port2=107, annotations={ "optical.wves": 80, "optical.type": "WDM", "optical.kms": 875, "durable": "true" }, cls=LINCLink )  # BLNGMTMA  DNVRCOMA
-		self.addLink( O6, O63, port1=103, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 852, "durable": "true" }, cls=LINCLink )  # BLNGMTMA  SPKNWA01
-		self.addLink( O8, O38, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 353, "durable": "true" }, cls=LINCLink )  # BRHMALMT  NSVLTNMT
-		self.addLink( O8, O39, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 602, "durable": "true" }, cls=LINCLink )  # BRHMALMT  NWORLAMA
-		self.addLink( O9, O36, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 741, "durable": "true" }, cls=LINCLink )  # BSMRNDJC  MPLSMNDT
-		self.addLink( O16, O49, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 80, "durable": "true" }, cls=LINCLink )  # CMBRMA01  PRVDRIGR
-		self.addLink( O5, O14, port1=103, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 333, "durable": "true" }, cls=LINCLink )  # BFLONYFR  CLEVOH02
-		self.addLink( O5, O53, port1=104, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 128, "durable": "true" }, cls=LINCLink )  # BFLONYFR  ROCHNYXA
-		self.addLink( O13, O26, port1=101, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 368, "durable": "true" }, cls=LINCLink )  # CHTNSCDT  JCVLFLCL
-		self.addLink( O13, O52, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 424, "durable": "true" }, cls=LINCLink )  # CHTNSCDT  RLGHNCMO
-		self.addLink( O12, O23, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 160, "durable": "true" }, cls=LINCLink )  # CHRLNCCA  GNBONCEU
-		self.addLink( O11, O20, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 458, "durable": "true" }, cls=LINCLink )  # CHCGILCL  DTRTMIBA
-		self.addLink( O11, O34, port1=102, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 156, "durable": "true" }, cls=LINCLink )  # CHCGILCL  MILWWIHE
-		self.addLink( O11, O62, port1=103, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 344, "durable": "true" }, cls=LINCLink )  # CHCGILCL  SPFDILSD
-		self.addLink( O17, O15, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 194, "durable": "true" }, cls=LINCLink )  # CNCNOHWS  CLMBOH11
-		self.addLink( O17, O31, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 172, "durable": "true" }, cls=LINCLink )  # CNCNOHWS  LSVLKYCS
-		self.addLink( O17, O72, port1=103, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 779, "durable": "true" }, cls=LINCLink )  # CNCNOHWS  WASHDCSW
-		self.addLink( O14, O15, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 243, "durable": "true" }, cls=LINCLink )  # CLEVOH02  CLMBOH11
-		self.addLink( O14, O70, port1=102, port2=101, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 185, "durable": "true" }, cls=LINCLink )  # CLEVOH02  TOLDOH21
-		self.addLink( O15, O48, port1=101, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 312, "durable": "true" }, cls=LINCLink )  # CLMBOH11  PITBPADG
-		self.addLink( O18, O25, port1=101, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 437, "durable": "true" }, cls=LINCLink )  # DLLSTXTL  HSTNTX01
-		self.addLink( O18, O32, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 563, "durable": "true" }, cls=LINCLink )  # DLLSTXTL  LTRKARFR
-		self.addLink( O18, O42, port1=103, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 365, "durable": "true" }, cls=LINCLink )  # DLLSTXTL  OKCYOKCE
-		self.addLink( O19, O44, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 940, "durable": "true" }, cls=LINCLink )  # DNVRCOMA  OMAHNENW
-		self.addLink( O19, O56, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 714, "durable": "true" }, cls=LINCLink )  # DNVRCOMA  SLKCUTMA
-		self.addLink( O20, O70, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 103, "durable": "true" }, cls=LINCLink )  # DTRTMIBA  TOLDOH21
-		self.addLink( O21, O57, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 969, "durable": "true" }, cls=LINCLink )  # ELPSTXMA  SNANTXCA
-		self.addLink( O21, O68, port1=102, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 511, "durable": "true" }, cls=LINCLink )  # ELPSTXMA  TCSNAZMA
-		self.addLink( O22, O31, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 505, "durable": "true" }, cls=LINCLink )  # FRSNCA01  LSVGNV02
-		self.addLink( O22, O29, port1=102, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 396, "durable": "true" }, cls=LINCLink )  # FRSNCA01  LSANCA03
-		self.addLink( O22, O42, port1=103, port2=108, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 298, "durable": "true" }, cls=LINCLink )  # FRSNCA01  OKLDCA03
-		self.addLink( O23, O31, port1=101, port2=108, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 697, "durable": "true" }, cls=LINCLink )  # GNBONCEU  LSVLKYCS
-		self.addLink( O23, O52, port1=102, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 130, "durable": "true" }, cls=LINCLink )  # GNBONCEU  RLGHNCMO
-		self.addLink( O23, O51, port1=103, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 319, "durable": "true" }, cls=LINCLink )  # GNBONCEU  RCMDVAGR
-		self.addLink( O24, O28, port1=101, port2=108, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 185, "durable": "true" }, cls=LINCLink )  # HRFRCT03  L_Island
-		self.addLink( O24, O49, port1=102, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 125, "durable": "true" }, cls=LINCLink )  # HRFRCT03  PRVDRIGR
-		self.addLink( O26, O45, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 238, "durable": "true" }, cls=LINCLink )  # JCVLFLCL  ORLDFLMA
-		self.addLink( O27, O44, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 320, "durable": "true" }, cls=LINCLink )  # KSCYMO09  OMAHNENW
-		self.addLink( O27, O64, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 457, "durable": "true" }, cls=LINCLink )  # KSCYMO09  STLSMO09
-		self.addLink( O27, O71, port1=103, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 420, "durable": "true" }, cls=LINCLink )  # KSCYMO09  TULSOKTB
-		self.addLink( O30, O47, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 494, "durable": "true" }, cls=LINCLink )  # LSVGNV02  PHNXAZMA
-		self.addLink( O30, O56, port1=102, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 701, "durable": "true" }, cls=LINCLink )  # LSVGNV02  SLKCUTMA
-		self.addLink( O32, O35, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 249, "durable": "true" }, cls=LINCLink )  # LTRKARFR  MMPHTNMA
-		self.addLink( O28, O41, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 40, "durable": "true" }, cls=LINCLink )  # L_Island  NYCMNY54
-		self.addLink( O29, O59, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 212, "durable": "true" }, cls=LINCLink )  # LSANCA03  SNDGCA02
-		self.addLink( O29, O58, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 167, "durable": "true" }, cls=LINCLink )  # LSANCA03  SNBBCA01
-		self.addLink( O31, O38, port1=104, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 298, "durable": "true" }, cls=LINCLink )  # LSVLKYCS  NSVLTNMT
-		self.addLink( O31, O64, port1=102, port2=108, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 468, "durable": "true" }, cls=LINCLink )  # LSVLKYCS  STLSMO09
-		self.addLink( O35, O38, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 380, "durable": "true" }, cls=LINCLink )  # MMPHTNMA  NSVLTNMT
-		self.addLink( O33, O67, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 407, "durable": "true" }, cls=LINCLink )  # MIAMFLAC  TAMQFLFN
-		self.addLink( O33, O74, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 125, "durable": "true" }, cls=LINCLink )  # MIAMFLAC  WPBHFLAN
-		self.addLink( O34, O36, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 574, "durable": "true" }, cls=LINCLink )  # MILWWIHE  MPLSMNDT
-		self.addLink( O36, O44, port1=101, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 560, "durable": "true" }, cls=LINCLink )  # MPLSMNDT  OMAHNENW
-		self.addLink( O39, O69, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 670, "durable": "true" }, cls=LINCLink )  # NWORLAMA  TLHSFLAT
-		self.addLink( O41, O40, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 19, "durable": "true" }, cls=LINCLink )  # NYCMNY54  NWRKNJ02
-		self.addLink( O41, O55, port1=102, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 187, "durable": "true" }, cls=LINCLink )  # NYCMNY54  SCTNPA01
-		self.addLink( O41, O73, port1=103, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 210, "durable": "true" }, cls=LINCLink )  # NYCMNY54  WLMGDE01
-		self.addLink( O40, O46, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 146, "durable": "true" }, cls=LINCLink )  # NWRKNJ02  PHLAPASL
-		self.addLink( O37, O52, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 290, "durable": "true" }, cls=LINCLink )  # NRFLVABS  RLGHNCMO
-		self.addLink( O37, O73, port1=102, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 392, "durable": "true" }, cls=LINCLink )  # NRFLVABS  WLMGDE01
-		self.addLink( O43, O54, port1=101, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 131, "durable": "true" }, cls=LINCLink )  # OKLDCA03  SCRMCA01
-		self.addLink( O43, O56, port1=102, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1142, "durable": "true" }, cls=LINCLink )  # OKLDCA03  SLKCUTMA
-		self.addLink( O43, O60, port1=103, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 13, "durable": "true" }, cls=LINCLink )  # OKLDCA03  SNFCCA21
-		self.addLink( O42, O71, port1=101, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 188, "durable": "true" }, cls=LINCLink )  # OKCYOKCE  TULSOKTB
-		self.addLink( O45, O74, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 290, "durable": "true" }, cls=LINCLink )  # ORLDFLMA  WPBHFLAN
-		self.addLink( O46, O55, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 201, "durable": "true" }, cls=LINCLink )  # PHLAPASL  SCTNPA01
-		self.addLink( O47, O59, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 575, "durable": "true" }, cls=LINCLink )  # PHNXAZMA  SNDGCA02
-		self.addLink( O47, O68, port1=102, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 205, "durable": "true" }, cls=LINCLink )  # PHNXAZMA  TCSNAZMA
-		self.addLink( O48, O55, port1=101, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 457, "durable": "true" }, cls=LINCLink )  # PITBPADG  SCTNPA01
-		self.addLink( O50, O54, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 934, "durable": "true" }, cls=LINCLink )  # PTLDOR62  SCRMCA01
-		self.addLink( O50, O56, port1=102, port2=108, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1225, "durable": "true" }, cls=LINCLink )  # PTLDOR62  SLKCUTMA
-		self.addLink( O50, O65, port1=103, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 280, "durable": "true" }, cls=LINCLink )  # PTLDOR62  STTLWA06
-		self.addLink( O51, O72, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 184, "durable": "true" }, cls=LINCLink )  # RCMDVAGR  WASHDCSW
-		self.addLink( O53, O66, port1=101, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 143, "durable": "true" }, cls=LINCLink )  # ROCHNYXA  SYRCNYSU
-		self.addLink( O60, O61, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 80., "durable": "true" }, cls=LINCLink )  # SNFCCA21  SNJSCA02
-		self.addLink( O61, O58, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 455, "durable": "true" }, cls=LINCLink )  # SNJSCA02  SNBBCA01
-		self.addLink( O55, O66, port1=101, port2=105, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 223, "durable": "true" }, cls=LINCLink )  # SCTNPA01  SYRCNYSU
-		self.addLink( O65, O63, port1=101, port2=107, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 442, "durable": "true" }, cls=LINCLink )  # STTLWA06  SPKNWA01
-		self.addLink( O62, O64, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 165, "durable": "true" }, cls=LINCLink )  # SPFDILSD  STLSMO09
-		self.addLink( O69, O67, port1=101, port2=106, annotations={ "optical.waves": 80, "optical.type": "WDM", "optical.kms": 384, "durable": "true" }, cls=LINCLink )  # TLHSFLAT  TAMQFLFN
+		# Optical Links between the ROADMs (although length is not used; we should keep these for future reference)
+		self.addLink( O1, O18, port1=100, port2=105, annotations={ "length": 334, "durable": "true" }, cls=LINCLink )  # ABLNTXRO  DLLSTXTL
+		self.addLink( O1, O21, port1=101, port2=106, annotations={ "length": 768, "durable": "true" }, cls=LINCLink )  # ABLNTXRO  ELPSTXMA
+		self.addLink( O3, O16, port1=100, port2=105, annotations={ "length": 265, "durable": "true" }, cls=LINCLink )  # ALBYNYSS  CMBRMA01
+		self.addLink( O3, O66, port1=101, port2=106, annotations={ "length": 239, "durable": "true" }, cls=LINCLink )  # ALBYNYSS  SYRCNYSU
+		self.addLink( O2, O18, port1=100, port2=107, annotations={ "length": 1134, "durable": "true" }, cls=LINCLink )  # ALBQNMMA  DLLSTXTL
+		self.addLink( O2, O19, port1=101, port2=106, annotations={ "length": 646, "durable": "true" }, cls=LINCLink )  # ALBQNMMA  DNVRCOMA
+		self.addLink( O2, O21, port1=102, port2=107, annotations={ "length": 444, "durable": "true" }, cls=LINCLink )  # ALBQNMMA  ELPSTXMA
+		self.addLink( O2, O30, port1=103, port2=106, annotations={ "length": 931, "durable": "true" }, cls=LINCLink )  # ALBQNMMA  LSVGNV02
+		self.addLink( O4, O8, port1=101, port2=105, annotations={ "length": 271, "durable": "true" }, cls=LINCLink )  # ATLNGATL  BRHMALMT
+		self.addLink( O4, O12, port1=102, port2=106, annotations={ "length": 436, "durable": "true" }, cls=LINCLink )  # ATLNGATL  CHRLNCCA
+		self.addLink( O4, O26, port1=103, port2=105, annotations={ "length": 566, "durable": "true" }, cls=LINCLink )  # ATLNGATL  JCVLFLCL
+		self.addLink( O75, O25, port1=101, port2=106, annotations={ "length": 283, "durable": "true" }, cls=LINCLink )  # AUSTTXGR  HSTNTX01
+		self.addLink( O75, O57, port1=102, port2=105, annotations={ "length": 141, "durable": "true" }, cls=LINCLink )  # AUSTTXGR  SNANTXCA
+		self.addLink( O7, O46, port1=101, port2=106, annotations={ "length": 170, "durable": "true" }, cls=LINCLink )  # BLTMMDCH  PHLAPASL
+		self.addLink( O7, O48, port1=102, port2=105, annotations={ "length": 378, "durable": "true" }, cls=LINCLink )  # BLTMMDCH  PITBPADG
+		self.addLink( O7, O70, port1=103, port2=107, annotations={ "length": 68, "durable": "true" }, cls=LINCLink )  # BLTMMDCH  WASHDCSW
+		self.addLink( O10, O25, port1=101, port2=105, annotations={ "length": 491, "durable": "true" }, cls=LINCLink )  # BTRGLAMA  HSTNTX01
+		self.addLink( O10, O39, port1=102, port2=106, annotations={ "length": 144, "durable": "true" }, cls=LINCLink )  # BTRGLAMA  NWORLAMA
+		self.addLink( O6, O9, port1=101, port2=105, annotations={ "length": 724, "durable": "true" }, cls=LINCLink )  # BLNGMTMA  BSMRNDJC
+		self.addLink( O6, O19, port1=102, port2=107, annotations={ "length": 875, "durable": "true" }, cls=LINCLink )  # BLNGMTMA  DNVRCOMA
+		self.addLink( O6, O63, port1=103, port2=105, annotations={ "length": 852, "durable": "true" }, cls=LINCLink )  # BLNGMTMA  SPKNWA01
+		self.addLink( O8, O38, port1=101, port2=106, annotations={ "length": 353, "durable": "true" }, cls=LINCLink )  # BRHMALMT  NSVLTNMT
+		self.addLink( O8, O39, port1=102, port2=105, annotations={ "length": 602, "durable": "true" }, cls=LINCLink )  # BRHMALMT  NWORLAMA
+		self.addLink( O9, O36, port1=101, port2=106, annotations={ "length": 741, "durable": "true" }, cls=LINCLink )  # BSMRNDJC  MPLSMNDT
+		self.addLink( O16, O49, port1=101, port2=105, annotations={ "length": 80, "durable": "true" }, cls=LINCLink )  # CMBRMA01  PRVDRIGR
+		self.addLink( O5, O14, port1=103, port2=106, annotations={ "length": 333, "durable": "true" }, cls=LINCLink )  # BFLONYFR  CLEVOH02
+		self.addLink( O5, O53, port1=104, port2=105, annotations={ "length": 128, "durable": "true" }, cls=LINCLink )  # BFLONYFR  ROCHNYXA
+		self.addLink( O13, O26, port1=101, port2=107, annotations={ "length": 368, "durable": "true" }, cls=LINCLink )  # CHTNSCDT  JCVLFLCL
+		self.addLink( O13, O52, port1=102, port2=105, annotations={ "length": 424, "durable": "true" }, cls=LINCLink )  # CHTNSCDT  RLGHNCMO
+		self.addLink( O12, O23, port1=101, port2=106, annotations={ "length": 160, "durable": "true" }, cls=LINCLink )  # CHRLNCCA  GNBONCEU
+		self.addLink( O11, O20, port1=101, port2=105, annotations={ "length": 458, "durable": "true" }, cls=LINCLink )  # CHCGILCL  DTRTMIBA
+		self.addLink( O11, O34, port1=102, port2=106, annotations={ "length": 156, "durable": "true" }, cls=LINCLink )  # CHCGILCL  MILWWIHE
+		self.addLink( O11, O62, port1=103, port2=105, annotations={ "length": 344, "durable": "true" }, cls=LINCLink )  # CHCGILCL  SPFDILSD
+		self.addLink( O17, O15, port1=101, port2=106, annotations={ "length": 194, "durable": "true" }, cls=LINCLink )  # CNCNOHWS  CLMBOH11
+		self.addLink( O17, O31, port1=102, port2=105, annotations={ "length": 172, "durable": "true" }, cls=LINCLink )  # CNCNOHWS  LSVLKYCS
+		self.addLink( O17, O72, port1=103, port2=106, annotations={ "length": 779, "durable": "true" }, cls=LINCLink )  # CNCNOHWS  WASHDCSW
+		self.addLink( O14, O15, port1=101, port2=105, annotations={ "length": 243, "durable": "true" }, cls=LINCLink )  # CLEVOH02  CLMBOH11
+		self.addLink( O14, O70, port1=102, port2=101, annotations={ "length": 185, "durable": "true" }, cls=LINCLink )  # CLEVOH02  TOLDOH21
+		self.addLink( O15, O48, port1=101, port2=107, annotations={ "length": 312, "durable": "true" }, cls=LINCLink )  # CLMBOH11  PITBPADG
+		self.addLink( O18, O25, port1=101, port2=107, annotations={ "length": 437, "durable": "true" }, cls=LINCLink )  # DLLSTXTL  HSTNTX01
+		self.addLink( O18, O32, port1=102, port2=105, annotations={ "length": 563, "durable": "true" }, cls=LINCLink )  # DLLSTXTL  LTRKARFR
+		self.addLink( O18, O42, port1=103, port2=106, annotations={ "length": 365, "durable": "true" }, cls=LINCLink )  # DLLSTXTL  OKCYOKCE
+		self.addLink( O19, O44, port1=101, port2=105, annotations={ "length": 940, "durable": "true" }, cls=LINCLink )  # DNVRCOMA  OMAHNENW
+		self.addLink( O19, O56, port1=102, port2=105, annotations={ "length": 714, "durable": "true" }, cls=LINCLink )  # DNVRCOMA  SLKCUTMA
+		self.addLink( O20, O70, port1=101, port2=106, annotations={ "length": 103, "durable": "true" }, cls=LINCLink )  # DTRTMIBA  TOLDOH21
+		self.addLink( O21, O57, port1=101, port2=106, annotations={ "length": 969, "durable": "true" }, cls=LINCLink )  # ELPSTXMA  SNANTXCA
+		self.addLink( O21, O68, port1=102, port2=107, annotations={ "length": 511, "durable": "true" }, cls=LINCLink )  # ELPSTXMA  TCSNAZMA
+		self.addLink( O22, O31, port1=101, port2=106, annotations={ "length": 505, "durable": "true" }, cls=LINCLink )  # FRSNCA01  LSVGNV02
+		self.addLink( O22, O29, port1=102, port2=106, annotations={ "length": 396, "durable": "true" }, cls=LINCLink )  # FRSNCA01  LSANCA03
+		self.addLink( O22, O42, port1=103, port2=108, annotations={ "length": 298, "durable": "true" }, cls=LINCLink )  # FRSNCA01  OKLDCA03
+		self.addLink( O23, O31, port1=101, port2=108, annotations={ "length": 697, "durable": "true" }, cls=LINCLink )  # GNBONCEU  LSVLKYCS
+		self.addLink( O23, O52, port1=102, port2=107, annotations={ "length": 130, "durable": "true" }, cls=LINCLink )  # GNBONCEU  RLGHNCMO
+		self.addLink( O23, O51, port1=103, port2=106, annotations={ "length": 319, "durable": "true" }, cls=LINCLink )  # GNBONCEU  RCMDVAGR
+		self.addLink( O24, O28, port1=101, port2=108, annotations={ "length": 185, "durable": "true" }, cls=LINCLink )  # HRFRCT03  L_Island
+		self.addLink( O24, O49, port1=102, port2=106, annotations={ "length": 125, "durable": "true" }, cls=LINCLink )  # HRFRCT03  PRVDRIGR
+		self.addLink( O26, O45, port1=101, port2=105, annotations={ "length": 238, "durable": "true" }, cls=LINCLink )  # JCVLFLCL  ORLDFLMA
+		self.addLink( O27, O44, port1=101, port2=106, annotations={ "length": 320, "durable": "true" }, cls=LINCLink )  # KSCYMO09  OMAHNENW
+		self.addLink( O27, O64, port1=102, port2=105, annotations={ "length": 457, "durable": "true" }, cls=LINCLink )  # KSCYMO09  STLSMO09
+		self.addLink( O27, O71, port1=103, port2=106, annotations={ "length": 420, "durable": "true" }, cls=LINCLink )  # KSCYMO09  TULSOKTB
+		self.addLink( O30, O47, port1=101, port2=105, annotations={ "length": 494, "durable": "true" }, cls=LINCLink )  # LSVGNV02  PHNXAZMA
+		self.addLink( O30, O56, port1=102, port2=106, annotations={ "length": 701, "durable": "true" }, cls=LINCLink )  # LSVGNV02  SLKCUTMA
+		self.addLink( O32, O35, port1=101, port2=105, annotations={ "length": 249, "durable": "true" }, cls=LINCLink )  # LTRKARFR  MMPHTNMA
+		self.addLink( O28, O41, port1=101, port2=106, annotations={ "length": 40, "durable": "true" }, cls=LINCLink )  # L_Island  NYCMNY54
+		self.addLink( O29, O59, port1=101, port2=105, annotations={ "length": 212, "durable": "true" }, cls=LINCLink )  # LSANCA03  SNDGCA02
+		self.addLink( O29, O58, port1=102, port2=105, annotations={ "length": 167, "durable": "true" }, cls=LINCLink )  # LSANCA03  SNBBCA01
+		self.addLink( O31, O38, port1=104, port2=107, annotations={ "length": 298, "durable": "true" }, cls=LINCLink )  # LSVLKYCS  NSVLTNMT
+		self.addLink( O31, O64, port1=102, port2=108, annotations={ "length": 468, "durable": "true" }, cls=LINCLink )  # LSVLKYCS  STLSMO09
+		self.addLink( O35, O38, port1=101, port2=105, annotations={ "length": 380, "durable": "true" }, cls=LINCLink )  # MMPHTNMA  NSVLTNMT
+		self.addLink( O33, O67, port1=101, port2=105, annotations={ "length": 407, "durable": "true" }, cls=LINCLink )  # MIAMFLAC  TAMQFLFN
+		self.addLink( O33, O74, port1=102, port2=105, annotations={ "length": 125, "durable": "true" }, cls=LINCLink )  # MIAMFLAC  WPBHFLAN
+		self.addLink( O34, O36, port1=101, port2=105, annotations={ "length": 574, "durable": "true" }, cls=LINCLink )  # MILWWIHE  MPLSMNDT
+		self.addLink( O36, O44, port1=101, port2=107, annotations={ "length": 560, "durable": "true" }, cls=LINCLink )  # MPLSMNDT  OMAHNENW
+		self.addLink( O39, O69, port1=101, port2=105, annotations={ "length": 670, "durable": "true" }, cls=LINCLink )  # NWORLAMA  TLHSFLAT
+		self.addLink( O41, O40, port1=101, port2=106, annotations={ "length": 19, "durable": "true" }, cls=LINCLink )  # NYCMNY54  NWRKNJ02
+		self.addLink( O41, O55, port1=102, port2=105, annotations={ "length": 187, "durable": "true" }, cls=LINCLink )  # NYCMNY54  SCTNPA01
+		self.addLink( O41, O73, port1=103, port2=106, annotations={ "length": 210, "durable": "true" }, cls=LINCLink )  # NYCMNY54  WLMGDE01
+		self.addLink( O40, O46, port1=101, port2=105, annotations={ "length": 146, "durable": "true" }, cls=LINCLink )  # NWRKNJ02  PHLAPASL
+		self.addLink( O37, O52, port1=101, port2=106, annotations={ "length": 290, "durable": "true" }, cls=LINCLink )  # NRFLVABS  RLGHNCMO
+		self.addLink( O37, O73, port1=102, port2=107, annotations={ "length": 392, "durable": "true" }, cls=LINCLink )  # NRFLVABS  WLMGDE01
+		self.addLink( O43, O54, port1=101, port2=107, annotations={ "length": 131, "durable": "true" }, cls=LINCLink )  # OKLDCA03  SCRMCA01
+		self.addLink( O43, O56, port1=102, port2=107, annotations={ "length": 1142, "durable": "true" }, cls=LINCLink )  # OKLDCA03  SLKCUTMA
+		self.addLink( O43, O60, port1=103, port2=105, annotations={ "length": 13, "durable": "true" }, cls=LINCLink )  # OKLDCA03  SNFCCA21
+		self.addLink( O42, O71, port1=101, port2=107, annotations={ "length": 188, "durable": "true" }, cls=LINCLink )  # OKCYOKCE  TULSOKTB
+		self.addLink( O45, O74, port1=101, port2=106, annotations={ "length": 290, "durable": "true" }, cls=LINCLink )  # ORLDFLMA  WPBHFLAN
+		self.addLink( O46, O55, port1=101, port2=106, annotations={ "length": 201, "durable": "true" }, cls=LINCLink )  # PHLAPASL  SCTNPA01
+		self.addLink( O47, O59, port1=101, port2=106, annotations={ "length": 575, "durable": "true" }, cls=LINCLink )  # PHNXAZMA  SNDGCA02
+		self.addLink( O47, O68, port1=102, port2=106, annotations={ "length": 205, "durable": "true" }, cls=LINCLink )  # PHNXAZMA  TCSNAZMA
+		self.addLink( O48, O55, port1=101, port2=107, annotations={ "length": 457, "durable": "true" }, cls=LINCLink )  # PITBPADG  SCTNPA01
+		self.addLink( O50, O54, port1=101, port2=106, annotations={ "length": 934, "durable": "true" }, cls=LINCLink )  # PTLDOR62  SCRMCA01
+		self.addLink( O50, O56, port1=102, port2=108, annotations={ "length": 1225, "durable": "true" }, cls=LINCLink )  # PTLDOR62  SLKCUTMA
+		self.addLink( O50, O65, port1=103, port2=106, annotations={ "length": 280, "durable": "true" }, cls=LINCLink )  # PTLDOR62  STTLWA06
+		self.addLink( O51, O72, port1=101, port2=105, annotations={ "length": 184, "durable": "true" }, cls=LINCLink )  # RCMDVAGR  WASHDCSW
+		self.addLink( O53, O66, port1=101, port2=107, annotations={ "length": 143, "durable": "true" }, cls=LINCLink )  # ROCHNYXA  SYRCNYSU
+		self.addLink( O60, O61, port1=101, port2=105, annotations={ "length": 80., "durable": "true" }, cls=LINCLink )  # SNFCCA21  SNJSCA02
+		self.addLink( O61, O58, port1=101, port2=106, annotations={ "length": 455, "durable": "true" }, cls=LINCLink )  # SNJSCA02  SNBBCA01
+		self.addLink( O55, O66, port1=101, port2=105, annotations={ "length": 223, "durable": "true" }, cls=LINCLink )  # SCTNPA01  SYRCNYSU
+		self.addLink( O65, O63, port1=101, port2=107, annotations={ "length": 442, "durable": "true" }, cls=LINCLink )  # STTLWA06  SPKNWA01
+		self.addLink( O62, O64, port1=101, port2=106, annotations={ "length": 165, "durable": "true" }, cls=LINCLink )  # SPFDILSD  STLSMO09
+		self.addLink( O69, O67, port1=101, port2=106, annotations={ "length": 384, "durable": "true" }, cls=LINCLink )  # TLHSFLAT  TAMQFLFN
 		
 		# Packet/Optical cross connect links (this will be the tap interfaces)
-		self.addLink( WASHDCSWR, O72, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( WASHDCSWR, O72, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( WASHDCSWR, O72, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( WASHDCSWR, O72, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( WASHDCSWR, O72, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( SNJSCA02R, O61, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( SNJSCA02R, O61, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( SNJSCA02R, O61, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( SNJSCA02R, O61, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( SNJSCA02R, O61, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( SNANTXCAR, O57, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( SNANTXCAR, O57, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( SNANTXCAR, O57, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( SNANTXCAR, O57, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( SNANTXCAR, O57, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ROCHNYXAR, O53, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ROCHNYXAR, O53, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ROCHNYXAR, O53, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ROCHNYXAR, O53, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ROCHNYXAR, O53, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( PHNXAZMAR, O47, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( PHNXAZMAR, O47, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( PHNXAZMAR, O47, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( PHNXAZMAR, O47, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( PHNXAZMAR, O47, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ORLDFLMAR, O45, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ORLDFLMAR, O45, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ORLDFLMAR, O45, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ORLDFLMAR, O45, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ORLDFLMAR, O45, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( NWRKNJ02R, O40, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( NWRKNJ02R, O40, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( NWRKNJ02R, O40, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( NWRKNJ02R, O40, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( NWRKNJ02R, O40, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( MPLSMNDTR, O36, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( MPLSMNDTR, O36, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( MPLSMNDTR, O36, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( MPLSMNDTR, O36, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( MPLSMNDTR, O36, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( LSANCA03R, O29, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( LSANCA03R, O29, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( LSANCA03R, O29, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( LSANCA03R, O29, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( LSANCA03R, O29, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( DLLSTXTLR, O18, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( DLLSTXTLR, O18, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( DLLSTXTLR, O18, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( DLLSTXTLR, O18, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( DLLSTXTLR, O18, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ATLNGATLR, O4, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ATLNGATLR, O4, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ATLNGATLR, O4, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ATLNGATLR, O4, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
-		self.addLink( ATLNGATLR, O4, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }, cls=LINCLink )
+		self.addLink( WASHDCSWR, O72, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( WASHDCSWR, O72, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( WASHDCSWR, O72, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( WASHDCSWR, O72, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( WASHDCSWR, O72, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( SNJSCA02R, O61, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( SNJSCA02R, O61, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( SNJSCA02R, O61, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( SNJSCA02R, O61, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( SNJSCA02R, O61, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( SNANTXCAR, O57, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( SNANTXCAR, O57, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( SNANTXCAR, O57, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( SNANTXCAR, O57, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( SNANTXCAR, O57, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ROCHNYXAR, O53, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ROCHNYXAR, O53, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ROCHNYXAR, O53, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ROCHNYXAR, O53, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ROCHNYXAR, O53, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( PHNXAZMAR, O47, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( PHNXAZMAR, O47, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( PHNXAZMAR, O47, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( PHNXAZMAR, O47, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( PHNXAZMAR, O47, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ORLDFLMAR, O45, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ORLDFLMAR, O45, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ORLDFLMAR, O45, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ORLDFLMAR, O45, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ORLDFLMAR, O45, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( NWRKNJ02R, O40, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( NWRKNJ02R, O40, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( NWRKNJ02R, O40, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( NWRKNJ02R, O40, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( NWRKNJ02R, O40, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( MPLSMNDTR, O36, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( MPLSMNDTR, O36, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( MPLSMNDTR, O36, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( MPLSMNDTR, O36, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( MPLSMNDTR, O36, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( LSANCA03R, O29, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( LSANCA03R, O29, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( LSANCA03R, O29, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( LSANCA03R, O29, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( LSANCA03R, O29, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( DLLSTXTLR, O18, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( DLLSTXTLR, O18, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( DLLSTXTLR, O18, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( DLLSTXTLR, O18, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( DLLSTXTLR, O18, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ATLNGATLR, O4, port1=2, port2=10, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ATLNGATLR, O4, port1=3, port2=11, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ATLNGATLR, O4, port1=4, port2=12, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ATLNGATLR, O4, port1=5, port2=13, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
+		self.addLink( ATLNGATLR, O4, port1=6, port2=14, speed1=10000, annotations={ "bandwidth": 100000, "durable": "true" }, cls=LINCLink )
 		
 
 		# Attach hosts to the packet layer switches 

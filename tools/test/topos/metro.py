@@ -90,7 +90,7 @@ class OpticalDomain(Domain):
             oean = { "optical.regens": 0 }
             self.addSwitch('OE%s' % i, dpid='0000ffffffffff0%s' % i, annotations=oean, cls=LINCSwitch)
 
-        an = { "optical.waves": 80, "optical.type": "WDM", "optical.kms": 1000, "durable": "true" }
+        an = { "durable": "true" }
         self.addLink('OE1', 'OE2', port1=50, port2=30, annotations=an, cls=LINCLink)
         self.addLink('OE2', 'OE3', port1=50, port2=30, annotations=an, cls=LINCLink)
         self.addLink('OE3', 'OE1', port1=50, port2=30, annotations=an, cls=LINCLink)
@@ -188,7 +188,7 @@ def setup(argv):
 
     # connect COs to core - sort of hard-wired at this moment
     for i in range(1,len(domains)):
-        an = { "bandwidth": 100000, "optical.type": "cross-connect", "durable": "true" }
+        an = { "bandwidth": 100000, "durable": "true" }
         net.addLink(domains[i].getTether(), d0.getSwitches('OE%s' % i),
                     port1=OVS_AP, port2=OE_AP, speed=10000, annotations=an, cls=LINCLink)
 
