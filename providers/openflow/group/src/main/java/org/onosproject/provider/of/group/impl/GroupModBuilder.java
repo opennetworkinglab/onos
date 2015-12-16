@@ -64,6 +64,7 @@ import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
 import org.projectfloodlight.openflow.types.U32;
+import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.VlanPcp;
 import org.slf4j.Logger;
 
@@ -346,6 +347,11 @@ public final class GroupModBuilder {
                 break;
             case DEC_MPLS_TTL:
                 return factory.actions().decMplsTtl();
+            case TUNNEL_ID:
+                L2ModificationInstruction.ModTunnelIdInstruction tunnelId =
+                        (L2ModificationInstruction.ModTunnelIdInstruction) l2m;
+                oxm = factory.oxms().tunnelId(U64.of(tunnelId.tunnelId()));
+                break;
             default:
                 log.warn("Unimplemented action type {}.", l2m.subtype());
                 break;
