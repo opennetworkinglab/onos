@@ -125,12 +125,10 @@ public final class DefaultBand implements Band, BandEntry {
 
         @Override
         public DefaultBand build() {
-            checkArgument(type != Type.REMARK && prec == null,
-                          "Only REMARK bands can have a precendence.");
+            checkArgument(type == Type.REMARK ^ prec == null,
+                    "Only REMARK bands can have a precedence.");
 
             return new DefaultBand(type, rate, burstSize, prec);
         }
-
-
     }
 }
