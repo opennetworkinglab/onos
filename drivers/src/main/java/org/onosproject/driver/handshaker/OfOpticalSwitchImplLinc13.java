@@ -16,13 +16,7 @@
 package org.onosproject.driver.handshaker;
 
 import com.google.common.collect.ImmutableSet;
-import org.onosproject.net.ChannelSpacing;
-import org.onosproject.net.DefaultOchSignalComparator;
 import org.onosproject.net.Device;
-import org.onosproject.net.GridType;
-import org.onosproject.net.OchSignal;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.behaviour.LambdaQuery;
 import org.onosproject.openflow.controller.OpenFlowOpticalSwitch;
 import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.driver.AbstractOpenFlowSwitch;
@@ -56,10 +50,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * LINC-OE Optical Emulator switch class.
@@ -72,14 +63,9 @@ import java.util.stream.IntStream;
  *
  * As LINC implements custom OF optical extensions (in contrast to the final standard as specified in
  * ONF TS-022 (March 15, 2015), we need to rewrite flow stat requests and flow mods in {@link #sendMsg(OFMessage)}.
- *
- * LINC exposes OchSignal resources: 80 lambdas of 50 GHz (fixed grid) around ITU-T G.694.1 center frequency 193.1 GHz.
- *
  */
-public class OfOpticalSwitchImplLinc13
- extends AbstractOpenFlowSwitch implements OpenFlowOpticalSwitch, LambdaQuery {
+public class OfOpticalSwitchImplLinc13 extends AbstractOpenFlowSwitch implements OpenFlowOpticalSwitch {
 
-    private static final int LAMBDA_COUNT = 80;
     private final AtomicBoolean driverHandshakeComplete = new AtomicBoolean(false);
     private long barrierXidToWaitFor = -1;
 
@@ -360,18 +346,5 @@ public class OfOpticalSwitchImplLinc13
     @Override
     public Set<PortDescPropertyType> getPortTypes() {
         return ImmutableSet.of(PortDescPropertyType.OPTICAL_TRANSPORT);
-    }
-
-    @Override
-    public SortedSet<OchSignal> queryLambdas(PortNumber port) {
-        // OCh ports don't have lambdas
-        if (isOChPort(port.toLong())) {
-            return Collections.emptySortedSet();
-        }
-
-        // OMS ports expose 80 fixed grid lambdas of 50GHz width, centered around the ITU-T center frequency 193.1 THz.
-        return IntStream.range(0, LAMBDA_COUNT)
-                .mapToObj(x -> new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ, x - (LAMBDA_COUNT / 2), 4))
-                .collect(Collectors.toCollection(DefaultOchSignalComparator::newOchSignalTreeSet));
     }
 }

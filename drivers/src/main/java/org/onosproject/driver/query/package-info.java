@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementations of the query driver behaviours.
+ * Implementations of the resource query behaviours.
  */
 package org.onosproject.driver.query;

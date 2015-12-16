@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.ItemNotFoundException;
-import org.onosproject.net.DefaultOchSignalComparator;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -46,7 +45,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -150,7 +148,7 @@ final class ResourceDeviceListener implements DeviceListener {
             }
 
             // for Lambdas
-            SortedSet<OchSignal> lambdas = queryLambdas(device.id(), port.number());
+            Set<OchSignal> lambdas = queryLambdas(device.id(), port.number());
             if (!lambdas.isEmpty()) {
                 adminService.registerResources(lambdas.stream()
                                                .map(portPath::child)
@@ -188,28 +186,28 @@ final class ResourceDeviceListener implements DeviceListener {
         executor.submit(() -> adminService.unregisterResources(resource));
     }
 
-    private SortedSet<OchSignal> queryLambdas(DeviceId did, PortNumber port) {
+    private Set<OchSignal> queryLambdas(DeviceId did, PortNumber port) {
         try {
             // DriverHandler does not provide a way to check if a
             // behaviour is supported.
             Driver driver = driverService.getDriver(did);
             if (driver == null || !driver.hasBehaviour(LambdaQuery.class)) {
-                return Collections.emptySortedSet();
+                return Collections.emptySet();
             }
             DriverHandler handler = driverService.createHandler(did);
             if (handler == null) {
-                return Collections.emptySortedSet();
+                return Collections.emptySet();
             }
             LambdaQuery query = handler.behaviour(LambdaQuery.class);
             if (query != null) {
                 return query.queryLambdas(port).stream()
                         .flatMap(x -> OchSignal.toFlexGrid(x).stream())
-                        .collect(Collectors.toCollection(DefaultOchSignalComparator::newOchSignalTreeSet));
+                        .collect(Collectors.toSet());
             } else {
-                return Collections.emptySortedSet();
+                return Collections.emptySet();
             }
         } catch (ItemNotFoundException e) {
-            return Collections.emptySortedSet();
+            return Collections.emptySet();
         }
     }
 

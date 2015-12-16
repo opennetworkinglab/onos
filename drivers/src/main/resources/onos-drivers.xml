@@ -85,7 +85,7 @@
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.OfOpticalSwitchImplLinc13"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
-                   impl="org.onosproject.driver.handshaker.OfOpticalSwitchImplLinc13"/>
+                   impl="org.onosproject.driver.query.LincOELambdaQuery"/>
     </driver>
     <driver name="corsa"
             manufacturer="Corsa" hwVersion="Corsa Element" swVersion="2.3.1">
@@ -162,7 +162,7 @@
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.CalientFiberSwitchHandshaker"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
-                   impl="org.onosproject.driver.handshaker.CalientFiberSwitchHandshaker"/>
+                   impl="org.onosproject.driver.query.CalientLambdaQuery"/>
     </driver>
     <driver name="onosfw" extends="ovs"
             manufacturer="" hwVersion="" swVersion="">
