@@ -30,6 +30,10 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.slf4j.Logger;
 
+import java.util.concurrent.ExecutorService;
+
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -63,13 +67,15 @@ public class CordVtnConfigManager {
             };
 
     private final NetworkConfigListener configListener = new InternalConfigListener();
-
     private ApplicationId appId;
+    protected ExecutorService eventExecutor;
+
 
     @Activate
     protected void active() {
         appId = coreService.getAppId(CordVtnService.CORDVTN_APP_ID);
 
+        eventExecutor = newSingleThreadScheduledExecutor(groupedThreads("onos/cordvtncfg", "event-handler"));
         configService.addListener(configListener);
         configRegistry.registerConfigFactory(configFactory);
     }
@@ -78,6 +84,7 @@ public class CordVtnConfigManager {
     protected void deactivate() {
         configRegistry.unregisterConfigFactory(configFactory);
         configService.removeListener(configListener);
+        eventExecutor.shutdown();
     }
 
     private void readConfiguration() {
@@ -106,11 +113,11 @@ public class CordVtnConfigManager {
             switch (event.type()) {
                 case CONFIG_ADDED:
                     log.info("Network configuration added");
-                    readConfiguration();
+                    eventExecutor.execute(CordVtnConfigManager.this::readConfiguration);
                     break;
                 case CONFIG_UPDATED:
                     log.info("Network configuration updated");
-                    readConfiguration();
+                    eventExecutor.execute(CordVtnConfigManager.this::readConfiguration);
                     break;
                 default:
                     break;

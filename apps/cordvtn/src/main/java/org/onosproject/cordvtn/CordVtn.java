@@ -264,13 +264,7 @@ public class CordVtn implements CordVtnService {
             return;
         }
 
-        NodeState state = getNodeState(node);
-        if (state == null) {
-            return;
-        } else if (state.equals(NodeState.INCOMPLETE)) {
-            state = checkNodeState(node);
-        }
-
+        NodeState state = checkNodeState(node);
         state.process(this, node);
     }
 
