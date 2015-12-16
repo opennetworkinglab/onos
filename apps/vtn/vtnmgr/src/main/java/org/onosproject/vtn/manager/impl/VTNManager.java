@@ -413,7 +413,9 @@ public class VTNManager implements VTNService {
         if (type == Objective.Operation.ADD) {
             // Save external port
             Port export = getExPort(device.id());
-            exPortOfDevice.put(device.id(), export);
+            if (export != null) {
+                exPortOfDevice.put(device.id(), export);
+            }
             switchOfLocalHostPorts.put(device.id(), new NetworkOfLocalHostPorts());
         } else if (type == Objective.Operation.REMOVE) {
             exPortOfDevice.remove(device.id());
@@ -777,7 +779,7 @@ public class VTNManager implements VTNService {
         for (RouterInterface r : interfacesSet) {
             // Get all the host of the subnet
             Map<HostId, Host> hosts = hostsOfSubnet.get(r.subnetId());
-            if (hosts.size() > 0) {
+            if (hosts != null && hosts.size() > 0) {
                 subnetVmNum++;
                 if (subnetVmNum >= SUBNET_NUM) {
                     routerInfFlagOfTenant.put(r.tenantId(), true);

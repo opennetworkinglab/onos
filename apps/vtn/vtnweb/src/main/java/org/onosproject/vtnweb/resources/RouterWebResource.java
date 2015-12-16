@@ -104,8 +104,7 @@ public class RouterWebResource extends AbstractWebResource {
                     .entity("The Router does not exists").build();
         }
         Router sub = nullIsNotFound(get(RouterService.class)
-                                            .getRouter(RouterId.valueOf(id)),
-                                    NOT_EXIST);
+                .getRouter(RouterId.valueOf(id)), NOT_EXIST);
 
         ObjectNode result = new ObjectMapper().createObjectNode();
         if (fields.size() > 0) {
@@ -127,8 +126,7 @@ public class RouterWebResource extends AbstractWebResource {
             Collection<Router> routers = createOrUpdateByInputStream(subnode);
 
             Boolean result = nullIsNotFound((get(RouterService.class)
-                                                    .createRouters(routers)),
-                                            CREATE_FAIL);
+                    .createRouters(routers)), CREATE_FAIL);
             if (!result) {
                 return Response.status(CONFLICT).entity(CREATE_FAIL).build();
             }
@@ -148,7 +146,7 @@ public class RouterWebResource extends AbstractWebResource {
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode subnode = mapper.readTree(input);
-            Collection<Router> routers = createOrUpdateByInputStream(subnode);
+            Collection<Router> routers = changeUpdateJsonToSub(subnode, id);
             Boolean result = nullIsNotFound(get(RouterService.class)
                     .updateRouters(routers), UPDATE_FAIL);
             if (!result) {
@@ -197,22 +195,22 @@ public class RouterWebResource extends AbstractWebResource {
             } else if (subnode.get("subnet_id").asText().isEmpty()) {
                 throw new IllegalArgumentException("subnet_id should not be empty");
             }
-            SubnetId subnetId = SubnetId.subnetId(subnode.get("subnet_id")
-                    .asText());
+            SubnetId subnetId = SubnetId
+                    .subnetId(subnode.get("subnet_id").asText());
             if (!subnode.hasNonNull("tenant_id")) {
                 throw new IllegalArgumentException("tenant_id should not be null");
             } else if (subnode.get("tenant_id").asText().isEmpty()) {
                 throw new IllegalArgumentException("tenant_id should not be empty");
             }
-            TenantId tenentId = TenantId.tenantId(subnode.get("tenant_id")
-                    .asText());
+            TenantId tenentId = TenantId
+                    .tenantId(subnode.get("tenant_id").asText());
             if (!subnode.hasNonNull("port_id")) {
                 throw new IllegalArgumentException("port_id should not be null");
             } else if (subnode.get("port_id").asText().isEmpty()) {
                 throw new IllegalArgumentException("port_id should not be empty");
             }
-            VirtualPortId portId = VirtualPortId.portId(subnode.get("port_id")
-                    .asText());
+            VirtualPortId portId = VirtualPortId
+                    .portId(subnode.get("port_id").asText());
             RouterInterface routerInterface = RouterInterface
                     .routerInterface(subnetId, portId, routerId, tenentId);
             get(RouterInterfaceService.class)
@@ -246,22 +244,22 @@ public class RouterWebResource extends AbstractWebResource {
             } else if (subnode.get("subnet_id").asText().isEmpty()) {
                 throw new IllegalArgumentException("subnet_id should not be empty");
             }
-            SubnetId subnetId = SubnetId.subnetId(subnode.get("subnet_id")
-                    .asText());
+            SubnetId subnetId = SubnetId
+                    .subnetId(subnode.get("subnet_id").asText());
             if (!subnode.hasNonNull("port_id")) {
                 throw new IllegalArgumentException("port_id should not be null");
             } else if (subnode.get("port_id").asText().isEmpty()) {
                 throw new IllegalArgumentException("port_id should not be empty");
             }
-            VirtualPortId portId = VirtualPortId.portId(subnode.get("port_id")
-                    .asText());
+            VirtualPortId portId = VirtualPortId
+                    .portId(subnode.get("port_id").asText());
             if (!subnode.hasNonNull("tenant_id")) {
                 throw new IllegalArgumentException("tenant_id should not be null");
             } else if (subnode.get("tenant_id").asText().isEmpty()) {
                 throw new IllegalArgumentException("tenant_id should not be empty");
             }
-            TenantId tenentId = TenantId.tenantId(subnode.get("tenant_id")
-                    .asText());
+            TenantId tenentId = TenantId
+                    .tenantId(subnode.get("tenant_id").asText());
             RouterInterface routerInterface = RouterInterface
                     .routerInterface(subnetId, portId, routerId, tenentId);
             get(RouterInterfaceService.class)
@@ -311,13 +309,13 @@ public class RouterWebResource extends AbstractWebResource {
         } else if (routerNode.get("tenant_id").asText().isEmpty()) {
             throw new IllegalArgumentException("tenant_id should not be empty");
         }
-        TenantId tenantId = TenantId.tenantId(routerNode.get("tenant_id")
-                .asText());
+        TenantId tenantId = TenantId
+                .tenantId(routerNode.get("tenant_id").asText());
 
         VirtualPortId gwPortId = null;
         if (routerNode.hasNonNull("gw_port_id")) {
-            gwPortId = VirtualPortId.portId(routerNode.get("gw_port_id")
-                    .asText());
+            gwPortId = VirtualPortId
+                    .portId(routerNode.get("gw_port_id").asText());
         }
 
         if (!routerNode.hasNonNull("status")) {
@@ -344,7 +342,59 @@ public class RouterWebResource extends AbstractWebResource {
         }
         RouterGateway gateway = null;
         if (routerNode.hasNonNull("external_gateway_info")) {
-            gateway = jsonNodeToGateway(routerNode.get("external_gateway_info"));
+            gateway = jsonNodeToGateway(routerNode
+                    .get("external_gateway_info"));
+        }
+        List<String> routes = new ArrayList<String>();
+        DefaultRouter routerObj = new DefaultRouter(id, routerName,
+                                                    adminStateUp, status,
+                                                    distributed, gateway,
+                                                    gwPortId, tenantId, routes);
+        subMap.put(id, routerObj);
+        return Collections.unmodifiableCollection(subMap.values());
+    }
+
+    /**
+     * Returns a collection of floatingIps from floatingIpNodes.
+     *
+     * @param subnode the router json node
+     * @param routerId the router identify
+     * @return routers a collection of router
+     * @throws Exception when any argument is illegal
+     */
+    public Collection<Router> changeUpdateJsonToSub(JsonNode subnode,
+                                                    String routerId)
+                                                            throws Exception {
+        checkNotNull(subnode, JSON_NOT_NULL);
+        checkNotNull(routerId, "routerId should not be null");
+        Map<RouterId, Router> subMap = new HashMap<RouterId, Router>();
+        JsonNode routerNode = subnode.get("router");
+        RouterId id = RouterId.valueOf(routerId);
+        Router sub = nullIsNotFound(get(RouterService.class).getRouter(id),
+                                    NOT_EXIST);
+        TenantId tenantId = sub.tenantId();
+
+        VirtualPortId gwPortId = null;
+        if (routerNode.hasNonNull("gw_port_id")) {
+            gwPortId = VirtualPortId
+                    .portId(routerNode.get("gw_port_id").asText());
+        }
+        Status status = sub.status();
+
+        String routerName = routerNode.get("name").asText();
+
+        checkArgument(routerNode.get("admin_state_up").isBoolean(),
+                      "admin_state_up should be boolean");
+        boolean adminStateUp = routerNode.get("admin_state_up").asBoolean();
+
+        boolean distributed = sub.distributed();
+        if (routerNode.hasNonNull("distributed")) {
+            distributed = routerNode.get("distributed").asBoolean();
+        }
+        RouterGateway gateway = sub.externalGatewayInfo();
+        if (routerNode.hasNonNull("external_gateway_info")) {
+            gateway = jsonNodeToGateway(routerNode
+                    .get("external_gateway_info"));
         }
         List<String> routes = new ArrayList<String>();
         DefaultRouter routerObj = new DefaultRouter(id, routerName,
@@ -368,8 +418,8 @@ public class RouterWebResource extends AbstractWebResource {
         } else if (gateway.get("network_id").asText().isEmpty()) {
             throw new IllegalArgumentException("network_id should not be empty");
         }
-        TenantNetworkId networkId = TenantNetworkId.networkId(gateway
-                .get("network_id").asText());
+        TenantNetworkId networkId = TenantNetworkId
+                .networkId(gateway.get("network_id").asText());
 
         if (!gateway.hasNonNull("enable_snat")) {
             throw new IllegalArgumentException("enable_snat should not be null");
@@ -381,17 +431,14 @@ public class RouterWebResource extends AbstractWebResource {
         boolean enableSnat = gateway.get("enable_snat").asBoolean();
 
         if (!gateway.hasNonNull("external_fixed_ips")) {
-            throw new IllegalArgumentException(
-                                          "external_fixed_ips should not be null");
+            throw new IllegalArgumentException("external_fixed_ips should not be null");
         } else if (gateway.get("external_fixed_ips").isNull()) {
-            throw new IllegalArgumentException(
-                                          "external_fixed_ips should not be empty");
+            throw new IllegalArgumentException("external_fixed_ips should not be empty");
         }
         Collection<FixedIp> fixedIpList = jsonNodeToFixedIp(gateway
                 .get("external_fixed_ips"));
-        RouterGateway gatewayObj = RouterGateway.routerGateway(networkId,
-                                                               enableSnat,
-                                                               fixedIpList);
+        RouterGateway gatewayObj = RouterGateway
+                .routerGateway(networkId, enableSnat, fixedIpList);
         return gatewayObj;
     }
 
@@ -411,15 +458,15 @@ public class RouterWebResource extends AbstractWebResource {
             } else if (node.get("subnet_id").asText().isEmpty()) {
                 throw new IllegalArgumentException("subnet_id should not be empty");
             }
-            SubnetId subnetId = SubnetId.subnetId(node.get("subnet_id")
-                    .asText());
+            SubnetId subnetId = SubnetId
+                    .subnetId(node.get("subnet_id").asText());
             if (!node.hasNonNull("ip_address")) {
                 throw new IllegalArgumentException("ip_address should not be null");
             } else if (node.get("ip_address").asText().isEmpty()) {
                 throw new IllegalArgumentException("ip_address should not be empty");
             }
-            IpAddress ipAddress = IpAddress.valueOf(node.get("ip_address")
-                    .asText());
+            IpAddress ipAddress = IpAddress
+                    .valueOf(node.get("ip_address").asText());
             FixedIp fixedIpObj = FixedIp.fixedIp(subnetId, ipAddress);
 
             fixedIpMaps.putIfAbsent(i, fixedIpObj);

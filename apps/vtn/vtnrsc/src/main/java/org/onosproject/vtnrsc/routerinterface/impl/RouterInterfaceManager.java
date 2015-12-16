@@ -134,6 +134,12 @@ public class RouterInterfaceManager implements RouterInterfaceService {
     @Override
     public boolean addRouterInterface(RouterInterface routerInterface) {
         checkNotNull(routerInterface, ROUTER_INTERFACE_NULL);
+        if (!virtualPortService.exists(routerInterface.portId())) {
+            log.debug("The port ID of interface is not exist whose identifier is {}",
+                      routerInterface.portId().toString());
+            throw new IllegalArgumentException(
+                                               "port ID of interface doesn't exist");
+        }
         verifyRouterInterfaceData(routerInterface);
         routerInterfaceStore.put(routerInterface.subnetId(), routerInterface);
         if (!routerInterfaceStore.containsKey(routerInterface.subnetId())) {
@@ -187,12 +193,6 @@ public class RouterInterfaceManager implements RouterInterfaceService {
                       routerInterface.subnetId().toString());
             throw new IllegalArgumentException(
                                                "subnet ID of interface doesn't exist");
-        }
-        if (!virtualPortService.exists(routerInterface.portId())) {
-            log.debug("The port ID of interface is not exist whose identifier is {}",
-                      routerInterface.portId().toString());
-            throw new IllegalArgumentException(
-                                               "port ID of interface doesn't exist");
         }
         if (!routerService.exists(routerInterface.routerId())) {
             log.debug("The router ID of interface is not exist whose identifier is {}",
