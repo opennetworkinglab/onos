@@ -354,7 +354,8 @@ public class DhcpManager implements DhcpService {
                 option = new DHCPOption();
                 option.setCode(DHCP.DHCPOptionCode.OptionCode_LeaseTime.getValue());
                 option.setLength((byte) 4);
-                option.setData(ByteBuffer.allocate(4).putInt(leaseTime).array());
+                option.setData(ByteBuffer.allocate(4)
+                        .putInt(ipAssignment == null ? leaseTime : ipAssignment.leasePeriod()).array());
                 optionList.add(option);
 
                 // IP Address Renewal Time.
