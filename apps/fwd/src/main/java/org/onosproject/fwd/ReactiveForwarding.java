@@ -331,6 +331,7 @@ public class ReactiveForwarding {
         Integer flowTimeoutConfigured =
                 getIntegerProperty(properties, "flowTimeout");
         if (flowTimeoutConfigured == null) {
+            flowTimeout = DEFAULT_TIMEOUT;
             log.info("Flow Timeout is not configured, default value is {}",
                      flowTimeout);
         } else {
@@ -341,6 +342,7 @@ public class ReactiveForwarding {
         Integer flowPriorityConfigured =
                 getIntegerProperty(properties, "flowPriority");
         if (flowPriorityConfigured == null) {
+            flowPriority = DEFAULT_PRIORITY;
             log.info("Flow Priority is not configured, default value is {}",
                      flowPriority);
         } else {
