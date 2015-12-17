@@ -18,8 +18,18 @@ package org.onosproject.cordvtn;
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.net.Host;
+import org.onosproject.openstackswitching.OpenstackNetwork;
+import org.onosproject.openstackswitching.OpenstackSubnet;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.cordvtn.CordService.ServiceType.*;
+import static org.onosproject.cordvtn.CordService.ServiceType.PRIVATE;
+import static org.onosproject.cordvtn.CordService.ServiceType.PUBLIC_INDIRECT;
 
 public final class CordService {
 
@@ -36,23 +46,25 @@ public final class CordService {
     private final ServiceType serviceType;
     private final IpPrefix serviceIpRange;
     private final IpAddress serviceIp;
+    private final Map<Host, IpAddress> hosts;
+    private final Set<CordServiceId> tenantServices;
 
     /**
      * Default constructor.
      *
-     * @param id service id, which is identical to OpenStack network id
-     * @param segmentationId segmentation id, which is identical to VNI
-     * @param serviceType service type
-     * @param serviceIpRange service ip range
-     * @param serviceIp service ip
+     * @param vNet OpenStack network
+     * @param hosts host and tunnel ip map
+     * @param tenantServices list of tenant service ids
      */
-    public CordService(CordServiceId id, long segmentationId, ServiceType serviceType,
-                   IpPrefix serviceIpRange, IpAddress serviceIp) {
-        this.id = id;
-        this.segmentationId = segmentationId;
-        this.serviceType = serviceType;
-        this.serviceIpRange = serviceIpRange;
-        this.serviceIp = serviceIp;
+    public CordService(OpenstackNetwork vNet, OpenstackSubnet subnet,
+                       Map<Host, IpAddress> hosts, Set<CordServiceId> tenantServices) {
+        this.id = CordServiceId.of(vNet.id());
+        this.segmentationId = Long.parseLong(vNet.segmentId());
+        this.serviceType = getServiceType(vNet.name());
+        this.serviceIpRange = IpPrefix.valueOf(subnet.cidr());
+        this.serviceIp = IpAddress.valueOf(subnet.gatewayIp());
+        this.hosts = hosts;
+        this.tenantServices = tenantServices;
     }
 
     /**
@@ -100,6 +112,24 @@ public final class CordService {
         return serviceIp;
     }
 
+    /**
+     * Returns hosts associated with this service.
+     *
+     * @return list of hosts
+     */
+    public Map<Host, IpAddress> hosts() {
+        return hosts;
+    }
+
+    /**
+     * Returns tenant service IDs.
+     *
+     * @return list of tenant service id
+     */
+    public Set<CordServiceId> tenantServices() {
+        return tenantServices;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(id);
@@ -125,6 +155,33 @@ public final class CordService {
                 .add("serviceType", serviceType)
                 .add("serviceIpRange", serviceIpRange)
                 .add("serviceIp", serviceIp)
+                .add("tenantServices", tenantServices)
                 .toString();
+    }
+
+    /**
+     * Returns network type from network name.
+     * It assumes that network name contains network type.
+     *
+     * @param netName network name
+     * @return network type, or null if it doesn't match any type
+     */
+    private ServiceType getServiceType(String netName) {
+        checkNotNull(netName);
+
+        String name = netName.toUpperCase();
+        if (name.contains(PRIVATE_DIRECT.toString())) {
+            return PRIVATE_DIRECT;
+        } else if (name.contains(PRIVATE_INDIRECT.toString())) {
+            return PRIVATE_INDIRECT;
+        } else if (name.contains(PUBLIC_DIRECT.toString())) {
+            return PUBLIC_DIRECT;
+        } else if (name.contains(PUBLIC_INDIRECT.toString())) {
+            return PUBLIC_INDIRECT;
+        } else if (name.contains(PRIVATE.toString())) {
+            return PRIVATE;
+        } else {
+            return null;
+        }
     }
 }

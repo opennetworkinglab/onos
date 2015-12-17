@@ -69,15 +69,16 @@ public interface CordVtnService {
     /**
      * Creates dependencies for a given tenant service.
      *
-     * @param tenantCordServiceId id of the service which has a dependency
-     * @param providerCordServiceId id of the service which provide dependency
+     * @param tServiceId id of the service which has a dependency
+     * @param pServiceId id of the service which provide dependency
      */
-    void createServiceDependency(CordServiceId tenantCordServiceId, CordServiceId providerCordServiceId);
+    void createServiceDependency(CordServiceId tServiceId, CordServiceId pServiceId);
 
     /**
      * Removes all dependencies from a given tenant service.
      *
-     * @param tenantCordServiceId id of the service which has a dependency
+     * @param tServiceId id of the service which has a dependency
+     * @param pServiceId id of the service which provide dependency
      */
-    void removeServiceDependency(CordServiceId tenantCordServiceId);
+    void removeServiceDependency(CordServiceId tServiceId, CordServiceId pServiceId);
 }
