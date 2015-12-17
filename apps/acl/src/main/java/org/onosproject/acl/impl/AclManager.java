@@ -146,7 +146,7 @@ public class AclManager implements AclService {
 
     @Activate
     public void activate() {
-        appId = coreService.registerApplication("org.onos.acl");
+        appId = coreService.registerApplication("org.onosproject.acl");
         hostService.addListener(hostListener);
         idGenerator = coreService.getIdGenerator("acl-ids");
         AclRule.bindIdGenerator(idGenerator);
