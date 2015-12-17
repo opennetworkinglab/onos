@@ -208,7 +208,7 @@ public class DistributedDhcpStore implements DhcpStore {
                                     assignment = IpAssignment.builder()
                                             .ipAddress(ipAddr)
                                             .timestamp(new Date())
-                                            .leasePeriod(leaseTime)
+                                            .leasePeriod(existingAssignment.leasePeriod())
                                             .rangeNotEnforced(true)
                                             .assignmentStatus(IpAssignment.AssignmentStatus.Option_RangeNotEnforced)
                                             .subnetMask(existingAssignment.subnetMask())
