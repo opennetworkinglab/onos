@@ -97,6 +97,16 @@
             <artifactId>jersey-client</artifactId>
             <version>1.19</version>
         </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+            <version>1.19</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onlab-misc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -126,7 +136,8 @@
                             org.apache.karaf.shell.commands,
                             com.google.common.*,
                             org.onlab.packet.*,
-                            org.onosproject.*
+                            org.onosproject.*,
+                            org.onlab.util.*
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

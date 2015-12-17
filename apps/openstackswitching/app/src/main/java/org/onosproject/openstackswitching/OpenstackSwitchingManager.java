@@ -67,6 +67,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
+import static org.onlab.util.Tools.groupedThreads;
 
 @SuppressWarnings("ALL")
 @Service
@@ -103,6 +104,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
 
     private ApplicationId appId;
@@ -114,7 +116,10 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     private OpenstackArpHandler arpHandler;
     private OpenstackRestHandler restHandler;
 
-    private ExecutorService deviceEventExcutorService = Executors.newFixedThreadPool(10);
+    private ExecutorService deviceEventExcutorService =
+            Executors.newSingleThreadExecutor(groupedThreads("onos/openstackswitching", "device-event"));
+    private ExecutorService networkEventExcutorService =
+            Executors.newSingleThreadExecutor(groupedThreads("onos/openstackswitching", "config-event"));
 
     private InternalPacketProcessor internalPacketProcessor = new InternalPacketProcessor();
     private InternalDeviceListener internalDeviceListener = new InternalDeviceListener();
@@ -492,7 +497,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
             if (((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
             event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)) &&
                     event.configClass().equals(OpenstackSwitchingConfig.class)) {
-               configureNetwork();
+               networkEventExcutorService.execute(this::configureNetwork);
             }
         }
 
