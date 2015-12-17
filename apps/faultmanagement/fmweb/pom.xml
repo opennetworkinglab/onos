@@ -36,7 +36,7 @@
         <api.description>
             APIs for interacting with the Fault Management application.
         </api.description>
-        <api.package>org.onos.faultmanagement.web</api.package>
+        <api.package>org.onosproject.faultmanagement.web</api.package>
     </properties>
 
     <dependencies>

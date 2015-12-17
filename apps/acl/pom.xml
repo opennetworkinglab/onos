@@ -47,7 +47,7 @@
         <api.description>
             APIs for interacting with the ACL application.
         </api.description>
-        <api.package>org.onos.acl.impl</api.package>
+        <api.package>org.onosproject.acl.impl</api.package>
     </properties>
 
     <dependencies>
