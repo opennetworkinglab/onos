@@ -29,3 +29,10 @@ org.onosproject.mcast*
 org.onosproject.mfwd*
 org.onosproject.mlb*
 org.onosproject.igmp.impl
+org.onosproject.faultmanagement*
+org.onosproject.iptopology*
+org.onosproject.drivermatrix*
+org.onosproject.pathpainter*
+org.onosproject.openstackswitching*
+org.onosproject.forwarder*
+org.onosproject.sfc*
