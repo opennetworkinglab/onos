@@ -118,16 +118,16 @@ class FabricDomain(Domain):
 
         # create n spine switches
         for sw in range(n):
-            l_nsw.append(self.addSwitch('swn%s%s' % (self.getId(), sw+1), cls=UserSwitch))
+            l_nsw.append(self.addSwitch('swn%s%s' % (self.getId(), sw+1), cls=UserSwitch, dpopts='--no-local-port'))
 
         # create connection point to optical core (a leaf switch)
-        tsw = self.addSwitch('swm%s01' % self.getId(), cls=UserSwitch)
+        tsw = self.addSwitch('swm%s01' % self.getId(), cls=UserSwitch, dpopts='--no-local-port')
         self.addTether(tsw, 'sw000%s' % self.getId(), '0000ffffffff000%s' % self.getId())
         l_msw.append(tsw)
 
         # attach f hosts to last m-1 leaves
         for sw in range(1, m):
-            msw = self.addSwitch('swm%s0%s' % (self.getId(), sw+1), cls=UserSwitch)
+            msw = self.addSwitch('swm%s0%s' % (self.getId(), sw+1), cls=UserSwitch, dpopts='--no-local-port')
             l_msw.append(msw)
             for h in range(f):
                 host = self.addHost('h%s%s' % (self.getId(), sw * f+h+1), cls=IpHost,
