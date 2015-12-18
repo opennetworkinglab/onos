@@ -208,7 +208,9 @@ public class OpenstackSwitchingRulePopulator {
                         String cidx = d.annotations().value("channelId");
                         Ip4Address hostIpx = Ip4Address.valueOf(cidx.split(":")[0]);
                         Ip4Address fixedIpx = getFixedIpAddressForPort(pName);
-                        if (port.isEnabled()) {
+                        if (port.isEnabled() ||
+                                port.annotations().value("portName").startsWith(
+                                        OpenstackSwitchingManager.PORTNAME_PREFIX_ROUTER)) {
                             setVxLanFlowRule(vni, device.id(), hostIpx, fixedIpx);
                             setVxLanFlowRule(vni, d.id(), hostIpAddress, fixedIp);
                         }
@@ -475,7 +477,8 @@ public class OpenstackSwitchingRulePopulator {
 
     private PortNumber getTunnelPort(DeviceId deviceId) {
         Port port = deviceService.getPorts(deviceId).stream()
-                .filter(p -> p.annotations().value("portName").equals("vxlan"))
+                .filter(p -> p.annotations().value("portName").equals(
+                        OpenstackSwitchingManager.PORTNAME_PREFIX_TUNNEL))
                 .findAny().orElse(null);
 
         if (port == null) {
