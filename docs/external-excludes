@@ -3,6 +3,7 @@
 
 org.onlab.jdvue*
 org.onlab.stc*
+org.onlab.catalyst*
 
 org.onlab.thirdparty
 org.onosproject.provider*

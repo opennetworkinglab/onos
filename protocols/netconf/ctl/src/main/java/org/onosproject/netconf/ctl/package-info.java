@@ -15,6 +15,6 @@
  */
 
 /**
- * Created by ray on 10/30/15.
+ * NETCONF controller implementations.
  */
 package org.onosproject.netconf.ctl;

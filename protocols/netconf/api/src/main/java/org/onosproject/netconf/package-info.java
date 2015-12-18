@@ -15,6 +15,6 @@
  */
 
 /**
- * Created by ray on 10/30/15.
+ * NETCONF controller API.
  */
 package org.onosproject.netconf;
