@@ -111,7 +111,7 @@ final class XmlConfigParser {
         try {
             editcfg.save(stringWriter);
         } catch (ConfigurationException e) {
-            e.printStackTrace();
+            log.error("createControllersConfig()", e);
         }
         String s = stringWriter.toString()
                 .replaceAll("<controller>",

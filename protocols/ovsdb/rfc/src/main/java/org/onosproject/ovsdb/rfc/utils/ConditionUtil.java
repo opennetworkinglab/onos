@@ -37,7 +37,7 @@ public final class ConditionUtil {
      * @param data column value
      * @return Condition
      */
-    public static Condition equals(String columnName, Object data) {
+    public static Condition isEqual(String columnName, Object data) {
         Object value = TransValueUtil.getFormatData(data);
         return new Condition(columnName, Function.EQUALS, value);
     }

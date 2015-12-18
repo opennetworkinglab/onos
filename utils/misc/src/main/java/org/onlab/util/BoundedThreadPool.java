@@ -137,6 +137,7 @@ public final class BoundedThreadPool extends ThreadPoolExecutor {
      * Feedback policy that delays the caller's thread until the executor's work
      * queue falls below a threshold, then runs the job on the caller's thread.
      */
+    @java.lang.SuppressWarnings("squid:S1217") // We really do mean to call run()
     private static final class CallerFeedbackPolicy implements RejectedExecutionHandler {
 
         private final BlockingBoolean underLoad = new BlockingBoolean(false);

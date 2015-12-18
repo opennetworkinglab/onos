@@ -802,7 +802,7 @@ public class DefaultOvsdbClient
         operations.add(portInsert);
 
         // update the bridge table
-        Condition condition = ConditionUtil.equals("_uuid", UUID.uuid(bridgeUuid));
+        Condition condition = ConditionUtil.isEqual("_uuid", UUID.uuid(bridgeUuid));
         Mutation mutation = MutationUtil.insert("ports", UUID.uuid("Port"));
         List<Condition> conditions = new ArrayList<>(Arrays.asList(condition));
         List<Mutation> mutations = new ArrayList<>(Arrays.asList(mutation));
@@ -875,7 +875,7 @@ public class DefaultOvsdbClient
         }
 
         List<Condition> conditions = Lists.newArrayList();
-        Condition condition = ConditionUtil.equals(childColumnName, UUID.uuid(childUuid));
+        Condition condition = ConditionUtil.isEqual(childColumnName, UUID.uuid(childUuid));
         conditions.add(condition);
         Delete del = new Delete(childTableSchema, conditions);
         operations.add(del);
@@ -898,7 +898,7 @@ public class DefaultOvsdbClient
         TableSchema tableSchema = dbSchema.getTableSchema(tableName);
 
         List<Condition> conditions = Lists.newArrayList();
-        Condition condition = ConditionUtil.equals(columnName, UUID.uuid(uuid));
+        Condition condition = ConditionUtil.isEqual(columnName, UUID.uuid(uuid));
         conditions.add(condition);
 
         Update update = new Update(tableSchema, row, conditions);
@@ -944,7 +944,7 @@ public class DefaultOvsdbClient
             mutations.add(mutation);
 
             List<Condition> conditions = Lists.newArrayList();
-            Condition condition = ConditionUtil.equals("_uuid",
+            Condition condition = ConditionUtil.isEqual("_uuid",
                                                        UUID.uuid(parentUuid));
             conditions.add(condition);
 

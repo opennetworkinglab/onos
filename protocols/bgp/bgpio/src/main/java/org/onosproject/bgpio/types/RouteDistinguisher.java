@@ -71,6 +71,29 @@ public class RouteDistinguisher implements Comparable<RouteDistinguisher> {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof RouteDistinguisher) {
+
+            RouteDistinguisher that = (RouteDistinguisher) obj;
+
+            if (this.routeDistinguisher == that.routeDistinguisher) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(routeDistinguisher);
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("routeDistinguisher", routeDistinguisher)

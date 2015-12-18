@@ -96,8 +96,7 @@ public class OfOpticalSwitchImplLinc13
             sendHandshakeOFExperimenterPortDescRequest();
         } catch (IOException e) {
             log.error("LINC-OE exception while sending experimenter port desc:",
-                     e.getMessage());
-            e.printStackTrace();
+                     e);
         }
     }
 

@@ -65,6 +65,7 @@ public final class GrpcDeviceUtils {
             return MastershipRole.STANDBY;
         case UNRECOGNIZED:
             log.warn("Unrecognized MastershipRole gRPC message: {}", role);
+            return MastershipRole.NONE;
         default:
             return MastershipRole.NONE;
         }

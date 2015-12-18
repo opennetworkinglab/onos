@@ -156,6 +156,7 @@ public class IGMP extends BasePacket {
      *
      * @return the serialized IGMP message
      */
+    @java.lang.SuppressWarnings("squid:S128") // suppress switch fall through warning
     @Override
     public byte[] serialize() {
         byte [] data = new byte[8915];

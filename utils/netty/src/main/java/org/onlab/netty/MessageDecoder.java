@@ -54,6 +54,7 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
     }
 
     @Override
+    @java.lang.SuppressWarnings("squid:S128") // suppress switch fall through warning
     protected void decode(
             ChannelHandlerContext context,
             ByteBuf buffer,

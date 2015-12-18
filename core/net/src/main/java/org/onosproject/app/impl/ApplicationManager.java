@@ -276,6 +276,7 @@ public class ApplicationManager
     }
 
     // Invokes the specified function, if not null.
+    @java.lang.SuppressWarnings("squid:S1217") // We really do mean to call run()
     private void invokeHook(Runnable hook, ApplicationId appId) {
         if (hook != null) {
             try {

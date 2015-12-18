@@ -70,9 +70,7 @@ public class OFOpticalSwitch13 extends AbstractOpenFlowSwitch implements OpenFlo
         try {
             sendHandshakeOFExperimenterPortDescRequest();
         } catch (IOException e) {
-            log.error("Failed to send handshaker message OFExperimenterPortDescRequestfor sw {}, {}",
-                     getStringId(), e.getMessage());
-            e.printStackTrace();
+            log.error("Failed to send handshaker message OFExperimenterPortDescRequestfor sw {}", e);
         }
     }
 
