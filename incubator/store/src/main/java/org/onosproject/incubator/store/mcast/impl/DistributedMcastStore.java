@@ -6,7 +6,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.mcast.McastEvent;
@@ -35,9 +35,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreDelegate>
         implements McastStore {
     //FIXME the number of events that will potentially be generated here is
-        // not sustainable, consider changing this to an eventually consistent
-        // map and not emitting events but rather use a provider-like mechanism
-        // to program the dataplane.
+    // not sustainable, consider changing this to an eventually consistent
+    // map and not emitting events but rather use a provider-like mechanism
+    // to program the dataplane.
 
     private static final String MCASTRIB = "mcast-rib-table";
     private Logger log = getLogger(getClass());
@@ -58,7 +58,7 @@ public class DistributedMcastStore extends AbstractStore<McastEvent, McastStoreD
                         MulticastData.class,
                         McastRoute.class,
                         McastRoute.Type.class,
-                        IpPrefix.class,
+                        IpAddress.class,
                         List.class,
                         ConnectPoint.class
                 ).build()))
