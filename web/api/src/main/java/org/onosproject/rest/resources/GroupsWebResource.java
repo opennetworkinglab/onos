@@ -43,6 +43,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import static org.onlab.util.Tools.nullIsNotFound;
+
 /**
  * Query and program group rules.
  */
@@ -50,6 +52,7 @@ import java.net.URISyntaxException;
 @Path("groups")
 public class GroupsWebResource extends AbstractWebResource {
     public static final String DEVICE_INVALID = "Invalid deviceId in group creation request";
+    public static final String GROUP_NOT_FOUND = "Group was not found";
 
     final GroupService groupService = get(GroupService.class);
     final ObjectNode root = mapper().createObjectNode();
@@ -57,8 +60,9 @@ public class GroupsWebResource extends AbstractWebResource {
 
     /**
      * Returns all groups of all devices.
-     * @onos.rsModel Groups
+     *
      * @return array of all the groups in the system
+     * @onos.rsModel Groups
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -78,8 +82,8 @@ public class GroupsWebResource extends AbstractWebResource {
      * Returns all groups associated with the given device.
      *
      * @param deviceId device identifier
-     * @onos.rsModel Groups
      * @return array of all the groups in the system
+     * @onos.rsModel Groups
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -93,14 +97,37 @@ public class GroupsWebResource extends AbstractWebResource {
     }
 
     /**
+     * Returns a group with the given deviceId and appCookie.
+     *
+     * @param deviceId device identifier
+     * @param appCookie group key
+     * @return a group entry in the system
+     * @onos.rsModel Group
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{deviceId}/{appCookie}")
+    public Response getGroupByDeviceIdAndAppCookie(@PathParam("deviceId") String deviceId,
+                                                   @PathParam("appCookie") String appCookie) {
+        final DeviceId deviceIdInstance = DeviceId.deviceId(deviceId);
+        final GroupKey appCookieInstance = new DefaultGroupKey(appCookie.getBytes());
+
+        Group group = nullIsNotFound(groupService.getGroup(deviceIdInstance, appCookieInstance),
+                GROUP_NOT_FOUND);
+
+        groupsNode.add(codec(Group.class).encode(group, this));
+        return ok(root).build();
+    }
+
+    /**
      * Create new group rule. Creates and installs a new group rule for the
      * specified device.
      *
      * @param deviceId device identifier
      * @param stream   group rule JSON
-     * @onos.rsModel GroupsPost
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid
+     * @onos.rsModel GroupsPost
      */
     @POST
     @Path("{deviceId}")

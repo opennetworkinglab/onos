@@ -1,0 +1,146 @@
+{
+  "type": "object",
+  "title": "group",
+  "required": [
+    "id",
+    "state",
+    "life",
+    "packets",
+    "bytes",
+    "referenceCount",
+    "type",
+    "deviceId",
+    "appId",
+    "appCookie",
+    "buckets"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "group id",
+      "example": "1"
+    },
+    "state": {
+      "type": "string",
+      "description": "state of the group object",
+      "example": "PENDING_ADD"
+    },
+    "life": {
+      "type": "integer",
+      "format": "int64",
+      "description": "number of milliseconds this group has been alive",
+      "example": 69889
+    },
+    "packets": {
+      "type": "integer",
+      "format": "int64",
+      "description": "number of packets processed by this group",
+      "example": 22546
+    },
+    "bytes": {
+      "type": "integer",
+      "format": "int64",
+      "description": "number of bytes processed by this group",
+      "example": 1826226
+    },
+    "referenceCount": {
+      "type": "integer",
+      "format": "int64",
+      "description": "number of flow rules or other groups reference this group",
+      "example": 1826226
+    },
+    "type": {
+      "type": "string",
+      "description": "types of the group",
+      "example": "ALL"
+    },
+    "deviceId": {
+      "type": "string",
+      "description": "device identifier",
+      "example": "of:0000000000000003"
+    },
+    "appId": {
+      "type": "string",
+      "description": "application identifier",
+      "example": "1"
+    },
+    "appCookie": {
+      "type": "string",
+      "description": "application cookie",
+      "example": "1"
+    },
+    "buckets": {
+      "type": "array",
+      "xml": {
+        "name": "buckets",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "buckets",
+        "required": [
+          "treatment",
+          "weight",
+          "watchPort",
+          "watchGroup"
+        ],
+        "properties": {
+          "treatment": {
+            "type": "object",
+            "title": "treatment",
+            "required": [
+              "instructions",
+              "deferred"
+            ],
+            "properties": {
+              "instructions": {
+                "type": "array",
+                "title": "treatment",
+                "required": [
+                  "properties",
+                  "port"
+                ],
+                "items": {
+                  "type": "object",
+                  "title": "instructions",
+                  "required": [
+                    "type",
+                    "port"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "instruction type",
+                      "example": "OUTPUT"
+                    },
+                    "port": {
+                      "type": "string",
+                      "description": "port number",
+                      "example": "2"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "weight": {
+            "type": "integer",
+            "format": "int16",
+            "description": "weight of select group bucket",
+            "example": "1.0"
+          },
+          "watchPort": {
+            "type": "string",
+            "description": "port number used for liveness detection for a failover bucket",
+            "example": "2"
+          },
+          "watchGroup": {
+            "type": "string",
+            "description": "group identifier used for liveness detection for a failover bucket",
+            "example": "1"
+          }
+        }
+      }
+    }
+  }
+}

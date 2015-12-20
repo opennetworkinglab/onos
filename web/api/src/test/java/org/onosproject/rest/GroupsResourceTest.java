@@ -49,6 +49,7 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
+import org.onosproject.rest.resources.CoreWebApplication;
 
 import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
@@ -70,6 +71,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.onosproject.net.NetTestTools.APP_ID;
 
 /**
@@ -99,6 +101,10 @@ public class GroupsResourceTest extends ResourceTest {
 
     final MockGroup group5 = new MockGroup(deviceId3, 5, "555", 5);
     final MockGroup group6 = new MockGroup(deviceId3, 6, "666", 6);
+
+    public GroupsResourceTest() {
+        super(CoreWebApplication.class);
+    }
 
     /**
      * Mock class for a group.
@@ -441,6 +447,42 @@ public class GroupsResourceTest extends ResourceTest {
         assertThat(jsonFlows, notNullValue());
         assertThat(jsonFlows, hasGroup(group5));
         assertThat(jsonFlows, hasGroup(group6));
+    }
+
+    /**
+     * Test the result of a rest api GET with specifying device id and appcookie.
+     */
+    @Test
+    public void testGroupByDeviceIdAndAppCookie() {
+        setupMockGroups();
+        expect(mockGroupService.getGroup(anyObject(), anyObject()))
+                .andReturn(group5).anyTimes();
+        replay(mockGroupService);
+        final WebResource rs = resource();
+        final String response = rs.path("groups/" + deviceId3 + "/" + "111").get(String.class);
+        final JsonObject result = JsonObject.readFrom(response);
+        assertThat(result, notNullValue());
+
+        assertThat(result.names(), hasSize(1));
+        assertThat(result.names().get(0), is("groups"));
+        final JsonArray jsonFlows = result.get("groups").asArray();
+        assertThat(jsonFlows, notNullValue());
+        assertThat(jsonFlows, hasGroup(group5));
+    }
+
+    /**
+     * Test whether the REST API returns 404 if no entry has been found.
+     */
+    @Test
+    public void testGroupByDeviceIdAndAppCookieNull() {
+        setupMockGroups();
+        expect(mockGroupService.getGroup(anyObject(), anyObject()))
+                .andReturn(null).anyTimes();
+        replay(mockGroupService);
+        final WebResource rs = resource();
+        final ClientResponse response = rs.path("groups/" + deviceId3 + "/" + "222").get(ClientResponse.class);
+
+        assertEquals(404, response.getStatus());
     }
 
     /**
