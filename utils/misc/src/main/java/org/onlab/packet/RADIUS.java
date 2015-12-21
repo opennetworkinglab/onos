@@ -373,7 +373,7 @@ public class RADIUS extends BasePacket {
                 attr.value = new byte[attrLength - 2];
                 bb.get(attr.value, 0, attrLength - 2);
                 radius.attributes.add(attr);
-                remainingLength -= attr.length;
+                remainingLength -= attrLength;
             }
             return radius;
         };
