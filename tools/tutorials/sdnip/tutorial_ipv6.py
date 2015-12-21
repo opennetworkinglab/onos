@@ -69,7 +69,7 @@ class SdnSwitch(OVSSwitch):
 
 class SdnIpTopo( Topo ):
     "SDN-IP tutorial topology"
-    
+
     def build( self ):
         s1 = self.addSwitch('s1', cls=SdnSwitch, dpid='00000000000000a1')
         s2 = self.addSwitch('s2', cls=SdnSwitch, dpid='00000000000000a2')
@@ -96,16 +96,16 @@ class SdnIpTopo( Topo ):
 
             router = self.addHost(name, cls=Router, quaggaConfFile=quaggaConf,
                                   zebraConfFile=zebraConf, intfDict=intfs)
-            
+
             host = self.addHost('h%s' % i, cls=SdnIpHost,
                                 ip='2001:10%s::1/48' % i,
                                 route='2001:10%s::101' % i)
-            
+
             self.addLink(router, attachmentSwitches[i-1])
             self.addLink(router, host)
 
         # Set up the internal BGP speaker
-        bgpEth0 = { 'mac':'00:00:00:00:00:01', 
+        bgpEth0 = { 'mac':'00:00:00:00:00:01',
                     'ipAddrs' : ['2001:1::101/48',
                                  '2001:2::101/48',
                                  '2001:3::101/48',
@@ -113,12 +113,12 @@ class SdnIpTopo( Topo ):
         bgpEth1 = { 'ipAddrs' : ['10.10.10.1/24'] }
         bgpIntfs = { 'bgp-eth0' : bgpEth0,
                      'bgp-eth1' : bgpEth1 }
-        
-        bgp = self.addHost( "bgp", cls=Router, 
-                             quaggaConfFile = '%s/quagga-sdn.conf' % CONFIG_DIR, 
-                             zebraConfFile = zebraConf, 
+
+        bgp = self.addHost( "bgp", cls=Router,
+                             quaggaConfFile = '%s/quagga-sdn.conf' % CONFIG_DIR,
+                             zebraConfFile = zebraConf,
                              intfDict=bgpIntfs )
-        
+
         self.addLink( bgp, s3 )
 
         # Connect BGP speaker to the root namespace so it can peer with ONOS
