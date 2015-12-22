@@ -197,9 +197,6 @@ class LINCSwitch(OpticalSwitch):
         self.configDict[ 'uri' ] = 'of:' + self.dpid
         self.configDict[ 'annotations' ] = self.annotations
         self.configDict[ 'annotations' ].setdefault('name', self.name)
-        self.configDict[ 'hw' ] = 'linc-oe'
-        self.configDict[ 'mfr' ] = 'Linc'
-        self.configDict[ 'mac' ] = 'ffffffffffff' + self.dpid[-2] + self.dpid[-1]
         self.configDict[ 'type' ] = self.switchType
         self.configDict[ 'ports' ] = []
         for port, intf in self.intfs.items():
@@ -331,10 +328,7 @@ class LINCSwitch(OpticalSwitch):
         "Returns the json configuration for a packet switch"
         configDict = {}
         configDict[ 'uri' ] = 'of:' + switch.dpid
-        configDict[ 'mac' ] = quietRun('cat /sys/class/net/%s/address' % switch.name).strip('\n').translate(None, ':')
-        configDict[ 'hw' ] = 'PK'  # FIXME what about OVS?
-        configDict[ 'mfr' ] = 'Linc'  # FIXME what about OVS?
-        configDict[ 'type' ] = 'SWITCH'  # FIXME what about OVS?
+        configDict[ 'type' ] = 'SWITCH'
         annotations = switch.params.get('annotations', {})
         annotations.setdefault('name', switch.name)
         configDict[ 'annotations' ] = annotations
@@ -513,30 +507,26 @@ class LINCSwitch(OpticalSwitch):
         ports = {}
 
         for switch in LINCSwitch.opticalJSON[ 'devices' ]:
-            # build device entries - keyed on uri (DPID) and config key 'basic'
+            # Build device entries - keyed on uri (DPID) and config key 'basic'
+            # 'type' is necessary field, else ONOS assumes it's a SWITCH
+            # Annotations hold switch name and latitude/longitude
             devDict = {}
-            devDict[ 'driver' ] = switch[ 'hw' ]
-            devDict[ 'mfr' ] = switch[ 'mfr' ]
-            devDict[ 'mac' ] = switch[ 'mac' ]
             devDict[ 'type' ] = switch[ 'type' ]
             devDict.update(switch[ 'annotations' ])
-
             devSubj = switch[ 'uri' ]
             devices[ devSubj ] = { 'basic': devDict }
 
-            # build port entries - keyed on "uri/port" and config key 'optical'
+            # Build port entries - keyed on "uri/port" and config key 'optical'
             for port in switch[ 'ports' ]:
                 portSubj = devSubj + '/' + str(port[ 'port' ])
                 ports[ portSubj ] = { 'optical': port }
 
-        # build link entries - keyed on "uri/port-uri/port" and config key 'basic'
+        # Build link entries - keyed on "uri/port-uri/port" and config key 'basic'
+        # Annotations hold the 'durable' field, which is necessary as long as we don't discover optical links
         for link in LINCSwitch.opticalJSON[ 'links' ]:
             linkDict = {}
             linkDict[ 'type' ] = link[ 'type' ]
-            # FIXME: Clean up unnecessary link/device attributes, then re-enable annotations
-            linkDict['durable'] = True
-            # linkDict.update(link[ 'annotations' ])
-
+            linkDict.update(link[ 'annotations' ])
             linkSubj = link[ 'src' ] + '-' + link[ 'dst' ]
             links[ linkSubj ] = { 'basic': linkDict }
 
@@ -652,7 +642,7 @@ class LINCSwitch(OpticalSwitch):
     @staticmethod
     def getTaps(path=None):
         '''
-        return list of all the tops in sys.config
+        return list of all the taps in sys.config
         '''
         if path is None:
             path = '%s/rel/linc/releases/1.0/sys.config' % LINCSwitch.lincDir
@@ -661,21 +651,6 @@ class LINCSwitch(OpticalSwitch):
         taps = re.findall('tap\d+', sys_data)
         fd.close()
         return taps
-
-    @staticmethod
-    def findUser():
-        "Try to return logged-in (usually non-root) user"
-        try:
-            # If we're running sudo
-            return os.environ[ 'SUDO_USER' ]
-        except:
-            try:
-                # Logged-in user (if we have a tty)
-                return quietRun('who am i').split()[ 0 ]
-            except:
-                # Give up and return effective user
-                return quietRun('whoami')
-
 
     @staticmethod
     def findTap(node, port, path=None):
