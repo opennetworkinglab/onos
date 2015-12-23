@@ -349,6 +349,16 @@ public class AaaManager {
                     sendPacketToSupplicant(eth, stateMachine.supplicantConnectpoint());
 
                     break;
+                case EAPOL.EAPOL_LOGOFF:
+                    if (stateMachine.state() == stateMachine.STATE_AUTHORIZED) {
+                        try {
+                            stateMachine.logoff();
+                        } catch (StateMachineException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    break;
                 case EAPOL.EAPOL_PACKET:
                     RADIUS radiusPayload;
                     // check if this is a Response/Identify or  a Response/TLS
@@ -380,8 +390,10 @@ public class AaaManager {
                                                          stateMachine.identifier(),
                                                          eapPacket);
 
-                                radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_STATE,
-                                                           stateMachine.challengeState());
+                                if (stateMachine.challengeState() != null) {
+                                    radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_STATE,
+                                            stateMachine.challengeState());
+                                }
                                 radiusPayload.addMessageAuthenticator(AaaManager.this.radiusSecret);
                                 sendRadiusPacket(radiusPayload);
                             }
@@ -390,8 +402,10 @@ public class AaaManager {
                             // request id access to RADIUS
                             radiusPayload = getRadiusPayload(stateMachine, stateMachine.identifier(), eapPacket);
 
-                            radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_STATE,
-                                    stateMachine.challengeState());
+                            if (stateMachine.challengeState() != null) {
+                                radiusPayload.setAttribute(RADIUSAttribute.RADIUS_ATTR_STATE,
+                                        stateMachine.challengeState());
+                            }
                             stateMachine.setRequestAuthenticator(radiusPayload.generateAuthCode());
 
                             radiusPayload.addMessageAuthenticator(AaaManager.this.radiusSecret);
@@ -432,8 +446,11 @@ public class AaaManager {
             Ethernet eth;
             switch (radiusPacket.getCode()) {
                 case RADIUS.RADIUS_CODE_ACCESS_CHALLENGE:
-                    byte[] challengeState =
-                            radiusPacket.getAttribute(RADIUSAttribute.RADIUS_ATTR_STATE).getValue();
+                    RADIUSAttribute radiusAttrState = radiusPacket.getAttribute(RADIUSAttribute.RADIUS_ATTR_STATE);
+                    byte[] challengeState = null;
+                    if (radiusAttrState != null) {
+                        challengeState = radiusAttrState.getValue();
+                    }
                     eapPayload = radiusPacket.decapsulateMessage();
                     stateMachine.setChallengeInfo(eapPayload.getIdentifier(), challengeState);
                     eth = buildEapolResponse(stateMachine.supplicantAddress(),
