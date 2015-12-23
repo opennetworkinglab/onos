@@ -87,6 +87,7 @@ public class DefaultGroupHandler {
             SubnetNextObjectiveStoreKey, Integer> subnetNextObjStore = null;
     protected EventuallyConsistentMap<
             PortNextObjectiveStoreKey, Integer> portNextObjStore = null;
+    private SegmentRoutingManager srManager;
 
     protected KryoNamespace.Builder kryo = new KryoNamespace.Builder()
             .register(URI.class).register(HashSet.class)
@@ -96,6 +97,7 @@ public class DefaultGroupHandler {
             .register(GroupBucketIdentifier.class)
             .register(GroupBucketIdentifier.BucketOutputType.class);
 
+    // TODO Access stores through srManager
     protected DefaultGroupHandler(DeviceId deviceId, ApplicationId appId,
                                   DeviceProperties config,
                                   LinkService linkService,
@@ -105,7 +107,8 @@ public class DefaultGroupHandler {
                                   EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
                                           Integer> subnetNextObjStore,
                                   EventuallyConsistentMap<PortNextObjectiveStoreKey,
-                                          Integer> portNextObjStore) {
+                                          Integer> portNextObjStore,
+                                  SegmentRoutingManager srManager) {
         this.deviceId = checkNotNull(deviceId);
         this.appId = checkNotNull(appId);
         this.deviceConfig = checkNotNull(config);
@@ -123,6 +126,7 @@ public class DefaultGroupHandler {
         this.nsNextObjStore = nsNextObjStore;
         this.subnetNextObjStore = subnetNextObjStore;
         this.portNextObjStore = portNextObjStore;
+        this.srManager = srManager;
 
         populateNeighborMaps();
     }
@@ -153,7 +157,8 @@ public class DefaultGroupHandler {
                                           EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
                                           Integer> subnetNextObjStore,
                                           EventuallyConsistentMap<PortNextObjectiveStoreKey,
-                                          Integer> portNextObjStore)
+                                          Integer> portNextObjStore,
+                                          SegmentRoutingManager srManager)
                                                   throws DeviceConfigNotFoundException {
         // handle possible exception in the caller
         if (config.isEdgeDevice(deviceId)) {
@@ -162,14 +167,17 @@ public class DefaultGroupHandler {
                                                flowObjService,
                                                nsNextObjStore,
                                                subnetNextObjStore,
-                                               portNextObjStore);
+                                               portNextObjStore,
+                                               srManager
+                                               );
         } else {
             return new DefaultTransitGroupHandler(deviceId, appId, config,
                                                   linkService,
                                                   flowObjService,
                                                   nsNextObjStore,
                                                   subnetNextObjStore,
-                                                  portNextObjStore);
+                                                  portNextObjStore,
+                                                  srManager);
         }
     }
 
@@ -663,11 +671,17 @@ public class DefaultGroupHandler {
                 return;
             }
 
+            VlanId assignedVlanId =
+                    srManager.getSubnetAssignedVlanId(this.deviceId, subnet);
+            TrafficSelector metadata =
+                    DefaultTrafficSelector.builder().matchVlanId(assignedVlanId).build();
+
             int nextId = flowObjectiveService.allocateNextId();
 
             NextObjective.Builder nextObjBuilder = DefaultNextObjective
                     .builder().withId(nextId)
-                    .withType(NextObjective.Type.BROADCAST).fromApp(appId);
+                    .withType(NextObjective.Type.BROADCAST).fromApp(appId)
+                    .withMeta(metadata);
 
             ports.forEach(port -> {
                 TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();

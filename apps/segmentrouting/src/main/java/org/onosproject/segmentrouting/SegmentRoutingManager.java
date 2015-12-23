@@ -51,6 +51,7 @@ import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
+import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.config.SegmentRoutingConfig;
@@ -90,6 +91,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -297,6 +299,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         linkService.addListener(linkListener);
         deviceService.addListener(deviceListener);
 
+        // Request ARP packet-in
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(Ethernet.TYPE_ARP);
+        packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId, Optional.empty());
+
         cfgListener.configureNetwork();
 
         log.info("Started");
@@ -306,6 +313,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     protected void deactivate() {
         cfgService.removeListener(cfgListener);
         cfgService.unregisterConfigFactory(cfgFactory);
+
+        // Withdraw ARP packet-in
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchEthType(Ethernet.TYPE_ARP);
+        packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId, Optional.empty());
 
         packetService.removeProcessor(processor);
         linkService.removeListener(linkListener);
@@ -697,7 +709,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                            flowObjectiveService,
                                            nsNextObjStore,
                                            subnetNextObjStore,
-                                           portNextObjStore);
+                                           portNextObjStore,
+                                           this);
             } catch (DeviceConfigNotFoundException e) {
                 log.warn(e.getMessage() + " Aborting processDeviceAdded.");
                 return;
@@ -766,7 +779,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                                    flowObjectiveService,
                                                    nsNextObjStore,
                                                    subnetNextObjStore,
-                                                   portNextObjStore);
+                                                   portNextObjStore,
+                                                   segmentRoutingManager);
                     } catch (DeviceConfigNotFoundException e) {
                         log.warn(e.getMessage() + " Aborting configureNetwork.");
                         return;
@@ -836,16 +850,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         private ForwardingObjective.Builder getForwardingObjectiveBuilder(
                      DeviceId deviceId, MacAddress mac, VlanId vlanId,
                      PortNumber outport) {
-            // match rule
-            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-            sbuilder.matchEthDst(mac);
-            sbuilder.matchVlanId(vlanId);
-
-            TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-            tbuilder.immediate().popVlan();
-            tbuilder.immediate().setOutput(outport);
-
-            // for switch pipelines that need it, provide outgoing vlan as metadata
+            // Get assigned VLAN for the subnet
             VlanId outvlan = null;
             Ip4Prefix subnet = deviceConfiguration.getPortSubnet(deviceId, outport);
             if (subnet == null) {
@@ -853,6 +858,25 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             } else {
                 outvlan = getSubnetAssignedVlanId(deviceId, subnet);
             }
+
+            // match rule
+            TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+            sbuilder.matchEthDst(mac);
+            /*
+             * Note: for untagged packets, match on the assigned VLAN.
+             *       for tagged packets, match on its incoming VLAN.
+             */
+            if (vlanId.equals(VlanId.NONE)) {
+                sbuilder.matchVlanId(outvlan);
+            } else {
+                sbuilder.matchVlanId(vlanId);
+            }
+
+            TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+            tbuilder.immediate().popVlan();
+            tbuilder.immediate().setOutput(outport);
+
+            // for switch pipelines that need it, provide outgoing vlan as metadata
             TrafficSelector meta = DefaultTrafficSelector.builder()
                                         .matchVlanId(outvlan).build();
 

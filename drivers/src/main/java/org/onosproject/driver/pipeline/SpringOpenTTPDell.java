@@ -34,6 +34,7 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
+import org.onosproject.net.flow.criteria.MplsBosCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
@@ -116,9 +117,10 @@ public class SpringOpenTTPDell extends SpringOpenTTP {
                 .matchEthType(Ethernet.MPLS_UNICAST)
                 .matchMplsLabel(((MplsCriterion)
                    selector.getCriterion(Criterion.Type.MPLS_LABEL)).label());
-            //TODO: Add Match for BoS
-            //if (selector.getCriterion(Criterion.Type.MPLS_BOS) != null) {
-            //}
+            if (selector.getCriterion(Criterion.Type.MPLS_BOS) != null) {
+                filteredSelectorBuilder.matchMplsBos(((MplsBosCriterion)
+                        selector.getCriterion(Criterion.Type.MPLS_BOS)).mplsBos());
+            }
             forTableId = mplsTableId;
             log.debug("processing MPLS specific forwarding objective");
         }

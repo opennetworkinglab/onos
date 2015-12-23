@@ -106,13 +106,13 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
 
         for (PortNumber pnum : portnums) {
             // update storage
-            port2Vlan.put(pnum, storeVlan);
-            Set<PortNumber> vlanPorts = vlan2Port.get(storeVlan);
+            ofdpa2GroupHandler.port2Vlan.put(pnum, storeVlan);
+            Set<PortNumber> vlanPorts = ofdpa2GroupHandler.vlan2Port.get(storeVlan);
             if (vlanPorts == null) {
                 vlanPorts = Collections.newSetFromMap(
                                     new ConcurrentHashMap<PortNumber, Boolean>());
                 vlanPorts.add(pnum);
-                vlan2Port.put(storeVlan, vlanPorts);
+                ofdpa2GroupHandler.vlan2Port.put(storeVlan, vlanPorts);
             } else {
                 vlanPorts.add(pnum);
             }

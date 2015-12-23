@@ -27,6 +27,7 @@ import java.util.List;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceProperties;
 import org.onosproject.segmentrouting.grouphandler.GroupBucketIdentifier.BucketOutputType;
@@ -60,6 +61,7 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
      * @param nsNextObjStore NeighborSet next objective store map
      * @param subnetNextObjStore subnet next objective store map
      */
+    // TODO Access stores through srManager
     public PolicyGroupHandler(DeviceId deviceId,
                               ApplicationId appId,
                               DeviceProperties config,
@@ -70,9 +72,10 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
                               EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
                                       Integer> subnetNextObjStore,
                               EventuallyConsistentMap<PortNextObjectiveStoreKey,
-                              Integer> portNextObjStore) {
+                              Integer> portNextObjStore,
+                              SegmentRoutingManager srManager) {
         super(deviceId, appId, config, linkService, flowObjService,
-              nsNextObjStore, subnetNextObjStore, portNextObjStore);
+              nsNextObjStore, subnetNextObjStore, portNextObjStore, srManager);
     }
 
     public PolicyGroupIdentifier createPolicyGroupChain(String id,

@@ -23,6 +23,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceProperties;
 import org.onosproject.store.service.EventuallyConsistentMap;
@@ -40,7 +41,7 @@ import org.onosproject.store.service.EventuallyConsistentMap;
  * 2) all ports to D3 + with no label push,
  */
 public class DefaultTransitGroupHandler extends DefaultGroupHandler {
-
+    // TODO Access stores through srManager
     protected DefaultTransitGroupHandler(DeviceId deviceId,
                                   ApplicationId appId,
                                   DeviceProperties config,
@@ -52,9 +53,10 @@ public class DefaultTransitGroupHandler extends DefaultGroupHandler {
                                   EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
                                         Integer> subnetNextObjStore,
                                   EventuallyConsistentMap<PortNextObjectiveStoreKey,
-                                  Integer> portNextObjStore) {
+                                  Integer> portNextObjStore,
+                                  SegmentRoutingManager srManager) {
         super(deviceId, appId, config, linkService, flowObjService,
-              nsNextObjStore, subnetNextObjStore, portNextObjStore);
+              nsNextObjStore, subnetNextObjStore, portNextObjStore, srManager);
     }
 
     @Override

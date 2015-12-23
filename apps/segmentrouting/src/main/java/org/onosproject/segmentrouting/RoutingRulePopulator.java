@@ -303,6 +303,7 @@ public class RoutingRulePopulator {
         // TODO Handle the case of Bos == false
         sbuilder.matchEthType(Ethernet.MPLS_UNICAST);
         sbuilder.matchMplsLabel(MplsLabel.mplsLabel(segmentId));
+        sbuilder.matchMplsBos(true);
         TrafficSelector selector = sbuilder.build();
 
         // setup metadata to pass to nextObjective - indicate the vlan on egress
@@ -522,39 +523,6 @@ public class RoutingRulePopulator {
                         puntIp.add(new SRObjectiveContext(deviceId,
                                            SRObjectiveContext.ObjectiveType.FORWARDING)));
         }
-    }
-
-    /**
-     * Creates a forwarding objective to punt all IP packets, destined to the
-     * router's port IP addresses, to the controller. Note that the input
-     * port should not be matched on, as these packets can come from any input.
-     * Furthermore, these are applied only by the master instance.
-     *
-     * @param deviceId the switch dpid for the router
-     */
-    public void populateArpPunts(DeviceId deviceId) {
-        if (!srManager.mastershipService.isLocalMaster(deviceId)) {
-            log.debug("Not installing port-IP punts - not the master for dev:{} ",
-                    deviceId);
-            return;
-        }
-
-        ForwardingObjective.Builder puntArp = DefaultForwardingObjective.builder();
-        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-        sbuilder.matchEthType(Ethernet.TYPE_ARP);
-        tbuilder.setOutput(PortNumber.CONTROLLER);
-        puntArp.withSelector(sbuilder.build());
-        puntArp.withTreatment(tbuilder.build());
-        puntArp.withFlag(Flag.VERSATILE)
-                .withPriority(HIGHEST_PRIORITY)
-                .makePermanent()
-                .fromApp(srManager.appId);
-        log.debug("Installing forwarding objective to punt ARPs");
-        srManager.flowObjectiveService.
-                forward(deviceId,
-                        puntArp.add(new SRObjectiveContext(deviceId,
-                                SRObjectiveContext.ObjectiveType.FORWARDING)));
     }
 
     /**

@@ -513,7 +513,6 @@ public class DefaultRoutingHandler {
     public void populatePortAddressingRules(DeviceId deviceId) {
         rulePopulator.populateRouterMacVlanFilters(deviceId);
         rulePopulator.populateRouterIpPunts(deviceId);
-        rulePopulator.populateArpPunts(deviceId);
     }
 
     /**

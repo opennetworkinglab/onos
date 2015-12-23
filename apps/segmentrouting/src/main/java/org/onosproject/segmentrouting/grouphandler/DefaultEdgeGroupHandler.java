@@ -24,6 +24,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.config.DeviceProperties;
 import org.onosproject.store.service.EventuallyConsistentMap;
 
@@ -46,7 +47,7 @@ import org.onosproject.store.service.EventuallyConsistentMap;
  * 8) what about ecmp no label case
  */
 public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
-
+    // TODO Access stores through srManager
     protected DefaultEdgeGroupHandler(DeviceId deviceId,
                                   ApplicationId appId,
                                   DeviceProperties config,
@@ -58,9 +59,10 @@ public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
                                   EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
                                           Integer> subnetNextObjStore,
                                   EventuallyConsistentMap<PortNextObjectiveStoreKey,
-                                          Integer> portNextObjStore) {
+                                          Integer> portNextObjStore,
+                                  SegmentRoutingManager srManager) {
         super(deviceId, appId, config, linkService, flowObjService,
-              nsNextObjStore, subnetNextObjStore, portNextObjStore);
+              nsNextObjStore, subnetNextObjStore, portNextObjStore, srManager);
     }
 
     @Override
