@@ -73,7 +73,7 @@ public class OpenstackPortCodec extends JsonCodec<OpenstackPort> {
         for (JsonNode fixedIpInfo: fixedIpList) {
             String subnetId = fixedIpInfo.path(SUBNET_ID).asText();
             String ipAddressStr = fixedIpInfo.path(IP_ADDRESS).asText();
-            if (ipAddressStr != null) {
+            if (!fixedIpInfo.path(IP_ADDRESS).isMissingNode() && ipAddressStr != null) {
                 Ip4Address ipAddress = Ip4Address.valueOf(ipAddressStr);
                 fixedIpMap.put(subnetId, ipAddress);
             }

@@ -161,7 +161,9 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
     @Override
     public void createPorts(OpenstackPort openstackPort) {
-        registerDhcpInfo(openstackPort);
+        if (!openstackPort.fixedIps().isEmpty()) {
+            registerDhcpInfo(openstackPort);
+        }
     }
 
     @Override
