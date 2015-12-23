@@ -19,6 +19,7 @@ import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.Exten
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -75,9 +76,12 @@ import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.LogicalClockService;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Versioned;
 import org.onosproject.vtn.manager.VTNService;
 import org.onosproject.vtn.table.ArpService;
 import org.onosproject.vtn.table.ClassifierService;
@@ -188,7 +192,7 @@ public class VTNManager implements VTNService {
     private final DeviceListener deviceListener = new InnerDeviceListener();
     private final VtnRscListener l3EventListener = new VtnL3EventListener();
 
-    private static String exPortName = "eth0";
+    private static final String EX_PORT_KEY = "exPortKey";
     private static final String IFACEID = "ifaceid";
     private static final String CONTROLLER_IP_KEY = "ipaddress";
     public static final String DRIVER_NAME = "onosfw";
@@ -198,6 +202,7 @@ public class VTNManager implements VTNService {
     private static final String ROUTERINF_FLAG_OF_TENANT = "routerInfFlagOfTenant";
     private static final String HOSTS_OF_SUBNET = "hostsOfSubnet";
     private static final String EX_PORT_OF_DEVICE = "exPortOfDevice";
+    private static final String EX_PORT_MAP = "exPortMap";
     private static final String DEFAULT_IP = "0.0.0.0";
     private static final int SUBNET_NUM = 2;
 
@@ -207,6 +212,7 @@ public class VTNManager implements VTNService {
     private EventuallyConsistentMap<SubnetId, Map<HostId, Host>> hostsOfSubnet;
     private EventuallyConsistentMap<TenantId, Boolean> routerInfFlagOfTenant;
     private EventuallyConsistentMap<DeviceId, Port> exPortOfDevice;
+    private static ConsistentMap<String, String> exPortMap;
 
     @Activate
     public void activate() {
@@ -275,6 +281,14 @@ public class VTNManager implements VTNService {
                 .withTimestampProvider((k, v) -> clockService.getTimestamp())
                 .build();
 
+        exPortMap = storageService
+                .<String, String>consistentMapBuilder()
+                .withName(EX_PORT_MAP)
+                .withApplicationId(appId)
+                .withPurgeOnUninstall()
+                .withSerializer(Serializer.using(Arrays.asList(KryoNamespaces.API)))
+                .build();
+
         log.info("Started");
     }
 
@@ -310,8 +324,11 @@ public class VTNManager implements VTNService {
             config.driver(DRIVER_NAME);
             configService.applyConfig(deviceId, BasicDeviceConfig.class, config.node());
             // Add Bridge
-            VtnConfig.applyBridgeConfig(handler, dpid, exPortName);
-            log.info("A new ovs is created in node {}", localIp.toString());
+            Versioned<String> exPortVersioned = exPortMap.get(EX_PORT_KEY);
+            if (exPortVersioned != null) {
+                VtnConfig.applyBridgeConfig(handler, dpid, exPortVersioned.value());
+                log.info("A new ovs is created in node {}", localIp.toString());
+            }
             switchesOfController.put(localIp, true);
         }
         // Create tunnel in br-int on all controllers
@@ -330,8 +347,6 @@ public class VTNManager implements VTNService {
         if (mastershipService.isLocalMaster(controllerDeviceId)) {
             switchesOfController.remove(dstIpAddress);
         }
-        // remove tunnel in br-int on other controllers
-        programTunnelConfig(controllerDeviceId, dstIpAddress, null);
     }
 
     @Override
@@ -971,7 +986,9 @@ public class VTNManager implements VTNService {
         Port exPort = null;
         for (Port port : ports) {
             String portName = port.annotations().value(AnnotationKeys.PORT_NAME);
-            if (portName != null && portName.equals(exPortName)) {
+            Versioned<String> exPortVersioned = exPortMap.get(EX_PORT_KEY);
+            if (portName != null && exPortVersioned != null && portName.
+                    equals(exPortVersioned.value())) {
                 exPort = port;
                 break;
             }
@@ -1071,6 +1088,6 @@ public class VTNManager implements VTNService {
     }
 
     public static void setExPortName(String name) {
-        exPortName = name;
+        exPortMap.put(EX_PORT_KEY, name);
     }
 }
