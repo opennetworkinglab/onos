@@ -80,7 +80,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -370,8 +369,8 @@ public class ReactiveForwarding {
                                               String propertyName) {
         Integer value = null;
         try {
-            String s = (String) properties.get(propertyName);
-            value = isNullOrEmpty(s) ? value : Integer.parseInt(s.trim());
+              Object obj = properties.get(propertyName);
+              value = obj == null ? value : (Integer) obj;
         } catch (NumberFormatException | ClassCastException e) {
             value = null;
         }
@@ -389,13 +388,13 @@ public class ReactiveForwarding {
                                              String propertyName) {
         boolean enabled = false;
         try {
-            String flag = (String) properties.get(propertyName);
+            Object flag = properties.get(propertyName);
             if (flag != null) {
                 enabled = flag.trim().equals("true");
             }
         } catch (ClassCastException e) {
             // No propertyName defined.
-            enabled = false;
+            enabled = (Boolean) flag;
         }
         return enabled;
     }
