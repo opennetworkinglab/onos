@@ -159,20 +159,12 @@ public class ConsistentDeviceMastershipStore
         checkArgument(deviceId != null, DEVICE_ID_NULL);
 
         String leadershipTopic = createDeviceMastershipTopic(deviceId);
-        if (connectedDevices.add(deviceId)) {
-            return leadershipService.runForLeadership(leadershipTopic)
-                                    .thenApply(leadership -> {
-                                        return Objects.equal(localNodeId, leadership.leader())
-                                                ? MastershipRole.MASTER : MastershipRole.STANDBY;
-                                    });
-        } else {
-            NodeId leader = leadershipService.getLeader(leadershipTopic);
-            if (Objects.equal(localNodeId, leader)) {
-                return CompletableFuture.completedFuture(MastershipRole.MASTER);
-            } else {
-                return CompletableFuture.completedFuture(MastershipRole.STANDBY);
-            }
-        }
+        connectedDevices.add(deviceId);
+        return leadershipService.runForLeadership(leadershipTopic)
+                .thenApply(leadership -> {
+                    return Objects.equal(localNodeId, leadership.leader())
+                            ? MastershipRole.MASTER : MastershipRole.STANDBY;
+                });
     }
 
     @Override

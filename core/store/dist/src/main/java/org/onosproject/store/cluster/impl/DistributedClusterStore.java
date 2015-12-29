@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.cluster.impl;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
@@ -163,7 +164,7 @@ public class DistributedClusterStore
     @Override
     public State getState(NodeId nodeId) {
         checkNotNull(nodeId, INSTANCE_ID_NULL);
-        return nodeStates.get(nodeId);
+        return MoreObjects.firstNonNull(nodeStates.get(nodeId), State.INACTIVE);
     }
 
     @Override

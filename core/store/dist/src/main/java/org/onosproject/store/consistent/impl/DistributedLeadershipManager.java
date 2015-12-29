@@ -96,17 +96,26 @@ public class DistributedLeadershipManager implements LeadershipService {
     protected EventDeliveryService eventDispatcher;
 
     private final Logger log = getLogger(getClass());
+
     private ScheduledExecutorService electionRunner;
     private ScheduledExecutorService lockExecutor;
     private ScheduledExecutorService staleLeadershipPurgeExecutor;
     private ScheduledExecutorService leadershipRefresher;
 
+    // leader for each topic
     private ConsistentMap<String, NodeId> leaderMap;
+    // list of candidates (includes chosen leader) for each topic
     private ConsistentMap<String, List<NodeId>> candidateMap;
 
     private ListenerRegistry<LeadershipEvent, LeadershipEventListener> listenerRegistry;
+
+    // cached copy of leaderMap
+    // Note: Map value, Leadership, does not contain proper candidates info
     private final Map<String, Leadership> leaderBoard = Maps.newConcurrentMap();
+    // cached copy of candidateMap
+    // Note: Map value, Leadership, does not contain proper leader info
     private final Map<String, Leadership> candidateBoard = Maps.newConcurrentMap();
+
     private final ClusterEventListener clusterEventListener = new InternalClusterEventListener();
 
     private NodeId localNodeId;

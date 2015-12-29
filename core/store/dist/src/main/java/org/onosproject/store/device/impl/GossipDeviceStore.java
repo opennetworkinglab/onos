@@ -330,6 +330,11 @@ public class GossipDeviceStore
             }
 
         } else {
+            // Only forward for ConfigProvider
+            // Forwarding was added as a workaround for ONOS-490
+            if (!providerId.equals("cfg")) {
+                return null;
+            }
             // FIXME Temporary hack for NPE (ONOS-1171).
             // Proper fix is to implement forwarding to master on ConfigProvider
             // redo ONOS-490
@@ -579,6 +584,11 @@ public class GossipDeviceStore
             }
 
         } else {
+            // Only forward for ConfigProvider
+            // Forwarding was added as a workaround for ONOS-490
+            if (!providerId.equals("cfg")) {
+                return null;
+            }
             // FIXME Temporary hack for NPE (ONOS-1171).
             // Proper fix is to implement forwarding to master on ConfigProvider
             // redo ONOS-490

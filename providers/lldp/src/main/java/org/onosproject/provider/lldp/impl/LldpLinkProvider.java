@@ -64,6 +64,7 @@ import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceEvent.Type;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -568,6 +569,9 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
+            if (event.type() == Type.PORT_STATS_UPDATED) {
+                return;
+            }
             Device device = event.subject();
             Port port = event.port();
             if (device == null) {

@@ -286,6 +286,11 @@ public class ECDeviceStore
             deviceDescriptions.put(new DeviceKey(providerId, deviceId), deviceDescription);
             return refreshDeviceCache(providerId, deviceId);
         } else {
+            // Only forward for ConfigProvider
+            // Forwarding was added as a workaround for ONOS-490
+            if (!providerId.equals("cfg")) {
+                return null;
+            }
             DeviceInjectedEvent deviceInjectedEvent = new DeviceInjectedEvent(providerId, deviceId, deviceDescription);
             return Futures.getUnchecked(
                     clusterCommunicator.sendAndReceive(deviceInjectedEvent,
@@ -413,6 +418,11 @@ public class ECDeviceStore
             });
             deviceEvents = refreshDevicePortCache(providerId, deviceId, Optional.empty());
         } else {
+            // Only forward for ConfigProvider
+            // Forwarding was added as a workaround for ONOS-490
+            if (!providerId.equals("cfg")) {
+                return null;
+            }
             if (master == null) {
                 return Collections.emptyList();
             }

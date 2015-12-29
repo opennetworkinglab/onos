@@ -268,7 +268,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 LOG.error("Unknown Mastership state : {}", newRole);
 
         }
-        LOG.debug("Accepting mastership role change for device {}", deviceId);
+        LOG.debug("Accepting mastership role change to {} for device {}", newRole, deviceId);
     }
 
 
@@ -297,7 +297,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     }
 
     private void pushPortMetrics(Dpid dpid, List<OFPortStatsEntry> portStatsEntries) {
-        DeviceId deviceId = DeviceId.deviceId(dpid.uri(dpid));
+        DeviceId deviceId = DeviceId.deviceId(Dpid.uri(dpid));
         Collection<PortStatistics> stats = buildPortStatistics(deviceId, portStatsEntries);
         providerService.updatePortStatistics(deviceId, stats);
     }
@@ -434,6 +434,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
         @Override
         public void switchChanged(Dpid dpid) {
+            LOG.debug("switchChanged({})", dpid);
             if (providerService == null) {
                 return;
             }
@@ -442,17 +443,21 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             if (sw == null) {
                 return;
             }
-            providerService.updatePorts(did, buildPortDescriptions(sw));
+            final List<PortDescription> ports = buildPortDescriptions(sw);
+            LOG.debug("switchChanged({}) {}", did, ports);
+            providerService.updatePorts(did, ports);
         }
 
         @Override
         public void portChanged(Dpid dpid, OFPortStatus status) {
+            LOG.debug("portChanged({},{})", dpid, status);
             PortDescription portDescription = buildPortDescription(status);
             providerService.portStatusChanged(deviceId(uri(dpid)), portDescription);
         }
 
         @Override
         public void receivedRoleReply(Dpid dpid, RoleState requested, RoleState response) {
+            LOG.debug("receivedRoleReply({},{},{})", dpid, requested, response);
             MastershipRole request = roleOf(requested);
             MastershipRole reply = roleOf(response);
             providerService.receivedRoleReply(deviceId(uri(dpid)), request, reply);
@@ -503,7 +508,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                     LOG.debug("Ports Of{}", portsOf);
                     portsOf.forEach(
                         op -> {
-                            portDescs.add(buildPortDescription(type, (OFObject) op));
+                            portDescs.add(buildPortDescription(type, op));
                         }
                      );
                     });

@@ -97,6 +97,9 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     protected ExecutorService executorMsgs =
             Executors.newFixedThreadPool(2, groupedThreads("onos/of", "ctrl-msg-stats-%d"));
 
+    // messagesPendingMastership is used as synchronization variable for
+    // all mastership related changes. In this block, mastership (including
+    // role update) will have either occurred or not.
     private final AtomicReference<List<OFMessage>> messagesPendingMastership
             = new AtomicReference<>();
 
@@ -275,6 +278,8 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     public final void handleMessage(OFMessage m) {
         if (this.role == RoleState.MASTER || m instanceof OFPortStatus) {
             this.agent.processMessage(dpid, m);
+        } else {
+            log.trace("Dropping received message {}, was not MASTER", m);
         }
     }
 
@@ -309,7 +314,8 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
         synchronized (messagesPendingMastership) {
             List<OFMessage> messages = messagesPendingMastership.get();
             if (messages != null) {
-                this.sendMsg(messages);
+                // Cannot use sendMsg here. It will only append to pending list.
+                sendMsgsOnChannel(messages);
                 log.debug("Sending {} pending messages to switch {}",
                           messages.size(), dpid);
                 messagesPendingMastership.set(null);

@@ -31,20 +31,23 @@ public class LeadershipEvent extends AbstractEvent<LeadershipEvent.Type, Leaders
      */
     public enum Type {
         /**
-         * Signifies that the leader has been elected. The event subject is the
-         * new leader.
+         * Signifies that the leader has been elected.
+         * The event subject is the new leader.
+         * This event does not guarantee accurate candidate information.
          */
         LEADER_ELECTED,
 
         /**
-         * Signifies that the leader has been re-elected. The event subject is the
-         * leader.
+         * Signifies that the leader has been re-elected.
+         * The event subject is the leader.
+         * This event does not guarantee accurate candidate information.
          */
         LEADER_REELECTED,
 
         /**
-         * Signifies that the leader has been booted and lost leadership. The
-         * event subject is the former leader.
+         * Signifies that the leader has been booted and lost leadership.
+         * The event subject is the former leader.
+         * This event does not guarantee accurate candidate information.
          */
         LEADER_BOOTED,
 

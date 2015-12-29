@@ -73,12 +73,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import static org.onlab.util.Tools.groupedThreads;
 
 @Component(immediate = true)
@@ -118,11 +118,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     private final ExecutorService executorBarrier =
         Executors.newFixedThreadPool(4, groupedThreads("onos/of", "event-barrier-%d"));
 
-    protected ConcurrentHashMap<Dpid, OpenFlowSwitch> connectedSwitches =
+    protected ConcurrentMap<Dpid, OpenFlowSwitch> connectedSwitches =
             new ConcurrentHashMap<>();
-    protected ConcurrentHashMap<Dpid, OpenFlowSwitch> activeMasterSwitches =
+    protected ConcurrentMap<Dpid, OpenFlowSwitch> activeMasterSwitches =
             new ConcurrentHashMap<>();
-    protected ConcurrentHashMap<Dpid, OpenFlowSwitch> activeEqualSwitches =
+    protected ConcurrentMap<Dpid, OpenFlowSwitch> activeEqualSwitches =
             new ConcurrentHashMap<>();
 
     protected OpenFlowSwitchAgent agent = new OpenFlowSwitchAgent();
@@ -280,6 +280,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             executorMsgs.submit(new OFMessageHandler(dpid, msg));
             break;
         case ERROR:
+            log.debug("Received error message from {}: {}", dpid, msg);
             executorMsgs.submit(new OFMessageHandler(dpid, msg));
             break;
         case STATS_REPLY:
