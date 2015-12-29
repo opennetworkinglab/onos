@@ -279,7 +279,7 @@ public class OnosXosIntegrationManager implements VoltTenantService {
             response = builder.post(ClientResponse.class, json);
         } catch (ClientHandlerException e) {
             log.warn("Unable to contact REST server: {}", e.getMessage());
-            return "{ 'error' : 'oops no one home' }";
+            return "{ \"error\" : \"oops no one home\" }";
         }
 
         if (response.getStatus() != HTTP_CREATED) {
