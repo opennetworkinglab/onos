@@ -525,7 +525,8 @@ public class AaaManager {
     private class InternalConfigListener implements NetworkConfigListener {
 
         /**
-         * Reconfigures the DHCP Server according to the configuration parameters passed.
+         * Reconfigures the AAA application according to the
+         * configuration parameters passed.
          *
          * @param cfg configuration object
          */
