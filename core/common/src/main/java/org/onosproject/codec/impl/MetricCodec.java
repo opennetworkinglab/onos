@@ -26,6 +26,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -96,6 +98,6 @@ public class MetricCodec extends JsonCodec<Metric> {
     }
 
     private double nanoToMs(double nano) {
-        return nano / 1_000_000D;
+        return TimeUnit.MILLISECONDS.convert((long) nano, TimeUnit.NANOSECONDS);
     }
 }

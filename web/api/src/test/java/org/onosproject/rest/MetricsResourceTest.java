@@ -122,8 +122,8 @@ public class MetricsResourceTest extends ResourceTest {
     }
 
     /**
-     * Hamcrest matcher to check that an device representation in JSON matches
-     * the actual device.
+     * Hamcrest matcher to check that a metric representation in JSON matches
+     * the actual metric.
      */
     public static class MetricJsonMatcher extends TypeSafeMatcher<JsonObject> {
         private final Metric metric;

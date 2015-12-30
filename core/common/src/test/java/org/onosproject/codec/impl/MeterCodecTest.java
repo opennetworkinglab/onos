@@ -51,7 +51,7 @@ public class MeterCodecTest {
     final CoreService mockCoreService = createMock(CoreService.class);
 
     /**
-     * Sets up for each test.  Creates a context and fetches the flow rule
+     * Sets up for each test.  Creates a context and fetches the meter
      * codec.
      */
     @Before
