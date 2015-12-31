@@ -372,6 +372,7 @@ public class VTNManager implements VTNService {
             log.error("The ifaceId of Host is null");
             return;
         }
+        programSffAndClassifierHost(host, Objective.Operation.ADD);
         // apply L2 openflow rules
         applyHostMonitoredL2Rules(host, Objective.Operation.ADD);
         // apply L3 openflow rules
@@ -389,6 +390,7 @@ public class VTNManager implements VTNService {
             log.error("The ifaceId of Host is null");
             return;
         }
+        programSffAndClassifierHost(host, Objective.Operation.REMOVE);
         // apply L2 openflow rules
         applyHostMonitoredL2Rules(host, Objective.Operation.REMOVE);
         // apply L3 openflow rules
@@ -475,6 +477,22 @@ public class VTNManager implements VTNService {
                                               hostMac, type, remoteIpAddress);
                 });
             });
+        }
+    }
+
+    private void programSffAndClassifierHost(Host host, Objective.Operation type) {
+        DeviceId deviceId = host.location().deviceId();
+        String ifaceId = host.annotations().value(IFACEID);
+        VirtualPortId virtualPortId = VirtualPortId.portId(ifaceId);
+        VirtualPort virtualPort = virtualPortService.getPort(virtualPortId);
+        if (virtualPort == null) {
+            virtualPort = VtnData.getPort(vPortStore, virtualPortId);
+        }
+        TenantId tenantId = virtualPort.tenantId();
+        if (Objective.Operation.ADD == type) {
+            vtnRscService.addDeviceIdOfOvsMap(virtualPortId, tenantId, deviceId);
+        } else if (Objective.Operation.REMOVE == type) {
+            vtnRscService.removeDeviceIdOfOvsMap(host, tenantId, deviceId);
         }
     }
 
