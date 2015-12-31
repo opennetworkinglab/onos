@@ -1,8 +1,8 @@
-<!-- Group partial HTML -->
-<div id="ov-group">
+<!-- Meter partial HTML -->
+<div id="ov-meter">
     <div class="tabular-header">
         <h2>
-            Groups for Device {{devId || "(No device selected)"}}
+            Meters for Device {{devId || "(No device selected)"}}
             ({{tableData.length}} total)
         </h2>
         <div class="ctrl-btns">
@@ -28,13 +28,13 @@
                  tooltip tt-msg="portTip"
                  ng-click="nav('port')"></div>
 
-            <div class="current-view"
-                 icon icon-id="groupTable" icon-size="36"></div>
-
             <div class="active"
-                 icon icon-id="meterTable" icon-size="36"
-                 tooltip tt-msg="meterTip"
-                 ng-click="nav('meter')"></div>
+                 icon icon-id="groupTable" icon-size="36"
+                 tooltip tt-msg="groupTip"
+                 ng-click="nav('group')"></div>
+
+            <div class="current-view"
+                 icon icon-id="meterTable" icon-size="36"></div>
         </div>
     </div>
 
@@ -42,10 +42,9 @@
         <div class="table-header" onos-sortable-header>
             <table>
                 <tr>
-                    <td colId="id" sortable>Group ID </td>
+                    <td colId="id" sortable>Meter ID </td>
                     <td colId="app_id" sortable>App ID </td>
                     <td colId="state" sortable>State </td>
-                    <td colId="type" sortable>Type </td>
                     <td colId="packets" sortable>Packets </td>
                     <td colId="bytes" sortable>Bytes </td>
                 </tr>
@@ -55,23 +54,22 @@
         <div class="table-body">
             <table onos-flash-changes id-prop="id">
                 <tr ng-if="!tableData.length" class="no-data">
-                    <td colspan="6">
-                        No Groups found
+                    <td colspan="5">
+                        No Meters found
                     </td>
                 </tr>
 
-                <tr ng-repeat-start="group in tableData track by $index"
-                    ng-repeat-complete row-id="{{group.id}}">
-                    <td>{{group.id}}</td>
-                    <td>{{group.app_id}}</td>
-                    <td>{{group.state}}</td>
-                    <td>{{group.type}}</td>
-                    <td>{{group.packets}}</td>
-                    <td>{{group.bytes}}</td>
+                <tr ng-repeat-start="meter in tableData track by $index"
+                    ng-repeat-complete row-id="{{meter.id}}">
+                    <td>{{meter.id}}</td>
+                    <td>{{meter.app_id}}</td>
+                    <td>{{meter.state}}</td>
+                    <td>{{meter.packets}}</td>
+                    <td>{{meter.bytes}}</td>
                 </tr>
-                <tr row-id="{{group.id}}" ng-repeat-end>
-                    <td class="buckets" colspan="6"
-                        ng-bind-html="group.buckets"></td>
+                <tr row-id="{{meter.id}}" ng-repeat-end>
+                    <td class="bands" colspan="5"
+                        ng-bind-html="meter.bands"></td>
                 </tr>
             </table>
         </div>

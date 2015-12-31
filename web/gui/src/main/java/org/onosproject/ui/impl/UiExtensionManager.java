@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015,2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,6 +83,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
                 new UiViewHidden("flow"),
                 new UiViewHidden("port"),
                 new UiViewHidden("group"),
+                new UiViewHidden("meter"),
                 new UiView(NETWORK, "link", "Links", "nav_links"),
                 new UiView(NETWORK, "host", "Hosts", "nav_hosts"),
                 new UiView(NETWORK, "intent", "Intents", "nav_intents"),
@@ -99,6 +100,7 @@ public class UiExtensionManager implements UiExtensionService, SpriteService {
                         new FlowViewMessageHandler(),
                         new PortViewMessageHandler(),
                         new GroupViewMessageHandler(),
+                        new MeterViewMessageHandler(),
                         new IntentViewMessageHandler(),
                         new ApplicationViewMessageHandler(),
                         new SettingsViewMessageHandler(),

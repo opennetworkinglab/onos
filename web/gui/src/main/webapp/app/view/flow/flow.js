@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015,2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@
             $scope.deviceTip = 'Show device table';
             $scope.portTip = 'Show port view for this device';
             $scope.groupTip = 'Show group view for this device';
+            $scope.meterTip = 'Show meter view for selected device';
 
             params = $location.search();
             if (params.hasOwnProperty('devId')) {

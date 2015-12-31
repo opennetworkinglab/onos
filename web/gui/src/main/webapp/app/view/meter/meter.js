@@ -1,5 +1,5 @@
 /*
- * Copyright 2015,2016 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,20 @@
  */
 
 /*
- ONOS GUI -- Port View Module
+ ONOS GUI -- Meter View Module
  */
-
 (function () {
     'use strict';
 
     // injected references
     var $log, $scope, $location, fs, tbs, ns;
 
-    angular.module('ovPort', [])
-    .controller('OvPortCtrl',
-        ['$log', '$scope', '$location',
+    angular.module('ovMeter', [])
+    .controller('OvMeterCtrl',
+        ['$log', '$scope', '$location', '$sce',
             'FnService', 'TableBuilderService', 'NavService',
 
-        function (_$log_, _$scope_, _$location_, _fs_, _tbs_, _ns_) {
+        function (_$log_, _$scope_, _$location_, $sce, _fs_, _tbs_, _ns_) {
             var params;
             $log = _$log_;
             $scope = _$scope_;
@@ -39,8 +38,8 @@
             ns = _ns_;
             $scope.deviceTip = 'Show device table';
             $scope.flowTip = 'Show flow view for this device';
+            $scope.portTip = 'Show port view for this device';
             $scope.groupTip = 'Show group view for this device';
-            $scope.meterTip = 'Show meter view for selected device';
 
             params = $location.search();
             if (params.hasOwnProperty('devId')) {
@@ -49,8 +48,16 @@
 
             tbs.buildTable({
                 scope: $scope,
-                tag: 'port',
+                tag: 'meter',
                 query: params
+            });
+
+            $scope.$watch('tableData', function () {
+                if (!fs.isEmptyObject($scope.tableData)) {
+                    $scope.tableData.forEach(function (meter) {
+                        meter.bands = $sce.trustAsHtml(meter.bands);
+                    });
+                }
             });
 
             $scope.nav = function (path) {
@@ -59,6 +66,6 @@
                 }
             };
 
-            $log.log('OvPortCtrl has been created');
+            $log.log('OvMeterCtrl has been created');
         }]);
 }());
