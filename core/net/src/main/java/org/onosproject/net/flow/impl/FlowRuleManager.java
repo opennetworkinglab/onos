@@ -302,7 +302,6 @@ public class FlowRuleManager
                 case PENDING_REMOVE:
                 case REMOVED:
                     event = store.removeFlowRule(flowRule);
-                    frp.removeFlowRule(flowRule);
                     break;
                 case ADDED:
                 case PENDING_ADD:
