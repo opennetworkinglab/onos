@@ -60,4 +60,11 @@ public interface MeterService
      */
     Collection<Meter> getAllMeters();
 
+    /**
+     * Fetches the meters by the device id.
+     *
+     * @param deviceId a device id
+     * @return a collection of meters
+     */
+    Collection<Meter> getMeters(DeviceId deviceId);
 }

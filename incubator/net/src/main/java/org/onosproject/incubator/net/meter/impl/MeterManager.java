@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.TriConsumer;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterEvent;
@@ -40,7 +41,6 @@ import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.meter.MeterStore;
 import org.onosproject.net.meter.MeterStoreDelegate;
 import org.onosproject.net.meter.MeterStoreResult;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.store.service.AtomicCounter;
@@ -157,6 +157,12 @@ public class MeterManager extends AbstractListenerProviderRegistry<MeterEvent, M
     public Meter getMeter(DeviceId deviceId, MeterId id) {
         MeterKey key = MeterKey.key(deviceId, id);
         return store.getMeter(key);
+    }
+
+    @Override
+    public Collection<Meter> getMeters(DeviceId deviceId) {
+        return store.getAllMeters().stream().filter(m ->
+                m.deviceId().equals(deviceId)).collect(Collectors.toList());
     }
 
     @Override
