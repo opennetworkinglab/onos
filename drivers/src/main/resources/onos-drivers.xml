@@ -186,5 +186,11 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OpenstackPipeline"/>
     </driver>
+    <driver name="oplk-roadm" extends="default"
+            manufacturer="Oplink a Molex company" hwVersion="ROADM"
+            swVersion="of-agent">
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.OplinkRoadmHandshaker"/>
+    </driver>
 </drivers>
 
