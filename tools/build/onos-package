@@ -230,7 +230,9 @@ trap "rm -f $aux 2>/dev/null" EXIT
 [ -n "$M2_REPO" ] && args="-Dmaven.repo.local=$M2_REPO" || args=""
 cd $ONOS_ROOT/tools/package/karaf-assembly &&
   mvn $args clean install > $aux 2>&1 ||
-  ( echo "Failed to run karaf-assembly" && exit 1 )
+  ( cat $aux &&
+    printf "\nFailed to run karaf-assembly, which stages artifacts for offline deployments.\n" &&
+    exit 1 )
 
 # Before starting make sure the environment is clan - delete onos staging folder
 clean_stage_dir

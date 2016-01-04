@@ -33,6 +33,14 @@
 
     <description>ONOS Apache Karaf assembly definitions</description>
 
+    <!-- FIXME this is necessary until snmp moves to release artifacts ONOS-3646 -->
+    <repositories>
+        <repository>
+            <id>snapshot</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+    </repositories>
+
     <build>
         <plugins>
             <plugin>
