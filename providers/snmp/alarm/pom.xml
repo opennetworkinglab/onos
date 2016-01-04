@@ -53,14 +53,12 @@
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
-            <version>5.0.0</version>
             <type>jar</type>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
 
@@ -74,7 +72,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
-            <version>${project.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
@@ -82,7 +79,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
-            <version>${project.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
@@ -90,19 +86,16 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
-            <version>1.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-library</artifactId>
-            <version>1.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -114,41 +107,7 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <filters>
-                        <filter>
-                            <artifact>com.btisystems:snmp-core</artifact>
-                            <excludes>
-                                <exclude>**</exclude>
-                            </excludes>
-                        </filter>
-                        <filter>
-                            <artifact>com.btisystems.mibbler.mibs:bti7000</artifact>
-                            <excludes>
-                                <exclude>**</exclude>
-                            </excludes>
-                        </filter>
-                        <filter>
-                            <artifact>com.btisystems.mibbler.mibs:net-snmp</artifact>
-                            <excludes>
-                                <exclude>**</exclude>
-                            </excludes>
-                        </filter>
-                    </filters>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>

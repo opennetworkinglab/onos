@@ -21,6 +21,7 @@
         <bundle>mvn:io.netty/netty/3.9.2.Final</bundle>
         <bundle>mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.snmp4j/2.3.4_1</bundle>
         <bundle>mvn:${project.groupId}/onos-snmp-provider-device/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-snmp-provider-alarm/${project.version}</bundle>
         <bundle>mvn:com.btisystems/snmp-core/1.3-SNAPSHOT</bundle>
         <bundle>mvn:com.btisystems.mibbler.mibs/bti7000/1.0-SNAPSHOT</bundle>
         <bundle>mvn:com.btisystems.mibbler.mibs/net-snmp/1.0-SNAPSHOT</bundle>

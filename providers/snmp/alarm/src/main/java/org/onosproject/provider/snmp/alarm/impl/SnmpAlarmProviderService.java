@@ -50,6 +50,7 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import static org.onlab.util.Tools.groupedThreads;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -64,9 +65,12 @@ import org.onosproject.net.device.DeviceService;
  * SNMP alarms provider.
  */
 @Component(immediate = true)
+@Service
 public class SnmpAlarmProviderService extends AbstractProvider implements AlarmProvider {
 
     private final Logger log = getLogger(getClass());
+
+    private final InternalDeviceListener internalDeviceListener = new InternalDeviceListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -88,6 +92,7 @@ public class SnmpAlarmProviderService extends AbstractProvider implements AlarmP
 
     public SnmpAlarmProviderService() {
         super(new ProviderId("snmp", "org.onosproject.provider.alarm"));
+        log.info("SnmpAlarmProviderService ...");
         sessionFactory = new SnmpSessionFactory(
                 new DefaultSnmpConfigurationFactory(new V2cSnmpConfiguration()));
         providers.put("1.3.6.1.4.1.18070.2.2", new Bti7000SnmpAlarmProvider());
@@ -99,7 +104,7 @@ public class SnmpAlarmProviderService extends AbstractProvider implements AlarmP
         appId = coreService.registerApplication("org.onosproject.snmp");
         eventHandlingExecutor = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/alarms", "event-handler"));
-        deviceService.addListener(new InternalDeviceListener());
+        deviceService.addListener(internalDeviceListener);
         log.info("activated SNMP provider with appId = {} and context props {}", appId, context.getProperties());
         modified(context);
 
@@ -109,6 +114,7 @@ public class SnmpAlarmProviderService extends AbstractProvider implements AlarmP
     @Deactivate
     public void deactivate() {
         log.info("deactivate SNMP provider {}", appId);
+        deviceService.removeListener(internalDeviceListener);
     }
 
     @Modified
