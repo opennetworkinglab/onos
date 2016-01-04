@@ -63,6 +63,7 @@
         <module>pathpainter</module>
         <module>drivermatrix</module>
         <module>cpman</module>
+        <module>events</module>
   </modules>
 
     <properties>
@@ -107,3 +108,4 @@
     </build>
 
 </project>
+
