@@ -545,6 +545,7 @@ public class NewDistributedFlowRuleStore
             stored.setBytes(rule.bytes());
             stored.setLife(rule.life());
             stored.setPackets(rule.packets());
+            stored.setLastSeen();
             if (stored.state() == FlowEntryState.PENDING_ADD) {
                 stored.setState(FlowEntryState.ADDED);
                 return new FlowRuleEvent(Type.RULE_ADDED, rule);
