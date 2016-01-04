@@ -242,7 +242,9 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
         cfgRegistry.addListener(cfgListener);
         factories.forEach(cfgRegistry::registerConfigFactory);
 
-        SuppressionConfig cfg = cfgRegistry.getConfig(appId, SuppressionConfig.class);
+        SuppressionConfig cfg =
+                Tools.retryable(() -> cfgRegistry.getConfig(appId, SuppressionConfig.class),
+                                ConsistentMapException.class, MAX_RETRIES, RETRY_DELAY).get();
         if (cfg == null) {
             // If no configuration is found, register default.
             cfg = Tools.retryable(this::setDefaultSuppressionConfig,

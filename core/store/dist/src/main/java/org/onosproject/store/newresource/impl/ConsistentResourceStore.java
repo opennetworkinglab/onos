@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Tools;
 import org.onosproject.net.newresource.ResourceConsumer;
 import org.onosproject.net.newresource.ResourceEvent;
 import org.onosproject.net.newresource.ResourcePath;
@@ -30,6 +31,7 @@ import org.onosproject.net.newresource.ResourceStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContext;
@@ -68,6 +70,10 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     private static final Serializer SERIALIZER = Serializer.using(
             Arrays.asList(KryoNamespaces.BASIC, KryoNamespaces.API));
 
+    // TODO: We should provide centralized values for this
+    private static final int MAX_RETRIES = 5;
+    private static final int RETRY_DELAY = 1_000; // millis
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService service;
 
@@ -85,7 +91,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 .withSerializer(SERIALIZER)
                 .build();
 
-        childMap.put(ResourcePath.ROOT, ImmutableList.of());
+        Tools.retryable(() -> childMap.put(ResourcePath.ROOT, ImmutableList.of()),
+                        ConsistentMapException.class, MAX_RETRIES, RETRY_DELAY);
         log.info("Started");
     }
 
