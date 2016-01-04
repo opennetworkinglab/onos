@@ -350,12 +350,8 @@ public class AaaManager {
 
                     break;
                 case EAPOL.EAPOL_LOGOFF:
-                    if (stateMachine.state() == stateMachine.STATE_AUTHORIZED) {
-                        try {
-                            stateMachine.logoff();
-                        } catch (StateMachineException e) {
-                            e.printStackTrace();
-                        }
+                    if (stateMachine.state() == StateMachine.STATE_AUTHORIZED) {
+                        stateMachine.logoff();
                     }
 
                     break;
