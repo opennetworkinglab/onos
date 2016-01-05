@@ -218,7 +218,8 @@ public class EventsCommand
 
         } else if (event instanceof TopologyEvent) {
             TopologyEvent topoEvent = (TopologyEvent) event;
-            List<Event> reasons = MoreObjects.firstNonNull(topoEvent.reasons(), ImmutableList.of());
+            List<Event> reasons = MoreObjects.firstNonNull(topoEvent.reasons(),
+                                                           ImmutableList.<Event>of());
             Topology topo = topoEvent.subject();
             String summary = String.format("(d=%d,l=%d,c=%d)",
                                            topo.deviceCount(),
