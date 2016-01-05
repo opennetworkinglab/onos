@@ -156,13 +156,13 @@ public class LldpLinkProvider extends AbstractProvider implements LinkProvider {
     private boolean useBddp = true;
 
     private static final String PROP_PROBE_RATE = "probeRate";
-    private static final int DEFAULT_PROBE_RATE = 3_000;
+    private static final int DEFAULT_PROBE_RATE = 3000;
     @Property(name = PROP_PROBE_RATE, intValue = DEFAULT_PROBE_RATE,
             label = "LLDP and BDDP probe rate specified in millis")
     private int probeRate = DEFAULT_PROBE_RATE;
 
     private static final String PROP_STALE_LINK_AGE = "staleLinkAge";
-    private static final int DEFAULT_STALE_LINK_AGE = 10_000;
+    private static final int DEFAULT_STALE_LINK_AGE = 10000;
     @Property(name = PROP_STALE_LINK_AGE, intValue = DEFAULT_STALE_LINK_AGE,
             label = "Number of millis beyond which links will be considered stale")
     private int staleLinkAge = DEFAULT_STALE_LINK_AGE;
