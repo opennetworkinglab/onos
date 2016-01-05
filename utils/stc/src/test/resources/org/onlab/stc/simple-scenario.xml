@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<scenario name="foo" description="Simple Test Scenario" logDir="/tmp/junit-stc/foo">
+<scenario name="foo" description="Simple Test Scenario" logDir="${test.dir}/junit-stc/foo">
     <group name="alpha" exec="same-command args">
         <step name="one" exec="asdads"/>
         <step name="two" exec="asdads"/>

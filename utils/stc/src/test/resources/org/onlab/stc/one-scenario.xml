@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<scenario name="one" description="" logDir="/tmp/junit-stc/one">
+<scenario name="one" description="" logDir="${test.dir}/junit-stc/one">
     <step name="yolo" exec="some-command args"/>
     <step name="hello" exec="some-command other args" requires="yolo"/>
 </scenario>
