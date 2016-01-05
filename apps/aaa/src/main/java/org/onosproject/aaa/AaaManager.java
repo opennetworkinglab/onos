@@ -166,6 +166,19 @@ public class AaaManager {
         return eth;
     }
 
+    private void initializeLocalState() {
+        try {
+            radiusSocket = new DatagramSocket(radiusServerPort);
+        } catch (Exception ex) {
+            log.error("Can't open RADIUS socket", ex);
+        }
+
+        executor = Executors.newSingleThreadExecutor(
+                new ThreadFactoryBuilder()
+                        .setNameFormat("AAA-radius-%d").build());
+        executor.execute(radiusListener);
+    }
+
     @Activate
     public void activate() {
         netCfgService.addListener(cfgListener);
@@ -182,16 +195,7 @@ public class AaaManager {
 
         StateMachine.initializeMaps();
 
-        try {
-            radiusSocket = new DatagramSocket(radiusServerPort);
-        } catch (Exception ex) {
-            log.error("Can't open RADIUS socket", ex);
-        }
-
-        executor = Executors.newSingleThreadExecutor(
-                new ThreadFactoryBuilder()
-                        .setNameFormat("AAA-radius-%d").build());
-        executor.execute(radiusListener);
+        initializeLocalState();
         log.info("Started");
     }
 
@@ -568,6 +572,9 @@ public class AaaManager {
 
                 AaaConfig cfg = netCfgService.getConfig(appId, AaaConfig.class);
                 reconfigureNetwork(cfg);
+                radiusSocket.close();
+                executor.shutdownNow();
+                initializeLocalState();
                 log.info("Reconfigured");
             }
         }
