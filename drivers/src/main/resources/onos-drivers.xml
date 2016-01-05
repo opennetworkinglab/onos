@@ -52,6 +52,12 @@
                    impl="org.onosproject.driver.handshaker.NiciraSwitchHandshaker"/>
         <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
                    impl="org.onosproject.driver.netconf.NetconfControllerConfig"/>
+        <behaviour api="org.onosproject.net.behaviour.ConfigGetter"
+                   impl="org.onosproject.driver.netconf.NetconfConfigGetter"/>
+    </driver>
+    <driver name="netconf" extends="default">
+        <behaviour api="org.onosproject.net.behaviour.ConfigGetter"
+                   impl="org.onosproject.driver.netconf.NetconfConfigGetter"/>
     </driver>
     <driver name="ovs-corsa" extends="ovs"
             manufacturer="Corsa" hwVersion="emulation" swVersion="0.0.0">
