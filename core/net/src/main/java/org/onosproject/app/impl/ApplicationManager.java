@@ -15,7 +15,10 @@
  */
 package org.onosproject.app.impl;
 
-import com.google.common.collect.Maps;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -38,12 +41,14 @@ import org.onosproject.security.Permission;
 import org.onosproject.security.SecurityUtil;
 import org.slf4j.Logger;
 
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.app.ApplicationEvent.Type.*;
+import static org.onlab.util.SonarSuppressionConstants.SONAR_CALL_RUN;
+import static org.onosproject.app.ApplicationEvent.Type.APP_ACTIVATED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_DEACTIVATED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_INSTALLED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_UNINSTALLED;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.APP_READ;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -276,7 +281,7 @@ public class ApplicationManager
     }
 
     // Invokes the specified function, if not null.
-    @java.lang.SuppressWarnings("squid:S1217") // We really do mean to call run()
+    @java.lang.SuppressWarnings(SONAR_CALL_RUN) // We really do mean to call run()
     private void invokeHook(Runnable hook, ApplicationId appId) {
         if (hook != null) {
             try {

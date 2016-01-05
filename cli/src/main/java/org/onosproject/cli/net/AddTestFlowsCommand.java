@@ -16,11 +16,10 @@
  */
 package org.onosproject.cli.net;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Stopwatch;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -41,9 +40,13 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
-import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
+
+import static org.onlab.util.SonarSuppressionConstants.SONAR_PRINT_STACK_TRACE;
 
 /**
  * Installs bulk flows.
@@ -63,7 +66,7 @@ public class AddTestFlowsCommand extends AbstractShellCommand {
     String numOfRuns = null;
 
     @Override
-    @java.lang.SuppressWarnings("squid:S1148")
+    @java.lang.SuppressWarnings(SONAR_PRINT_STACK_TRACE)
     protected void execute() {
         FlowRuleService flowService = get(FlowRuleService.class);
         DeviceService deviceService = get(DeviceService.class);

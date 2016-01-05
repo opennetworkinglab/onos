@@ -15,8 +15,6 @@
  */
 package org.onlab.util;
 
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -25,6 +23,10 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.slf4j.LoggerFactory;
+
+import static org.onlab.util.SonarSuppressionConstants.SONAR_CALL_RUN;
 
 /**
  * Implementation of ThreadPoolExecutor that bounds the work queue.
@@ -137,7 +139,7 @@ public final class BoundedThreadPool extends ThreadPoolExecutor {
      * Feedback policy that delays the caller's thread until the executor's work
      * queue falls below a threshold, then runs the job on the caller's thread.
      */
-    @java.lang.SuppressWarnings("squid:S1217") // We really do mean to call run()
+    @java.lang.SuppressWarnings(SONAR_CALL_RUN) // We really do mean to call run()
     private static final class CallerFeedbackPolicy implements RejectedExecutionHandler {
 
         private final BlockingBoolean underLoad = new BlockingBoolean(false);

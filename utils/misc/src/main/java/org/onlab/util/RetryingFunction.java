@@ -19,6 +19,8 @@ import java.util.function.Function;
 
 import com.google.common.base.Throwables;
 
+import static org.onlab.util.SonarSuppressionConstants.SONAR_CATCH_THROWABLE;
+
 /**
  * Function that retries execution on failure.
  *
@@ -42,7 +44,7 @@ public class RetryingFunction<U, V> implements Function<U, V> {
         this.maxDelayBetweenRetries = maxDelayBetweenRetries;
     }
 
-    @SuppressWarnings("squid:S1181")
+    @SuppressWarnings(SONAR_CATCH_THROWABLE)
     // Yes we really do want to catch Throwable
     @Override
     public V apply(U input) {
