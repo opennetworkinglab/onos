@@ -15,9 +15,12 @@
  */
 package org.onlab.stc;
 
-import com.google.common.io.Files;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.onlab.util.Tools;
+
+import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,10 +38,12 @@ import static org.onlab.stc.Scenario.loadScenario;
  */
 public class CompilerTest {
 
-    static final File TEST_DIR = Files.createTempDir();
+
+    private static File testDir;
 
     @BeforeClass
     public static void setUpClass() throws IOException {
+        testDir = Files.createTempDir();
         stageTestResource("scenario.xml");
         stageTestResource("simple-scenario.xml");
         stageTestResource("one-scenario.xml");
@@ -49,16 +54,21 @@ public class CompilerTest {
         System.setProperty("TOC1", "1.2.3.1");
         System.setProperty("TOC2", "1.2.3.2");
         System.setProperty("TOC3", "1.2.3.3");
-        System.setProperty("test.dir", TEST_DIR.getAbsolutePath());
+        System.setProperty("test.dir", testDir.getAbsolutePath());
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws IOException {
+        Tools.removeDirectory(testDir.getPath());
     }
 
     static FileInputStream getStream(String name) throws FileNotFoundException {
-        return new FileInputStream(new File(TEST_DIR, name));
+        return new FileInputStream(new File(testDir, name));
     }
 
     static void stageTestResource(String name) throws IOException {
         byte[] bytes = toByteArray(CompilerTest.class.getResourceAsStream(name));
-        write(bytes, new File(TEST_DIR, name));
+        write(bytes, new File(testDir, name));
     }
 
     @Test
@@ -72,7 +82,7 @@ public class CompilerTest {
         assertEquals("incorrect step count", 33, flow.getVertexes().size());
         assertEquals("incorrect dependency count", 26, flow.getEdges().size());
         assertEquals("incorrect logDir",
-                     new File(TEST_DIR.getAbsolutePath(), "foo"), compiler.logDir());
+                     new File(testDir.getAbsolutePath(), "foo"), compiler.logDir());
 
         Step step = compiler.getStep("there");
         assertEquals("incorrect edge count", 2, flow.getEdgesFrom(step).size());

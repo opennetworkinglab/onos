@@ -17,9 +17,10 @@
 package org.onosproject.cfg.impl;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.Files;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.slf4j.Logger;
 
@@ -38,7 +39,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class ComponentConfigLoaderTest {
 
-    static final File TEST_DIR = Files.createTempDir();
+    @ClassRule
+    public static TemporaryFolder testFolder = new TemporaryFolder();
 
     private static final String FOO_COMPONENT = "fooComponent";
 
@@ -53,8 +55,8 @@ public class ComponentConfigLoaderTest {
      * and assign it to the loader.configService for the test.
      */
     @Before
-    public void setUp() {
-        ComponentConfigLoader.cfgFile = new File(TEST_DIR, "test.json");
+    public void setUp() throws IOException {
+        ComponentConfigLoader.cfgFile = new File(testFolder.newFolder(), "test.json");
         loader = new ComponentConfigLoader();
         service = new TestConfigService();
         loader.configService = service;

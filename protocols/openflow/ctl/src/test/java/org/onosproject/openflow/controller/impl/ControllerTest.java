@@ -23,7 +23,9 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.onlab.junit.TestTools;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.DeviceId;
@@ -35,8 +37,6 @@ import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
 import org.projectfloodlight.openflow.protocol.OFDescStatsReply;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.io.Files;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.google.common.io.Files.write;
@@ -53,16 +53,17 @@ import static org.hamcrest.Matchers.nullValue;
  */
 public class ControllerTest {
 
+    @ClassRule
+    public static TemporaryFolder testFolder = new TemporaryFolder();
+
     Controller controller;
     protected static final Logger log = LoggerFactory.getLogger(ControllerTest.class);
-
-    static final File TEST_DIR = Files.createTempDir();
 
     /*
      * Writes the necessary file for the tests in the temporary directory
      */
-    static File stageTestResource(String name) throws IOException {
-        File file = new File(TEST_DIR, name);
+    private static File stageTestResource(String name) throws IOException {
+        File file = new File(testFolder.newFolder(), name);
         byte[] bytes = toByteArray(ControllerTest.class.getResourceAsStream(name));
         write(bytes, file);
         return file;

@@ -15,15 +15,11 @@
  */
 package org.onlab.stc;
 
-import com.google.common.io.Files;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.onlab.util.Tools;
-
+import org.junit.rules.TemporaryFolder;
 import java.io.File;
-import java.io.IOException;
-
 import static com.google.common.base.Preconditions.checkState;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -34,24 +30,23 @@ import static org.onlab.stc.Coordinator.Status.SUCCEEDED;
  */
 public class StepProcessorTest {
 
-    static final File DIR = Files.createTempDir();
+    @ClassRule
+    public static TemporaryFolder testFolder = new TemporaryFolder();
+
+    private static File dir;
     private final Listener delegate = new Listener();
 
     @BeforeClass
     public static void setUpClass() {
+        dir = testFolder.getRoot();
         StepProcessor.launcher = "echo";
-        checkState(DIR.exists() || DIR.mkdirs(), "Unable to create directory");
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws IOException {
-        Tools.removeDirectory(DIR.getPath());
+        checkState(dir.exists() || dir.mkdirs(), "Unable to create directory");
     }
 
     @Test
     public void basics() {
-        Step step = new Step("foo", "ls " + DIR.getAbsolutePath(), null, null, null, 0);
-        StepProcessor processor = new StepProcessor(step, DIR, delegate, step.command());
+        Step step = new Step("foo", "ls " + dir.getAbsolutePath(), null, null, null, 0);
+        StepProcessor processor = new StepProcessor(step, dir, delegate, step.command());
         processor.run();
         assertTrue("should be started", delegate.started);
         assertTrue("should be stopped", delegate.stopped);

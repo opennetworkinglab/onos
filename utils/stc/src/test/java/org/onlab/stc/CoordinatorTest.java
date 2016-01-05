@@ -15,6 +15,7 @@
  */
 package org.onlab.stc;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.util.Tools;
@@ -36,9 +37,13 @@ public class CoordinatorTest {
     @BeforeClass
     public static void setUpClass() throws IOException {
         CompilerTest.setUpClass();
-        Tools.removeDirectory(StepProcessorTest.DIR);
 
         StepProcessor.launcher = "true ";
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws IOException {
+        CompilerTest.tearDownClass();
     }
 
     @Test
