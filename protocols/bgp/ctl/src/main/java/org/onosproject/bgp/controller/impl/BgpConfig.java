@@ -67,7 +67,6 @@ public class BgpConfig implements BgpCfg {
         this.holdTime = DEFAULT_HOLD_TIMER;
         this.maxConnRetryTime = DEFAULT_CONN_RETRY_TIME;
         this.maxConnRetryCount = DEFAULT_CONN_RETRY_COUNT;
-        this.lsCapability = true;
     }
 
     @Override
@@ -223,8 +222,9 @@ public class BgpConfig implements BgpCfg {
             if (disconnPeer != null) {
                 // TODO: send notification peer deconfigured
                 disconnPeer.disconnectPeer();
+            } else {
+                lspeer.connectPeer().disconnectPeer();
             }
-            lspeer.connectPeer().disconnectPeer();
             lspeer.setState(BgpPeerCfg.State.IDLE);
             lspeer.setSelfInnitConnection(false);
             log.debug("Disconnected : " + routerid + " successfully");

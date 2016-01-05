@@ -110,15 +110,9 @@ public class BgpControllerImplTest {
 
     @Test
     public void bgpOpenMessageTest1() throws InterruptedException {
-        short afi = 16388;
-        byte res = 0;
-        byte safi = 71;
         peer1.peerChannelHandler.asNumber = 200;
         peer1.peerChannelHandler.version = 4;
         peer1.peerChannelHandler.holdTime = 120;
-        bgpControllerImpl.getConfig().setLsCapability(true);
-        BgpValueType tempTlv1 = new MultiProtocolExtnCapabilityTlv(afi, res, safi);
-        peer1.peerChannelHandler.capabilityTlv.add(tempTlv1);
         peer1.connect(connectToSocket);
         boolean result;
         result = peer1.peerFrameDecoder.receivedOpenMessageLatch.await(
@@ -134,26 +128,16 @@ public class BgpControllerImplTest {
     @Test
     public void bgpOpenMessageTest2() throws InterruptedException {
         // Open message with as number which is not configured at peer
-        short afi = 16388;
-        byte res = 0;
-        byte safi = 71;
         peer1.peerChannelHandler.asNumber = 500;
         peer1.peerChannelHandler.version = 4;
         peer1.peerChannelHandler.holdTime = 120;
-        bgpControllerImpl.getConfig().setLsCapability(true);
-        BgpValueType tempTlv1 = new MultiProtocolExtnCapabilityTlv(afi, res, safi);
-        peer1.peerChannelHandler.capabilityTlv.add(tempTlv1);
         peer1.connect(connectToSocket);
 
         boolean result;
-        result = peer1.peerFrameDecoder.receivedOpenMessageLatch.await(MESSAGE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        assertThat(result, is(true));
-        result = peer1.peerFrameDecoder.receivedKeepaliveMessageLatch.await(MESSAGE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        assertThat(result, is(true));
         result = peer1.peerFrameDecoder.receivedNotificationMessageLatch.await(
             MESSAGE_TIMEOUT_MS,
             TimeUnit.MILLISECONDS);
-        assertThat(result, is(false));
+        assertThat(result, is(true));
     }
 
     @Test
@@ -217,9 +201,6 @@ public class BgpControllerImplTest {
     @Test
     public void bgpOpenMessageTest6() throws InterruptedException {
         // Open message with as4 capability
-        short afi = 16388;
-        byte res = 0;
-        byte safi = 71;
         peer1.peerChannelHandler.asNumber = 200;
         peer1.peerChannelHandler.version = 4;
         peer1.peerChannelHandler.holdTime = 120;
@@ -227,9 +208,6 @@ public class BgpControllerImplTest {
         bgpControllerImpl.getConfig().setLargeASCapability(true);
         BgpValueType tempTlv = new FourOctetAsNumCapabilityTlv(200);
         peer1.peerChannelHandler.capabilityTlv.add(tempTlv);
-        bgpControllerImpl.getConfig().setLsCapability(true);
-        BgpValueType tempTlv1 = new MultiProtocolExtnCapabilityTlv(afi, res, safi);
-        peer1.peerChannelHandler.capabilityTlv.add(tempTlv1);
         peer1.connect(connectToSocket);
 
         boolean result;

@@ -383,10 +383,24 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
             throw new IOException("Invalid peer connection.");
         }
 
+        // Connection should establish only if local ip and Autonomous system number is configured.
+        if (bgpconfig.getState() != BgpCfg.State.IP_AS_CONFIGURED) {
+            sendNotification(BgpErrorType.CEASE, BgpErrorType.CONNECTION_REJECTED, null);
+            channel.close();
+            log.info("BGP local AS and router ID not configured");
+            return;
+        }
 
         inetAddress = (InetSocketAddress) address;
         peerAddr = IpAddress.valueOf(inetAddress.getAddress()).toString();
 
+        // if peer is not configured disconnect session
+        if (!bgpconfig.isPeerConfigured(peerAddr)) {
+            log.debug("Peer is not configured {}", peerAddr);
+            sendNotification(BgpErrorType.CEASE, BgpErrorType.CONNECTION_REJECTED, null);
+            channel.close();
+            return;
+        }
 
         // if connection is already established close channel
         if (peerManager.isPeerConnected(BgpId.bgpId(IpAddress.valueOf(peerAddr)))) {
@@ -647,10 +661,8 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
     private void sendHandshakeOpenMessage() throws IOException, BgpParseException {
         int bgpId;
 
-        InetSocketAddress localAddress = (InetSocketAddress) channel.getLocalAddress();
-
-        bgpId = Ip4Address.valueOf(IpAddress.valueOf(localAddress.getAddress()).toString()).toInt();
-        BgpMessage msg = factory4.openMessageBuilder().setAsNumber((short) peerAsNum)
+        bgpId = Ip4Address.valueOf(bgpconfig.getRouterId()).toInt();
+        BgpMessage msg = factory4.openMessageBuilder().setAsNumber((short) bgpconfig.getAsNumber())
                 .setHoldTime(bgpconfig.getHoldTime()).setBgpId(bgpId).setLsCapabilityTlv(bgpconfig.getLsCapability())
                 .setLargeAsCapabilityTlv(bgpconfig.getLargeASCapability()).build();
         log.debug("Sending open message to {}", channel.getRemoteAddress());
@@ -721,6 +733,11 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
             throw new BgpParseException(BgpErrorType.OPEN_MESSAGE_ERROR, BgpErrorType.BAD_BGP_IDENTIFIER, null);
         }
 
+        // Validate AS number
+        result = asNumberValidation(h, openMsg);
+        if (!result) {
+            throw new BgpParseException(BgpErrorType.OPEN_MESSAGE_ERROR, BgpErrorType.BAD_PEER_AS, null);
+        }
 
         // Validate hold timer
         if ((openMsg.getHoldTime() != 0) && (openMsg.getHoldTime() < BGP_MIN_HOLDTIME)) {
