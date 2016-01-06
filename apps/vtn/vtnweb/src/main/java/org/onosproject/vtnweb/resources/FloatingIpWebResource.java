@@ -70,6 +70,7 @@ public class FloatingIpWebResource extends AbstractWebResource {
             .getLogger(FloatingIpWebResource.class);
     public static final String CREATE_FAIL = "Floating IP is failed to create!";
     public static final String UPDATE_FAIL = "Floating IP is failed to update!";
+    public static final String DELETE_FAIL = "Floating IP is failed to delete!";
     public static final String GET_FAIL = "Floating IP is failed to get!";
     public static final String NOT_EXIST = "Floating IP does not exist!";
     public static final String DELETE_SUCCESS = "Floating IP delete success!";
@@ -157,7 +158,11 @@ public class FloatingIpWebResource extends AbstractWebResource {
         try {
             FloatingIpId floatingIpId = FloatingIpId.of(id);
             Set<FloatingIpId> floatingIpIds = Sets.newHashSet(floatingIpId);
-            get(FloatingIpService.class).removeFloatingIps(floatingIpIds);
+            Boolean result = nullIsNotFound(get(FloatingIpService.class)
+                    .removeFloatingIps(floatingIpIds), DELETE_FAIL);
+            if (!result) {
+                return Response.status(CONFLICT).entity(DELETE_FAIL).build();
+            }
             return Response.status(NO_CONTENT).entity(DELETE_SUCCESS).build();
         } catch (Exception e) {
             return Response.status(NOT_FOUND).entity(e.getMessage()).build();

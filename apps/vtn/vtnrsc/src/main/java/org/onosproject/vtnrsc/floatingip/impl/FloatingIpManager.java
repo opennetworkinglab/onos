@@ -176,23 +176,11 @@ public class FloatingIpManager implements FloatingIpService {
         boolean result = true;
         for (FloatingIp floatingIp : floatingIps) {
             verifyFloatingIpData(floatingIp);
-            if (floatingIp.portId() != null) {
-                floatingIpStore.put(floatingIp.id(), floatingIp);
-                if (!floatingIpStore.containsKey(floatingIp.id())) {
-                    log.debug("The floating Ip is created failed whose identifier is {}",
-                              floatingIp.id().toString());
-                    result = false;
-                }
-            } else {
-                FloatingIp oldFloatingIp = floatingIpStore.get(floatingIp.id());
-                if (oldFloatingIp != null) {
-                    floatingIpStore.remove(floatingIp.id(), oldFloatingIp);
-                    if (floatingIpStore.containsKey(floatingIp.id())) {
-                        log.debug("The floating Ip is created failed whose identifier is {}",
-                                  floatingIp.id().toString());
-                        result = false;
-                    }
-                }
+            floatingIpStore.put(floatingIp.id(), floatingIp);
+            if (!floatingIpStore.containsKey(floatingIp.id())) {
+                log.debug("The floating Ip is created failed whose identifier is {}",
+                          floatingIp.id().toString());
+                result = false;
             }
         }
         return result;
@@ -204,23 +192,11 @@ public class FloatingIpManager implements FloatingIpService {
         boolean result = true;
         for (FloatingIp floatingIp : floatingIps) {
             verifyFloatingIpData(floatingIp);
-            if (floatingIp.portId() != null) {
-                floatingIpStore.put(floatingIp.id(), floatingIp);
-                if (!floatingIpStore.containsKey(floatingIp.id())) {
-                    log.debug("The floating Ip is updated failed whose identifier is {}",
-                              floatingIp.id().toString());
-                    result = false;
-                }
-            } else {
-                FloatingIp oldFloatingIp = floatingIpStore.get(floatingIp.id());
-                if (oldFloatingIp != null) {
-                    floatingIpStore.remove(floatingIp.id(), oldFloatingIp);
-                    if (floatingIpStore.containsKey(floatingIp.id())) {
-                        log.debug("The floating Ip is updated failed whose identifier is {}",
-                                  floatingIp.id().toString());
-                        result = false;
-                    }
-                }
+            floatingIpStore.put(floatingIp.id(), floatingIp);
+            if (!floatingIpStore.containsKey(floatingIp.id())) {
+                log.debug("The floating Ip is updated failed whose identifier is {}",
+                          floatingIp.id().toString());
+                result = false;
             }
         }
         return result;
@@ -238,6 +214,11 @@ public class FloatingIpManager implements FloatingIpService {
                                                    "FloatingIP ID doesn't exist");
             }
             FloatingIp floatingIp = floatingIpStore.get(floatingIpId);
+            if (floatingIp.portId() != null) {
+                log.debug("The floating Ip is uesd by the port whose identifier is {}",
+                          floatingIp.portId().toString());
+                return false;
+            }
             floatingIpStore.remove(floatingIpId, floatingIp);
             if (floatingIpStore.containsKey(floatingIpId)) {
                 log.debug("The floating Ip is deleted failed whose identifier is {}",

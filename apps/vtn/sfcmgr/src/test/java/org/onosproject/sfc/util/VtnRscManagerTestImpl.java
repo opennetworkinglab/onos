@@ -20,6 +20,7 @@ import java.util.Iterator;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.vtnrsc.SegmentationId;
 import org.onosproject.vtnrsc.TenantId;
@@ -68,5 +69,15 @@ public class VtnRscManagerTestImpl implements VtnRscService {
     @Override
     public DeviceId getSFToSFFMaping(VirtualPortId portId) {
         return DeviceId.deviceId("www.google.com");
+    }
+
+    @Override
+    public void addDeviceIdOfOvsMap(VirtualPortId virtualPortId,
+                                    TenantId tenantId, DeviceId deviceId) {
+    }
+
+    @Override
+    public void removeDeviceIdOfOvsMap(Host host, TenantId tenantId,
+                                       DeviceId deviceId) {
     }
 }

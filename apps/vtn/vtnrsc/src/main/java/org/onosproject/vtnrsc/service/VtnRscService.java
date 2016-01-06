@@ -21,6 +21,7 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.vtnrsc.SegmentationId;
 import org.onosproject.vtnrsc.TenantId;
@@ -79,4 +80,24 @@ public interface VtnRscService extends ListenerService<VtnRscEvent, VtnRscListen
      * @return device identifier
      */
     DeviceId getSFToSFFMaping(VirtualPortId portId);
+
+    /**
+     * Adds specify Device identifier to Service Function Forward OvsMap
+     * or Classifier OvsMap.
+     *
+     * @param virtualPortId the VirtualPort identifier
+     * @param tenantId the tenant identifier
+     * @param deviceId the device identifier
+     */
+    void addDeviceIdOfOvsMap(VirtualPortId virtualPortId, TenantId tenantId, DeviceId deviceId);
+
+    /**
+     * Removes specify Device identifier from Service Function Forward OvsMap
+     * or Classifier OvsMap.
+     *
+     * @param host Host
+     * @param tenantId the tenant identifier
+     * @param deviceId the device identifier
+     */
+    void removeDeviceIdOfOvsMap(Host host, TenantId tenantId, DeviceId deviceId);
 }
