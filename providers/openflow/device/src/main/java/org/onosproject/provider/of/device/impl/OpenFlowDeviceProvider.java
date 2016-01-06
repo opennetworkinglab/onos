@@ -534,24 +534,24 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             PortNumber portNo = PortNumber.portNumber(port.getPortNo().getPortNumber());
             boolean enabled = !port.getState().contains(OFPortState.LINK_DOWN) &&
                               !port.getConfig().contains(OFPortConfig.PORT_DOWN);
-            Long portSpeed = portSpeed(port);
+            Long portSpeedInMbps = portSpeed(port);
             OduCltPort.SignalType sigType = null;
 
-            switch (portSpeed.toString()) {
-                case "1":
+            switch (portSpeedInMbps.toString()) {
+                case "1000":
                     sigType = OduCltPort.SignalType.CLT_1GBE;
                     break;
-                case "10":
+                case "10000":
                     sigType = OduCltPort.SignalType.CLT_10GBE;
                     break;
-                case "40":
+                case "40000":
                     sigType = OduCltPort.SignalType.CLT_40GBE;
                     break;
-                case "100":
+                case "100000":
                     sigType = OduCltPort.SignalType.CLT_100GBE;
                     break;
                 default:
-                    throw new RuntimeException("Un recognize OduClt speed: " + portSpeed.toString());
+                    throw new RuntimeException("Un recognize OduClt speed: " + portSpeedInMbps.toString());
             }
 
             SparseAnnotations annotations = buildOduCltAnnotation(port);
