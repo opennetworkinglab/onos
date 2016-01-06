@@ -51,6 +51,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class MetersWebResource extends AbstractWebResource {
     private final Logger log = getLogger(getClass());
     public static final String DEVICE_INVALID = "Invalid deviceId in meter creation request";
+    public static final String METER_NOT_FOUND = "Meter is not found for ";
 
     final MeterService meterService = get(MeterService.class);
     final ObjectNode root = mapper().createObjectNode();
@@ -107,7 +108,7 @@ public class MetersWebResource extends AbstractWebResource {
         MeterId mid = MeterId.meterId(Long.valueOf(meterId));
 
         final Meter meter = nullIsNotFound(meterService.getMeter(did, mid),
-                "Meter is not found for " + mid.id());
+                METER_NOT_FOUND + mid.id());
 
         metersNode.add(codec(Meter.class).encode(meter, this));
         return ok(root).build();

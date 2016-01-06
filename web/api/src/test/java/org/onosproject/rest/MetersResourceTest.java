@@ -46,6 +46,7 @@ import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.meter.MeterState;
+import org.onosproject.rest.resources.CoreWebApplication;
 
 import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
@@ -66,6 +67,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onosproject.net.NetTestTools.APP_ID;
@@ -93,6 +95,10 @@ public class MetersResourceTest extends ResourceTest {
     final MockMeter meter3 = new MockMeter(deviceId2, 3, 333, 3);
     final MockMeter meter4 = new MockMeter(deviceId2, 4, 444, 4);
     final MockMeter meter5 = new MockMeter(deviceId3, 5, 555, 5);
+
+    public MetersResourceTest() {
+        super(CoreWebApplication.class);
+    }
 
     /**
      * Mock class for a meter.
@@ -443,6 +449,24 @@ public class MetersResourceTest extends ResourceTest {
         final JsonArray jsonFlows = result.get("meters").asArray();
         assertThat(jsonFlows, notNullValue());
         assertThat(jsonFlows, hasMeter(meter5));
+    }
+
+    /**
+     * Test whether the REST API returns 404 if no entry has been found.
+     */
+    @Test
+    public void testMeterByDeviceIdAndMeterId() {
+        setupMockMeters();
+
+        expect(mockMeterService.getMeter(anyObject(), anyObject()))
+                .andReturn(null).anyTimes();
+        replay(mockMeterService);
+
+        final WebResource rs = resource();
+        final ClientResponse response = rs.path("meters/" + deviceId3.toString()
+                + "/" + "888").get(ClientResponse.class);
+
+        assertEquals(404, response.getStatus());
     }
 
     /**
