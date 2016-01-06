@@ -15,6 +15,7 @@
  */
 package org.onosproject.openflow;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +36,11 @@ public class DriverAdapter implements Driver {
 
     @Override
     public Driver parent() {
+        return null;
+    }
+
+    @Override
+    public List<Driver> parents() {
         return null;
     }
 

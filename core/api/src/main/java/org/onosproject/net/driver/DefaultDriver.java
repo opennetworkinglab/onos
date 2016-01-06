@@ -16,8 +16,11 @@
 package org.onosproject.net.driver;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.slf4j.Logger;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -26,14 +29,17 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableMap.copyOf;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Default implementation of extensible driver.
  */
 public class DefaultDriver implements Driver {
 
+    private final Logger log = getLogger(getClass());
+
     private final String name;
-    private final Driver parent;
+    private final List<Driver> parents;
 
     private final String manufacturer;
     private final String hwVersion;
@@ -53,12 +59,37 @@ public class DefaultDriver implements Driver {
      * @param behaviours   device behaviour classes
      * @param properties   properties for configuration of device behaviour classes
      */
+    @Deprecated
     public DefaultDriver(String name, Driver parent, String manufacturer,
                          String hwVersion, String swVersion,
                          Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours,
                          Map<String, String> properties) {
         this.name = checkNotNull(name, "Name cannot be null");
-        this.parent = parent;
+        this.parents = parent == null ? null : Lists.newArrayList(parent);
+        this.manufacturer = checkNotNull(manufacturer, "Manufacturer cannot be null");
+        this.hwVersion = checkNotNull(hwVersion, "HW version cannot be null");
+        this.swVersion = checkNotNull(swVersion, "SW version cannot be null");
+        this.behaviours = copyOf(checkNotNull(behaviours, "Behaviours cannot be null"));
+        this.properties = copyOf(checkNotNull(properties, "Properties cannot be null"));
+    }
+
+    /**
+     * Creates a driver with the specified name.
+     *
+     * @param name         driver name
+     * @param parents      optional parent drivers
+     * @param manufacturer device manufacturer
+     * @param hwVersion    device hardware version
+     * @param swVersion    device software version
+     * @param behaviours   device behaviour classes
+     * @param properties   properties for configuration of device behaviour classes
+     */
+    public DefaultDriver(String name, List<Driver> parents, String manufacturer,
+                         String hwVersion, String swVersion,
+                         Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours,
+                         Map<String, String> properties) {
+        this.name = checkNotNull(name, "Name cannot be null");
+        this.parents = parents == null || parents.isEmpty() ? null : parents;
         this.manufacturer = checkNotNull(manufacturer, "Manufacturer cannot be null");
         this.hwVersion = checkNotNull(hwVersion, "HW version cannot be null");
         this.swVersion = checkNotNull(swVersion, "SW version cannot be null");
@@ -68,7 +99,7 @@ public class DefaultDriver implements Driver {
 
     @Override
     public Driver merge(Driver other) {
-        checkArgument(parent == null || Objects.equals(parent, other.parent()),
+        checkArgument(parents == null || Objects.equals(parent(), other.parent()),
                       "Parent drivers are not the same");
 
         // Merge the behaviours.
@@ -81,7 +112,8 @@ public class DefaultDriver implements Driver {
         ImmutableMap.Builder<String, String> properties = ImmutableMap.builder();
         properties.putAll(this.properties).putAll(other.properties());
 
-        return new DefaultDriver(name, other.parent(), manufacturer, hwVersion, swVersion,
+        return new DefaultDriver(name, other.parents(),
+                                 manufacturer, hwVersion, swVersion,
                                  ImmutableMap.copyOf(behaviours), properties.build());
     }
 
@@ -107,7 +139,12 @@ public class DefaultDriver implements Driver {
 
     @Override
     public Driver parent() {
-        return parent;
+        return parents == null ? null : parents.get(0);
+    }
+
+    @Override
+    public List<Driver> parents() {
+        return parents;
     }
 
     @Override
@@ -123,7 +160,8 @@ public class DefaultDriver implements Driver {
     @Override
     public boolean hasBehaviour(Class<? extends Behaviour> behaviourClass) {
         return behaviours.containsKey(behaviourClass) ||
-                (parent != null && parent.hasBehaviour(behaviourClass));
+                (parents != null && parents.stream()
+                        .filter(parent -> parent.hasBehaviour(behaviourClass)).count() > 0);
     }
 
     @Override
@@ -132,8 +170,14 @@ public class DefaultDriver implements Driver {
         T behaviour = createBehaviour(data, null, behaviourClass);
         if (behaviour != null) {
             return behaviour;
-        } else if (parent != null) {
-            return parent.createBehaviour(data, behaviourClass);
+        } else if (parents != null) {
+            for (Driver parent : Lists.reverse(parents)) {
+                try {
+                    return parent.createBehaviour(data, behaviourClass);
+                } catch (IllegalArgumentException e) {
+                    log.debug("Parent {} does not support behaviour {}", parent, behaviourClass);
+                }
+            }
         }
         throw new IllegalArgumentException(behaviourClass.getName() + " not supported");
     }
@@ -144,8 +188,14 @@ public class DefaultDriver implements Driver {
         T behaviour = createBehaviour(handler.data(), handler, behaviourClass);
         if (behaviour != null) {
             return behaviour;
-        } else if (parent != null) {
-            return parent.createBehaviour(handler, behaviourClass);
+        } else if (parents != null && !parents.isEmpty()) {
+            for (Driver parent : Lists.reverse(parents)) {
+                try {
+                    return parent.createBehaviour(handler, behaviourClass);
+                } catch (IllegalArgumentException e) {
+                    log.debug("Parent {} does not support behaviour {}", parent, behaviourClass);
+                }
+            }
         }
         throw new IllegalArgumentException(behaviourClass.getName() + " not supported");
     }
@@ -202,7 +252,7 @@ public class DefaultDriver implements Driver {
     public String toString() {
         return toStringHelper(this)
                 .add("name", name)
-                .add("parent", parent)
+                .add("parents", parents)
                 .add("manufacturer", manufacturer)
                 .add("hwVersion", hwVersion)
                 .add("swVersion", swVersion)

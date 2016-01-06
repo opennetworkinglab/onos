@@ -19,6 +19,8 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -30,7 +32,7 @@ public class DefaultDriverHandlerTest {
 
     @Before
     public void setUp() {
-        ddc = new DefaultDriver("foo.bar", null, "Circus", "lux", "1.2a",
+        ddc = new DefaultDriver("foo.bar", new ArrayList<>(), "Circus", "lux", "1.2a",
                                 ImmutableMap.of(TestBehaviour.class,
                                                 TestBehaviourImpl.class,
                                                 TestBehaviourTwo.class,

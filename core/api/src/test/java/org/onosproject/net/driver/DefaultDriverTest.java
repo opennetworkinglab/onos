@@ -18,6 +18,8 @@ package org.onosproject.net.driver;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 
+import java.util.ArrayList;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.driver.DefaultDriverDataTest.DEVICE_ID;
@@ -26,7 +28,7 @@ public class DefaultDriverTest {
 
     @Test
     public void basics() {
-        DefaultDriver ddp = new DefaultDriver("foo.base", null, "Circus", "lux", "1.2a",
+        DefaultDriver ddp = new DefaultDriver("foo.base", new ArrayList<>(), "Circus", "lux", "1.2a",
                                               ImmutableMap.of(TestBehaviour.class,
                                                               TestBehaviourImpl.class,
                                                               TestBehaviourTwo.class,
@@ -62,12 +64,12 @@ public class DefaultDriverTest {
 
     @Test
     public void merge() {
-        DefaultDriver one = new DefaultDriver("foo.bar", null, "Circus", "lux", "1.2a",
+        DefaultDriver one = new DefaultDriver("foo.bar", new ArrayList<>(), "Circus", "lux", "1.2a",
                                               ImmutableMap.of(TestBehaviour.class,
                                                               TestBehaviourImpl.class),
                                               ImmutableMap.of("foo", "bar"));
         Driver ddc =
-                one.merge(new DefaultDriver("foo.bar", null, "", "", "",
+                one.merge(new DefaultDriver("foo.bar", new ArrayList<>(), "", "", "",
                                             ImmutableMap.of(TestBehaviourTwo.class,
                                                             TestBehaviourTwoImpl.class),
                                             ImmutableMap.of("goo", "wee")));

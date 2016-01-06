@@ -46,7 +46,7 @@
                    impl="org.onosproject.driver.query.FullMplsAvailable" />
     </driver>
     <!--This driver is for simulated NETCONF devices through of-config tool on top og OVSDB-->
-    <driver name="ovs-netconf" extends="default"
+    <driver name="ovs-netconf" extends="default,ovs"
             manufacturer="" hwVersion="" swVersion="">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.NiciraSwitchHandshaker"/>

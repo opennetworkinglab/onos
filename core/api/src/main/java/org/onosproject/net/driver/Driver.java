@@ -17,6 +17,7 @@ package org.onosproject.net.driver;
 
 import org.onosproject.net.Annotations;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,7 +41,16 @@ public interface Driver extends Annotations {
      *
      * @return parent driver; null if driver has no parent
      */
+    @Deprecated
     Driver parent();
+
+    /**
+     * Returns all the parent drivers from which this driver inherits behaviours
+     * and properties.
+     *
+     * @return list of parent drivers; null if driver has no parent
+     */
+    List<Driver> parents();
 
     /**
      * Returns the device manufacturer name.

@@ -20,6 +20,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.net.DeviceId;
 
+import java.util.ArrayList;
+
 import static org.junit.Assert.*;
 import static org.onosproject.net.DeviceId.deviceId;
 
@@ -32,7 +34,7 @@ public class DefaultDriverDataTest {
 
     @Before
     public void setUp() {
-        ddc = new DefaultDriver("foo.bar", null, "Circus", "lux", "1.2a",
+        ddc = new DefaultDriver("foo.bar", new ArrayList<>(), "Circus", "lux", "1.2a",
                                 ImmutableMap.of(TestBehaviour.class,
                                                 TestBehaviourImpl.class),
                                 ImmutableMap.of("foo", "bar"));

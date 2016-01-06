@@ -28,6 +28,8 @@ import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.ovsdb.controller.driver.OvsdbClientServiceAdapter;
 import org.onosproject.ovsdb.controller.driver.OvsdbControllerAdapter;
 
+import java.util.ArrayList;
+
 /**
  * Created by Andrea on 10/7/15.
  */
@@ -51,7 +53,7 @@ public class OvsdbControllerConfigTest {
     public void setUp() {
         controllerConfig = new OvsdbControllerConfig();
 
-        ddc = new DefaultDriver("foo.bar", null, "Circus", "lux", "1.2a",
+        ddc = new DefaultDriver("foo.bar", new ArrayList<>(), "Circus", "lux", "1.2a",
                                 ImmutableMap.of(ControllerConfig.class,
                                                 OvsdbControllerConfig.class),
                                 ImmutableMap.of("foo", "bar"));
