@@ -37,5 +37,17 @@
     <command>
       <action class="org.onosproject.routing.cli.PrimaryChangeCommand"/>
     </command>
+    <command>
+      <action class="org.onosproject.routing.cli.AddSpeakerCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.routing.cli.RemoveSpeakerCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.routing.cli.AddPeerCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.routing.cli.RemovePeerCommand"/>
+    </command>
   </command-bundle>
 </blueprint>
