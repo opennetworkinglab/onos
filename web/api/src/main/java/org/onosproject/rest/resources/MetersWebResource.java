@@ -73,10 +73,29 @@ public class MetersWebResource extends AbstractWebResource {
     }
 
     /**
+     * Returns a collection of meters by the device id.
+     *
+     * @param deviceId device identifier
+     * @return array of meters which belongs to specified device
+     * @onos.rsModel Meters
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{deviceId}")
+    public Response getMetersByDeviceId(@PathParam("deviceId") String deviceId) {
+        DeviceId did = DeviceId.deviceId(deviceId);
+        final Iterable<Meter> meters = meterService.getMeters(did);
+        if (meters != null) {
+            meters.forEach(meter -> metersNode.add(codec(Meter.class).encode(meter, this)));
+        }
+        return ok(root).build();
+    }
+
+    /**
      * Returns a meter by the meter id.
      *
      * @param deviceId device identifier
-     * @return array of all the groups in the system
+     * @return a meter, return 404 if no entry has been found
      * @onos.rsModel Meter
      */
     @GET

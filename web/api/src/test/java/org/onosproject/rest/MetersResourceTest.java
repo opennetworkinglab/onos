@@ -393,7 +393,35 @@ public class MetersResourceTest extends ResourceTest {
     }
 
     /**
-     * Tests the result of a rest api GET for a device.
+     * Tests the results of a rest api GET for a device.
+     */
+    @Test
+    public void testMeterSingleDevice() {
+        setupMockMeters();
+
+        final Set<Meter> meters1 = new HashSet<>();
+        meters1.add(meter1);
+        meters1.add(meter2);
+
+        expect(mockMeterService.getMeters(anyObject())).andReturn(meters1).anyTimes();
+        replay(mockMeterService);
+        replay(mockDeviceService);
+
+        final WebResource rs = resource();
+        final String response = rs.path("meters/" + deviceId1.toString()).get(String.class);
+        final JsonObject result = JsonObject.readFrom(response);
+        assertThat(result, notNullValue());
+
+        assertThat(result.names(), hasSize(1));
+        assertThat(result.names().get(0), is("meters"));
+        final JsonArray jsonMeters = result.get("meters").asArray();
+        assertThat(jsonMeters, notNullValue());
+        assertThat(jsonMeters, hasMeter(meter1));
+        assertThat(jsonMeters, hasMeter(meter2));
+    }
+
+    /**
+     * Tests the result of a rest api GET for a device with meter id.
      */
     @Test
     public void testMeterSingleDeviceWithId() {
