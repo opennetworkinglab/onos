@@ -124,7 +124,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     private static final long KBPS = 1_000;
     private static final long MBPS = 1_000 * 1_000;
     private static final Frequency FREQ100 = Frequency.ofGHz(100);
-    private static final Frequency FREQ4_4 = Frequency.ofTHz(4.4);
+    private static final Frequency FREQ4_4 = Frequency.ofGHz(4_400);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;

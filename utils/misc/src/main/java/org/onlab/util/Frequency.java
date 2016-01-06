@@ -72,8 +72,28 @@ public final class Frequency implements RichComparable<Frequency> {
      * @param value frequency in KHz
      * @return instance representing the given frequency
      */
+    public static Frequency ofKHz(long value) {
+        return new Frequency(value * KHZ);
+    }
+
+    /**
+     * Returns an instance representing the specified value in KHz.
+     *
+     * @param value frequency in KHz
+     * @return instance representing the given frequency
+     */
     public static Frequency ofKHz(double value) {
         return new Frequency((long) (value * KHZ));
+    }
+
+    /**
+     * Returns an instance representing the specified value in MHz.
+     *
+     * @param value frequency in MHz
+     * @return instance representing the given frequency
+     */
+    public static Frequency ofMHz(long value) {
+        return new Frequency(value * MHZ);
     }
 
     /**
@@ -92,8 +112,28 @@ public final class Frequency implements RichComparable<Frequency> {
      * @param value frequency in GHz
      * @return instance representing the given frequency
      */
+    public static Frequency ofGHz(long value) {
+        return new Frequency(value * GHZ);
+    }
+
+    /**
+     * Returns an instance representing the specified value in GHz.
+     *
+     * @param value frequency in GHz
+     * @return instance representing the given frequency
+     */
     public static Frequency ofGHz(double value) {
         return new Frequency((long) (value * GHZ));
+    }
+
+    /**
+     * Returns an instance representing the specified value in THz.
+     *
+     * @param value frequency in THz
+     * @return instance representing the given frequency
+     */
+    public static Frequency ofTHz(long value) {
+        return new Frequency(value * THZ);
     }
 
     /**

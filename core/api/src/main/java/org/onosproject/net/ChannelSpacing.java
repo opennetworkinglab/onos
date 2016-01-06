@@ -21,11 +21,11 @@ import org.onlab.util.Frequency;
  * Represents interval frequency between two neighboring wavelengths.
  */
 public enum ChannelSpacing {
-    CHL_100GHZ(100),        // 100 GHz
-    CHL_50GHZ(50),          // 50 GHz
-    CHL_25GHZ(25),          // 25 GHz
-    CHL_12P5GHZ(12.5),      // 12.5 GHz
-    CHL_6P25GHZ(6.25);       // 6.25 GHz
+    CHL_100GHZ(100_000),        // 100 GHz
+    CHL_50GHZ(50_000),          // 50 GHz
+    CHL_25GHZ(25_000),          // 25 GHz
+    CHL_12P5GHZ(12_500),        // 12.5 GHz
+    CHL_6P25GHZ(6_250);         // 6.25 GHz
 
     private final Frequency frequency;
 
@@ -34,8 +34,8 @@ public enum ChannelSpacing {
      *
      * @param value interval of neighboring wavelengths in GHz.
      */
-    ChannelSpacing(double value) {
-        this.frequency = Frequency.ofGHz(value);
+    ChannelSpacing(long value) {
+        this.frequency = Frequency.ofMHz(value);
     }
 
     public Frequency frequency() {

@@ -102,7 +102,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
     private static final String UNKNOWN = "unknown";
 
     // C-band has 4.4 THz (4,400 GHz) total bandwidth
-    private static final Frequency TOTAL = Frequency.ofTHz(4.4);
+    private static final Frequency TOTAL = Frequency.ofGHz(4_400);
 
     private CountDownLatch deviceLatch;
 
