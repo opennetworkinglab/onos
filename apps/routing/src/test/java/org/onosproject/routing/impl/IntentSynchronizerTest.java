@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.sdnip;
+package org.onosproject.routing.impl;
 
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -68,7 +68,7 @@ import static org.junit.Assert.assertThat;
  * This class tests the intent synchronization function in the
  * IntentSynchronizer class.
  */
-public class IntentSyncTest extends AbstractIntentTest {
+public class IntentSynchronizerTest extends AbstractIntentTest {
 
     private IntentService intentService;
 
@@ -400,7 +400,6 @@ public class IntentSyncTest extends AbstractIntentTest {
                         .treatment(treatmentBuilder.build())
                         .ingressPoints(ingressPoints)
                         .egressPoint(egressPoint)
-                        .constraints(SdnIpFib.CONSTRAINTS)
                         .build();
         return intent;
     }

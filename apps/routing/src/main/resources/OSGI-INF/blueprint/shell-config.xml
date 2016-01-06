@@ -34,5 +34,8 @@
     <command>
       <action class="org.onosproject.routing.cli.BgpSpeakersListCommand"/>
     </command>
+    <command>
+      <action class="org.onosproject.routing.cli.PrimaryChangeCommand"/>
+    </command>
   </command-bundle>
 </blueprint>
