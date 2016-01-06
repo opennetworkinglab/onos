@@ -124,7 +124,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     private static final long KBPS = 1_000;
     private static final long MBPS = 1_000 * 1_000;
     private static final Frequency FREQ100 = Frequency.ofGHz(100);
-    private static final Frequency FREQ193_1 = Frequency.ofTHz(193.1);
     private static final Frequency FREQ4_4 = Frequency.ofTHz(4.4);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -596,8 +595,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             DefaultPortDescription portDes = null;
             switch (sigType) {
             case OMSN:
-                portDes =  new OmsPortDescription(portNo, enabled, FREQ193_1, FREQ193_1.add(FREQ4_4),
-                       FREQ100, annotations);
+                portDes =  new OmsPortDescription(portNo, enabled,
+                        Spectrum.CENTER_FREQUENCY, Spectrum.CENTER_FREQUENCY.add(FREQ4_4), FREQ100, annotations);
                 break;
             case OCH:
                 OFExpPortOpticalTransportLayerEntry entry = firstProp.getFeatures().get(0).getValue().get(0);
