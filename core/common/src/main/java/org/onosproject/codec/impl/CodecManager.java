@@ -43,6 +43,9 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flowobjective.FilteringObjective;
+import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.intent.ConnectivityIntent;
@@ -109,6 +112,9 @@ public class CodecManager implements CodecService {
         registerCodec(TableStatisticsEntry.class, new TableStatisticsEntryCodec());
         registerCodec(PortStatistics.class, new PortStatisticsCodec());
         registerCodec(Metric.class, new MetricCodec());
+        registerCodec(FilteringObjective.class, new FilteringObjectiveCodec());
+        registerCodec(ForwardingObjective.class, new ForwardingObjectiveCodec());
+        registerCodec(NextObjective.class, new NextObjectiveCodec());
         log.info("Started");
     }
 
