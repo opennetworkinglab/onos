@@ -181,6 +181,11 @@
             gid: 'groupTable',
             tt: 'Show Group View for this Device',
             path: 'group'
+        },
+        showMeterView: {
+            gid: 'meterTable',
+            tt: 'Show Meter View for this Device',
+            path: 'meter'
         }
     };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015,2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -432,7 +432,8 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
             .addButton(CoreButtons.SHOW_DEVICE_VIEW)
             .addButton(CoreButtons.SHOW_FLOW_VIEW)
             .addButton(CoreButtons.SHOW_PORT_VIEW)
-            .addButton(CoreButtons.SHOW_GROUP_VIEW);
+            .addButton(CoreButtons.SHOW_GROUP_VIEW)
+            .addButton(CoreButtons.SHOW_METER_VIEW);
 
         return pp;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015,2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,6 +126,9 @@ public final class TopoConstants {
 
         public static final ButtonId SHOW_GROUP_VIEW =
                 new ButtonId("showGroupView");
+
+        public static final ButtonId SHOW_METER_VIEW =
+                new ButtonId("showMeterView");
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015,2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,8 @@ public class AppUiTopoOverlay extends UiTopoOverlay {
                 .addButton(BAR_BUTTON);
 
         pp.removeButtons(CoreButtons.SHOW_PORT_VIEW)
-                .removeButtons(CoreButtons.SHOW_GROUP_VIEW);
+                .removeButtons(CoreButtons.SHOW_GROUP_VIEW)
+                .removeButtons(CoreButtons.SHOW_METER_VIEW);
     }
 
 }
