@@ -42,6 +42,7 @@
         <module>ovsdb</module>
         <module>bgp</module>
         <module>snmp</module>
+        <module>rest</module>
     </modules>
 
     <dependencies>
