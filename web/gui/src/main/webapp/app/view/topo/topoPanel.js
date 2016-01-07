@@ -30,7 +30,7 @@
         idSum = 'topo-p-summary',
         idDet = 'topo-p-detail',
         panelOpts = {
-            width: 260
+            width: 268
         },
         sumMax = 262,
         padTop = 20,
