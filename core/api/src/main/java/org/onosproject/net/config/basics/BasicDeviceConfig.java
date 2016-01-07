@@ -21,11 +21,17 @@ import org.onosproject.net.DeviceId;
 /**
  * Basic configuration for network infrastructure devices.
  */
-public class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
+public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
 
-    public static final String TYPE = "type";
-    public static final String DRIVER = "driver";
-    public static final String MANAGEMENT_ADDRESS = "managementAddress";
+    private static final String TYPE = "type";
+    private static final String DRIVER = "driver";
+    private static final String MANAGEMENT_ADDRESS = "managementAddress";
+
+    @Override
+    public boolean isValid() {
+        return hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, RACK_ADDRESS, OWNER,
+                             TYPE, DRIVER, MANAGEMENT_ADDRESS);
+    }
 
     /**
      * Returns the device type.
@@ -85,6 +91,6 @@ public class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
     }
 
     // TODO: device port meta-data to be configured via BasicPortsConfig
-    // TODO: device credentials/keys
+    // TODO: device credentials/keys; in a separate config
 
 }

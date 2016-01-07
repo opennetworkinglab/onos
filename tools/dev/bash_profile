@@ -192,4 +192,4 @@ function vicell {
 
 
 # Load AT&T MPLS topo GEO data
-alias atttopo='onos-topo-cfg $OCI $ONOS_ROOT/tools/test/topos/attmpls.json'
+alias atttopo='onos-netcfg $OCI $ONOS_ROOT/tools/test/topos/attmpls-cfg.json'

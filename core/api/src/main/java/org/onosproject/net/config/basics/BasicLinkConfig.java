@@ -26,19 +26,19 @@ import static org.onosproject.net.config.Config.FieldPresence.OPTIONAL;
 /**
  * Basic configuration for network infrastructure link.
  */
-public class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
+public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
 
-    public static final String TYPE = "type";
-    public static final String METRIC = "metric";
-    public static final String LATENCY = "latency";
-    public static final String BANDWIDTH = "bandwidth";
-    public static final String IS_DURABLE = "durable";
+    private static final String TYPE = "type";
+    private static final String METRIC = "metric";
+    private static final String LATENCY = "latency";
+    private static final String BANDWIDTH = "bandwidth";
+    private static final String IS_DURABLE = "durable";
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(TYPE, METRIC, LATENCY, BANDWIDTH, IS_DURABLE) &&
-                isNumber(METRIC, OPTIONAL) && isNumber(LATENCY, OPTIONAL) &&
-                isNumber(BANDWIDTH, OPTIONAL);
+        return hasOnlyFields(ALLOWED, TYPE, METRIC, LATENCY, BANDWIDTH, IS_DURABLE) &&
+                isBoolean(ALLOWED, OPTIONAL) && isNumber(METRIC, OPTIONAL) &&
+                isNumber(LATENCY, OPTIONAL) && isNumber(BANDWIDTH, OPTIONAL);
     }
 
     /**

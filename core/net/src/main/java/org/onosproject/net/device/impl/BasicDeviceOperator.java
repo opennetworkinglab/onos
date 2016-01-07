@@ -32,7 +32,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementations of merge policies for various sources of device configuration
- * information. This includes applications, provides, and network configurations.
+ * information. This includes applications, providers, and network configurations.
  */
 public final class BasicDeviceOperator implements ConfigOperator {
 

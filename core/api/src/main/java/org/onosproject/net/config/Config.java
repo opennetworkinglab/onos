@@ -95,15 +95,15 @@ public abstract class Config<S> {
      * <p>
      * Default implementation returns true.
      * Subclasses are expected to override this with their own validation.
-     * </p>
+     * Implementations are free to throw a RuntimeException if data is invalid.
+     * * </p>
      *
      * @return true if the data is valid; false otherwise
+     * @throws RuntimeException if configuration is invalid or completely foobar
      */
     public boolean isValid() {
-        // TODO: figure out what assertions could be made in the base class
-        // NOTE: The thought is to have none, but instead to provide a set
-        // of predicates to allow configs to test validity of present fields,
-        // e.g.:
+        // Derivatives should use the provided set of predicates to test
+        // validity of their fields, e.g.:
         //      isString(path)
         //      isBoolean(path)
         //      isNumber(path, [min, max])

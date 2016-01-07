@@ -24,8 +24,11 @@
         <step name="Initial-Summary-Check" requires="~Wipe-Out-Data-Before"
               exec="onos-check-summary ${OC1} [0-9]* 0 0 0"/>
 
+        <step name="Config-Topo" requires="~Initial-Summary-Check"
+              exec="onos-netcfg ${OC1} ${ONOS_ROOT}/tools/test/topos/attmpls-cfg.json"/>
+
         <step name="Start-Mininet"
-              requires="Install-Apps,Initial-Summary-Check,Push-Topos,Stop-Mininet-If-Needed"
+              requires="Install-Apps,Config-Topo,Push-Topos,Stop-Mininet-If-Needed"
               exec="onos-mininet start topos/topo att-onos.py ${ONOS_INSTANCES}"/>
 
         <step name="Wait-For-Mininet" requires="Start-Mininet"

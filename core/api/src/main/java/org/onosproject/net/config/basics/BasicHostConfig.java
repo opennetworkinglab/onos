@@ -19,68 +19,62 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
+
 import java.util.HashSet;
 import java.util.Set;
+
+import static org.onosproject.net.config.basics.AllowedEntityConfig.ALLOWED;
 
 /**
  * Basic configuration for network end-station hosts.
  */
-public class BasicHostConfig extends BasicElementConfig<HostId> {
+public final class BasicHostConfig extends BasicElementConfig<HostId> {
+
     private static final String IPS = "ips";
     private static final String LOCATION = "location";
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(IPS, LOCATION) &&
-                this.location() != null &&
-                this.ipAddresses() != null;
+        // Location and IP addresses can be absent, but if present must be valid.
+        this.location();
+        this.ipAddresses();
+        return hasOnlyFields(ALLOWED, NAME, LATITUDE, LONGITUDE, RACK_ADDRESS, OWNER,
+                             IPS, LOCATION);
     }
 
     /**
-     * Gets location of the host.
+     * Returns location of the host.
      *
-     * @return location of the host. Or null if not specified with correct format.
+     * @return location of the host or null if not set
+     * @throws IllegalArgumentException if not specified with correct format
      */
     public ConnectPoint location() {
         String location = get(LOCATION, null);
-
-        if (location != null) {
-            try {
-                return ConnectPoint.deviceConnectPoint(location);
-            } catch (Exception e) {
-                return null;
-            }
-        }
-        return null;
+        return location != null ? ConnectPoint.deviceConnectPoint(location) : null;
     }
 
     /**
      * Sets the location of the host.
      *
-     * @param location location of the host.
-     * @return the config of the host.
+     * @param location location of the host or null to unset
+     * @return the config of the host
      */
     public BasicHostConfig setLocation(String location) {
         return (BasicHostConfig) setOrClear(LOCATION, location);
     }
 
     /**
-     * Gets IP addresses of the host.
+     * Returns IP addresses of the host.
      *
-     * @return IP addresses of the host. Or null if not specified with correct format.
+     * @return IP addresses of the host or null if not set
+     * @throws IllegalArgumentException if not specified with correct format
      */
     public Set<IpAddress> ipAddresses() {
         HashSet<IpAddress> ipAddresses = new HashSet<>();
         if (object.has(IPS)) {
             ArrayNode ipNodes = (ArrayNode) object.path(IPS);
-            try {
-                ipNodes.forEach(ipNode -> {
-                    ipAddresses.add(IpAddress.valueOf(ipNode.asText()));
-                });
-                return ipAddresses;
-            } catch (Exception e) {
-                return null;
-            }
+            ipNodes.forEach(n -> ipAddresses.add(IpAddress.valueOf(n.asText())));
+            return ipAddresses;
         }
         return null;
     }
@@ -88,8 +82,8 @@ public class BasicHostConfig extends BasicElementConfig<HostId> {
     /**
      * Sets the IP addresses of the host.
      *
-     * @param ipAddresses IP addresses of the host.
-     * @return the config of the host.
+     * @param ipAddresses IP addresses of the host or null to unset
+     * @return the config of the host
      */
     public BasicHostConfig setIps(Set<IpAddress> ipAddresses) {
         return (BasicHostConfig) setOrClear(IPS, ipAddresses);

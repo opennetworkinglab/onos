@@ -23,7 +23,7 @@ import org.onosproject.net.config.Config;
  */
 public abstract class AllowedEntityConfig<S> extends Config<S> {
 
-    private static final String ALLOWED = "allowed";
+    protected static final String ALLOWED = "allowed";
 
     /**
      * Indicates whether the element is allowed for admission into the control

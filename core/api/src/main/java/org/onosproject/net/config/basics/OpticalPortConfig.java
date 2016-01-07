@@ -23,11 +23,13 @@ import org.onosproject.net.Port;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import static org.onosproject.net.config.Config.FieldPresence.OPTIONAL;
+
 
 /**
  * Configurations for an optical port on a device.
  */
-public class OpticalPortConfig extends Config<ConnectPoint> {
+public final class OpticalPortConfig extends Config<ConnectPoint> {
     // optical type {OMS, OCH, ODUClt, fiber}
     public static final String TYPE = "type";
 
@@ -41,6 +43,12 @@ public class OpticalPortConfig extends Config<ConnectPoint> {
 
     // **Linc-OE : remove if it's not needed after all.**
     public static final String SPEED = "speed";
+
+    @Override
+    public boolean isValid() {
+        return hasOnlyFields(TYPE, NAME, PORT, STATIC_PORT, STATIC_LAMBDA, SPEED) &&
+                isNumber(STATIC_LAMBDA, OPTIONAL) && isNumber(SPEED, OPTIONAL);
+    }
 
     /**
      * Returns the Enum value representing the type of port.

@@ -22,13 +22,13 @@ package org.onosproject.net.config.basics;
  */
 public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
 
-    public static final String NAME = "name";
+    protected static final String NAME = "name";
 
-    public static final String LATITUDE = "latitude";
-    public static final String LONGITUDE = "longitude";
+    protected static final String LATITUDE = "latitude";
+    protected static final String LONGITUDE = "longitude";
 
-    public static final String RACK_ADDRESS = "rackAddress";
-    public static final String OWNER = "owner";
+    protected static final String RACK_ADDRESS = "rackAddress";
+    protected static final String OWNER = "owner";
 
     protected static final double DEFAULT_COORD = -1.0;
 
