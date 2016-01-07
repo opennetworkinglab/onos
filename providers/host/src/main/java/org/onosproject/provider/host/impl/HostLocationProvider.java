@@ -120,6 +120,10 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                     "Host Location Provider; default is false")
     private boolean ipv6NeighborDiscovery = false;
 
+    @Property(name = "requestInterceptsEnabled", boolValue = true,
+            label = "Enable requesting packet intercepts")
+    private boolean requestInterceptsEnabled = true;
+
     protected ExecutorService eventHandler;
 
     /**
@@ -133,12 +137,13 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.provider.host");
-        eventHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/host-loc-provider", "event-handler"));
+        eventHandler = newSingleThreadScheduledExecutor(
+                groupedThreads("onos/host-loc-provider", "event-handler"));
         providerService = providerRegistry.register(this);
         packetService.addProcessor(processor, PacketProcessor.advisor(1));
         deviceService.addListener(deviceListener);
-        readComponentConfiguration(context);
-        requestIntercepts();
+
+        modified(context);
 
         log.info("Started with Application ID {}", appId.id());
     }
@@ -160,7 +165,12 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     @Modified
     public void modified(ComponentContext context) {
         readComponentConfiguration(context);
-        requestIntercepts();
+
+        if (requestInterceptsEnabled) {
+            requestIntercepts();
+        } else {
+            withdrawIntercepts();
+        }
     }
 
     /**
@@ -236,6 +246,16 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             ipv6NeighborDiscovery = flag;
             log.info("Configured. Using IPv6 Neighbor Discovery is {}",
                      ipv6NeighborDiscovery ? "enabled" : "disabled");
+        }
+
+        flag = isPropertyEnabled(properties, "requestInterceptsEnabled");
+        if (flag == null) {
+            log.info("Request intercepts is not configured, " +
+                    "using current value of {}", requestInterceptsEnabled);
+        } else {
+            requestInterceptsEnabled = flag;
+            log.info("Configured. Request intercepts is {}",
+                    requestInterceptsEnabled ? "enabled" : "disabled");
         }
     }
 
