@@ -18,6 +18,7 @@ package org.onosproject.net;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Implementation of ODU client port (Optical channel Data Unit).
@@ -49,7 +50,7 @@ public class OduCltPort extends DefaultPort {
     public OduCltPort(Element element, PortNumber number, boolean isEnabled,
                       SignalType signalType, Annotations... annotations) {
         super(element, number, isEnabled, Type.ODUCLT, 0, annotations);
-        this.signalType = signalType;
+        this.signalType = checkNotNull(signalType);
     }
 
     /**

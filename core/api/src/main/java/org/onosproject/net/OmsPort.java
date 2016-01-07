@@ -20,6 +20,7 @@ import org.onlab.util.Frequency;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Implementation of OMS port (Optical Multiplexing Section).
@@ -49,9 +50,9 @@ public class OmsPort extends DefaultPort {
     public OmsPort(Element element, PortNumber number, boolean isEnabled,
                    Frequency minFrequency, Frequency maxFrequency, Frequency grid, Annotations... annotations) {
         super(element, number, isEnabled, Type.OMS, 0, annotations);
-        this.minFrequency = minFrequency;
-        this.maxFrequency = maxFrequency;
-        this.grid = grid;
+        this.minFrequency = checkNotNull(minFrequency);
+        this.maxFrequency = checkNotNull(maxFrequency);
+        this.grid = checkNotNull(grid);
     }
 
     /**
