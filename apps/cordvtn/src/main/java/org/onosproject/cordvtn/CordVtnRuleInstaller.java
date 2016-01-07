@@ -70,6 +70,7 @@ import org.onosproject.openstackswitching.OpenstackNetwork;
 import org.onosproject.openstackswitching.OpenstackSubnet;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -188,40 +189,6 @@ public class CordVtnRuleInstaller {
     }
 
     /**
-     * Populates service dependency rules.
-     *
-     * @param tService tenant cord service
-     * @param pService provider cord service
-     */
-    public void populateServiceDependencyRules(CordService tService, CordService pService) {
-        checkNotNull(tService);
-        checkNotNull(pService);
-
-        Ip4Prefix srcRange = tService.serviceIpRange().getIp4Prefix();
-        Ip4Prefix dstRange = pService.serviceIpRange().getIp4Prefix();
-        Ip4Address serviceIp = pService.serviceIp().getIp4Address();
-
-        Map<DeviceId, GroupId> outGroups = Maps.newHashMap();
-        Map<DeviceId, Set<PortNumber>> inPorts = Maps.newHashMap();
-
-        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
-            GroupId groupId = createServiceGroup(device.id(), pService);
-            outGroups.put(device.id(), groupId);
-
-            Set<PortNumber> vms = tService.hosts().keySet()
-                    .stream()
-                    .filter(host -> host.location().deviceId().equals(device.id()))
-                    .map(host -> host.location().port())
-                    .collect(Collectors.toSet());
-            inPorts.put(device.id(), vms);
-        }
-
-        populateIndirectAccessRule(srcRange, serviceIp, outGroups);
-        populateDirectAccessRule(srcRange, dstRange);
-        populateInServiceRule(inPorts, outGroups);
-    }
-
-    /**
      * Removes basic rules related to a given flow information.
      *
      * @param host host to be removed
@@ -263,10 +230,43 @@ public class CordVtnRuleInstaller {
             if (dstIp != null && dstIp.equals(ip.toIpPrefix())) {
                 processFlowRule(false, flowRule);
             }
-
         }
 
         // TODO uninstall same network access rule in access table if no vm exists in the network
+    }
+
+    /**
+     * Populates service dependency rules.
+     *
+     * @param tService tenant cord service
+     * @param pService provider cord service
+     */
+    public void populateServiceDependencyRules(CordService tService, CordService pService) {
+        checkNotNull(tService);
+        checkNotNull(pService);
+
+        Ip4Prefix srcRange = tService.serviceIpRange().getIp4Prefix();
+        Ip4Prefix dstRange = pService.serviceIpRange().getIp4Prefix();
+        Ip4Address serviceIp = pService.serviceIp().getIp4Address();
+
+        Map<DeviceId, GroupId> outGroups = Maps.newHashMap();
+        Map<DeviceId, Set<PortNumber>> inPorts = Maps.newHashMap();
+
+        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
+            GroupId groupId = createServiceGroup(device.id(), pService);
+            outGroups.put(device.id(), groupId);
+
+            Set<PortNumber> vms = tService.hosts().keySet()
+                    .stream()
+                    .filter(host -> host.location().deviceId().equals(device.id()))
+                    .map(host -> host.location().port())
+                    .collect(Collectors.toSet());
+            inPorts.put(device.id(), vms);
+        }
+
+        populateIndirectAccessRule(srcRange, serviceIp, outGroups);
+        populateDirectAccessRule(srcRange, dstRange);
+        populateInServiceRule(inPorts, outGroups);
     }
 
     /**
@@ -321,6 +321,58 @@ public class CordVtnRuleInstaller {
         }
 
         // TODO remove the group if it is not in use
+    }
+
+    /**
+     * Updates group buckets for a given service to all devices.
+     *
+     * @param service cord service
+     */
+    public void updateServiceGroup(CordService service) {
+        checkNotNull(service);
+
+        GroupKey groupKey = getGroupKey(service.id());
+
+        for (Device device : deviceService.getAvailableDevices(SWITCH)) {
+            DeviceId deviceId = device.id();
+            if (!mastershipService.isLocalMaster(deviceId)) {
+                continue;
+            }
+
+            Group group = groupService.getGroup(deviceId, groupKey);
+            if (group == null) {
+                log.debug("No group exists for service {} in {}", service.id(), deviceId);
+                continue;
+            }
+
+            List<GroupBucket> oldBuckets = group.buckets().buckets();
+            List<GroupBucket> newBuckets = getServiceGroupBuckets(
+                    deviceId, service.segmentationId(), service.hosts()).buckets();
+
+            if (oldBuckets.equals(newBuckets)) {
+                continue;
+            }
+
+            List<GroupBucket> bucketsToRemove = new ArrayList<>(oldBuckets);
+            bucketsToRemove.removeAll(newBuckets);
+            if (!bucketsToRemove.isEmpty()) {
+                groupService.removeBucketsFromGroup(
+                        deviceId,
+                        groupKey,
+                        new GroupBuckets(bucketsToRemove),
+                        groupKey, appId);
+            }
+
+            List<GroupBucket> bucketsToAdd = new ArrayList<>(newBuckets);
+            bucketsToAdd.removeAll(oldBuckets);
+            if (!bucketsToAdd.isEmpty()) {
+                groupService.addBucketsToGroup(
+                        deviceId,
+                        groupKey,
+                        new GroupBuckets(bucketsToAdd),
+                        groupKey, appId);
+            }
+        }
     }
 
     /**

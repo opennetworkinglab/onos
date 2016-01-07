@@ -103,7 +103,6 @@ public class CordVtn implements CordVtnService {
             .register(NodeState.class);
     private static final String DEFAULT_BRIDGE = "br-int";
     private static final String VPORT_PREFIX = "tap";
-    private static final String GWPORT_PREFIX = "qr-";
     private static final String DEFAULT_TUNNEL = "vxlan";
     private static final Map<String, String> DEFAULT_TUNNEL_OPTIONS = new HashMap<String, String>() {
         {
@@ -379,13 +378,14 @@ public class CordVtn implements CordVtnService {
      * @param node cordvtn node
      */
     private void postInit(CordVtnNode node) {
-        log.info("Initializing {}", node.hostname());
         disconnect(node);
 
         ruleInstaller.init(node.intBrId(), getTunnelPort(node.intBrId()));
         hostService.getConnectedHosts(node.intBrId())
                 .stream()
                 .forEach(vmHandler::connected);
+
+        log.info("Finished initializing {}", node.hostname());
     }
 
     /**
@@ -646,13 +646,16 @@ public class CordVtn implements CordVtnService {
     private Set<Host> getHostsWithOpenstackNetwork(OpenstackNetwork vNet) {
         checkNotNull(vNet);
 
-        return openstackService.ports(vNet.id()).stream()
+        Set<Host> hosts = openstackService.ports(vNet.id()).stream()
                 .filter(port -> port.deviceOwner().contains("compute"))
                 .map(port -> hostService.getHostsByMac(port.macAddress())
                         .stream()
                         .findFirst()
                         .orElse(null))
                 .collect(Collectors.toSet());
+
+        hosts.remove(null);
+        return hosts;
     }
 
     /**
@@ -687,16 +690,15 @@ public class CordVtn implements CordVtnService {
     }
 
     /**
-     * Returns if the host is gateway interface.
-     * This codes should be removed after adding proxy arp for the gateway.
+     * Returns if the host is VM or not.
      *
      * @param host host
-     * @return true if the host is gateway
+     * @return true if the host is a VM.
      */
-    private boolean isGateway(Host host) {
+    private boolean isVm(Host host) {
         Port port = deviceService.getPort(host.location().deviceId(),
                                           host.location().port());
-        return port.annotations().value("portName").contains(GWPORT_PREFIX);
+        return port.annotations().value("portName").contains(VPORT_PREFIX);
     }
 
     /**
@@ -892,8 +894,8 @@ public class CordVtn implements CordVtnService {
 
         @Override
         public void connected(Host host) {
-            // TODO remove check gateway here after applying network config host provider
-            if (isGateway(host)) {
+            // TODO remove check VM here after applying network config host provider
+            if (!isVm(host)) {
                 return;
             }
 
@@ -924,7 +926,11 @@ public class CordVtn implements CordVtnService {
                     checkNotNull(getRemoteIp(host.location().deviceId())).getIp4Address(),
                     vNet);
 
-            // TODO add new VM to related service group if exists
+            CordService service = getCordService(vNet);
+            // TODO check if the service needs an update on its group buckets after done CORD-433
+            if (service != null) {
+                ruleInstaller.updateServiceGroup(service);
+            }
         }
 
         @Override
@@ -943,7 +949,12 @@ public class CordVtn implements CordVtnService {
             log.info("VM {} is vanished", host.id());
             ruleInstaller.removeBasicConnectionRules(host);
 
-            // TODO remove the VM from related service group if exists
+            CordService service = getCordService(vNet);
+            // TODO check if the service needs an update on its group buckets after done CORD-433
+            if (service != null) {
+                ruleInstaller.updateServiceGroup(service);
+            }
+
             hostNetMap.remove(host.id());
         }
     }
