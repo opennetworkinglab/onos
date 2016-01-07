@@ -64,6 +64,7 @@
         <module>drivermatrix</module>
         <module>cpman</module>
         <module>events</module>
+        <module>vrouter</module>
   </modules>
 
     <properties>
@@ -108,4 +109,3 @@
     </build>
 
 </project>
-
