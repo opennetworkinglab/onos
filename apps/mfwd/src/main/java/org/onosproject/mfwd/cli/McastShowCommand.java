@@ -15,15 +15,13 @@
  */
 package org.onosproject.mfwd.cli;
 
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.karaf.shell.commands.Command;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.JsonNode;
-
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.mfwd.impl.McastRouteTable;
-import org.onosproject.mfwd.impl.MRibCodec;
 
+import org.onosproject.net.mcast.MulticastRouteService;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -33,30 +31,15 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Command(scope = "onos", name = "mcast-show", description = "Displays the source, multicast group flows")
 public class McastShowCommand extends AbstractShellCommand {
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    MulticastRouteService mcastRouteManager = AbstractShellCommand.get(MulticastRouteService.class);
+
     private final Logger log = getLogger(getClass());
     private static final String MCAST_GROUP = "mcastgroup";
 
     @Override
     protected void execute() {
-        McastRouteTable mrt = McastRouteTable.getInstance();
-        if (outputJson()) {
-            print("%s", json(mrt));
-        } else {
-            printMrib4(mrt);
-        }
+        //TODO
     }
 
-    public JsonNode json(McastRouteTable mrt) {
-        ObjectNode pushContent = new MRibCodec().encode(mrt , this);
-        return pushContent;
-    }
-
-    /**
-     * Displays multicast route table entries.
-     *
-     * @param mrt Mutlicast Route Table
-     */
-    protected void printMrib4(McastRouteTable mrt) {
-        print(mrt.printMcastRouteTable());
-    }
 }

@@ -15,10 +15,15 @@
  */
 package org.onosproject.mfwd.cli;
 
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.mfwd.impl.McastRouteTable;
+import org.onosproject.mfwd.impl.McastForwarding;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.mcast.McastRoute;
+import org.onosproject.net.mcast.MulticastRouteService;
 
 /**
  * Deletes a multicast route.
@@ -26,6 +31,9 @@ import org.onosproject.mfwd.impl.McastRouteTable;
 @Command(scope = "onos", name = "mcast-delete",
         description = "Delete a multicast route flow")
 public class McastDeleteCommand extends AbstractShellCommand {
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    MulticastRouteService mcastRouteManager = AbstractShellCommand.get(MulticastRouteService.class);
 
     @Argument(index = 0, name = "sAddr",
             description = "IP Address of the multicast source. '*' can be used for any source (*, G) entry",
@@ -46,23 +54,16 @@ public class McastDeleteCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
 
-        boolean deleted = false;
-        McastRouteTable mrib = McastRouteTable.getInstance();
+        McastRoute mRoute = McastForwarding.createStaticRoute(sAddr, gAddr);
 
         if (egressList == null) {
-            mrib.removeRoute(sAddr, gAddr);
-            deleted = true;
+            mcastRouteManager.remove(mRoute);
         } else {
             // check list for validity before we begin to delete.
             for (String egress : egressList) {
-                deleted = mrib.removeEgress(sAddr, gAddr, egress);
+                ConnectPoint eCp = ConnectPoint.deviceConnectPoint(egress);
+                mcastRouteManager.removeSink(mRoute, eCp);
             }
-        }
-
-        if (deleted) {
-            print("Successful delete");
-        } else {
-            print("Failed to delete");
         }
     }
 }

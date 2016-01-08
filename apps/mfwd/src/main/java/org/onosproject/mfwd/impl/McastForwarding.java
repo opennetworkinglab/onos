@@ -15,6 +15,7 @@
  */
 package org.onosproject.mfwd.impl;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import org.apache.felix.scr.annotations.Activate;
@@ -35,6 +36,8 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.mcast.MulticastRouteService;
+import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
@@ -44,8 +47,12 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+
 /**
- * WORK-IN-PROGRESS: The multicast forwarding application using intent framework.
+ * The multicast forwarding component.  This component is responsible for
+ * handling live multicast traffic by modifying multicast state and forwarding
+ * packets that do not yet have state installed.
  */
 @Component(immediate = true)
 public class McastForwarding {
@@ -59,8 +66,12 @@ public class McastForwarding {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MulticastRouteService mcastRouteManager;
+
+
+
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
-    private McastRouteTable mrib;
     private static ApplicationId appId;
 
     /**
@@ -76,9 +87,9 @@ public class McastForwarding {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4);
         selector.matchIPDst(mcast);
+
         packetService.requestPackets(selector.build(), PacketPriority.REACTIVE, appId);
 
-        mrib = McastRouteTable.getInstance();
         log.info("Started");
     }
 
@@ -137,8 +148,8 @@ public class McastForwarding {
             }
 
             IPv4 ip = (IPv4) ethPkt.getPayload();
-            IpAddress gaddr = IpAddress.valueOf(ip.getDestinationAddress());
             IpAddress saddr = Ip4Address.valueOf(ip.getSourceAddress());
+            IpAddress gaddr = IpAddress.valueOf(ip.getDestinationAddress());
 
             log.debug("Packet ({}, {}) has been punted\n" +
                             "\tingress port: {}\n",
@@ -146,70 +157,37 @@ public class McastForwarding {
                     gaddr.toString(),
                     context.inPacket().receivedFrom().toString());
 
-            if (!mcast.contains(gaddr)) {
-                // Yikes, this is a bad group address
-                return;
-            }
-
-            if (mcast.contains(saddr)) {
-                // Yikes, the source address is multicast
+            // Don't allow PIM/IGMP packets to be handled here.
+            byte proto = ip.getProtocol();
+            if (proto == IPv4.PROTOCOL_PIM || proto == IPv4.PROTOCOL_IGMP) {
                 return;
             }
 
             IpPrefix spfx = IpPrefix.valueOf(saddr, 32);
             IpPrefix gpfx = IpPrefix.valueOf(gaddr, 32);
 
-            /*
-             * Do a best match lookup on the (s, g) of the packet. If an entry does
-             * not exist create one and store it's incoming connect point.
-             *
-             * The connect point is deviceId / portId that the packet entered
-             * the SDN network.  This differs from traditional mcast where the
-             * ingress port would be a specific device.
-             */
-            McastRoute entry = mrib.findBestMatch(spfx, gpfx);
-            if (entry == null || entry.getSaddr().address().isZero()) {
+            // TODO do we want to add a type for Mcast?
+            McastRoute mRoute = new McastRoute(spfx, gpfx, McastRoute.Type.STATIC);
 
-                /*
-                 * Create an entry that we can fast drop.
-                 */
-                entry = mrib.addRoute(spfx, gpfx);
-                entry.addIngressPoint(context.inPacket().receivedFrom());
+            ConnectPoint ingress = mcastRouteManager.fetchSource(mRoute);
+
+            // An ingress port already exists. Log error.
+            if (ingress != null) {
+                log.error(McastForwarding.class.getSimpleName() + " received packet which already has a route.");
+                return;
+            } else {
+                //add ingress port
+                mcastRouteManager.addSource(mRoute, pkt.receivedFrom());
             }
 
-            /*
-             * TODO: If we do not have an ingress or any egress connect points we
-             * should set up a fast drop entry.
-             */
-            if (entry.getIngressPoint() == null) {
+            ArrayList<ConnectPoint> egressList = (ArrayList<ConnectPoint>) mcastRouteManager.fetchSinks(mRoute);
+            //If there are no egress ports set return, otherwise forward the packets to their expected port.
+            if (egressList.size() == 0) {
                 return;
             }
-
-            if (entry.getEgressPoints().isEmpty()) {
-                return;
-            }
-
-            /*
-             * This is odd, we should not have received a punted packet if an
-             * intent was installed unless the intent was not installed
-             * correctly.  However, we are seeing packets get punted after
-             * the intent has been installed.
-             *
-             * Therefore we are going to forward the packets even if they
-             * should have already been forwarded by the intent fabric.
-             */
-            if (entry.getIntentKey() != null) {
-                return;
-            }
-
-            entry.setIntent();
-            McastIntentManager im = McastIntentManager.getInstance();
-            im.setIntent(entry);
-
-            entry.incrementPuntCount();
 
             // Send the pack out each of the egress devices & port
-            forwardPacketToDst(context, entry);
+            forwardPacketToDst(context, egressList);
         }
     }
 
@@ -217,12 +195,12 @@ public class McastForwarding {
      * Forward the packet to it's multicast destinations.
      *
      * @param context The packet context
-     * @param entry The multicast route entry matching this packet
+     * @param egressList The list of egress ports which the multicast packet is intended for.
      */
-    private void forwardPacketToDst(PacketContext context, McastRoute entry) {
+    private void forwardPacketToDst(PacketContext context, ArrayList<ConnectPoint> egressList) {
 
         // Send the pack out each of the respective egress ports
-        for (ConnectPoint egress : entry.getEgressConnectPoints()) {
+        for (ConnectPoint egress : egressList) {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .setOutput(egress.port()).build();
 
@@ -233,5 +211,20 @@ public class McastForwarding {
 
             packetService.emit(packet);
         }
+    }
+
+    public static McastRoute createStaticRoute(String source, String group) {
+        checkNotNull(source, "Must provide a source");
+        checkNotNull(group, "Must provide a group");
+        IpPrefix ipSource = IpPrefix.valueOf(source);
+        IpPrefix ipGroup = IpPrefix.valueOf(group);
+        return createStaticcreateRoute(ipSource, ipGroup);
+    }
+
+    public static McastRoute createStaticcreateRoute(IpPrefix source, IpPrefix group) {
+        checkNotNull(source, "Must provide a source");
+        checkNotNull(group, "Must provide a group");
+        McastRoute.Type type = McastRoute.Type.STATIC;
+        return new McastRoute(source, group, type);
     }
 }
