@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import org.onosproject.store.Store;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Service for storing resource and consumer information.
@@ -77,12 +76,23 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
     boolean release(List<ResourcePath> resources, List<ResourceConsumer> consumers);
 
     /**
-     * Returns the resource consumer to whom the specified resource is allocated.
+     * Returns the resource consumers to whom the specified resource is allocated.
+     * The return value is a list having only one element when the given resource is discrete type.
+     * The return value may have multiple elements when the given resource is continuous type.
      *
      * @param resource resource whose allocated consumer to be returned
-     * @return resource consumer who are allocated the resource
+     * @return resource consumers who are allocated the resource.
+     * Returns empty list if there is no such consumer.
      */
-    Optional<ResourceConsumer> getConsumer(ResourcePath resource);
+    List<ResourceConsumer> getConsumers(ResourcePath resource);
+
+    /**
+     * Returns the availability of the specified resource.
+     *
+     * @param resource resource to check the availability
+     * @return true if available, otherwise false
+     */
+    boolean isAvailable(ResourcePath resource);
 
     /**
      * Returns a collection of the resources allocated to the specified consumer.

@@ -204,6 +204,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -239,7 +240,8 @@ public final class KryoNamespaces {
             .register(CopyOnWriteArraySet.class)
             .register(ArrayList.class,
                       LinkedList.class,
-                      HashSet.class
+                      HashSet.class,
+                      LinkedHashSet.class
                       )
             .register(Maps.immutableEntry("a", "b").getClass())
             .register(new ArraysAsListSerializer(), Arrays.asList().getClass())

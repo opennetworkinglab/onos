@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.GuavaCollectors;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.newresource.ResourceAdminService;
 import org.onosproject.net.newresource.ResourceAllocation;
@@ -34,10 +35,8 @@ import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.newresource.ResourceStore;
 import org.onosproject.net.newresource.ResourceStoreDelegate;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -107,11 +106,13 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     }
 
     @Override
-    public Optional<ResourceAllocation> getResourceAllocation(ResourcePath resource) {
+    public List<ResourceAllocation> getResourceAllocation(ResourcePath resource) {
         checkNotNull(resource);
 
-        Optional<ResourceConsumer> consumer = store.getConsumer(resource);
-        return consumer.map(x -> new ResourceAllocation(resource, x));
+        List<ResourceConsumer> consumers = store.getConsumers(resource);
+        return consumers.stream()
+                .map(x -> new ResourceAllocation(resource, x))
+                .collect(GuavaCollectors.toImmutableList());
     }
 
     @Override
@@ -119,17 +120,12 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
         checkNotNull(parent);
         checkNotNull(cls);
 
+        // We access store twice in this method, then the store may be updated by others
         Collection<ResourcePath> resources = store.getAllocatedResources(parent, cls);
-        List<ResourceAllocation> allocations = new ArrayList<>(resources.size());
-        for (ResourcePath resource: resources) {
-            // We access store twice in this method, then the store may be updated by others
-            Optional<ResourceConsumer> consumer = store.getConsumer(resource);
-            if (consumer.isPresent()) {
-                allocations.add(new ResourceAllocation(resource, consumer.get()));
-            }
-        }
-
-        return allocations;
+        return resources.stream()
+                .flatMap(resource -> store.getConsumers(resource).stream()
+                        .map(consumer -> new ResourceAllocation(resource, consumer)))
+                .collect(GuavaCollectors.toImmutableList());
     }
 
     @Override
@@ -149,7 +145,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
         Collection<ResourcePath> children = store.getChildResources(parent);
         return children.stream()
                 // We access store twice in this method, then the store may be updated by others
-                .filter(x -> !store.getConsumer(x).isPresent())
+                .filter(store::isAvailable)
                 .collect(Collectors.toList());
     }
 
@@ -157,8 +153,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     public boolean isAvailable(ResourcePath resource) {
         checkNotNull(resource);
 
-        Optional<ResourceConsumer> consumer = store.getConsumer(resource);
-        return !consumer.isPresent();
+        return store.isAvailable(resource);
     }
 
     @Override

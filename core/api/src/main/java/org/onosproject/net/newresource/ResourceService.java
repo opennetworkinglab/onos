@@ -126,13 +126,13 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
     boolean release(ResourceConsumer consumer);
 
     /**
-     * Returns resource allocation of the specified resource.
+     * Returns resource allocations of the specified resource.
      *
      * @param resource resource to check the allocation
-     * @return allocation information enclosed by Optional.
-     * If the resource is not allocated, the return value is empty.
+     * @return list of allocation information.
+     * If the resource is not allocated, the return value is an empty list.
      */
-    Optional<ResourceAllocation> getResourceAllocation(ResourcePath resource);
+    List<ResourceAllocation> getResourceAllocation(ResourcePath resource);
 
     /**
      * Returns allocated resources being as children of the specified parent and being the specified resource type.
