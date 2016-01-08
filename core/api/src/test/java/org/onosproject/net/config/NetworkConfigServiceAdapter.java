@@ -74,17 +74,24 @@ public class NetworkConfigServiceAdapter implements NetworkConfigService {
     }
 
     @Override
+    public <S, C extends Config<S>> C applyConfig(String subjectClassKey, S subject, String configKey, JsonNode json) {
+        return null;
+    }
+
+    @Override
     public <S, C extends Config<S>> void removeConfig(S subject, Class<C> configClass) {
 
     }
 
     @Override
-    public void addListener(NetworkConfigListener listener) {
+    public <S> void removeConfig(String subjectClassKey, S subject, String configKey) {
+    }
 
+    @Override
+    public void addListener(NetworkConfigListener listener) {
     }
 
     @Override
     public void removeListener(NetworkConfigListener listener) {
-
     }
 }

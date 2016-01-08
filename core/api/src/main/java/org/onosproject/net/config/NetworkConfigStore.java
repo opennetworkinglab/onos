@@ -129,4 +129,26 @@ public interface NetworkConfigStore extends Store<NetworkConfigEvent, NetworkCon
      */
     <S, C extends Config<S>> void clearConfig(S subject, Class<C> configClass);
 
+    /**
+     * Queues pending configuration for the specified subject and configuration
+     * class using the raw JSON object.
+     *
+     * @param subject   configuration subject
+     * @param configKey configuration key
+     * @param json      raw JSON node containing the configuration data
+     * @param <S>       type of subject
+     * @throws IllegalArgumentException if the supplied JSON node contains
+     *                                  invalid data
+     */
+    <S> void queueConfig(S subject, String configKey, JsonNode json);
+
+    /**
+     * Clears the configuration of the given class for the specified subject.
+     *
+     * @param subject   configuration subject
+     * @param configKey configuration key
+     * @param <S>       type of subject
+     */
+    <S> void clearQueuedConfig(S subject, String configKey);
+
 }
