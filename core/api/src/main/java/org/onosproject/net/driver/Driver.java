@@ -92,7 +92,7 @@ public interface Driver extends Annotations {
 
     /**
      * Indicates whether or not the driver, or any of its parents, support
-     * the specified class of behaviour. It
+     * the specified class of behaviour.
      *
      * @param behaviourClass behaviour class
      * @return true if behaviour is supported

@@ -32,7 +32,6 @@ import org.onosproject.net.behaviour.VlanQuery;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.newresource.ResourceAdminService;
@@ -162,14 +161,8 @@ final class ResourceDeviceListener implements DeviceListener {
 
     private Set<OchSignal> queryLambdas(DeviceId did, PortNumber port) {
         try {
-            // DriverHandler does not provide a way to check if a
-            // behaviour is supported.
-            Driver driver = driverService.getDriver(did);
-            if (driver == null || !driver.hasBehaviour(LambdaQuery.class)) {
-                return Collections.emptySet();
-            }
             DriverHandler handler = driverService.createHandler(did);
-            if (handler == null) {
+            if (handler == null || !handler.hasBehaviour(LambdaQuery.class)) {
                 return Collections.emptySet();
             }
             LambdaQuery query = handler.behaviour(LambdaQuery.class);
@@ -187,16 +180,8 @@ final class ResourceDeviceListener implements DeviceListener {
 
     private Set<VlanId> queryVlanIds(DeviceId device, PortNumber port) {
         try {
-            // DriverHandler does not provide a way to check if a
-            // behaviour is supported.
-            Driver driver = driverService.getDriver(device);
-            if (driver == null || !driver.hasBehaviour(VlanQuery.class)) {
-                // device does not support this
-                return ImmutableSet.of();
-            }
-
             DriverHandler handler = driverService.createHandler(device);
-            if (handler == null) {
+            if (handler == null || !handler.hasBehaviour(VlanQuery.class)) {
                 return ImmutableSet.of();
             }
 
@@ -212,15 +197,8 @@ final class ResourceDeviceListener implements DeviceListener {
 
     private Set<MplsLabel> queryMplsLabels(DeviceId device, PortNumber port) {
         try {
-            // DriverHandler does not provide a way to check if a
-            // behaviour is supported.
-            Driver driver = driverService.getDriver(device);
-            if (driver == null || !driver.hasBehaviour(MplsQuery.class)) {
-                // device does not support this
-                return ImmutableSet.of();
-            }
             DriverHandler handler = driverService.createHandler(device);
-            if (handler == null) {
+            if (handler == null || !handler.hasBehaviour(MplsQuery.class)) {
                 return ImmutableSet.of();
             }
 
@@ -236,14 +214,8 @@ final class ResourceDeviceListener implements DeviceListener {
 
     private Set<TributarySlot> queryTributarySlots(DeviceId device, PortNumber port) {
         try {
-            // DriverHandler does not provide a way to check if a
-            // behaviour is supported.
-            Driver driver = driverService.getDriver(device);
-            if (driver == null || !driver.hasBehaviour(TributarySlotQuery.class)) {
-                return Collections.emptySet();
-            }
             DriverHandler handler = driverService.createHandler(device);
-            if (handler == null) {
+            if (handler == null || !handler.hasBehaviour(TributarySlotQuery.class)) {
                 return Collections.emptySet();
             }
             TributarySlotQuery query = handler.behaviour(TributarySlotQuery.class);

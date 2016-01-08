@@ -44,6 +44,17 @@ public interface DriverHandler {
     <T extends Behaviour> T behaviour(Class<T> behaviourClass);
 
     /**
+     * Indicates whether or not the driver, or any of its parents, support
+     * the specified class of behaviour.
+     *
+     * @param behaviourClass behaviour class
+     * @return true if behaviour is supported
+     */
+    default boolean hasBehaviour(Class<? extends Behaviour> behaviourClass) {
+        return driver().hasBehaviour(behaviourClass);
+    }
+
+    /**
      * Returns the reference to the implementation of the specified service.
      * Provides access to run-time context.
      *
