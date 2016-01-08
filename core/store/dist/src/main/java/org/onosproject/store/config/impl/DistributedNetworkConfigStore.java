@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.node.ShortNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -117,8 +117,33 @@ public class DistributedNetworkConfigStore
     @Override
     public void addConfigFactory(ConfigFactory configFactory) {
         factoriesByConfig.put(configFactory.configClass().getName(), configFactory);
+        processPendingConfigs(configFactory);
         notifyDelegate(new NetworkConfigEvent(CONFIG_REGISTERED, configFactory.configKey(),
                                               configFactory.configClass()));
+    }
+
+    // Sweep through any pending configurations, validate them and then prune them.
+    private void processPendingConfigs(ConfigFactory configFactory) {
+        Set<ConfigKey> toBePruned = Sets.newHashSet();
+        configs.keySet().forEach(k -> {
+            if (Objects.equals(k.configKey, configFactory.configKey())) {
+                validateConfig(k, configFactory, configs.get(k).value());
+                toBePruned.add(k); // Prune whether valid or not
+            }
+        });
+        toBePruned.forEach(configs::remove);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void validateConfig(ConfigKey key, ConfigFactory configFactory, JsonNode json) {
+        Config config = createConfig(key.subject, configFactory.configClass(), json);
+        try {
+            checkArgument(config.isValid(), INVALID_CONFIG_JSON);
+            configs.putAndGet(key(key.subject, configFactory.configClass()), json);
+        } catch (Exception e) {
+            log.warn("Failed to validate pending {} configuration for {}: {}",
+                     key.configKey, configFactory.subjectFactory().subjectKey(key.subject), json);
+        }
     }
 
     @Override
@@ -152,7 +177,7 @@ public class DistributedNetworkConfigStore
         ImmutableSet.Builder<S> builder = ImmutableSet.builder();
         String cName = configClass.getName();
         configs.keySet().forEach(k -> {
-            if (subjectClass.isInstance(k.subject) && cName.equals(k.configClass)) {
+            if (subjectClass.isInstance(k.subject) && Objects.equals(cName, k.configClass)) {
                 builder.add((S) k.subject);
             }
         });
@@ -164,7 +189,7 @@ public class DistributedNetworkConfigStore
     public <S> Set<Class<? extends Config<S>>> getConfigClasses(S subject) {
         ImmutableSet.Builder<Class<? extends Config<S>>> builder = ImmutableSet.builder();
         configs.keySet().forEach(k -> {
-            if (Objects.equals(subject, k.subject) && delegate != null) {
+            if (Objects.equals(subject, k.subject) && k.configClass != null && delegate != null) {
                 builder.add(factoriesByConfig.get(k.configClass).configClass());
             }
         });
@@ -201,13 +226,22 @@ public class DistributedNetworkConfigStore
 
         // Re-create the config if for some reason what we attempted to put
         // was supplanted by someone else already.
-        return versioned.value() == json ? config :
-                createConfig(subject, configClass, versioned.value());
+        return versioned.value() == json ? config : createConfig(subject, configClass, versioned.value());
+    }
+
+    @Override
+    public <S> void queueConfig(S subject, String configKey, JsonNode json) {
+        configs.put(key(subject, configKey), json);
     }
 
     @Override
     public <S, C extends Config<S>> void clearConfig(S subject, Class<C> configClass) {
         configs.remove(key(subject, configClass));
+    }
+
+    @Override
+    public <S> void clearQueuedConfig(S subject, String configKey) {
+        configs.remove(key(subject, configKey));
     }
 
     /**
@@ -248,19 +282,35 @@ public class DistributedNetworkConfigStore
         return new ConfigKey(subject, configClass);
     }
 
+    // Produces a key for uniquely tracking a subject config.
+    private static ConfigKey key(Object subject, String configKey) {
+        return new ConfigKey(subject, configKey);
+    }
+
     // Auxiliary key to track subject configurations.
+    // Keys with non-null configKey are pending configurations.
     private static final class ConfigKey {
         final Object subject;
+        final String configKey;
         final String configClass;
 
+        // Create a key for pending configuration class
+        private ConfigKey(Object subject, String configKey) {
+            this.subject = subject;
+            this.configKey = configKey;
+            this.configClass = null;
+        }
+
+        // Create a key for registered class configuration
         private ConfigKey(Object subject, Class<?> configClass) {
             this.subject = subject;
+            this.configKey = null;
             this.configClass = configClass.getName();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(subject, configClass);
+            return Objects.hash(subject, configKey, configClass);
         }
 
         @Override
@@ -271,6 +321,7 @@ public class DistributedNetworkConfigStore
             if (obj instanceof ConfigKey) {
                 final ConfigKey other = (ConfigKey) obj;
                 return Objects.equals(this.subject, other.subject)
+                        && Objects.equals(this.configKey, other.configKey)
                         && Objects.equals(this.configClass, other.configClass);
             }
             return false;
@@ -280,6 +331,11 @@ public class DistributedNetworkConfigStore
     private class InternalMapListener implements MapEventListener<ConfigKey, JsonNode> {
         @Override
         public void event(MapEvent<ConfigKey, JsonNode> event) {
+            // Do not delegate pending configs.
+            if (event.key().configClass == null) {
+                return;
+            }
+
             NetworkConfigEvent.Type type;
             switch (event.type()) {
                 case INSERT:

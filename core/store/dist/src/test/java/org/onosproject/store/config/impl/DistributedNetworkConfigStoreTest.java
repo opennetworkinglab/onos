@@ -62,9 +62,8 @@ public class DistributedNetworkConfigStoreTest {
      * Config factory class for testing.
      */
     public class MockConfigFactory extends ConfigFactory<String, BasicConfig> {
-        protected MockConfigFactory(SubjectFactory<String> subjectFactory,
-                                Class<BasicConfig> configClass, String configKey) {
-            super(subjectFactory, configClass, configKey);
+        protected MockConfigFactory(Class<BasicConfig> configClass, String configKey) {
+            super(new MockSubjectFactory("strings"), configClass, configKey);
         }
         @Override
         public BasicConfig createConfig() {
@@ -73,11 +72,25 @@ public class DistributedNetworkConfigStoreTest {
     }
 
     /**
+     * Subject factory class for testing.
+     */
+    public class MockSubjectFactory extends SubjectFactory<String> {
+        protected MockSubjectFactory(String subjectClassKey) {
+            super(String.class, subjectClassKey);
+        }
+
+        @Override
+        public String createSubject(String subjectKey) {
+            return subjectKey;
+        }
+    }
+
+    /**
      * Tests creation, query and removal of a config.
      */
     @Test
     public void testCreateConfig() {
-        configStore.addConfigFactory(new MockConfigFactory(null, BasicConfig.class, "config1"));
+        configStore.addConfigFactory(new MockConfigFactory(BasicConfig.class, "config1"));
 
         configStore.createConfig("config1", BasicConfig.class);
         assertThat(configStore.getConfigClasses("config1"), hasSize(1));
@@ -101,7 +114,7 @@ public class DistributedNetworkConfigStoreTest {
      */
     @Test
     public void testCreateFactory() {
-        MockConfigFactory mockFactory = new MockConfigFactory(null, BasicConfig.class, "config1");
+        MockConfigFactory mockFactory = new MockConfigFactory(BasicConfig.class, "config1");
 
         assertThat(configStore.getConfigFactory(BasicConfig.class), nullValue());
 
@@ -117,7 +130,7 @@ public class DistributedNetworkConfigStoreTest {
      */
     @Test
     public void testApplyConfig() {
-        configStore.addConfigFactory(new MockConfigFactory(null, BasicConfig.class, "config1"));
+        configStore.addConfigFactory(new MockConfigFactory(BasicConfig.class, "config1"));
 
         configStore.applyConfig("config1", BasicConfig.class, new ObjectMapper().createObjectNode());
         assertThat(configStore.getConfigClasses("config1"), hasSize(1));

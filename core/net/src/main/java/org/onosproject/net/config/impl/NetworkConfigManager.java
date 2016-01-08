@@ -56,8 +56,11 @@ public class NetworkConfigManager
 
     private static final String NULL_FACTORY_MSG = "Factory cannot be null";
     private static final String NULL_SCLASS_MSG = "Subject class cannot be null";
+    private static final String NULL_SKEY_MSG = "Subject key cannot be null";
     private static final String NULL_CCLASS_MSG = "Config class cannot be null";
+    private static final String NULL_CKEY_MSG = "Config key cannot be null";
     private static final String NULL_SUBJECT_MSG = "Subject cannot be null";
+    private static final String NULL_JSON_MSG = "JSON cannot be null";
 
     // Inventory of configuration factories
     private final Map<ConfigKey, ConfigFactory> factories = Maps.newConcurrentMap();
@@ -156,6 +159,8 @@ public class NetworkConfigManager
 
     @Override
     public Class<? extends Config> getConfigClass(String subjectClassKey, String configKey) {
+        checkNotNull(subjectClassKey, NULL_SKEY_MSG);
+        checkNotNull(configKey, NULL_CKEY_MSG);
         return configClasses.get(new ConfigIdentifier(subjectClassKey, configKey));
     }
 
@@ -182,7 +187,7 @@ public class NetworkConfigManager
     }
 
     @Override
-    public <S, T extends Config<S>> T getConfig(S subject, Class<T> configClass) {
+    public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
         checkNotNull(subject, NULL_SUBJECT_MSG);
         checkNotNull(configClass, NULL_CCLASS_MSG);
         return store.getConfig(subject, configClass);
@@ -200,7 +205,25 @@ public class NetworkConfigManager
     public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, JsonNode json) {
         checkNotNull(subject, NULL_SUBJECT_MSG);
         checkNotNull(configClass, NULL_CCLASS_MSG);
+        checkNotNull(subject, NULL_JSON_MSG);
         return store.applyConfig(subject, configClass, json);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <S, C extends Config<S>> C applyConfig(String subjectClassKey, S subject,
+                                                  String configKey, JsonNode json) {
+        checkNotNull(subjectClassKey, NULL_SKEY_MSG);
+        checkNotNull(subject, NULL_SUBJECT_MSG);
+        checkNotNull(configKey, NULL_CKEY_MSG);
+        checkNotNull(subject, NULL_JSON_MSG);
+        Class<? extends Config> configClass = configClasses.get(new ConfigIdentifier(subjectClassKey, configKey));
+        if (configClass != null) {
+            return store.applyConfig(subject, (Class<C>) configClass, json);
+        } else {
+            store.queueConfig(subject, configKey, json);
+            return null;
+        }
     }
 
     @Override
@@ -208,6 +231,19 @@ public class NetworkConfigManager
         checkNotNull(subject, NULL_SUBJECT_MSG);
         checkNotNull(configClass, NULL_CCLASS_MSG);
         store.clearConfig(subject, configClass);
+    }
+
+    @Override
+    public <S> void removeConfig(String subjectClassKey, S subject, String configKey) {
+        checkNotNull(subjectClassKey, NULL_SKEY_MSG);
+        checkNotNull(subject, NULL_SUBJECT_MSG);
+        checkNotNull(configKey, NULL_CCLASS_MSG);
+        Class<? extends Config> configClass = configClasses.get(new ConfigIdentifier(subjectClassKey, configKey));
+        if (configClass != null) {
+            store.clearConfig(subject, configClass);
+        } else {
+            store.clearQueuedConfig(subject, configKey);
+         }
     }
 
     // Auxiliary store delegate to receive notification about changes in
@@ -259,17 +295,17 @@ public class NetworkConfigManager
     }
 
     static final class ConfigIdentifier {
-        final String subjectKey;
+        final String subjectClassKey;
         final String configKey;
 
-        protected ConfigIdentifier(String subjectKey, String configKey) {
-            this.subjectKey = subjectKey;
+        protected ConfigIdentifier(String subjectClassKey, String configKey) {
+            this.subjectClassKey = subjectClassKey;
             this.configKey = configKey;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(subjectKey, configKey);
+            return Objects.hash(subjectClassKey, configKey);
         }
 
         @Override
@@ -279,10 +315,11 @@ public class NetworkConfigManager
             }
             if (obj instanceof ConfigIdentifier) {
                 final ConfigIdentifier other = (ConfigIdentifier) obj;
-                return Objects.equals(this.subjectKey, other.subjectKey)
+                return Objects.equals(this.subjectClassKey, other.subjectClassKey)
                         && Objects.equals(this.configKey, other.configKey);
             }
             return false;
         }
     }
+
 }

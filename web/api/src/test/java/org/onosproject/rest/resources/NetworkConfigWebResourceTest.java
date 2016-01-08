@@ -56,6 +56,7 @@ import static org.junit.Assert.fail;
  */
 public class NetworkConfigWebResourceTest extends ResourceTest {
 
+
     MockNetworkConfigService mockNetworkConfigService;
 
     public class MockDeviceConfig extends Config<Device> {
@@ -201,7 +202,7 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
         mockNetworkConfigService = new MockNetworkConfigService();
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
-                .add(NetworkConfigService.class, mockNetworkConfigService);
+                        .add(NetworkConfigService.class, mockNetworkConfigService);
         BaseResource.setServiceDirectory(testDirectory);
     }
 

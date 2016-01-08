@@ -264,8 +264,9 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                            InputStream request) throws IOException {
         NetworkConfigService service = get(NetworkConfigService.class);
         ObjectNode root = (ObjectNode) mapper().readTree(request);
-        service.applyConfig(service.getSubjectFactory(subjectClassKey).createSubject(subjectKey),
-                            service.getConfigClass(subjectClassKey, configKey), root);
+        service.applyConfig(subjectClassKey,
+                            service.getSubjectFactory(subjectClassKey).createSubject(subjectKey),
+                            configKey, root);
         return Response.ok().build();
     }
 
@@ -279,12 +280,13 @@ public class NetworkConfigWebResource extends AbstractWebResource {
 
     private void consumeSubjectJson(NetworkConfigService service,
                                     ObjectNode subjectNode, Object subject,
-                                    String subjectKey) {
-        subjectNode.fieldNames().forEachRemaining(c ->
-            service.applyConfig(subject, service.getConfigClass(subjectKey, c),
-                                subjectNode.path(c)));
+                                    String subjectClassKey) {
+        subjectNode.fieldNames().forEachRemaining(configKey ->
+            service.applyConfig(subjectClassKey, subject, configKey, subjectNode.path(configKey)));
     }
 
+
+    // FIXME: Refactor to allow queued configs to be removed
 
     /**
      * Clear entire network configuration base.
