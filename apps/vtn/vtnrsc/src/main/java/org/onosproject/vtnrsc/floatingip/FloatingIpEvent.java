@@ -34,7 +34,15 @@ public class FloatingIpEvent
         /**
          * Signifies that Floating IP has been deleted.
          */
-        FLOATINGIP_DELETE
+        FLOATINGIP_DELETE,
+        /**
+         * Signifies that Floating IP has been bound.
+         */
+        FLOATINGIP_BIND,
+        /**
+         * Signifies that Floating IP has been unbound.
+         */
+        FLOATINGIP_UNBIND
     }
 
     /**

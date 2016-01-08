@@ -233,6 +233,18 @@ public class VtnRscManager extends AbstractListenerManager<VtnRscEvent, VtnRscLi
                                                 new VtnRscEventFeedback(
                                                                         floatingIp)));
             }
+            if (FloatingIpEvent.Type.FLOATINGIP_BIND == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                                                VtnRscEvent.Type.FLOATINGIP_BIND,
+                                                new VtnRscEventFeedback(
+                                                                        floatingIp)));
+            }
+            if (FloatingIpEvent.Type.FLOATINGIP_UNBIND == event.type()) {
+                notifyListeners(new VtnRscEvent(
+                                                VtnRscEvent.Type.FLOATINGIP_UNBIND,
+                                                new VtnRscEventFeedback(
+                                                                        floatingIp)));
+            }
         }
     }
 
