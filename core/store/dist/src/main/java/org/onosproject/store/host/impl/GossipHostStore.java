@@ -251,7 +251,8 @@ public class GossipHostStore
                     descr.hwAddress(),
                     descr.vlan(),
                     descr.location(),
-                    ImmutableSet.copyOf(descr.ipAddress()));
+                    ImmutableSet.copyOf(descr.ipAddress()),
+                    descr.annotations());
             StoredHost concAdd = hosts.putIfAbsent(hostId, newhost);
             if (concAdd != null) {
                 // concurrent add detected, retry from start
