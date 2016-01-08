@@ -58,6 +58,8 @@
 
     function whatKey(code) {
         switch (code) {
+            case 8: return 'delete';
+            case 9: return 'tab';
             case 13: return 'enter';
             case 16: return 'shift';
             case 17: return 'ctrl';
@@ -70,13 +72,17 @@
             case 40: return 'downArrow';
             case 91: return 'cmdLeft';
             case 93: return 'cmdRight';
+            case 186: return 'semicolon';
             case 187: return 'equals';
             case 188: return 'comma';
             case 189: return 'dash';
             case 190: return 'dot';
             case 191: return 'slash';
             case 192: return 'backQuote';
+            case 219: return 'openBracket';
             case 220: return 'backSlash';
+            case 221: return 'closeBracket';
+            case 222: return 'quote';
             default:
                 if ((code >= 48 && code <= 57) ||
                     (code >= 65 && code <= 90)) {
