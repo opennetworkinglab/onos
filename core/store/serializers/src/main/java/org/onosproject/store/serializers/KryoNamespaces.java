@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -430,6 +430,7 @@ public final class KryoNamespaces {
                     ResourcePath.class,
                     ResourcePath.Discrete.class,
                     ResourcePath.Continuous.class,
+                    ResourcePath.Key.class,
                     ResourceAllocation.class,
                     // Constraints
                     LambdaConstraint.class,

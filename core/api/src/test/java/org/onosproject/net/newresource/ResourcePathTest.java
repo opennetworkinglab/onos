@@ -43,12 +43,12 @@ public class ResourcePathTest {
         ResourcePath sameAsResource1 = ResourcePath.discrete(D1, P1, VLAN1);
         ResourcePath resource2 = ResourcePath.discrete(D2, P1, VLAN1);
         ResourcePath resource3 = ResourcePath.continuous(BW1.bps(), D1, P1, BW1);
-        ResourcePath sameAsResource3 = ResourcePath.continuous(BW2.bps(), D1, P1, BW1);
+        ResourcePath sameAsResource3 = ResourcePath.continuous(BW1.bps(), D1, P1, BW1);
 
         new EqualsTester()
                 .addEqualityGroup(resource1, sameAsResource1)
                 .addEqualityGroup(resource2)
-                .addEqualityGroup(resource3, sameAsResource3)   // this is intentional
+                .addEqualityGroup(resource3, sameAsResource3)
                 .testEquals();
     }
 
@@ -57,6 +57,21 @@ public class ResourcePathTest {
         ResourcePath port = ResourcePath.discrete(D1, P1);
 
         assertThat(port.components(), contains(D1, P1));
+    }
+
+    @Test
+    public void testKeyEquality() {
+        ResourcePath.Key key1 = ResourcePath.discrete(D1, P1, VLAN1).key();
+        ResourcePath.Key sameAsKey1 = ResourcePath.discrete(D1, P1, VLAN1).key();
+        ResourcePath.Key key2 = ResourcePath.discrete(D2, P1, VLAN1).key();
+        ResourcePath.Key key3 = ResourcePath.continuous(BW1.bps(), D1, P1, BW1).key();
+        // intentionally set a different value
+        ResourcePath.Key sameAsKey3 = ResourcePath.continuous(BW2.bps(), D1, P1, BW1).key();
+
+        new EqualsTester()
+                .addEqualityGroup(key1, sameAsKey1)
+                .addEqualityGroup(key2)
+                .addEqualityGroup(key3, sameAsKey3);
     }
 
     @Test
