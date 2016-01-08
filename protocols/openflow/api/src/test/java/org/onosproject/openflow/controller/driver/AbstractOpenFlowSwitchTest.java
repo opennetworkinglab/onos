@@ -17,6 +17,8 @@ package org.onosproject.openflow.controller.driver;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.jboss.netty.channel.Channel;
 import java.util.ArrayList;
@@ -65,6 +67,7 @@ public class AbstractOpenFlowSwitchTest {
         ofSwitch.executorMsgs = executorService;
         Channel channel = new ChannelAdapter();
         ofSwitch.setChannel(channel);
+        ofSwitch.addEventListener(new OpenFlowEventListenerAdapter());
     }
 
     /**
@@ -118,6 +121,13 @@ public class AbstractOpenFlowSwitchTest {
 
         @Override
         public void processDriverHandshakeMessage(OFMessage m) {
+        }
+    }
+
+    private class OpenFlowEventListenerAdapter implements OpenFlowEventListener {
+
+        @Override
+        public void handleMessage(Dpid dpid, OFMessage msg) {
         }
     }
 }

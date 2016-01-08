@@ -65,6 +65,13 @@ public interface OpenFlowController {
     OpenFlowSwitch getEqualSwitch(Dpid dpid);
 
     /**
+     * If this set to be true, all incoming events are monitored.
+     * Other wise, only stats related incoming events are monitored
+     * @param monitor monitoring flag
+     */
+    void monitorAllEvents(boolean monitor);
+
+    /**
      * Register a listener for meta events that occur to OF
      * devices.
      * @param listener the listener to notify

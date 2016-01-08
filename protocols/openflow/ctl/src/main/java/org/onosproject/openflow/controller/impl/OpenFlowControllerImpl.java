@@ -115,6 +115,12 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     protected ExecutorService executorMsgs =
         Executors.newFixedThreadPool(32, groupedThreads("onos/of", "event-stats-%d"));
 
+    protected ExecutorService executorPacketIn =
+        Executors.newCachedThreadPool(groupedThreads("onos/of", "event-pkt-in-stats-%d"));
+
+    protected ExecutorService executorFlowRemoved =
+        Executors.newCachedThreadPool(groupedThreads("onos/of", "event-flow-removed-stats-%d"));
+
     private final ExecutorService executorBarrier =
         Executors.newFixedThreadPool(4, groupedThreads("onos/of", "event-barrier-%d"));
 
@@ -132,6 +138,8 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             ArrayListMultimap.create();
 
     protected Set<OpenFlowEventListener> ofEventListener = new CopyOnWriteArraySet<>();
+
+    protected boolean monitorAllEvents = false;
 
     protected Multimap<Dpid, OFFlowStatsEntry> fullFlowStats =
             ArrayListMultimap.create();
@@ -210,6 +218,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     }
 
     @Override
+    public void monitorAllEvents(boolean monitor) {
+        this.monitorAllEvents = monitor;
+    }
+
+    @Override
     public void addListener(OpenFlowSwitchListener listener) {
         if (!ofSwitchListener.contains(listener)) {
             this.ofSwitchListener.add(listener);
@@ -272,13 +285,17 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             for (PacketListener p : ofPacketListener.values()) {
                 p.handlePacket(pktCtx);
             }
-            executorMsgs.submit(new OFMessageHandler(dpid, msg));
+            if (monitorAllEvents) {
+                executorPacketIn.submit(new OFMessageHandler(dpid, msg));
+            }
             break;
         // TODO: Consider using separate threadpool for sensitive messages.
         //    ie. Back to back error could cause us to starve.
         case FLOW_REMOVED:
-            executorMsgs.submit(new OFMessageHandler(dpid, msg));
-            break;
+            if (monitorAllEvents) {
+                executorFlowRemoved.submit(new OFMessageHandler(dpid, msg));
+                break;
+            }
         case ERROR:
             log.debug("Received error message from {}: {}", dpid, msg);
             executorMsgs.submit(new OFMessageHandler(dpid, msg));

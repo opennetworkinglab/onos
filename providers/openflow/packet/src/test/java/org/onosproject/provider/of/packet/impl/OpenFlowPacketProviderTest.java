@@ -287,6 +287,10 @@ public class OpenFlowPacketProviderTest {
         }
 
         @Override
+        public void monitorAllEvents(boolean monitor) {
+        }
+
+        @Override
         public void addListener(OpenFlowSwitchListener listener) {
         }
 

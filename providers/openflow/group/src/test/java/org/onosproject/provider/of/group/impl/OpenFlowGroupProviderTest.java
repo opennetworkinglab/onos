@@ -289,6 +289,10 @@ public class OpenFlowGroupProviderTest {
             return null;
         }
 
+        @Override
+        public void monitorAllEvents(boolean monitor) {
+        }
+
     }
 
     private class TestGroupProviderRegistry implements GroupProviderRegistry {

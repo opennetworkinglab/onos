@@ -92,10 +92,10 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     protected OFFeaturesReply features;
     protected OFDescStatsReply desc;
 
-    protected Set<OpenFlowEventListener> ofEventListener = new CopyOnWriteArraySet<>();
+    protected Set<OpenFlowEventListener> ofOutgoingMsgListener = new CopyOnWriteArraySet<>();
 
     protected ExecutorService executorMsgs =
-            Executors.newFixedThreadPool(2, groupedThreads("onos/of", "ctrl-msg-stats-%d"));
+            Executors.newCachedThreadPool(groupedThreads("onos/of", "event-outgoing-msg-stats-%d"));
 
     // messagesPendingMastership is used as synchronization variable for
     // all mastership related changes. In this block, mastership (including
@@ -167,14 +167,16 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
             }
         }
 
-        // listen to outgoing control messages
-        msgs.forEach(m -> {
-            if (m.getType() == OFType.PACKET_OUT ||
-                m.getType() == OFType.FLOW_MOD ||
-                m.getType() == OFType.STATS_REQUEST) {
-                executorMsgs.submit(new OFMessageHandler(dpid, m));
-            }
-        });
+        // listen to outgoing control messages only if listeners are registered
+        if (ofOutgoingMsgListener.size() != 0) {
+            msgs.forEach(m -> {
+                if (m.getType() == OFType.PACKET_OUT ||
+                        m.getType() == OFType.FLOW_MOD ||
+                        m.getType() == OFType.STATS_REQUEST) {
+                    executorMsgs.submit(new OFMessageHandler(dpid, m));
+                }
+            });
+        }
     }
 
     private void sendMsgsOnChannel(List<OFMessage> msgs) {
@@ -332,12 +334,12 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
 
     @Override
     public void addEventListener(OpenFlowEventListener listener) {
-        ofEventListener.add(listener);
+        ofOutgoingMsgListener.add(listener);
     }
 
     @Override
     public void removeEventListener(OpenFlowEventListener listener) {
-        ofEventListener.remove(listener);
+        ofOutgoingMsgListener.remove(listener);
     }
 
     @Override
@@ -547,7 +549,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
 
         @Override
         public void run() {
-            for (OpenFlowEventListener listener : ofEventListener) {
+            for (OpenFlowEventListener listener : ofOutgoingMsgListener) {
                 listener.handleMessage(dpid, msg);
             }
         }

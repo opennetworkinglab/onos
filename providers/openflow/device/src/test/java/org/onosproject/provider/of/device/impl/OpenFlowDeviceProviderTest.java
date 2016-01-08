@@ -262,6 +262,10 @@ public class OpenFlowDeviceProviderTest {
         }
 
         @Override
+        public void monitorAllEvents(boolean monitor) {
+        }
+
+        @Override
         public void addListener(OpenFlowSwitchListener listener) {
             this.listener = listener;
         }

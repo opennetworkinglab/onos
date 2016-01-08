@@ -277,6 +277,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public void enableCtrlMsgMonitor() {
         isCtrlMsgMonitor = true;
         controller.addEventListener(inMsgListener);
+        controller.monitorAllEvents(isCtrlMsgMonitor);
         for (OpenFlowSwitch sw : controller.getSwitches()) {
             sw.addEventListener(outMsgListener);
         }
@@ -288,6 +289,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
      */
     public void disableCtrlMsgMonitor() {
         isCtrlMsgMonitor = false;
+        controller.monitorAllEvents(isCtrlMsgMonitor);
         controller.removeEventListener(inMsgListener);
         for (OpenFlowSwitch sw: controller.getSwitches()) {
             sw.removeEventListener(outMsgListener);
@@ -343,7 +345,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         @Override
         public void handleMessage(Dpid dpid, OFMessage msg) {
             if (isCtrlMsgMonitor) {
-                // TODO: feed the control message stats via ControlMetricsServiceFactory
+                // TODO: handle all incoming OF messages
             }
         }
     }
@@ -356,7 +358,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         @Override
         public void handleMessage(Dpid dpid, OFMessage msg) {
             if (isCtrlMsgMonitor) {
-                // TODO: feed the control message stats via ControlMetricsServiceFactory
+                // TODO: handle all outgoing OF messages
             }
         }
     }
