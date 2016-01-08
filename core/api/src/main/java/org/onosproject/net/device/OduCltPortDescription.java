@@ -16,7 +16,7 @@
 package org.onosproject.net.device;
 
 import com.google.common.base.MoreObjects;
-import org.onosproject.net.OduCltPort;
+import org.onosproject.net.CltSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
@@ -26,7 +26,7 @@ import org.onosproject.net.SparseAnnotations;
  */
 public class OduCltPortDescription extends DefaultPortDescription {
 
-    private final OduCltPort.SignalType signalType;
+    private final CltSignalType signalType;
 
     /**
      * Creates ODU client port description based on the supplied information.
@@ -36,7 +36,7 @@ public class OduCltPortDescription extends DefaultPortDescription {
      * @param signalType    ODU client signal type
      * @param annotations   optional key/value annotations map
      */
-    public OduCltPortDescription(PortNumber number, boolean isEnabled, OduCltPort.SignalType signalType,
+    public OduCltPortDescription(PortNumber number, boolean isEnabled, CltSignalType signalType,
                                  SparseAnnotations... annotations) {
         super(number, isEnabled, Port.Type.ODUCLT, 0, annotations);
         this.signalType = signalType;
@@ -49,7 +49,7 @@ public class OduCltPortDescription extends DefaultPortDescription {
      * @param signalType    ODU client signal type
      * @param annotations   optional key/value annotations map
      */
-    public OduCltPortDescription(PortDescription base, OduCltPort.SignalType signalType,
+    public OduCltPortDescription(PortDescription base, CltSignalType signalType,
                                  SparseAnnotations annotations) {
         super(base, annotations);
         this.signalType = signalType;
@@ -60,7 +60,7 @@ public class OduCltPortDescription extends DefaultPortDescription {
      *
      * @return ODU client signal type
      */
-    public OduCltPort.SignalType signalType() {
+    public CltSignalType signalType() {
         return signalType;
     }
 

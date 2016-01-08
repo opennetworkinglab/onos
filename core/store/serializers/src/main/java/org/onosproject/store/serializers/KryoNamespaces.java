@@ -49,6 +49,7 @@ import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -483,7 +484,7 @@ public final class KryoNamespaces {
             .register(GridType.class)
             .register(ChannelSpacing.class)
             .register(OduCltPort.class)
-            .register(OduCltPort.SignalType.class)
+            .register(CltSignalType.class)
             .register(IndexedLambda.class)
             .register(OchSignal.class)
             .register(OduSignalId.class)

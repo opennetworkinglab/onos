@@ -44,8 +44,8 @@ public class OchPort extends DefaultPort {
      */
     public OchPort(Element element, PortNumber number, boolean isEnabled, OduSignalType signalType,
                    boolean isTunable, OchSignal lambda, Annotations... annotations) {
-        super(element, number, isEnabled, Type.OCH, 0, annotations);
-        this.signalType = checkNotNull(signalType);
+        super(element, number, isEnabled, Type.OCH, checkNotNull(signalType).bitRate(), annotations);
+        this.signalType = signalType;
         this.isTunable = isTunable;
         this.lambda = checkNotNull(lambda);
     }

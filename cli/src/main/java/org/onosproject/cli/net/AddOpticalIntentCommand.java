@@ -18,6 +18,7 @@ package org.onosproject.cli.net;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
+import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
@@ -102,7 +103,7 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
                     .key(key())
                     .src(ingress)
                     .dst(egress)
-                    .signalType(OduCltPort.SignalType.CLT_10GBE)
+                    .signalType(CltSignalType.CLT_10GBE)
                     .bidirectional(bidirectional)
                     .build();
         } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {

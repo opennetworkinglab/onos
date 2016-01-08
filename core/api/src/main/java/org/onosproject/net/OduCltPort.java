@@ -28,15 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class OduCltPort extends DefaultPort {
 
-    public enum SignalType {
-        CLT_1GBE,
-        CLT_10GBE,
-        CLT_40GBE,
-        CLT_100GBE
-    }
-
-    private final SignalType signalType;
-
+    private final CltSignalType signalType;
 
     /**
      * Creates an ODU client port in the specified network element.
@@ -48,9 +40,9 @@ public class OduCltPort extends DefaultPort {
      * @param annotations       optional key/value annotations
      */
     public OduCltPort(Element element, PortNumber number, boolean isEnabled,
-                      SignalType signalType, Annotations... annotations) {
-        super(element, number, isEnabled, Type.ODUCLT, 0, annotations);
-        this.signalType = checkNotNull(signalType);
+                      CltSignalType signalType, Annotations... annotations) {
+        super(element, number, isEnabled, Type.ODUCLT, checkNotNull(signalType).bitRate(), annotations);
+        this.signalType = signalType;
     }
 
     /**
@@ -58,7 +50,7 @@ public class OduCltPort extends DefaultPort {
      *
      * @return ODU client signal type
      */
-    public SignalType signalType() {
+    public CltSignalType signalType() {
         return signalType;
     }
 

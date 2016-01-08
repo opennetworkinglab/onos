@@ -34,6 +34,7 @@ import org.onosproject.core.DefaultGroupId;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -208,8 +209,8 @@ public class KryoSerializerTest {
 
     @Test
     public void testOduCltPort() {
-        testSerializedEquals(new OduCltPort(DEV1, P1, true, OduCltPort.SignalType.CLT_10GBE));
-        testSerializedEquals(new OduCltPort(DEV1, P1, true, OduCltPort.SignalType.CLT_10GBE, A1_2));
+        testSerializedEquals(new OduCltPort(DEV1, P1, true, CltSignalType.CLT_10GBE));
+        testSerializedEquals(new OduCltPort(DEV1, P1, true, CltSignalType.CLT_10GBE, A1_2));
     }
 
     @Test

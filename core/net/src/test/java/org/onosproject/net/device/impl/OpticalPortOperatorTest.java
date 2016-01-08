@@ -17,6 +17,7 @@ package org.onosproject.net.device.impl;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.net.CltSignalType;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.net.config.basics.OpticalPortConfig;
@@ -24,7 +25,6 @@ import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.OduCltPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
@@ -50,9 +50,9 @@ public class OpticalPortOperatorTest {
                                                     .build();
 
     private static final OduCltPortDescription N_DESC = new OduCltPortDescription(
-            NAMED, true, OduCltPort.SignalType.CLT_100GBE, SA);
+            NAMED, true, CltSignalType.CLT_100GBE, SA);
     private static final OduCltPortDescription FAULTY = new OduCltPortDescription(
-            null, true, OduCltPort.SignalType.CLT_100GBE);
+            null, true, CltSignalType.CLT_100GBE);
 
     private final ConfigApplyDelegate delegate = new MockCfgDelegate();
     private final ObjectMapper mapper = new ObjectMapper();

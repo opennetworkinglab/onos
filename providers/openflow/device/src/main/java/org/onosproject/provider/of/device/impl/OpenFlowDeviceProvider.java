@@ -46,13 +46,13 @@ import org.onlab.util.Spectrum;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.CltSignalType;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.OchSignal;
-import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -537,20 +537,20 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             boolean enabled = !port.getState().contains(OFPortState.LINK_DOWN) &&
                               !port.getConfig().contains(OFPortConfig.PORT_DOWN);
             Long portSpeedInMbps = portSpeed(port);
-            OduCltPort.SignalType sigType = null;
+            CltSignalType sigType = null;
 
             switch (portSpeedInMbps.toString()) {
                 case "1000":
-                    sigType = OduCltPort.SignalType.CLT_1GBE;
+                    sigType = CltSignalType.CLT_1GBE;
                     break;
                 case "10000":
-                    sigType = OduCltPort.SignalType.CLT_10GBE;
+                    sigType = CltSignalType.CLT_10GBE;
                     break;
                 case "40000":
-                    sigType = OduCltPort.SignalType.CLT_40GBE;
+                    sigType = CltSignalType.CLT_40GBE;
                     break;
                 case "100000":
-                    sigType = OduCltPort.SignalType.CLT_100GBE;
+                    sigType = CltSignalType.CLT_100GBE;
                     break;
                 default:
                     throw new RuntimeException("Un recognize OduClt speed: " + portSpeedInMbps.toString());

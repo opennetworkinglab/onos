@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.net;
 
 /**
- * Represents ODU (Optical channel Data Unit) signal type.
+ * Represents ODU (Optical channel Data Unit) client port signal type.
  *
  * <p>
  * See ITU G.709 "Interfaces for the Optical Transport Network (OTN)" and
  * Open Networking Foundation "Optical Transport Protocol Extensions Version 1.0".
  * </p>
  */
-public enum OduSignalType {
+public enum CltSignalType {
     /** bit rate in Mbps. */
-    ODU0(1_250),
-    ODU1(2_500),
-    ODU2(10_000),
-    ODU2e(10_000),
-    ODU3(40_000),
-    ODU4(100_000);
+    CLT_1GBE(1_000),
+    CLT_10GBE(10_000),
+    CLT_40GBE(40_000),
+    CLT_100GBE(100_000);
 
     private final long bitRate;
 
-    OduSignalType(long bitRate) {
+    CltSignalType(long bitRate) {
         this.bitRate = bitRate;
     }
 

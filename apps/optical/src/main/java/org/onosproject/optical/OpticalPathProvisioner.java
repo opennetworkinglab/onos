@@ -26,6 +26,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
@@ -290,7 +291,7 @@ public class OpticalPathProvisioner {
                             .appId(appId)
                             .src(src)
                             .dst(dst)
-                            .signalType(OduCltPort.SignalType.CLT_10GBE)
+                            .signalType(CltSignalType.CLT_10GBE)
                             .bidirectional(true)
                             .build();
                     intents.add(circuitIntent);
