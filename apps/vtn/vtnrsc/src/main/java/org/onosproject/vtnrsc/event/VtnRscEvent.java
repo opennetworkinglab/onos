@@ -37,6 +37,14 @@ public class VtnRscEvent
          */
         FLOATINGIP_DELETE,
         /**
+         * Signifies that Floating IP has been bound.
+         */
+        FLOATINGIP_BIND,
+        /**
+         * Signifies that Floating IP has been unbound.
+         */
+        FLOATINGIP_UNBIND,
+        /**
          * Signifies that router has create.
          */
         ROUTER_PUT,

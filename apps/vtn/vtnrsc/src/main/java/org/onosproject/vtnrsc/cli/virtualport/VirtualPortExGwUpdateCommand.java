@@ -23,6 +23,7 @@ import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.DeviceId;
 import org.onosproject.vtnrsc.BindingHostId;
 import org.onosproject.vtnrsc.DefaultVirtualPort;
 import org.onosproject.vtnrsc.FixedIp;
@@ -86,7 +87,7 @@ public class VirtualPortExGwUpdateCommand extends AbstractShellCommand {
                                                          VirtualPort.State.DOWN,
                                                          MacAddress.valueOf(macAddress),
                                                          subnet.tenantId(),
-                                                         null,
+                                                         DeviceId.deviceId(""),
                                                          Sets.newHashSet(fixedGwIp),
                                                          BindingHostId.bindingHostId(""),
                                                          Sets.newHashSet(),

@@ -749,9 +749,9 @@ public class VTNManager implements VTNService {
             } else
                 if (VtnRscEvent.Type.ROUTER_INTERFACE_DELETE == event.type()) {
                 onRouterInterfaceVanished(l3Feedback);
-            } else if (VtnRscEvent.Type.FLOATINGIP_PUT == event.type()) {
+            } else if (VtnRscEvent.Type.FLOATINGIP_BIND == event.type()) {
                 onFloatingIpDetected(l3Feedback);
-            } else if (VtnRscEvent.Type.FLOATINGIP_DELETE == event.type()) {
+            } else if (VtnRscEvent.Type.FLOATINGIP_UNBIND == event.type()) {
                 onFloatingIpVanished(l3Feedback);
             }
         }
@@ -762,6 +762,8 @@ public class VTNManager implements VTNService {
     public void onRouterInterfaceDetected(VtnRscEventFeedback l3Feedback) {
         Objective.Operation operation = Objective.Operation.ADD;
         RouterInterface routerInf = l3Feedback.routerInterface();
+        VirtualPort gwPort = virtualPortService.getPort(routerInf.portId());
+        vPortStore.put(gwPort.portId(), gwPort);
         Iterable<RouterInterface> interfaces = routerInterfaceService
                 .getRouterInterfaces();
         Set<RouterInterface> interfacesSet = Sets.newHashSet(interfaces)
@@ -794,16 +796,21 @@ public class VTNManager implements VTNService {
                 });
             }
         }
+        VirtualPort gwPort = virtualPortService.getPort(routerInf.portId());
+        if (gwPort == null) {
+            gwPort = VtnData.getPort(vPortStore, routerInf.portId());
+        }
+        vPortStore.remove(gwPort.portId());
     }
 
     @Override
     public void onFloatingIpDetected(VtnRscEventFeedback l3Feedback) {
-        programFloatingIpEvent(l3Feedback, VtnRscEvent.Type.FLOATINGIP_PUT);
+        programFloatingIpEvent(l3Feedback, VtnRscEvent.Type.FLOATINGIP_BIND);
     }
 
     @Override
     public void onFloatingIpVanished(VtnRscEventFeedback l3Feedback) {
-        programFloatingIpEvent(l3Feedback, VtnRscEvent.Type.FLOATINGIP_DELETE);
+        programFloatingIpEvent(l3Feedback, VtnRscEvent.Type.FLOATINGIP_UNBIND);
     }
 
     private void programInterfacesSet(Set<RouterInterface> interfacesSet,
@@ -925,11 +932,11 @@ public class VTNManager implements VTNService {
                 SegmentationId l3vni = vtnRscService
                         .getL3vni(vmPort.tenantId());
                 // Floating ip BIND
-                if (type == VtnRscEvent.Type.FLOATINGIP_PUT) {
+                if (type == VtnRscEvent.Type.FLOATINGIP_BIND) {
                     applyNorthSouthL3Flows(deviceId, host, vmPort, fipPort,
                                            floaingIp, l3vni, exPort,
                                            Objective.Operation.ADD);
-                } else if (type == VtnRscEvent.Type.FLOATINGIP_DELETE) {
+                } else if (type == VtnRscEvent.Type.FLOATINGIP_UNBIND) {
                     // Floating ip UNBIND
                     applyNorthSouthL3Flows(deviceId, host, vmPort, fipPort,
                                            floaingIp, l3vni, exPort,

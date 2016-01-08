@@ -63,7 +63,8 @@ import com.google.common.collect.Sets;
 public class FloatingIpManager implements FloatingIpService {
     private static final String FLOATINGIP_ID_NOT_NULL = "Floatingip ID cannot be null";
     private static final String FLOATINGIP_NOT_NULL = "Floatingip cannot be null";
-    private static final String FLOATINGIP = "vtn-floatingip-store";
+    private static final String FLOATINGIPSTORE = "vtn-floatingip-store";
+    private static final String FLOATINGIPBINDSTORE = "vtn-floatingip-bind-store";
     private static final String VTNRSC_APP = "org.onosproject.vtnrsc";
     private static final String LISTENER_NOT_NULL = "Listener cannot be null";
     private static final String EVENT_NOT_NULL = "event cannot be null";
@@ -74,6 +75,7 @@ public class FloatingIpManager implements FloatingIpService {
     private EventuallyConsistentMapListener<FloatingIpId, FloatingIp> floatingIpListener =
             new InnerFloatingIpStoreListener();
     protected EventuallyConsistentMap<FloatingIpId, FloatingIp> floatingIpStore;
+    protected EventuallyConsistentMap<FloatingIpId, FloatingIp> floatingIpBindStore;
     protected ApplicationId appId;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -103,7 +105,12 @@ public class FloatingIpManager implements FloatingIpService {
                           VirtualPortId.class, DefaultFloatingIp.class);
         floatingIpStore = storageService
                 .<FloatingIpId, FloatingIp>eventuallyConsistentMapBuilder()
-                .withName(FLOATINGIP).withSerializer(serializer)
+                .withName(FLOATINGIPSTORE).withSerializer(serializer)
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .build();
+        floatingIpBindStore = storageService
+                .<FloatingIpId, FloatingIp>eventuallyConsistentMapBuilder()
+                .withName(FLOATINGIPBINDSTORE).withSerializer(serializer)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
         floatingIpStore.addListener(floatingIpListener);
@@ -114,6 +121,7 @@ public class FloatingIpManager implements FloatingIpService {
     public void deactivate() {
         floatingIpStore.removeListener(floatingIpListener);
         floatingIpStore.destroy();
+        floatingIpBindStore.destroy();
         listeners.clear();
         log.info("Stopped");
     }
@@ -192,6 +200,8 @@ public class FloatingIpManager implements FloatingIpService {
         boolean result = true;
         for (FloatingIp floatingIp : floatingIps) {
             verifyFloatingIpData(floatingIp);
+            FloatingIp oldFloatingIp = floatingIpStore.get(floatingIp.id());
+            floatingIpBindStore.put(floatingIp.id(), oldFloatingIp);
             floatingIpStore.put(floatingIp.id(), floatingIp);
             if (!floatingIpStore.containsKey(floatingIp.id())) {
                 log.debug("The floating Ip is updated failed whose identifier is {}",
@@ -220,6 +230,7 @@ public class FloatingIpManager implements FloatingIpService {
                 return false;
             }
             floatingIpStore.remove(floatingIpId, floatingIp);
+            floatingIpBindStore.remove(floatingIpId);
             if (floatingIpStore.containsKey(floatingIpId)) {
                 log.debug("The floating Ip is deleted failed whose identifier is {}",
                           floatingIpId.toString());
@@ -303,6 +314,18 @@ public class FloatingIpManager implements FloatingIpService {
                 notifyListeners(new FloatingIpEvent(
                                                     FloatingIpEvent.Type.FLOATINGIP_PUT,
                                                     floatingIp));
+                if (floatingIp.portId() != null) {
+                    notifyListeners(new FloatingIpEvent(
+                                                        FloatingIpEvent.Type.FLOATINGIP_BIND,
+                                                        floatingIp));
+                } else {
+                    FloatingIp oldFloatingIp = floatingIpBindStore.get(floatingIp.id());
+                    if (oldFloatingIp != null) {
+                        notifyListeners(new FloatingIpEvent(
+                                                            FloatingIpEvent.Type.FLOATINGIP_UNBIND,
+                                                            oldFloatingIp));
+                    }
+                }
             }
             if (EventuallyConsistentMapEvent.Type.REMOVE == event.type()) {
                 notifyListeners(new FloatingIpEvent(
