@@ -15,9 +15,27 @@
  */
 package org.onosproject.openflow.controller;
 
+import java.util.List;
+
+import org.projectfloodlight.openflow.protocol.OFPortDesc;
+
+import com.google.common.annotations.Beta;
+
 /**
  * A marker interface for optical switches, which require the ability to pass
  * port information to a Device provider.
  */
 public interface OpenFlowOpticalSwitch extends OpenFlowSwitch, WithTypedPorts {
+
+    // OpenFlowOpticalSwitch only returns Ethernet ports.
+    // This is a limitation due to issue described in ONOS-3796.
+    // This method should return all port type once the limitation is fixed.
+    /**
+     * Returns a list of standard (Ethernet) ports.
+     *
+     * @return List of standard (Ethernet) ports
+     */
+    @Beta
+    @Override
+    abstract List<OFPortDesc> getPorts();
 }
