@@ -28,11 +28,11 @@ import static org.onosproject.net.config.Config.FieldPresence.OPTIONAL;
  */
 public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
 
-    private static final String TYPE = "type";
-    private static final String METRIC = "metric";
-    private static final String LATENCY = "latency";
-    private static final String BANDWIDTH = "bandwidth";
-    private static final String IS_DURABLE = "durable";
+    public static final String TYPE = "type";
+    public static final String METRIC = "metric";
+    public static final String LATENCY = "latency";
+    public static final String BANDWIDTH = "bandwidth";
+    public static final String IS_DURABLE = "durable";
 
     @Override
     public boolean isValid() {
