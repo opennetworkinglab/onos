@@ -267,6 +267,8 @@ public final class KryoNamespaces {
             .register(VlanId.class)
             .register(Frequency.class)
             .register(Bandwidth.class)
+            .register(Bandwidth.bps(1L).getClass())
+            .register(Bandwidth.bps(1.0).getClass())
             .build();
 
     /**
@@ -283,7 +285,7 @@ public final class KryoNamespaces {
             .register(BASIC)
             .nextId(KryoNamespace.INITIAL_ID + 30)
             .register(MISC)
-            .nextId(KryoNamespace.INITIAL_ID + 30 + 10)
+            .nextId(KryoNamespace.INITIAL_ID + 30 + 20)
             .register(
                     Instructions.MeterInstruction.class,
                     MeterId.class,

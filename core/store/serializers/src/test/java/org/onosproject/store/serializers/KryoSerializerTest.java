@@ -397,6 +397,7 @@ public class KryoSerializerTest {
 
     @Test
     public void testBandwidth() {
+        testSerializedEquals(Bandwidth.mbps(1000));
         testSerializedEquals(Bandwidth.mbps(1000.0));
     }
 

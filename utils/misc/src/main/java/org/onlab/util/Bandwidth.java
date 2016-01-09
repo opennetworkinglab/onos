@@ -17,28 +17,21 @@ package org.onlab.util;
 
 import com.google.common.collect.ComparisonChain;
 
-import java.util.Objects;
-
 /**
  * Representation of bandwidth.
  * Use the static factory method corresponding to the unit (like Kbps) you desire on instantiation.
  */
-public final class Bandwidth implements RichComparable<Bandwidth> {
-
-    private final double bps;
+public interface Bandwidth extends RichComparable<Bandwidth> {
 
     /**
      * Creates a new instance with given bandwidth.
      *
-     * @param bps bandwidth value to be assigned
+     * @param v         bandwidth value
+     * @param unit      {@link DataRateUnit} of {@code v}
+     * @return {@link Bandwidth} instance with given bandwidth
      */
-    private Bandwidth(double bps) {
-        this.bps = bps;
-    }
-
-    // Constructor for serialization
-    private Bandwidth() {
-        this.bps = 0;
+    static Bandwidth of(long v, DataRateUnit unit) {
+        return new LongBandwidth(unit.toBitsPerSecond(v));
     }
 
     /**
@@ -48,8 +41,8 @@ public final class Bandwidth implements RichComparable<Bandwidth> {
      * @param unit      {@link DataRateUnit} of {@code v}
      * @return {@link Bandwidth} instance with given bandwidth
      */
-    public static Bandwidth of(double v, DataRateUnit unit) {
-        return new Bandwidth(unit.toBitsPerSecond(v));
+    static Bandwidth of(double v, DataRateUnit unit) {
+        return new DoubleBandwidth(unit.toBitsPerSecond(v));
     }
 
     /**
@@ -58,8 +51,18 @@ public final class Bandwidth implements RichComparable<Bandwidth> {
      * @param bps bandwidth value to be assigned
      * @return {@link Bandwidth} instance with given bandwidth
      */
-    public static Bandwidth bps(double bps) {
-        return new Bandwidth(bps);
+    static Bandwidth bps(long bps) {
+        return new LongBandwidth(bps);
+    }
+
+    /**
+     * Creates a new instance with given bandwidth in bps.
+     *
+     * @param bps bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    static Bandwidth bps(double bps) {
+        return new DoubleBandwidth(bps);
     }
 
     /**
@@ -68,7 +71,17 @@ public final class Bandwidth implements RichComparable<Bandwidth> {
      * @param kbps bandwidth value to be assigned
      * @return {@link Bandwidth} instance with given bandwidth
      */
-    public static Bandwidth kbps(double kbps) {
+    static Bandwidth kbps(long kbps) {
+        return bps(kbps * 1_000L);
+    }
+
+    /**
+     * Creates a new instance with given bandwidth in Kbps.
+     *
+     * @param kbps bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    static Bandwidth kbps(double kbps) {
         return bps(kbps * 1_000L);
     }
 
@@ -78,7 +91,17 @@ public final class Bandwidth implements RichComparable<Bandwidth> {
      * @param mbps bandwidth value to be assigned
      * @return {@link Bandwidth} instance with given bandwidth
      */
-    public static Bandwidth mbps(double mbps) {
+    static Bandwidth mbps(long mbps) {
+        return bps(mbps * 1_000_000L);
+    }
+
+    /**
+     * Creates a new instance with given bandwidth in Mbps.
+     *
+     * @param mbps bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    static Bandwidth mbps(double mbps) {
         return bps(mbps * 1_000_000L);
     }
 
@@ -88,7 +111,17 @@ public final class Bandwidth implements RichComparable<Bandwidth> {
      * @param gbps bandwidth value to be assigned
      * @return {@link Bandwidth} instance with given bandwidth
      */
-    public static Bandwidth gbps(double gbps) {
+    static Bandwidth gbps(long gbps) {
+        return bps(gbps * 1_000_000_000L);
+    }
+
+    /**
+     * Creates a new instance with given bandwidth in Gbps.
+     *
+     * @param gbps bandwidth value to be assigned
+     * @return {@link Bandwidth} instance with given bandwidth
+     */
+    static Bandwidth gbps(double gbps) {
         return bps(gbps * 1_000_000_000L);
     }
 
@@ -97,9 +130,7 @@ public final class Bandwidth implements RichComparable<Bandwidth> {
      *
      * @return bandwidth in bps.
      */
-    public double bps() {
-        return bps;
-    }
+    double bps();
 
     /**
      * Returns a Bandwidth whose value is (this + value).
@@ -107,8 +138,8 @@ public final class Bandwidth implements RichComparable<Bandwidth> {
      * @param value value to be added to this Frequency
      * @return this + value
      */
-    public Bandwidth add(Bandwidth value) {
-        return bps(this.bps + value.bps);
+    default Bandwidth add(Bandwidth value) {
+        return bps(this.bps() + value.bps());
     }
 
     /**
@@ -117,33 +148,14 @@ public final class Bandwidth implements RichComparable<Bandwidth> {
      * @param value value to be added to this Frequency
      * @return this - value
      */
-    public Bandwidth subtract(Bandwidth value) {
-        return bps(this.bps - value.bps);
+    default Bandwidth subtract(Bandwidth value) {
+        return bps(this.bps() - value.bps());
     }
 
     @Override
-    public int compareTo(Bandwidth other) {
+    default int compareTo(Bandwidth other) {
         return ComparisonChain.start()
-                .compare(this.bps, other.bps)
+                .compare(this.bps(), other.bps())
                 .result();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof Bandwidth) {
-            Bandwidth that = (Bandwidth) obj;
-            return Objects.equals(this.bps, that.bps);
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return Long.hashCode(Double.doubleToLongBits(bps));
-    }
-
-    @Override
-    public String toString() {
-        return String.valueOf(this.bps);
     }
 }

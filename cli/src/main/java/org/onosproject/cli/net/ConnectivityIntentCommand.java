@@ -371,7 +371,13 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
         // Check for a bandwidth specification
         if (!isNullOrEmpty(bandwidthString)) {
-            final Bandwidth bandwidth = Bandwidth.bps(Double.parseDouble(bandwidthString));
+            Bandwidth bandwidth;
+            try {
+                bandwidth = Bandwidth.bps(Long.parseLong(bandwidthString));
+            // when the string can't be parsed as long, then try to parse as double
+            } catch (NumberFormatException e) {
+                bandwidth = Bandwidth.bps(Double.parseDouble(bandwidthString));
+            }
             constraints.add(new BandwidthConstraint(bandwidth));
         }
 
