@@ -18,6 +18,8 @@
     <driver name="restCiena" manufacturer="Ciena" hwVersion="1.0.0" swVersion="1.0.0">
         <behaviour api="org.onosproject.net.behaviour.PortDiscovery"
                    impl="org.onosproject.drivers.ciena.PortDiscoveryCienaWaveserverImpl"/>
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.device.DefaultOpticalDevice"/>
     </driver>
 </drivers>
 

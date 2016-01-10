@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.net;
+package org.onosproject.net.optical.impl;
+
+import org.onosproject.net.Annotations;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalType;
+import org.onosproject.net.Port;
+import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.utils.ForwardingPort;
+
+import com.google.common.annotations.Beta;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Implementation of OCh port (Optical Channel).
  * Also referred to as a line side port (L-port) or narrow band port.
  * See ITU G.709 "Interfaces for the Optical Transport Network (OTN)"
- *
- * @deprecated in Goldeneye (1.6.0)
  */
-@Deprecated
-public class OchPort extends DefaultPort {
+@Beta
+public class DefaultOchPort extends ForwardingPort implements OchPort {
 
+    // Note: try to avoid direct access to the field, use accessor.
+    // We might want to lazily parse annotation in the future
     private final OduSignalType signalType;
     private final boolean isTunable;
     private final OchSignal lambda;
@@ -37,20 +45,38 @@ public class OchPort extends DefaultPort {
     /**
      * Creates an OCh port in the specified network element.
      *
-     * @param element     parent network element
-     * @param number      port number
-     * @param isEnabled   port enabled state
+     * @param base Port
      * @param signalType  ODU signal type
      * @param isTunable   tunable wavelength capability
      * @param lambda      OCh signal
-     * @param annotations optional key/value annotations
      */
-    public OchPort(Element element, PortNumber number, boolean isEnabled, OduSignalType signalType,
-                   boolean isTunable, OchSignal lambda, Annotations... annotations) {
-        super(element, number, isEnabled, Type.OCH, checkNotNull(signalType).bitRate(), annotations);
-        this.signalType = signalType;
+    public DefaultOchPort(Port base,
+                          OduSignalType signalType,
+                          boolean isTunable,
+                          OchSignal lambda) {
+        super(base);
+        // TODO should this class be parsing annotation to instantiate signalType?
+        this.signalType = checkNotNull(signalType);
         this.isTunable = isTunable;
         this.lambda = checkNotNull(lambda);
+    }
+
+    @Override
+    public Type type() {
+        return Type.OCH;
+    }
+
+    @Override
+    public long portSpeed() {
+        return signalType.bitRate();
+    }
+
+
+    @Override
+    public Annotations annotations() {
+        // FIXME Filter OCh annotations, after confirming that
+        // it'll not result in information-loss
+        return super.annotations();
     }
 
     /**
@@ -58,6 +84,7 @@ public class OchPort extends DefaultPort {
      *
      * @return ODU signal type
      */
+    @Override
     public OduSignalType signalType() {
         return signalType;
     }
@@ -67,6 +94,7 @@ public class OchPort extends DefaultPort {
      *
      * @return tunable wavelength capability
      */
+    @Override
     public boolean isTunable() {
         return isTunable;
     }
@@ -76,13 +104,17 @@ public class OchPort extends DefaultPort {
      *
      * @return OCh signal
      */
+    @Override
     public OchSignal lambda() {
         return lambda;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(number(), isEnabled(), type(), signalType, isTunable, lambda, annotations());
+        return Objects.hash(super.hashCode(),
+                            signalType(),
+                            isTunable(),
+                            lambda());
     }
 
     @Override
@@ -91,30 +123,23 @@ public class OchPort extends DefaultPort {
             return true;
         }
 
-        // Subclass is considered as a change of identity, hence equals() will return false if class type don't match
         if (obj != null && getClass() == obj.getClass()) {
-            final OchPort other = (OchPort) obj;
-            return Objects.equals(this.element().id(), other.element().id()) &&
-                    Objects.equals(this.number(), other.number()) &&
-                    Objects.equals(this.isEnabled(), other.isEnabled()) &&
-                    Objects.equals(this.signalType, other.signalType) &&
-                    Objects.equals(this.isTunable, other.isTunable) &&
-                    Objects.equals(this.lambda, other.lambda) &&
-                    Objects.equals(this.annotations(), other.annotations());
+            final DefaultOchPort that = (DefaultOchPort) obj;
+            return super.toEqualsBuilder(that)
+                    .append(this.signalType(), that.signalType())
+                    .append(this.isTunable(), that.isTunable())
+                    .append(this.lambda(), that.lambda())
+                    .isEquals();
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return toStringHelper(this)
-                .add("element", element().id())
-                .add("number", number())
-                .add("isEnabled", isEnabled())
-                .add("type", type())
-                .add("signalType", signalType)
-                .add("isTunable", isTunable)
-                .add("lambda", lambda)
+        return super.toStringHelper()
+                .add("signalType", signalType())
+                .add("isTunable", isTunable())
+                .add("lambda", lambda())
                 .toString();
     }
 }

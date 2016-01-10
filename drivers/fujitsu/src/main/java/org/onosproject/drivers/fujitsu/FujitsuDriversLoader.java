@@ -18,12 +18,21 @@ package org.onosproject.drivers.fujitsu;
 
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
+import org.onosproject.net.optical.OpticalDevice;
+import org.onosproject.net.optical.device.DefaultOpticalDevice;
 
 /**
  * Loader for Fujitsu device drivers.
  */
 @Component(immediate = true)
 public class FujitsuDriversLoader extends AbstractDriverLoader {
+
+    // OSGI: help bundle plugin discover runtime package dependency.
+    @SuppressWarnings("unused")
+    private OpticalDevice optical;
+    @SuppressWarnings("unused")
+    private DefaultOpticalDevice driver;
+
     public FujitsuDriversLoader() {
         super("/fujitsu-drivers.xml");
     }

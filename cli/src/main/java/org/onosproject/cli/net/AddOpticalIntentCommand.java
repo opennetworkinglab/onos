@@ -21,7 +21,6 @@ import org.apache.karaf.shell.commands.Option;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
-import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.OduSignalType;
@@ -32,10 +31,12 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalOduIntent;
+import org.onosproject.net.optical.OchPort;
 
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 /**
  * Installs optical connectivity or circuit intents, depending on given port types.
@@ -93,7 +94,8 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
             return;
         }
 
-        DeviceService deviceService = get(DeviceService.class);
+        DeviceService deviceService = opticalView(get(DeviceService.class));
+
         Port srcPort = deviceService.getPort(ingress.deviceId(), ingress.port());
         Port dstPort = deviceService.getPort(egress.deviceId(), egress.port());
 
@@ -134,6 +136,19 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
             }
         } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
             OduSignalType signalType = ((OchPort) srcPort).signalType();
+            intent = OpticalConnectivityIntent.builder()
+                    .appId(appId())
+                    .key(key())
+                    .src(ingress)
+                    .dst(egress)
+                    .signalType(signalType)
+                    .bidirectional(bidirectional)
+                    .build();
+        } else if (srcPort instanceof org.onosproject.net.OchPort &&
+                   dstPort instanceof org.onosproject.net.OchPort) {
+            print("WARN: encountered old OchPort model");
+            // old OchPort model can be removed when ready
+            OduSignalType signalType = ((org.onosproject.net.OchPort) srcPort).signalType();
             intent = OpticalConnectivityIntent.builder()
                     .appId(appId())
                     .key(key())

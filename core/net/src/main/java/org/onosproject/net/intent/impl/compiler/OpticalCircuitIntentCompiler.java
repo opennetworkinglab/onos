@@ -32,7 +32,6 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.OduSignalType;
@@ -60,6 +59,7 @@ import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
+import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.intent.IntentSetMultimap;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.Resource;
@@ -82,6 +82,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 /**
  * An intent compiler for {@link org.onosproject.net.intent.OpticalCircuitIntent}.
@@ -156,6 +157,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
     @Activate
     public void activate(ComponentContext context) {
+        deviceService = opticalView(deviceService);
         appId = coreService.registerApplication("org.onosproject.net.intent");
         intentManager.registerCompiler(OpticalCircuitIntent.class, this);
         cfgService.registerProperties(getClass());

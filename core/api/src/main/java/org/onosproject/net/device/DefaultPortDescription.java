@@ -37,7 +37,7 @@ public class DefaultPortDescription extends AbstractDescription
     private final long portSpeed;
 
     /**
-     * Creates a port description using the supplied information.
+     * Creates a DEFAULT_SPEED COPPER port description using the supplied information.
      *
      * @param number      port number
      * @param isEnabled   port enabled state

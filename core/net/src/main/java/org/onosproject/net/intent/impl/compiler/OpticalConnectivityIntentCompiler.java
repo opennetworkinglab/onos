@@ -31,7 +31,6 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultOchSignalComparator;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OchSignalType;
 import org.onosproject.net.Path;
@@ -43,6 +42,7 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
+import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceService;
@@ -63,6 +63,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 /**
  * An intent compiler for {@link org.onosproject.net.intent.OpticalConnectivityIntent}.
@@ -88,6 +89,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
     @Activate
     public void activate() {
+        deviceService = opticalView(deviceService);
         intentManager.registerCompiler(OpticalConnectivityIntent.class, this);
     }
 

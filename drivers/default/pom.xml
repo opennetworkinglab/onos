@@ -47,4 +47,23 @@
             <artifactId>openflowj</artifactId>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <niceManifest>true</niceManifest>
+                    <instructions>
+                        <!-- TODO this can be removed once optical package
+                             has been separated out from the default drivers -->
+                        <Import-Package>
+                            *,org.onosproject.net.optical.device
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

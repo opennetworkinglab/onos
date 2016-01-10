@@ -1085,15 +1085,21 @@ public class GossipDeviceStore
 
     private Port buildTypedPort(Device device, PortNumber number, boolean isEnabled,
                                  PortDescription description, Annotations annotations) {
+        // FIXME this switch need to go away once all ports are done.
         switch (description.type()) {
             case OMS:
                 OmsPortDescription omsDesc = (OmsPortDescription) description;
                 return new OmsPort(device, number, isEnabled, omsDesc.minFrequency(),
                         omsDesc.maxFrequency(), omsDesc.grid(), annotations);
             case OCH:
-                OchPortDescription ochDesc = (OchPortDescription) description;
-                return new OchPort(device, number, isEnabled, ochDesc.signalType(),
-                        ochDesc.isTunable(), ochDesc.lambda(), annotations);
+                if (description instanceof OchPortDescription) {
+                    // remove if-block once Och deprecation is complete
+                    OchPortDescription ochDesc = (OchPortDescription) description;
+                    return new OchPort(device, number, isEnabled, ochDesc.signalType(),
+                                       ochDesc.isTunable(), ochDesc.lambda(), annotations);
+                }
+                return new DefaultPort(device, number, isEnabled, description.type(),
+                                       description.portSpeed(), annotations);
             case ODUCLT:
                 OduCltPortDescription oduDesc = (OduCltPortDescription) description;
                 return new OduCltPort(device, number, isEnabled, oduDesc.signalType(), annotations);

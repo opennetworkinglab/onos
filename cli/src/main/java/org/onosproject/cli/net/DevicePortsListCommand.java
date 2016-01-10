@@ -25,19 +25,20 @@ import org.apache.karaf.shell.commands.Option;
 import org.onlab.util.Frequency;
 import org.onosproject.utils.Comparators;
 import org.onosproject.net.Device;
-import org.onosproject.net.OchPort;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OmsPort;
 import org.onosproject.net.OtuPort;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
-
+import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OpticalDevice;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static org.onosproject.net.DeviceId.deviceId;
+import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 /**
  * Lists all ports or all ports of a device.
@@ -65,7 +66,7 @@ public class DevicePortsListCommand extends DevicesListCommand {
 
     @Override
     protected void execute() {
-        DeviceService service = get(DeviceService.class);
+        DeviceService service = opticalView(get(DeviceService.class));
         if (uri == null) {
             if (outputJson()) {
                 print("%s", jsonPorts(service, getSortedDevices(service)));
@@ -154,10 +155,37 @@ public class DevicePortsListCommand extends DevicesListCommand {
             String annotations = annotations(port.annotations());
             switch (port.type()) {
                 case OCH:
-                     print(FMT_OCH, portName, portIsEnabled, portType,
-                             ((OchPort) port).signalType().toString(),
-                             ((OchPort) port).isTunable() ? "yes" : "no", annotations);
-                     break;
+                    if (port instanceof org.onosproject.net.OchPort) {
+                        // old OchPort model
+                        org.onosproject.net.OchPort oPort = (org.onosproject.net.OchPort) port;
+                        print("WARN: OchPort in old model");
+                        print(FMT_OCH, portName, portIsEnabled, portType,
+                              oPort.signalType().toString(),
+                              oPort.isTunable() ? "yes" : "no", annotations);
+                        break;
+                    }
+                    if (port instanceof OchPort) {
+                        OchPort och = (OchPort) port;
+                        print(FMT_OCH, portName, portIsEnabled, portType,
+                              och.signalType().toString(),
+                              och.isTunable() ? "yes" : "no", annotations);
+                       break;
+                    } else if (port.element().is(OpticalDevice.class)) {
+                        // Note: should never reach here, but
+                        // leaving it here as an example to
+                        // manually translate to specific port.
+                        OpticalDevice optDevice = port.element().as(OpticalDevice.class);
+                        if (optDevice.portIs(port, OchPort.class)) {
+                            OchPort och = optDevice.portAs(port, OchPort.class).get();
+                            print(FMT_OCH, portName, portIsEnabled, portType,
+                                  och.signalType().toString(),
+                                  och.isTunable() ? "yes" : "no", annotations);
+                            break;
+                        }
+                    }
+                    print("WARN: OchPort but not on OpticalDevice or ill-formed");
+                    print(FMT, portName, portIsEnabled, portType, port.portSpeed(), annotations);
+                    break;
                 case ODUCLT:
                      print(FMT_ODUCLT_OTU, portName, portIsEnabled, portType,
                             ((OduCltPort) port).signalType().toString(), annotations);

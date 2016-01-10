@@ -38,7 +38,6 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
 import org.onosproject.net.MastershipRole;
-import org.onosproject.net.OchPort;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OduSignalType;
@@ -55,7 +54,6 @@ import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.device.OchPortDescription;
 import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.PortDescription;
@@ -67,6 +65,7 @@ import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkProvider;
 import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
+import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +87,8 @@ import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
+import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
+import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 /**
  * Provider of devices and links parsed from a JSON configuration structure.
@@ -139,7 +140,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
                    LinkProviderRegistry linkProviderRegistry,
                    HostProviderRegistry hostProviderRegistry) {
         this.cfg = checkNotNull(cfg, "Configuration cannot be null");
-        this.deviceService = checkNotNull(deviceService, "Device service cannot be null");
+        this.deviceService = opticalView(checkNotNull(deviceService, "Device service cannot be null"));
         this.deviceProviderRegistry = checkNotNull(deviceProviderRegistry, "Device provider registry cannot be null");
         this.linkProviderRegistry = checkNotNull(linkProviderRegistry, "Link provider registry cannot be null");
         this.hostProviderRegistry = checkNotNull(hostProviderRegistry, "Host provider registry cannot be null");
@@ -269,7 +270,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
             case OCH:
                 annotations = annotations(node.get("annotations"));
                 OchPort ochPort = (OchPort) deviceService.getPort(deviceId, port);
-                return new OchPortDescription(port, node.path("enabled").asBoolean(true),
+                return ochPortDescription(port, node.path("enabled").asBoolean(true),
                         ochPort.signalType(), ochPort.isTunable(),
                         ochPort.lambda(), annotations);
             case OMS:
@@ -363,13 +364,13 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
         }
         OchSignal signal = new OchSignal(GridType.DWDM, chsp, 1, 1);
         if (src.type() == Device.Type.ROADM) {
-            PortDescription portDesc = new OchPortDescription(srcCp.port(), true,
+            PortDescription portDesc = ochPortDescription(srcCp.port(), true,
                     OduSignalType.ODU4, true, signal);
             descriptions.put(srcCp, portDesc);
             deviceProviderService.portStatusChanged(srcCp.deviceId(), portDesc);
         }
         if (dst.type() == Device.Type.ROADM) {
-            PortDescription portDesc = new OchPortDescription(dstCp.port(), true,
+            PortDescription portDesc = ochPortDescription(dstCp.port(), true,
                     OduSignalType.ODU4, true, signal);
             descriptions.put(dstCp, portDesc);
             deviceProviderService.portStatusChanged(dstCp.deviceId(), portDesc);
@@ -482,7 +483,7 @@ class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
                         op.number(), op.isEnabled(), op.minFrequency(), op.maxFrequency(), op.grid());
             case OCH:
                 OchPort ochp = (OchPort) p;
-                return new OchPortDescription(
+                return ochPortDescription(
                         ochp.number(), ochp.isEnabled(), ochp.signalType(), ochp.isTunable(), ochp.lambda());
             case ODUCLT:
                 OduCltPort odup = (OduCltPort) p;

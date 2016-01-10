@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.device.impl;
 
+import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -22,7 +23,6 @@ import org.onosproject.net.config.ConfigOperator;
 import org.onosproject.net.config.basics.OpticalPortConfig;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.OchPort;
 import org.onosproject.net.OtuPort;
 import org.onosproject.net.OduCltPort;
 import org.onosproject.net.OmsPort;
@@ -35,6 +35,8 @@ import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.OmsPortDescription;
 import org.onosproject.net.device.OtuPortDescription;
 import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.OpticalDevice;
 import org.slf4j.Logger;
 
 /**
@@ -105,16 +107,21 @@ public final class OpticalPortOperator implements ConfigOperator {
                 return new OmsPortDescription(port, oms.isEnabled(), oms.minFrequency(),
                         oms.maxFrequency(), oms.grid(), sa);
             case OCH:
-            // We might need to update lambda below with STATIC_LAMBDA.
-                OchPortDescription och = (OchPortDescription) descr;
-                return new OchPortDescription(port, och.isEnabled(), och.signalType(),
-                        och.isTunable(), och.lambda(), sa);
+                // We might need to update lambda below with STATIC_LAMBDA.
+                if (descr instanceof OchPortDescription) {
+                    // TODO This block can go away once deprecation is complete.
+                    OchPortDescription och = (OchPortDescription) descr;
+                    return ochPortDescription(port, och.isEnabled(), och.signalType(),
+                            och.isTunable(), och.lambda(), sa);
+                }
+                return descr;
             case ODUCLT:
                 OduCltPortDescription odu = (OduCltPortDescription) descr;
                 return new OduCltPortDescription(port, odu.isEnabled(), odu.signalType(), sa);
             case PACKET:
             case FIBER:
             case COPPER:
+                // TODO: it should be safe to just return descr. confirm and fix
                 return new DefaultPortDescription(port, descr.isEnabled(), descr.type(),
                         descr.portSpeed(), sa);
             case OTU:
@@ -182,9 +189,22 @@ public final class OpticalPortOperator implements ConfigOperator {
                 return new OmsPortDescription(ptn, isup, oms.minFrequency(),
                         oms.maxFrequency(), oms.grid(), an);
             case OCH:
-                OchPort och = (OchPort) port;
-                return new OchPortDescription(ptn, isup, och.signalType(),
-                        och.isTunable(), och.lambda(), an);
+                if (port instanceof org.onosproject.net.OchPort) {
+                    // remove if-block once old OchPort deprecation is complete
+                    org.onosproject.net.OchPort och = (org.onosproject.net.OchPort) port;
+                    return ochPortDescription(ptn, isup, och.signalType(),
+                                              och.isTunable(), och.lambda(), an);
+                }
+                if (port.element().is(OpticalDevice.class)) {
+                    OpticalDevice optDevice = port.element().as(OpticalDevice.class);
+                    if (optDevice.portIs(port, OchPort.class)) {
+                        OchPort och = optDevice.portAs(port, OchPort.class).get();
+                        return ochPortDescription(ptn, isup, och.signalType(),
+                                                  och.isTunable(), och.lambda(), an);
+                    }
+                }
+                return new DefaultPortDescription(ptn, isup, port.type(), port.portSpeed(), an);
+
             case ODUCLT:
                 OduCltPort odu = (OduCltPort) port;
                 return new OduCltPortDescription(ptn, isup, odu.signalType(), an);

@@ -16,7 +16,6 @@
 package org.onosproject.driver.query;
 
 import org.onlab.util.GuavaCollectors;
-import org.onosproject.net.OchPort;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.OtuPort;
 import org.onosproject.net.OtuSignalType;
@@ -25,9 +24,12 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.TributarySlot;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.behaviour.TributarySlotQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 import java.util.Collections;
 import java.util.Set;
@@ -61,12 +63,12 @@ public class DefaultTributarySlotQuery extends AbstractHandlerBehaviour implemen
     @Override
     public Set<TributarySlot> queryTributarySlots(PortNumber port) {
         // currently return all slots by default.
-        DeviceService deviceService = this.handler().get(DeviceService.class);
+        DeviceService deviceService = opticalView(this.handler().get(DeviceService.class));
         Port p = deviceService.getPort(this.data().deviceId(), port);
 
         switch (p.type()) {
             case OCH:
-                return queryOchTributarySlots((OchPort) p);
+                return queryOchTributarySlots(p);
             case OTU:
                 return queryOtuTributarySlots((OtuPort) p);
             default:
@@ -74,8 +76,21 @@ public class DefaultTributarySlotQuery extends AbstractHandlerBehaviour implemen
         }
     }
 
-    private Set<TributarySlot> queryOchTributarySlots(OchPort ochPort) {
-        OduSignalType signalType = ochPort.signalType();
+    private Set<TributarySlot> queryOchTributarySlots(Port ochPort) {
+        OduSignalType signalType = null;
+        if (ochPort instanceof org.onosproject.net.OchPort) {
+            // remove once deprecation of old OchPort model is done
+            signalType = ((org.onosproject.net.OchPort) ochPort).signalType();
+        }
+        if (ochPort instanceof OchPort) {
+            signalType = ((OchPort) ochPort).signalType();
+        }
+
+        if (signalType == null) {
+            log.warn("{} was not an OchPort", ochPort);
+            return Collections.emptySet();
+        }
+
         switch (signalType) {
             case ODU2:
                 return ENTIRE_ODU2_TRIBUTARY_SLOTS;

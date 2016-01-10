@@ -32,11 +32,12 @@ import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.ControllerInfo;
-import org.onosproject.net.device.OchPortDescription;
 import org.onosproject.net.device.OduCltPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
 
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -104,7 +105,7 @@ public final class XmlConfigParser {
         return portDescriptions;
     }
 
-    private static OchPortDescription parseT100OchPort(HierarchicalConfiguration cfg, long count) {
+    private static PortDescription parseT100OchPort(HierarchicalConfiguration cfg, long count) {
         PortNumber portNumber = PortNumber.portNumber(count);
         HierarchicalConfiguration otuConfig = cfg.configurationAt("otu");
         boolean enabled = otuConfig.getString("administrative-state").equals("up");
@@ -115,7 +116,7 @@ public final class XmlConfigParser {
         DefaultAnnotations annotations = DefaultAnnotations.builder().
                 set(AnnotationKeys.PORT_NAME, cfg.getString("name")).
                 build();
-        return new OchPortDescription(portNumber, enabled, signalType, isTunable, lambda, annotations);
+        return ochPortDescription(portNumber, enabled, signalType, isTunable, lambda, annotations);
     }
 
     private static OduCltPortDescription parseT100OduPort(HierarchicalConfiguration cfg, long count) {
@@ -213,7 +214,7 @@ public final class XmlConfigParser {
         int spacingMult = (int) (toGbps((Integer.parseInt(config.getString(frequencyPath)) -
                 baseFrequency)) / toGbpsFromHz(chSpacing.frequency().asHz())); //FIXME is there a better way ?
 
-        return new OchPortDescription(PortNumber.portNumber(portNumber), isEnabled, oduSignalType, isTunable,
+        return ochPortDescription(PortNumber.portNumber(portNumber), isEnabled, oduSignalType, isTunable,
                                       new OchSignal(gridType, chSpacing, spacingMult, 1), annotations);
     }
 

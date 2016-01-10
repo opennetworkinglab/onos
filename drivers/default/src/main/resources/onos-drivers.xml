@@ -61,6 +61,8 @@
                    impl="org.onosproject.driver.handshaker.OfOpticalSwitchImplLinc13"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.driver.query.LincOELambdaQuery"/>
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.device.DefaultOpticalDevice"/>
     </driver>
     <driver name="ofdpa" extends="default"
             manufacturer="Broadcom Corp." hwVersion="OF-DPA.*" swVersion="OF-DPA.*">
@@ -165,6 +167,8 @@
                    impl="org.onosproject.driver.query.DefaultTributarySlotQuery" />
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
                    impl="org.onosproject.driver.query.OFOpticalSwitch13LambdaQuery"/>
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.device.DefaultOpticalDevice"/>
     </driver>
     <driver name="aos" extends="ofdpa"
             manufacturer="Accton" hwVersion=".*" swVersion="1.*">
@@ -179,6 +183,8 @@
             swVersion="of-agent">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
                    impl="org.onosproject.driver.handshaker.OplinkRoadmHandshaker"/>
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.device.DefaultOpticalDevice"/>
     </driver>
     <driver name="hp" extends="default"
             manufacturer="HP" hwVersion="Switch 3500yl-48G" swVersion="K.16.01.0004">

@@ -650,6 +650,9 @@
                     <artifactId>maven-bundle-plugin</artifactId>
                     <version>3.0.1</version>
                     <extensions>true</extensions>
+                    <configuration>
+                        <niceManifest>true</niceManifest>
+                    </configuration>
                 </plugin>
 
                 <plugin>
