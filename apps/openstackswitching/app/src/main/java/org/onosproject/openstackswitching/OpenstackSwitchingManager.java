@@ -394,7 +394,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
             InboundPacket pkt = context.inPacket();
             Ethernet ethernet = pkt.parsed();
 
-            if (ethernet.getEtherType() == Ethernet.TYPE_ARP) {
+            if (ethernet != null && ethernet.getEtherType() == Ethernet.TYPE_ARP) {
                 arpHandler.processPacketIn(pkt);
             }
         }
@@ -483,7 +483,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
             }
             doNotPushFlows = cfg.doNotPushFlows();
             restHandler = new OpenstackRestHandler(cfg);
-            arpHandler = new OpenstackArpHandler(restHandler, packetService);
+            arpHandler = new OpenstackArpHandler(restHandler, packetService, hostService);
             initializeFlowRules();
         }
 
