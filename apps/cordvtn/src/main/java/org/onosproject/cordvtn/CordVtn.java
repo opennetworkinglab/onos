@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.util.ItemNotFoundException;
 import org.onlab.packet.IpAddress;
@@ -56,6 +57,9 @@ import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketProcessor;
+import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstackswitching.OpenstackNetwork;
 import org.onosproject.openstackswitching.OpenstackPort;
 import org.onosproject.openstackswitching.OpenstackSubnet;
@@ -135,6 +139,9 @@ public class CordVtn implements CordVtnService {
     protected FlowRuleService flowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PacketService packetService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OvsdbController controller;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -154,6 +161,7 @@ public class CordVtn implements CordVtnService {
 
     private final DeviceListener deviceListener = new InternalDeviceListener();
     private final HostListener hostListener = new InternalHostListener();
+    private final PacketProcessor packetProcessor = new InternalPacketProcessor();
 
     private final OvsdbHandler ovsdbHandler = new OvsdbHandler();
     private final BridgeHandler bridgeHandler = new BridgeHandler();
@@ -163,6 +171,7 @@ public class CordVtn implements CordVtnService {
     private ConsistentMap<CordVtnNode, NodeState> nodeStore;
     private Map<HostId, OpenstackNetwork> hostNetMap = Maps.newHashMap();
     private CordVtnRuleInstaller ruleInstaller;
+    private CordVtnArpProxy arpProxy;
 
     private enum NodeState {
 
@@ -223,6 +232,10 @@ public class CordVtn implements CordVtnService {
                                                  mastershipService,
                                                  DEFAULT_TUNNEL);
 
+        arpProxy = new CordVtnArpProxy(appId, packetService);
+        packetService.addProcessor(packetProcessor, PacketProcessor.director(0));
+        arpProxy.requestPacket();
+
         deviceService.addListener(deviceListener);
         hostService.addListener(hostListener);
 
@@ -233,6 +246,7 @@ public class CordVtn implements CordVtnService {
     protected void deactivate() {
         deviceService.removeListener(deviceListener);
         hostService.removeListener(hostListener);
+        packetService.removeProcessor(packetProcessor);
 
         eventExecutor.shutdown();
         nodeStore.clear();
@@ -920,17 +934,18 @@ public class CordVtn implements CordVtnService {
             log.info("VM {} is detected", host.id());
             hostNetMap.put(host.id(), vNet);
 
+            CordService service = getCordService(vNet);
+            if (service != null) {
+                // TODO check if the service needs an update on its group buckets after done CORD-433
+                ruleInstaller.updateServiceGroup(service);
+                arpProxy.addServiceIp(service.serviceIp());
+            }
+
             ruleInstaller.populateBasicConnectionRules(
                     host,
                     hostIp,
                     checkNotNull(getRemoteIp(host.location().deviceId())).getIp4Address(),
                     vNet);
-
-            CordService service = getCordService(vNet);
-            // TODO check if the service needs an update on its group buckets after done CORD-433
-            if (service != null) {
-                ruleInstaller.updateServiceGroup(service);
-            }
         }
 
         @Override
@@ -950,12 +965,37 @@ public class CordVtn implements CordVtnService {
             ruleInstaller.removeBasicConnectionRules(host);
 
             CordService service = getCordService(vNet);
-            // TODO check if the service needs an update on its group buckets after done CORD-433
             if (service != null) {
+                // TODO check if the service needs an update on its group buckets after done CORD-433
                 ruleInstaller.updateServiceGroup(service);
+
+                if (getHostsWithOpenstackNetwork(vNet).isEmpty()) {
+                    arpProxy.removeServiceIp(service.serviceIp());
+                }
             }
 
             hostNetMap.remove(host.id());
+        }
+    }
+
+    private class InternalPacketProcessor implements PacketProcessor {
+
+        @Override
+        public void process(PacketContext context) {
+            if (context.isHandled()) {
+                return;
+            }
+
+            Ethernet ethPacket = context.inPacket().parsed();
+            if (ethPacket == null) {
+                return;
+            }
+
+            if (ethPacket.getEtherType() != Ethernet.TYPE_ARP) {
+                return;
+            }
+
+            arpProxy.processArpPacket(context, ethPacket);
         }
     }
 }
