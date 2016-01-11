@@ -24,16 +24,20 @@
     // constants
     var INSTALLED = 'INSTALLED',
         ACTIVE = 'ACTIVE',
-        APP_MGMENT_REQ = 'appManagementRequest',
-        FILE_UPLOAD_URL = 'applications/upload';
+        appMgmtReq = 'appManagementRequest',
+        fileUploadUrl = 'applications/upload',
+        dialogId = 'app-dialog',
+        dialogOpts = {
+            edge: 'right'
+        };
 
     angular.module('ovApp', [])
     .controller('OvAppCtrl',
         ['$log', '$scope', '$http',
         'FnService', 'TableBuilderService', 'WebSocketService', 'UrlFnService',
-        'KeyService',
+        'KeyService', 'DialogService',
 
-    function ($log, $scope, $http, fs, tbs, wss, ufs, ks) {
+    function ($log, $scope, $http, fs, tbs, wss, ufs, ks, ds) {
         $scope.ctrlBtnState = {};
         $scope.uploadTip = 'Upload an application (.oar file)';
         $scope.activateTip = 'Activate selected application';
@@ -77,15 +81,41 @@
             ['scroll down', 'See more apps']
         ]);
 
+
+        function createConfirmationText(action, sid) {
+            var content = ds.createDiv();
+            content.append('p').text(action + ' ' + sid);
+            return content;
+        }
+
+        function confirmAction(action) {
+            var sid = $scope.selId,
+                spar = $scope.sortParams;
+
+            function dOk() {
+                $log.debug('Initiating', action, 'of', sid);
+                wss.sendEvent(appMgmtReq, {
+                    action: action,
+                    name: sid,
+                    sortCol: spar.sortCol,
+                    sortDir: spar.sortDir
+                });
+            }
+
+            function dCancel() {
+                $log.debug('Canceling', action, 'of', sid);
+            }
+
+            ds.openDialog(dialogId, dialogOpts)
+                .setTitle('Confirm Action')
+                .addContent(createConfirmationText(action, sid))
+                .addButton('OK', dOk)
+                .addButton('Cancel', dCancel);
+        }
+
         $scope.appAction = function (action) {
             if ($scope.ctrlBtnState.selection) {
-                $log.debug('Initiating ' + action + ' of ' + $scope.selId);
-                wss.sendEvent(APP_MGMENT_REQ, {
-                    action: action,
-                    name: $scope.selId,
-                    sortCol: $scope.sortParams.sortCol,
-                    sortDir: $scope.sortParams.sortDir
-                });
+                confirmAction(action);
             }
         };
 
@@ -93,7 +123,7 @@
             var formData = new FormData();
             if ($scope.appFile) {
                 formData.append('file', $scope.appFile);
-                $http.post(ufs.rsUrl(FILE_UPLOAD_URL), formData, {
+                $http.post(ufs.rsUrl(fileUploadUrl), formData, {
                     transformRequest: angular.identity,
                     headers: {
                         'Content-Type': undefined
