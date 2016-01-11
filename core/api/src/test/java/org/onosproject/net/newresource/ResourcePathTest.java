@@ -60,18 +60,18 @@ public class ResourcePathTest {
     }
 
     @Test
-    public void testKeyEquality() {
-        ResourcePath.Key key1 = ResourcePath.discrete(D1, P1, VLAN1).key();
-        ResourcePath.Key sameAsKey1 = ResourcePath.discrete(D1, P1, VLAN1).key();
-        ResourcePath.Key key2 = ResourcePath.discrete(D2, P1, VLAN1).key();
-        ResourcePath.Key key3 = ResourcePath.continuous(BW1.bps(), D1, P1, BW1).key();
+    public void testIdEquality() {
+        ResourceId id1 = ResourcePath.discrete(D1, P1, VLAN1).id();
+        ResourceId sameAsId1 = ResourcePath.discrete(D1, P1, VLAN1).id();
+        ResourceId id2 = ResourcePath.discrete(D2, P1, VLAN1).id();
+        ResourceId id3 = ResourcePath.continuous(BW1.bps(), D1, P1, BW1).id();
         // intentionally set a different value
-        ResourcePath.Key sameAsKey3 = ResourcePath.continuous(BW2.bps(), D1, P1, BW1).key();
+        ResourceId sameAsId3 = ResourcePath.continuous(BW2.bps(), D1, P1, BW1).id();
 
         new EqualsTester()
-                .addEqualityGroup(key1, sameAsKey1)
-                .addEqualityGroup(key2)
-                .addEqualityGroup(key3, sameAsKey3);
+                .addEqualityGroup(id1, sameAsId1)
+                .addEqualityGroup(id2)
+                .addEqualityGroup(id3, sameAsId3);
     }
 
     @Test

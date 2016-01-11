@@ -172,6 +172,7 @@ import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.newresource.ResourceAllocation;
+import org.onosproject.net.newresource.ResourceId;
 import org.onosproject.net.newresource.ResourcePath;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
@@ -430,7 +431,7 @@ public final class KryoNamespaces {
                     ResourcePath.class,
                     ResourcePath.Discrete.class,
                     ResourcePath.Continuous.class,
-                    ResourcePath.Key.class,
+                    ResourceId.class,
                     ResourceAllocation.class,
                     // Constraints
                     LambdaConstraint.class,

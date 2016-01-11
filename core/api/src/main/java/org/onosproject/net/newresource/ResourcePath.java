@@ -17,7 +17,6 @@ package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
@@ -49,12 +48,12 @@ import static com.google.common.base.Preconditions.checkState;
 public abstract class ResourcePath {
 
     private final Discrete parent;
-    private final Key key;
+    private final ResourceId id;
 
     public static final Discrete ROOT = new Discrete();
 
     public static ResourcePath discrete(DeviceId device) {
-        return new Discrete(Key.of(device));
+        return new Discrete(ResourceId.of(device));
     }
 
     /**
@@ -65,7 +64,7 @@ public abstract class ResourcePath {
      * @return resource path instance
      */
     public static ResourcePath discrete(DeviceId device, Object... components) {
-        return new Discrete(Key.of(device, components));
+        return new Discrete(ResourceId.of(device, components));
     }
 
     /**
@@ -77,7 +76,7 @@ public abstract class ResourcePath {
      * @return resource path instance
      */
     public static ResourcePath discrete(DeviceId device, PortNumber port, Object... components) {
-        return new Discrete(Key.of(device, port, components));
+        return new Discrete(ResourceId.of(device, port, components));
     }
 
     /**
@@ -92,7 +91,7 @@ public abstract class ResourcePath {
         checkArgument(components.length > 0,
                 "Length of components must be greater thant 0, but " + components.length);
 
-        return new Continuous(Key.of(device, components), value);
+        return new Continuous(ResourceId.of(device, components), value);
     }
 
     /**
@@ -105,29 +104,29 @@ public abstract class ResourcePath {
      * @return resource path instance
      */
     public static ResourcePath continuous(double value, DeviceId device, PortNumber port, Object... components) {
-        return new Continuous(Key.of(device, port, components), value);
+        return new Continuous(ResourceId.of(device, port, components), value);
     }
 
     /**
      * Creates an resource path from the specified key.
      *
-     * @param key key of the path
+     * @param id key of the path
      */
-    protected ResourcePath(Key key) {
-        checkNotNull(key);
+    protected ResourcePath(ResourceId id) {
+        checkNotNull(id);
 
-        this.key = key;
-        if (key.components.size() == 1) {
+        this.id = id;
+        if (id.components.size() == 1) {
             this.parent = ROOT;
         } else {
-            this.parent = new Discrete(key.parent());
+            this.parent = new Discrete(id.parent());
         }
     }
 
     // for serialization
     private ResourcePath() {
         this.parent = null;
-        this.key = Key.ROOT;
+        this.id = ResourceId.ROOT;
     }
 
     /**
@@ -136,7 +135,7 @@ public abstract class ResourcePath {
      * @return the components of this resource path
      */
     public List<Object> components() {
-        return key.components;
+        return id.components;
     }
 
     /**
@@ -160,7 +159,7 @@ public abstract class ResourcePath {
     public ResourcePath child(Object child) {
         checkState(this instanceof Discrete);
 
-        return new Discrete(key().child(child));
+        return new Discrete(id().child(child));
     }
 
     /**
@@ -174,7 +173,7 @@ public abstract class ResourcePath {
     public ResourcePath child(Object child, double value) {
         checkState(this instanceof Discrete);
 
-        return new Continuous(key.child(child), value);
+        return new Continuous(id.child(child), value);
     }
 
     /**
@@ -184,10 +183,10 @@ public abstract class ResourcePath {
      * The return value is equal to the last object of {@code components()}.
      */
     public Object last() {
-        if (key.components.isEmpty()) {
+        if (id.components.isEmpty()) {
             return null;
         }
-        return key.components.get(key.components.size() - 1);
+        return id.components.get(id.components.size() - 1);
     }
 
     /**
@@ -195,13 +194,13 @@ public abstract class ResourcePath {
      *
      * @return the key of this resource path
      */
-    public Key key() {
-        return key;
+    public ResourceId id() {
+        return id;
     }
 
     @Override
     public int hashCode() {
-        return key.hashCode();
+        return id.hashCode();
     }
 
     @Override
@@ -213,13 +212,13 @@ public abstract class ResourcePath {
             return false;
         }
         final ResourcePath that = (ResourcePath) obj;
-        return Objects.equals(this.key, that.key);
+        return Objects.equals(this.id, that.id);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("key", key)
+                .add("key", id)
                 .toString();
     }
 
@@ -237,7 +236,7 @@ public abstract class ResourcePath {
             super();
         }
 
-        private Discrete(Key key) {
+        private Discrete(ResourceId key) {
             super(key);
         }
     }
@@ -253,14 +252,14 @@ public abstract class ResourcePath {
     public static final class Continuous extends ResourcePath {
         private final double value;
 
-        private Continuous(Key key, double value) {
+        private Continuous(ResourceId key, double value) {
             super(key);
             this.value = value;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(this.key(), this.value);
+            return Objects.hash(this.id(), this.value);
         }
 
         @Override
@@ -278,7 +277,7 @@ public abstract class ResourcePath {
             }
 
             final Continuous other = (Continuous) obj;
-            return Objects.equals(this.key(), other.key());
+            return Objects.equals(this.id(), other.id());
         }
 
         /**
@@ -291,79 +290,4 @@ public abstract class ResourcePath {
         }
     }
 
-    /**
-     * Represents key of resource path used as a key in ResourceStore.
-     * This class is exposed to public, but intended to use only in ResourceStore implementations.
-     */
-    @Beta
-    public static final class Key {
-        private static final Key ROOT = new Key();
-
-        private final ImmutableList<Object> components;
-
-        private static Key of(DeviceId device, Object... components) {
-            return new Key(ImmutableList.builder()
-                    .add(device)
-                    .add(components)
-                    .build());
-        }
-
-        private static Key of(DeviceId device, PortNumber port, Object... components) {
-            return new Key(ImmutableList.builder()
-                    .add(device)
-                    .add(port)
-                    .add(components)
-                    .build());
-        }
-
-        private Key(ImmutableList<Object> components) {
-            this.components = checkNotNull(components);
-        }
-
-        // for serializer
-        private Key() {
-            this.components = ImmutableList.of();
-        }
-
-        // IndexOutOfBoundsException is raised when the instance is equal to ROOT
-        private Key parent() {
-            if (components.size() == 1) {
-                return ROOT;
-            } else {
-                return new Key(components.subList(0, components.size() - 1));
-            }
-        }
-
-        private Key child(Object child) {
-            return new Key(ImmutableList.builder()
-                    .add(components)
-                    .add(child)
-                    .build());
-        }
-
-        @Override
-        public int hashCode() {
-            return components.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (!(obj instanceof Key)) {
-                return false;
-            }
-
-            Key other = (Key) obj;
-            return Objects.equals(this.components, other.components);
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(this)
-                    .add("components", components)
-                    .toString();
-        }
-    }
 }
