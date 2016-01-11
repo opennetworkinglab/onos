@@ -99,6 +99,9 @@ import org.onosproject.net.flow.FlowRuleEvent;
 import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.StoredFlowEntry;
 import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.flow.criteria.ArpHaCriterion;
+import org.onosproject.net.flow.criteria.ArpOpCriterion;
+import org.onosproject.net.flow.criteria.ArpPaCriterion;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
@@ -349,6 +352,9 @@ public final class KryoNamespaces {
                     OchSignalTypeCriterion.class,
                     OduSignalIdCriterion.class,
                     OduSignalTypeCriterion.class,
+                    ArpOpCriterion.class,
+                    ArpHaCriterion.class,
+                    ArpPaCriterion.class,
                     Criterion.class,
                     Criterion.Type.class,
                     DefaultTrafficTreatment.class,
