@@ -175,6 +175,8 @@
                    impl="org.onosproject.driver.handshaker.OFOpticalSwitch13"/>
         <behaviour api="org.onosproject.net.behaviour.TributarySlotQuery"
                    impl="org.onosproject.driver.query.DefaultTributarySlotQuery" />
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.driver.query.OFOpticalSwitch13LambdaQuery"/>
     </driver>
     <driver name="aos" extends="ofdpa"
             manufacturer="Accton" hwVersion=".*" swVersion="1.*">

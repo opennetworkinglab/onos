@@ -123,7 +123,8 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     //TODO consider renaming KBPS and MBPS (as they are used to convert by division)
     private static final long KBPS = 1_000;
     private static final long MBPS = 1_000 * 1_000;
-    private static final Frequency FREQ100 = Frequency.ofGHz(100);
+    private static final Frequency FREQ50 = Frequency.ofGHz(50);
+    private static final Frequency FREQ191_7 = Frequency.ofGHz(191_700);
     private static final Frequency FREQ4_4 = Frequency.ofGHz(4_400);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -598,7 +599,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             switch (sigType) {
             case OMSN:
                 portDes =  new OmsPortDescription(portNo, enabled,
-                        Spectrum.CENTER_FREQUENCY, Spectrum.CENTER_FREQUENCY.add(FREQ4_4), FREQ100, annotations);
+                        FREQ191_7, FREQ191_7.add(FREQ4_4), FREQ50, annotations);
                 break;
             case OCH:
                 OFExpPortOpticalTransportLayerEntry entry = firstProp.getFeatures().get(0).getValue().get(0);

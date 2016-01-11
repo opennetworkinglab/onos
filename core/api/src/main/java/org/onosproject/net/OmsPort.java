@@ -62,7 +62,7 @@ public class OmsPort extends DefaultPort {
      */
     public short totalChannels() {
         Frequency diff = maxFrequency.subtract(minFrequency);
-        return (short) (diff.asHz() / (grid.asHz() + 1));
+        return (short) (diff.asHz() / grid.asHz());
     }
 
     /**
