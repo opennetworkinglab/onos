@@ -168,8 +168,10 @@ public class FlowEntryBuilder {
                             .withTreatment(buildTreatment())
                             .withPriority(stat.getPriority())
                             .makeTemporary(stat.getIdleTimeout())
-                            .withCookie(stat.getCookie().getValue())
-                            .forTable(stat.getTableId().getValue());
+                            .withCookie(stat.getCookie().getValue());
+                    if (stat.getVersion() != OFVersion.OF_10) {
+                        builder.forTable(stat.getTableId().getValue());
+                    }
 
                     return new DefaultFlowEntry(builder.build(), FlowEntryState.ADDED,
                                                 stat.getDurationSec(),
