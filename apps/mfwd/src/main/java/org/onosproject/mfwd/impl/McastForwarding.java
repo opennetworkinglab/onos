@@ -15,20 +15,16 @@
  */
 package org.onosproject.mfwd.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.IpPrefix;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
@@ -36,8 +32,8 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.mcast.MulticastRouteService;
 import org.onosproject.net.mcast.McastRoute;
+import org.onosproject.net.mcast.MulticastRouteService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
@@ -48,6 +44,9 @@ import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * The multicast forwarding component.  This component is responsible for
@@ -167,7 +166,7 @@ public class McastForwarding {
             IpPrefix gpfx = IpPrefix.valueOf(gaddr, 32);
 
             // TODO do we want to add a type for Mcast?
-            McastRoute mRoute = new McastRoute(spfx, gpfx, McastRoute.Type.STATIC);
+            McastRoute mRoute = new McastRoute(saddr, gaddr, McastRoute.Type.STATIC);
 
             ConnectPoint ingress = mcastRouteManager.fetchSource(mRoute);
 
@@ -216,12 +215,12 @@ public class McastForwarding {
     public static McastRoute createStaticRoute(String source, String group) {
         checkNotNull(source, "Must provide a source");
         checkNotNull(group, "Must provide a group");
-        IpPrefix ipSource = IpPrefix.valueOf(source);
-        IpPrefix ipGroup = IpPrefix.valueOf(group);
+        IpAddress ipSource = IpAddress.valueOf(source);
+        IpAddress ipGroup = IpAddress.valueOf(group);
         return createStaticcreateRoute(ipSource, ipGroup);
     }
 
-    public static McastRoute createStaticcreateRoute(IpPrefix source, IpPrefix group) {
+    public static McastRoute createStaticcreateRoute(IpAddress source, IpAddress group) {
         checkNotNull(source, "Must provide a source");
         checkNotNull(group, "Must provide a group");
         McastRoute.Type type = McastRoute.Type.STATIC;
