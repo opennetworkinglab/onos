@@ -49,7 +49,6 @@ import org.onosproject.netconf.NetconfDeviceListener;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.util.Map;
 
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -65,8 +64,6 @@ public class NetconfDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceProviderRegistry providerRegistry;
 
-    //    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-//    protected DeviceService deviceService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetconfController controller; //where is initiated ?
 
@@ -102,7 +99,8 @@ public class NetconfDeviceProvider extends AbstractProvider
         cfgService.registerConfigFactory(factory);
         cfgService.addListener(cfgLister);
         controller.addDeviceListener(innerNodeListener);
-        connectExistingDevices();
+        appId = coreService.registerApplication("org.onosproject.netconf");
+        connectDevices();
         log.info("Started");
     }
 
@@ -132,14 +130,7 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     @Override
     public boolean isReachable(DeviceId deviceId) {
-        Map<DeviceId, NetconfDevice> devices = controller.getDevicesMap();
-
-        NetconfDevice netconfDevice = null;
-        for (DeviceId key : devices.keySet()) {
-            if (key.equals(deviceId)) {
-                netconfDevice = controller.getDevicesMap().get(key);
-            }
-        }
+        NetconfDevice netconfDevice = controller.getNetconfDevice(deviceId);
         if (netconfDevice == null) {
             log.warn("BAD REQUEST: the requested device id: "
                              + deviceId.toString()
@@ -178,12 +169,6 @@ public class NetconfDeviceProvider extends AbstractProvider
             providerService.deviceDisconnected(deviceId);
 
         }
-    }
-
-    private void connectExistingDevices() {
-        //TODO consolidate
-        appId = coreService.registerApplication("org.onosproject.netconf");
-        connectDevices();
     }
 
     private void connectDevices() {

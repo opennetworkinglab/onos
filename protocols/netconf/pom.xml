@@ -30,7 +30,6 @@
 
     <modules>
         <module>api</module>
-        <module>rfc</module>
         <module>ctl</module>
     </modules>
 

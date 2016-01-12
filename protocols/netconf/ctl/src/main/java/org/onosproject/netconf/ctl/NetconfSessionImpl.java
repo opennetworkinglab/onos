@@ -126,7 +126,7 @@ public class NetconfSessionImpl implements NetconfSession {
 
     @Override
     public String doRPC(String request) throws IOException {
-        String reply = doRequest(request);
+        String reply = doRequest(request + "\n" + endpattern);
         return checkReply(reply) ? reply : "ERROR " + reply;
     }
 
