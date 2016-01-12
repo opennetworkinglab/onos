@@ -221,6 +221,7 @@ public class NetworkConfigManager
         if (configClass != null) {
             return store.applyConfig(subject, (Class<C>) configClass, json);
         } else {
+            log.info("Configuration \'{}\' queued for subject {}", configKey, subject);
             store.queueConfig(subject, configKey, json);
             return null;
         }
