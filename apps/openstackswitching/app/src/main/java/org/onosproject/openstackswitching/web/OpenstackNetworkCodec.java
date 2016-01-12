@@ -56,13 +56,22 @@ public class OpenstackNetworkCodec extends JsonCodec<OpenstackNetwork> {
                 .tenantId(tenantId)
                 .id(id);
 
-        if (!networkInfo.path(NETWORK_TYPE).isMissingNode()) {
-            onb.networkType(OpenstackNetwork.NetworkType.valueOf(networkInfo.path(NETWORK_TYPE).
-                    asText().toUpperCase()));
-            onb.segmentId(networkInfo.path(SEGMENTATION_ID).asText());
+        if (networkInfo.path(NETWORK_TYPE).isMissingNode()) {
+            log.warn("Network {} has no network type, ignore it.", name);
+            return null;
         }
+
+        String networkType = networkInfo.path(NETWORK_TYPE).asText();
+        try {
+            onb.networkType(OpenstackNetwork.NetworkType.valueOf(networkType.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            log.warn("Network {} has unsupported network type {}, ignore it.",
+                     name, networkType);
+            return null;
+        }
+
+        onb.segmentId(networkInfo.path(SEGMENTATION_ID).asText());
 
         return onb.build();
     }
-
 }

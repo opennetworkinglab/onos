@@ -36,10 +36,7 @@ public final class OpenstackNetwork {
         /**
          * Currently only VXLAN moded is supported.
          */
-        VXLAN,
-        VLAN,
-        STT,
-        LOCAL
+        VXLAN
     }
 
     /**

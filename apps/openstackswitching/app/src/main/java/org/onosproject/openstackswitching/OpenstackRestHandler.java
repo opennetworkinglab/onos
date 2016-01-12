@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -70,6 +71,8 @@ public class OpenstackRestHandler {
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
                 header("X-Auth-Token", getToken()).get(String.class);
 
+        log.debug("networks response:" + response);
+
         ObjectMapper mapper = new ObjectMapper();
         List<OpenstackNetwork> openstackNetworks = Lists.newArrayList();
         try {
@@ -81,7 +84,7 @@ public class OpenstackRestHandler {
             log.warn("getNetworks()", e);
         }
 
-        log.debug("networks response:" + response);
+        openstackNetworks.removeAll(Collections.singleton(null));
         openstackNetworks.forEach(n -> log.debug("network ID: {}", n.id()));
 
         return openstackNetworks;
