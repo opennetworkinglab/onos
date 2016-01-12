@@ -54,7 +54,7 @@
 
         o.scope.tableData = [];
         o.scope.changedData = [];
-        o.scope.sortParams = {};
+        o.scope.sortParams = o.sortParams || {};
         o.scope.autoRefresh = true;
         o.scope.autoRefreshTip = 'Toggle auto refresh';
 
@@ -149,7 +149,7 @@
             cancelTardy();
         });
 
-        sortCb();
+        sortCb(o.scope.sortParams);
         startRefresh();
     }
 

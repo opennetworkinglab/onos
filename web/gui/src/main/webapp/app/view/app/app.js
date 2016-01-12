@@ -68,7 +68,12 @@
             scope: $scope,
             tag: 'app',
             selCb: selCb,
-            respCb: refreshCtrls
+            respCb: refreshCtrls,
+            // pre-populate sort so active apps are at the top of the list
+            sortParams: {
+                sortCol: 'state',
+                sortDir: 'desc'
+            }
         });
 
         // TODO: reexamine where keybindings should be - directive or controller?
