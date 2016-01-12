@@ -28,9 +28,9 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -47,6 +47,8 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.olt.api.AccessDeviceEvent;
+import org.onosproject.olt.api.AccessDeviceListener;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -62,7 +64,9 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Service
 @Component(immediate = true)
-public class Olt implements AccessDeviceService {
+public class Olt
+        extends AbstractListenerManager<AccessDeviceEvent, AccessDeviceListener>
+        implements AccessDeviceService {
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -98,7 +102,7 @@ public class Olt implements AccessDeviceService {
             label = "The OLT's uplink port number")
     private int gfastUplink = GFAST_UPLINK_PORT;
 
-    //TODO: replace this with an annotation lookup
+    //TODO: replace this information with info comming for net cfg service.
     @Property(name = "oltDevice", value = OLT_DEVICE,
             label = "The OLT device id")
     private String oltDevice = OLT_DEVICE;
@@ -127,6 +131,8 @@ public class Olt implements AccessDeviceService {
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.olt");
 
+        eventDispatcher.addSink(AccessDeviceEvent.class, listenerRegistry);
+
         networkConfig.registerConfigFactory(configFactory);
         networkConfig.addListener(configListener);
 
@@ -140,31 +146,6 @@ public class Olt implements AccessDeviceService {
                 }
         );
 
-        /*deviceService.addListener(deviceListener);
-
-        deviceService.getPorts(DeviceId.deviceId(oltDevice)).stream().forEach(
-                port -> {
-                    if (!port.number().isLogical() && port.isEnabled()) {
-                        short vlanId = fetchVlanId(port.number());
-                        if (vlanId > 0) {
-                            provisionVlanOnPort(oltDevice, uplinkPort, port.number(), (short) 7);
-                            provisionVlanOnPort(oltDevice, uplinkPort, port.number(), vlanId);
-                        }
-                    }
-                }
-        );*/
-
-
-        deviceService.getPorts(DeviceId.deviceId(gfastDevice)).stream()
-                .filter(port -> !port.number().isLogical())
-                .filter(Port::isEnabled)
-                .forEach(port -> {
-                            short vlanId = (short) (fetchVlanId(port.number()) + OFFSET);
-                            if (vlanId > 0) {
-                                provisionVlanOnPort(gfastDevice, gfastUplink, port.number(), vlanId);
-                            }
-                        }
-                );
         log.info("Started with Application ID {}", appId.id());
     }
 
@@ -312,17 +293,28 @@ public class Olt implements AccessDeviceService {
         @Override
         public void event(DeviceEvent event) {
             DeviceId devId = DeviceId.deviceId(oltDevice);
+            if (!devId.equals(event.subject().id())) {
+                return;
+            }
             switch (event.type()) {
                 case PORT_ADDED:
                 case PORT_UPDATED:
-                    if (devId.equals(event.subject().id()) && event.port().isEnabled()) {
+                    if (event.port().isEnabled()) {
                         short vlanId = fetchVlanId(event.port().number());
                         provisionVlanOnPort(gfastDevice, uplinkPort, event.port().number(), vlanId);
                     }
                     break;
                 case DEVICE_ADDED:
-                case DEVICE_UPDATED:
+                    post(new AccessDeviceEvent(
+                            AccessDeviceEvent.Type.DEVICE_CONNECTED, devId,
+                            null, null));
+                    break;
                 case DEVICE_REMOVED:
+                    post(new AccessDeviceEvent(
+                            AccessDeviceEvent.Type.DEVICE_DISCONNECTED, devId,
+                            null, null));
+                    break;
+                case DEVICE_UPDATED:
                 case DEVICE_SUSPENDED:
                 case DEVICE_AVAILABILITY_CHANGED:
                 case PORT_REMOVED:
