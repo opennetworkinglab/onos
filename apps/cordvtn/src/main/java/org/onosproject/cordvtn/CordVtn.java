@@ -910,24 +910,26 @@ public class CordVtn implements CordVtnService {
         public void connected(Host host) {
             // TODO remove check VM here after applying network config host provider
             if (!isVm(host)) {
+                log.debug("Host {} is not a VM, ignore it.", host.id());
                 return;
             }
 
             CordVtnNode node = getNodeByBridgeId(host.location().deviceId());
             if (node == null || !Objects.equals(getNodeState(node), NodeState.COMPLETE)) {
-                // do nothing for the host on unregistered or unprepared device
+                log.debug("VM {} is detected unknown or incomplete device, ignore it.", host.id());
                 return;
             }
 
             OpenstackNetwork vNet = getOpenstackNetworkByHost(host);
             if (vNet == null) {
+                log.debug("Failed to get OpenStack network for VM {}, ignore it.", host.id());
                 return;
             }
 
             // TODO host ip should be set in host information after applying network config host provider
             IpAddress hostIp = getHostIpFromOpenstack(host);
             if (hostIp == null) {
-                log.error("Failed to get host IP of {}", host.id());
+                log.debug("Failed to get host IP of {}, ignore it.", host.id());
                 return;
             }
 
