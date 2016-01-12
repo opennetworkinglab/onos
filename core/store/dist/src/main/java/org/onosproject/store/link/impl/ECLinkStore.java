@@ -215,7 +215,7 @@ public class ECLinkStore
             if (internalLinkKey == null) {
                 return null;
             }
-            linkDescriptions.compute(internalLinkKey, (k, v) -> createOrUpdateLinkInternal(v  , linkDescription));
+            linkDescriptions.compute(internalLinkKey, (k, v) -> createOrUpdateLinkInternal(v, linkDescription));
             return refreshLinkCache(linkKey);
         } else {
             // Only forward for ConfigProvider

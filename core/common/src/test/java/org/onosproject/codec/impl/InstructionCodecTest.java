@@ -127,7 +127,7 @@ public class InstructionCodecTest {
      */
     @Test
     public void modOduSignalIdInstructionTest() {
-        OduSignalId oduSignalId = OduSignalId.oduSignalId(1, 8, new byte [] {8, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        OduSignalId oduSignalId = OduSignalId.oduSignalId(1, 8, new byte[] {8, 0, 0, 0, 0, 0, 0, 0, 0, 0});
         L1ModificationInstruction.ModOduSignalIdInstruction instruction =
                 (L1ModificationInstruction.ModOduSignalIdInstruction)
                     Instructions.modL1OduSignalId(oduSignalId);

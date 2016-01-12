@@ -37,7 +37,7 @@ public class DefaultFlowRuleTest {
     private static final IntentTestsMocks.MockTreatment TREATMENT =
             new IntentTestsMocks.MockTreatment();
 
-    private static byte [] b = new byte[3];
+    private static byte[] b = new byte[3];
     private static FlowRuleExtPayLoad payLoad = FlowRuleExtPayLoad.flowRuleExtPayLoad(b);
     final FlowRule flowRule1 = new IntentTestsMocks.MockFlowRule(1, payLoad);
     final FlowRule sameAsFlowRule1 = new IntentTestsMocks.MockFlowRule(1, payLoad);

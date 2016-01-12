@@ -73,7 +73,7 @@ public class IGMPTest {
 
     @Test
     public void testDeserializeTruncated() throws Exception {
-        byte [] bits = igmpQuery.serialize();
+        byte[] bits = igmpQuery.serialize();
         PacketTestUtils.testDeserializeTruncated(deserializer, bits);
 
         bits = igmpMembership.serialize();
@@ -82,14 +82,14 @@ public class IGMPTest {
 
     @Test
     public void testDeserializeQuery() throws Exception {
-        byte [] data = igmpQuery.serialize();
+        byte[] data = igmpQuery.serialize();
         IGMP igmp = deserializer.deserialize(data, 0, data.length);
         assertTrue(igmp.equals(igmpQuery));
     }
 
     @Test
     public void testDeserializeMembership() throws Exception {
-        byte [] data = igmpMembership.serialize();
+        byte[] data = igmpMembership.serialize();
         IGMP igmp = deserializer.deserialize(data, 0, data.length);
         assertTrue(igmp.equals(igmpMembership));
     }

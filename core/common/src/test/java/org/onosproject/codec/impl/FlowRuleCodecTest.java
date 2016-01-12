@@ -541,7 +541,7 @@ public class FlowRuleCodecTest {
                 is(80));
 
        assertThat(((OduSignalIdCriterion) criterion).oduSignalId().tributarySlotBitmap(),
-                is(new byte [] {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}));
+                is(new byte[] {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}));
     }
 
     /**

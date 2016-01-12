@@ -110,7 +110,7 @@ public class IPv4AddressTlv implements BgpValueType {
      * @param type says Ipv4 address of interface/neighbor tlv type
      * @return object of this class
      */
-    public static IPv4AddressTlv of(final Ip4Address address , final short type) {
+    public static IPv4AddressTlv of(final Ip4Address address, final short type) {
         return new IPv4AddressTlv(address, type);
     }
 

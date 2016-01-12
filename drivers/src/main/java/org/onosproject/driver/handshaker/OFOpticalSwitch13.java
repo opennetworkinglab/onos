@@ -112,8 +112,8 @@ public class OFOpticalSwitch13 extends AbstractOpenFlowSwitch implements OpenFlo
                    return;
                }
               } catch (ClassCastException e) {
-                  log.error("Unexspected Experimenter Multipart message type {} "
-                          , stats.getClass().getName());
+                  log.error("Unexspected Experimenter Multipart message type {} ",
+                          stats.getClass().getName());
             }
         }
     }

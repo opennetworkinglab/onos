@@ -185,7 +185,7 @@ public class RemoteTENodeDescriptorsTlv implements PcepValueType {
      * @return object of RemoteTENodeDescriptorsTLV
      * @throws PcepParseException if mandatory fields are missing
      */
-    public static PcepValueType read(ChannelBuffer c , short length) throws PcepParseException {
+    public static PcepValueType read(ChannelBuffer c, short length) throws PcepParseException {
 
         // Node Descriptor Sub-TLVs (variable)
         LinkedList<PcepValueType> llRemoteTENodeDescriptorSubTLVs = new LinkedList<>();

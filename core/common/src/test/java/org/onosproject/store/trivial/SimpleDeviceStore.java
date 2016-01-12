@@ -206,8 +206,7 @@ public class SimpleDeviceStore
                 // FIXME: Is the enclosing if required here?
                 verify(replaced,
                        "Replacing devices cache failed. PID:%s [expected:%s, found:%s, new=%s]",
-                       providerId, oldDevice, devices.get(newDevice.id())
-                        , newDevice);
+                       providerId, oldDevice, devices.get(newDevice.id()), newDevice);
             }
             if (!providerId.isAncillary()) {
                 availableDevices.add(newDevice.id());

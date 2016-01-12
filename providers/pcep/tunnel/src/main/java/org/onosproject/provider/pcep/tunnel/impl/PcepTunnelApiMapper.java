@@ -125,7 +125,7 @@ public class PcepTunnelApiMapper {
             int value = tunnelIdMap.get(pcepTunnelData.tunnel().tunnelId());
             tunnelDB.put(new Integer(value), pcepTunnelData);
             tunnelRequestQueue.remove(new Integer(srpId), pcepTunnelData);
-            log.debug("Tunnel Added to TunnelDBQueue and removed from TunnelRequestQueue. tunnel id {}" ,
+            log.debug("Tunnel Added to TunnelDBQueue and removed from TunnelRequestQueue. tunnel id {}",
                       (new Integer(value)).toString());
         } else {
             pcepTunnelData.setRptFlag(true);

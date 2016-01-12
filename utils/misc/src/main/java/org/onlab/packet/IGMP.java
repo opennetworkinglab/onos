@@ -159,7 +159,7 @@ public class IGMP extends BasePacket {
     @java.lang.SuppressWarnings(SONAR_SWITCH_FALLTHROUGH) // suppress switch fall through warning
     @Override
     public byte[] serialize() {
-        byte [] data = new byte[8915];
+        byte[] data = new byte[8915];
 
         ByteBuffer bb = ByteBuffer.wrap(data);
         bb.put(this.getIgmpType());
@@ -193,7 +193,7 @@ public class IGMP extends BasePacket {
 
         int size = bb.position();
         bb.position(0);
-        byte [] rdata = new byte[size];
+        byte[] rdata = new byte[size];
         bb.get(rdata, 0, size);
         return rdata;
     }

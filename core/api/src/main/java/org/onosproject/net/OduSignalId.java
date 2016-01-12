@@ -48,7 +48,7 @@ public class OduSignalId {
     public OduSignalId(int tributaryPortNumber, int tributarySlotLen,
             byte[] tributarySlotBitmap) {
 
-        checkArgument(tributaryPortNumber <= 80  ,
+        checkArgument(tributaryPortNumber <= 80,
                 "tributaryPortNumber %s must be <= 80 ",
                  tributaryPortNumber);
 
@@ -56,7 +56,7 @@ public class OduSignalId {
                 "number of elements in list " + HexString.toHexString(tributarySlotBitmap)
                 + " must be equal to " + TRIBUTARY_SLOT_BITMAP_SIZE);
 
-        checkArgument(tributarySlotLen <= 80  ,
+        checkArgument(tributarySlotLen <= 80,
                 "tributarySlotLen %s must be <= 80 ",
                 tributarySlotLen);
 

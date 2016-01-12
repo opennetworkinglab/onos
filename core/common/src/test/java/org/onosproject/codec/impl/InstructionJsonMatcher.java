@@ -230,7 +230,7 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
         final JsonNode jsonOduSignal = instructionJson.get("oduSignalId");
         int jsonTpn = jsonOduSignal.get("tributaryPortNumber").intValue();
         int jsonTsLen = jsonOduSignal.get("tributarySlotLength").intValue();
-        byte [] tributaryBitMap = HexString.fromHexString(jsonOduSignal.get("tributarySlotBitmap").asText());
+        byte[] tributaryBitMap = HexString.fromHexString(jsonOduSignal.get("tributarySlotBitmap").asText());
         OduSignalId  jsonOduSignalId = OduSignalId.oduSignalId(jsonTpn, jsonTsLen, tributaryBitMap);
         if (!instructionToMatch.oduSignalId().equals(jsonOduSignalId)) {
             description.appendText("oduSignalId was " + instructionToMatch);

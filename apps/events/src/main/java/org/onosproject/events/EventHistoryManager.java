@@ -118,7 +118,7 @@ public class EventHistoryManager
         pruner = newSingleThreadScheduledExecutor(minPriority(groupedThreads("onos/events", "history-pruner")));
 
         pruner.scheduleWithFixedDelay(this::pruneEventHistoryTask,
-                                      pruneInterval , pruneInterval, TimeUnit.SECONDS);
+                                      pruneInterval, pruneInterval, TimeUnit.SECONDS);
 
         listeners = new ListenerTracker();
         listeners.addListener(mastershipService, new InternalMastershipListener())

@@ -110,7 +110,7 @@ public class IPv6AddressTlv implements BgpValueType {
      * @param type says Ipv6 address of interface/neighbor tlv type
      * @return object of this class
      */
-    public static IPv6AddressTlv of(final Ip6Address address , final short type) {
+    public static IPv6AddressTlv of(final Ip6Address address, final short type) {
         return new IPv6AddressTlv(address, type);
     }
 

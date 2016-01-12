@@ -101,7 +101,7 @@ public final class PIMTest {
      */
     @Test
     public void testDeserializeTruncated() throws Exception {
-        byte [] bits = pimJoinPrune.serialize();
+        byte[] bits = pimJoinPrune.serialize();
         PacketTestUtils.testDeserializeTruncated(deserializer, bits);
     }
 
@@ -112,7 +112,7 @@ public final class PIMTest {
      */
     @Test
     public void testDeserializeHello() throws Exception {
-        byte [] data = pimHello.serialize();
+        byte[] data = pimHello.serialize();
         PIM pim = deserializer.deserialize(data, 0, data.length);
         assertTrue(pim.equals(pimHello));
     }
@@ -124,7 +124,7 @@ public final class PIMTest {
      */
     @Test
     public void testDeserializeJoinPrune() throws Exception {
-        byte [] data = pimJoinPrune.serialize();
+        byte[] data = pimJoinPrune.serialize();
         PIM pim = deserializer.deserialize(data, 0, data.length);
         assertTrue(pim.equals(pimJoinPrune));
     }

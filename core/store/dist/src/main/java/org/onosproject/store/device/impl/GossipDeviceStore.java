@@ -439,8 +439,7 @@ public class GossipDeviceStore
             if (!replaced) {
                 verify(replaced,
                        "Replacing devices cache failed. PID:%s [expected:%s, found:%s, new=%s]",
-                       providerId, oldDevice, devices.get(newDevice.id())
-                        , newDevice);
+                       providerId, oldDevice, devices.get(newDevice.id()), newDevice);
             }
 
             event = new DeviceEvent(DeviceEvent.Type.DEVICE_UPDATED, newDevice, null);

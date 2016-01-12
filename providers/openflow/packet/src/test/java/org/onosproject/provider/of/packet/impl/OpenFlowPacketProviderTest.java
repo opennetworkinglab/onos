@@ -88,7 +88,7 @@ public class OpenFlowPacketProviderTest {
     private static final TrafficTreatment TR = treatment(INST1, INST2);
     private static final TrafficTreatment TR_MISSING = treatment(INST1, INST3);
 
-    private static final byte[] ANY = new byte [] {0, 0, 0, 0};
+    private static final byte[] ANY = new byte[] {0, 0, 0, 0};
 
     private final OpenFlowPacketProvider provider = new OpenFlowPacketProvider();
     private final TestPacketRegistry registry = new TestPacketRegistry();
