@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Charsets;
 
 import static com.google.common.base.Preconditions.checkState;
-import static org.onlab.util.SonarSuppressionConstants.SONAR_SWITCH_FALLTHROUGH;
 
 /**
  * Decoder for inbound messages.
@@ -55,7 +54,7 @@ public class MessageDecoder extends ReplayingDecoder<DecoderState> {
     }
 
     @Override
-    @java.lang.SuppressWarnings(SONAR_SWITCH_FALLTHROUGH) // suppress switch fall through warning
+    @java.lang.SuppressWarnings("squid:S128") // suppress switch fall through warning
     protected void decode(
             ChannelHandlerContext context,
             ByteBuf buffer,

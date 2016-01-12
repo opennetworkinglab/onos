@@ -44,7 +44,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
 import static java.util.stream.Collectors.toList;
-import static org.onlab.util.SonarSuppressionConstants.SONAR_PRINT_STACK_TRACE;
 
 /**
  * Command to print history of instance local ONOS Events.
@@ -162,7 +161,7 @@ public class EventsCommand
      *
      * @param json JSON node to print
      */
-    @java.lang.SuppressWarnings(SONAR_PRINT_STACK_TRACE)
+    @java.lang.SuppressWarnings("squid:S1148")
     private void printJson(JsonNode json) {
         try {
             print("%s", mapper().writerWithDefaultPrettyPrinter().writeValueAsString(json));

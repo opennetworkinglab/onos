@@ -44,7 +44,6 @@ import org.slf4j.Logger;
 import com.google.common.collect.Maps;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.util.SonarSuppressionConstants.SONAR_CALL_RUN;
 import static org.onosproject.app.ApplicationEvent.Type.APP_ACTIVATED;
 import static org.onosproject.app.ApplicationEvent.Type.APP_DEACTIVATED;
 import static org.onosproject.app.ApplicationEvent.Type.APP_INSTALLED;
@@ -281,7 +280,7 @@ public class ApplicationManager
     }
 
     // Invokes the specified function, if not null.
-    @java.lang.SuppressWarnings(SONAR_CALL_RUN) // We really do mean to call run()
+    @java.lang.SuppressWarnings("squid:S1217") // We really do mean to call run()
     private void invokeHook(Runnable hook, ApplicationId appId) {
         if (hook != null) {
             try {

@@ -46,8 +46,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 
-import static org.onlab.util.SonarSuppressionConstants.SONAR_PRINT_STACK_TRACE;
-
 /**
  * Installs bulk flows.
  */
@@ -66,7 +64,7 @@ public class AddTestFlowsCommand extends AbstractShellCommand {
     String numOfRuns = null;
 
     @Override
-    @java.lang.SuppressWarnings(SONAR_PRINT_STACK_TRACE)
+    @java.lang.SuppressWarnings("squid:S1148")
     protected void execute() {
         FlowRuleService flowService = get(FlowRuleService.class);
         DeviceService deviceService = get(DeviceService.class);

@@ -67,8 +67,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 
-import static org.onlab.util.SonarSuppressionConstants.SONAR_CATCH_THROWABLE;
-
 /**
  * Implementation of MessagingService based on <a href="http://netty.io/">Netty</a> framework.
  */
@@ -111,7 +109,7 @@ public class NettyMessaging implements MessagingService {
     protected char[] ksPwd;
     protected char[] tsPwd;
 
-    @SuppressWarnings(SONAR_CATCH_THROWABLE)
+    @SuppressWarnings("squid:S1181")
     // We really need to catch Throwable due to netty native epoll() handling
     private void initEventLoopGroup() {
         // try Epoll first and if that does work, use nio.

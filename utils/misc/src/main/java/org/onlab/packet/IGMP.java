@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.packet.PacketUtils.checkInput;
-import static org.onlab.util.SonarSuppressionConstants.SONAR_SWITCH_FALLTHROUGH;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -156,7 +155,7 @@ public class IGMP extends BasePacket {
      *
      * @return the serialized IGMP message
      */
-    @java.lang.SuppressWarnings(SONAR_SWITCH_FALLTHROUGH) // suppress switch fall through warning
+    @java.lang.SuppressWarnings("squid:S128") // suppress switch fall through warning
     @Override
     public byte[] serialize() {
         byte[] data = new byte[8915];
