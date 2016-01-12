@@ -252,7 +252,7 @@ public class HostManager
             if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
                     event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
                     event.configClass().equals(BasicHostConfig.class)) {
-                log.info("Detected Host network config event {}", event.type());
+                log.debug("Detected host network config event {}", event.type());
                 kickOutBadHost(((HostId) event.subject()));
             }
         }

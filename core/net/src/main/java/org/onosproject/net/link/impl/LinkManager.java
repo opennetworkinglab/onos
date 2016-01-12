@@ -337,6 +337,8 @@ public class LinkManager
             LinkKey lk = (LinkKey) event.subject();
             BasicLinkConfig cfg = networkConfigService.getConfig(lk, BasicLinkConfig.class);
 
+            log.debug("Detected link network config event {}", event.type());
+
             if (!isAllowed(cfg)) {
                 log.info("Kicking out links between {} and {}", lk.src(), lk.dst());
                 removeLink(lk.src(), lk.dst());

@@ -741,7 +741,7 @@ public class DeviceManager
         public void event(NetworkConfigEvent event) {
             DeviceEvent de = null;
             if (event.configClass().equals(BasicDeviceConfig.class)) {
-                log.info("Detected Device network config event {}", event.type());
+                log.debug("Detected device network config event {}", event.type());
                 DeviceId did = (DeviceId) event.subject();
                 BasicDeviceConfig cfg = networkConfigService.getConfig(did, BasicDeviceConfig.class);
 

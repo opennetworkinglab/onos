@@ -58,7 +58,7 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
      * @return driver name of null if not set
      */
     public String driver() {
-        return get(DRIVER, subject.toString());
+        return get(DRIVER, null);
     }
 
     /**
