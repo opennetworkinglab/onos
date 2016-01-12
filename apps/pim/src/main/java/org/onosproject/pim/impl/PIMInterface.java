@@ -31,7 +31,7 @@ import java.util.Set;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * PIM Interface represents an ONOS Interface with IP & MAC addresses for
+ * PIM Interface represents an ONOS Interface with IP and MAC addresses for
  * a given ConnectPoint.
  */
 public class PIMInterface {
