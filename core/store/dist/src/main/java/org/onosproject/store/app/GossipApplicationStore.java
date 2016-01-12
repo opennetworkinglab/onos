@@ -198,7 +198,10 @@ public class GossipApplicationStore extends ApplicationArchive
                 // Directly return if app already exists
                 ApplicationId appId = getId(appName);
                 if (appId != null) {
-                    return getApplication(appId);
+                    Application application = getApplication(appId);
+                    if (application != null) {
+                        return application;
+                    }
                 }
 
                 ApplicationDescription appDesc = getApplicationDescription(appName);
