@@ -344,7 +344,7 @@ public class DefaultFlowRule implements FlowRule {
 
         @Override
         public FlowRule.Builder withTreatment(TrafficTreatment treatment) {
-            this.treatment = treatment;
+            this.treatment = checkNotNull(treatment);
             return this;
         }
 
