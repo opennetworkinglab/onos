@@ -37,6 +37,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Handler of IP packets that forwards IP packets that are sent to the controller,
+ * except the ICMP packets which are processed by @link{IcmpHandler}.
+ */
 public class IpHandler {
 
     private static Logger log = LoggerFactory.getLogger(IpHandler.class);

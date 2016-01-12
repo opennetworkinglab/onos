@@ -37,6 +37,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Default routing handler that is responsible for route computing and
+ * routing rule population.
+ */
 public class DefaultRoutingHandler {
 
     private static Logger log = LoggerFactory
@@ -512,6 +516,7 @@ public class DefaultRoutingHandler {
      */
     public void populatePortAddressingRules(DeviceId deviceId) {
         rulePopulator.populateRouterMacVlanFilters(deviceId);
+        rulePopulator.populateXConnectVlanFilters(deviceId);
         rulePopulator.populateRouterIpPunts(deviceId);
     }
 

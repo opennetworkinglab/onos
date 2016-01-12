@@ -26,7 +26,6 @@ import org.onosproject.net.link.LinkService;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceProperties;
-import org.onosproject.store.service.EventuallyConsistentMap;
 
 /**
  * Default ECMP group handler creation module for a transit device.
@@ -41,22 +40,13 @@ import org.onosproject.store.service.EventuallyConsistentMap;
  * 2) all ports to D3 + with no label push,
  */
 public class DefaultTransitGroupHandler extends DefaultGroupHandler {
-    // TODO Access stores through srManager
     protected DefaultTransitGroupHandler(DeviceId deviceId,
                                   ApplicationId appId,
                                   DeviceProperties config,
                                   LinkService linkService,
                                   FlowObjectiveService flowObjService,
-                                  EventuallyConsistentMap<
-                                        NeighborSetNextObjectiveStoreKey,
-                                        Integer> nsNextObjStore,
-                                  EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
-                                        Integer> subnetNextObjStore,
-                                  EventuallyConsistentMap<PortNextObjectiveStoreKey,
-                                  Integer> portNextObjStore,
                                   SegmentRoutingManager srManager) {
-        super(deviceId, appId, config, linkService, flowObjService,
-              nsNextObjStore, subnetNextObjStore, portNextObjStore, srManager);
+        super(deviceId, appId, config, linkService, flowObjService, srManager);
     }
 
     @Override

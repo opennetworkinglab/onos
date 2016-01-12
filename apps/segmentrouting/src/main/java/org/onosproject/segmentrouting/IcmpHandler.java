@@ -38,6 +38,10 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Handler of ICMP packets that responses or forwards ICMP packets that
+ * are sent to the controller.
+ */
 public class IcmpHandler {
 
     private static Logger log = LoggerFactory.getLogger(IcmpHandler.class);

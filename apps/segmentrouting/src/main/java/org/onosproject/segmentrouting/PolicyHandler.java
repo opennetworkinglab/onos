@@ -48,18 +48,43 @@ public class PolicyHandler {
     private FlowObjectiveService flowObjectiveService;
     private TunnelHandler tunnelHandler;
     private final EventuallyConsistentMap<String, Policy> policyStore;
-
+    /**
+     * Result of policy creation.
+     */
     public enum Result {
+        /**
+         * Success.
+         */
         SUCCESS,
+
+        /**
+         * The same policy exists already.
+         */
         POLICY_EXISTS,
+
+        /**
+         * The policy ID exists already.
+         */
         ID_EXISTS,
+
+        /**
+         * Cannot find associated tunnel.
+         */
         TUNNEL_NOT_FOUND,
+
+        /**
+         * Policy was not found.
+         */
         POLICY_NOT_FOUND,
+
+        /**
+         * Policy type {} is not supported yet.
+         */
         UNSUPPORTED_TYPE
     }
 
     /**
-     * Creates a reference.
+     * Constructs policy handler.
      *
      * @param appId                segment routing application ID
      * @param deviceConfiguration  DeviceConfiguration reference

@@ -26,6 +26,9 @@ import org.onosproject.segmentrouting.Tunnel;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Codec of Tunnel class.
+ */
 public final class TunnelCodec extends JsonCodec<Tunnel> {
 
     // JSON field names

@@ -69,7 +69,6 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.host.HostService;
-import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
@@ -77,8 +76,8 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.net.topology.TopologyService;
 import org.onosproject.segmentrouting.grouphandler.SubnetNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.grouphandler.XConnectNextObjectiveStoreKey;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.StorageService;
@@ -102,6 +101,9 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @Component(immediate = true)
+/**
+ * Segment routing manager.
+ */
 public class SegmentRoutingManager implements SegmentRoutingService {
 
     private static Logger log = LoggerFactory
@@ -111,13 +113,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected TopologyService topologyService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentService intentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
@@ -157,20 +153,31 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @SuppressWarnings("rawtypes")
     private ConcurrentLinkedQueue<Event> eventQueue = new ConcurrentLinkedQueue<Event>();
     private Map<DeviceId, DefaultGroupHandler> groupHandlerMap =
-            new ConcurrentHashMap<DeviceId, DefaultGroupHandler>();
-    // Per device next objective ID store with (device id + neighbor set) as key
-    private EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey, Integer>
+            new ConcurrentHashMap<>();
+    /**
+     * Per device next objective ID store with (device id + neighbor set) as key.
+     */
+    public EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey, Integer>
             nsNextObjStore = null;
-    // Per device next objective ID store with (device id + subnet) as key
-    private EventuallyConsistentMap<SubnetNextObjectiveStoreKey, Integer>
+    /**
+     * Per device next objective ID store with (device id + subnet) as key.
+     */
+    public EventuallyConsistentMap<SubnetNextObjectiveStoreKey, Integer>
             subnetNextObjStore = null;
-    // Per device next objective ID store with (device id + port) as key
-    private EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
+    /**
+     * Per device next objective ID store with (device id + port) as key.
+     */
+    public EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
             portNextObjStore = null;
+    /**
+     * Per cross-connect objective ID store with VLAN ID as key.
+     */
+    public EventuallyConsistentMap<XConnectNextObjectiveStoreKey, Integer>
+            xConnectNextObjStore = null;
     // Per device, per-subnet assigned-vlans store, with (device id + subnet
     // IPv4 prefix) as key
     private EventuallyConsistentMap<SubnetAssignedVidStoreKey, VlanId>
-        subnetVidStore = null;
+            subnetVidStore = null;
     private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
     private EventuallyConsistentMap<String, Policy> policyStore = null;
 
@@ -204,7 +211,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     private KryoNamespace.Builder kryoBuilder = null;
 
+    /**
+     * The starting value of per-subnet VLAN ID assignment.
+     */
     private static final short ASSIGNED_VLAN_START = 4093;
+    /**
+     * The default VLAN ID assigned to the interfaces without subnet config.
+     */
     public static final short ASSIGNED_VLAN_NO_SUBNET = 4094;
 
     @Activate
@@ -258,6 +271,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 portNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
         portNextObjStore = portNextObjMapBuilder
                 .withName("portnextobjectivestore")
+                .withSerializer(kryoBuilder)
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .build();
+
+        log.debug("Creating EC map xconnectnextobjectivestore");
+        EventuallyConsistentMapBuilder<XConnectNextObjectiveStoreKey, Integer>
+                xConnectNextObjStoreBuilder = storageService.eventuallyConsistentMapBuilder();
+        xConnectNextObjStore = xConnectNextObjStoreBuilder
+                .withName("xconnectnextobjectivestore")
                 .withSerializer(kryoBuilder)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
@@ -394,9 +416,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * Vlan id 4094 expected to be used for all ports that are not assigned subnets.
      * Vlan id 4095 is reserved and unused. Only a single vlan id is assigned
      * per subnet.
-     * XXX This method should avoid any vlans configured on the ports, but
-     *     currently the app works only on untagged packets and as a result
-     *     ignores any vlan configuration.
      *
      * @param deviceId switch dpid
      * @param subnet IPv4 prefix for which assigned vlan is desired
@@ -404,6 +423,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      *         null if no vlan assignment was found and this instance is not
      *         the master for the device.
      */
+    // TODO: We should avoid assigning VLAN IDs that are used by VLAN cross-connection.
     public VlanId getSubnetAssignedVlanId(DeviceId deviceId, Ip4Prefix subnet) {
         VlanId assignedVid = subnetVidStore.get(new SubnetAssignedVidStoreKey(
                                                         deviceId, subnet));
@@ -508,7 +528,26 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (ghdlr != null) {
             return ghdlr.getPortNextObjectiveId(portNum, treatment, meta);
         } else {
-            log.warn("getPortNextObjectiveId query -  groupHandler for device {}"
+            log.warn("getPortNextObjectiveId query - groupHandler for device {}"
+                    + " not found", deviceId);
+            return -1;
+        }
+    }
+
+    /**
+     * Returns the next objective ID of type broadcast associated with the VLAN
+     * cross-connection.
+     *
+     * @param deviceId Device ID for the cross-connection
+     * @param vlanId VLAN ID for the cross-connection
+     * @return next objective ID or -1 if it was not found
+     */
+    public int getXConnectNextObjectiveId(DeviceId deviceId, VlanId vlanId) {
+        DefaultGroupHandler ghdlr = groupHandlerMap.get(deviceId);
+        if (ghdlr != null) {
+            return ghdlr.getXConnectNextObjectiveId(vlanId);
+        } else {
+            log.warn("getPortNextObjectiveId query - groupHandler for device {}"
                     + " not found", deviceId);
             return -1;
         }
@@ -707,9 +746,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                            deviceConfiguration,
                                            linkService,
                                            flowObjectiveService,
-                                           nsNextObjStore,
-                                           subnetNextObjStore,
-                                           portNextObjStore,
                                            this);
             } catch (DeviceConfigNotFoundException e) {
                 log.warn(e.getMessage() + " Aborting processDeviceAdded.");
@@ -727,6 +763,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
             groupHandler.createGroupsFromSubnetConfig();
             routingRulePopulator.populateSubnetBroadcastRule(device.id());
+            groupHandler.createGroupsForXConnect(device.id());
+            routingRulePopulator.populateXConnectBroadcastRule(device.id());
         }
     }
 
@@ -742,10 +780,18 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private class InternalConfigListener implements NetworkConfigListener {
         SegmentRoutingManager segmentRoutingManager;
 
+        /**
+         * Constructs the internal network config listener.
+         *
+         * @param srMgr segment routing manager
+         */
         public InternalConfigListener(SegmentRoutingManager srMgr) {
             this.segmentRoutingManager = srMgr;
         }
 
+        /**
+         * Reads network config and initializes related data structure accordingly.
+         */
         public void configureNetwork() {
             deviceConfiguration = new DeviceConfiguration(segmentRoutingManager.cfgService);
 
@@ -777,9 +823,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                                    deviceConfiguration,
                                                    linkService,
                                                    flowObjectiveService,
-                                                   nsNextObjStore,
-                                                   subnetNextObjStore,
-                                                   portNextObjStore,
                                                    segmentRoutingManager);
                     } catch (DeviceConfigNotFoundException e) {
                         log.warn(e.getMessage() + " Aborting configureNetwork.");
@@ -798,6 +841,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
                     groupHandler.createGroupsFromSubnetConfig();
                     routingRulePopulator.populateSubnetBroadcastRule(device.id());
+                    groupHandler.createGroupsForXConnect(device.id());
+                    routingRulePopulator.populateXConnectBroadcastRule(device.id());
                 }
             }
 

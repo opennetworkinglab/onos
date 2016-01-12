@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,46 +16,45 @@
 
 package org.onosproject.segmentrouting.grouphandler;
 
-import org.onlab.packet.IpPrefix;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 
 import java.util.Objects;
 
 /**
- * Key of Subnet to NextObjective store.
+ * Key of VLAN cross-connect next objective store.
  */
-public class SubnetNextObjectiveStoreKey {
+public class XConnectNextObjectiveStoreKey {
     private final DeviceId deviceId;
-    private final IpPrefix prefix;
+    private final VlanId vlanId;
 
     /**
-     * Constructs the key of subnet next objective store.
+     * Constructs the key of cross-connect next objective store.
      *
-     * @param deviceId device ID
-     * @param prefix subnet information
+     * @param deviceId device ID of the VLAN cross-connection
+     * @param vlanId VLAN ID of the VLAN cross-connection
      */
-    public SubnetNextObjectiveStoreKey(DeviceId deviceId,
-                                       IpPrefix prefix) {
+    public XConnectNextObjectiveStoreKey(DeviceId deviceId, VlanId vlanId) {
         this.deviceId = deviceId;
-        this.prefix = prefix;
+        this.vlanId = vlanId;
     }
 
     /**
-     * Gets device id in this SubnetNextObjectiveStoreKey.
+     * Returns the device ID of this key.
      *
-     * @return device id
+     * @return device ID
      */
     public DeviceId deviceId() {
         return this.deviceId;
     }
 
     /**
-     * Gets subnet information in this SubnetNextObjectiveStoreKey.
+     * Returns the VLAN ID of this key.
      *
-     * @return subnet information
+     * @return VLAN ID
      */
-    public IpPrefix prefix() {
-        return this.prefix;
+    public VlanId vlanId() {
+        return this.vlanId;
     }
 
     @Override
@@ -63,22 +62,23 @@ public class SubnetNextObjectiveStoreKey {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof SubnetNextObjectiveStoreKey)) {
+        if (!(o instanceof XConnectNextObjectiveStoreKey)) {
             return false;
         }
-        SubnetNextObjectiveStoreKey that =
-                (SubnetNextObjectiveStoreKey) o;
+        XConnectNextObjectiveStoreKey that =
+                (XConnectNextObjectiveStoreKey) o;
         return (Objects.equals(this.deviceId, that.deviceId) &&
-                Objects.equals(this.prefix, that.prefix));
+                Objects.equals(this.vlanId, that.vlanId));
     }
 
+    // The list of neighbor ids and label are used for comparison.
     @Override
     public int hashCode() {
-        return Objects.hash(deviceId, prefix);
+         return Objects.hash(deviceId, vlanId);
     }
 
     @Override
     public String toString() {
-        return "Device: " + deviceId + " Subnet: " + prefix;
+        return "Device: " + deviceId + " VlanId: " + vlanId;
     }
 }

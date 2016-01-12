@@ -1,5 +1,6 @@
 package org.onosproject.driver.pipeline;
 
+import com.google.common.base.Objects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
@@ -69,12 +70,18 @@ public class OFDPA2GroupHandler {
      * L2 Flood Groups have <4bits-4><12bits-vlanid><16bits-index>
      * L3 VPN Groups have <4bits-9><4bits-2><24bits-index>
      */
-    private static final int L2INTERFACEMASK = 0x0;
-    private static final int L3UNICASTMASK = 0x20000000;
-    private static final int MPLSINTERFACEMASK = 0x90000000;
-    private static final int L3ECMPMASK = 0x70000000;
-    private static final int L2FLOODMASK = 0x40000000;
-    private static final int L3VPNMASK = 0x92000000;
+    private static final int L2_INTERFACE_TYPE = 0x00000000;
+    private static final int L3_UNICAST_TYPE = 0x20000000;
+    private static final int MPLS_INTERFACE_TYPE = 0x90000000;
+    private static final int MPLS_L3VPN_SUBTYPE = 0x92000000;
+    private static final int L3_ECMP_TYPE = 0x70000000;
+    private static final int L2_FLOOD_TYPE = 0x40000000;
+
+    private static final int TYPE_MASK = 0x0fffffff;
+    private static final int SUBTYPE_MASK = 0x00ffffff;
+
+    private static final int PORT_LOWER_BITS_MASK = 0x3f;
+    private static final long PORT_HIGHER_BITS_MASK = ~PORT_LOWER_BITS_MASK;
 
     private final Logger log = getLogger(getClass());
     private ServiceDirectory serviceDirectory;
@@ -252,18 +259,9 @@ public class OFDPA2GroupHandler {
                         + " instruction in simple nextObjectives:  {}", ins.type());
             }
         }
-        //use the vlanid associated with the port
-        VlanId vlanid = port2Vlan.get(portNum);
 
-        if (vlanid == null && nextObj.meta() != null) {
-            // use metadata vlan info if available
-            Criterion vidCriterion = nextObj.meta().getCriterion(Criterion.Type.VLAN_VID);
-            if (vidCriterion != null) {
-                vlanid = ((VlanIdCriterion) vidCriterion).vlanId();
-            }
-        }
-
-        if (vlanid == null) {
+        VlanId vlanId = readVlanFromMeta(nextObj);
+        if (vlanId == null) {
             log.error("Driver cannot process an L2/L3 group chain without "
                             + "egress vlan information for dev: {} port:{}",
                     deviceId, portNum);
@@ -271,11 +269,11 @@ public class OFDPA2GroupHandler {
         }
 
         // assemble information for ofdpa l2interface group
-        Integer l2groupId = L2INTERFACEMASK | (vlanid.toShort() << 16) | (int) portNum.toLong();
+        int l2groupId = L2_INTERFACE_TYPE | (vlanId.toShort() << 16) | (int) portNum.toLong();
         // a globally unique groupkey that is different for ports in the same devices
         // but different for the same portnumber on different devices. Also different
         // for the various group-types created out of the same next objective.
-        int l2gk = 0x0ffffff & (deviceId.hashCode() << 8 | (int) portNum.toLong());
+        int l2gk = l2InterfaceGroupKey(deviceId, vlanId, portNum.toLong());
         final GroupKey l2groupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l2gk));
 
         // create group description for the l2interfacegroup
@@ -399,20 +397,20 @@ public class OFDPA2GroupHandler {
         }
 
         // assemble information for ofdpa l2interface group
-        Integer l2groupId = L2INTERFACEMASK | (vlanid.toShort() << 16) | (int) portNum;
+        int l2groupId = L2_INTERFACE_TYPE | (vlanid.toShort() << 16) | (int) portNum;
         // a globally unique groupkey that is different for ports in the same devices
         // but different for the same portnumber on different devices. Also different
         // for the various group-types created out of the same next objective.
-        int l2gk = 0x0ffffff & (deviceId.hashCode() << 8 | (int) portNum);
+        int l2gk = l2InterfaceGroupKey(deviceId, vlanid, portNum);
         final GroupKey l2groupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l2gk));
 
         // assemble information for outer group
         GroupDescription outerGrpDesc = null;
         if (mpls) {
             // outer group is MPLSInteface
-            Integer mplsgroupId = MPLSINTERFACEMASK | (int) portNum;
+            int mplsgroupId = MPLS_INTERFACE_TYPE | (int) portNum;
             // using mplsinterfacemask in groupkey to differentiate from l2interface
-            int mplsgk = MPLSINTERFACEMASK | (0x0ffffff & (deviceId.hashCode() << 8 | (int) portNum));
+            int mplsgk = MPLS_INTERFACE_TYPE | (SUBTYPE_MASK & (deviceId.hashCode() << 8 | (int) portNum));
             final GroupKey mplsgroupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(mplsgk));
             outerTtb.group(new DefaultGroupId(l2groupId));
             // create the mpls-interface group description to wait for the
@@ -432,8 +430,8 @@ public class OFDPA2GroupHandler {
                     mplsgroupkey, nextId);
         } else {
             // outer group is L3Unicast
-            Integer l3groupId = L3UNICASTMASK | (int) portNum;
-            int l3gk = L3UNICASTMASK | (0x0ffffff & (deviceId.hashCode() << 8 | (int) portNum));
+            int l3groupId = L3_UNICAST_TYPE | (int) portNum;
+            int l3gk = L3_UNICAST_TYPE | (TYPE_MASK & (deviceId.hashCode() << 8 | (int) portNum));
             final GroupKey l3groupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l3gk));
             outerTtb.group(new DefaultGroupId(l2groupId));
             // create the l3unicast group description to wait for the
@@ -488,14 +486,11 @@ public class OFDPA2GroupHandler {
         // break up broadcast next objective to multiple groups
         Collection<TrafficTreatment> buckets = nextObj.next();
 
-        // Read VLAN information from the metadata
-        TrafficSelector metadata = nextObj.meta();
-        Criterion criterion = metadata.getCriterion(Criterion.Type.VLAN_VID);
-        if (criterion == null) {
+        VlanId vlanId = readVlanFromMeta(nextObj);
+        if (vlanId == null) {
             log.warn("Required VLAN ID info in nextObj metadata but not found. Aborting");
             return;
         }
-        VlanId vlanId = ((VlanIdCriterion) criterion).vlanId();
 
         // each treatment is converted to an L2 interface group
         List<GroupDescription> l2interfaceGroupDescs = new ArrayList<>();
@@ -520,26 +515,15 @@ public class OFDPA2GroupHandler {
                     portNum = ((Instructions.OutputInstruction) ins).port();
                     newTreatment.add(ins);
                 } else {
-                    log.debug("TrafficTreatment of type {} not permitted in "
-                            + " broadcast nextObjective", ins.type());
+                    log.debug("TrafficTreatment of type {} not permitted in " +
+                            " broadcast nextObjective", ins.type());
                 }
             }
 
-            // Ensure that all ports of this broadcast nextObj are in the same vlan
-            // XXX maybe HA issue here?
-            VlanId expectedVlanId = port2Vlan.putIfAbsent(portNum, vlanId);
-            if (expectedVlanId != null && !vlanId.equals(expectedVlanId)) {
-                log.error("Driver requires all ports in a broadcast nextObj "
-                        + "to be in the same vlan. Different vlans found "
-                        + "{} and {}. Aborting group creation", vlanId, expectedVlanId);
-                return;
-            }
-
-
             // assemble info for l2 interface group
-            int l2gk = 0x0ffffff & (deviceId.hashCode() << 8 | (int) portNum.toLong());
+            int l2gk = l2InterfaceGroupKey(deviceId, vlanId, portNum.toLong());
             final GroupKey l2groupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l2gk));
-            Integer l2groupId = L2INTERFACEMASK | (vlanId.toShort() << 16) |
+            int l2groupId = L2_INTERFACE_TYPE | (vlanId.toShort() << 16) |
                     (int) portNum.toLong();
             GroupBucket l2interfaceGroupBucket =
                     DefaultGroupBucket.createIndirectGroupBucket(newTreatment.build());
@@ -565,8 +549,8 @@ public class OFDPA2GroupHandler {
         }
 
         // assemble info for l2 flood group
-        Integer l2floodgroupId = L2FLOODMASK | (vlanId.toShort() << 16) | nextObj.id();
-        int l2floodgk = L2FLOODMASK | nextObj.id() << 12;
+        Integer l2floodgroupId = L2_FLOOD_TYPE | (vlanId.toShort() << 16) | nextObj.id();
+        int l2floodgk = L2_FLOOD_TYPE | nextObj.id() << 12;
         final GroupKey l2floodgroupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l2floodgk));
         // collection of group buckets pointing to all the l2 interface groups
         List<GroupBucket> l2floodBuckets = new ArrayList<>();
@@ -610,8 +594,6 @@ public class OFDPA2GroupHandler {
         }
     }
 
-
-
     /**
      * As per the OFDPA 2.0 TTP, packets are sent out of ports by using
      * a chain of groups. The hashed Next Objective passed in by the application
@@ -643,7 +625,7 @@ public class OFDPA2GroupHandler {
                     .createSelectGroupBucket(ttb.build());
             l3ecmpGroupBuckets.add(sbucket);
         }
-        int l3ecmpGroupId = L3ECMPMASK | nextObj.id() << 12;
+        int l3ecmpGroupId = L3_ECMP_TYPE | nextObj.id() << 12;
         GroupKey l3ecmpGroupKey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l3ecmpGroupId));
         GroupDescription l3ecmpGroupDesc =
                 new DefaultGroupDescription(
@@ -752,8 +734,8 @@ public class OFDPA2GroupHandler {
                                 onelabelGroupInfo.outerGrpDesc.givenGroupId()));
                 GroupBucket l3vpnGrpBkt  =
                         DefaultGroupBucket.createIndirectGroupBucket(l3vpnTtb.build());
-                int l3vpngroupId = L3VPNMASK | l3vpnindex.incrementAndGet();
-                int l3vpngk = L3VPNMASK | nextObj.id() << 12 | l3vpnindex.get();
+                int l3vpngroupId = MPLS_L3VPN_SUBTYPE | l3vpnindex.incrementAndGet();
+                int l3vpngk = MPLS_L3VPN_SUBTYPE | nextObj.id() << 12 | l3vpnindex.get();
                 GroupKey l3vpngroupkey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l3vpngk));
                 GroupDescription l3vpnGroupDesc =
                         new DefaultGroupDescription(
@@ -821,7 +803,7 @@ public class OFDPA2GroupHandler {
         GroupBucket sbucket = DefaultGroupBucket.createSelectGroupBucket(ttb.build());
 
         // recreate the original L3 ECMP group id and description
-        int l3ecmpGroupId = L3ECMPMASK | nextObjective.id() << 12;
+        int l3ecmpGroupId = L3_ECMP_TYPE | nextObjective.id() << 12;
         GroupKey l3ecmpGroupKey = new DefaultGroupKey(OFDPA2Pipeline.appKryo.serialize(l3ecmpGroupId));
 
         // Although GroupDescriptions are not necessary for adding buckets to
@@ -1047,6 +1029,32 @@ public class OFDPA2GroupHandler {
                 });
             }
         }
+    }
+
+    private VlanId readVlanFromMeta(NextObjective nextObj) {
+        TrafficSelector metadata = nextObj.meta();
+        Criterion criterion = metadata.getCriterion(Criterion.Type.VLAN_VID);
+        return (criterion == null)
+                ? null : ((VlanIdCriterion) criterion).vlanId();
+    }
+
+    /**
+     * Returns a hash as the L2 Interface Group Key.
+     *
+     * Keep the lower 6-bit for port since port number usually smaller than 64.
+     * Hash other information into remaining 28 bits.
+     *
+     * @param deviceId Device ID
+     * @param vlanId VLAN ID
+     * @param portNumber Port number
+     * @return L2 interface group key
+     */
+    private int l2InterfaceGroupKey(
+            DeviceId deviceId, VlanId vlanId, long portNumber) {
+        int portLowerBits = (int) portNumber & PORT_LOWER_BITS_MASK;
+        long portHigherBits = portNumber & PORT_HIGHER_BITS_MASK;
+        int hash = Objects.hashCode(deviceId, vlanId, portHigherBits);
+        return L2_INTERFACE_TYPE | (TYPE_MASK & hash << 6) | portLowerBits;
     }
 
     private class InnerGroupListener implements GroupListener {

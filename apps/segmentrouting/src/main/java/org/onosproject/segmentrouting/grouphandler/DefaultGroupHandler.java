@@ -35,6 +35,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
@@ -48,8 +49,6 @@ import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
-import org.onosproject.net.group.DefaultGroupKey;
-import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
@@ -81,12 +80,14 @@ public class DefaultGroupHandler {
     //local store for ports on this device connected to neighbor-device-id
     protected ConcurrentHashMap<PortNumber, DeviceId> portDeviceMap =
             new ConcurrentHashMap<>();
-    protected EventuallyConsistentMap<
-        NeighborSetNextObjectiveStoreKey, Integer> nsNextObjStore = null;
-    protected EventuallyConsistentMap<
-            SubnetNextObjectiveStoreKey, Integer> subnetNextObjStore = null;
-    protected EventuallyConsistentMap<
-            PortNextObjectiveStoreKey, Integer> portNextObjStore = null;
+    protected EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey, Integer>
+            nsNextObjStore = null;
+    protected EventuallyConsistentMap<SubnetNextObjectiveStoreKey, Integer>
+            subnetNextObjStore = null;
+    protected EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
+            portNextObjStore = null;
+    protected EventuallyConsistentMap<XConnectNextObjectiveStoreKey, Integer>
+            xConnectNextObjStore = null;
     private SegmentRoutingManager srManager;
 
     protected KryoNamespace.Builder kryo = new KryoNamespace.Builder()
@@ -97,17 +98,10 @@ public class DefaultGroupHandler {
             .register(GroupBucketIdentifier.class)
             .register(GroupBucketIdentifier.BucketOutputType.class);
 
-    // TODO Access stores through srManager
     protected DefaultGroupHandler(DeviceId deviceId, ApplicationId appId,
                                   DeviceProperties config,
                                   LinkService linkService,
                                   FlowObjectiveService flowObjService,
-                                  EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey,
-                                          Integer> nsNextObjStore,
-                                  EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
-                                          Integer> subnetNextObjStore,
-                                  EventuallyConsistentMap<PortNextObjectiveStoreKey,
-                                          Integer> portNextObjStore,
                                   SegmentRoutingManager srManager) {
         this.deviceId = checkNotNull(deviceId);
         this.appId = checkNotNull(appId);
@@ -123,9 +117,10 @@ public class DefaultGroupHandler {
                     + " Skipping value assignment in DefaultGroupHandler");
         }
         this.flowObjectiveService = flowObjService;
-        this.nsNextObjStore = nsNextObjStore;
-        this.subnetNextObjStore = subnetNextObjStore;
-        this.portNextObjStore = portNextObjStore;
+        this.nsNextObjStore = srManager.nsNextObjStore;
+        this.subnetNextObjStore = srManager.subnetNextObjStore;
+        this.portNextObjStore = srManager.portNextObjStore;
+        this.xConnectNextObjStore = srManager.xConnectNextObjStore;
         this.srManager = srManager;
 
         populateNeighborMaps();
@@ -141,8 +136,7 @@ public class DefaultGroupHandler {
      * @param config interface to retrieve the device properties
      * @param linkService link service object
      * @param flowObjService flow objective service object
-     * @param nsNextObjStore NeighborSet next objective store map
-     * @param subnetNextObjStore subnet next objective store map
+     * @param srManager segment routing manager
      * @throws DeviceConfigNotFoundException if the device configuration is not found
      * @return default group handler type
      */
@@ -152,12 +146,6 @@ public class DefaultGroupHandler {
                                           DeviceProperties config,
                                           LinkService linkService,
                                           FlowObjectiveService flowObjService,
-                                          EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey,
-                                          Integer> nsNextObjStore,
-                                          EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
-                                          Integer> subnetNextObjStore,
-                                          EventuallyConsistentMap<PortNextObjectiveStoreKey,
-                                          Integer> portNextObjStore,
                                           SegmentRoutingManager srManager)
                                                   throws DeviceConfigNotFoundException {
         // handle possible exception in the caller
@@ -165,18 +153,12 @@ public class DefaultGroupHandler {
             return new DefaultEdgeGroupHandler(deviceId, appId, config,
                                                linkService,
                                                flowObjService,
-                                               nsNextObjStore,
-                                               subnetNextObjStore,
-                                               portNextObjStore,
                                                srManager
                                                );
         } else {
             return new DefaultTransitGroupHandler(deviceId, appId, config,
                                                   linkService,
                                                   flowObjService,
-                                                  nsNextObjStore,
-                                                  subnetNextObjStore,
-                                                  portNextObjStore,
                                                   srManager);
         }
     }
@@ -194,6 +176,8 @@ public class DefaultGroupHandler {
      * discovered on this device.
      *
      * @param newLink new neighbor link
+     * @param isMaster true if local instance is the master
+     *
      */
     public void linkUp(Link newLink, boolean isMaster) {
 
@@ -296,6 +280,7 @@ public class DefaultGroupHandler {
      * Performs group recovery procedures when a port goes down on this device.
      *
      * @param port port number that has gone down
+     * @param isMaster true if local instance is the master
      */
     public void portDown(PortNumber port, boolean isMaster) {
         if (portDeviceMap.get(port) == null) {
@@ -448,8 +433,8 @@ public class DefaultGroupHandler {
      */
     public int getPortNextObjectiveId(PortNumber portNum, TrafficTreatment treatment,
                                       TrafficSelector meta) {
-        Integer nextId = portNextObjStore.
-                get(new PortNextObjectiveStoreKey(deviceId, portNum, treatment));
+        Integer nextId = portNextObjStore
+                .get(new PortNextObjectiveStoreKey(deviceId, portNum, treatment));
         if (nextId == null) {
             log.trace("getPortNextObjectiveId in device{}: Next objective id "
                     + "not found for {} and {} creating", deviceId, portNum);
@@ -458,7 +443,33 @@ public class DefaultGroupHandler {
                          new PortNextObjectiveStoreKey(deviceId, portNum, treatment));
             if (nextId == null) {
                 log.warn("getPortNextObjectiveId: unable to create next obj"
-                        + "for dev:{} port{}", deviceId, portNum);
+                        + "for dev:{} port:{}", deviceId, portNum);
+                return -1;
+            }
+        }
+        return nextId;
+    }
+
+    /**
+     * Returns the next objective ID of type broadcast associated with the VLAN
+     * cross-connection.
+     *
+     * @param vlanId VLAN ID for the cross-connection
+     * @return int if found or created, -1 if there are errors during the
+     *         creation of the next objective
+     */
+    public int getXConnectNextObjectiveId(VlanId vlanId) {
+        Integer nextId = xConnectNextObjStore
+                .get(new XConnectNextObjectiveStoreKey(deviceId, vlanId));
+        if (nextId == null) {
+            log.trace("getXConnectNextObjectiveId: Next objective id "
+                    + "not found for device {} and vlan {}. Creating", deviceId, vlanId);
+            createGroupsForXConnect(deviceId);
+            nextId = xConnectNextObjStore.get(
+                    new XConnectNextObjectiveStoreKey(deviceId, vlanId));
+            if (nextId == null) {
+                log.warn("getXConnectNextObjectiveId: Next objective id "
+                        + "not found for device {} and vlan {}.", deviceId, vlanId);
                 return -1;
             }
         }
@@ -655,7 +666,6 @@ public class DefaultGroupHandler {
 
     /**
      * Creates broadcast groups for all ports in the same configured subnet.
-     *
      */
     public void createGroupsFromSubnetConfig() {
         Map<Ip4Prefix, List<PortNumber>> subnetPortMap =
@@ -700,6 +710,54 @@ public class DefaultGroupHandler {
         });
     }
 
+    /**
+     * Creates broadcast groups for VLAN cross-connect ports.
+     *
+     * @param deviceId the DPID of the switch
+     */
+    public void createGroupsForXConnect(DeviceId deviceId) {
+        Map<VlanId, List<ConnectPoint>> xConnectsForDevice = deviceConfig.getXConnects();
+
+        xConnectsForDevice.forEach((vlanId, connectPoints) -> {
+            // Only proceed  the xConnect for given device
+            for (ConnectPoint connectPoint : connectPoints) {
+                if (!connectPoint.deviceId().equals(deviceId)) {
+                    return;
+                }
+            }
+
+            // Check if the next obj is already in the store
+            XConnectNextObjectiveStoreKey key =
+                    new XConnectNextObjectiveStoreKey(deviceId, vlanId);
+            if (xConnectNextObjStore.containsKey(key)) {
+                log.debug("Cross-connect Broadcast group for device {} and vlanId {} exists",
+                        deviceId, vlanId);
+                return;
+            }
+
+            TrafficSelector metadata =
+                    DefaultTrafficSelector.builder().matchVlanId(vlanId).build();
+            int nextId = flowObjectiveService.allocateNextId();
+
+            NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                    .builder().withId(nextId)
+                    .withType(NextObjective.Type.BROADCAST).fromApp(appId)
+                    .withMeta(metadata);
+
+            connectPoints.forEach(connectPoint -> {
+                TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+                tBuilder.setOutput(connectPoint.port());
+                nextObjBuilder.addTreatment(tBuilder.build());
+            });
+
+            NextObjective nextObj = nextObjBuilder.add();
+            flowObjectiveService.next(deviceId, nextObj);
+            log.debug("createGroupsForXConnect: Submited next objective {} in device {}",
+                    nextId, deviceId);
+            xConnectNextObjStore.put(key, nextId);
+        });
+    }
+
 
     /**
      * Create simple next objective for a single port. The treatments can include
@@ -728,11 +786,6 @@ public class DefaultGroupHandler {
                 + "for port {}", nextId, deviceId, portNum);
 
         portNextObjStore.put(key, nextId);
-    }
-
-
-    public GroupKey getGroupKey(Object obj) {
-        return new DefaultGroupKey(kryo.build().serialize(obj));
     }
 
     /**
@@ -766,6 +819,9 @@ public class DefaultGroupHandler {
         return false;
     }
 
+    /**
+     * Removes all groups from all next objective stores.
+     */
     public void removeAllGroups() {
         for (Map.Entry<NeighborSetNextObjectiveStoreKey, Integer> entry:
                 nsNextObjStore.entrySet()) {

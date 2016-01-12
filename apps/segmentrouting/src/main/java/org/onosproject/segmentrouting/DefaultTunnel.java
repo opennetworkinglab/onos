@@ -20,7 +20,7 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Tunnel class.
+ * Default Tunnel class.
  */
 public class DefaultTunnel implements Tunnel {
 

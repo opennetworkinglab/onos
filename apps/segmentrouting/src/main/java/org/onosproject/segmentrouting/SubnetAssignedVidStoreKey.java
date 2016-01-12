@@ -6,13 +6,18 @@ import org.onlab.packet.Ip4Prefix;
 import org.onosproject.net.DeviceId;
 
 /**
- * Class definition for key used to map per device subnets to assigned Vlan ids.
- *
+ * Key of assigned VLAN ID store.
  */
 public class SubnetAssignedVidStoreKey {
     private final DeviceId deviceId;
     private final Ip4Prefix subnet;
 
+    /**
+     * Constructs the key of per subnet VLAN ID store.
+     *
+     * @param deviceId device ID of the VLAN cross-connection
+     * @param subnet subnet information
+     */
     public SubnetAssignedVidStoreKey(DeviceId deviceId, Ip4Prefix subnet) {
         this.deviceId = deviceId;
         this.subnet = subnet;

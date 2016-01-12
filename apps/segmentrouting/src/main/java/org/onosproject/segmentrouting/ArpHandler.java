@@ -41,6 +41,10 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Handler of ARP packets that responses or forwards ARP packets that
+ * are sent to the controller.
+ */
 public class ArpHandler {
 
     private static Logger log = LoggerFactory.getLogger(ArpHandler.class);

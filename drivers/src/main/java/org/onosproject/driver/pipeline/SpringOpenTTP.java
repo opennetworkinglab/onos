@@ -837,7 +837,6 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         if (vlanIdCriterion.vlanId() != VlanId.NONE) {
             selector.matchVlanId(vlanIdCriterion.vlanId());
             selector.matchInPort(p.port());
-            treatment.deferred().popVlan();
         } else {
             selector.matchInPort(p.port());
             treatment.immediate().pushVlan().setVlanId(assignedVlan);
@@ -887,25 +886,31 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         }
 
         VlanId assignedVlan = null;
-        if (vlanIdCriterion != null && vlanIdCriterion.vlanId() == VlanId.NONE) {
-            // Assign a VLAN ID to untagged packets
-            if (filt.meta() == null) {
-                log.error("Missing metadata in filtering objective required "
-                                  + "for vlan assignment in dev {}", deviceId);
-                fail(filt, ObjectiveError.BADPARAMS);
-                return;
-            }
-            for (Instruction i : filt.meta().allInstructions()) {
-                if (i instanceof ModVlanIdInstruction) {
-                    assignedVlan = ((ModVlanIdInstruction) i).vlanId();
+        if (vlanIdCriterion != null) {
+            // For VLAN cross-connect packets, use the configured VLAN
+            if (vlanIdCriterion.vlanId() != VlanId.NONE) {
+                assignedVlan = vlanIdCriterion.vlanId();
+
+            // For untagged packets, assign a VLAN ID
+            } else {
+                if (filt.meta() == null) {
+                    log.error("Missing metadata in filtering objective required " +
+                            "for vlan assignment in dev {}", deviceId);
+                    fail(filt, ObjectiveError.BADPARAMS);
+                    return;
                 }
-            }
-            if (assignedVlan == null) {
-                log.error("Driver requires an assigned vlan-id to tag incoming "
-                                  + "untagged packets. Not processing vlan filters on "
-                                  + "device {}", deviceId);
-                fail(filt, ObjectiveError.BADPARAMS);
-                return;
+                for (Instruction i : filt.meta().allInstructions()) {
+                    if (i instanceof ModVlanIdInstruction) {
+                        assignedVlan = ((ModVlanIdInstruction) i).vlanId();
+                    }
+                }
+                if (assignedVlan == null) {
+                    log.error("Driver requires an assigned vlan-id to tag incoming "
+                            + "untagged packets. Not processing vlan filters on "
+                            + "device {}", deviceId);
+                    fail(filt, ObjectiveError.BADPARAMS);
+                    return;
+                }
             }
         }
 
@@ -923,9 +928,9 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
             }
         }
 
-        if (ethCriterion == null || vlanIdCriterion == null) {
-            log.debug("filtering objective missing dstMac or vlan, cannot program"
-                              + "Vlan Table");
+        if (vlanIdCriterion == null) {
+            log.debug("filtering objective missing VLAN ID criterion, "
+                    + "cannot program VLAN Table");
         } else {
             for (FlowRule vlanRule : processVlanIdFilter(vlanIdCriterion,
                                                          filt,

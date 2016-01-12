@@ -21,6 +21,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.segmentrouting.Policy;
 import org.onosproject.segmentrouting.TunnelPolicy;
 
+/**
+ * Codec of Policy class.
+ */
 public final class PolicyCodec extends JsonCodec<Policy> {
 
     // JSON field names

@@ -305,29 +305,35 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
 
         VlanId assignedVlan = null;
-        if (vidCriterion != null && vidCriterion.vlanId() == VlanId.NONE) {
-            // untagged packets are assigned vlans in OF-DPA
-            if (filt.meta() == null) {
-                log.error("Missing metadata in filtering objective required "
-                        + "for vlan assignment in dev {}", deviceId);
-                fail(filt, ObjectiveError.BADPARAMS);
-                return;
-            }
-            for (Instruction i : filt.meta().allInstructions()) {
-                if (i instanceof ModVlanIdInstruction) {
-                    assignedVlan = ((ModVlanIdInstruction) i).vlanId();
+        // For VLAN cross-connect packets, use the configured VLAN
+        if (vidCriterion != null) {
+            if (vidCriterion.vlanId() != VlanId.NONE) {
+                assignedVlan = vidCriterion.vlanId();
+
+            // For untagged packets, assign a VLAN ID
+            } else {
+                if (filt.meta() == null) {
+                    log.error("Missing metadata in filtering objective required " +
+                            "for vlan assignment in dev {}", deviceId);
+                    fail(filt, ObjectiveError.BADPARAMS);
+                    return;
                 }
-            }
-            if (assignedVlan == null) {
-                log.error("Driver requires an assigned vlan-id to tag incoming "
-                        + "untagged packets. Not processing vlan filters on "
-                        + "device {}", deviceId);
-                fail(filt, ObjectiveError.BADPARAMS);
-                return;
+                for (Instruction i : filt.meta().allInstructions()) {
+                    if (i instanceof ModVlanIdInstruction) {
+                        assignedVlan = ((ModVlanIdInstruction) i).vlanId();
+                    }
+                }
+                if (assignedVlan == null) {
+                    log.error("Driver requires an assigned vlan-id to tag incoming "
+                            + "untagged packets. Not processing vlan filters on "
+                            + "device {}", deviceId);
+                    fail(filt, ObjectiveError.BADPARAMS);
+                    return;
+                }
             }
         }
 
-        if (ethCriterion == null) {
+        if (ethCriterion == null || ethCriterion.mac().equals(MacAddress.NONE)) {
             log.debug("filtering objective missing dstMac, cannot program TMAC table");
         } else {
             for (FlowRule tmacRule : processEthDstFilter(portCriterion, ethCriterion,
@@ -340,8 +346,8 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         }
 
         if (ethCriterion == null || vidCriterion == null) {
-            log.debug("filtering objective missing dstMac or vlan, cannot program"
-                    + "Vlan Table");
+            log.debug("filtering objective missing dstMac or VLAN, "
+                    + "cannot program VLAN Table");
         } else {
             for (FlowRule vlanRule : processVlanIdFilter(portCriterion, vidCriterion,
                                                          assignedVlan,

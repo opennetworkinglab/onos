@@ -21,22 +21,38 @@ import java.util.Objects;
 import org.onosproject.net.DeviceId;
 
 /**
- * Class definition of Key for Neighborset to NextObjective store.
+ * Key of Neighborset next objective store.
  */
 public class NeighborSetNextObjectiveStoreKey {
     private final DeviceId deviceId;
     private final NeighborSet ns;
 
+    /**
+     * Constructs the key of neighbor set next objective store.
+     *
+     * @param deviceId device ID
+     * @param ns neighbor set
+     */
     public NeighborSetNextObjectiveStoreKey(DeviceId deviceId,
                                             NeighborSet ns) {
         this.deviceId = deviceId;
         this.ns = ns;
     }
 
+    /**
+     * Returns the device ID in the key.
+     *
+     * @return device ID
+     */
     public DeviceId deviceId() {
         return this.deviceId;
     }
 
+    /**
+     * Returns the neighbor set in the key.
+     *
+     * @return neighbor set
+     */
     public NeighborSet neighborSet() {
         return this.ns;
     }

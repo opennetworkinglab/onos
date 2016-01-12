@@ -7,15 +7,23 @@ import org.onosproject.net.flow.TrafficTreatment;
 import java.util.Objects;
 
 /**
- * Class definition of Key for Device/Port to NextObjective store. Since there
- * can be multiple next objectives to the same physical port, we differentiate
- * between them by including the treatment in the key.
+ * Key of Device/Port to NextObjective store.
+ *
+ * Since there can be multiple next objectives to the same physical port,
+ * we differentiate between them by including the treatment in the key.
  */
 public class PortNextObjectiveStoreKey {
     private final DeviceId deviceId;
     private final PortNumber portNum;
     private final TrafficTreatment treatment;
 
+    /**
+     * Constructs the key of port next objective store.
+     *
+     * @param deviceId device ID
+     * @param portNum port number
+     * @param treatment treatment that will be applied to the interface
+     */
     public PortNextObjectiveStoreKey(DeviceId deviceId, PortNumber portNum,
                                      TrafficTreatment treatment) {
         this.deviceId = deviceId;

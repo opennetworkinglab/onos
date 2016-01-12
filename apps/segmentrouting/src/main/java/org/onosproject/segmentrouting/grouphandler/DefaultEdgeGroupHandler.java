@@ -26,7 +26,6 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.config.DeviceProperties;
-import org.onosproject.store.service.EventuallyConsistentMap;
 
 /**
  * Default ECMP group handler creation module for an edge device.
@@ -47,22 +46,13 @@ import org.onosproject.store.service.EventuallyConsistentMap;
  * 8) what about ecmp no label case
  */
 public class DefaultEdgeGroupHandler extends DefaultGroupHandler {
-    // TODO Access stores through srManager
     protected DefaultEdgeGroupHandler(DeviceId deviceId,
                                   ApplicationId appId,
                                   DeviceProperties config,
                                   LinkService linkService,
                                   FlowObjectiveService flowObjService,
-                                  EventuallyConsistentMap<
-                                          NeighborSetNextObjectiveStoreKey,
-                                          Integer> nsNextObjStore,
-                                  EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
-                                          Integer> subnetNextObjStore,
-                                  EventuallyConsistentMap<PortNextObjectiveStoreKey,
-                                          Integer> portNextObjStore,
                                   SegmentRoutingManager srManager) {
-        super(deviceId, appId, config, linkService, flowObjService,
-              nsNextObjStore, subnetNextObjStore, portNextObjStore, srManager);
+        super(deviceId, appId, config, linkService, flowObjService, srManager);
     }
 
     @Override

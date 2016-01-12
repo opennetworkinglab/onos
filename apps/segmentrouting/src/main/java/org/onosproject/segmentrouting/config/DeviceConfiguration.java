@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.incubator.net.config.basics.ConfigException;
 import org.onosproject.incubator.net.config.basics.InterfaceConfig;
 import org.onosproject.incubator.net.intf.Interface;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,8 +50,8 @@ public class DeviceConfiguration implements DeviceProperties {
     private static final Logger log = LoggerFactory
             .getLogger(DeviceConfiguration.class);
     private final List<Integer> allSegmentIds = new ArrayList<>();
-    private final ConcurrentHashMap<DeviceId, SegmentRouterInfo> deviceConfigMap
-        = new ConcurrentHashMap<>();
+    private final Map<DeviceId, SegmentRouterInfo> deviceConfigMap = new ConcurrentHashMap<>();
+    private final Map<VlanId, List<ConnectPoint>> xConnects = new ConcurrentHashMap<>();
 
     private class SegmentRouterInfo {
         int nodeSid;
@@ -62,14 +64,14 @@ public class DeviceConfiguration implements DeviceProperties {
         Map<Integer, Set<Integer>> adjacencySids;
 
         public SegmentRouterInfo() {
-            this.gatewayIps = new HashMap<>();
-            this.subnets = new HashMap<>();
+            gatewayIps = new HashMap<>();
+            subnets = new HashMap<>();
         }
     }
 
     /**
-     * Constructor. Reads all the configuration for all devices of type
-     * Segment Router and organizes into various maps for easier access.
+     * Constructs device configuration for all Segment Router devices,
+     * organizing the data into various maps for easier access.
      *
      * @param cfgService config service
      */
@@ -88,8 +90,8 @@ public class DeviceConfiguration implements DeviceProperties {
             info.isEdge = config.isEdgeRouter();
             info.adjacencySids = config.adjacencySids();
 
-            this.deviceConfigMap.put(info.deviceId, info);
-            this.allSegmentIds.add(info.nodeSid);
+            deviceConfigMap.put(info.deviceId, info);
+            allSegmentIds.add(info.nodeSid);
         });
 
         // Read gatewayIps and subnets from port subject.
@@ -106,17 +108,42 @@ public class DeviceConfiguration implements DeviceProperties {
                 return;
             }
             networkInterfaces.forEach(networkInterface -> {
-                DeviceId dpid = networkInterface.connectPoint().deviceId();
-                PortNumber port = networkInterface.connectPoint().port();
-                SegmentRouterInfo info = this.deviceConfigMap.get(dpid);
+                VlanId vlanId = networkInterface.vlan();
+                ConnectPoint connectPoint = networkInterface.connectPoint();
+                DeviceId dpid = connectPoint.deviceId();
+                PortNumber port = connectPoint.port();
+                SegmentRouterInfo info = deviceConfigMap.get(dpid);
 
                 // skip if there is no corresponding device for this ConenctPoint
                 if (info != null) {
+                    // Extract subnet information
                     Set<InterfaceIpAddress> interfaceAddresses = networkInterface.ipAddresses();
                     interfaceAddresses.forEach(interfaceAddress -> {
                         info.gatewayIps.put(port, interfaceAddress.ipAddress().getIp4Address());
                         info.subnets.put(port, interfaceAddress.subnetAddress().getIp4Prefix());
                     });
+
+                    // Extract VLAN cross-connect information
+                    // Do not setup cross-connect if VLAN is NONE
+                    if (vlanId.equals(VlanId.NONE)) {
+                        return;
+                    }
+                    List<ConnectPoint> connectPoints = xConnects.get(vlanId);
+                    if (connectPoints != null) {
+                        if (connectPoints.size() != 1) {
+                            log.warn("Cross-connect should only have two endpoints. Aborting.");
+                            return;
+                        }
+                        if (!connectPoints.get(0).deviceId().equals(connectPoint.deviceId())) {
+                            log.warn("Cross-connect endpoints must be on the same switch. Aborting.");
+                            return;
+                        }
+                        connectPoints.add(connectPoint);
+                    } else {
+                        connectPoints = new LinkedList<>();
+                        connectPoints.add(connectPoint);
+                        xConnects.put(vlanId, connectPoints);
+                    }
                 }
             });
 
@@ -233,6 +260,11 @@ public class DeviceConfiguration implements DeviceProperties {
         });
 
         return subnetPortMap;
+    }
+
+    @Override
+    public Map<VlanId, List<ConnectPoint>> getXConnects() {
+        return xConnects;
     }
 
     /**

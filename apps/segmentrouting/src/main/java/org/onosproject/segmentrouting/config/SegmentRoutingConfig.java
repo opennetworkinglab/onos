@@ -35,24 +35,24 @@ import java.util.Set;
  * Configuration object for Segment Routing Application.
  */
 public class SegmentRoutingConfig extends Config<DeviceId> {
-    public static final String NAME = "name";
-    public static final String IP = "routerIp";
-    public static final String MAC = "routerMac";
-    public static final String SID = "nodeSid";
-    public static final String EDGE = "isEdgeRouter";
-    public static final String ADJSIDS = "adjacencySids";
-    public static final String ADJSID = "adjSid";
-    public static final String PORTS = "ports";
+    private static final String NAME = "name";
+    private static final String IP = "routerIp";
+    private static final String MAC = "routerMac";
+    private static final String SID = "nodeSid";
+    private static final String EDGE = "isEdgeRouter";
+    private static final String ADJSIDS = "adjacencySids";
+    private static final String ADJSID = "adjSid";
+    private static final String PORTS = "ports";
 
     @Override
     public boolean isValid() {
         return hasOnlyFields(NAME, IP, MAC, SID, EDGE, ADJSIDS, ADJSID, PORTS) &&
-                this.name() != null &&
-                this.routerIp() != null &&
-                this.routerMac() != null &&
-                this.nodeSid() != -1 &&
-                this.isEdgeRouter() != null &&
-                this.adjacencySids() != null;
+                name() != null &&
+                routerIp() != null &&
+                routerMac() != null &&
+                nodeSid() != -1 &&
+                isEdgeRouter() != null &&
+                adjacencySids() != null;
     }
 
     /**

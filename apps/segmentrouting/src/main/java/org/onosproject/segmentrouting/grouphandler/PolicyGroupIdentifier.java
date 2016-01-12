@@ -28,7 +28,7 @@ public class PolicyGroupIdentifier {
     private List<GroupBucketIdentifier> bucketIds;
 
     /**
-     * Constructor.
+     * Constructs policy group identifier.
      *
      * @param id unique identifier associated with the policy group
      * @param input policy group params associated with this group

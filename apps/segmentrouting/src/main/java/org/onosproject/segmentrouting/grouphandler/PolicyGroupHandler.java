@@ -31,7 +31,6 @@ import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceProperties;
 import org.onosproject.segmentrouting.grouphandler.GroupBucketIdentifier.BucketOutputType;
-import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -51,33 +50,31 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
     private HashMap<PolicyGroupIdentifier, PolicyGroupIdentifier> dependentGroups = new HashMap<>();
 
     /**
-     * Policy group handler constructor.
+     * Constructs policy group handler.
      *
      * @param deviceId device identifier
      * @param appId application identifier
      * @param config interface to retrieve the device properties
      * @param linkService link service object
      * @param flowObjService flow objective service object
-     * @param nsNextObjStore NeighborSet next objective store map
-     * @param subnetNextObjStore subnet next objective store map
+     * @param srManager segment routing manager
      */
-    // TODO Access stores through srManager
     public PolicyGroupHandler(DeviceId deviceId,
                               ApplicationId appId,
                               DeviceProperties config,
                               LinkService linkService,
                               FlowObjectiveService flowObjService,
-                              EventuallyConsistentMap<NeighborSetNextObjectiveStoreKey,
-                                      Integer> nsNextObjStore,
-                              EventuallyConsistentMap<SubnetNextObjectiveStoreKey,
-                                      Integer> subnetNextObjStore,
-                              EventuallyConsistentMap<PortNextObjectiveStoreKey,
-                              Integer> portNextObjStore,
                               SegmentRoutingManager srManager) {
-        super(deviceId, appId, config, linkService, flowObjService,
-              nsNextObjStore, subnetNextObjStore, portNextObjStore, srManager);
+        super(deviceId, appId, config, linkService, flowObjService, srManager);
     }
 
+    /**
+     * Creates policy group chain.
+     *
+     * @param id unique identifier associated with the policy group
+     * @param params a list of policy group params
+     * @return policy group identifier
+     */
     public PolicyGroupIdentifier createPolicyGroupChain(String id,
                                                         List<PolicyGroupParams> params) {
         List<GroupBucketIdentifier> bucketIds = new ArrayList<>();
@@ -222,69 +219,18 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
     }
 
     //TODO: Use nextObjective APIs to handle the group chains
-    /*@Override
-    protected void handleGroupEvent(GroupEvent event) {
-        if (event.type() == GroupEvent.Type.GROUP_ADDED) {
-            if (dependentGroups.get(event.subject().appCookie()) != null) {
-                PolicyGroupIdentifier dependentGroupKey = dependentGroups.get(event.subject().appCookie());
-                dependentGroups.remove(event.subject().appCookie());
-                boolean fullyResolved = true;
-                for (GroupBucketIdentifier bucketId:
-                            dependentGroupKey.bucketIds()) {
-                    if (bucketId.type() != BucketOutputType.GROUP) {
-                        continue;
-                    }
-                    if (dependentGroups.containsKey(bucketId.outGroup())) {
-                        fullyResolved = false;
-                        break;
-                    }
-                }
+    /*
+    @Override
+    protected void handleGroupEvent(GroupEvent event) {}
+    */
 
-                if (fullyResolved) {
-                    List<GroupBucket> outBuckets = new ArrayList<GroupBucket>();
-                    for (GroupBucketIdentifier bucketId:
-                                dependentGroupKey.bucketIds()) {
-                        TrafficTreatment.Builder tBuilder =
-                                DefaultTrafficTreatment.builder();
-                        if (bucketId.label() != NeighborSet.NO_EDGE_LABEL) {
-                            tBuilder.pushMpls()
-                                    .setMpls(MplsLabel.
-                                             mplsLabel(bucketId.label()));
-                        }
-                        //TODO: BoS
-                        if (bucketId.type() == BucketOutputType.PORT) {
-                            DeviceId neighbor = portDeviceMap.
-                                        get(bucketId.outPort());
-                            tBuilder.setOutput(bucketId.outPort())
-                                    .setEthDst(deviceConfig.
-                                               getDeviceMac(neighbor))
-                                     .setEthSrc(nodeMacAddr);
-                        } else {
-                            if (groupService.
-                                    getGroup(deviceId,
-                                             getGroupKey(bucketId.
-                                                       outGroup())) == null) {
-                                throw new IllegalStateException();
-                            }
-                            GroupId indirectGroupId = groupService.
-                                    getGroup(deviceId,
-                                             getGroupKey(bucketId.
-                                                         outGroup())).id();
-                            tBuilder.group(indirectGroupId);
-                        }
-                        outBuckets.add(DefaultGroupBucket.
-                                       createSelectGroupBucket(tBuilder.build()));
-                    }
-                    GroupDescription desc = new
-                            DefaultGroupDescription(deviceId,
-                                                    GroupDescription.Type.SELECT,
-                                                    new GroupBuckets(outBuckets));
-                    groupService.addGroup(desc);
-                }
-            }
-        }
-    }*/
-
+    /**
+     * Generates policy group key.
+     *
+     * @param id unique identifier associated with the policy group
+     * @param params a list of policy group params
+     * @return policy group identifier
+     */
     public PolicyGroupIdentifier generatePolicyGroupKey(String id,
                                    List<PolicyGroupParams> params) {
         List<GroupBucketIdentifier> bucketIds = new ArrayList<>();
@@ -354,6 +300,11 @@ public class PolicyGroupHandler extends DefaultGroupHandler {
         return innermostGroupkey;
     }
 
+    /**
+     * Removes policy group chain.
+     *
+     * @param key policy group identifier
+     */
     public void removeGroupChain(PolicyGroupIdentifier key) {
         checkArgument(key != null);
         List<PolicyGroupIdentifier> groupsToBeDeleted = new ArrayList<>();
