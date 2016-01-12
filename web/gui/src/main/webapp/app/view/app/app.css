@@ -32,6 +32,19 @@
 }
 
 #app-dialog p {
-    color: darkred;
     font-size: 12pt;
+}
+.light #app-dialog p {
+    color: darkred;
+}
+.dark #app-dialog p {
+    color: #c55;
+}
+
+
+.light #app-dialog.floatpanel.dialog {
+    background-color: #fff;
+}
+.dark #app-dialog.floatpanel.dialog {
+    background-color: #444;
 }
