@@ -54,8 +54,6 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.PartitionService;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.cluster.messaging.ClusterMessage;
-import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
@@ -71,6 +69,7 @@ import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkState;
@@ -186,7 +185,7 @@ public class IntentPerfInstaller {
         messageHandlingExecutor = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/perf", "command-handler"));
 
-        communicationService.addSubscriber(CONTROL, new InternalControl(),
+        communicationService.addSubscriber(CONTROL, String::new, new InternalControl(),
                                            messageHandlingExecutor);
 
         listener = new Listener();
@@ -572,10 +571,9 @@ public class IntentPerfInstaller {
         }
     }
 
-    private class InternalControl implements ClusterMessageHandler {
+    private class InternalControl implements Consumer<String> {
         @Override
-        public void handle(ClusterMessage message) {
-            String cmd = new String(message.payload());
+        public void accept(String cmd) {
             log.info("Received command {}", cmd);
             if (cmd.equals(START)) {
                 startTestRun();

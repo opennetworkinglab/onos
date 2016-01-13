@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,8 +55,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.cluster.messaging.ClusterMessage;
-import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
@@ -126,62 +124,42 @@ public class DistributedLabelResourceStore
                                                    "message-handlers"));
         clusterCommunicator
                 .addSubscriber(LabelResourceMessageSubjects.LABEL_POOL_CREATED,
-                               new ClusterMessageHandler() {
-
-                                   @Override
-                                   public void handle(ClusterMessage message) {
-                                       LabelResourcePool operation = SERIALIZER
-                                               .decode(message.payload());
-                                       log.trace("received get flow entry request for {}",
-                                                 operation);
-                                       boolean b = internalCreate(operation);
-                                       message.respond(SERIALIZER.encode(b));
-                                   }
-                               }, messageHandlingExecutor);
+                        SERIALIZER::<LabelResourcePool>decode,
+                        operation -> {
+                            log.trace("received get flow entry request for {}", operation);
+                            return internalCreate(operation);
+                        },
+                        SERIALIZER::<Boolean>encode,
+                        messageHandlingExecutor);
         clusterCommunicator
                 .addSubscriber(LabelResourceMessageSubjects.LABEL_POOL_DESTROYED,
-                               new ClusterMessageHandler() {
-
-                                   @Override
-                                   public void handle(ClusterMessage message) {
-                                       DeviceId deviceId = SERIALIZER
-                                               .decode(message.payload());
-                                       log.trace("received get flow entry request for {}",
-                                                 deviceId);
-                                       boolean b = internalDestroy(deviceId);
-                                       message.respond(SERIALIZER.encode(b));
-                                   }
-                               }, messageHandlingExecutor);
+                        SERIALIZER::<DeviceId>decode,
+                        deviceId -> {
+                            log.trace("received get flow entry request for {}", deviceId);
+                            return internalDestroy(deviceId);
+                        },
+                        SERIALIZER::<Boolean>encode,
+                        messageHandlingExecutor);
         clusterCommunicator
                 .addSubscriber(LabelResourceMessageSubjects.LABEL_POOL_APPLY,
-                               new ClusterMessageHandler() {
+                        SERIALIZER::<LabelResourceRequest>decode,
+                        request -> {
+                            log.trace("received get flow entry request for {}", request);
+                            return internalApply(request);
 
-                                   @Override
-                                   public void handle(ClusterMessage message) {
-                                       LabelResourceRequest request = SERIALIZER
-                                               .decode(message.payload());
-                                       log.trace("received get flow entry request for {}",
-                                                 request);
-                                       final Collection<LabelResource> resource = internalApply(request);
-                                       message.respond(SERIALIZER
-                                               .encode(resource));
-                                   }
-                               }, messageHandlingExecutor);
+                        },
+                        SERIALIZER::<Collection<LabelResource>>encode,
+                        messageHandlingExecutor);
         clusterCommunicator
                 .addSubscriber(LabelResourceMessageSubjects.LABEL_POOL_RELEASE,
-                               new ClusterMessageHandler() {
-
-                                   @Override
-                                   public void handle(ClusterMessage message) {
-                                       LabelResourceRequest request = SERIALIZER
-                                               .decode(message.payload());
-                                       log.trace("received get flow entry request for {}",
-                                                 request);
-                                       final boolean isSuccess = internalRelease(request);
-                                       message.respond(SERIALIZER
-                                               .encode(isSuccess));
-                                   }
-                               }, messageHandlingExecutor);
+                        SERIALIZER::<LabelResourceRequest>decode,
+                        request -> {
+                            log.trace("received get flow entry request for {}",
+                                    request);
+                            return internalRelease(request);
+                        },
+                        SERIALIZER::<Boolean>encode,
+                        messageHandlingExecutor);
         log.info("Started");
     }
 
