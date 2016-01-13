@@ -30,6 +30,8 @@ import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.EnumFormatter;
+import org.onosproject.ui.table.cell.HexFormatter;
+import org.onosproject.ui.table.cell.HexLongFormatter;
 
 import java.util.Collection;
 import java.util.List;
@@ -84,6 +86,8 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         @Override
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
+            tm.setFormatter(ID, HexLongFormatter.INSTANCE);
+            tm.setFormatter(GROUP_ID, HexFormatter.INSTANCE);
             tm.setFormatter(SELECTOR, new SelectorFormatter());
             tm.setFormatter(TREATMENT, new TreatmentFormatter());
             tm.setFormatter(STATE, EnumFormatter.INSTANCE);

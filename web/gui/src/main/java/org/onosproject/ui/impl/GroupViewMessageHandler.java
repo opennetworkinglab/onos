@@ -29,6 +29,7 @@ import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.EnumFormatter;
+import org.onosproject.ui.table.cell.HexFormatter;
 
 import java.util.Collection;
 import java.util.List;
@@ -75,6 +76,7 @@ public class GroupViewMessageHandler extends UiMessageHandler {
         @Override
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
+            tm.setFormatter(ID, HexFormatter.INSTANCE);
             tm.setFormatter(TYPE, EnumFormatter.INSTANCE);
             tm.setFormatter(BUCKETS, new BucketFormatter());
             return tm;
