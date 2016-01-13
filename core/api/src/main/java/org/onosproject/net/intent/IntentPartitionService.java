@@ -20,11 +20,11 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.event.ListenerService;
 
 /**
- * Service for interacting with the partition-to-instance assignments.
+ * Service for interacting with the intent partition-to-instance assignments.
  */
 @Beta
-public interface PartitionService
-    extends ListenerService<PartitionEvent, PartitionEventListener> {
+public interface IntentPartitionService
+    extends ListenerService<IntentPartitionEvent, IntentPartitionEventListener> {
 
     /**
      * Returns whether the given intent key is in a partition owned by this

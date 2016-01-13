@@ -15,21 +15,29 @@
  */
 package org.onosproject.net.intent;
 
-import com.google.common.annotations.Beta;
-import org.onosproject.event.AbstractEvent;
+import org.onosproject.cluster.NodeId;
 
 /**
- * Partition event.
+ * Testing adapter for the IntentPartitionService.
  */
-//TODO change String into a proper object type
-@Beta
-public class PartitionEvent extends AbstractEvent<PartitionEvent.Type, String> {
-
-    public enum Type {
-        LEADER_CHANGED
+public class IntentPartitionServiceAdapter implements IntentPartitionService {
+    @Override
+    public boolean isMine(Key intentKey) {
+        return true;
     }
 
-    public PartitionEvent(Type type, String partition) {
-        super(type, partition);
+    @Override
+    public NodeId getLeader(Key intentKey) {
+        return null;
+    }
+
+    @Override
+    public void addListener(IntentPartitionEventListener listener) {
+
+    }
+
+    @Override
+    public void removeListener(IntentPartitionEventListener listener) {
+
     }
 }

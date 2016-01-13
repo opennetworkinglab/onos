@@ -50,9 +50,9 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Unit tests for the PartitionManager class.
+ * Unit tests for the IntentPartitionManager class.
  */
-public class PartitionManagerTest {
+public class IntentPartitionManagerTest {
 
     private final LeadershipEvent event
             = new LeadershipEvent(LeadershipEvent.Type.LEADER_ELECTED,
@@ -68,7 +68,7 @@ public class PartitionManagerTest {
         private LeadershipService leadershipService;
     private LeadershipEventListener leaderListener;
 
-    private PartitionManager partitionManager;
+    private IntentPartitionManager partitionManager;
 
     @Before
     public void setUp() {
@@ -76,13 +76,13 @@ public class PartitionManagerTest {
 
         leadershipService.addListener(anyObject(LeadershipEventListener.class));
         expectLastCall().andDelegateTo(new TestLeadershipService());
-        for (int i = 0; i < PartitionManager.NUM_PARTITIONS; i++) {
+        for (int i = 0; i < IntentPartitionManager.NUM_PARTITIONS; i++) {
             expect(leadershipService.runForLeadership(ELECTION_PREFIX + i))
                 .andReturn(CompletableFuture.completedFuture(null))
                 .times(1);
         }
 
-        partitionManager = new PartitionManager()
+        partitionManager = new IntentPartitionManager()
                 .withScheduledExecutor(new NullScheduledExecutor());
 
         partitionManager.clusterService = new TestClusterService();
@@ -108,7 +108,7 @@ public class PartitionManagerTest {
                             new Leadership(ELECTION_PREFIX + i, MY_NODE_ID, 0, 0));
         }
 
-        for (int i = numMine; i < PartitionManager.NUM_PARTITIONS; i++) {
+        for (int i = numMine; i < IntentPartitionManager.NUM_PARTITIONS; i++) {
             expect(leadershipService.getLeader(ELECTION_PREFIX + i))
                     .andReturn(OTHER_NODE_ID).anyTimes();
 
@@ -129,7 +129,7 @@ public class PartitionManagerTest {
 
         leadershipService.addListener(anyObject(LeadershipEventListener.class));
 
-        for (int i = 0; i < PartitionManager.NUM_PARTITIONS; i++) {
+        for (int i = 0; i < IntentPartitionManager.NUM_PARTITIONS; i++) {
             expect(leadershipService.runForLeadership(ELECTION_PREFIX + i))
                 .andReturn(CompletableFuture.completedFuture(null))
                 .times(1);
@@ -179,7 +179,7 @@ public class PartitionManagerTest {
     @Test
     public void testRebalanceScheduling() {
         // We have all the partitions so we'll need to relinquish some
-        setUpLeadershipService(PartitionManager.NUM_PARTITIONS);
+        setUpLeadershipService(IntentPartitionManager.NUM_PARTITIONS);
 
         replay(leadershipService);
 
@@ -198,7 +198,7 @@ public class PartitionManagerTest {
     @Test
     public void testRebalance() {
         // We have all the partitions so we'll need to relinquish some
-        setUpLeadershipService(PartitionManager.NUM_PARTITIONS);
+        setUpLeadershipService(IntentPartitionManager.NUM_PARTITIONS);
 
         expect(leadershipService.withdraw(anyString()))
                                  .andReturn(CompletableFuture.completedFuture(null))
@@ -221,7 +221,7 @@ public class PartitionManagerTest {
     @Test
     public void testNoRebalance() {
         // Partitions are already perfectly balanced among the two active instances
-        setUpLeadershipService(PartitionManager.NUM_PARTITIONS / 2);
+        setUpLeadershipService(IntentPartitionManager.NUM_PARTITIONS / 2);
         replay(leadershipService);
 
         partitionManager.activate();
@@ -233,7 +233,7 @@ public class PartitionManagerTest {
 
         reset(leadershipService);
         // We have a smaller share than we should
-        setUpLeadershipService(PartitionManager.NUM_PARTITIONS / 2 - 1);
+        setUpLeadershipService(IntentPartitionManager.NUM_PARTITIONS / 2 - 1);
         replay(leadershipService);
 
         // trigger rebalance

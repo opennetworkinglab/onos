@@ -35,7 +35,7 @@ import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.PartitionService;
+import org.onosproject.net.intent.IntentPartitionService;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.WallClockTimestamp;
@@ -83,7 +83,7 @@ public class GossipIntentStore
     protected StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected PartitionService partitionService;
+    protected IntentPartitionService partitionService;
 
     private final AtomicLong sequenceNumber = new AtomicLong(0);
 

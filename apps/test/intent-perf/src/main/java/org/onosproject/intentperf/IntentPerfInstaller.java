@@ -51,7 +51,7 @@ import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.PartitionService;
+import org.onosproject.net.intent.IntentPartitionService;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
@@ -139,7 +139,7 @@ public class IntentPerfInstaller {
     protected MastershipService mastershipService;
 
     @Reference(cardinality = MANDATORY_UNARY)
-    protected PartitionService partitionService;
+    protected IntentPartitionService partitionService;
 
     @Reference(cardinality = MANDATORY_UNARY)
     protected ComponentConfigService configService;

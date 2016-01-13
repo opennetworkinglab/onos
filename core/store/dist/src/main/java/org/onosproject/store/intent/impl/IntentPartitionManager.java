@@ -33,9 +33,9 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.PartitionEvent;
-import org.onosproject.net.intent.PartitionEventListener;
-import org.onosproject.net.intent.PartitionService;
+import org.onosproject.net.intent.IntentPartitionEvent;
+import org.onosproject.net.intent.IntentPartitionEventListener;
+import org.onosproject.net.intent.IntentPartitionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,9 +52,9 @@ import java.util.stream.Collectors;
  */
 @Component(immediate = true)
 @Service
-public class PartitionManager implements PartitionService {
+public class IntentPartitionManager implements IntentPartitionService {
 
-    private static final Logger log = LoggerFactory.getLogger(PartitionManager.class);
+    private static final Logger log = LoggerFactory.getLogger(IntentPartitionManager.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LeadershipService leadershipService;
@@ -74,7 +74,7 @@ public class PartitionManager implements PartitionService {
 
     private static final String ELECTION_PREFIX = "intent-partition-";
 
-    private ListenerRegistry<PartitionEvent, PartitionEventListener> listenerRegistry;
+    private ListenerRegistry<IntentPartitionEvent, IntentPartitionEventListener> listenerRegistry;
     private LeadershipEventListener leaderListener = new InternalLeadershipListener();
     private ClusterEventListener clusterListener = new InternalClusterEventListener();
 
@@ -87,7 +87,7 @@ public class PartitionManager implements PartitionService {
         clusterService.addListener(clusterListener);
 
         listenerRegistry = new ListenerRegistry<>();
-        eventDispatcher.addSink(PartitionEvent.class, listenerRegistry);
+        eventDispatcher.addSink(IntentPartitionEvent.class, listenerRegistry);
 
         for (int i = 0; i < NUM_PARTITIONS; i++) {
             leadershipService.runForLeadership(getPartitionPath(i));
@@ -101,7 +101,7 @@ public class PartitionManager implements PartitionService {
     public void deactivate() {
         executor.shutdownNow();
 
-        eventDispatcher.removeSink(PartitionEvent.class);
+        eventDispatcher.removeSink(IntentPartitionEvent.class);
         leadershipService.removeListener(leaderListener);
         clusterService.removeListener(clusterListener);
     }
@@ -112,7 +112,7 @@ public class PartitionManager implements PartitionService {
      * @param executor scheduled executor service for background tasks
      * @return this PartitionManager
      */
-    public PartitionManager withScheduledExecutor(ScheduledExecutorService executor) {
+    public IntentPartitionManager withScheduledExecutor(ScheduledExecutorService executor) {
         this.executor = executor;
         return this;
     }
@@ -146,12 +146,12 @@ public class PartitionManager implements PartitionService {
     }
 
     @Override
-    public void addListener(PartitionEventListener listener) {
+    public void addListener(IntentPartitionEventListener listener) {
         listenerRegistry.addListener(listener);
     }
 
     @Override
-    public void removeListener(PartitionEventListener listener) {
+    public void removeListener(IntentPartitionEventListener listener) {
         listenerRegistry.removeListener(listener);
     }
 
@@ -226,7 +226,7 @@ public class PartitionManager implements PartitionService {
                 // See if we need to let some partitions go
                 scheduleRebalance(0);
 
-                eventDispatcher.post(new PartitionEvent(PartitionEvent.Type.LEADER_CHANGED,
+                eventDispatcher.post(new IntentPartitionEvent(IntentPartitionEvent.Type.LEADER_CHANGED,
                                                         leadership.topic()));
             }
         }

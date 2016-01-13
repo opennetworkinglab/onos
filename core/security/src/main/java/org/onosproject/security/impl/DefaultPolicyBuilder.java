@@ -42,7 +42,7 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentClockService;
-import org.onosproject.net.intent.PartitionService;
+import org.onosproject.net.intent.IntentPartitionService;
 import org.onosproject.net.link.LinkAdminService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.PacketService;
@@ -193,7 +193,7 @@ public final class DefaultPolicyBuilder {
         permSet.add(new ServicePermission(IntentService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(IntentClockService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(IntentExtensionService.class.getName(), ServicePermission.GET));
-        permSet.add(new ServicePermission(PartitionService.class.getName(), ServicePermission.GET));
+        permSet.add(new ServicePermission(IntentPartitionService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(LinkService.class.getName(), ServicePermission.GET));
         permSet.add(new ServicePermission(LinkResourceService.class.getName(), ServicePermission.GET));
 //      permSet.add(new ServicePermission(LabelResourceService.class.getName(), ServicePermission.GET));
@@ -262,7 +262,7 @@ public final class DefaultPolicyBuilder {
         serviceDirectory.put(HOST_EVENT, ImmutableSet.of(
                 HostService.class.getName()));
         serviceDirectory.put(INTENT_READ, ImmutableSet.of(
-                IntentService.class.getName(), PartitionService.class.getName(),
+                IntentService.class.getName(), IntentPartitionService.class.getName(),
                 IntentClockService.class.getName()));
         serviceDirectory.put(INTENT_WRITE, ImmutableSet.of(
                 IntentService.class.getName()));

@@ -22,5 +22,5 @@ import org.onosproject.event.EventListener;
  * Entity capable of receiving device partition-related events.
  */
 @Beta
-public interface PartitionEventListener extends EventListener<PartitionEvent> {
+public interface IntentPartitionEventListener extends EventListener<IntentPartitionEvent> {
 }

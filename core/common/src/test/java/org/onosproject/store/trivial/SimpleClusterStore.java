@@ -33,9 +33,9 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.PartitionEvent;
-import org.onosproject.net.intent.PartitionEventListener;
-import org.onosproject.net.intent.PartitionService;
+import org.onosproject.net.intent.IntentPartitionEvent;
+import org.onosproject.net.intent.IntentPartitionEventListener;
+import org.onosproject.net.intent.IntentPartitionService;
 import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 
@@ -51,7 +51,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Service
 public class SimpleClusterStore
         extends AbstractStore<ClusterEvent, ClusterStoreDelegate>
-        implements ClusterStore, PartitionService {
+        implements ClusterStore, IntentPartitionService {
 
     public static final IpAddress LOCALHOST = IpAddress.valueOf("127.0.0.1");
 
@@ -64,21 +64,21 @@ public class SimpleClusterStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDispatcher;
 
-    private ListenerRegistry<PartitionEvent, PartitionEventListener> listenerRegistry;
+    private ListenerRegistry<IntentPartitionEvent, IntentPartitionEventListener> listenerRegistry;
 
     @Activate
     public void activate() {
         instance = new DefaultControllerNode(new NodeId("local"), LOCALHOST);
 
         listenerRegistry = new ListenerRegistry<>();
-        eventDispatcher.addSink(PartitionEvent.class, listenerRegistry);
+        eventDispatcher.addSink(IntentPartitionEvent.class, listenerRegistry);
 
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        eventDispatcher.removeSink(PartitionEvent.class);
+        eventDispatcher.removeSink(IntentPartitionEvent.class);
         log.info("Stopped");
     }
 
@@ -128,12 +128,12 @@ public class SimpleClusterStore
     }
 
     @Override
-    public void addListener(PartitionEventListener listener) {
+    public void addListener(IntentPartitionEventListener listener) {
         listenerRegistry.addListener(listener);
     }
 
     @Override
-    public void removeListener(PartitionEventListener listener) {
+    public void removeListener(IntentPartitionEventListener listener) {
         listenerRegistry.removeListener(listener);
     }
 }
