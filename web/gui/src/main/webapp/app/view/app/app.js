@@ -29,7 +29,12 @@
         dialogId = 'app-dialog',
         dialogOpts = {
             edge: 'right'
-        };
+        },
+        strongWarning = {
+            'org.onosproject.drivers': true
+        },
+        discouragement = 'Deactivating or uninstalling this component can' +
+        ' have serious negative consequences! Do so at your own risk!!';
 
     angular.module('ovApp', [])
     .controller('OvAppCtrl',
@@ -45,9 +50,10 @@
         $scope.uninstallTip = 'Uninstall selected application';
 
         function selCb($event, row) {
-            // selId comes from tableBuilder
+            // $scope.selId is set by code in tableBuilder
             $scope.ctrlBtnState.selection = !!$scope.selId;
             refreshCtrls();
+            ds.closeDialog();  // don't want dialog from previous selection
         }
 
         function refreshCtrls() {
@@ -87,33 +93,36 @@
         ]);
 
 
-        function createConfirmationText(action, sid) {
+        function createConfirmationText(action, itemId) {
             var content = ds.createDiv();
-            content.append('p').text(action + ' ' + sid);
+            content.append('p').text(action + ' ' + itemId);
+            if (strongWarning[itemId]) {
+                content.append('p').text(discouragement).classed('strong', true);
+            }
             return content;
         }
 
         function confirmAction(action) {
-            var sid = $scope.selId,
+            var itemId = $scope.selId,
                 spar = $scope.sortParams;
 
             function dOk() {
-                $log.debug('Initiating', action, 'of', sid);
+                $log.debug('Initiating', action, 'of', itemId);
                 wss.sendEvent(appMgmtReq, {
                     action: action,
-                    name: sid,
+                    name: itemId,
                     sortCol: spar.sortCol,
                     sortDir: spar.sortDir
                 });
             }
 
             function dCancel() {
-                $log.debug('Canceling', action, 'of', sid);
+                $log.debug('Canceling', action, 'of', itemId);
             }
 
             ds.openDialog(dialogId, dialogOpts)
                 .setTitle('Confirm Action')
-                .addContent(createConfirmationText(action, sid))
+                .addContent(createConfirmationText(action, itemId))
                 .addButton('OK', dOk)
                 .addButton('Cancel', dCancel);
         }

@@ -41,6 +41,18 @@
     color: #c55;
 }
 
+#app-dialog p.strong {
+    font-weight: bold;
+}
+.light #app-dialog p.strong {
+    color: red;
+    background-color: #ff0;
+}
+.dark #app-dialog p.strong {
+    color: #c55;
+    background-color: #dd4;
+}
+
 
 .light #app-dialog.floatpanel.dialog {
     background-color: #fff;
