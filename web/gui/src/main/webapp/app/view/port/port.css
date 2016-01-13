@@ -40,6 +40,9 @@
 }
 
 #ov-port td {
+    text-align: center;
+}
+#ov-port td.right {
     text-align: right;
 }
 

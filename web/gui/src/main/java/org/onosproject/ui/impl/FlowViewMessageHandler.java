@@ -32,6 +32,7 @@ import org.onosproject.ui.table.TableRequestHandler;
 import org.onosproject.ui.table.cell.EnumFormatter;
 import org.onosproject.ui.table.cell.HexFormatter;
 import org.onosproject.ui.table.cell.HexLongFormatter;
+import org.onosproject.ui.table.cell.NumberFormatter;
 
 import java.util.Collection;
 import java.util.List;
@@ -88,9 +89,11 @@ public class FlowViewMessageHandler extends UiMessageHandler {
             TableModel tm = super.createTableModel();
             tm.setFormatter(ID, HexLongFormatter.INSTANCE);
             tm.setFormatter(GROUP_ID, HexFormatter.INSTANCE);
+            tm.setFormatter(STATE, EnumFormatter.INSTANCE);
+            tm.setFormatter(PACKETS, NumberFormatter.INTEGER);
+            tm.setFormatter(BYTES, NumberFormatter.INTEGER);
             tm.setFormatter(SELECTOR, new SelectorFormatter());
             tm.setFormatter(TREATMENT, new TreatmentFormatter());
-            tm.setFormatter(STATE, EnumFormatter.INSTANCE);
             return tm;
         }
 
@@ -112,13 +115,13 @@ public class FlowViewMessageHandler extends UiMessageHandler {
                 .cell(GROUP_ID, flow.groupId().id())
                 .cell(TABLE_ID, flow.tableId())
                 .cell(PRIORITY, flow.priority())
-                .cell(SELECTOR, flow)
-                .cell(TREATMENT, flow)
                 .cell(TIMEOUT, flow.timeout())
                 .cell(PERMANENT, flow.isPermanent())
                 .cell(STATE, flow.state())
                 .cell(PACKETS, flow.packets())
-                .cell(BYTES, flow.bytes());
+                .cell(BYTES, flow.bytes())
+                .cell(SELECTOR, flow)
+                .cell(TREATMENT, flow);
         }
 
         private final class SelectorFormatter implements CellFormatter {

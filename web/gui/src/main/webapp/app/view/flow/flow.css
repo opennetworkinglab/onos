@@ -78,8 +78,15 @@
     background-color: #5A5600;
 }
 
+#ov-flow td {
+    text-align: center;
+}
+#ov-flow td.right {
+    text-align: right;
+}
 #ov-flow td.selector,
 #ov-flow td.treatment {
+    text-align: left;
     padding-left: 36px;
     opacity: 0.65;
 }

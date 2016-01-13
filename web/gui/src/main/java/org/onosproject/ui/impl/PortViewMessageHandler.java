@@ -26,6 +26,7 @@ import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
+import org.onosproject.ui.table.cell.NumberFormatter;
 
 import java.util.Collection;
 
@@ -68,6 +69,18 @@ public class PortViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected TableModel createTableModel() {
+            TableModel tm = super.createTableModel();
+            tm.setFormatter(PKT_RX, NumberFormatter.INTEGER);
+            tm.setFormatter(PKT_TX, NumberFormatter.INTEGER);
+            tm.setFormatter(BYTES_RX, NumberFormatter.INTEGER);
+            tm.setFormatter(BYTES_TX, NumberFormatter.INTEGER);
+            tm.setFormatter(PKT_RX_DRP, NumberFormatter.INTEGER);
+            tm.setFormatter(PKT_TX_DRP, NumberFormatter.INTEGER);
+            return tm;
         }
 
         @Override

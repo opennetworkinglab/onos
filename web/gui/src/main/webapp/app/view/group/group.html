@@ -46,8 +46,8 @@
                     <td colId="app_id" sortable>App ID </td>
                     <td colId="state" sortable>State </td>
                     <td colId="type" sortable>Type </td>
-                    <td colId="packets" sortable>Packets </td>
-                    <td colId="bytes" sortable>Bytes </td>
+                    <td class="right" colId="packets" sortable>Packets </td>
+                    <td class="right" colId="bytes" sortable>Bytes </td>
                 </tr>
             </table>
         </div>
@@ -66,8 +66,8 @@
                     <td>{{group.app_id}}</td>
                     <td>{{group.state}}</td>
                     <td>{{group.type}}</td>
-                    <td>{{group.packets}}</td>
-                    <td>{{group.bytes}}</td>
+                    <td class="right">{{group.packets}}</td>
+                    <td class="right">{{group.bytes}}</td>
                 </tr>
                 <tr row-id="{{group.id}}" ng-repeat-end>
                     <td class="buckets" colspan="6"

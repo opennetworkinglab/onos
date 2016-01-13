@@ -28,6 +28,8 @@ import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.table.CellFormatter;
 import org.onosproject.ui.table.TableModel;
 import org.onosproject.ui.table.TableRequestHandler;
+import org.onosproject.ui.table.cell.HexLongFormatter;
+import org.onosproject.ui.table.cell.NumberFormatter;
 
 import java.util.Collection;
 
@@ -71,6 +73,9 @@ public class MeterViewMessageHandler extends UiMessageHandler {
         @Override
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
+            tm.setFormatter(ID, HexLongFormatter.INSTANCE);
+            tm.setFormatter(PACKETS, NumberFormatter.INTEGER);
+            tm.setFormatter(BYTES, NumberFormatter.INTEGER);
             tm.setFormatter(BANDS, new BandFormatter());
             return tm;
         }

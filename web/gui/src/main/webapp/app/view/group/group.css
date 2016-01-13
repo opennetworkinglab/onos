@@ -70,7 +70,14 @@
     background-color: #5A5600;
 }
 
+#ov-group td {
+    text-align: center;
+}
+#ov-group td.right {
+    text-align: right;
+}
 #ov-group td.buckets {
+    text-align: left;
     padding-left: 36px;
     opacity: 0.65;
 }

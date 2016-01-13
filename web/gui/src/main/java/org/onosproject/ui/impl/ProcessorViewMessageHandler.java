@@ -76,7 +76,7 @@ public class ProcessorViewMessageHandler extends UiMessageHandler {
         @Override
         protected TableModel createTableModel() {
             TableModel tm = super.createTableModel();
-            tm.setFormatter(AVG_MS, new NumberFormatter());
+            tm.setFormatter(AVG_MS, NumberFormatter.TO_5DP);
             return tm;
         }
 
