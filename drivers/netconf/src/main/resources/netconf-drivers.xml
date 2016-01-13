@@ -22,10 +22,14 @@
                    impl="org.onosproject.drivers.netconf.NetconfControllerConfig"/>
         <behaviour api="org.onosproject.net.behaviour.ConfigGetter"
                    impl="org.onosproject.drivers.netconf.NetconfConfigGetter"/>
+        <behaviour api="org.onosproject.net.behaviour.ConfigSetter"
+                   impl="org.onosproject.drivers.netconf.NetconfConfigSetter"/>
     </driver>
     <driver name="netconf" extends="default">
         <behaviour api="org.onosproject.net.behaviour.ConfigGetter"
                    impl="org.onosproject.drivers.netconf.NetconfConfigGetter"/>
+        <behaviour api="org.onosproject.net.behaviour.ConfigSetter"
+                   impl="org.onosproject.drivers.netconf.NetconfConfigSetter"/>
     </driver>
 </drivers>
 

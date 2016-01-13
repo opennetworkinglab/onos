@@ -127,6 +127,12 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.DeviceConfigSetterCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.DevicePortGetterCommand"/>
             <completers>
                 <ref component-id="deviceIdCompleter"/>
