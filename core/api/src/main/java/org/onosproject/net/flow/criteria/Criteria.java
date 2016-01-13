@@ -127,6 +127,16 @@ public final class Criteria {
     }
 
     /**
+     * Creates a match on the inner VLAN ID field using the specified value.
+     *
+     * @param vlanId vlan id value
+     * @return match criterion
+     */
+    public static Criterion matchInnerVlanId(VlanId vlanId) {
+        return new VlanIdCriterion(vlanId, Type.INNER_VLAN_VID);
+    }
+
+    /**
      * Creates a match on VLAN PCP field using the specified value.
      *
      * @param vlanPcp vlan pcp value (3 bits)
@@ -134,6 +144,16 @@ public final class Criteria {
      */
     public static Criterion matchVlanPcp(byte vlanPcp) {
         return new VlanPcpCriterion(vlanPcp);
+    }
+
+    /**
+     * Creates a match on the inner VLAN PCP field using the specified value.
+     *
+     * @param vlanPcp vlan pcp value (3 bits)
+     * @return match criterion
+     */
+    public static Criterion matchInnerVlanPcp(byte vlanPcp) {
+        return new VlanPcpCriterion(vlanPcp, Type.INNER_VLAN_PCP);
     }
 
     /**

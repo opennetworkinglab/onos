@@ -147,7 +147,13 @@ public class Olt
         }
 
         provisionVlans(olt.deviceId(), olt.uplink(), port.port(), vlan, olt.vlan(),
-                olt.defaultVlan());
+                       olt.defaultVlan());
+    }
+
+    @Override
+    public void removeSubscriber(ConnectPoint port) {
+        throw new UnsupportedOperationException();
+
     }
 
     private void provisionVlans(DeviceId deviceId, PortNumber uplinkPort,
@@ -166,6 +172,7 @@ public class Olt
         TrafficSelector downstream = DefaultTrafficSelector.builder()
                 .matchVlanId(deviceVlan)
                 .matchInPort(uplinkPort)
+                .matchInnerVlanId(subscriberVlan)
                 .build();
 
         TrafficTreatment upstreamTreatment = DefaultTrafficTreatment.builder()
@@ -241,11 +248,6 @@ public class Olt
             }
         }, oltInstallers);
 
-    }
-
-    @Override
-    public void removeSubscriber(ConnectPoint port) {
-        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     private class InternalDeviceListener implements DeviceListener {

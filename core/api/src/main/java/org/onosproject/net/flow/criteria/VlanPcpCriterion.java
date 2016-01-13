@@ -18,6 +18,7 @@ package org.onosproject.net.flow.criteria;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Implementation of VLAN priority criterion (3 bits).
@@ -25,6 +26,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 public final class VlanPcpCriterion implements Criterion {
     private static final byte MASK = 0x7;
     private final byte vlanPcp;             // VLAN pcp value: 3 bits
+    private final Type type;
 
     /**
      * Constructor.
@@ -33,11 +35,26 @@ public final class VlanPcpCriterion implements Criterion {
      */
     VlanPcpCriterion(byte vlanPcp) {
         this.vlanPcp = (byte) (vlanPcp & MASK);
+        this.type = Type.VLAN_PCP;
+    }
+
+    /**
+     * Constructs a vlan priority criterion with a specific type.
+     *
+     * @param vlanPcp the VLAN priority to match (3 bits)
+     * @param type a criterion type (only INNER_VLAN_PCP and VLAN_PCP are supported)
+     */
+    VlanPcpCriterion(byte vlanPcp, Type type) {
+        checkArgument(
+                type == Type.INNER_VLAN_PCP || type == Type.VLAN_PCP,
+                "Type can only be inner vlan or vlan");
+        this.vlanPcp = (byte) (vlanPcp & MASK);
+        this.type = type;
     }
 
     @Override
     public Type type() {
-        return Type.VLAN_PCP;
+        return type;
     }
 
     /**

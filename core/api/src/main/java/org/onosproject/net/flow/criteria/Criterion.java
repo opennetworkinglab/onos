@@ -50,6 +50,20 @@ public interface Criterion {
         /** VLAN priority. */
         VLAN_PCP,
 
+        /**
+         * Inner VLAN id.
+         *
+         * Note: Some drivers may not support this.
+         */
+        INNER_VLAN_VID,
+
+        /**
+         * Inner VLAN pcp.
+         *
+         * Note: Some drivers may not support this.
+         */
+        INNER_VLAN_PCP,
+
         /** IP DSCP (6 bits in ToS field). */
         IP_DSCP,
 

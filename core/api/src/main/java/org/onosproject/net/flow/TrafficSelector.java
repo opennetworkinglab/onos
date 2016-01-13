@@ -129,6 +129,22 @@ public interface TrafficSelector {
         Builder matchVlanPcp(byte vlanPcp);
 
         /**
+         * Matches the inner vlan id.
+         *
+         * @param vlanId a vlan id
+         * @return a selection builder
+         */
+        Builder matchInnerVlanId(VlanId vlanId);
+
+        /**
+         * Matches a vlan priority.
+         *
+         * @param vlanPcp a vlan priority
+         * @return a selection builder
+         */
+        Builder matchInnerVlanPcp(byte vlanPcp);
+
+        /**
          * Matches an IP DSCP (6 bits in ToS field).
          *
          * @param ipDscp an IP DSCP value

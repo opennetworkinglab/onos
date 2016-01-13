@@ -72,6 +72,8 @@ public final class DecodeCriterionCodecHelper {
         decoderMap.put(Criterion.Type.ETH_TYPE.name(), new EthTypeDecoder());
         decoderMap.put(Criterion.Type.VLAN_VID.name(), new VlanVidDecoder());
         decoderMap.put(Criterion.Type.VLAN_PCP.name(), new VlanPcpDecoder());
+        decoderMap.put(Criterion.Type.INNER_VLAN_VID.name(), new InnerVlanVidDecoder());
+        decoderMap.put(Criterion.Type.INNER_VLAN_PCP.name(), new InnerVlanPcpDecoder());
         decoderMap.put(Criterion.Type.IP_DSCP.name(), new IpDscpDecoder());
         decoderMap.put(Criterion.Type.IP_ECN.name(), new IpEcnDecoder());
         decoderMap.put(Criterion.Type.IP_PROTO.name(), new IpProtoDecoder());
@@ -139,7 +141,8 @@ public final class DecodeCriterionCodecHelper {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
             PortNumber port = PortNumber.portNumber(nullIsIllegal(json.get(CriterionCodec.PORT),
-                    CriterionCodec.PORT + MISSING_MEMBER_MESSAGE).asLong());
+                                                                  CriterionCodec.PORT +
+                                                                          MISSING_MEMBER_MESSAGE).asLong());
 
             return Criteria.matchInPort(port);
         }
@@ -149,7 +152,8 @@ public final class DecodeCriterionCodecHelper {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
             PortNumber port = PortNumber.portNumber(nullIsIllegal(json.get(CriterionCodec.PORT),
-                    CriterionCodec.PORT + MISSING_MEMBER_MESSAGE).asLong());
+                                                                  CriterionCodec.PORT +
+                                                                          MISSING_MEMBER_MESSAGE).asLong());
 
             return Criteria.matchInPhyPort(port);
         }
@@ -179,9 +183,31 @@ public final class DecodeCriterionCodecHelper {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {
             byte priority = (byte) nullIsIllegal(json.get(CriterionCodec.PRIORITY),
-                    CriterionCodec.VLAN_ID + MISSING_MEMBER_MESSAGE).asInt();
+                    CriterionCodec.PRIORITY + MISSING_MEMBER_MESSAGE).asInt();
 
             return Criteria.matchVlanPcp(priority);
+        }
+    }
+
+    private class InnerVlanVidDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            short vlanId = (short) nullIsIllegal(json.get(CriterionCodec.INNER_VLAN_ID),
+                                                 CriterionCodec.INNER_VLAN_ID +
+                                                         MISSING_MEMBER_MESSAGE).asInt();
+
+            return Criteria.matchInnerVlanId(VlanId.vlanId(vlanId));
+        }
+    }
+
+    private class InnerVlanPcpDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            byte priority = (byte) nullIsIllegal(json.get(CriterionCodec.INNER_PRIORITY),
+                                                 CriterionCodec.INNER_PRIORITY +
+                                                         MISSING_MEMBER_MESSAGE).asInt();
+
+            return Criteria.matchInnerVlanPcp(priority);
         }
     }
 

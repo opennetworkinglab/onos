@@ -194,6 +194,16 @@ public final class DefaultTrafficSelector implements TrafficSelector {
         }
 
         @Override
+        public Builder matchInnerVlanId(VlanId vlanId) {
+            return add(Criteria.matchInnerVlanId(vlanId));
+        }
+
+        @Override
+        public Builder matchInnerVlanPcp(byte vlanPcp) {
+            return add(Criteria.matchInnerVlanPcp(vlanPcp));
+        }
+
+        @Override
         public Builder matchIPDscp(byte ipDscp) {
             return add(Criteria.matchIPDscp(ipDscp));
         }

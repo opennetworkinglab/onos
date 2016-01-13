@@ -214,24 +214,34 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
         Pair<Instruction, Instruction> popAndRewrite = vlanOps.remove(0);
 
-        FlowRule.Builder inner = DefaultFlowRule.builder()
+        TrafficSelector selector = fwd.selector();
+
+        Criterion outerVlan = selector.getCriterion(Criterion.Type.VLAN_VID);
+        Criterion innerVlan = selector.getCriterion(Criterion.Type.INNER_VLAN_VID);
+        Criterion inport = selector.getCriterion(Criterion.Type.IN_PORT);
+
+        if (outerVlan == null || innerVlan == null || inport == null) {
+            log.error("Forwarding objective is underspecified: {}", fwd);
+            fail(fwd, ObjectiveError.BADPARAMS);
+            return;
+        }
+
+        FlowRule.Builder outer = DefaultFlowRule.builder()
                 .forDevice(deviceId)
                 .fromApp(appId)
                 .makePermanent()
                 .withPriority(fwd.priority())
-                .withSelector(fwd.selector())
+                .withSelector(buildSelector(inport, outerVlan))
                 .withTreatment(buildTreatment(popAndRewrite.getLeft(),
                                               Instructions.transition(QQ_TABLE)));
-        PortCriterion inPort = (PortCriterion)
-                fwd.selector().getCriterion(Criterion.Type.IN_PORT);
 
-        FlowRule.Builder outer = DefaultFlowRule.builder()
+        FlowRule.Builder inner = DefaultFlowRule.builder()
                 .forDevice(deviceId)
                 .fromApp(appId)
                 .forTable(QQ_TABLE)
                 .makePermanent()
                 .withPriority(fwd.priority())
-                .withSelector(buildSelector(inPort))
+                .withSelector(buildSelector(inport, innerVlan))
                 .withTreatment(buildTreatment(popAndRewrite.getRight(),
                                               output));
 

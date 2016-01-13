@@ -20,12 +20,14 @@ import org.onlab.packet.VlanId;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Implementation of VLAN ID criterion.
  */
 public final class VlanIdCriterion implements Criterion {
     private final VlanId vlanId;
+    private final Type type;
 
     /**
      * Constructor.
@@ -34,11 +36,26 @@ public final class VlanIdCriterion implements Criterion {
      */
     VlanIdCriterion(VlanId vlanId) {
         this.vlanId = vlanId;
+        this.type = Type.VLAN_VID;
+    }
+
+    /**
+     * Constructs a vlan criterion with a specific type.
+     *
+     * @param vlanId a vlan id to match
+     * @param type a criterion type (only INNER_VLAN_VID and VLAN_ID are supported)
+     */
+    VlanIdCriterion(VlanId vlanId, Type type) {
+        checkArgument(
+                type == Type.INNER_VLAN_VID || type == Type.VLAN_VID,
+                "Type can only be inner vlan or vlan");
+        this.vlanId = vlanId;
+        this.type = type;
     }
 
     @Override
     public Type type() {
-        return Type.VLAN_VID;
+        return type;
     }
 
     /**
