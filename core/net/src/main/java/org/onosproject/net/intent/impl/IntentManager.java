@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2014-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,6 @@ import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.impl.phase.FinalIntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
-import org.onosproject.net.intent.impl.phase.IntentWorker;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -290,7 +289,16 @@ public class IntentManager
     private Future<FinalIntentProcessPhase> submitIntentData(IntentData data) {
         IntentData current = store.getIntentData(data.key());
         IntentProcessPhase initial = newInitialPhase(processor, data, current);
-        return workerExecutor.submit(new IntentWorker(initial));
+        return workerExecutor.submit(() -> {
+            Optional<IntentProcessPhase> currentPhase = Optional.of(initial);
+            IntentProcessPhase previousPhase = initial;
+
+            while (currentPhase.isPresent()) {
+                previousPhase = currentPhase.get();
+                currentPhase = previousPhase.execute();
+            }
+            return (FinalIntentProcessPhase) previousPhase;
+        });
     }
 
     private class IntentBatchProcess implements Runnable {
