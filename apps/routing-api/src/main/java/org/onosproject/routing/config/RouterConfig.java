@@ -25,7 +25,9 @@ import org.onosproject.net.config.Config;
  */
 public class RouterConfig extends Config<ApplicationId> {
 
-    public static final String CP_CONNECT_POINT = "controlPlaneConnectPoint";
+    private static final String CP_CONNECT_POINT = "controlPlaneConnectPoint";
+    private static final String OSPF_ENABLED = "ospfEnabled";
+    private static final String PIM_ENABLED = "pimEnabled";
 
     /**
      * Returns the routing control plane connect point.
@@ -34,5 +36,23 @@ public class RouterConfig extends Config<ApplicationId> {
      */
     public ConnectPoint getControlPlaneConnectPoint() {
         return ConnectPoint.deviceConnectPoint(object.path(CP_CONNECT_POINT).asText());
+    }
+
+    /**
+     * Returns whether OSPF is enabled on this router.
+     *
+     * @return true if OSPF is enabled, otherwise false
+     */
+    public boolean getOspfEnabled() {
+        return object.path(OSPF_ENABLED).asBoolean(false);
+    }
+
+    /**
+     * Returns whether PIM is enabled on this router.
+     *
+     * @return true if PIM is enabled, otherwise false
+     */
+    public boolean pimEnabled() {
+        return object.path(PIM_ENABLED).asBoolean(false);
     }
 }

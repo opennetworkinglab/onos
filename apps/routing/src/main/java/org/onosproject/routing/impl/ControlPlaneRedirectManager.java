@@ -59,11 +59,13 @@ public class ControlPlaneRedirectManager {
     private final Logger log = getLogger(getClass());
 
     private static final int PRIORITY = 40001;
+    private static final int OSPF_IP_PROTO = 0x59;
 
     private static final String APP_NAME = "org.onosproject.cpredirect";
     private ApplicationId appId;
 
     private ConnectPoint controlPlaneConnectPoint;
+    private boolean ospfEnabled = false;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -112,27 +114,31 @@ public class ControlPlaneRedirectManager {
             return;
         }
 
-        if (!config.getControlPlaneConnectPoint().equals(controlPlaneConnectPoint)) {
-            this.controlPlaneConnectPoint = config.getControlPlaneConnectPoint();
-        }
+        controlPlaneConnectPoint = config.getControlPlaneConnectPoint();
+        ospfEnabled = config.getOspfEnabled();
 
+        updateDevice();
+    }
+
+    private void updateDevice() {
         if (controlPlaneConnectPoint != null &&
                 deviceService.isAvailable(controlPlaneConnectPoint.deviceId())) {
-            notifySwitchAvailable();
+            DeviceId deviceId = controlPlaneConnectPoint.deviceId();
+
+            interfaceService.getInterfaces().stream()
+                    .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
+                    .forEach(this::provisionInterface);
+
+            log.info("Set up interfaces on {}", controlPlaneConnectPoint.deviceId());
         }
     }
 
-    private void notifySwitchAvailable() {
-        DeviceId deviceId = controlPlaneConnectPoint.deviceId();
-
-        interfaceService.getInterfaces().stream()
-                .filter(intf -> intf.connectPoint().deviceId().equals(deviceId))
-                .forEach(this::addInterfaceForwarding);
-
-        log.info("Sent interface objectives to {}", controlPlaneConnectPoint.deviceId());
+    private void provisionInterface(Interface intf) {
+        addBasicInterfaceForwarding(intf);
+        updateOspfForwarding(intf);
     }
 
-    private void addInterfaceForwarding(Interface intf) {
+    private void addBasicInterfaceForwarding(Interface intf) {
         log.debug("Adding interface objectives for {}", intf);
 
         DeviceId deviceId = controlPlaneConnectPoint.deviceId();
@@ -153,7 +159,7 @@ public class ControlPlaneRedirectManager {
                     .build();
 
             flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(toSelector, toTreatment));
+                    buildForwardingObjective(toSelector, toTreatment, true));
 
             // IPv4 from router
             TrafficSelector fromSelector = DefaultTrafficSelector.builder()
@@ -169,8 +175,7 @@ public class ControlPlaneRedirectManager {
                     .build();
 
             flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(fromSelector, intfTreatment));
-
+                    buildForwardingObjective(fromSelector, intfTreatment, true));
 
             // ARP to router
             toSelector = DefaultTrafficSelector.builder()
@@ -185,7 +190,7 @@ public class ControlPlaneRedirectManager {
                     .build();
 
             flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(toSelector, toTreatment));
+                    buildForwardingObjective(toSelector, toTreatment, true));
 
             // ARP from router
             fromSelector = DefaultTrafficSelector.builder()
@@ -201,22 +206,53 @@ public class ControlPlaneRedirectManager {
                     .build();
 
             flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(fromSelector, intfTreatment));
+                    buildForwardingObjective(fromSelector, intfTreatment, true));
         }
     }
 
-    private ForwardingObjective buildForwardingObjective(TrafficSelector selector,
-                                                         TrafficTreatment treatment) {
+    private void updateOspfForwarding(Interface intf) {
+        // OSPF to router
+        TrafficSelector toSelector = DefaultTrafficSelector.builder()
+                .matchInPort(intf.connectPoint().port())
+                .matchEthType(EthType.EtherType.IPV4.ethType().toShort())
+                .matchVlanId(intf.vlan())
+                .matchIPProtocol((byte) OSPF_IP_PROTO)
+                .build();
 
-        return DefaultForwardingObjective.builder()
+        TrafficTreatment toTreatment = DefaultTrafficTreatment.builder()
+                .setOutput(controlPlaneConnectPoint.port())
+                .build();
+
+        flowObjectiveService.forward(controlPlaneConnectPoint.deviceId(),
+                buildForwardingObjective(toSelector, toTreatment, ospfEnabled));
+    }
+
+    /**
+     * Builds a forwarding objective from the given selector and treatment.
+     *
+     * @param selector selector
+     * @param treatment treatment
+     * @param add true to create an add objective, false to create a remove
+     *            objective
+     * @return forwarding objective
+     */
+    private ForwardingObjective buildForwardingObjective(TrafficSelector selector,
+                                                         TrafficTreatment treatment,
+                                                         boolean add) {
+
+        ForwardingObjective.Builder fobBuilder = DefaultForwardingObjective.builder()
                 .withSelector(selector)
                 .withTreatment(treatment)
                 .fromApp(appId)
                 .withPriority(PRIORITY)
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .add();
+                .withFlag(ForwardingObjective.Flag.VERSATILE);
+
+        return add ? fobBuilder.add() : fobBuilder.remove();
     }
 
+    /**
+     * Listener for device events.
+     */
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
@@ -227,7 +263,7 @@ public class ControlPlaneRedirectManager {
                 case DEVICE_AVAILABILITY_CHANGED:
                     if (deviceService.isAvailable(event.subject().id())) {
                         log.info("Device connected {}", event.subject().id());
-                        notifySwitchAvailable();
+                        updateDevice();
                     }
 
                     break;
@@ -244,10 +280,13 @@ public class ControlPlaneRedirectManager {
         }
     }
 
+    /**
+     * Listener for network config events.
+     */
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
         public void event(NetworkConfigEvent event) {
-            if (event.subject().equals(RoutingService.ROUTER_CONFIG_CLASS)) {
+            if (event.configClass().equals(RoutingService.ROUTER_CONFIG_CLASS)) {
                 switch (event.type()) {
                 case CONFIG_ADDED:
                 case CONFIG_UPDATED:
