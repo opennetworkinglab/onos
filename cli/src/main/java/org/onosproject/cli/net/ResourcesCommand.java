@@ -17,9 +17,15 @@ package org.onosproject.cli.net;
 
 import static org.onosproject.net.DeviceId.deviceId;
 
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -34,6 +40,16 @@ import com.google.common.base.Strings;
 @Command(scope = "onos", name = "resources",
          description = "Lists available resources")
 public class ResourcesCommand extends AbstractShellCommand {
+
+    @Option(name = "-s", aliases = "--sort", description = "Sort output",
+            required = false, multiValued = false)
+    boolean sort = false;
+
+    @Option(name = "-t", aliases = "--typeStrings", description = "List of resource types to be printed",
+            required = false, multiValued = true)
+    String[] typeStrings = null;
+
+    Set<String> typesToPrint;
 
     @Argument(index = 0, name = "deviceIdString", description = "Device ID",
               required = false, multiValued = false)
@@ -50,6 +66,12 @@ public class ResourcesCommand extends AbstractShellCommand {
     protected void execute() {
         resourceService = get(ResourceService.class);
 
+        if (typeStrings != null) {
+            typesToPrint = new HashSet<>(Arrays.asList(typeStrings));
+        } else {
+            typesToPrint = Collections.emptySet();
+        }
+
         if (deviceIdStr != null && portNumberStr != null) {
             DeviceId deviceId = deviceId(deviceIdStr);
             PortNumber portNumber = PortNumber.fromString(portNumberStr);
@@ -65,24 +87,36 @@ public class ResourcesCommand extends AbstractShellCommand {
     }
 
     private void printResource(ResourcePath resource, int level) {
+        Collection<ResourcePath> children = resourceService.getAvailableResources(resource);
+
         if (resource.equals(ResourcePath.ROOT)) {
             print("ROOT");
         } else {
-            String name = resource.last().getClass().getSimpleName();
+            String resourceName = resource.last().getClass().getSimpleName();
+
+            if (children.isEmpty() && !typesToPrint.isEmpty() && !typesToPrint.contains(resourceName)) {
+                // This resource is target of filtering
+                return;
+            }
+
             String toString = String.valueOf(resource.last());
-            if (toString.startsWith(name)) {
+            if (toString.startsWith(resourceName)) {
                 print("%s%s", Strings.repeat(" ", level),
                               toString);
-
             } else {
-                print("%s%s:%s", Strings.repeat(" ", level),
-                                 name,
+                print("%s%s: %s", Strings.repeat(" ", level),
+                                 resourceName,
                                  toString);
             }
         }
 
-        Collection<ResourcePath> resources = resourceService.getAvailableResources(resource);
-        // TODO: Should consider better output for leaf nodes
-        resources.forEach(r -> printResource(r, level + 1));
+        if (sort) {
+            children.stream()
+                    .sorted((o1, o2) -> String.valueOf(o1.id()).compareTo(String.valueOf(o2.id())))
+                    .forEach(r -> printResource(r, level + 1));
+        } else {
+            // TODO: Should consider better output for leaf nodes
+            children.forEach(r -> printResource(r, level + 1));
+        }
     }
 }
