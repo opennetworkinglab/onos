@@ -38,6 +38,18 @@
     </dependency>
 
     <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons.io.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>io.atomix</groupId>
+        <artifactId>atomix</artifactId>
+        <version>${atomix.version}</version>
+    </dependency>
+
+    <dependency>
       <!-- FIXME once fixes get merged to upstream -->
       <groupId>org.onosproject</groupId>
         <artifactId>copycat-api</artifactId>
@@ -57,6 +69,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.1</version>
         <configuration>
           <createSourcesJar>true</createSourcesJar>
 
@@ -81,13 +94,35 @@
             </filter>
 
             <filter>
+              <artifact>commons-io:commons-io</artifact>
+              <includes>
+                <include>org/apache/commons/io/**</include>
+              </includes>
+            </filter>
+
+            <filter>
               <artifact>org.onosproject:copycat*</artifact>
               <includes>
                 <include>**</include>
               </includes>
             </filter>
 
+            <filter>
+              <artifact>io.atomix:atomix-all</artifact>
+              <includes>
+                <include>**</include>
+              </includes>
+            </filter>
+
           </filters>
+          <transformers>
+              <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/services/io.atomix.catalyst.serializer.CatalystSerializable</resource>
+              </transformer>
+              <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/services/io.atomix.resource.Resource</resource>
+              </transformer>
+          </transformers>
         </configuration>
         <executions>
           <execution>
@@ -104,8 +139,11 @@
         <configuration>
           <instructions>
             <Export-Package>
-              com.googlecode.concurrenttrees.*;net.kuujo.copycat.*
+              com.googlecode.concurrenttrees.*;net.kuujo.copycat.*;io.atomix.*
             </Export-Package>
+            <Import-Package>
+              !sun.nio.ch,!sun.misc,*
+            </Import-Package>
           </instructions>
         </configuration>
       </plugin>
