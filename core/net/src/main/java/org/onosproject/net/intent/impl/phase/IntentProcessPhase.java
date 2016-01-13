@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,15 +59,13 @@ public interface IntentProcessPhase {
     }
 
     static void transferErrorCount(IntentData data, Optional<IntentData> stored) {
-        if (stored.isPresent()) {
-            IntentData storedData = stored.get();
+        stored.ifPresent(storedData -> {
             if (Objects.equals(data.intent(), storedData.intent()) &&
                     Objects.equals(data.request(), storedData.request())) {
                 data.setErrorCount(storedData.errorCount());
             } else {
                 data.setErrorCount(0);
             }
-        }
+        });
     }
-
 }
