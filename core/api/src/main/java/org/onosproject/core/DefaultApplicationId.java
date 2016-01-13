@@ -58,7 +58,7 @@ public class DefaultApplicationId implements ApplicationId {
 
     @Override
     public int hashCode() {
-        return Short.hashCode(id);
+        return Objects.hash(name);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class DefaultApplicationId implements ApplicationId {
         }
         if (obj instanceof DefaultApplicationId) {
             DefaultApplicationId other = (DefaultApplicationId) obj;
-            return Objects.equals(this.id, other.id);
+            return Objects.equals(this.name, other.name);
         }
         return false;
     }
