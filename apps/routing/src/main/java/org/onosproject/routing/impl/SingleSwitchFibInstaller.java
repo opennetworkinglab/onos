@@ -35,6 +35,8 @@ import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -58,14 +60,13 @@ import org.onosproject.routing.FibEntry;
 import org.onosproject.routing.FibListener;
 import org.onosproject.routing.FibUpdate;
 import org.onosproject.routing.RoutingService;
-import org.onosproject.routing.config.BgpConfig;
+import org.onosproject.routing.config.RouterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -97,12 +98,13 @@ public class SingleSwitchFibInstaller {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
-    private InnerDeviceListener deviceListener;
+    private InternalDeviceListener deviceListener;
 
     // Device id of data-plane switch - should be learned from config
     private DeviceId deviceId;
 
     private ApplicationId appId;
+    private ApplicationId routerAppId;
 
     // Reference count for how many times a next hop is used by a route
     private final Multiset<IpAddress> nextHopsCount = ConcurrentHashMultiset.create();
@@ -119,29 +121,18 @@ public class SingleSwitchFibInstaller {
 
     @Activate
     protected void activate() {
-        ApplicationId routerAppId = coreService.getAppId(RoutingService.ROUTER_APP_ID);
-        BgpConfig bgpConfig =
-                networkConfigService.getConfig(routerAppId, RoutingService.CONFIG_CLASS);
-
-        if (bgpConfig == null) {
-            log.error("No BgpConfig found");
-            return;
-        }
-
-        getDeviceConfiguration(bgpConfig);
+        // TODO why are there two of the same app ID?
+        routerAppId = coreService.registerApplication(RoutingService.ROUTER_APP_ID);
 
         appId = coreService.getAppId(RoutingService.ROUTER_APP_ID);
 
-        deviceListener = new InnerDeviceListener();
+        deviceListener = new InternalDeviceListener();
         deviceService.addListener(deviceListener);
 
         routingService.addFibListener(new InternalFibListener());
         routingService.start();
 
-        // Initialize devices now if they are already connected
-        if (deviceService.isAvailable(deviceId)) {
-            processIntfFilters(true, interfaceService.getInterfaces());
-        }
+        updateConfig();
 
         log.info("Started");
     }
@@ -157,35 +148,26 @@ public class SingleSwitchFibInstaller {
         log.info("Stopped");
     }
 
-    private void getDeviceConfiguration(BgpConfig bgpConfig) {
-        Optional<BgpConfig.BgpSpeakerConfig> bgpSpeaker =
-                bgpConfig.bgpSpeakers().stream().findAny();
+    private void updateConfig() {
+        RouterConfig routerConfig =
+                networkConfigService.getConfig(routerAppId, RoutingService.ROUTER_CONFIG_CLASS);
 
-        if (!bgpSpeaker.isPresent()) {
-            log.error("BGP speaker configuration not found");
+        if (routerConfig == null) {
+            log.info("Router config not available");
             return;
         }
 
-        Optional<IpAddress> peerAddress =
-                bgpSpeaker.get().peers().stream().findAny();
+        deviceId = routerConfig.getControlPlaneConnectPoint().deviceId();
 
-        if (!peerAddress.isPresent()) {
-            log.error("BGP speaker must have peers configured");
-            return;
+        log.info("Router device ID is {}", deviceId);
+
+        updateDevice();
+    }
+
+    private void updateDevice() {
+        if (deviceId != null && deviceService.isAvailable(deviceId)) {
+            processIntfFilters(true, interfaceService.getInterfaces());
         }
-
-        Interface intf = interfaceService.getMatchingInterface(peerAddress.get());
-
-        if (intf == null) {
-            log.error("No interface found for peer");
-            return;
-        }
-
-        // Assume all peers are configured on the same device - this is required
-        // by the BGP router
-        deviceId = intf.connectPoint().deviceId();
-
-        log.info("Router dpid: {}", deviceId);
     }
 
     private void updateFibEntry(Collection<FibUpdate> updates) {
@@ -384,9 +366,11 @@ public class SingleSwitchFibInstaller {
         }
     }
 
-
-    // Triggers driver setup when a device is (re)detected.
-    private class InnerDeviceListener implements DeviceListener {
+    /**
+     * Listener for device events used to trigger driver setup when a device is
+     * (re)detected.
+     */
+    private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
             switch (event.type()) {
@@ -408,6 +392,28 @@ public class SingleSwitchFibInstaller {
             case PORT_REMOVED:
             default:
                 break;
+            }
+        }
+    }
+
+    /**
+     * Listener for network config events.
+     */
+    private class InternalNetworkConfigListener implements NetworkConfigListener {
+        @Override
+        public void event(NetworkConfigEvent event) {
+            if (event.subject().equals(RoutingService.ROUTER_CONFIG_CLASS)) {
+                switch (event.type()) {
+                case CONFIG_ADDED:
+                case CONFIG_UPDATED:
+                    updateConfig();
+                    break;
+                case CONFIG_REGISTERED:
+                case CONFIG_UNREGISTERED:
+                case CONFIG_REMOVED:
+                default:
+                    break;
+                }
             }
         }
     }
