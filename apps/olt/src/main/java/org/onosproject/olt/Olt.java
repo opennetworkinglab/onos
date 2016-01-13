@@ -15,17 +15,13 @@
  */
 package org.onosproject.olt;
 
-import com.google.common.base.Strings;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.VlanId;
-import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.AbstractListenerManager;
@@ -47,16 +43,21 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.olt.api.AccessDeviceEvent;
 import org.onosproject.olt.api.AccessDeviceListener;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
-import java.util.Dictionary;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -86,30 +87,10 @@ public class Olt
     private ApplicationId appId;
 
     private static final VlanId DEFAULT_VLAN = VlanId.vlanId((short) 0);
-    public static final int OFFSET = 200;
 
-    public static final int UPLINK_PORT = 129;
-    public static final int GFAST_UPLINK_PORT = 100;
-
-    public static final String OLT_DEVICE = "of:90e2ba82f97791e9";
-    public static final String GFAST_DEVICE = "of:0011223344551357";
-
-    @Property(name = "uplinkPort", intValue = UPLINK_PORT,
-            label = "The OLT's uplink port number")
-    private int uplinkPort = UPLINK_PORT;
-
-    @Property(name = "gfastUplink", intValue = GFAST_UPLINK_PORT,
-            label = "The OLT's uplink port number")
-    private int gfastUplink = GFAST_UPLINK_PORT;
-
-    //TODO: replace this information with info comming for net cfg service.
-    @Property(name = "oltDevice", value = OLT_DEVICE,
-            label = "The OLT device id")
-    private String oltDevice = OLT_DEVICE;
-
-    @Property(name = "gfastDevice", value = GFAST_DEVICE,
-            label = "The gfast device id")
-    private String gfastDevice = GFAST_DEVICE;
+    private ExecutorService oltInstallers = Executors.newFixedThreadPool(4,
+                                                                groupedThreads("onos/olt-service",
+                                                                               "olt-installer-%d"));
 
     private Map<DeviceId, AccessDeviceData> oltData = new ConcurrentHashMap<>();
 
@@ -156,70 +137,6 @@ public class Olt
         log.info("Stopped");
     }
 
-    @Modified
-    public void modified(ComponentContext context) {
-        Dictionary<?, ?> properties = context.getProperties();
-
-        String s = Tools.get(properties, "uplinkPort");
-        uplinkPort = Strings.isNullOrEmpty(s) ? UPLINK_PORT : Integer.parseInt(s);
-
-        s = Tools.get(properties, "oltDevice");
-        oltDevice = Strings.isNullOrEmpty(s) ? OLT_DEVICE : s;
-    }
-
-    private short fetchVlanId(PortNumber port) {
-        long p = port.toLong() + OFFSET;
-        if (p > 4095) {
-            log.warn("Port Number {} exceeds vlan max", port);
-            return -1;
-        }
-        return (short) p;
-    }
-
-    private void provisionVlanOnPort(String deviceId, int uplinkPort, PortNumber p, short vlanId) {
-        DeviceId did = DeviceId.deviceId(deviceId);
-
-        TrafficSelector upstream = DefaultTrafficSelector.builder()
-                .matchVlanId(VlanId.vlanId(vlanId))
-                .matchInPort(p)
-                .build();
-
-        TrafficSelector downStream = DefaultTrafficSelector.builder()
-                .matchVlanId(VlanId.vlanId(vlanId))
-                .matchInPort(PortNumber.portNumber(uplinkPort))
-                .build();
-
-        TrafficTreatment upstreamTreatment = DefaultTrafficTreatment.builder()
-                .setOutput(PortNumber.portNumber(uplinkPort))
-                .build();
-
-        TrafficTreatment downStreamTreatment = DefaultTrafficTreatment.builder()
-                .setOutput(p)
-                .build();
-
-
-        ForwardingObjective upFwd = DefaultForwardingObjective.builder()
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withPriority(1000)
-                .makePermanent()
-                .withSelector(upstream)
-                .fromApp(appId)
-                .withTreatment(upstreamTreatment)
-                .add();
-
-        ForwardingObjective downFwd = DefaultForwardingObjective.builder()
-                .withFlag(ForwardingObjective.Flag.VERSATILE)
-                .withPriority(1000)
-                .makePermanent()
-                .withSelector(downStream)
-                .fromApp(appId)
-                .withTreatment(downStreamTreatment)
-                .add();
-
-        flowObjectiveService.forward(did, upFwd);
-        flowObjectiveService.forward(did, downFwd);
-    }
-
     @Override
     public void provisionSubscriber(ConnectPoint port, VlanId vlan) {
         AccessDeviceData olt = oltData.get(port.deviceId());
@@ -238,6 +155,9 @@ public class Olt
                                 VlanId subscriberVlan, VlanId deviceVlan,
                                 Optional<VlanId> defaultVlan) {
 
+        CompletableFuture<ObjectiveError> downFuture = new CompletableFuture();
+        CompletableFuture<ObjectiveError> upFuture = new CompletableFuture();
+
         TrafficSelector upstream = DefaultTrafficSelector.builder()
                 .matchVlanId((defaultVlan.isPresent()) ? defaultVlan.get() : DEFAULT_VLAN)
                 .matchInPort(subscriberPort)
@@ -249,6 +169,7 @@ public class Olt
                 .build();
 
         TrafficTreatment upstreamTreatment = DefaultTrafficTreatment.builder()
+                .pushVlan()
                 .setVlanId(subscriberVlan)
                 .pushVlan()
                 .setVlanId(deviceVlan)
@@ -269,7 +190,17 @@ public class Olt
                 .withSelector(upstream)
                 .fromApp(appId)
                 .withTreatment(upstreamTreatment)
-                .add();
+                .add(new ObjectiveContext() {
+                    @Override
+                    public void onSuccess(Objective objective) {
+                        upFuture.complete(null);
+                    }
+
+                    @Override
+                    public void onError(Objective objective, ObjectiveError error) {
+                        upFuture.complete(error);
+                    }
+                });
 
         ForwardingObjective downFwd = DefaultForwardingObjective.builder()
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
@@ -278,10 +209,38 @@ public class Olt
                 .withSelector(downstream)
                 .fromApp(appId)
                 .withTreatment(downstreamTreatment)
-                .add();
+                .add(new ObjectiveContext() {
+                    @Override
+                    public void onSuccess(Objective objective) {
+                        downFuture.complete(null);
+                    }
+
+                    @Override
+                    public void onError(Objective objective, ObjectiveError error) {
+                        downFuture.complete(error);
+                    }
+                });
 
         flowObjectiveService.forward(deviceId, upFwd);
         flowObjectiveService.forward(deviceId, downFwd);
+
+        upFuture.thenAcceptBothAsync(downFuture, (upStatus, downStatus) -> {
+            if (upStatus == null && downStatus == null) {
+                post(new AccessDeviceEvent(AccessDeviceEvent.Type.SUBSCRIBER_REGISTERED,
+                                           deviceId,
+                                           deviceVlan,
+                                           subscriberVlan));
+            } else if (downStatus != null) {
+                log.error("Subscriber with vlan {} on device {} " +
+                                  "on port {} failed downstream installation: {}",
+                          subscriberVlan, deviceId, subscriberPort, downStatus);
+            } else if (upStatus != null) {
+                log.error("Subscriber with vlan {} on device {} " +
+                                  "on port {} failed upstream installation: {}",
+                          subscriberVlan, deviceId, subscriberPort, upStatus);
+            }
+        }, oltInstallers);
+
     }
 
     @Override
@@ -292,17 +251,14 @@ public class Olt
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-            DeviceId devId = DeviceId.deviceId(oltDevice);
-            if (!devId.equals(event.subject().id())) {
+            DeviceId devId = event.subject().id();
+            if (!oltData.containsKey(devId)) {
+                log.debug("Device {} is not an OLT", devId);
                 return;
             }
             switch (event.type()) {
                 case PORT_ADDED:
                 case PORT_UPDATED:
-                    if (event.port().isEnabled()) {
-                        short vlanId = fetchVlanId(event.port().number());
-                        provisionVlanOnPort(gfastDevice, uplinkPort, event.port().number(), vlanId);
-                    }
                     break;
                 case DEVICE_ADDED:
                     post(new AccessDeviceEvent(
