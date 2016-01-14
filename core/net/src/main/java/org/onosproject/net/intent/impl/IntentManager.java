@@ -51,9 +51,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -286,10 +286,10 @@ public class IntentManager
         }
     }
 
-    private Future<FinalIntentProcessPhase> submitIntentData(IntentData data) {
+    private CompletableFuture<FinalIntentProcessPhase> submitIntentData(IntentData data) {
         IntentData current = store.getIntentData(data.key());
         IntentProcessPhase initial = newInitialPhase(processor, data, current);
-        return workerExecutor.submit(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             Optional<IntentProcessPhase> currentPhase = Optional.of(initial);
             IntentProcessPhase previousPhase = initial;
 
@@ -298,7 +298,7 @@ public class IntentManager
                 currentPhase = previousPhase.execute();
             }
             return (FinalIntentProcessPhase) previousPhase;
-        });
+        }, workerExecutor);
     }
 
     private class InternalBatchDelegate implements IntentBatchDelegate {
@@ -333,15 +333,15 @@ public class IntentManager
         }
     }
 
-    private List<Future<FinalIntentProcessPhase>> createIntentUpdates(Collection<IntentData> data) {
+    private List<CompletableFuture<FinalIntentProcessPhase>> createIntentUpdates(Collection<IntentData> data) {
         return data.stream()
                 .map(IntentManager.this::submitIntentData)
                 .collect(Collectors.toList());
     }
 
-    private List<FinalIntentProcessPhase> waitForFutures(List<Future<FinalIntentProcessPhase>> futures) {
+    private List<FinalIntentProcessPhase> waitForFutures(List<CompletableFuture<FinalIntentProcessPhase>> futures) {
         ImmutableList.Builder<FinalIntentProcessPhase> updateBuilder = ImmutableList.builder();
-        for (Future<FinalIntentProcessPhase> future : futures) {
+        for (CompletableFuture<FinalIntentProcessPhase> future : futures) {
             try {
                 updateBuilder.add(future.get());
             } catch (InterruptedException | ExecutionException e) {
