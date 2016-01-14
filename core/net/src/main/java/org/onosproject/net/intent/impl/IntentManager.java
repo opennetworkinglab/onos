@@ -54,6 +54,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -339,26 +340,24 @@ public class IntentManager
         }
     }
 
-    private List<CompletableFuture<FinalIntentProcessPhase>> createIntentUpdates(Collection<IntentData> data) {
+    private Stream<CompletableFuture<FinalIntentProcessPhase>> createIntentUpdates(Collection<IntentData> data) {
         return data.stream()
-                .map(IntentManager.this::submitIntentData)
-                .collect(Collectors.toList());
+                .map(IntentManager.this::submitIntentData);
     }
 
-    private List<FinalIntentProcessPhase> waitForFutures(List<CompletableFuture<FinalIntentProcessPhase>> futures) {
-        return futures.stream()
+    private Stream<FinalIntentProcessPhase> waitForFutures(Stream<CompletableFuture<FinalIntentProcessPhase>> futures) {
+        return futures
                 .map(x -> x.exceptionally(e -> {
                     //FIXME
                     log.warn("Future failed: {}", e);
                     return null;
                 }))
                 .map(CompletableFuture::join)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .filter(Objects::nonNull);
     }
 
-    private void submitUpdates(List<FinalIntentProcessPhase> updates) {
-        store.batchWrite(updates.stream()
+    private void submitUpdates(Stream<FinalIntentProcessPhase> updates) {
+        store.batchWrite(updates
                 .map(FinalIntentProcessPhase::data)
                 .collect(Collectors.toList()));
     }
