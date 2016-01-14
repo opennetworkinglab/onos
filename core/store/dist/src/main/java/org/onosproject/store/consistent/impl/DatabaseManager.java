@@ -53,6 +53,7 @@ import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.PartitionId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.persistence.PersistenceService;
@@ -82,6 +83,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -151,11 +153,10 @@ public class DatabaseManager implements StorageService, StorageAdminService {
     public void activate() {
         localNodeId = clusterService.getLocalNode().id();
 
-        Map<String, Set<NodeId>> partitionMap = Maps.newHashMap();
+        Map<PartitionId, Set<NodeId>> partitionMap = Maps.newHashMap();
         clusterMetadataService.getClusterMetadata().getPartitions().forEach(p -> {
-            partitionMap.put(p.getName(), Sets.newHashSet(p.getMembers()));
+            partitionMap.put(p.getId(), Sets.newHashSet(p.getMembers()));
         });
-
 
         String[] activeNodeUris = partitionMap.values()
                     .stream()
@@ -183,28 +184,19 @@ public class DatabaseManager implements StorageService, StorageAdminService {
 
         coordinator = new DefaultClusterCoordinator(copycatConfig.resolve());
 
-        DatabaseConfig inMemoryDatabaseConfig =
-                newDatabaseConfig(BASE_PARTITION_NAME, newInMemoryLog(), activeNodeUris);
-        inMemoryDatabase = coordinator
-                .getResource(inMemoryDatabaseConfig.getName(), inMemoryDatabaseConfig.resolve(clusterConfig)
-                .withSerializer(copycatConfig.getDefaultSerializer())
-                .withDefaultExecutor(copycatConfig.getDefaultExecutor()));
+        Function<PartitionId, Log> logFunction = id -> id.asInt() == 0 ? newInMemoryLog() : newPersistentLog();
 
-        List<Database> partitions = partitionMap.entrySet()
-            .stream()
-            .map(entry -> {
-                String[] replicas = entry.getValue().stream().map(this::nodeIdToUri).toArray(String[]::new);
-                return newDatabaseConfig(entry.getKey(), newPersistentLog(), replicas);
-                })
-            .map(config -> {
-                Database db = coordinator.getResource(config.getName(), config.resolve(clusterConfig)
-                        .withSerializer(copycatConfig.getDefaultSerializer())
-                        .withDefaultExecutor(copycatConfig.getDefaultExecutor()));
-                return db;
-            })
-            .collect(Collectors.toList());
+        Map<PartitionId, Database> databases = Maps.transformEntries(partitionMap, (k, v) -> {
+                    String[] replicas = v.stream().map(this::nodeIdToUri).toArray(String[]::new);
+                    DatabaseConfig config = newDatabaseConfig(String.format("p%s", k), logFunction.apply(k), replicas);
+                    return coordinator.getResource(config.getName(), config.resolve(clusterConfig)
+                            .withSerializer(copycatConfig.getDefaultSerializer())
+                            .withDefaultExecutor(copycatConfig.getDefaultExecutor()));
+        });
 
-        partitionedDatabase = new PartitionedDatabase("onos-store", partitions);
+        inMemoryDatabase = databases.remove(PartitionId.from(0));
+
+        partitionedDatabase = new PartitionedDatabase("onos-store", databases.values());
 
         CompletableFuture<Void> status = coordinator.open()
             .thenCompose(v -> CompletableFuture.allOf(inMemoryDatabase.open(), partitionedDatabase.open())

@@ -21,14 +21,14 @@ import org.onosproject.store.Store;
 import org.onosproject.store.service.Versioned;
 
 /**
- * Manages persistence of cluster metadata; not intended for direct use.
+ * Manages persistence of {@link ClusterMetadata cluster metadata}; not intended for direct use.
  */
 public interface ClusterMetadataStore extends Store<ClusterMetadataEvent, ClusterMetadataStoreDelegate> {
 
     /**
      * Returns the cluster metadata.
      * <p>
-     * The returned metadata is versioned to aid determining if a metadata instance is more recent than another.
+     * The retuned metadata is encapsulated as a {@link Versioned versioned} and therefore has a specific version.
      * @return cluster metadata
      */
     Versioned<ClusterMetadata> getClusterMetadata();
@@ -39,39 +39,38 @@ public interface ClusterMetadataStore extends Store<ClusterMetadataEvent, Cluste
      */
     void setClusterMetadata(ClusterMetadata metadata);
 
-    // TODO: The below methods should move to a separate store interface that is responsible for
-    // tracking cluster partition operational state.
+    /**
+     * Adds a controller node to the list of active members for a partition.
+     * <p>
+     * Active members of a partition are those that are actively participating
+     * in the data replication protocol being employed. When a node first added
+     * to a partition, it is in a passive or catch up mode where it attempts to
+     * bring it self up to speed with other active members in the partition.
+     * @param partitionId partition identifier
+     * @param nodeId identifier of controller node
+     */
+    void addActivePartitionMember(PartitionId partitionId, NodeId nodeId);
 
     /**
-     * Sets a controller node as an active member of a partition.
-     * <p>
-     * Active members are those replicas that are up to speed with the rest of the system and are
-     * usually capable of participating in the replica state management activities in accordance with
-     * the data consistency and replication protocol in use.
+     * Removes a controller node from the list of active members for a partition.
      * @param partitionId partition identifier
      * @param nodeId id of controller node
      */
-    void setActiveReplica(String partitionId, NodeId nodeId);
+    void removeActivePartitionMember(PartitionId partitionId, NodeId nodeId);
 
     /**
-     * Removes a controller node as an active member for a partition.
+     * Returns the collection of controller nodes that are the active members for a partition.
      * <p>
-     * Active members are those replicas that are up to speed with the rest of the system and are
-     * usually capable of participating in the replica state management activities in accordance with
-     * the data consistency and replication protocol in use.
-     * @param partitionId partition identifier
-     * @param nodeId id of controller node
-     */
-    void unsetActiveReplica(String partitionId, NodeId nodeId);
-
-    /**
-     * Returns the collection of controller nodes that are the active replicas for a partition.
+     * Active members of a partition are typically those that are actively
+     * participating in the data replication protocol being employed. When
+     * a node first added to a partition, it is in a passive or catch up mode where
+     * it attempts to bring it self up to speed with other active members in the partition.
      * <p>
-     * Active members are those replicas that are up to speed with the rest of the system and are
-     * usually capable of participating in the replica state management activities in accordance with
-     * the data consistency and replication protocol in use.
+     * <b>Note:</b>If is possible for this list to different from the list of partition members
+     * specified by cluster meta data. The discrepancy can arise due to the fact that
+     * adding/removing members from a partition requires a data hand-off mechanism to complete.
      * @param partitionId partition identifier
-     * @return identifiers of controller nodes that are the active replicas
+     * @return identifiers of controller nodes that are active members
      */
-    Collection<NodeId> getActiveReplicas(String partitionId);
+    Collection<NodeId> getActivePartitionMembers(PartitionId partitionId);
 }

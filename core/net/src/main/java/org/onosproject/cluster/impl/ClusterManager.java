@@ -28,6 +28,7 @@ import org.onosproject.cluster.ClusterAdminService;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterMetadata;
+import org.onosproject.cluster.ClusterMetadataAdminService;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ClusterStore;
@@ -35,10 +36,13 @@ import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.Partition;
+import org.onosproject.cluster.PartitionId;
 import org.onosproject.event.AbstractListenerManager;
 import org.slf4j.Logger;
 
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -69,6 +73,9 @@ public class ClusterManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterMetadataService clusterMetadataService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterMetadataAdminService clusterMetadataAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterStore store;
@@ -136,7 +143,7 @@ public class ClusterManager
                                                   .withControllerNodes(nodes)
                                                   .withPartitions(buildDefaultPartitions(nodes))
                                                   .build();
-        clusterMetadataService.setClusterMetadata(metadata);
+        clusterMetadataAdminService.setClusterMetadata(metadata);
         try {
             log.warn("Shutting down container for cluster reconfiguration!");
             systemService.reboot("now", SystemService.Swipe.NONE);
@@ -171,15 +178,36 @@ public class ClusterManager
         List<ControllerNode> sorted = new ArrayList<>(nodes);
         Collections.sort(sorted, (o1, o2) -> o1.id().toString().compareTo(o2.id().toString()));
         Collection<Partition> partitions = Lists.newArrayList();
-
+        // add p0 partition
+        partitions.add(new Partition() {
+            @Override
+            public PartitionId getId() {
+                return PartitionId.from((0));
+            }
+            @Override
+            public Collection<NodeId> getMembers() {
+                return Sets.newHashSet(Collections2.transform(nodes, ControllerNode::id));
+            }
+        });
+        // add extended partitions
         int length = nodes.size();
         int count = 3;
         for (int i = 0; i < length; i++) {
+            int index = i;
             Set<NodeId> set = new HashSet<>(count);
             for (int j = 0; j < count; j++) {
                 set.add(sorted.get((i + j) % length).id());
             }
-            partitions.add(new Partition("p" + (i + 1), set));
+            partitions.add(new Partition() {
+                @Override
+                public PartitionId getId() {
+                    return PartitionId.from((index + 1));
+                }
+                @Override
+                public Collection<NodeId> getMembers() {
+                    return set;
+                }
+            });
         }
         return partitions;
     }

@@ -27,12 +27,18 @@ def get_nodes(vars, port=9876):
   node = lambda k: { 'id': k, 'ip': k, 'port': port }
   return [ node(environ[v]) for v in vars ]
 
-def generate_permutations(nodes, k):
+def generate_base_partition(nodes):
+  return {
+            'id': 0,
+            'members': nodes
+         }
+
+def generate_extended_partitions(nodes, k):
   l = deque(nodes)
   perms = []
   for i in range(1, len(nodes)+1):
     part = {
-             'name': 'p%d' % i,
+             'id': i,
              'members': list(l)[:k]
            }
     perms.append(part)
@@ -42,10 +48,14 @@ def generate_permutations(nodes, k):
 if __name__ == '__main__':
   vars = get_OC_vars()
   nodes = get_nodes(vars)
-  partitions = generate_permutations([v.get('id') for v in nodes], 3)
+  base_partition = generate_base_partition([v.get('id') for v in nodes])
+  extended_partitions = generate_extended_partitions([v.get('id') for v in nodes], 3)
+  partitions = []
+  partitions.append(base_partition)
+  partitions.extend(extended_partitions)
   name = 0
   for node in nodes:
-      name = name ^ hash(node['ip'])
+    name = name ^ hash(node['ip'])
   data = {
            'name': name,
            'nodes': nodes,

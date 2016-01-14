@@ -1,3 +1,18 @@
+/*
+ * Copyright 2015-2016 Open Networking Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.onosproject.store.cluster.impl;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -28,6 +43,7 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.Partition;
+import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
@@ -44,6 +60,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 
 /**
@@ -76,6 +93,7 @@ public class StaticClusterMetadataStore
         module.addDeserializer(NodeId.class, new NodeIdDeserializer());
         module.addSerializer(ControllerNode.class, new ControllerNodeSerializer());
         module.addDeserializer(ControllerNode.class, new ControllerNodeDeserializer());
+        module.addDeserializer(Partition.class, new PartitionDeserializer());
         mapper.registerModule(module);
         File metadataFile = new File(CLUSTER_METADATA_FILE);
         if (metadataFile.exists()) {
@@ -89,10 +107,21 @@ public class StaticClusterMetadataStore
             String localIp = getSiteLocalAddress();
             ControllerNode localNode =
                     new DefaultControllerNode(new NodeId(localIp), IpAddress.valueOf(localIp), DEFAULT_ONOS_PORT);
+            Partition defaultPartition = new Partition() {
+                @Override
+                public PartitionId getId() {
+                    return PartitionId.from(1);
+                }
+
+                @Override
+                public Collection<NodeId> getMembers() {
+                    return Sets.newHashSet(localNode.id());
+                }
+            };
             metadata.set(ClusterMetadata.builder()
                     .withName("default")
                     .withControllerNodes(Arrays.asList(localNode))
-                    .withPartitions(Lists.newArrayList(new Partition("p1", Lists.newArrayList(localNode.id()))))
+                    .withPartitions(Lists.newArrayList(defaultPartition))
                     .build());
             version = System.currentTimeMillis();
         }
@@ -138,23 +167,31 @@ public class StaticClusterMetadataStore
     }
 
     @Override
-    public void setActiveReplica(String partitionId, NodeId nodeId) {
+    public void addActivePartitionMember(PartitionId partitionId, NodeId nodeId) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void unsetActiveReplica(String partitionId, NodeId nodeId) {
+    public void removeActivePartitionMember(PartitionId partitionId, NodeId nodeId) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Collection<NodeId> getActiveReplicas(String partitionId) {
+    public Collection<NodeId> getActivePartitionMembers(PartitionId partitionId) {
         return metadata.get().getPartitions()
                        .stream()
-                       .filter(r -> r.getName().equals(partitionId))
+                       .filter(r -> r.getId().equals(partitionId))
                        .findFirst()
                        .map(r -> r.getMembers())
                        .orElse(null);
+    }
+
+    private static class PartitionDeserializer extends JsonDeserializer<Partition> {
+        @Override
+        public Partition deserialize(JsonParser jp, DeserializationContext ctxt)
+                throws IOException, JsonProcessingException {
+            return jp.readValueAs(DefaultPartition.class);
+        }
     }
 
     private static class ControllerNodeSerializer extends JsonSerializer<ControllerNode> {

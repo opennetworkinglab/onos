@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,14 @@
  */
 package org.onosproject.cluster;
 
-import org.onosproject.event.ListenerService;
-
 /**
- * Service for accessing {@link ClusterMetadata cluster metadata}.
+ * Service for making updates to {@link ClusterMetadata cluster metadata}.
  */
-public interface ClusterMetadataService
-    extends ListenerService<ClusterMetadataEvent, ClusterMetadataEventListener> {
+public interface ClusterMetadataAdminService {
 
     /**
-     * Returns the current cluster metadata.
-     * @return cluster metadata
+     * Updates the cluster metadata.
+     * @param metadata new metadata
      */
-    ClusterMetadata getClusterMetadata();
-
-    /**
-     * Returns the {@link ControllerNode controller node} representing this instance.
-     * @return local controller node
-     */
-    ControllerNode getLocalNode();
+    void setClusterMetadata(ClusterMetadata metadata);
 }
