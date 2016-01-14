@@ -37,12 +37,12 @@ public class CopycatTransport implements Transport {
      */
     public enum Mode {
         /**
-         * Signifies transport for client -> server interaction.
+         * Signifies transport for client {@literal ->} server interaction.
          */
         CLIENT,
 
         /**
-         * Signified transport for server -> server interaction.
+         * Signified transport for server {@literal ->} server interaction.
          */
         SERVER
     }
