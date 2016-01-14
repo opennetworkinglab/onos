@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -129,12 +130,12 @@ public class PicaPipeline extends AbstractHandlerBehaviour implements Pipeliner 
         switch (fwd.op()) {
             case ADD:
                 rules.stream()
-                        .filter(rule -> rule != null)
+                        .filter(Objects::nonNull)
                         .forEach(flowBuilder::add);
                 break;
             case REMOVE:
                 rules.stream()
-                        .filter(rule -> rule != null)
+                        .filter(Objects::nonNull)
                         .forEach(flowBuilder::remove);
                 break;
             default:

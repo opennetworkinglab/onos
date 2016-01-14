@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -178,12 +179,12 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         switch (fwd.op()) {
             case ADD:
                 rules.stream()
-                        .filter(rule -> rule != null)
+                        .filter(Objects::nonNull)
                         .forEach(flowOpsBuilder::add);
                 break;
             case REMOVE:
                 rules.stream()
-                        .filter(rule -> rule != null)
+                        .filter(Objects::nonNull)
                         .forEach(flowOpsBuilder::remove);
                 break;
             default:

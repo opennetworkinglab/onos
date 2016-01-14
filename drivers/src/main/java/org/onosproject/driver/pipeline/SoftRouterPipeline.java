@@ -54,6 +54,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -120,12 +121,12 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
         switch (fwd.op()) {
             case ADD:
                 rules.stream()
-                        .filter(rule -> rule != null)
+                        .filter(Objects::nonNull)
                         .forEach(flowOpsBuilder::add);
                 break;
             case REMOVE:
                 rules.stream()
-                        .filter(rule -> rule != null)
+                        .filter(Objects::nonNull)
                         .forEach(flowOpsBuilder::remove);
                 break;
             default:

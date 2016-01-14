@@ -46,6 +46,7 @@ import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -190,7 +191,7 @@ public class DistributedSecurityModeStore
         }
 
         states.computeIf(appId,
-                securityInfo -> (securityInfo != null),
+                Objects::nonNull,
                 (id, securityInfo) -> {
                     switch (securityInfo.getState()) {
                         case POLICY_VIOLATED:

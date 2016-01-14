@@ -19,6 +19,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.EthType.EtherType;
@@ -104,11 +105,11 @@ public class OpenVSwitchPipeline extends DefaultSingleTablePipeline
         rules = processForward(fwd);
         switch (fwd.op()) {
         case ADD:
-            rules.stream().filter(rule -> rule != null)
+            rules.stream().filter(Objects::nonNull)
                     .forEach(flowOpsBuilder::add);
             break;
         case REMOVE:
-            rules.stream().filter(rule -> rule != null)
+            rules.stream().filter(Objects::nonNull)
                     .forEach(flowOpsBuilder::remove);
             break;
         default:

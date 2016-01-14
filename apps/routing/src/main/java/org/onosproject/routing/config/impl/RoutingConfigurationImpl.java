@@ -55,6 +55,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -214,7 +215,7 @@ public class RoutingConfigurationImpl implements RoutingConfigurationService {
             return bgpConfig.bgpSpeakers().stream()
                     .flatMap(speaker -> speaker.peers().stream())
                     .map(peer -> interfaceService.getMatchingInterface(peer))
-                    .filter(intf -> intf != null)
+                    .filter(Objects::nonNull)
                     .map(intf -> intf.connectPoint())
                     .collect(Collectors.toSet());
         }

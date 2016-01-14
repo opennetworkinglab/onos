@@ -82,6 +82,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -193,11 +194,11 @@ public class SpringOpenTTP extends AbstractHandlerBehaviour
         rules = processForward(fwd);
         switch (fwd.op()) {
         case ADD:
-            rules.stream().filter(rule -> rule != null)
+            rules.stream().filter(Objects::nonNull)
                     .forEach(flowBuilder::add);
             break;
         case REMOVE:
-            rules.stream().filter(rule -> rule != null)
+            rules.stream().filter(Objects::nonNull)
                     .forEach(flowBuilder::remove);
             break;
         default:

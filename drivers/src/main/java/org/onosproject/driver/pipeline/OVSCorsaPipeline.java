@@ -72,6 +72,7 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -173,12 +174,12 @@ public class OVSCorsaPipeline extends AbstractHandlerBehaviour implements Pipeli
         switch (fwd.op()) {
             case ADD:
                 rules.stream()
-                        .filter(rule -> rule != null)
+                        .filter(Objects::nonNull)
                         .forEach(flowBuilder::add);
                 break;
             case REMOVE:
                 rules.stream()
-                        .filter(rule -> rule != null)
+                        .filter(Objects::nonNull)
                         .forEach(flowBuilder::remove);
                 break;
             default:
