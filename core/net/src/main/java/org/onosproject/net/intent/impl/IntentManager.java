@@ -301,64 +301,6 @@ public class IntentManager
         });
     }
 
-    private class IntentBatchProcess implements Runnable {
-
-        protected final Collection<IntentData> data;
-
-        IntentBatchProcess(Collection<IntentData> data) {
-            this.data = checkNotNull(data);
-        }
-
-        @Override
-        public void run() {
-            try {
-                /*
-                 1. wrap each intentdata in a runnable and submit
-                 2. wait for completion of all the work
-                 3. accumulate results and submit batch write of IntentData to store
-                    (we can also try to update these individually)
-                 */
-                submitUpdates(waitForFutures(createIntentUpdates()));
-            } catch (Exception e) {
-                log.error("Error submitting batches:", e);
-                // FIXME incomplete Intents should be cleaned up
-                //       (transition to FAILED, etc.)
-
-                // the batch has failed
-                // TODO: maybe we should do more?
-                log.error("Walk the plank, matey...");
-                //FIXME
-//            batchService.removeIntentOperations(data);
-            }
-            accumulator.ready();
-        }
-
-        private List<Future<FinalIntentProcessPhase>> createIntentUpdates() {
-            return data.stream()
-                    .map(IntentManager.this::submitIntentData)
-                    .collect(Collectors.toList());
-        }
-
-        private List<FinalIntentProcessPhase> waitForFutures(List<Future<FinalIntentProcessPhase>> futures) {
-            ImmutableList.Builder<FinalIntentProcessPhase> updateBuilder = ImmutableList.builder();
-            for (Future<FinalIntentProcessPhase> future : futures) {
-                try {
-                    updateBuilder.add(future.get());
-                } catch (InterruptedException | ExecutionException e) {
-                    //FIXME
-                    log.warn("Future failed: {}", e);
-                }
-            }
-            return updateBuilder.build();
-        }
-
-        private void submitUpdates(List<FinalIntentProcessPhase> updates) {
-            store.batchWrite(updates.stream()
-                                     .map(FinalIntentProcessPhase::data)
-                                     .collect(Collectors.toList()));
-        }
-    }
-
     private class InternalBatchDelegate implements IntentBatchDelegate {
         @Override
         public void execute(Collection<IntentData> operations) {
@@ -366,8 +308,54 @@ public class IntentManager
             log.trace("Execute operations: {}", operations);
 
             // batchExecutor is single-threaded, so only one batch is in flight at a time
-            batchExecutor.execute(new IntentBatchProcess(operations));
+            batchExecutor.execute(() -> {
+                try {
+                /*
+                 1. wrap each intentdata in a runnable and submit
+                 2. wait for completion of all the work
+                 3. accumulate results and submit batch write of IntentData to store
+                    (we can also try to update these individually)
+                 */
+                    submitUpdates(waitForFutures(createIntentUpdates(operations)));
+                } catch (Exception e) {
+                    log.error("Error submitting batches:", e);
+                    // FIXME incomplete Intents should be cleaned up
+                    //       (transition to FAILED, etc.)
+
+                    // the batch has failed
+                    // TODO: maybe we should do more?
+                    log.error("Walk the plank, matey...");
+                    //FIXME
+//            batchService.removeIntentOperations(data);
+                }
+                accumulator.ready();
+            });
         }
+    }
+
+    private List<Future<FinalIntentProcessPhase>> createIntentUpdates(Collection<IntentData> data) {
+        return data.stream()
+                .map(IntentManager.this::submitIntentData)
+                .collect(Collectors.toList());
+    }
+
+    private List<FinalIntentProcessPhase> waitForFutures(List<Future<FinalIntentProcessPhase>> futures) {
+        ImmutableList.Builder<FinalIntentProcessPhase> updateBuilder = ImmutableList.builder();
+        for (Future<FinalIntentProcessPhase> future : futures) {
+            try {
+                updateBuilder.add(future.get());
+            } catch (InterruptedException | ExecutionException e) {
+                //FIXME
+                log.warn("Future failed: {}", e);
+            }
+        }
+        return updateBuilder.build();
+    }
+
+    private void submitUpdates(List<FinalIntentProcessPhase> updates) {
+        store.batchWrite(updates.stream()
+                .map(FinalIntentProcessPhase::data)
+                .collect(Collectors.toList()));
     }
 
     private class InternalIntentProcessor implements IntentProcessor {
