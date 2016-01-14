@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Beta
 public class ResourceAllocation {
 
-    private final ResourcePath resource;
+    private final Resource resource;
     private final ResourceConsumer consumer;
 
     /**
@@ -37,7 +37,7 @@ public class ResourceAllocation {
      * @param resource resource of the subject
      * @param consumer consumer of this resource
      */
-    public ResourceAllocation(ResourcePath resource, ResourceConsumer consumer) {
+    public ResourceAllocation(Resource resource, ResourceConsumer consumer) {
         this.resource = checkNotNull(resource);
         this.consumer = consumer;
     }
@@ -53,7 +53,7 @@ public class ResourceAllocation {
      *
      * @return the specifier of the resource this allocation uses
      */
-    public ResourcePath resource() {
+    public Resource resource() {
         return resource;
     }
 

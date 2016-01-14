@@ -44,7 +44,7 @@ import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.newresource.ResourceAllocation;
-import org.onosproject.net.newresource.ResourcePath;
+import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.onosproject.net.topology.LinkWeight;
@@ -109,10 +109,10 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         log.debug("Compiling optical connectivity intent between {} and {}", src, dst);
 
         // Reserve OCh ports
-        ResourcePath srcPortPath = ResourcePath.discrete(src.deviceId(), src.port());
-        ResourcePath dstPortPath = ResourcePath.discrete(dst.deviceId(), dst.port());
+        Resource srcPortResource = Resource.discrete(src.deviceId(), src.port());
+        Resource dstPortResource = Resource.discrete(dst.deviceId(), dst.port());
         List<org.onosproject.net.newresource.ResourceAllocation> allocation =
-                resourceService.allocate(intent.id(), srcPortPath, dstPortPath);
+                resourceService.allocate(intent.id(), srcPortResource, dstPortResource);
         if (allocation.isEmpty()) {
             throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
         }
@@ -182,10 +182,10 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         }
 
         List<OchSignal> minLambda = findFirstLambda(lambdas, slotCount());
-        List<ResourcePath> lambdaResources = path.links().stream()
+        List<Resource> lambdaResources = path.links().stream()
                 .flatMap(x -> Stream.of(
-                        ResourcePath.discrete(x.src().deviceId(), x.src().port()),
-                        ResourcePath.discrete(x.dst().deviceId(), x.dst().port())
+                        Resource.discrete(x.src().deviceId(), x.src().port()),
+                        Resource.discrete(x.dst().deviceId(), x.dst().port())
                 ))
                 .flatMap(x -> minLambda.stream().map(l -> x.child(l)))
                 .collect(Collectors.toList());
@@ -214,8 +214,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     private Set<OchSignal> findCommonLambdasOverLinks(List<Link> links) {
         return links.stream()
                 .flatMap(x -> Stream.of(
-                        ResourcePath.discrete(x.src().deviceId(), x.src().port()),
-                        ResourcePath.discrete(x.dst().deviceId(), x.dst().port())
+                        Resource.discrete(x.src().deviceId(), x.src().port()),
+                        Resource.discrete(x.dst().deviceId(), x.dst().port())
                 ))
                 .map(resourceService::getAvailableResources)
                 .map(x -> Iterables.filter(x, r -> r.last() instanceof OchSignal))

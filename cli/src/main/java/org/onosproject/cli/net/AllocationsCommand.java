@@ -31,7 +31,7 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.newresource.ResourceAllocation;
-import org.onosproject.net.newresource.ResourcePath;
+import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 
 import com.google.common.base.Strings;
@@ -106,11 +106,11 @@ public class AllocationsCommand extends AbstractShellCommand {
         // TODO: Current design cannot deal with sub-resources
         //        (e.g., TX/RX under Port)
 
-        ResourcePath path = ResourcePath.discrete(did, num);
+        Resource resource = Resource.discrete(did, num);
         if (lambda) {
             //print("Lambda resources:");
             Collection<ResourceAllocation> allocations
-                = resourceService.getResourceAllocations(path, OchSignal.class);
+                = resourceService.getResourceAllocations(resource, OchSignal.class);
 
             for (ResourceAllocation a : allocations) {
                 print("%s%s allocated by %s", Strings.repeat(" ", level + 1),

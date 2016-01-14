@@ -15,7 +15,7 @@
  */
 package org.onosproject.cli.net;
 
-import static org.onosproject.net.newresource.ResourcePath.discrete;
+import static org.onosproject.net.newresource.Resource.discrete;
 
 import java.util.Optional;
 
@@ -31,7 +31,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourceConsumer;
-import org.onosproject.net.newresource.ResourcePath;
+import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 
 /**
@@ -73,7 +73,7 @@ public class TestAllocateResource extends AbstractShellCommand {
 
         ResourceConsumer consumer = IntentId.valueOf(nIntendId);
 
-        ResourcePath resource = discrete(did, portNum,
+        Resource resource = discrete(did, portNum,
                                          createLambda(Integer.parseInt(lambda)));
 
         Optional<ResourceAllocation> allocate = resourceService.allocate(consumer, resource);

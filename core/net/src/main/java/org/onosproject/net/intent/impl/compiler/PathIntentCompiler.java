@@ -44,7 +44,7 @@ import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.intent.impl.IntentCompilationException;
-import org.onosproject.net.newresource.ResourcePath;
+import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
 import org.slf4j.Logger;
@@ -250,10 +250,10 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
         }
 
         //same VLANID is used for both directions
-        Set<ResourcePath> resources = vlanIds.entrySet().stream()
+        Set<Resource> resources = vlanIds.entrySet().stream()
                 .flatMap(x -> Stream.of(
-                        ResourcePath.discrete(x.getKey().src().deviceId(), x.getKey().src().port(), x.getValue()),
-                        ResourcePath.discrete(x.getKey().dst().deviceId(), x.getKey().dst().port(), x.getValue())
+                        Resource.discrete(x.getKey().src().deviceId(), x.getKey().src().port(), x.getValue()),
+                        Resource.discrete(x.getKey().dst().deviceId(), x.getKey().dst().port(), x.getValue())
                 ))
                 .collect(Collectors.toSet());
         List<org.onosproject.net.newresource.ResourceAllocation> allocations =
@@ -280,7 +280,7 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
     }
 
     private Set<VlanId> findVlanId(ConnectPoint cp) {
-        return resourceService.getAvailableResources(ResourcePath.discrete(cp.deviceId(), cp.port())).stream()
+        return resourceService.getAvailableResources(Resource.discrete(cp.deviceId(), cp.port())).stream()
                 .filter(x -> x.last() instanceof VlanId)
                 .map(x -> (VlanId) x.last())
                 .collect(Collectors.toSet());

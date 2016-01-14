@@ -31,7 +31,7 @@ import org.onosproject.net.newresource.ResourceConsumer;
 import org.onosproject.net.newresource.ResourceEvent;
 import org.onosproject.net.newresource.ResourceListener;
 import org.onosproject.net.newresource.ResourceService;
-import org.onosproject.net.newresource.ResourcePath;
+import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceStore;
 import org.onosproject.net.newresource.ResourceStoreDelegate;
 
@@ -69,7 +69,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
 
     @Override
     public List<ResourceAllocation> allocate(ResourceConsumer consumer,
-                                             List<ResourcePath> resources) {
+                                             List<Resource> resources) {
         checkNotNull(consumer);
         checkNotNull(resources);
 
@@ -87,7 +87,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     public boolean release(List<ResourceAllocation> allocations) {
         checkNotNull(allocations);
 
-        List<ResourcePath> resources = allocations.stream()
+        List<Resource> resources = allocations.stream()
                 .map(ResourceAllocation::resource)
                 .collect(Collectors.toList());
         List<ResourceConsumer> consumers = allocations.stream()
@@ -106,7 +106,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     }
 
     @Override
-    public List<ResourceAllocation> getResourceAllocation(ResourcePath resource) {
+    public List<ResourceAllocation> getResourceAllocation(Resource resource) {
         checkNotNull(resource);
 
         List<ResourceConsumer> consumers = store.getConsumers(resource);
@@ -116,12 +116,12 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     }
 
     @Override
-    public <T> Collection<ResourceAllocation> getResourceAllocations(ResourcePath parent, Class<T> cls) {
+    public <T> Collection<ResourceAllocation> getResourceAllocations(Resource parent, Class<T> cls) {
         checkNotNull(parent);
         checkNotNull(cls);
 
         // We access store twice in this method, then the store may be updated by others
-        Collection<ResourcePath> resources = store.getAllocatedResources(parent, cls);
+        Collection<Resource> resources = store.getAllocatedResources(parent, cls);
         return resources.stream()
                 .flatMap(resource -> store.getConsumers(resource).stream()
                         .map(consumer -> new ResourceAllocation(resource, consumer)))
@@ -132,17 +132,17 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     public Collection<ResourceAllocation> getResourceAllocations(ResourceConsumer consumer) {
         checkNotNull(consumer);
 
-        Collection<ResourcePath> resources = store.getResources(consumer);
+        Collection<Resource> resources = store.getResources(consumer);
         return resources.stream()
                 .map(x -> new ResourceAllocation(x, consumer))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public Collection<ResourcePath> getAvailableResources(ResourcePath parent) {
+    public Collection<Resource> getAvailableResources(Resource parent) {
         checkNotNull(parent);
 
-        Collection<ResourcePath> children = store.getChildResources(parent);
+        Collection<Resource> children = store.getChildResources(parent);
         return children.stream()
                 // We access store twice in this method, then the store may be updated by others
                 .filter(store::isAvailable)
@@ -150,21 +150,21 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     }
 
     @Override
-    public boolean isAvailable(ResourcePath resource) {
+    public boolean isAvailable(Resource resource) {
         checkNotNull(resource);
 
         return store.isAvailable(resource);
     }
 
     @Override
-    public boolean registerResources(List<ResourcePath> resources) {
+    public boolean registerResources(List<Resource> resources) {
         checkNotNull(resources);
 
         return store.register(resources);
     }
 
     @Override
-    public boolean unregisterResources(List<ResourcePath> resources) {
+    public boolean unregisterResources(List<Resource> resources) {
         checkNotNull(resources);
 
         return store.unregister(resources);

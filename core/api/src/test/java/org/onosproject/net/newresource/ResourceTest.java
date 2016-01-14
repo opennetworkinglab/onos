@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-public class ResourcePathTest {
+public class ResourceTest {
 
     private static final DeviceId D1 = DeviceId.deviceId("of:001");
     private static final DeviceId D2 = DeviceId.deviceId("of:002");
@@ -39,11 +39,11 @@ public class ResourcePathTest {
 
     @Test
     public void testEquals() {
-        ResourcePath resource1 = ResourcePath.discrete(D1, P1, VLAN1);
-        ResourcePath sameAsResource1 = ResourcePath.discrete(D1, P1, VLAN1);
-        ResourcePath resource2 = ResourcePath.discrete(D2, P1, VLAN1);
-        ResourcePath resource3 = ResourcePath.continuous(BW1.bps(), D1, P1, BW1);
-        ResourcePath sameAsResource3 = ResourcePath.continuous(BW1.bps(), D1, P1, BW1);
+        Resource resource1 = Resource.discrete(D1, P1, VLAN1);
+        Resource sameAsResource1 = Resource.discrete(D1, P1, VLAN1);
+        Resource resource2 = Resource.discrete(D2, P1, VLAN1);
+        Resource resource3 = Resource.continuous(BW1.bps(), D1, P1, BW1);
+        Resource sameAsResource3 = Resource.continuous(BW1.bps(), D1, P1, BW1);
 
         new EqualsTester()
                 .addEqualityGroup(resource1, sameAsResource1)
@@ -54,19 +54,19 @@ public class ResourcePathTest {
 
     @Test
     public void testComponents() {
-        ResourcePath port = ResourcePath.discrete(D1, P1);
+        Resource port = Resource.discrete(D1, P1);
 
         assertThat(port.components(), contains(D1, P1));
     }
 
     @Test
     public void testIdEquality() {
-        ResourceId id1 = ResourcePath.discrete(D1, P1, VLAN1).id();
-        ResourceId sameAsId1 = ResourcePath.discrete(D1, P1, VLAN1).id();
-        ResourceId id2 = ResourcePath.discrete(D2, P1, VLAN1).id();
-        ResourceId id3 = ResourcePath.continuous(BW1.bps(), D1, P1, BW1).id();
+        ResourceId id1 = Resource.discrete(D1, P1, VLAN1).id();
+        ResourceId sameAsId1 = Resource.discrete(D1, P1, VLAN1).id();
+        ResourceId id2 = Resource.discrete(D2, P1, VLAN1).id();
+        ResourceId id3 = Resource.continuous(BW1.bps(), D1, P1, BW1).id();
         // intentionally set a different value
-        ResourceId sameAsId3 = ResourcePath.continuous(BW2.bps(), D1, P1, BW1).id();
+        ResourceId sameAsId3 = Resource.continuous(BW2.bps(), D1, P1, BW1).id();
 
         new EqualsTester()
                 .addEqualityGroup(id1, sameAsId1)
@@ -76,32 +76,32 @@ public class ResourcePathTest {
 
     @Test
     public void testChild() {
-        ResourcePath r1 = ResourcePath.discrete(D1).child(P1);
-        ResourcePath sameAsR2 = ResourcePath.discrete(D1, P1);
+        Resource r1 = Resource.discrete(D1).child(P1);
+        Resource sameAsR2 = Resource.discrete(D1, P1);
 
         assertThat(r1, is(sameAsR2));
     }
 
     @Test
     public void testThereIsParent() {
-        ResourcePath path = ResourcePath.discrete(D1, P1, VLAN1);
-        ResourcePath parent = ResourcePath.discrete(D1, P1);
+        Resource resource = Resource.discrete(D1, P1, VLAN1);
+        Resource parent = Resource.discrete(D1, P1);
 
-        assertThat(path.parent(), is(Optional.of(parent)));
+        assertThat(resource.parent(), is(Optional.of(parent)));
     }
 
     @Test
     public void testNoParent() {
-        ResourcePath path = ResourcePath.discrete(D1);
+        Resource resource = Resource.discrete(D1);
 
-        assertThat(path.parent(), is(Optional.of(ResourcePath.ROOT)));
+        assertThat(resource.parent(), is(Optional.of(Resource.ROOT)));
     }
 
     @Test
     public void testBase() {
-        ResourcePath path = ResourcePath.discrete(D1);
+        Resource resource = Resource.discrete(D1);
 
-        DeviceId child = (DeviceId) path.last();
+        DeviceId child = (DeviceId) resource.last();
         assertThat(child, is(D1));
     }
 }

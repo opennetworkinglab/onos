@@ -29,10 +29,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
- * An object that is used to locate a resource in a network.
- * A ResourcePath represents a path that is hierarchical and composed of a sequence
- * of elementary resources that are not globally identifiable. A ResourcePath can be a globally
- * unique resource identifier.
+ * An object that represent a resource in a network.
+ * A Resource can represents path-like hierarchical structure with its ID. An ID of resource is
+ * composed of a sequence of elementary resources that are not globally identifiable. A Resource
+ * can be globally identifiable by its ID.
  *
  * Two types of resource are considered. One is discrete type and the other is continuous type.
  * Discrete type resource is a resource whose amount is measured as a discrete unit. VLAN ID and
@@ -41,18 +41,18 @@ import static com.google.common.base.Preconditions.checkState;
  * A double value is associated with a continuous type value.
  *
  * Users of this class must keep the semantics of resources regarding the hierarchical structure.
- * For example, resource path, Device:1/Port:1/VLAN ID:100, is valid, but resource path,
+ * For example, resource, Device:1/Port:1/VLAN ID:100, is valid, but resource,
  * VLAN ID:100/Device:1/Port:1 is not valid because a link is not a sub-component of a VLAN ID.
  */
 @Beta
-public abstract class ResourcePath {
+public abstract class Resource {
 
     private final Discrete parent;
     private final ResourceId id;
 
     public static final Discrete ROOT = new Discrete();
 
-    public static ResourcePath discrete(DeviceId device) {
+    public static Resource discrete(DeviceId device) {
         return new Discrete(ResourceId.of(device));
     }
 
@@ -63,7 +63,7 @@ public abstract class ResourcePath {
      * @param components following components of the path. The order represents hierarchical structure of the resource.
      * @return resource path instance
      */
-    public static ResourcePath discrete(DeviceId device, Object... components) {
+    public static Resource discrete(DeviceId device, Object... components) {
         return new Discrete(ResourceId.of(device, components));
     }
 
@@ -75,7 +75,7 @@ public abstract class ResourcePath {
      * @param components following components of the path. The order represents hierarchical structure of the resource.
      * @return resource path instance
      */
-    public static ResourcePath discrete(DeviceId device, PortNumber port, Object... components) {
+    public static Resource discrete(DeviceId device, PortNumber port, Object... components) {
         return new Discrete(ResourceId.of(device, port, components));
     }
 
@@ -87,7 +87,7 @@ public abstract class ResourcePath {
      * @param components following components of the path. The order represents hierarchical structure of the resource.
      * @return resource path instance
      */
-    public static ResourcePath continuous(double value, DeviceId device, Object... components) {
+    public static Resource continuous(double value, DeviceId device, Object... components) {
         checkArgument(components.length > 0,
                 "Length of components must be greater thant 0, but " + components.length);
 
@@ -103,7 +103,7 @@ public abstract class ResourcePath {
      * @param components following components of the path. The order represents hierarchical structure of the resource.
      * @return resource path instance
      */
-    public static ResourcePath continuous(double value, DeviceId device, PortNumber port, Object... components) {
+    public static Resource continuous(double value, DeviceId device, PortNumber port, Object... components) {
         return new Continuous(ResourceId.of(device, port, components), value);
     }
 
@@ -112,7 +112,7 @@ public abstract class ResourcePath {
      *
      * @param id id of the path
      */
-    protected ResourcePath(ResourceId id) {
+    protected Resource(ResourceId id) {
         checkNotNull(id);
 
         this.id = id;
@@ -124,7 +124,7 @@ public abstract class ResourcePath {
     }
 
     // for serialization
-    private ResourcePath() {
+    private Resource() {
         this.parent = null;
         this.id = ResourceId.ROOT;
     }
@@ -156,7 +156,7 @@ public abstract class ResourcePath {
      * @param child child object
      * @return a child resource path
      */
-    public ResourcePath child(Object child) {
+    public Resource child(Object child) {
         checkState(this instanceof Discrete);
 
         return new Discrete(id().child(child));
@@ -170,7 +170,7 @@ public abstract class ResourcePath {
      * @param value value
      * @return a child resource path
      */
-    public ResourcePath child(Object child, double value) {
+    public Resource child(Object child, double value) {
         checkState(this instanceof Discrete);
 
         return new Continuous(id.child(child), value);
@@ -208,10 +208,10 @@ public abstract class ResourcePath {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof ResourcePath)) {
+        if (!(obj instanceof Resource)) {
             return false;
         }
-        final ResourcePath that = (ResourcePath) obj;
+        final Resource that = (Resource) obj;
         return Objects.equals(this.id, that.id);
     }
 
@@ -231,7 +231,7 @@ public abstract class ResourcePath {
      * </p>
      */
     @Beta
-    public static final class Discrete extends ResourcePath {
+    public static final class Discrete extends Resource {
         private Discrete() {
             super();
         }
@@ -249,7 +249,7 @@ public abstract class ResourcePath {
      * implementation only. It is not for resource API user.
      */
     @Beta
-    public static final class Continuous extends ResourcePath {
+    public static final class Continuous extends Resource {
         private final double value;
 
         private Continuous(ResourceId id, double value) {

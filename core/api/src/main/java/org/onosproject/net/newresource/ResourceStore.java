@@ -36,7 +36,7 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * @param resources resources to be registered
      * @return true if the registration succeeds, false otherwise
      */
-    boolean register(List<ResourcePath> resources);
+    boolean register(List<Resource> resources);
 
     /**
      * Unregisters the resources in transactional way.
@@ -47,7 +47,7 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * @param resources resources to be unregistered
      * @return true if the registration succeeds, false otherwise
      */
-    boolean unregister(List<ResourcePath> resources);
+    boolean unregister(List<Resource> resources);
 
     /**
      * Allocates the specified resources to the specified consumer in transactional way.
@@ -59,7 +59,7 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * @param consumer resource consumer which the resources are allocated to
      * @return true if the allocation succeeds, false otherwise.
      */
-    boolean allocate(List<ResourcePath> resources, ResourceConsumer consumer);
+    boolean allocate(List<Resource> resources, ResourceConsumer consumer);
 
     /**
      * Releases the specified resources allocated to the specified corresponding consumers
@@ -73,7 +73,7 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * @param consumers resource consumers to whom the resource allocated to
      * @return true if succeeds, otherwise false
      */
-    boolean release(List<ResourcePath> resources, List<ResourceConsumer> consumers);
+    boolean release(List<Resource> resources, List<ResourceConsumer> consumers);
 
     /**
      * Returns the resource consumers to whom the specified resource is allocated.
@@ -84,7 +84,7 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * @return resource consumers who are allocated the resource.
      * Returns empty list if there is no such consumer.
      */
-    List<ResourceConsumer> getConsumers(ResourcePath resource);
+    List<ResourceConsumer> getConsumers(Resource resource);
 
     /**
      * Returns the availability of the specified resource.
@@ -92,7 +92,7 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * @param resource resource to check the availability
      * @return true if available, otherwise false
      */
-    boolean isAvailable(ResourcePath resource);
+    boolean isAvailable(Resource resource);
 
     /**
      * Returns a collection of the resources allocated to the specified consumer.
@@ -100,7 +100,7 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * @param consumer resource consumer whose allocated resource are searched for
      * @return a collection of the resources allocated to the specified consumer
      */
-    Collection<ResourcePath> getResources(ResourceConsumer consumer);
+    Collection<Resource> getResources(ResourceConsumer consumer);
 
     /**
      * Returns a collection of the child resources of the specified parent.
@@ -108,7 +108,7 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * @param parent parent of the resource to be returned
      * @return a collection of the child resources of the specified resource
      */
-    Collection<ResourcePath> getChildResources(ResourcePath parent);
+    Collection<Resource> getChildResources(Resource parent);
 
     /**
      * Returns a collection of the resources which are children of the specified parent and
@@ -120,5 +120,5 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * @return a collection of the resources which belongs to the specified subject and
      * whose type is the specified class.
      */
-    <T> Collection<ResourcePath> getAllocatedResources(ResourcePath parent, Class<T> cls);
+    <T> Collection<Resource> getAllocatedResources(Resource parent, Class<T> cls);
 }

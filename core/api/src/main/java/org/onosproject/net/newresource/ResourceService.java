@@ -38,7 +38,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @param resource resource to be allocated
      * @return allocation information enclosed by Optional. If the allocation fails, the return value is empty
      */
-    default Optional<ResourceAllocation> allocate(ResourceConsumer consumer, ResourcePath resource) {
+    default Optional<ResourceAllocation> allocate(ResourceConsumer consumer, Resource resource) {
         checkNotNull(consumer);
         checkNotNull(resource);
 
@@ -65,7 +65,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @param resources resources to be allocated
      * @return non-empty list of allocation information if succeeded, otherwise empty list
      */
-    List<ResourceAllocation> allocate(ResourceConsumer consumer, List<ResourcePath> resources);
+    List<ResourceAllocation> allocate(ResourceConsumer consumer, List<Resource> resources);
 
     /**
      * Transactionally allocates the specified resources to the specified user.
@@ -75,7 +75,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @param resources resources to be allocated
      * @return non-empty list of allocation information if succeeded, otherwise empty list
      */
-    default List<ResourceAllocation> allocate(ResourceConsumer consumer, ResourcePath... resources) {
+    default List<ResourceAllocation> allocate(ResourceConsumer consumer, Resource... resources) {
         checkNotNull(consumer);
         checkNotNull(resources);
 
@@ -132,18 +132,18 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @return list of allocation information.
      * If the resource is not allocated, the return value is an empty list.
      */
-    List<ResourceAllocation> getResourceAllocation(ResourcePath resource);
+    List<ResourceAllocation> getResourceAllocation(Resource resource);
 
     /**
      * Returns allocated resources being as children of the specified parent and being the specified resource type.
      *
-     * @param parent parent resource path
+     * @param parent parent resource
      * @param cls class to specify a type of resource
      * @param <T> type of the resource
      * @return non-empty collection of resource allocations if resources are allocated with the subject and type,
      * empty collection if no resource is allocated with the subject and type
      */
-    <T> Collection<ResourceAllocation> getResourceAllocations(ResourcePath parent, Class<T> cls);
+    <T> Collection<ResourceAllocation> getResourceAllocations(Resource parent, Class<T> cls);
 
     /**
      * Returns resources allocated to the specified consumer.
@@ -154,12 +154,12 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
     Collection<ResourceAllocation> getResourceAllocations(ResourceConsumer consumer);
 
     /**
-     * Returns resource paths that point available child resources under the specified resource path.
+     * Returns resources that point available child resources under the specified resource.
      *
-     * @param parent parent resource path
-     * @return available resource paths under the specified resource path
+     * @param parent parent resource
+     * @return available resources under the specified resource
      */
-    Collection<ResourcePath> getAvailableResources(ResourcePath parent);
+    Collection<Resource> getAvailableResources(Resource parent);
 
     /**
      * Returns the availability of the specified resource.
@@ -167,7 +167,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @param resource resource to check the availability
      * @return true if available, otherwise false
      */
-    boolean isAvailable(ResourcePath resource);
+    boolean isAvailable(Resource resource);
 
     // TODO: listener and event mechanism need to be considered
 }

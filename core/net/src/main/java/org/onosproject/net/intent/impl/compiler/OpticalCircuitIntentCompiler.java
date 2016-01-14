@@ -50,7 +50,7 @@ import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.impl.IntentCompilationException;
 import org.onosproject.net.newresource.ResourceAllocation;
-import org.onosproject.net.newresource.ResourcePath;
+import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.resource.device.IntentSetMultimap;
 import org.onosproject.net.resource.link.LinkResourceAllocations;
@@ -160,9 +160,9 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         log.debug("Compiling optical circuit intent between {} and {}", src, dst);
 
         // Reserve OduClt ports
-        ResourcePath srcPortPath = ResourcePath.discrete(src.deviceId(), src.port());
-        ResourcePath dstPortPath = ResourcePath.discrete(dst.deviceId(), dst.port());
-        List<ResourceAllocation> allocation = resourceService.allocate(intent.id(), srcPortPath, dstPortPath);
+        Resource srcPortResource = Resource.discrete(src.deviceId(), src.port());
+        Resource dstPortResource = Resource.discrete(dst.deviceId(), dst.port());
+        List<ResourceAllocation> allocation = resourceService.allocate(intent.id(), srcPortResource, dstPortResource);
         if (allocation.isEmpty()) {
             throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
         }
@@ -312,7 +312,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         if (ochCP != null) {
             OchPort ochPort = (OchPort) deviceService.getPort(ochCP.deviceId(), ochCP.port());
             Optional<IntentId> intentId =
-                    resourceService.getResourceAllocation(ResourcePath.discrete(ochCP.deviceId(), ochCP.port()))
+                    resourceService.getResourceAllocation(Resource.discrete(ochCP.deviceId(), ochCP.port()))
                             .stream()
                             .map(ResourceAllocation::consumer)
                             .filter(x -> x instanceof IntentId)
@@ -333,7 +333,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             }
 
             Optional<IntentId> intentId =
-                    resourceService.getResourceAllocation(ResourcePath.discrete(oduPort.deviceId(), port.number()))
+                    resourceService.getResourceAllocation(Resource.discrete(oduPort.deviceId(), port.number()))
                             .stream()
                             .map(ResourceAllocation::consumer)
                             .filter(x -> x instanceof IntentId)

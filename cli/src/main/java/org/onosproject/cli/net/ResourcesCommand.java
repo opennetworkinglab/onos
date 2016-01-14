@@ -29,7 +29,7 @@ import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.newresource.ResourcePath;
+import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 
 import com.google.common.base.Strings;
@@ -76,20 +76,20 @@ public class ResourcesCommand extends AbstractShellCommand {
             DeviceId deviceId = deviceId(deviceIdStr);
             PortNumber portNumber = PortNumber.fromString(portNumberStr);
 
-            printResource(ResourcePath.discrete(deviceId, portNumber), 0);
+            printResource(Resource.discrete(deviceId, portNumber), 0);
         } else if (deviceIdStr != null) {
             DeviceId deviceId = deviceId(deviceIdStr);
 
-            printResource(ResourcePath.discrete(deviceId), 0);
+            printResource(Resource.discrete(deviceId), 0);
         } else {
-            printResource(ResourcePath.ROOT, 0);
+            printResource(Resource.ROOT, 0);
         }
     }
 
-    private void printResource(ResourcePath resource, int level) {
-        Collection<ResourcePath> children = resourceService.getAvailableResources(resource);
+    private void printResource(Resource resource, int level) {
+        Collection<Resource> children = resourceService.getAvailableResources(resource);
 
-        if (resource.equals(ResourcePath.ROOT)) {
+        if (resource.equals(Resource.ROOT)) {
             print("ROOT");
         } else {
             String resourceName = resource.last().getClass().getSimpleName();

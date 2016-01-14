@@ -24,7 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Describes an event related to a resource.
  */
 @Beta
-public final class ResourceEvent extends AbstractEvent<ResourceEvent.Type, ResourcePath> {
+public final class ResourceEvent extends AbstractEvent<ResourceEvent.Type, Resource> {
 
     /**
      * Type of resource events.
@@ -48,7 +48,7 @@ public final class ResourceEvent extends AbstractEvent<ResourceEvent.Type, Resou
      * @param type type of resource event
      * @param subject subject of resource event
      */
-    public ResourceEvent(Type type, ResourcePath subject) {
+    public ResourceEvent(Type type, Resource subject) {
         super(checkNotNull(type), checkNotNull(subject));
     }
 }

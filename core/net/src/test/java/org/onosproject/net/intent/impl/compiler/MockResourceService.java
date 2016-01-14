@@ -21,7 +21,7 @@ import org.onlab.packet.VlanId;
 import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourceConsumer;
 import org.onosproject.net.newresource.ResourceListener;
-import org.onosproject.net.newresource.ResourcePath;
+import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 
 import java.util.Collection;
@@ -34,10 +34,10 @@ import java.util.stream.Collectors;
 
 class MockResourceService implements ResourceService {
 
-    private final Map<ResourcePath, ResourceConsumer> assignment = new HashMap<>();
+    private final Map<Resource, ResourceConsumer> assignment = new HashMap<>();
 
     @Override
-    public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<ResourcePath> resources) {
+    public List<ResourceAllocation> allocate(ResourceConsumer consumer, List<Resource> resources) {
         assignment.putAll(
                 resources.stream().collect(Collectors.toMap(x -> x, x -> consumer))
         );
@@ -56,7 +56,7 @@ class MockResourceService implements ResourceService {
 
     @Override
     public boolean release(ResourceConsumer consumer) {
-        List<ResourcePath> resources = assignment.entrySet().stream()
+        List<Resource> resources = assignment.entrySet().stream()
                 .filter(x -> x.getValue().equals(consumer))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
@@ -68,14 +68,14 @@ class MockResourceService implements ResourceService {
     }
 
     @Override
-    public List<ResourceAllocation> getResourceAllocation(ResourcePath resource) {
+    public List<ResourceAllocation> getResourceAllocation(Resource resource) {
         return Optional.ofNullable(assignment.get(resource))
                 .map(x -> ImmutableList.of(new ResourceAllocation(resource, x)))
                 .orElse(ImmutableList.of());
     }
 
     @Override
-    public <T> Collection<ResourceAllocation> getResourceAllocations(ResourcePath parent, Class<T> cls) {
+    public <T> Collection<ResourceAllocation> getResourceAllocations(Resource parent, Class<T> cls) {
         return assignment.entrySet().stream()
                 .filter(x -> x.getKey().parent().isPresent())
                 .filter(x -> x.getKey().parent().get().equals(parent))
@@ -92,16 +92,16 @@ class MockResourceService implements ResourceService {
     }
 
     @Override
-    public Collection<ResourcePath> getAvailableResources(ResourcePath parent) {
+    public Collection<Resource> getAvailableResources(Resource parent) {
 
-        Collection<ResourcePath> resources = new HashSet<ResourcePath>();
+        Collection<Resource> resources = new HashSet<Resource>();
         resources.add(parent.child(VlanId.vlanId((short) 10)));
         resources.add(parent.child(MplsLabel.mplsLabel(10)));
         return ImmutableList.copyOf(resources);
     }
 
     @Override
-    public boolean isAvailable(ResourcePath resource) {
+    public boolean isAvailable(Resource resource) {
         return true;
     }
 
