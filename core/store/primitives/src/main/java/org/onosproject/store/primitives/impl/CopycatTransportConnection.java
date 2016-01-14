@@ -62,7 +62,7 @@ public class CopycatTransportConnection implements Connection {
     static final byte FAILURE = 0x04;
 
     private final long connectionId;
-    private CopycatTransport.Mode mode;
+    private final CopycatTransport.Mode mode;
     private final Address remoteAddress;
     private final MessagingService messagingService;
     private final String outboundMessageSubject;
@@ -73,6 +73,7 @@ public class CopycatTransportConnection implements Connection {
     private final AtomicInteger sendFailures = new AtomicInteger(0);
     private final AtomicInteger messagesReceived = new AtomicInteger(0);
     private final AtomicInteger receiveFailures = new AtomicInteger(0);
+    private final Map<Address, Endpoint> endpointLookupCache = Maps.newConcurrentMap();
 
     CopycatTransportConnection(long connectionId,
             CopycatTransport.Mode mode,
@@ -206,7 +207,6 @@ public class CopycatTransportConnection implements Connection {
 
     @Override
     public CompletableFuture<Void> close() {
-        // TODO: need to unregister message handler
         closeListeners.forEach(listener -> listener.accept(this));
         if (mode == CopycatTransport.Mode.CLIENT) {
             messagingService.unregisterHandler(inboundMessageSubject);
@@ -240,12 +240,14 @@ public class CopycatTransportConnection implements Connection {
     }
 
     private Endpoint toEndpoint(Address address) {
-        try {
-            return new Endpoint(IpAddress.valueOf(InetAddress.getByName(address.host())), address.port());
-        } catch (UnknownHostException e) {
-            Throwables.propagate(e);
-            return null;
-        }
+        return endpointLookupCache.computeIfAbsent(address, a -> {
+            try {
+                return new Endpoint(IpAddress.valueOf(InetAddress.getByName(a.host())), a.port());
+            } catch (UnknownHostException e) {
+                Throwables.propagate(e);
+                return null;
+            }
+        });
     }
 
     @SuppressWarnings("rawtypes")

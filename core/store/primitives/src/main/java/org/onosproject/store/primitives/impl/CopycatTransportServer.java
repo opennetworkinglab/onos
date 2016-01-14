@@ -45,7 +45,7 @@ import io.atomix.catalyst.util.concurrent.ThreadContext;
 public class CopycatTransportServer implements Server {
 
     private final AtomicBoolean listening = new AtomicBoolean(false);
-    private CompletableFuture<Void> listenFuture;
+    private CompletableFuture<Void> listenFuture = new CompletableFuture<>();
     private final String clusterName;
     private final MessagingService messagingService;
     private final String messageSubject;
@@ -59,20 +59,14 @@ public class CopycatTransportServer implements Server {
 
     @Override
     public CompletableFuture<Void> listen(Address address, Consumer<Connection> listener) {
-        if (listening.get()) {
-            return CompletableFuture.completedFuture(null);
-        }
-        ThreadContext context = ThreadContext.currentContextOrThrow();
-        synchronized (this) {
-            if (listenFuture == null) {
-                listenFuture = new CompletableFuture<>();
-                listen(address, listener, context);
-            }
+        if (listening.compareAndSet(false, true)) {
+            ThreadContext context = ThreadContext.currentContextOrThrow();
+            listen(address, listener, context);
         }
         return listenFuture;
     }
 
-    public void listen(Address address, Consumer<Connection> listener, ThreadContext context) {
+    private void listen(Address address, Consumer<Connection> listener, ThreadContext context) {
         messagingService.registerHandler(messageSubject, (sender, payload) -> {
             try (DataInputStream input = new DataInputStream(new ByteArrayInputStream(payload))) {
                 long connectionId = input.readLong();
@@ -101,7 +95,6 @@ public class CopycatTransportServer implements Server {
                 return Tools.exceptionalFuture(e);
             }
         });
-        listening.set(true);
         context.execute(() -> {
             listenFuture.complete(null);
         });
