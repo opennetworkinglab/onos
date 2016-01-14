@@ -75,6 +75,14 @@ public class ResourcePathTest {
     }
 
     @Test
+    public void testChild() {
+        ResourcePath r1 = ResourcePath.discrete(D1).child(P1);
+        ResourcePath sameAsR2 = ResourcePath.discrete(D1, P1);
+
+        assertThat(r1, is(sameAsR2));
+    }
+
+    @Test
     public void testThereIsParent() {
         ResourcePath path = ResourcePath.discrete(D1, P1, VLAN1);
         ResourcePath parent = ResourcePath.discrete(D1, P1);

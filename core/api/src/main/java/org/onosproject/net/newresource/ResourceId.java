@@ -70,7 +70,7 @@ public final class ResourceId {
 
     ResourceId child(Object child) {
         return new ResourceId(ImmutableList.builder()
-                .add(components)
+                .addAll(components)
                 .add(child)
                 .build());
     }
