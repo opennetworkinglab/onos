@@ -28,5 +28,8 @@
         <command>
             <action class="org.onosproject.cordvtn.cli.CordVtnNodeInitCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.cordvtn.cli.CordVtnNodeCheckCommand"/>
+        </command>
     </command-bundle>
 </blueprint>

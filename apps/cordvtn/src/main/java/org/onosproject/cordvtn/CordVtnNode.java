@@ -34,6 +34,8 @@ public final class CordVtnNode {
     private final IpAddress ovsdbIp;
     private final TpPort ovsdbPort;
     private final DeviceId bridgeId;
+    private final String phyPortName;
+    private final IpAddress localIp;
 
     public static final Comparator<CordVtnNode> CORDVTN_NODE_COMPARATOR =
             (node1, node2) -> node1.hostname().compareTo(node2.hostname());
@@ -45,12 +47,17 @@ public final class CordVtnNode {
      * @param ovsdbIp OVSDB server IP address
      * @param ovsdbPort OVSDB server port number
      * @param bridgeId integration bridge identifier
+     * @param phyPortName physical port name
+     * @param localIp local ip address of data plane
      */
-    public CordVtnNode(String hostname, IpAddress ovsdbIp, TpPort ovsdbPort, DeviceId bridgeId) {
+    public CordVtnNode(String hostname, IpAddress ovsdbIp, TpPort ovsdbPort,
+                       DeviceId bridgeId, String phyPortName, IpAddress localIp) {
         this.hostname = checkNotNull(hostname);
         this.ovsdbIp = checkNotNull(ovsdbIp);
         this.ovsdbPort = checkNotNull(ovsdbPort);
         this.bridgeId = checkNotNull(bridgeId);
+        this.phyPortName = checkNotNull(phyPortName);
+        this.localIp = checkNotNull(localIp);
     }
 
     /**
@@ -98,6 +105,24 @@ public final class CordVtnNode {
         return DeviceId.deviceId("ovsdb:" + this.ovsdbIp.toString());
     }
 
+    /**
+     * Returns physical port name.
+     *
+     * @return physical port name
+     */
+    public String phyPortName() {
+        return this.phyPortName;
+    }
+
+    /**
+     * Returns local IP address.
+     *
+     * @return ip address
+     */
+    public IpAddress localIp() {
+        return this.localIp;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -106,10 +131,7 @@ public final class CordVtnNode {
 
         if (obj instanceof CordVtnNode) {
             CordVtnNode that = (CordVtnNode) obj;
-            if (Objects.equals(hostname, that.hostname) &&
-                    Objects.equals(ovsdbIp, that.ovsdbIp) &&
-                    Objects.equals(ovsdbPort, that.ovsdbPort) &&
-                    Objects.equals(bridgeId, that.bridgeId)) {
+            if (Objects.equals(hostname, that.hostname)) {
                 return true;
             }
         }
@@ -128,6 +150,8 @@ public final class CordVtnNode {
                 .add("ip", ovsdbIp)
                 .add("port", ovsdbPort)
                 .add("bridgeId", bridgeId)
+                .add("phyPortName", phyPortName)
+                .add("localIp", localIp)
                 .toString();
     }
 }

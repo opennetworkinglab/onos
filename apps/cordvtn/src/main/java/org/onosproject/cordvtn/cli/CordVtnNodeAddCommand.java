@@ -48,6 +48,16 @@ public class CordVtnNodeAddCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     private String bridgeId = null;
 
+    @Argument(index = 3, name = "phyPortName",
+            description = "Physical port name",
+            required = true, multiValued = false)
+    private String phyPortName = null;
+
+    @Argument(index = 4, name = "localIp",
+            description = "Local data plane IP address",
+            required = true, multiValued = false)
+    private String localIp = null;
+
     @Override
     protected void execute() {
         checkArgument(ovsdb.contains(":"), "OVSDB address should be ip:port format");
@@ -58,7 +68,9 @@ public class CordVtnNodeAddCommand extends AbstractShellCommand {
         CordVtnNode node = new CordVtnNode(hostname,
                                            IpAddress.valueOf(ipPort[0]),
                                            TpPort.tpPort(Integer.parseInt(ipPort[1])),
-                                           DeviceId.deviceId(bridgeId));
+                                           DeviceId.deviceId(bridgeId),
+                                           phyPortName,
+                                           IpAddress.valueOf(localIp));
         service.addNode(node);
     }
 }

@@ -105,9 +105,13 @@ public class CordVtn implements CordVtnService {
             .register(KryoNamespaces.API)
             .register(CordVtnNode.class)
             .register(NodeState.class);
+
     private static final String DEFAULT_BRIDGE = "br-int";
     private static final String VPORT_PREFIX = "tap";
     private static final String DEFAULT_TUNNEL = "vxlan";
+    private static final String OK = "OK";
+    private static final String NO = "NO";
+
     private static final Map<String, String> DEFAULT_TUNNEL_OPTIONS = new HashMap<String, String>() {
         {
             put("key", "flow");
@@ -213,6 +217,8 @@ public class CordVtn implements CordVtnService {
             }
         };
 
+        // TODO Add physical port add state
+
         public abstract void process(CordVtn cordVtn, CordVtnNode node);
     }
 
@@ -307,6 +313,27 @@ public class CordVtn implements CordVtnService {
     }
 
     @Override
+    public String checkNodeInitState(CordVtnNode node) {
+        checkNotNull(node);
+
+        NodeState state = getNodeState(node);
+        if (state == null) {
+            log.warn("Failed to get init state of {}", node.hostname());
+            return null;
+        }
+
+        String result = String.format(
+                "Integration bridge created/connected : %s (%s)%n" +
+                        "VXLAN interface created : %s%n" +
+                        "Physical interface added : %s (%s)",
+                checkIntegrationBridge(node) ? OK : NO, DEFAULT_BRIDGE,
+                checkTunnelInterface(node) ? OK : NO,
+                checkPhyInterface(node) ? OK : NO, node.phyPortName());
+
+        return result;
+    }
+
+    @Override
     public void createServiceDependency(CordServiceId tServiceId, CordServiceId pServiceId) {
         CordService tService = getCordService(tServiceId);
         CordService pService = getCordService(pServiceId);
@@ -374,7 +401,12 @@ public class CordVtn implements CordVtnService {
         checkNotNull(node);
 
         if (checkIntegrationBridge(node) && checkTunnelInterface(node)) {
-            return NodeState.COMPLETE;
+            // TODO add physical port add state
+            if (checkPhyInterface(node)) {
+                return NodeState.COMPLETE;
+            } else {
+                return NodeState.INCOMPLETE;
+            }
         } else if (checkIntegrationBridge(node)) {
             return NodeState.BRIDGE_CREATED;
         } else if (getOvsdbConnectionState(node)) {
@@ -488,6 +520,16 @@ public class CordVtn implements CordVtnService {
     }
 
     /**
+     * Returns port name.
+     *
+     * @param port port
+     * @return port name
+     */
+    private String getPortName(Port port) {
+        return port.annotations().value("portName");
+    }
+
+    /**
      * Returns OVSDB client for a given node.
      *
      * @param node cordvtn node
@@ -520,6 +562,7 @@ public class CordVtn implements CordVtnService {
                     ControllerInfo ctrlInfo = new ControllerInfo(controller.ip(), OFPORT, "tcp");
                     controllers.add(ctrlInfo);
                 });
+
         String dpid = node.intBrId().toString().substring(DPID_BEGIN);
 
         try {
@@ -545,9 +588,11 @@ public class CordVtn implements CordVtnService {
         for (String key : DEFAULT_TUNNEL_OPTIONS.keySet()) {
             optionBuilder.set(key, DEFAULT_TUNNEL_OPTIONS.get(key));
         }
-        TunnelDescription description =
-                new DefaultTunnelDescription(null, null, VXLAN, TunnelName.tunnelName(DEFAULT_TUNNEL),
-                                             optionBuilder.build());
+
+        TunnelDescription description = new DefaultTunnelDescription(
+                null, null, VXLAN, TunnelName.tunnelName(DEFAULT_TUNNEL),
+                optionBuilder.build());
+
         try {
             DriverHandler handler = driverService.createHandler(node.ovsdbId());
             TunnelConfig tunnelConfig =  handler.behaviour(TunnelConfig.class);
@@ -578,7 +623,26 @@ public class CordVtn implements CordVtnService {
         try {
             deviceService.getPorts(node.intBrId())
                     .stream()
-                    .filter(p -> p.annotations().value("portName").contains(DEFAULT_TUNNEL)
+                    .filter(p -> getPortName(p).contains(DEFAULT_TUNNEL)
+                            && p.isEnabled())
+                    .findAny().get();
+            return true;
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks if physical interface exists.
+     *
+     * @param node cordvtn node
+     * @return true if the interface exists, false otherwise
+     */
+    private boolean checkPhyInterface(CordVtnNode node) {
+        try {
+            deviceService.getPorts(node.intBrId())
+                    .stream()
+                    .filter(p -> getPortName(p).contains(node.phyPortName())
                             && p.isEnabled())
                     .findAny().get();
             return true;
@@ -596,7 +660,7 @@ public class CordVtn implements CordVtnService {
     private PortNumber getTunnelPort(DeviceId bridgeId) {
         try {
             return deviceService.getPorts(bridgeId).stream()
-                    .filter(p -> p.annotations().value("portName").contains(DEFAULT_TUNNEL)
+                    .filter(p -> getPortName(p).contains(DEFAULT_TUNNEL)
                             && p.isEnabled())
                     .findFirst().get().number();
         } catch (NoSuchElementException e) {
@@ -613,8 +677,7 @@ public class CordVtn implements CordVtnService {
     private Ip4Address getRemoteIp(DeviceId bridgeId) {
         CordVtnNode node = getNodeByBridgeId(bridgeId);
         if (node != null) {
-            // TODO get data plane IP for tunneling
-            return node.ovsdbIp().getIp4Address();
+            return node.localIp().getIp4Address();
         } else {
             return null;
         }
@@ -712,7 +775,7 @@ public class CordVtn implements CordVtnService {
     private boolean isVm(Host host) {
         Port port = deviceService.getPort(host.location().deviceId(),
                                           host.location().port());
-        return port.annotations().value("portName").contains(VPORT_PREFIX);
+        return getPortName(port).contains(VPORT_PREFIX);
     }
 
     /**
@@ -866,41 +929,48 @@ public class CordVtn implements CordVtnService {
 
         /**
          * Handles port added situation.
-         * If the added port is tunnel port, proceed remaining node initialization.
-         * Otherwise, do nothing.
+         * If the added port is tunnel or physical port, proceed remaining node
+         * initialization. Otherwise, do nothing.
          *
          * @param port port
          */
         public void portAdded(Port port) {
-            // TODO add host by updating network config
-            if (!port.annotations().value("portName").contains(DEFAULT_TUNNEL)) {
+            CordVtnNode node = getNodeByBridgeId((DeviceId) port.element().id());
+            if (node == null) {
                 return;
             }
 
-            CordVtnNode node = getNodeByBridgeId((DeviceId) port.element().id());
-            if (node != null) {
-                setNodeState(node, checkNodeState(node));
+            // TODO add host by updating network config
+            String portName = getPortName(port);
+            if (!portName.contains(DEFAULT_TUNNEL) && !portName.equals(node.phyPortName())) {
+                return;
             }
+
+            log.info("Port {} is added to {}", portName, node.hostname());
+            setNodeState(node, checkNodeState(node));
         }
 
         /**
          * Handles port removed situation.
-         * If the removed port is tunnel port, proceed remaining node initialization.
-         * Others, do nothing.
+         * If the removed port is tunnel or physical port, proceed remaining node
+         * initialization.Others, do nothing.
          *
          * @param port port
          */
         public void portRemoved(Port port) {
-            // TODO remove host by updating network config
-            if (!port.annotations().value("portName").contains(DEFAULT_TUNNEL)) {
+            CordVtnNode node = getNodeByBridgeId((DeviceId) port.element().id());
+            if (node == null) {
                 return;
             }
 
-            CordVtnNode node = getNodeByBridgeId((DeviceId) port.element().id());
-            if (node != null) {
-                log.info("Tunnel interface is removed from {}", node.hostname());
-                setNodeState(node, NodeState.INCOMPLETE);
+            // TODO remove host by updating network config
+            String portName = getPortName(port);
+            if (!portName.contains(DEFAULT_TUNNEL) && !portName.equals(node.phyPortName())) {
+                return;
             }
+
+            log.info("Port {} is removed from {}", portName, node.hostname());
+            setNodeState(node, NodeState.INCOMPLETE);
         }
     }
 

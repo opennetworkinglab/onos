@@ -97,7 +97,13 @@ public class CordVtnConfigManager {
 
         config.cordVtnNodes().forEach(node -> {
             CordVtnNode cordVtnNode = new CordVtnNode(
-                    node.hostname(), node.ovsdbIp(), node.ovsdbPort(), node.bridgeId());
+                    node.hostname(),
+                    node.ovsdbIp(),
+                    node.ovsdbPort(),
+                    node.bridgeId(),
+                    node.phyPortName(),
+                    node.localIp());
+
             cordVtnService.addNode(cordVtnNode);
         });
     }

@@ -44,10 +44,12 @@ public class CordVtnNodeListCommand extends AbstractShellCommand {
             print("%s", json(service, nodes));
         } else {
             for (CordVtnNode node : nodes) {
-                print("hostname=%s, ovsdb=%s, br-int=%s, init=%s",
+                print("hostname=%s, ovsdb=%s, br-int=%s, phyPort=%s, localIp=%s, init=%s",
                       node.hostname(),
                       node.ovsdbIp().toString() + ":" + node.ovsdbPort().toString(),
                       node.intBrId().toString(),
+                      node.phyPortName(),
+                      node.localIp().toString(),
                       getState(service, node));
             }
             print("Total %s nodes", service.getNodeCount());
@@ -63,6 +65,8 @@ public class CordVtnNodeListCommand extends AbstractShellCommand {
                                .put("hostname", node.hostname())
                                .put("ovsdb", ipPort)
                                .put("brInt", node.intBrId().toString())
+                               .put("phyPort", node.phyPortName())
+                               .put("localIp", node.localIp().toString())
                                .put("init", getState(service, node)));
         }
         return result;

@@ -37,6 +37,8 @@ public class CordVtnConfig extends Config<ApplicationId> {
     public static final String OVSDB_IP = "ovsdbIp";
     public static final String OVSDB_PORT = "ovsdbPort";
     public static final String BRIDGE_ID = "bridgeId";
+    public static final String PHYSICAL_PORT_NAME = "phyPortName";
+    public static final String LOCAL_IP = "localIp";
 
     /**
      * Returns the set of nodes read from network config.
@@ -54,7 +56,9 @@ public class CordVtnConfig extends Config<ApplicationId> {
             jsonNode.path(HOSTNAME).asText(),
             IpAddress.valueOf(jsonNode.path(OVSDB_IP).asText()),
             TpPort.tpPort(jsonNode.path(OVSDB_PORT).asInt()),
-            DeviceId.deviceId(jsonNode.path(BRIDGE_ID).asText()))));
+            DeviceId.deviceId(jsonNode.path(BRIDGE_ID).asText()),
+            jsonNode.path(PHYSICAL_PORT_NAME).asText(),
+            IpAddress.valueOf(jsonNode.path(LOCAL_IP).asText()))));
 
         return nodes;
     }
@@ -68,12 +72,17 @@ public class CordVtnConfig extends Config<ApplicationId> {
         private final IpAddress ovsdbIp;
         private final TpPort ovsdbPort;
         private final DeviceId bridgeId;
+        private final String phyPortName;
+        private final IpAddress localIp;
 
-        public CordVtnNodeConfig(String hostname, IpAddress ovsdbIp, TpPort ovsdbPort, DeviceId bridgeId) {
+        public CordVtnNodeConfig(String hostname, IpAddress ovsdbIp, TpPort ovsdbPort,
+                                 DeviceId bridgeId, String phyPortName, IpAddress localIp) {
             this.hostname = checkNotNull(hostname);
             this.ovsdbIp = checkNotNull(ovsdbIp);
             this.ovsdbPort = checkNotNull(ovsdbPort);
             this.bridgeId = checkNotNull(bridgeId);
+            this.phyPortName = checkNotNull(phyPortName);
+            this.localIp = checkNotNull(localIp);
         }
 
         /**
@@ -110,6 +119,24 @@ public class CordVtnConfig extends Config<ApplicationId> {
          */
         public DeviceId bridgeId() {
             return this.bridgeId;
+        }
+
+        /**
+         * Returns physical port name.
+         *
+         * @return physical port name
+         */
+        public String phyPortName() {
+            return this.phyPortName;
+        }
+
+        /**
+         * Returns local IP address.
+         *
+         * @return ip address
+         */
+        public IpAddress localIp() {
+            return this.localIp;
         }
     }
 }

@@ -60,6 +60,19 @@ public interface CordVtnService {
     boolean getNodeInitState(CordVtnNode node);
 
     /**
+     * Returns detailed node initialization state.
+     * Return string includes the following information.
+     *
+     * Integration bridge created/connected: OK or NO
+     * VXLAN interface created: OK or NO
+     * Physical interface added: OK or NO
+     *
+     * @param node cordvtn node
+     * @return string including detailed node init state
+     */
+    String checkNodeInitState(CordVtnNode node);
+
+    /**
      * Returns all nodes known to the service.
      *
      * @return list of nodes
