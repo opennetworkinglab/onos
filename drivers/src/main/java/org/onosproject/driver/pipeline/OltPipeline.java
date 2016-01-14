@@ -51,6 +51,7 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPProtocolCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
@@ -226,6 +227,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             return;
         }
 
+        Criterion innerVid = Criteria.matchVlanId(((VlanIdCriterion) innerVlan).vlanId());
+
         FlowRule.Builder outer = DefaultFlowRule.builder()
                 .forDevice(deviceId)
                 .fromApp(appId)
@@ -241,7 +244,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .forTable(QQ_TABLE)
                 .makePermanent()
                 .withPriority(fwd.priority())
-                .withSelector(buildSelector(inport, innerVlan))
+                .withSelector(buildSelector(inport, innerVid))
                 .withTreatment(buildTreatment(popAndRewrite.getRight(),
                                               output));
 

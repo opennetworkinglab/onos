@@ -114,7 +114,7 @@
                    impl="org.onosproject.driver.pipeline.OFDPA2Pipeline"/>
     </driver>
     <driver name="pmc-olt" extends="default"
-            manufacturer="Big Switch Networks" hwVersion="ivs 0.5" swVersion="ivs 0.5">
+            manufacturer="PMC GPON Networks" hwVersion="PASffffffff v-1" swVersion="vOLT.*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OltPipeline"/>
     </driver>
