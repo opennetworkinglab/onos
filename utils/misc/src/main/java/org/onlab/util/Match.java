@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.consistent.impl;
+package org.onlab.util;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
@@ -28,16 +28,21 @@ import java.util.function.Function;
  */
 public final class Match<T> {
 
+    public static final Match ANY = new Match<>();
+    public static final Match NULL = new Match<>(null, false);
+    public static final Match NOT_NULL = new Match<>(null, true);
+
     private final boolean matchAny;
     private final T value;
+    private final boolean negation;
 
     /**
-     * Returns a Match that matches any value.
+     * Returns a Match that matches any value including null.
      * @param <T> match type
      * @return new instance
      */
     public static <T> Match<T> any() {
-        return new Match<>();
+        return ANY;
     }
 
     /**
@@ -46,27 +51,48 @@ public final class Match<T> {
      * @return new instance
      */
     public static <T> Match<T> ifNull() {
-        return ifValue(null);
+        return NULL;
     }
 
     /**
-     * Returns a Match that matches only specified value.
+     * Returns a Match that matches all non-null values.
+     * @param <T> match type
+     * @return new instance
+     */
+    public static <T> Match<T> ifNotNull() {
+        return NOT_NULL;
+    }
+
+    /**
+     * Returns a Match that only matches the specified value.
      * @param value value to match
      * @param <T> match type
      * @return new instance
      */
     public static <T> Match<T> ifValue(T value) {
-        return new Match<>(value);
+        return new Match<>(value, false);
+    }
+
+    /**
+     * Returns a Match that matches any value except the specified value.
+     * @param value value to not match
+     * @param <T> match type
+     * @return new instance
+     */
+    public static <T> Match<T> ifNotValue(T value) {
+        return new Match<>(value, true);
     }
 
     private Match() {
         matchAny = true;
+        negation = false;
         value = null;
     }
 
-    private Match(T value) {
+    private Match(T value, boolean negation) {
         matchAny = false;
         this.value = value;
+        this.negation = negation;
     }
 
     /**
@@ -79,9 +105,9 @@ public final class Match<T> {
         if (matchAny) {
             return any();
         } else if (value == null) {
-            return ifNull();
+            return negation ? ifNotNull() : ifNull();
         } else {
-            return ifValue(mapper.apply(value));
+            return negation ? ifNotValue(mapper.apply(value)) : ifValue(mapper.apply(value));
         }
     }
 
@@ -94,21 +120,21 @@ public final class Match<T> {
         if (matchAny) {
             return true;
         } else if (other == null) {
-            return value == null;
+            return negation ? value != null : value == null;
         } else {
             if (value instanceof byte[]) {
-                return Arrays.equals((byte[]) value, (byte[]) other);
+                boolean equal = Arrays.equals((byte[]) value, (byte[]) other);
+                return negation ? !equal : equal;
             }
-            return Objects.equals(value, other);
+            return negation ? !Objects.equals(value, other) : Objects.equals(value, other);
         }
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(matchAny, value);
+        return Objects.hash(matchAny, value, negation);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public boolean equals(Object other) {
         if (!(other instanceof Match)) {
@@ -116,13 +142,15 @@ public final class Match<T> {
         }
         Match<T> that = (Match<T>) other;
         return Objects.equals(this.matchAny, that.matchAny) &&
-               Objects.equals(this.value, that.value);
+               Objects.equals(this.value, that.value) &&
+               Objects.equals(this.negation, that.negation);
     }
 
     @Override
     public String toString() {
         return toStringHelper(this)
                 .add("matchAny", matchAny)
+                .add("negation", negation)
                 .add("value", value)
                 .toString();
     }

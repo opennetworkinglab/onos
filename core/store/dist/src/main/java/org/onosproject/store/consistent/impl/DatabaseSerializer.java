@@ -19,6 +19,7 @@ package org.onosproject.store.consistent.impl;
 import java.nio.ByteBuffer;
 
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.Match;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.serializers.KryoSerializer;

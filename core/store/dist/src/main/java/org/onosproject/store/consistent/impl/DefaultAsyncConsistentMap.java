@@ -22,6 +22,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Maps;
 
 import org.onlab.util.HexString;
+import org.onlab.util.Match;
 import org.onlab.util.SharedExecutors;
 import org.onlab.util.Tools;
 import org.onosproject.core.ApplicationId;

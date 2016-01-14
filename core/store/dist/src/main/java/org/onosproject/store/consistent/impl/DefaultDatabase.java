@@ -17,12 +17,15 @@
 package org.onosproject.store.consistent.impl;
 
 import com.google.common.collect.Sets;
+
 import net.kuujo.copycat.resource.internal.AbstractResource;
 import net.kuujo.copycat.resource.internal.ResourceManager;
 import net.kuujo.copycat.state.StateMachine;
 import net.kuujo.copycat.state.internal.DefaultStateMachine;
 import net.kuujo.copycat.util.concurrent.Futures;
 import net.kuujo.copycat.util.function.TriConsumer;
+
+import org.onlab.util.Match;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 

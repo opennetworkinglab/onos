@@ -54,6 +54,7 @@ import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.primitives.UnsignedLongs;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -207,6 +208,20 @@ public abstract class Tools {
      */
     public static String toHex(long value, int width) {
         return Strings.padStart(UnsignedLongs.toString(value, 16), width, '0');
+    }
+
+    /**
+     * Returns the UTF-8 encoded byte[] representation of a String.
+     */
+    public static byte[] getBytesUtf8(String input) {
+        return input.getBytes(Charsets.UTF_8);
+    }
+
+    /**
+     * Returns the String representation of UTF-8 encoded byte[].
+     */
+    public static String toStringUtf8(byte[] input) {
+        return new String(input, Charsets.UTF_8);
     }
 
     /**

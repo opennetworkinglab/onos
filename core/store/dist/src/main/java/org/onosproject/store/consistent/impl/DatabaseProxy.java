@@ -16,6 +16,7 @@
 
 package org.onosproject.store.consistent.impl;
 
+import org.onlab.util.Match;
 import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.Versioned;
 
