@@ -227,13 +227,11 @@ public class ArpHandler {
                 .setSourceMACAddress(targetMac.toBytes())
                 .setEtherType(Ethernet.TYPE_ARP).setPayload(arpReply);
 
-
-        HostId dstId = HostId.hostId(
-                MacAddress.valueOf(arpReply.getTargetHardwareAddress()),
-                vlanId);
+        MacAddress hostMac = MacAddress.valueOf(arpReply.getTargetHardwareAddress());
+        HostId dstId = HostId.hostId(hostMac, vlanId);
         Host dst = srManager.hostService.getHost(dstId);
         if (dst == null) {
-            log.warn("Cannot send ARP response to unknown device");
+            log.warn("Cannot send ARP response to host {}", dstId);
             return;
         }
 

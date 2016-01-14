@@ -260,7 +260,7 @@ public class RoutingRulePopulator {
                 .makePermanent()
                 .nextStep(nextId)
                 .withSelector(selector)
-                .withPriority(100)
+                .withPriority(2000 * ipPrefix.prefixLength())
                 .withFlag(ForwardingObjective.Flag.SPECIFIC);
         if (treatment != null) {
             fwdBuilder.withTreatment(treatment);
