@@ -24,6 +24,7 @@ import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.SetEvent;
 import org.onosproject.store.service.SetEventListener;
 
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -117,7 +118,13 @@ public class DefaultDistributedSet<E> implements DistributedSet<E> {
     public <T> T[] toArray(T[] a) {
         final MeteringAgent.Context timer = monitor.startTimer(TO_ARRAY);
         try {
-            return backingMap.keySet().stream().toArray(size -> a);
+            // TODO: Optimize this to only allocate a new array if the set size
+            // is larger than the array.length. If the set size is smaller than
+            // the array.length then copy the data into the array and set the
+            // last element in the array to be null.
+            final T[] resizedArray =
+                    (T[]) Array.newInstance(a.getClass().getComponentType(), backingMap.keySet().size());
+            return (T[]) backingMap.keySet().toArray(resizedArray);
         } finally {
             timer.stop(null);
         }
