@@ -477,13 +477,15 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
     }
 
     @Override
-    public void addListener(MapEventListener<K, V> listener) {
+    public CompletableFuture<Void> addListener(MapEventListener<K, V> listener) {
         listeners.add(listener);
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
-    public void removeListener(MapEventListener<K, V> listener) {
+    public CompletableFuture<Void> removeListener(MapEventListener<K, V> listener) {
         listeners.remove(listener);
+        return CompletableFuture.completedFuture(null);
     }
 
     protected void notifyListeners(MapEvent<K, V> event) {
@@ -498,5 +500,4 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
             }
         });
     }
-
 }

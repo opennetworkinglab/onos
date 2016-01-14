@@ -18,7 +18,7 @@ package org.onosproject.store.service;
 import org.onosproject.core.ApplicationId;
 
 /**
- * Builder for consistent maps.
+ * Builder for {@link ConsistentMap} instances.
  *
  * @param <K> type for map key
  * @param <V> type for map value
@@ -28,19 +28,20 @@ public interface ConsistentMapBuilder<K, V> {
     /**
      * Sets the name of the map.
      * <p>
-     * Each consistent map is identified by a unique map name.
+     * Each map is identified by a unique map name. Different instances with the same name are all backed by the
+     * same backend state.
      * </p>
      * <p>
-     * Note: This is a mandatory parameter.
+     * <b>Note:</b> This is a mandatory parameter.
      * </p>
      *
-     * @param name name of the consistent map
+     * @param name name of the map
      * @return this ConsistentMapBuilder
      */
     ConsistentMapBuilder<K, V> withName(String name);
 
     /**
-     * Sets the owner applicationId for the map.
+     * Sets the identifier of the application that owns this map instance.
      * <p>
      * Note: If {@code purgeOnUninstall} option is enabled, applicationId
      * must be specified.

@@ -15,124 +15,60 @@
  */
 package org.onosproject.store.consistent.impl;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AtomicValue;
-import org.onosproject.store.service.AtomicValueEvent;
 import org.onosproject.store.service.AtomicValueEventListener;
-import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.MapEvent;
-import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.Versioned;
+import org.onosproject.store.service.StorageException;
 
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+import com.google.common.util.concurrent.Futures;
 
 /**
- * Default implementation of AtomicValue.
+ * Default implementation of {@link AtomicValue}.
  *
  * @param <V> value type
  */
 public class DefaultAtomicValue<V> implements AtomicValue<V> {
 
-    private final Set<AtomicValueEventListener<V>> listeners = new CopyOnWriteArraySet<>();
-    private final ConsistentMap<String, byte[]> valueMap;
-    private final String name;
-    private final Serializer serializer;
-    private final MapEventListener<String, byte[]> mapEventListener = new InternalMapEventListener();
-    private final MeteringAgent monitor;
+    private static final int OPERATION_TIMEOUT_MILLIS = 5000;
+    private final AsyncAtomicValue<V> asyncValue;
 
-    private static final String COMPONENT_NAME = "atomicValue";
-    private static final String GET = "get";
-    private static final String GET_AND_SET = "getAndSet";
-    private static final String COMPARE_AND_SET = "compareAndSet";
-
-    public DefaultAtomicValue(ConsistentMap<String, byte[]> valueMap,
-                              String name,
-                              boolean meteringEnabled,
-                              Serializer serializer) {
-        this.valueMap = valueMap;
-        this.name = name;
-        this.serializer = serializer;
-        this.monitor = new MeteringAgent(COMPONENT_NAME, name, meteringEnabled);
+    public DefaultAtomicValue(AsyncAtomicValue<V> asyncValue) {
+        this.asyncValue = asyncValue;
     }
 
     @Override
     public boolean compareAndSet(V expect, V update) {
-        final MeteringAgent.Context newTimer = monitor.startTimer(COMPARE_AND_SET);
-        try {
-            if (expect == null) {
-                if (update == null) {
-                    return true;
-                }
-                return valueMap.putIfAbsent(name, serializer.encode(update)) == null;
-            } else {
-                if (update == null) {
-                    return valueMap.remove(name, serializer.encode(expect));
-                }
-                return valueMap.replace(name, serializer.encode(expect), serializer.encode(update));
-            }
-        } finally {
-            newTimer.stop(null);
-        }
+        return complete(asyncValue.compareAndSet(expect, update));
     }
 
     @Override
     public V get() {
-        final MeteringAgent.Context newTimer = monitor.startTimer(GET);
-        try {
-            Versioned<byte[]> rawValue = valueMap.get(name);
-            return rawValue == null ? null : serializer.decode(rawValue.value());
-        } finally {
-            newTimer.stop(null);
-        }
+        return complete(asyncValue.get());
     }
 
     @Override
     public V getAndSet(V value) {
-        final MeteringAgent.Context newTimer = monitor.startTimer(GET_AND_SET);
-        try {
-            Versioned<byte[]> previousValue = value == null ?
-                    valueMap.remove(name) : valueMap.put(name, serializer.encode(value));
-            return previousValue == null ? null : serializer.decode(previousValue.value());
-        } finally {
-            newTimer.stop(null);
-        }
+        return complete(asyncValue.getAndSet(value));
     }
 
     @Override
     public void set(V value) {
-        getAndSet(value);
+        complete(asyncValue.set(value));
     }
 
     @Override
     public void addListener(AtomicValueEventListener<V> listener) {
-        synchronized (listeners) {
-            if (listeners.add(listener)) {
-                if (listeners.size() == 1) {
-                    valueMap.addListener(mapEventListener);
-                }
-            }
-        }
+        complete(asyncValue.addListener(listener));
     }
 
     @Override
     public void removeListener(AtomicValueEventListener<V> listener) {
-        synchronized (listeners) {
-            if (listeners.remove(listener)) {
-                if (listeners.size() == 0) {
-                    valueMap.removeListener(mapEventListener);
-                }
-            }
-        }
+        complete(asyncValue.removeListener(listener));
     }
 
-    private class InternalMapEventListener implements MapEventListener<String, byte[]> {
-
-        @Override
-        public void event(MapEvent<String, byte[]> mapEvent) {
-            V newValue = mapEvent.type() == MapEvent.Type.REMOVE ? null : serializer.decode(mapEvent.value().value());
-            AtomicValueEvent<V> atomicValueEvent = new AtomicValueEvent<>(name, AtomicValueEvent.Type.UPDATE, newValue);
-            listeners.forEach(l -> l.event(atomicValueEvent));
-        }
+    private static <V> V complete(CompletableFuture<V> future) {
+        return Futures.getChecked(future, StorageException.class, OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
     }
 }

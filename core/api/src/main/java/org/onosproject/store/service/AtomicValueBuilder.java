@@ -68,6 +68,15 @@ public interface AtomicValueBuilder<V> {
     AtomicValueBuilder<V> withMeteringDisabled();
 
     /**
+     * Builds a AsyncAtomicValue based on the configuration options
+     * supplied to this builder.
+     *
+     * @return new AsyncAtomicValue
+     * @throws java.lang.RuntimeException if a mandatory parameter is missing
+     */
+    AsyncAtomicValue<V> buildAsyncValue();
+
+    /**
      * Builds a AtomicValue based on the configuration options
      * supplied to this builder.
      *

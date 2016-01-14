@@ -17,6 +17,7 @@
 package org.onosproject.store.service;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -42,7 +43,11 @@ import java.util.function.Predicate;
  * </p><p>
  * This map does not allow null values. All methods can throw a ConsistentMapException
  * (which extends RuntimeException) to indicate failures.
- *
+ * <p>
+ * All methods of this interface return a {@link CompletableFuture future} immediately
+ * after a successful invocation. The operation itself is executed asynchronous and
+ * the returned future will be {@link CompletableFuture#complete completed} when the
+ * operation finishes.
  */
 public interface AsyncConsistentMap<K, V> {
 
@@ -58,7 +63,9 @@ public interface AsyncConsistentMap<K, V> {
      *
      * @return a future whose value will be true if map has no entries, false otherwise.
      */
-    CompletableFuture<Boolean> isEmpty();
+    default CompletableFuture<Boolean> isEmpty() {
+        return size().thenApply(s -> s == 0);
+    }
 
     /**
      * Returns true if this map contains a mapping for the specified key.
@@ -97,8 +104,10 @@ public interface AsyncConsistentMap<K, V> {
      * @return the current (existing or computed) value associated with the specified key,
      * or null if the computed value is null
      */
-    CompletableFuture<Versioned<V>> computeIfAbsent(K key,
-            Function<? super K, ? extends V> mappingFunction);
+    default CompletableFuture<Versioned<V>> computeIfAbsent(K key,
+            Function<? super K, ? extends V> mappingFunction) {
+        return computeIf(key, Objects::isNull, (k, v) -> mappingFunction.apply(k));
+    }
 
     /**
      * If the value for the specified key is present and non-null, attempts to compute a new
@@ -110,8 +119,10 @@ public interface AsyncConsistentMap<K, V> {
      * @param remappingFunction the function to compute a value
      * @return the new value associated with the specified key, or null if computed value is null
      */
-    CompletableFuture<Versioned<V>> computeIfPresent(K key,
-            BiFunction<? super K, ? super V, ? extends V> remappingFunction);
+    default CompletableFuture<Versioned<V>> computeIfPresent(K key,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        return computeIf(key, Objects::nonNull, remappingFunction);
+    }
 
     /**
      * Attempts to compute a mapping for the specified key and its current mapped value (or
@@ -123,8 +134,10 @@ public interface AsyncConsistentMap<K, V> {
      * @param remappingFunction the function to compute a value
      * @return the new value associated with the specified key, or null if computed value is null
      */
-    CompletableFuture<Versioned<V>> compute(K key,
-            BiFunction<? super K, ? super V, ? extends V> remappingFunction);
+    default CompletableFuture<Versioned<V>> compute(K key,
+            BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        return computeIf(key, v -> true, remappingFunction);
+    }
 
     /**
      * If the value for the specified key satisfies a condition, attempts to compute a new
@@ -280,14 +293,16 @@ public interface AsyncConsistentMap<K, V> {
      * Registers the specified listener to be notified whenever the map is updated.
      *
      * @param listener listener to notify about map events
+     * @return future that will be completed when the operation finishes
      */
-    void addListener(MapEventListener<K, V> listener);
+    CompletableFuture<Void> addListener(MapEventListener<K, V> listener);
 
     /**
      * Unregisters the specified listener such that it will no longer
      * receive map change notifications.
      *
      * @param listener listener to unregister
+     * @return future that will be completed when the operation finishes
      */
-    void removeListener(MapEventListener<K, V> listener);
+    CompletableFuture<Void> removeListener(MapEventListener<K, V> listener);
 }
