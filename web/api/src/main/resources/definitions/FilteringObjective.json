@@ -1,0 +1,513 @@
+{
+  "type": "object",
+  "title": "filteringObjective",
+  "required": [
+    "type",
+    "priority",
+    "timeout",
+    "isPermanent",
+    "deviceId",
+    "operation",
+    "key",
+    "conditions",
+    "meta"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "example": "PERMIT"
+    },
+    "priority": {
+      "type": "integer",
+      "format": "int64",
+      "example": 400000
+    },
+    "timeout": {
+      "type": "integer",
+      "format": "int64",
+      "example": 0
+    },
+    "isPermanent": {
+      "type": "boolean",
+      "example": true
+    },
+    "deviceId": {
+      "type": "string",
+      "example": "of:0000000000000001"
+    },
+    "operation": {
+      "type": "string",
+      "example": "ADD"
+    },
+    "key": {
+      "type": "object",
+      "title": "key",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Ethernet field name",
+          "example": "ETH_TYPE"
+        },
+        "ethType": {
+          "type": "int64",
+          "format": "int64",
+          "example": "0x88cc",
+          "description": "Ethernet frame type"
+        },
+        "mac": {
+          "type": "string",
+          "example": "00:00:11:00:00:01"
+        },
+        "port": {
+          "type": "int64",
+          "format": "int64",
+          "example": 1,
+          "description": "Match port"
+        },
+        "metadata": {
+          "type": "Hex16",
+          "format": "Hex16",
+          "example": "0xabcdL",
+          "description": "Metadata passed between tables"
+        },
+        "vlanId": {
+          "type": "uint16",
+          "format": "uint16",
+          "example": "0x1000"
+        },
+        "priority": {
+          "type": "int64",
+          "format": "int64",
+          "example": 1,
+          "description": "VLAN priority."
+        },
+        "ipDscp": {
+          "type": "byte",
+          "format": "byte",
+          "description": "IP DSCP (6 bits in ToS field)"
+        },
+        "ipEcn": {
+          "type": "byte",
+          "format": "byte",
+          "description": "IP ECN (2 bits in ToS field)."
+        },
+        "protocol": {
+          "type": "uint16",
+          "format": "uint16",
+          "example": 1,
+          "description": "IP protocol"
+        },
+        "ip": {
+          "type": "string",
+          "example": "10.1.1.0/24",
+          "description": "IP source address"
+        },
+        "tcpPort": {
+          "type": "integer",
+          "format": "uint16",
+          "example": 1,
+          "description": "TCP source address"
+        },
+        "udpPort": {
+          "type": "uint16",
+          "format": "uint16",
+          "example": 1,
+          "description": "UDP source address"
+        },
+        "sctpPort": {
+          "type": "uint16",
+          "format": "uint16",
+          "example": 1,
+          "description": "SCTP source address"
+        },
+        "icmpType": {
+          "type": "uint16",
+          "format": "uint16",
+          "example": 1,
+          "description": "Internet Control Message Protocol for IPV4 code (RFC0792)"
+        },
+        "icmpCode": {
+          "type": "uint16",
+          "format": "uint16",
+          "example": 1,
+          "description": "Internet Control Message Protocol for IPV4 code (RFC0792)"
+        },
+        "flowLabel": {
+          "type": "Hex16",
+          "format": "Hex16",
+          "example": "0xffffe",
+          "description": "IPv6 Flow Label (RFC 6437)"
+        },
+        "icmpv6Type": {
+          "type": "uint16",
+          "format": "uint16",
+          "example": 1,
+          "description": "Internet Control Message Protocol for IPV6 type (RFC2463)"
+        },
+        "icmpv6Code": {
+          "type": "uint16",
+          "format": "uint16",
+          "example": 1,
+          "description": "Internet Control Message Protocol for IPV6 code (RFC2463)"
+        },
+        "targetAddress": {
+          "type": "String",
+          "example": "10.1.1.0/24",
+          "description": "IPv6 Neighbor discovery target address"
+        },
+        "label": {
+          "type": "int32",
+          "format": "int32",
+          "example": 1,
+          "description": "MPLS label"
+        },
+        "exthdrFlags": {
+          "type": "int64",
+          "format": "int64",
+          "example": 1,
+          "description": "IPv6 extension header pseudo-field"
+        },
+        "lambda": {
+          "type": "int64",
+          "format": "int64",
+          "example": 1,
+          "description": "wavelength abstraction"
+        },
+        "gridType": {
+          "type": "String",
+          "example": "DWDM",
+          "description": "Type of wavelength grid"
+        },
+        "channelSpacing": {
+          "type": "int64",
+          "format": "int64",
+          "example": 100,
+          "description": "Optical channel spacing"
+        },
+        "spacingMultiplier": {
+          "type": "integer",
+          "format": "int64",
+          "example": 4,
+          "description": "Optical channel spacing multiplier"
+        },
+        "slotGranularity": {
+          "type": "int64",
+          "format": "int64",
+          "example": 8
+        },
+        "ochSignalId": {
+          "type": "integer",
+          "format": "int64",
+          "example": 1,
+          "description": "Optical channel signal ID"
+        },
+        "tunnelId": {
+          "type": "int64",
+          "format": "int64",
+          "example": 5,
+          "description": "Tunnel ID"
+        },
+        "ochSignalType": {
+          "type": "int64",
+          "format": "int64",
+          "example": 1,
+          "description": "Optical channel signal type"
+        },
+        "oduSignalId": {
+          "type": "int64",
+          "format": "int64",
+          "example": 1,
+          "description": "ODU (Optical channel Data Unit) signal ID."
+        },
+        "tributaryPortNumber": {
+          "type": "int64",
+          "format": "int64",
+          "example": 11,
+          "description": "OPU (Optical channel Payload Unit) port number."
+        },
+        "tributarySlotLen": {
+          "type": "int64",
+          "format": "int64",
+          "example": 80,
+          "description": "OPU (Optical channel Payload Unit) slot length."
+        },
+        "tributarySlotBitmap": {
+          "type": "array",
+          "title": "tributarySlotBitmap",
+          "description": "OPU (Optical channel Payload Unit) slot bitmap.",
+          "required": [
+            "byte",
+            "port"
+          ],
+          "items": {
+            "type": "byte",
+            "title": "byte",
+            "example": 1
+          }
+        },
+        "oduSignalType": {
+          "type": "int64",
+          "format": "int64",
+          "example": 4,
+          "description": "ODU (Optical channel Data Unit) signal type."
+        }
+      }
+    },
+    "conditions": {
+      "type": "array",
+      "xml": {
+        "name": "conditions",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "conditions",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Ethernet field name",
+            "example": "ETH_TYPE"
+          },
+          "ethType": {
+            "type": "int64",
+            "format": "int64",
+            "example": "0x88cc",
+            "description": "Ethernet frame type"
+          },
+          "mac": {
+            "type": "string",
+            "example": "00:00:11:00:00:01"
+          },
+          "port": {
+            "type": "int64",
+            "format": "int64",
+            "example": 1,
+            "description": "Match port"
+          },
+          "metadata": {
+            "type": "Hex16",
+            "format": "Hex16",
+            "example": "0xabcdL",
+            "description": "Metadata passed between tables"
+          },
+          "vlanId": {
+            "type": "uint16",
+            "format": "uint16",
+            "example": "0x1000"
+          },
+          "priority": {
+            "type": "int64",
+            "format": "int64",
+            "example": 1,
+            "description": "VLAN priority."
+          },
+          "ipDscp": {
+            "type": "byte",
+            "format": "byte",
+            "description": "IP DSCP (6 bits in ToS field)"
+          },
+          "ipEcn": {
+            "type": "byte",
+            "format": "byte",
+            "description": "IP ECN (2 bits in ToS field)."
+          },
+          "protocol": {
+            "type": "uint16",
+            "format": "uint16",
+            "example": 1,
+            "description": "IP protocol"
+          },
+          "ip": {
+            "type": "string",
+            "example": "10.1.1.0/24",
+            "description": "IP source address"
+          },
+          "tcpPort": {
+            "type": "integer",
+            "format": "uint16",
+            "example": 1,
+            "description": "TCP source address"
+          },
+          "udpPort": {
+            "type": "uint16",
+            "format": "uint16",
+            "example": 1,
+            "description": "UDP source address"
+          },
+          "sctpPort": {
+            "type": "uint16",
+            "format": "uint16",
+            "example": 1,
+            "description": "SCTP source address"
+          },
+          "icmpType": {
+            "type": "uint16",
+            "format": "uint16",
+            "example": 1,
+            "description": "Internet Control Message Protocol for IPV4 code (RFC0792)"
+          },
+          "icmpCode": {
+            "type": "uint16",
+            "format": "uint16",
+            "example": 1,
+            "description": "Internet Control Message Protocol for IPV4 code (RFC0792)"
+          },
+          "flowLabel": {
+            "type": "Hex16",
+            "format": "Hex16",
+            "example": "0xffffe",
+            "description": "IPv6 Flow Label (RFC 6437)"
+          },
+          "icmpv6Type": {
+            "type": "uint16",
+            "format": "uint16",
+            "example": 1,
+            "description": "Internet Control Message Protocol for IPV6 type (RFC2463)"
+          },
+          "icmpv6Code": {
+            "type": "uint16",
+            "format": "uint16",
+            "example": 1,
+            "description": "Internet Control Message Protocol for IPV6 code (RFC2463)"
+          },
+          "targetAddress": {
+            "type": "String",
+            "example": "10.1.1.0/24",
+            "description": "IPv6 Neighbor discovery target address"
+          },
+          "label": {
+            "type": "int32",
+            "format": "int32",
+            "example": 1,
+            "description": "MPLS label"
+          },
+          "exthdrFlags": {
+            "type": "int64",
+            "format": "int64",
+            "example": 1,
+            "description": "IPv6 extension header pseudo-field"
+          },
+          "lambda": {
+            "type": "int64",
+            "format": "int64",
+            "example": 1,
+            "description": "wavelength abstraction"
+          },
+          "gridType": {
+            "type": "String",
+            "example": "DWDM",
+            "description": "Type of wavelength grid"
+          },
+          "channelSpacing": {
+            "type": "int64",
+            "format": "int64",
+            "example": 100,
+            "description": "Optical channel spacing"
+          },
+          "spacingMultiplier": {
+            "type": "integer",
+            "format": "int64",
+            "example": 4,
+            "description": "Optical channel spacing multiplier"
+          },
+          "slotGranularity": {
+            "type": "int64",
+            "format": "int64",
+            "example": 8
+          },
+          "ochSignalId": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1,
+            "description": "Optical channel signal ID"
+          },
+          "tunnelId": {
+            "type": "int64",
+            "format": "int64",
+            "example": 5,
+            "description": "Tunnel ID"
+          },
+          "ochSignalType": {
+            "type": "int64",
+            "format": "int64",
+            "example": 1,
+            "description": "Optical channel signal type"
+          },
+          "oduSignalId": {
+            "type": "int64",
+            "format": "int64",
+            "example": 1,
+            "description": "ODU (Optical channel Data Unit) signal ID."
+          },
+          "tributaryPortNumber": {
+            "type": "int64",
+            "format": "int64",
+            "example": 11,
+            "description": "OPU (Optical channel Payload Unit) port number."
+          },
+          "tributarySlotLen": {
+            "type": "int64",
+            "format": "int64",
+            "example": 80,
+            "description": "OPU (Optical channel Payload Unit) slot length."
+          },
+          "tributarySlotBitmap": {
+            "type": "array",
+            "title": "tributarySlotBitmap",
+            "description": "OPU (Optical channel Payload Unit) slot bitmap.",
+            "required": [
+              "byte",
+              "port"
+            ],
+            "items": {
+              "type": "byte",
+              "title": "byte",
+              "example": 1
+            }
+          },
+          "oduSignalType": {
+            "type": "int64",
+            "format": "int64",
+            "example": 4,
+            "description": "ODU (Optical channel Data Unit) signal type."
+          }
+        }
+      }
+    },
+    "treatment": {
+      "type": "object",
+      "title": "treatment",
+      "required": [
+        "instructions"
+      ],
+      "properties": {
+        "instructions": {
+          "type": "array",
+          "title": "treatment",
+          "required": [
+            "properties",
+            "port"
+          ],
+          "items": {
+            "type": "object",
+            "title": "instructions",
+            "required": [
+              "type",
+              "port"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "example": "OUTPUT"
+              },
+              "port": {
+                "type": "string",
+                "example": "CONTROLLER"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
