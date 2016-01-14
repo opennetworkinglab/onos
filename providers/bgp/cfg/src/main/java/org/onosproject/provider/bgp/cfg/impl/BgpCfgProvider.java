@@ -108,8 +108,6 @@ public class BgpCfgProvider extends AbstractProvider {
 
     /**
      * Reads the configuration and set it to the BGP-LS south bound protocol.
-     *
-     * @return void
      */
     private void readConfiguration() {
         BgpCfg bgpConfig = null;

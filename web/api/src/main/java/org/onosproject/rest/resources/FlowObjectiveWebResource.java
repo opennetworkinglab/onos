@@ -170,7 +170,6 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
      * Installs the filtering rules onto the specified device.
      *
      * @param stream filtering rule JSON
-     * @return status of the request
      * @onos.rsModel ObjectivePolicy
      */
     @POST
