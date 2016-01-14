@@ -108,9 +108,9 @@ public abstract class ResourcePath {
     }
 
     /**
-     * Creates an resource path from the specified key.
+     * Creates an resource path from the specified id.
      *
-     * @param id key of the path
+     * @param id id of the path
      */
     protected ResourcePath(ResourceId id) {
         checkNotNull(id);
@@ -190,9 +190,9 @@ public abstract class ResourcePath {
     }
 
     /**
-     * Returns the key of this resource path.
+     * Returns the ID of this resource path.
      *
-     * @return the key of this resource path
+     * @return the ID of this resource path
      */
     public ResourceId id() {
         return id;
@@ -218,7 +218,7 @@ public abstract class ResourcePath {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("key", id)
+                .add("id", id)
                 .toString();
     }
 
@@ -236,8 +236,8 @@ public abstract class ResourcePath {
             super();
         }
 
-        private Discrete(ResourceId key) {
-            super(key);
+        private Discrete(ResourceId id) {
+            super(id);
         }
     }
 
@@ -252,8 +252,8 @@ public abstract class ResourcePath {
     public static final class Continuous extends ResourcePath {
         private final double value;
 
-        private Continuous(ResourceId key, double value) {
-            super(key);
+        private Continuous(ResourceId id, double value) {
+            super(id);
             this.value = value;
         }
 
