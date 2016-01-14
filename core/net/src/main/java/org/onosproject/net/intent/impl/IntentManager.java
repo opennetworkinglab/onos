@@ -54,7 +54,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -323,7 +322,17 @@ public class IntentManager
                  3. accumulate results and submit batch write of IntentData to store
                     (we can also try to update these individually)
                  */
-                    submitUpdates(waitForFutures(createIntentUpdates(operations)));
+                    store.batchWrite(operations.stream()
+                            .map(IntentManager.this::submitIntentData)
+                            .map(x -> x.exceptionally(e -> {
+                                //FIXME
+                                log.warn("Future failed: {}", e);
+                                return null;
+                            }))
+                            .map(CompletableFuture::join)
+                            .filter(Objects::nonNull)
+                            .map(FinalIntentProcessPhase::data)
+                            .collect(Collectors.toList()));
                 } catch (Exception e) {
                     log.error("Error submitting batches:", e);
                     // FIXME incomplete Intents should be cleaned up
@@ -338,28 +347,6 @@ public class IntentManager
                 accumulator.ready();
             });
         }
-    }
-
-    private Stream<CompletableFuture<FinalIntentProcessPhase>> createIntentUpdates(Collection<IntentData> data) {
-        return data.stream()
-                .map(IntentManager.this::submitIntentData);
-    }
-
-    private Stream<FinalIntentProcessPhase> waitForFutures(Stream<CompletableFuture<FinalIntentProcessPhase>> futures) {
-        return futures
-                .map(x -> x.exceptionally(e -> {
-                    //FIXME
-                    log.warn("Future failed: {}", e);
-                    return null;
-                }))
-                .map(CompletableFuture::join)
-                .filter(Objects::nonNull);
-    }
-
-    private void submitUpdates(Stream<FinalIntentProcessPhase> updates) {
-        store.batchWrite(updates
-                .map(FinalIntentProcessPhase::data)
-                .collect(Collectors.toList()));
     }
 
     private class InternalIntentProcessor implements IntentProcessor {
