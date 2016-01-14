@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.intent.impl;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -50,9 +49,9 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -340,16 +339,15 @@ public class IntentManager
     }
 
     private List<FinalIntentProcessPhase> waitForFutures(List<CompletableFuture<FinalIntentProcessPhase>> futures) {
-        ImmutableList.Builder<FinalIntentProcessPhase> updateBuilder = ImmutableList.builder();
-        for (CompletableFuture<FinalIntentProcessPhase> future : futures) {
-            try {
-                updateBuilder.add(future.get());
-            } catch (InterruptedException | ExecutionException e) {
-                //FIXME
-                log.warn("Future failed: {}", e);
-            }
-        }
-        return updateBuilder.build();
+        return futures.stream()
+                .map(x -> x.exceptionally(e -> {
+                    //FIXME
+                    log.warn("Future failed: {}", e);
+                    return null;
+                }))
+                .map(CompletableFuture::join)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     private void submitUpdates(List<FinalIntentProcessPhase> updates) {
