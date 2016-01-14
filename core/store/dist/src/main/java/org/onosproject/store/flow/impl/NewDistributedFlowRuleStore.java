@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.flow.impl;
 
- import com.google.common.base.Objects;
  import com.google.common.collect.ImmutableList;
  import com.google.common.collect.ImmutableMap;
  import com.google.common.collect.Iterables;
@@ -85,6 +84,7 @@ package org.onosproject.store.flow.impl;
  import java.util.HashSet;
  import java.util.List;
  import java.util.Map;
+ import java.util.Objects;
  import java.util.Set;
  import java.util.concurrent.ExecutorService;
  import java.util.concurrent.Executors;
@@ -364,7 +364,7 @@ public class NewDistributedFlowRuleStore
             return null;
         }
 
-        if (Objects.equal(local, master)) {
+        if (Objects.equals(local, master)) {
             return flowTable.getFlowEntry(rule);
         }
 
@@ -390,7 +390,7 @@ public class NewDistributedFlowRuleStore
             return Collections.emptyList();
         }
 
-        if (Objects.equal(local, master)) {
+        if (Objects.equals(local, master)) {
             return flowTable.getFlowEntries(deviceId);
         }
 
@@ -437,7 +437,7 @@ public class NewDistributedFlowRuleStore
             return;
         }
 
-        if (Objects.equal(local, master)) {
+        if (Objects.equals(local, master)) {
             storeBatchInternal(operation);
             return;
         }
@@ -512,7 +512,7 @@ public class NewDistributedFlowRuleStore
                     }
                     return null;
                 }
-        ).filter(op -> op != null).collect(Collectors.toSet());
+        ).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
     @Override
@@ -528,7 +528,7 @@ public class NewDistributedFlowRuleStore
     @Override
     public FlowRuleEvent addOrUpdateFlowRule(FlowEntry rule) {
         NodeId master = mastershipService.getMasterFor(rule.deviceId());
-        if (Objects.equal(local, master)) {
+        if (Objects.equals(local, master)) {
             return addOrUpdateFlowRuleInternal(rule);
         }
 
@@ -564,7 +564,7 @@ public class NewDistributedFlowRuleStore
         final DeviceId deviceId = rule.deviceId();
         NodeId master = mastershipService.getMasterFor(deviceId);
 
-        if (Objects.equal(local, master)) {
+        if (Objects.equals(local, master)) {
             // bypass and handle it locally
             return removeFlowRuleInternal(rule);
         }
@@ -619,7 +619,7 @@ public class NewDistributedFlowRuleStore
 
             final DeviceId deviceId = operation.deviceId();
             NodeId master = mastershipService.getMasterFor(deviceId);
-            if (!Objects.equal(local, master)) {
+            if (!Objects.equals(local, master)) {
                 Set<FlowRule> failures = new HashSet<>(operation.size());
                 for (FlowRuleBatchEntry op : operation.getOperations()) {
                     failures.add(op.target());
@@ -656,13 +656,13 @@ public class NewDistributedFlowRuleStore
             if (event.type() == ReplicaInfoEvent.Type.BACKUPS_CHANGED) {
                 DeviceId deviceId = event.subject();
                 NodeId master = mastershipService.getMasterFor(deviceId);
-                if (!Objects.equal(local, master)) {
+                if (!Objects.equals(local, master)) {
                  // ignore since this event is for a device this node does not manage.
                     return;
                 }
                 NodeId newBackupNode = getBackupNode(deviceId);
                 NodeId currentBackupNode = lastBackupNodes.get(deviceId);
-                if (Objects.equal(newBackupNode, currentBackupNode)) {
+                if (Objects.equals(newBackupNode, currentBackupNode)) {
                     // ignore since backup location hasn't changed.
                     return;
                 }
@@ -834,7 +834,7 @@ public class NewDistributedFlowRuleStore
                                 NodeId lastBackupNode = lastBackupNodes.get(deviceId);
                                 NodeId newBackupNode = getBackupNode(deviceId);
                                 return lastBackupTime == null
-                                        ||  !Objects.equal(lastBackupNode, newBackupNode)
+                                        ||  !Objects.equals(lastBackupNode, newBackupNode)
                                         || (lastUpdateTime != null && lastUpdateTime > lastBackupTime);
                             })
                             .collect(Collectors.toSet());
@@ -862,7 +862,7 @@ public class NewDistributedFlowRuleStore
             try {
                 flowTables.forEach((deviceId, deviceFlowTable) -> {
                     // Only process those devices are that not managed by the local node.
-                    if (!Objects.equal(local, mastershipService.getMasterFor(deviceId))) {
+                    if (!Objects.equals(local, mastershipService.getMasterFor(deviceId))) {
                         Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> backupFlowTable =
                                 getFlowTable(deviceId);
                         backupFlowTable.clear();
