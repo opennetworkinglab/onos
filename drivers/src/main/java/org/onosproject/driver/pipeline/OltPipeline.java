@@ -120,7 +120,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                     .limit(1)
                     .findFirst().get();
 
-            if (output != null && !output.port().equals(PortNumber.CONTROLLER)) {
+            if (output == null || !output.port().equals(PortNumber.CONTROLLER)) {
+                log.error("OLT can only filter packet to controller");
                 fail(filter, ObjectiveError.UNSUPPORTED);
                 return;
             }
@@ -142,15 +143,19 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             return;
         }
 
-        if (ethType.ethType().equals(EthType.EtherType.EAPOL)) {
+        if (ethType.ethType().equals(EthType.EtherType.EAPOL.ethType())) {
             provisionEapol(filter, ethType, output);
-        } else if (ethType.ethType().equals(EthType.EtherType.IPV4)) {
+        } else if (ethType.ethType().equals(EthType.EtherType.IPV4.ethType())) {
             IPProtocolCriterion ipProto = (IPProtocolCriterion)
                     filterForCriterion(filter.conditions(), Criterion.Type.IP_PROTO);
             if (ipProto.protocol() == IPv4.PROTOCOL_IGMP) {
                 provisionIGMP(filter, ethType, ipProto, output);
+            } else {
+                log.error("OLT can only filter igmp");
+                fail(filter, ObjectiveError.UNSUPPORTED);
             }
         } else {
+            log.error("OLT can only filter eapol and igmp");
             fail(filter, ObjectiveError.UNSUPPORTED);
         }
 
@@ -389,6 +394,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .makePermanent()
                 .withSelector(selector)
                 .withTreatment(treatment)
+                .withPriority(filter.priority())
                 .build();
 
         FlowRuleOperations.Builder opsBuilder = FlowRuleOperations.builder();
@@ -446,7 +452,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private Criterion filterForCriterion(Collection<Criterion> criteria, Criterion.Type type) {
         return criteria.stream()
-                .filter(c -> c.type().equals(Criterion.Type.ETH_TYPE))
+                .filter(c -> c.type().equals(type))
                 .limit(1)
                 .findFirst().orElse(null);
     }
