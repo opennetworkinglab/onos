@@ -33,6 +33,7 @@ import java.util.Set;
 
 import javax.ws.rs.core.MediaType;
 
+import com.eclipsesource.json.Json;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -174,7 +175,7 @@ public class PortPairResourceTest extends VtnResourceTest {
 
         final WebResource rs = resource();
         final String response = rs.path("port_pairs/78dcd363-fc23-aeb6-f44b-56dc5e2fb3ae").get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
     }
 

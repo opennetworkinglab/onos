@@ -15,6 +15,7 @@
  */
 package org.onosproject.rest;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableSet;
@@ -490,7 +491,7 @@ public class FlowsResourceTest extends ResourceTest {
         replay(mockDeviceService);
         final WebResource rs = resource();
         final String response = rs.path("flows").get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -518,7 +519,7 @@ public class FlowsResourceTest extends ResourceTest {
         replay(mockDeviceService);
         final WebResource rs = resource();
         final String response = rs.path("flows/" + deviceId3).get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -545,7 +546,7 @@ public class FlowsResourceTest extends ResourceTest {
         final WebResource rs = resource();
         final String response = rs.path("flows/" + deviceId3 + "/"
                 + Long.toString(flow5.id().value())).get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));

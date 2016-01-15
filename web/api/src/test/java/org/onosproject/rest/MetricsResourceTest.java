@@ -19,6 +19,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.Timer;
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableMap;
@@ -109,7 +110,7 @@ public class MetricsResourceTest extends ResourceTest {
         String response = rs.path("metrics").get(String.class);
         assertThat(response, containsString("{\"metrics\":["));
 
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         JsonArray jsonMetrics = result.get("metrics").asArray();

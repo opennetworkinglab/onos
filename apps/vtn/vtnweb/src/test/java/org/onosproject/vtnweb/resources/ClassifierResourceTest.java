@@ -24,6 +24,7 @@ import static org.junit.Assert.assertThat;
 import static org.onosproject.net.NetTestTools.device;
 import static org.onosproject.net.NetTestTools.did;
 
+import com.eclipsesource.json.Json;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -93,7 +94,7 @@ public class ClassifierResourceTest extends VtnResourceTest {
 
         final WebResource rs = resource();
         final String response = rs.path("classifiers").get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
     }
 }

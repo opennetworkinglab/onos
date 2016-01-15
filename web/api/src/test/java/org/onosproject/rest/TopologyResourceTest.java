@@ -17,6 +17,7 @@ package org.onosproject.rest;
 
 import java.util.Set;
 
+import com.eclipsesource.json.Json;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
@@ -167,7 +168,7 @@ public class TopologyResourceTest extends ResourceTest {
     public void getTopology() {
         WebResource rs = resource();
         String response = rs.path("topology").get(String.class);
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(4));
@@ -185,7 +186,7 @@ public class TopologyResourceTest extends ResourceTest {
     public void getTopologyClusters() {
         WebResource rs = resource();
         String response = rs.path("topology/clusters").get(String.class);
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -201,7 +202,7 @@ public class TopologyResourceTest extends ResourceTest {
     public void getCluster() {
         WebResource rs = resource();
         String response = rs.path("topology/clusters/0").get(String.class);
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.get("id").asLong(), is(0L));
@@ -219,7 +220,7 @@ public class TopologyResourceTest extends ResourceTest {
     public void getClusterDevices() {
         WebResource rs = resource();
         String response = rs.path("topology/clusters/0/devices").get(String.class);
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         JsonArray devices = result.get("devices").asArray();
@@ -236,7 +237,7 @@ public class TopologyResourceTest extends ResourceTest {
     public void getClusterLinks() {
         WebResource rs = resource();
         String response = rs.path("topology/clusters/1/links").get(String.class);
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         JsonArray links = result.get("links").asArray();
@@ -260,7 +261,7 @@ public class TopologyResourceTest extends ResourceTest {
     public void getBroadcast() {
         WebResource rs = resource();
         String response = rs.path("topology/broadcast/dev1:1").get(String.class);
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.get("broadcast").asBoolean(), is(true));
@@ -273,7 +274,7 @@ public class TopologyResourceTest extends ResourceTest {
     public void getInfrastructure() {
         WebResource rs = resource();
         String response = rs.path("topology/infrastructure/dev2:1").get(String.class);
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.get("infrastructure").asBoolean(), is(true));

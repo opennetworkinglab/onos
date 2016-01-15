@@ -15,6 +15,7 @@
  */
 package org.onosproject.rest;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
@@ -294,7 +295,7 @@ public class IntentsResourceTest extends ResourceTest {
         final String response = rs.path("intents").get(String.class);
         assertThat(response, containsString("{\"intents\":["));
 
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -341,13 +342,13 @@ public class IntentsResourceTest extends ResourceTest {
         // Test get using key string
         final String response = rs.path("intents/" + APP_ID.name()
                 + "/0").get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, matchesIntent(intent));
 
         // Test get using numeric value
         final String responseNumeric = rs.path("intents/" + APP_ID.name()
                 + "/0x0").get(String.class);
-        final JsonObject resultNumeric = JsonObject.readFrom(responseNumeric);
+        final JsonObject resultNumeric = Json.parse(responseNumeric).asObject();
         assertThat(resultNumeric, matchesIntent(intent));
     }
 

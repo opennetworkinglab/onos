@@ -20,6 +20,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
+import com.eclipsesource.json.Json;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.After;
@@ -179,7 +180,7 @@ public class PathsResourceTest extends ResourceTest {
         String response = rs.path(url).get(String.class);
         assertThat(response, containsString("{\"paths\":["));
 
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));

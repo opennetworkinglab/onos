@@ -34,6 +34,7 @@ import java.util.Set;
 
 import javax.ws.rs.core.MediaType;
 
+import com.eclipsesource.json.Json;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -184,7 +185,7 @@ public class PortChainResourceTest extends VtnResourceTest {
 
         final WebResource rs = resource();
         final String response = rs.path("port_chains/1278dcd4-459f-62ed-754b-87fc5e4a6751").get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
     }
 

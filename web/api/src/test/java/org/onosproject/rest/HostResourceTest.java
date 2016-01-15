@@ -21,6 +21,7 @@ import java.net.HttpURLConnection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.eclipsesource.json.Json;
 import com.sun.jersey.api.client.ClientResponse;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
@@ -273,7 +274,7 @@ public class HostResourceTest extends ResourceTest {
         String response = rs.path("hosts").get(String.class);
         assertThat(response, containsString("{\"hosts\":["));
 
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -308,7 +309,7 @@ public class HostResourceTest extends ResourceTest {
 
         WebResource rs = resource();
         String response = rs.path("hosts/00:00:11:00:00:01%2F1").get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, matchesHost(host1));
     }
 
@@ -334,7 +335,7 @@ public class HostResourceTest extends ResourceTest {
 
         WebResource rs = resource();
         String response = rs.path("hosts/00:00:11:00:00:01/1").get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, matchesHost(host1));
     }
 

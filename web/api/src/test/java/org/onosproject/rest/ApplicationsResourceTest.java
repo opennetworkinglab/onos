@@ -15,6 +15,7 @@
  */
 package org.onosproject.rest;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableList;
@@ -227,7 +228,7 @@ public class ApplicationsResourceTest extends ResourceTest {
         String response = rs.path("applications").get(String.class);
         assertThat(response, containsString("{\"applications\":["));
 
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -253,7 +254,7 @@ public class ApplicationsResourceTest extends ResourceTest {
         WebResource rs = resource();
         String response = rs.path("applications/three").get(String.class);
 
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result, matchesApp(app3));
@@ -324,7 +325,7 @@ public class ApplicationsResourceTest extends ResourceTest {
         WebResource rs = resource();
         String response = rs.path("applications").post(String.class, app4Json);
 
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result, matchesApp(app4));

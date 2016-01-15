@@ -17,6 +17,7 @@ package org.onosproject.rest;
 
 import java.util.List;
 
+import com.eclipsesource.json.Json;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
@@ -271,7 +272,7 @@ public class DevicesResourceTest extends ResourceTest {
         String response = rs.path("devices").get(String.class);
         assertThat(response, containsString("{\"devices\":["));
 
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -303,7 +304,7 @@ public class DevicesResourceTest extends ResourceTest {
 
         WebResource rs = resource();
         String response = rs.path("devices/" + deviceId).get(String.class);
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, matchesDevice(device));
     }
 
@@ -335,7 +336,7 @@ public class DevicesResourceTest extends ResourceTest {
         String response =
                 rs.path("devices/" + deviceId + "/ports")
                     .get(String.class);
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, matchesDevice(device));
 
         JsonArray jsonPorts = result.get("ports").asArray();

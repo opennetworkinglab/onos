@@ -33,6 +33,7 @@ import java.util.Set;
 
 import javax.ws.rs.core.MediaType;
 
+import com.eclipsesource.json.Json;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -238,7 +239,7 @@ public class FlowClassifierResourceTest extends VtnResourceTest {
 
         final WebResource rs = resource();
         final String response = rs.path("flow_classifiers/4a334cd4-fe9c-4fae-af4b-321c5e2eb051").get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
     }
 

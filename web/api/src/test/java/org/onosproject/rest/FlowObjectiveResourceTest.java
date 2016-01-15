@@ -15,6 +15,7 @@
  */
 package org.onosproject.rest;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -134,7 +135,7 @@ public class FlowObjectiveResourceTest extends ResourceTest {
 
         WebResource rs = resource();
         final String response = rs.path("flowobjectives/next").get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));

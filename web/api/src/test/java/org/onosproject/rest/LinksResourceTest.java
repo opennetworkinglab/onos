@@ -15,6 +15,7 @@
  */
 package org.onosproject.rest;
 
+import com.eclipsesource.json.Json;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
@@ -200,7 +201,7 @@ public class LinksResourceTest extends ResourceTest {
         String response = rs.path("links").get(String.class);
         assertThat(response, containsString("{\"links\":["));
 
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -233,7 +234,7 @@ public class LinksResourceTest extends ResourceTest {
                 .get(String.class);
         assertThat(response, containsString("{\"links\":["));
 
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -267,7 +268,7 @@ public class LinksResourceTest extends ResourceTest {
                 .get(String.class);
         assertThat(response, containsString("{\"links\":["));
 
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -302,7 +303,7 @@ public class LinksResourceTest extends ResourceTest {
                 .get(String.class);
         assertThat(response, containsString("{\"links\":["));
 
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -336,7 +337,7 @@ public class LinksResourceTest extends ResourceTest {
                 .get(String.class);
         assertThat(response, containsString("{\"links\":["));
 
-        JsonObject result = JsonObject.readFrom(response);
+        JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));

@@ -18,6 +18,7 @@ package org.onosproject.rest;
 import java.util.HashMap;
 import java.util.stream.IntStream;
 
+import com.eclipsesource.json.Json;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
@@ -126,7 +127,7 @@ public class StatisticsResourceTest extends ResourceTest {
                 .queryParam("port", "2")
                 .get(String.class);
 
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -148,7 +149,7 @@ public class StatisticsResourceTest extends ResourceTest {
         final WebResource rs = resource();
         final String response = rs.path("statistics/flows/link/").get(String.class);
 
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));

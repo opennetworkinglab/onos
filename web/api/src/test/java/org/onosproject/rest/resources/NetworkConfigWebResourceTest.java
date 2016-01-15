@@ -19,6 +19,7 @@ import java.net.HttpURLConnection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.eclipsesource.json.Json;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -269,7 +270,7 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
         final WebResource rs = resource();
         final String response = rs.path("network/configuration").get(String.class);
 
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         Assert.assertThat(result, notNullValue());
 
         Assert.assertThat(result.names(), hasSize(2));
@@ -296,7 +297,7 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
         final WebResource rs = resource();
         final String response = rs.path("network/configuration/devices").get(String.class);
 
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         Assert.assertThat(result, notNullValue());
 
         Assert.assertThat(result.names(), hasSize(1));
@@ -322,7 +323,7 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
                 rs.path("network/configuration/devices/device1")
                         .get(String.class);
 
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         Assert.assertThat(result, notNullValue());
 
         Assert.assertThat(result.names(), hasSize(1));
@@ -345,7 +346,7 @@ public class NetworkConfigWebResourceTest extends ResourceTest {
                 rs.path("network/configuration/devices/device1/basic")
                         .get(String.class);
 
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         Assert.assertThat(result, notNullValue());
 
         Assert.assertThat(result.names(), hasSize(2));

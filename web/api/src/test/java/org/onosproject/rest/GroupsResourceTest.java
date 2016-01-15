@@ -16,6 +16,7 @@
 
 package org.onosproject.rest;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.google.common.collect.ImmutableSet;
@@ -410,7 +411,7 @@ public class GroupsResourceTest extends ResourceTest {
         replay(mockDeviceService);
         final WebResource rs = resource();
         final String response = rs.path("groups").get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -438,7 +439,7 @@ public class GroupsResourceTest extends ResourceTest {
         replay(mockDeviceService);
         final WebResource rs = resource();
         final String response = rs.path("groups/" + deviceId3).get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
@@ -460,7 +461,7 @@ public class GroupsResourceTest extends ResourceTest {
         replay(mockGroupService);
         final WebResource rs = resource();
         final String response = rs.path("groups/" + deviceId3 + "/" + "111").get(String.class);
-        final JsonObject result = JsonObject.readFrom(response);
+        final JsonObject result = Json.parse(response).asObject();
         assertThat(result, notNullValue());
 
         assertThat(result.names(), hasSize(1));
