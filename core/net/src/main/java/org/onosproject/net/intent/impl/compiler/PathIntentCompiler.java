@@ -172,12 +172,20 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
         }
         VlanId prevVlanId = vlanId;
 
-        //Tag the traffic with the new VLAN
-        TrafficTreatment treat = DefaultTrafficTreatment.builder()
-                .setVlanId(vlanId)
-                .build();
+        Optional<VlanIdCriterion> vlanCriterion = intent.selector().criteria()
+                .stream().filter(criterion -> criterion.type() == Criterion.Type.VLAN_VID)
+                .map(criterion -> (VlanIdCriterion) criterion)
+                .findAny();
 
-        rules.add(createFlowRule(intent.selector(), treat, srcLink.dst(), link.src(), intent.priority(), true));
+        //Push VLAN if selector does not include VLAN
+        TrafficTreatment.Builder treatBuilder = DefaultTrafficTreatment.builder();
+        if (!vlanCriterion.isPresent()) {
+            treatBuilder.pushVlan();
+        }
+        //Tag the traffic with the new encapsulation VLAN
+        treatBuilder.setVlanId(vlanId);
+        rules.add(createFlowRule(intent.selector(), treatBuilder.build(),
+                                 srcLink.dst(), link.src(), intent.priority(), true));
 
         ConnectPoint prev = link.dst();
 
@@ -211,15 +219,9 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
                 TrafficSelector egressSelector = DefaultTrafficSelector.builder()
                         .matchInPort(prev.port())
                         .matchVlanId(prevVlanId).build();
-
-                //TODO: think to other cases for egress packet restoration
-                Optional<VlanIdCriterion> vlanCriteria = intent.selector().criteria()
-                        .stream().filter(criteria -> criteria.type() == Criterion.Type.VLAN_VID)
-                        .map(criteria -> (VlanIdCriterion) criteria)
-                        .findAny();
                 TrafficTreatment.Builder egressTreat = DefaultTrafficTreatment.builder(intent.treatment());
-                if (vlanCriteria.isPresent()) {
-                    egressTreat.setVlanId(vlanCriteria.get().vlanId());
+                if (vlanCriterion.isPresent()) {
+                    egressTreat.setVlanId(vlanCriterion.get().vlanId());
                 } else {
                     egressTreat.popVlan();
                 }
