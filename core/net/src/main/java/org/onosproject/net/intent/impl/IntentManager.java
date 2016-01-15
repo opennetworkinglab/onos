@@ -316,7 +316,7 @@ public class IntentManager
             log.trace("Execute operations: {}", operations);
 
             // batchExecutor is single-threaded, so only one batch is in flight at a time
-            batchExecutor.execute(() -> {
+            CompletableFuture.runAsync(() -> {
                 try {
                 /*
                  1. wrap each intentdata in a runnable and submit
@@ -350,7 +350,7 @@ public class IntentManager
 //            batchService.removeIntentOperations(data);
                 }
                 accumulator.ready();
-            });
+            }, batchExecutor);
         }
     }
 
