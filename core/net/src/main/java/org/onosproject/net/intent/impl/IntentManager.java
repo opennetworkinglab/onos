@@ -298,7 +298,7 @@ public class IntentManager
                 List<CompletableFuture<IntentData>> futures = operations.stream()
                         .map(x -> CompletableFuture.completedFuture(x)
                                 .thenApply(IntentManager.this::createInitialPhase)
-                                .thenApplyAsync(IntentManager.this::process, workerExecutor)
+                                .thenApplyAsync(IntentProcessPhase::process, workerExecutor)
                                 .thenApply(FinalIntentProcessPhase::data)
                                 .exceptionally(e -> {
                                     //FIXME
@@ -327,17 +327,6 @@ public class IntentManager
     private IntentProcessPhase createInitialPhase(IntentData data) {
         IntentData current = store.getIntentData(data.key());
         return newInitialPhase(processor, data, current);
-    }
-
-    private FinalIntentProcessPhase process(IntentProcessPhase initial) {
-        Optional<IntentProcessPhase> currentPhase = Optional.of(initial);
-        IntentProcessPhase previousPhase = initial;
-
-        while (currentPhase.isPresent()) {
-            previousPhase = currentPhase.get();
-            currentPhase = previousPhase.execute();
-        }
-        return (FinalIntentProcessPhase) previousPhase;
     }
 
     private class InternalIntentProcessor implements IntentProcessor {

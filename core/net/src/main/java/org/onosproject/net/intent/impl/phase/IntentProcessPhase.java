@@ -58,6 +58,17 @@ public interface IntentProcessPhase {
         }
     }
 
+    static FinalIntentProcessPhase process(IntentProcessPhase initial) {
+        Optional<IntentProcessPhase> currentPhase = Optional.of(initial);
+        IntentProcessPhase previousPhase = initial;
+
+        while (currentPhase.isPresent()) {
+            previousPhase = currentPhase.get();
+            currentPhase = previousPhase.execute();
+        }
+        return (FinalIntentProcessPhase) previousPhase;
+    }
+
     static void transferErrorCount(IntentData data, Optional<IntentData> stored) {
         stored.ifPresent(storedData -> {
             if (Objects.equals(data.intent(), storedData.intent()) &&
