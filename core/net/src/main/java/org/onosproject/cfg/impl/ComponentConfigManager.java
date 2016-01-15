@@ -269,10 +269,7 @@ public class ComponentConfigManager implements ComponentConfigService {
     // Stores non-existent property so that loadExistingValues() can load in future.
     private void preSet(String componentName, String name, String value) {
         try {
-            Configuration config = cfgAdmin.getConfiguration(componentName);
-            if (config == null) {
-                config = cfgAdmin.createFactoryConfiguration(componentName);
-            }
+            Configuration config = cfgAdmin.getConfiguration(componentName, null);
             Dictionary<String, Object> property = config.getProperties();
             if (property == null) {
                 property = new Hashtable<>();
