@@ -112,7 +112,7 @@ public class IntentPartitionManager implements IntentPartitionService {
      * @param executor scheduled executor service for background tasks
      * @return this PartitionManager
      */
-    public IntentPartitionManager withScheduledExecutor(ScheduledExecutorService executor) {
+    IntentPartitionManager withScheduledExecutor(ScheduledExecutorService executor) {
         this.executor = executor;
         return this;
     }
@@ -155,7 +155,7 @@ public class IntentPartitionManager implements IntentPartitionService {
         listenerRegistry.removeListener(listener);
     }
 
-    protected void doRebalance() {
+    void doRebalance() {
         rebalanceScheduled.set(false);
         try {
             rebalance();
