@@ -33,6 +33,7 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.device.DeviceService;
@@ -75,7 +76,6 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -828,13 +828,11 @@ public class CordVtnRuleInstaller {
      * @return tunnel port number, or null if no tunnel port exists on a given device
      */
     private PortNumber getTunnelPort(DeviceId deviceId) {
-        try {
-            return deviceService.getPorts(deviceId).stream()
+        Port port = deviceService.getPorts(deviceId).stream()
                     .filter(p -> p.annotations().value("portName").contains(tunnelType))
-                    .findFirst().get().number();
-        } catch (NoSuchElementException e) {
-            return null;
-        }
+                    .findFirst().orElse(null);
+
+        return port == null ? null : port.number();
     }
 
     /**
@@ -845,14 +843,12 @@ public class CordVtnRuleInstaller {
      * @return physical port number, or null if no physical port exists
      */
     private PortNumber getPhyPort(DeviceId deviceId, String phyPortName) {
-        try {
-            return deviceService.getPorts(deviceId).stream()
+        Port port = deviceService.getPorts(deviceId).stream()
                     .filter(p -> p.annotations().value("portName").contains(phyPortName) &&
                             p.isEnabled())
-                    .findFirst().get().number();
-        } catch (NoSuchElementException e) {
-            return null;
-        }
+                    .findFirst().orElse(null);
+
+        return port == null ? null : port.number();
     }
 
     /**

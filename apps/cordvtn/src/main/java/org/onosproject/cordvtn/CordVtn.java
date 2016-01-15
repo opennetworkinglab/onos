@@ -38,7 +38,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Port;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.behaviour.ControllerInfo;
@@ -77,7 +76,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -492,14 +490,9 @@ public class CordVtn implements CordVtnService {
      * @return cordvtn node, null if it fails to find the node
      */
     private CordVtnNode getNodeByOvsdbId(DeviceId ovsdbId) {
-        try {
-            return getNodes().stream()
-                    .filter(node -> node.ovsdbId().equals(ovsdbId))
-                    .findFirst().get();
-        } catch (NoSuchElementException e) {
-            log.debug("Couldn't find node information for {}", ovsdbId);
-            return null;
-        }
+        return getNodes().stream()
+                .filter(node -> node.ovsdbId().equals(ovsdbId))
+                .findFirst().orElse(null);
     }
 
     /**
@@ -509,14 +502,9 @@ public class CordVtn implements CordVtnService {
      * @return cordvtn node, null if it fails to find the node
      */
     private CordVtnNode getNodeByBridgeId(DeviceId bridgeId) {
-        try {
-            return getNodes().stream()
-                    .filter(node -> node.intBrId().equals(bridgeId))
-                    .findFirst().get();
-        } catch (NoSuchElementException e) {
-            log.debug("Couldn't find node information for {}", bridgeId);
-            return null;
-        }
+        return getNodes().stream()
+                .filter(node -> node.intBrId().equals(bridgeId))
+                .findFirst().orElse(null);
     }
 
     /**
@@ -620,16 +608,11 @@ public class CordVtn implements CordVtnService {
      * @return true if the interface exists, false otherwise
      */
     private boolean checkTunnelInterface(CordVtnNode node) {
-        try {
-            deviceService.getPorts(node.intBrId())
-                    .stream()
-                    .filter(p -> getPortName(p).contains(DEFAULT_TUNNEL)
-                            && p.isEnabled())
-                    .findAny().get();
-            return true;
-        } catch (NoSuchElementException e) {
-            return false;
-        }
+        return deviceService.getPorts(node.intBrId())
+                .stream()
+                .filter(p -> getPortName(p).contains(DEFAULT_TUNNEL)
+                        && p.isEnabled())
+                .findAny().isPresent();
     }
 
     /**
@@ -639,33 +622,11 @@ public class CordVtn implements CordVtnService {
      * @return true if the interface exists, false otherwise
      */
     private boolean checkPhyInterface(CordVtnNode node) {
-        try {
-            deviceService.getPorts(node.intBrId())
-                    .stream()
-                    .filter(p -> getPortName(p).contains(node.phyPortName())
-                            && p.isEnabled())
-                    .findAny().get();
-            return true;
-        } catch (NoSuchElementException e) {
-            return false;
-        }
-    }
-
-    /**
-     * Returns tunnel port of the device.
-     *
-     * @param bridgeId device id
-     * @return port number, null if no tunnel port exists on a given device
-     */
-    private PortNumber getTunnelPort(DeviceId bridgeId) {
-        try {
-            return deviceService.getPorts(bridgeId).stream()
-                    .filter(p -> getPortName(p).contains(DEFAULT_TUNNEL)
-                            && p.isEnabled())
-                    .findFirst().get().number();
-        } catch (NoSuchElementException e) {
-            return null;
-        }
+        return deviceService.getPorts(node.intBrId())
+                .stream()
+                .filter(p -> getPortName(p).contains(node.phyPortName())
+                        && p.isEnabled())
+                .findAny().isPresent();
     }
 
     /**
@@ -679,6 +640,7 @@ public class CordVtn implements CordVtnService {
         if (node != null) {
             return node.localIp().getIp4Address();
         } else {
+            log.debug("Couldn't find node information for {}", bridgeId);
             return null;
         }
     }
@@ -897,6 +859,8 @@ public class CordVtn implements CordVtnService {
             CordVtnNode node = getNodeByOvsdbId(device.id());
             if (node != null) {
                 setNodeState(node, checkNodeState(node));
+            } else {
+                log.debug("Unregistered device {} connected, ignore it.", device.id());
             }
         }
 
@@ -915,6 +879,8 @@ public class CordVtn implements CordVtnService {
             CordVtnNode node = getNodeByBridgeId(device.id());
             if (node != null) {
                 setNodeState(node, checkNodeState(node));
+            } else {
+                log.debug("Unregistered device {} connected, ignore it.", device.id());
             }
         }
 
@@ -938,6 +904,8 @@ public class CordVtn implements CordVtnService {
             CordVtnNode node = getNodeByBridgeId((DeviceId) port.element().id());
             if (node == null) {
                 return;
+            } else {
+                log.debug("Port {} added to unregistered device, ignore it.", getPortName(port));
             }
 
             // TODO add host by updating network config
