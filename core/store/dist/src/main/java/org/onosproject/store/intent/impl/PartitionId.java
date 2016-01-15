@@ -23,7 +23,7 @@ import java.util.Objects;
  * Identifies a partition of the intent keyspace which will be assigned to and
  * processed by a single ONOS instance at a time.
  */
-public class PartitionId {
+final class PartitionId {
     private final int id;
 
     /**
@@ -40,7 +40,7 @@ public class PartitionId {
      *
      * @return ID value
      */
-    public int value() {
+    int value() {
         return id;
     }
 
