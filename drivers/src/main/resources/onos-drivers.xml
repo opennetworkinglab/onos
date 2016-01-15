@@ -128,7 +128,9 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OltPipeline"/>
     </driver>
-    <driver name="rest" manufacturer="" hwVersion="" swVersion="">
+    <driver name="restCiena" manufacturer="Ciena" hwVersion="1.0.0" swVersion="1.0.0">
+        <behaviour api="org.onosproject.net.behaviour.PortDiscovery"
+                   impl="org.onosproject.driver.rest.PortDiscoveryCienaWaveserverImpl"/>
     </driver>
     <!--  The SoftRouter driver is meant to be used by any software/NPU based
        ~  switch that wishes to implement a simple 2-table router. To use this

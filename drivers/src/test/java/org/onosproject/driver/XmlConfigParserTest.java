@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.driver.netconf;
+package org.onosproject.driver;
 
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
@@ -27,9 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
-import static org.onosproject.driver.netconf.XmlConfigParser.*;
-
-//import static org.junit.Assert.*;
+import static org.onosproject.driver.XmlConfigParser.*;
 
 /**
  * Test the XML document Parsing for netconf configuration.

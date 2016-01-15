@@ -17,6 +17,7 @@
 package org.onosproject.driver.netconf;
 
 import com.google.common.base.Preconditions;
+import org.onosproject.driver.XmlConfigParser;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerConfig;
 import org.onosproject.net.behaviour.ControllerInfo;

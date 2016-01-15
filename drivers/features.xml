@@ -25,5 +25,7 @@
         <bundle>mvn:${project.groupId}/onos-ovsdb-rfc/${project.version}</bundle>
 
         <bundle>mvn:${project.groupId}/onos-netconf-api/${project.version}</bundle>
+
+        <bundle>mvn:${project.groupId}/onos-restsb-api/${project.version}</bundle>
     </feature>
 </features>

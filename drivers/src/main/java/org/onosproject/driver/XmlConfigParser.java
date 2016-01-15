@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package org.onosproject.driver.netconf;
+package org.onosproject.driver;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.ConfigurationNode;
 import org.onlab.packet.IpAddress;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.GridType;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalType;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.net.device.OchPortDescription;
+import org.onosproject.net.device.PortDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +42,7 @@ import java.util.List;
 /**
  * Parser for Netconf XML configurations and replys.
  */
-final class XmlConfigParser {
+public final class XmlConfigParser {
     public static final Logger log = LoggerFactory
             .getLogger(XmlConfigParser.class);
 
@@ -42,7 +51,7 @@ final class XmlConfigParser {
     }
 
 
-    protected static HierarchicalConfiguration loadXml(InputStream xmlStream) {
+    public static HierarchicalConfiguration loadXml(InputStream xmlStream) {
         XMLConfiguration cfg = new XMLConfiguration();
         try {
             cfg.load(xmlStream);
@@ -52,7 +61,7 @@ final class XmlConfigParser {
         }
     }
 
-    protected static List<ControllerInfo> parseStreamControllers(HierarchicalConfiguration cfg) {
+    public static List<ControllerInfo> parseStreamControllers(HierarchicalConfiguration cfg) {
         List<ControllerInfo> controllers = new ArrayList<>();
         List<HierarchicalConfiguration> fields =
                 cfg.configurationsAt("data.capable-switch." +
@@ -67,7 +76,7 @@ final class XmlConfigParser {
         return controllers;
     }
 
-    protected static String parseSwitchId(HierarchicalConfiguration cfg) {
+    public static String parseSwitchId(HierarchicalConfiguration cfg) {
         HierarchicalConfiguration field =
                 cfg.configurationAt("data.capable-switch." +
                                             "logical-switches." +
@@ -75,17 +84,17 @@ final class XmlConfigParser {
         return field.getProperty("id").toString();
     }
 
-    protected static String parseCapableSwitchId(HierarchicalConfiguration cfg) {
+    public static String parseCapableSwitchId(HierarchicalConfiguration cfg) {
         HierarchicalConfiguration field =
                 cfg.configurationAt("data.capable-switch");
         return field.getProperty("id").toString();
     }
 
-    protected static String createControllersConfig(HierarchicalConfiguration cfg,
-                                                    HierarchicalConfiguration actualCfg,
-                                                    String target, String netconfOperation,
-                                                    String controllerOperation,
-                                                    List<ControllerInfo> controllers) {
+    public static String createControllersConfig(HierarchicalConfiguration cfg,
+                                                 HierarchicalConfiguration actualCfg,
+                                                 String target, String netconfOperation,
+                                                 String controllerOperation,
+                                                 List<ControllerInfo> controllers) {
         //cfg.getKeys().forEachRemaining(key -> System.out.println(key));
         cfg.setProperty("edit-config.target", target);
         cfg.setProperty("edit-config.default-operation", netconfOperation);
@@ -122,5 +131,44 @@ final class XmlConfigParser {
 
     }
 
+    public static List<HierarchicalConfiguration> parseWaveServerCienaPorts(HierarchicalConfiguration cfg) {
+        return cfg.configurationsAt("ws-ports.port-interface");
+    }
+
+    public static PortDescription parseWaveServerCienaOCHPorts(long portNumber, long oduPortSpeed,
+                                                               HierarchicalConfiguration config,
+                                                               SparseAnnotations annotations) {
+        final List<String> tunableType = Lists.newArrayList("Performance-Optimized", "Accelerated");
+        final String transmitterPath = "ptp-config.transmitter-state";
+        final String tunablePath = "ptp-config.adv-config.tx-tuning-mode";
+        final String gridTypePath = "ptp-config.adv-config.wl-spacing";
+        final String frequencyPath = "ptp-config.adv-config.frequency";
+
+        boolean isEnabled = config.getString(transmitterPath).equals("enabled");
+        boolean isTunable = tunableType.contains(config.getString(tunablePath));
+
+        //FIXME change when all optical types have two way information methods, see jira tickets
+        final int speed100GbpsinMbps = 100000;
+        OduSignalType oduSignalType = oduPortSpeed == speed100GbpsinMbps ? OduSignalType.ODU4 : null;
+        GridType gridType = config.getString(gridTypePath).equals("FlexGrid") ? GridType.FLEX : null;
+        ChannelSpacing chSpacing = gridType == GridType.FLEX ? ChannelSpacing.CHL_6P25GHZ : null;
+
+        //Working in Ghz //(Nominal central frequency - 193.1)/channelSpacing = spacingMultiplier
+        final int baseFrequency = 193100;
+        int spacingMult = (int) (toGbps((Integer.parseInt(config.getString(frequencyPath)) -
+                baseFrequency)) / toGbpsFromHz(chSpacing.frequency().asHz())); //FIXME is there a better way ?
+
+        return new OchPortDescription(PortNumber.portNumber(portNumber), isEnabled, oduSignalType, isTunable,
+                                      new OchSignal(gridType, chSpacing, spacingMult, 1), annotations);
+    }
+
+    //FIXME remove when all optical types have two way information methods, see jira tickets
+    private static long toGbps(long speed) {
+        return speed * 1000;
+    }
+
+    private static long toGbpsFromHz(long speed) {
+        return speed / 1000;
+    }
     //TODO implement mor methods for parsing configuration when you need them
 }

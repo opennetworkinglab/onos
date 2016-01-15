@@ -128,6 +128,7 @@ public class RestSBControllerImpl implements RestSBController {
 
     @Override
     public boolean put(DeviceId device, String request, InputStream payload, String mediaType) {
+
         WebResource webResource = getWebResource(device, request);
         ClientResponse response = null;
         if (payload != null) {

@@ -2,7 +2,7 @@
   "devices": {
     "rest:127.0.0.1:8080": {
       "basic": {
-        "driver": "rest"
+        "driver": "restCiena"
       }
     }
   },

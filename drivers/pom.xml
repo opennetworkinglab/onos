@@ -52,11 +52,11 @@
             <artifactId>onos-of-api</artifactId>
         </dependency>
 
-         <dependency>
+        <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-core-serializers</artifactId>
-             <version>${project.version}</version>
-         </dependency>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-ovsdb-api</artifactId>
@@ -66,6 +66,11 @@
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-restsb-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>

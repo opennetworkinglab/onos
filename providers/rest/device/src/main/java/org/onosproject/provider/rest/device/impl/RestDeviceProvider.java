@@ -31,6 +31,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.behaviour.PortDiscovery;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -40,7 +41,8 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
-import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.protocol.rest.RestSBController;
@@ -51,7 +53,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
@@ -83,6 +84,9 @@ public class RestDeviceProvider extends AbstractProvider
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
 
 
     private DeviceProviderService providerService;
@@ -170,11 +174,6 @@ public class RestDeviceProvider extends AbstractProvider
         controller.addDevice(nodeId);
     }
 
-    private void updatePorts(DeviceId deviceId, List<PortDescription> portDescriptions) {
-        // TODO get driver and call behavior to get ports
-        //signal the ports to onos
-    }
-
     //when do I call it ?
     public void deviceRemoved(RestSBDevice nodeId) {
         Preconditions.checkNotNull(nodeId, ISNOTNULL);
@@ -204,8 +203,15 @@ public class RestDeviceProvider extends AbstractProvider
             log.error("Configuration error {}", e);
         }
         log.info("REST Devices {}", controller.getDevices());
-        //TODO ask for ports then call update ports.
-
+        controller.getDevices().keySet().forEach(deviceId -> {
+            DriverHandler h = driverService.createHandler(deviceId);
+            PortDiscovery portConfig = h.behaviour(PortDiscovery.class);
+            if (portConfig != null) {
+                providerService.updatePorts(deviceId, portConfig.getPorts());
+            } else {
+                log.warn("No portGetter behaviour for device {}", deviceId);
+            }
+        });
     }
 
     private boolean testDeviceConnection(RestSBDevice device) {
