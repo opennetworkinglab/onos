@@ -91,7 +91,10 @@ import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CH
 
 /**
  * Provider of devices and links parsed from a JSON configuration structure.
+ *
+ * @deprecated in 1.5.0 (Falcon)
  */
+@Deprecated
 class ConfigProvider implements DeviceProvider, LinkProvider, HostProvider {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
