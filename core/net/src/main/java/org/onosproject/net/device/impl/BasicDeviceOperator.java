@@ -59,11 +59,27 @@ public final class BasicDeviceOperator implements ConfigOperator {
         if (bdc.type() != null && bdc.type() != type) {
             type = bdc.type();
         }
+        String manufacturer = descr.manufacturer();
+        if (bdc.manufacturer() != null && !bdc.manufacturer().equals(manufacturer)) {
+            manufacturer = bdc.manufacturer();
+        }
+        String hwVersion = descr.hwVersion();
+        if (bdc.hwVersion() != null && !bdc.hwVersion().equals(hwVersion)) {
+            hwVersion = bdc.hwVersion();
+        }
+        String swVersion = descr.swVersion();
+        if (bdc.swVersion() != null && !bdc.swVersion().equals(swVersion)) {
+            swVersion = bdc.swVersion();
+        }
+        String serial = descr.serialNumber();
+        if (bdc.serial() != null && !bdc.serial().equals(serial)) {
+            serial = bdc.serial();
+        }
 
         SparseAnnotations sa = combine(bdc, descr.annotations());
-        return new DefaultDeviceDescription(descr.deviceUri(), type, descr.manufacturer(),
-                                            descr.hwVersion(), descr.swVersion(),
-                                            descr.serialNumber(), descr.chassisId(), sa);
+        return new DefaultDeviceDescription(descr.deviceUri(), type, manufacturer,
+                                            hwVersion, swVersion,
+                                            serial, descr.chassisId(), sa);
     }
 
     /**
