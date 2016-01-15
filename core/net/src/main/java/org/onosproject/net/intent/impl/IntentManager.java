@@ -286,22 +286,6 @@ public class IntentManager
         }
     }
 
-    private IntentProcessPhase createInitialPhase(IntentData data) {
-        IntentData current = store.getIntentData(data.key());
-        return newInitialPhase(processor, data, current);
-    }
-
-    private FinalIntentProcessPhase process(IntentProcessPhase initial) {
-        Optional<IntentProcessPhase> currentPhase = Optional.of(initial);
-        IntentProcessPhase previousPhase = initial;
-
-        while (currentPhase.isPresent()) {
-            previousPhase = currentPhase.get();
-            currentPhase = previousPhase.execute();
-        }
-        return (FinalIntentProcessPhase) previousPhase;
-    }
-
     private class InternalBatchDelegate implements IntentBatchDelegate {
         @Override
         public void execute(Collection<IntentData> operations) {
@@ -338,6 +322,22 @@ public class IntentManager
             }).thenRun(accumulator::ready);
 
         }
+    }
+
+    private IntentProcessPhase createInitialPhase(IntentData data) {
+        IntentData current = store.getIntentData(data.key());
+        return newInitialPhase(processor, data, current);
+    }
+
+    private FinalIntentProcessPhase process(IntentProcessPhase initial) {
+        Optional<IntentProcessPhase> currentPhase = Optional.of(initial);
+        IntentProcessPhase previousPhase = initial;
+
+        while (currentPhase.isPresent()) {
+            previousPhase = currentPhase.get();
+            currentPhase = previousPhase.execute();
+        }
+        return (FinalIntentProcessPhase) previousPhase;
     }
 
     private class InternalIntentProcessor implements IntentProcessor {
