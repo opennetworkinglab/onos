@@ -274,6 +274,10 @@ public class SimpleFlowRuleStore
         return null;
     }
 
+    public void purgeFlowRule(DeviceId deviceId) {
+        flowEntries.remove(deviceId);
+    }
+
     @Override
     public void storeBatch(
             FlowRuleBatchOperation operation) {

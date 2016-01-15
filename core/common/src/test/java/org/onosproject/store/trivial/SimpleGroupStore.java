@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -474,6 +476,19 @@ public class SimpleGroupStore
             keyTable.remove(existing.appCookie());
             notifyDelegate(new GroupEvent(Type.GROUP_REMOVED, existing));
         }
+    }
+
+    @Override
+    public void purgeGroupEntry(DeviceId deviceId) {
+        Set<Map.Entry<GroupId, StoredGroupEntry>> entryPendingRemove =
+                groupEntriesById.get(deviceId).entrySet();
+
+        groupEntriesById.remove(deviceId);
+        groupEntriesByKey.remove(deviceId);
+
+        entryPendingRemove.forEach(entry -> {
+            notifyDelegate(new GroupEvent(Type.GROUP_REMOVED, entry.getValue()));
+        });
     }
 
     @Override

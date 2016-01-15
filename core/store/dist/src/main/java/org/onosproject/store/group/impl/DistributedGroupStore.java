@@ -67,8 +67,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -842,6 +844,21 @@ public class DistributedGroupStore
                     group.id(),
                     group.deviceId());
         }
+    }
+
+    @Override
+    public void purgeGroupEntry(DeviceId deviceId) {
+        Set<Entry<GroupStoreKeyMapKey, StoredGroupEntry>> entryPendingRemove =
+                new HashSet<>();
+
+        groupStoreEntriesByKey.entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(deviceId))
+                .forEach(entryPendingRemove::add);
+
+        entryPendingRemove.forEach(entry -> {
+            groupStoreEntriesByKey.remove(entry.getKey());
+            notifyDelegate(new GroupEvent(Type.GROUP_REMOVED, entry.getValue()));
+        });
     }
 
     @Override

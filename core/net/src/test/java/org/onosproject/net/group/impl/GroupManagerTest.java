@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.DefaultGroupId;
@@ -89,11 +90,12 @@ public class GroupManagerTest {
         mgr = new GroupManager();
         groupService = mgr;
         mgr.deviceService = new DeviceManager();
+        mgr.cfgService = new ComponentConfigAdapter();
         mgr.store = new SimpleGroupStore();
         injectEventDispatcher(mgr, new TestEventDispatcher());
         providerRegistry = mgr;
 
-        mgr.activate();
+        mgr.activate(null);
         mgr.addListener(listener);
 
         internalProvider = new TestGroupProvider(PID);

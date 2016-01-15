@@ -18,9 +18,12 @@ package org.onosproject.net.group.impl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
@@ -43,11 +46,14 @@ import org.onosproject.net.group.GroupStore;
 import org.onosproject.net.group.GroupStore.UpdateType;
 import org.onosproject.net.group.GroupStoreDelegate;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Dictionary;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.security.AppPermission.Type.*;
@@ -75,19 +81,76 @@ public class GroupManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
+    @Property(name = "purgeOnDisconnection", boolValue = false,
+            label = "Purge entries associated with a device when the device goes offline")
+    private boolean purgeOnDisconnection = false;
+
     @Activate
-    public void activate() {
+    public void activate(ComponentContext context) {
         store.setDelegate(delegate);
         eventDispatcher.addSink(GroupEvent.class, listenerRegistry);
         deviceService.addListener(deviceListener);
+        cfgService.registerProperties(getClass());
+        modified(context);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(GroupEvent.class);
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        if (context != null) {
+            readComponentConfiguration(context);
+        }
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        Boolean flag;
+
+        flag = isPropertyEnabled(properties, "purgeOnDisconnection");
+        if (flag == null) {
+            log.info("PurgeOnDisconnection is not configured, " +
+                    "using current value of {}", purgeOnDisconnection);
+        } else {
+            purgeOnDisconnection = flag;
+            log.info("Configured. PurgeOnDisconnection is {}",
+                    purgeOnDisconnection ? "enabled" : "disabled");
+        }
+    }
+
+    /**
+     * Check property name is defined and set to true.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    private static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
+            String propertyName) {
+        Boolean value = null;
+        try {
+            String s = (String) properties.get(propertyName);
+            value = isNullOrEmpty(s) ? null : s.trim().equals("true");
+        } catch (ClassCastException e) {
+            // No propertyName defined.
+            value = null;
+        }
+        return value;
     }
 
     /**
@@ -303,13 +366,17 @@ public class GroupManager
             switch (event.type()) {
                 case DEVICE_REMOVED:
                 case DEVICE_AVAILABILITY_CHANGED:
-                    if (!deviceService.isAvailable(event.subject().id())) {
+                    DeviceId deviceId = event.subject().id();
+                    if (!deviceService.isAvailable(deviceId)) {
                         log.debug("Device {} became un available; clearing initial audit status",
                                   event.type(), event.subject().id());
                         store.deviceInitialAuditCompleted(event.subject().id(), false);
+
+                        if (purgeOnDisconnection) {
+                            store.purgeGroupEntry(deviceId);
+                        }
                     }
                     break;
-
                 default:
                     break;
             }
