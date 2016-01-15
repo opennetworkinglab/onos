@@ -325,15 +325,15 @@ public class IntentManager
                     (we can also try to update these individually)
                  */
                     List<CompletableFuture<IntentData>> futures = operations.stream()
-                            .map(CompletableFuture::completedFuture)
-                            .map(x -> x.thenApply(IntentManager.this::createInitialPhase))
-                            .map(x -> x.thenApplyAsync(IntentManager.this::process, workerExecutor))
-                            .map(x -> x.thenApply(FinalIntentProcessPhase::data))
-                            .map(x -> x.exceptionally(e -> {
-                                //FIXME
-                                log.warn("Future failed: {}", e);
-                                return null;
-                            }))
+                            .map(x -> CompletableFuture.completedFuture(x)
+                                    .thenApply(IntentManager.this::createInitialPhase)
+                                    .thenApplyAsync(IntentManager.this::process, workerExecutor)
+                                    .thenApply(FinalIntentProcessPhase::data)
+                                    .exceptionally(e -> {
+                                        //FIXME
+                                        log.warn("Future failed: {}", e);
+                                        return null;
+                                    }))
                             .collect(Collectors.toList());
                     store.batchWrite(Tools.allOf(futures).join().stream()
                             .filter(Objects::nonNull)
