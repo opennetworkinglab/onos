@@ -1,0 +1,58 @@
+#! /bin/bash
+# -----------------------------------------------------------------------------
+# init.d script to run ONOS.
+# -----------------------------------------------------------------------------
+
+start () {
+    # TODO check if ONOS is already running first
+    
+    [ -f /opt/onos/options ] && . /opt/onos/options
+    ONOS_USER=${ONOS_USER:-root}
+
+    # Ensure that the environment is initialized
+    [ -d /opt/onos ] && mkdir /opt/onos/var 2>/dev/null && chown $ONOS_USER.$ONOS_USER /opt/onos/var
+    [ -d /opt/onos ] && mkdir /opt/onos/config 2>/dev/null && chown $ONOS_USER.$ONOS_USER /opt/onos/config
+    [ -d /opt/onos ] && [ ! -h /opt/onos/log ] \
+         && ln -s /opt/onos/karaf/data/log /opt/onos/log || :
+    
+    [ -f /opt/onos/options ] && . /opt/onos/options
+  start-stop-daemon --signal INT --start --chuid ${ONOS_USER:-root} \
+    --exec /opt/onos/bin/onos-service -- ${ONOS_OPTS:-server} \
+        >/opt/onos/var/stdout.log 2>/opt/onos/var/stderr.log
+}
+
+stop () {
+    /opt/onos/karaf/bin/stop
+}
+
+restart () {
+        stop
+        start
+}
+
+status () {
+    /opt/onos/karaf/bin/status
+}
+
+case $1 in
+    start)
+        start
+	    ;;
+    stop | force-stop)
+        stop
+        ;;
+    restart)
+        shift
+        restart "$@"
+        ;;
+    status)
+        status
+        exit $?
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
