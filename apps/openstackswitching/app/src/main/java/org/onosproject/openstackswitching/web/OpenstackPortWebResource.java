@@ -72,6 +72,9 @@ public class OpenstackPortWebResource extends AbstractWebResource {
     @Path("{portUUID}")
     @DELETE
     public Response deletePorts(@PathParam("portUUID") String id) {
+        OpenstackSwitchingService switchingService =
+                getService(OpenstackSwitchingService.class);
+        switchingService.deletePort(id);
         return Response.status(Response.Status.OK).build();
     }
 

@@ -99,7 +99,10 @@ public class OpenstackSwitchingRulePopulator {
      * @param device device to populate rules to
      * @param port port for the VM created
      */
-    public void populateSwitchingRules(Device device, Port port) {
+    public void populateSwitchingRules(boolean doNotPushFlow, Device device, Port port) {
+        if (doNotPushFlow) {
+            return;
+        }
         populateFlowRulesForTunnelTag(device, port);
         populateFlowRulesForTrafficToSameCnode(device, port);
         populateFlowRulesForTrafficToDifferentCnode(device, port);
@@ -271,8 +274,11 @@ public class OpenstackSwitchingRulePopulator {
      * @param removedPort removedport info
      * @param openstackPortInfoMap openstackPortInfoMap
      */
-    public void removeSwitchingRules(Port removedPort, Map<String, OpenstackPortInfo> openstackPortInfoMap) {
-
+    public void removeSwitchingRules(boolean doNotPushFlows, Port removedPort, Map<String,
+            OpenstackPortInfo> openstackPortInfoMap) {
+        if (doNotPushFlows) {
+            return;
+        }
         OpenstackPortInfo openstackPortInfo = openstackPortInfoMap
                 .get(removedPort.annotations().value("portName"));
 

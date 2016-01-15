@@ -16,6 +16,7 @@
 package org.onosproject.openstackswitching.impl;
 
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -27,17 +28,23 @@ public final class OpenstackPortInfo {
 
     private final Ip4Address hostIp;
     private final DeviceId deviceId;
+    private final MacAddress hostMac;
     private final long vni;
 
-    public OpenstackPortInfo(Ip4Address hostIp, DeviceId deviceId,
+    public OpenstackPortInfo(Ip4Address hostIp, MacAddress hostMac, DeviceId deviceId,
                              long vni) {
         this.hostIp = hostIp;
+        this.hostMac = hostMac;
         this.deviceId = deviceId;
         this.vni = vni;
     }
 
     public Ip4Address ip() {
         return hostIp;
+    }
+
+    public MacAddress mac() {
+        return hostMac;
     }
 
     public DeviceId deviceId() {
@@ -54,11 +61,17 @@ public final class OpenstackPortInfo {
 
     public static final class Builder {
         private Ip4Address hostIp;
+        private MacAddress hostMac;
         private DeviceId deviceId;
         private long vni;
 
         public Builder setHostIp(Ip4Address hostIp) {
             this.hostIp = checkNotNull(hostIp, "hostIp cannot be null");
+            return this;
+        }
+
+        public Builder setHostMac(MacAddress hostMac) {
+            this.hostMac = checkNotNull(hostMac, "hostMac cannot be bull");
             return this;
         }
 
@@ -78,6 +91,7 @@ public final class OpenstackPortInfo {
 
     private OpenstackPortInfo(Builder builder) {
         hostIp = builder.hostIp;
+        hostMac = builder.hostMac;
         deviceId = builder.deviceId;
         vni = builder.vni;
     }

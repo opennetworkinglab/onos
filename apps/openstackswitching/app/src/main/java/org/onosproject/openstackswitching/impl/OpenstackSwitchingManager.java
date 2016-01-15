@@ -104,9 +104,11 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
     protected DriverService driverService;
 
     public static final String PORTNAME_PREFIX_VM = "tap";
-    public static final String PORTNAME_PREFIX_ROUTER = "qr";
+    public static final String PORTNAME_PREFIX_ROUTER = "qr-";
     public static final String PORTNAME_PREFIX_TUNNEL = "vxlan";
     public static final String PORTNAME = "portName";
+
+    public static final String DEVICE_OWNER_GATEWAY = "network:router_gateway";
 
     private ApplicationId appId;
     private boolean doNotPushFlows;
@@ -170,14 +172,38 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
 
     @Override
     public void createPorts(OpenstackPort openstackPort) {
-        if (!openstackPort.fixedIps().isEmpty()) {
+        if (!openstackPort.fixedIps().isEmpty()
+                && !openstackPort.deviceOwner().equals(DEVICE_OWNER_GATEWAY)) {
             registerDhcpInfo(openstackPort);
         }
     }
 
     @Override
     public void deletePort(String uuid) {
+        // When VMs are remvoed, the flow rules for the VMs are removed using ONOS port update event.
+        // But, when router is removed, no ONOS port event occurs and we need to use Neutron port event.
+        // Here we should not touch any rules for VMs.
+        log.debug("port {} was removed", uuid);
 
+        String routerPortName = PORTNAME_PREFIX_ROUTER + uuid.substring(0, 11);
+        OpenstackPortInfo routerPortInfo = openstackPortInfoMap.get(routerPortName);
+        if (routerPortInfo != null) {
+            dhcpService.removeStaticMapping(routerPortInfo.mac());
+            if (!doNotPushFlows) {
+                deviceService.getPorts(routerPortInfo.deviceId()).forEach(port -> {
+                    String pName = port.annotations().value("portName");
+                    if (pName.equals(routerPortName)) {
+                        OpenstackSwitchingRulePopulator rulePopulator =
+                                new OpenstackSwitchingRulePopulator(appId, flowObjectiveService,
+                                        deviceService, restHandler, driverService);
+
+                        rulePopulator.removeSwitchingRules(doNotPushFlows, port, openstackPortInfoMap);
+                        openstackPortInfoMap.remove(routerPortName);
+                        return;
+                    }
+                });
+            }
+        }
     }
 
     @Override
@@ -268,17 +294,17 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                 OpenstackSwitchingRulePopulator rulePopulator =
                         new OpenstackSwitchingRulePopulator(appId, flowObjectiveService,
                                 deviceService, restHandler, driverService);
-                rulePopulator.populateSwitchingRules(device, port);
+                rulePopulator.populateSwitchingRules(doNotPushFlows, device, port);
                 updatePortMap(device.id(), port, restHandler.getNetworks(), rulePopulator.openstackPort(port));
-
                 //In case portupdate event is driven by vm shutoff from openstack
             } else if (!port.isEnabled() && openstackPortInfoMap.containsKey(port.annotations().value(PORTNAME))) {
                 log.debug("Flowrules according to the port {} were removed", port.number().toString());
                 OpenstackSwitchingRulePopulator rulePopulator =
                         new OpenstackSwitchingRulePopulator(appId, flowObjectiveService,
                                 deviceService, restHandler, driverService);
-                openstackPortInfoMap.get(port.annotations().value(PORTNAME));
-                rulePopulator.removeSwitchingRules(port, openstackPortInfoMap);
+
+                rulePopulator.removeSwitchingRules(doNotPushFlows, port, openstackPortInfoMap);
+                dhcpService.removeStaticMapping(openstackPortInfoMap.get(port.annotations().value(PORTNAME)).mac());
                 openstackPortInfoMap.remove(port.annotations().value(PORTNAME));
             }
         }
@@ -303,9 +329,9 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                                     port.annotations().value(PORTNAME).startsWith(PORTNAME_PREFIX_ROUTER))
                             .forEach(vmPort -> {
                                         OpenstackPort osPort = rulePopulator.openstackPort(vmPort);
-                                        if (osPort != null) {
+                                        if (osPort != null && !osPort.deviceOwner().equals(DEVICE_OWNER_GATEWAY)) {
                                             if (!doNotPushFlows) {
-                                                rulePopulator.populateSwitchingRules(device, vmPort);
+                                                rulePopulator.populateSwitchingRules(doNotPushFlows, device, vmPort);
                                                 updatePortMap(device.id(), vmPort, networks, osPort);
                                             }
                                             registerDhcpInfo(osPort);
@@ -327,6 +353,7 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
         OpenstackPortInfo.Builder portBuilder = OpenstackPortInfo.builder()
                 .setDeviceId(deviceId)
                 .setHostIp((Ip4Address) openstackPort.fixedIps().values().stream().findFirst().orElse(null))
+                .setHostMac(openstackPort.macAddress())
                 .setVni(vni);
 
         openstackPortInfoMap.putIfAbsent(port.annotations().value(PORTNAME),
