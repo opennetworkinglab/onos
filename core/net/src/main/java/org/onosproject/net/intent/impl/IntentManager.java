@@ -294,18 +294,24 @@ public class IntentManager
     }
 
     private CompletableFuture<FinalIntentProcessPhase> submitIntentData(IntentData data) {
-        IntentData current = store.getIntentData(data.key());
-        IntentProcessPhase initial = newInitialPhase(processor, data, current);
-        return CompletableFuture.supplyAsync(() -> {
-            Optional<IntentProcessPhase> currentPhase = Optional.of(initial);
-            IntentProcessPhase previousPhase = initial;
+        IntentProcessPhase initial = createInitialPhase(data);
+        return CompletableFuture.supplyAsync(() -> process(initial), workerExecutor);
+    }
 
-            while (currentPhase.isPresent()) {
-                previousPhase = currentPhase.get();
-                currentPhase = previousPhase.execute();
-            }
-            return (FinalIntentProcessPhase) previousPhase;
-        }, workerExecutor);
+    private IntentProcessPhase createInitialPhase(IntentData data) {
+        IntentData current = store.getIntentData(data.key());
+        return newInitialPhase(processor, data, current);
+    }
+
+    private FinalIntentProcessPhase process(IntentProcessPhase initial) {
+        Optional<IntentProcessPhase> currentPhase = Optional.of(initial);
+        IntentProcessPhase previousPhase = initial;
+
+        while (currentPhase.isPresent()) {
+            previousPhase = currentPhase.get();
+            currentPhase = previousPhase.execute();
+        }
+        return (FinalIntentProcessPhase) previousPhase;
     }
 
     private class InternalBatchDelegate implements IntentBatchDelegate {
