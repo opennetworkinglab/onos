@@ -18,11 +18,13 @@ package org.onosproject.cordvtn;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultGroupId;
@@ -94,15 +96,19 @@ public class CordVtnRuleInstaller {
 
     protected final Logger log = getLogger(getClass());
 
-    private static final int TABLE_IN_PORT = 0;
-    private static final int TABLE_ACCESS_TYPE = 1;
-    private static final int TABLE_IN_SERVICE = 2;
-    private static final int TABLE_DST_IP = 3;
-    private static final int TABLE_TUNNEL_IN = 4;
+    private static final int TABLE_FIRST = 0;
+    private static final int TABLE_IN_PORT = 1;
+    private static final int TABLE_ACCESS_TYPE = 2;
+    private static final int TABLE_IN_SERVICE = 3;
+    private static final int TABLE_DST_IP = 4;
+    private static final int TABLE_TUNNEL_IN = 5;
 
     private static final int DEFAULT_PRIORITY = 5000;
     private static final int LOWER_PRIORITY = 4000;
     private static final int LOWEST_PRIORITY = 0;
+    private static final int HIGHER_PRIORITY = 50000;
+
+    private static final int VXLAN_UDP_PORT = 4789;
 
     private final ApplicationId appId;
     private final FlowRuleService flowRuleService;
@@ -141,13 +147,18 @@ public class CordVtnRuleInstaller {
      * Installs table miss rule to a give device.
      *
      * @param deviceId device id to install the rules
-     * @param tunnelPort tunnel port number of the device
+     * @param phyPortName physical port name
+     * @param localIp local data plane ip address
      */
-    public void init(DeviceId deviceId, PortNumber tunnelPort) {
+    public void init(DeviceId deviceId, String phyPortName, IpAddress localIp) {
         // default is drop packets which can be accomplished without
         // a table miss entry for all table.
-        populateTunnelInPortRule(deviceId, tunnelPort);
-        processAccessTypeTable(deviceId);
+        PortNumber tunnelPort = getTunnelPort(deviceId);
+        PortNumber phyPort = getPhyPort(deviceId, phyPortName);
+
+        processFirstTable(deviceId, phyPort, localIp);
+        processInPortTable(deviceId, tunnelPort, phyPort);
+        processAccessTypeTable(deviceId, phyPort);
     }
 
     /**
@@ -376,109 +387,93 @@ public class CordVtnRuleInstaller {
     }
 
     /**
-     * Creates a new group for a given service.
-     *
-     * @param deviceId device id to create a group
-     * @param service cord service
-     * @return group id, or null if it fails to create
-     */
-    private GroupId createServiceGroup(DeviceId deviceId, CordService service) {
-        checkNotNull(service);
-
-        GroupKey groupKey = getGroupKey(service.id());
-        Group group = groupService.getGroup(deviceId, groupKey);
-        GroupId groupId = getGroupId(service.id(), deviceId);
-
-        if (group != null) {
-            log.debug("Group {} is already exist in {}", service.id(), deviceId);
-            return groupId;
-        }
-
-        GroupBuckets buckets = getServiceGroupBuckets(deviceId, service.segmentationId(), service.hosts());
-        GroupDescription groupDescription = new DefaultGroupDescription(
-                deviceId,
-                GroupDescription.Type.SELECT,
-                buckets,
-                groupKey,
-                groupId.id(),
-                appId);
-
-        groupService.addGroup(groupDescription);
-
-        return groupId;
-    }
-
-    /**
-     * Returns group buckets for a given device.
+     * Populates default rules on the first table.
+     * The rules are for shuttling vxlan-encapped packets and supporting physical
+     * network connectivity.
      *
      * @param deviceId device id
-     * @param tunnelId tunnel id
-     * @param hosts list of host
-     * @return group buckets
+     * @param phyPort physical port number
+     * @param localIp local data plane ip address
      */
-    private GroupBuckets getServiceGroupBuckets(DeviceId deviceId, long tunnelId, Map<Host, IpAddress> hosts) {
-        List<GroupBucket> buckets = Lists.newArrayList();
+    private void processFirstTable(DeviceId deviceId, PortNumber phyPort, IpAddress localIp) {
+        // take vxlan packet out onto the physical port
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(PortNumber.LOCAL)
+                .build();
 
-        for (Map.Entry<Host, IpAddress> entry : hosts.entrySet()) {
-            Host host = entry.getKey();
-            Ip4Address remoteIp = entry.getValue().getIp4Address();
-            DeviceId hostDevice = host.location().deviceId();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(phyPort)
+                .build();
 
-            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment
-                    .builder()
-                    .setEthDst(host.mac());
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(HIGHER_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_FIRST)
+                .makePermanent()
+                .build();
 
-            if (deviceId.equals(hostDevice)) {
-                tBuilder.setOutput(host.location().port());
-            } else {
-                ExtensionTreatment tunnelDst = getTunnelDst(deviceId, remoteIp);
-                if (tunnelDst == null) {
-                    continue;
-                }
+        processFlowRule(true, flowRule);
 
-                tBuilder.extension(tunnelDst, deviceId)
-                        .setTunnelId(tunnelId)
-                        .setOutput(getTunnelPort(hostDevice));
-            }
+        // take a vxlan encap'd packet through the Linux stack
+        selector = DefaultTrafficSelector.builder()
+                .matchInPort(phyPort)
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPProtocol(IPv4.PROTOCOL_UDP)
+                .matchUdpDst(TpPort.tpPort(VXLAN_UDP_PORT))
+                .build();
 
-            buckets.add(DefaultGroupBucket.createSelectGroupBucket(tBuilder.build()));
-        }
+        treatment = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.LOCAL)
+                .build();
 
-        return new GroupBuckets(buckets);
+        flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(HIGHER_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_FIRST)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+
+        // take all else to the next table
+        selector = DefaultTrafficSelector.builder()
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .transition(TABLE_IN_PORT)
+                .build();
+
+        flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(LOWEST_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_FIRST)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
     }
 
     /**
-     * Returns globally unique group ID.
+     * Forward table miss packets in ACCESS_TYPE table to physical port.
      *
-     * @param serviceId service id
      * @param deviceId device id
-     * @return group id
+     * @param phyPort physical port number
      */
-    private GroupId getGroupId(CordServiceId serviceId, DeviceId deviceId) {
-        return new DefaultGroupId(Objects.hash(serviceId, deviceId));
-    }
-
-    /**
-     * Returns group key of a service.
-     *
-     * @param serviceId service id
-     * @return group key
-     */
-    private GroupKey getGroupKey(CordServiceId serviceId) {
-        return new DefaultGroupKey(serviceId.id().getBytes());
-    }
-
-    /**
-     * Forward table miss rules in ACCESS_TYPE table to IN_SERVICE table.
-     *
-     * @param deviceId device id
-     */
-    private void processAccessTypeTable(DeviceId deviceId) {
+    private void processAccessTypeTable(DeviceId deviceId, PortNumber phyPort) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .transition(TABLE_IN_SERVICE)
+                .setOutput(phyPort)
                 .build();
 
         FlowRule flowRule = DefaultFlowRule.builder()
@@ -495,23 +490,46 @@ public class CordVtnRuleInstaller {
     }
 
     /**
-     * Populates rules for tunnel flows in port in IN_PORT table.
-     * All flows from tunnel port are forwarded to TUNNEL_ID table.
+     * Populates default rules for IN_PORT table.
+     * All packets from tunnel port are forwarded to TUNNEL_ID table and all packets
+     * from physical port to ACCESS_TYPE table.
      *
      * @param deviceId device id to install the rules
-     * @param tunnelPort tunnel port
+     * @param tunnelPort tunnel port number
+     * @param phyPort physical port number
      */
-    private void populateTunnelInPortRule(DeviceId deviceId, PortNumber tunnelPort) {
+    private void processInPortTable(DeviceId deviceId, PortNumber tunnelPort, PortNumber phyPort) {
         checkNotNull(tunnelPort);
 
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchInPort(tunnelPort)
                 .build();
+
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .transition(TABLE_TUNNEL_IN)
                 .build();
 
         FlowRule flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(DEFAULT_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_IN_PORT)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+
+        selector = DefaultTrafficSelector.builder()
+                .matchInPort(phyPort)
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .transition(TABLE_DST_IP)
+                .build();
+
+        flowRule = DefaultFlowRule.builder()
                 .fromApp(appId)
                 .withSelector(selector)
                 .withTreatment(treatment)
@@ -539,6 +557,7 @@ public class CordVtnRuleInstaller {
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPSrc(srcIp.toIpPrefix())
                 .build();
+
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .transition(TABLE_ACCESS_TYPE)
                 .build();
@@ -559,6 +578,7 @@ public class CordVtnRuleInstaller {
         selector = DefaultTrafficSelector.builder()
                 .matchInPort(inPort)
                 .build();
+
         treatment = DefaultTrafficTreatment.builder()
                 .transition(TABLE_IN_SERVICE)
                 .build();
@@ -589,6 +609,7 @@ public class CordVtnRuleInstaller {
                 .matchIPSrc(srcRange)
                 .matchIPDst(dstRange)
                 .build();
+
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .transition(TABLE_DST_IP)
                 .build();
@@ -666,6 +687,7 @@ public class CordVtnRuleInstaller {
                 TrafficSelector selector = DefaultTrafficSelector.builder()
                         .matchInPort(port)
                         .build();
+
                 TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                         .group(groupId)
                         .build();
@@ -701,6 +723,7 @@ public class CordVtnRuleInstaller {
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(dstIp.toIpPrefix())
                 .build();
+
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setEthDst(dstMac)
                 .setOutput(inPort)
@@ -815,6 +838,24 @@ public class CordVtnRuleInstaller {
     }
 
     /**
+     * Returns physical port name of a given device.
+     *
+     * @param deviceId device id
+     * @param phyPortName physical port name
+     * @return physical port number, or null if no physical port exists
+     */
+    private PortNumber getPhyPort(DeviceId deviceId, String phyPortName) {
+        try {
+            return deviceService.getPorts(deviceId).stream()
+                    .filter(p -> p.annotations().value("portName").contains(phyPortName) &&
+                            p.isEnabled())
+                    .findFirst().get().number();
+        } catch (NoSuchElementException e) {
+            return null;
+        }
+    }
+
+    /**
      * Returns the inport from a given flow rule if the rule contains the match of it.
      *
      * @param flowRule flow rule
@@ -920,6 +961,99 @@ public class CordVtnRuleInstaller {
         }
 
         return ((Instructions.GroupInstruction) instruction).groupId();
+    }
+
+    /**
+     * Creates a new group for a given service.
+     *
+     * @param deviceId device id to create a group
+     * @param service cord service
+     * @return group id, or null if it fails to create
+     */
+    private GroupId createServiceGroup(DeviceId deviceId, CordService service) {
+        checkNotNull(service);
+
+        GroupKey groupKey = getGroupKey(service.id());
+        Group group = groupService.getGroup(deviceId, groupKey);
+        GroupId groupId = getGroupId(service.id(), deviceId);
+
+        if (group != null) {
+            log.debug("Group {} is already exist in {}", service.id(), deviceId);
+            return groupId;
+        }
+
+        GroupBuckets buckets = getServiceGroupBuckets(deviceId, service.segmentationId(), service.hosts());
+        GroupDescription groupDescription = new DefaultGroupDescription(
+                deviceId,
+                GroupDescription.Type.SELECT,
+                buckets,
+                groupKey,
+                groupId.id(),
+                appId);
+
+        groupService.addGroup(groupDescription);
+
+        return groupId;
+    }
+
+    /**
+     * Returns group buckets for a given device.
+     *
+     * @param deviceId device id
+     * @param tunnelId tunnel id
+     * @param hosts list of host
+     * @return group buckets
+     */
+    private GroupBuckets getServiceGroupBuckets(DeviceId deviceId, long tunnelId, Map<Host, IpAddress> hosts) {
+        List<GroupBucket> buckets = Lists.newArrayList();
+
+        for (Map.Entry<Host, IpAddress> entry : hosts.entrySet()) {
+            Host host = entry.getKey();
+            Ip4Address remoteIp = entry.getValue().getIp4Address();
+            DeviceId hostDevice = host.location().deviceId();
+
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment
+                    .builder()
+                    .setEthDst(host.mac());
+
+            if (deviceId.equals(hostDevice)) {
+                tBuilder.setOutput(host.location().port());
+            } else {
+                ExtensionTreatment tunnelDst = getTunnelDst(deviceId, remoteIp);
+                if (tunnelDst == null) {
+                    continue;
+                }
+
+                tBuilder.extension(tunnelDst, deviceId)
+                        .setTunnelId(tunnelId)
+                        .setOutput(getTunnelPort(hostDevice));
+            }
+
+            buckets.add(DefaultGroupBucket.createSelectGroupBucket(tBuilder.build()));
+        }
+
+        return new GroupBuckets(buckets);
+    }
+
+    /**
+     * Returns globally unique group ID.
+     *
+     * @param serviceId service id
+     * @param deviceId device id
+     * @return group id
+     */
+    private GroupId getGroupId(CordServiceId serviceId, DeviceId deviceId) {
+        return new DefaultGroupId(Objects.hash(serviceId, deviceId));
+    }
+
+    /**
+     * Returns group key of a service.
+     *
+     * @param serviceId service id
+     * @return group key
+     */
+    private GroupKey getGroupKey(CordServiceId serviceId) {
+        return new DefaultGroupKey(serviceId.id().getBytes());
     }
 
     /**

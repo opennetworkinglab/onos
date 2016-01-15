@@ -426,7 +426,7 @@ public class CordVtn implements CordVtnService {
     private void postInit(CordVtnNode node) {
         disconnect(node);
 
-        ruleInstaller.init(node.intBrId(), getTunnelPort(node.intBrId()));
+        ruleInstaller.init(node.intBrId(), node.phyPortName(), node.localIp());
         hostService.getConnectedHosts(node.intBrId())
                 .stream()
                 .forEach(vmHandler::connected);
