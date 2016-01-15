@@ -205,16 +205,11 @@
             noLabel = !label,
             node = d.el,
             dim = icfg.device.dim,
-            box, dx, dy, bsel,
-            bdg = d.badge,
-            bcr = badgeConfig.radius,
-            bcgd = badgeConfig.gdelta;
+            box, dx, dy,
+            bdg = d.badge;
 
         node.select('text')
-            .text(label)
-            .style('opacity', 0)
-            .transition()
-            .style('opacity', 1);
+            .text(label);
 
         if (noLabel) {
             box = emptyBox();
