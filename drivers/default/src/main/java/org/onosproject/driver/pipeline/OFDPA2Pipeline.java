@@ -764,17 +764,29 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         TrafficSelector selector = fwd.selector();
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
-
+        boolean defaultRule = false;
+        boolean popMpls = false;
         int forTableId;
         TrafficSelector.Builder filteredSelector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
-        boolean popMpls = false;
+        TrafficSelector.Builder complementarySelector = DefaultTrafficSelector.builder();
 
+        /*
+         * NOTE: The switch does not support matching 0.0.0.0/0.
+         * Split it into 0.0.0.0/1 and 128.0.0.0/1
+         */
         if (ethType.ethType().toShort() == Ethernet.TYPE_IPV4) {
-            IpPrefix ipPrefix = ((IPCriterion)
-                    selector.getCriterion(Criterion.Type.IPV4_DST)).ip();
-            filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(ipPrefix);
+            IpPrefix ipv4Dst = ((IPCriterion) selector.getCriterion(Criterion.Type.IPV4_DST)).ip();
+            if (ipv4Dst.prefixLength() > 0) {
+                filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
+                        .matchIPDst(ipv4Dst);
+            } else {
+                filteredSelector.matchEthType(Ethernet.TYPE_IPV4)
+                        .matchIPDst(IpPrefix.valueOf("0.0.0.0/1"));
+                complementarySelector.matchEthType(Ethernet.TYPE_IPV4)
+                        .matchIPDst(IpPrefix.valueOf("128.0.0.0/1"));
+                defaultRule = true;
+            }
             forTableId = UNICAST_ROUTING_TABLE;
             log.debug("processing IPv4 specific forwarding objective {} -> next:{}"
                     + " in dev:{}", fwd.id(), fwd.nextId(), deviceId);
@@ -863,8 +875,26 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         } else {
             ruleBuilder.makeTemporary(fwd.timeout());
         }
+        Collection<FlowRule> flowRuleCollection = new ArrayList<>();
+        flowRuleCollection.add(ruleBuilder.build());
+        if (defaultRule) {
+            FlowRule.Builder rule = DefaultFlowRule.builder()
+                .fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .forDevice(deviceId)
+                .withSelector(complementarySelector.build())
+                .withTreatment(tb.build())
+                .forTable(forTableId);
+            if (fwd.permanent()) {
+                rule.makePermanent();
+            } else {
+                rule.makeTemporary(fwd.timeout());
+            }
+            flowRuleCollection.add(rule.build());
+            log.debug("Default rule 0.0.0.0/0 is being installed two rules");
+        }
 
-        return Collections.singletonList(ruleBuilder.build());
+        return flowRuleCollection;
     }
 
     /**
