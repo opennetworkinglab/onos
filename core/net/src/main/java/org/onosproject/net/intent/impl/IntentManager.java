@@ -317,40 +317,35 @@ public class IntentManager
 
             // batchExecutor is single-threaded, so only one batch is in flight at a time
             CompletableFuture.runAsync(() -> {
-                try {
-                /*
-                 1. wrap each intentdata in a runnable and submit
-                 2. wait for completion of all the work
-                 3. accumulate results and submit batch write of IntentData to store
-                    (we can also try to update these individually)
-                 */
-                    List<CompletableFuture<IntentData>> futures = operations.stream()
-                            .map(x -> CompletableFuture.completedFuture(x)
-                                    .thenApply(IntentManager.this::createInitialPhase)
-                                    .thenApplyAsync(IntentManager.this::process, workerExecutor)
-                                    .thenApply(FinalIntentProcessPhase::data)
-                                    .exceptionally(e -> {
-                                        //FIXME
-                                        log.warn("Future failed: {}", e);
-                                        return null;
-                                    }))
-                            .collect(Collectors.toList());
-                    store.batchWrite(Tools.allOf(futures).join().stream()
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toList()));
-                } catch (Exception e) {
-                    log.error("Error submitting batches:", e);
-                    // FIXME incomplete Intents should be cleaned up
-                    //       (transition to FAILED, etc.)
+                // process intent until the phase reaches one of the final phases
+                List<CompletableFuture<IntentData>> futures = operations.stream()
+                        .map(x -> CompletableFuture.completedFuture(x)
+                                .thenApply(IntentManager.this::createInitialPhase)
+                                .thenApplyAsync(IntentManager.this::process, workerExecutor)
+                                .thenApply(FinalIntentProcessPhase::data)
+                                .exceptionally(e -> {
+                                    //FIXME
+                                    log.warn("Future failed: {}", e);
+                                    return null;
+                                })).collect(Collectors.toList());
 
-                    // the batch has failed
-                    // TODO: maybe we should do more?
-                    log.error("Walk the plank, matey...");
-                    //FIXME
+                // write multiple data to store in order
+                store.batchWrite(Tools.allOf(futures).join().stream()
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList()));
+            }, batchExecutor).exceptionally(e -> {
+                log.error("Error submitting batches:", e);
+                // FIXME incomplete Intents should be cleaned up
+                //       (transition to FAILED, etc.)
+
+                // the batch has failed
+                // TODO: maybe we should do more?
+                log.error("Walk the plank, matey...");
+                //FIXME
 //            batchService.removeIntentOperations(data);
-                }
-                accumulator.ready();
-            }, batchExecutor);
+                return null;
+            }).thenRun(accumulator::ready);
+
         }
     }
 
