@@ -21,9 +21,9 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
@@ -59,12 +59,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.intent.IntentState.*;
+import static org.onosproject.net.intent.IntentState.CORRUPT;
+import static org.onosproject.net.intent.IntentState.FAILED;
+import static org.onosproject.net.intent.IntentState.INSTALLED;
+import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
+import static org.onosproject.net.intent.IntentState.WITHDRAWING;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
+import static org.onosproject.net.intent.IntentState.WITHDRAW_REQ;
 import static org.onosproject.net.intent.constraint.PartialFailureConstraint.intentAllowsPartialFailure;
 import static org.onosproject.net.intent.impl.phase.IntentProcessPhase.newInitialPhase;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.INTENT_READ;
+import static org.onosproject.security.AppPermission.Type.INTENT_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppPermission.Type.*;
 
 
 /**
@@ -471,10 +478,10 @@ public class IntentManager
 
         if (log.isTraceEnabled()) {
             log.trace("applying intent {} -> {} with {} rules: {}",
-                      toUninstall.isPresent() ? toUninstall.get().key() : "<empty>",
-                      toInstall.isPresent() ? toInstall.get().key() : "<empty>",
-                      operations.stages().stream().mapToLong(i -> i.size()).sum(),
-                      operations.stages());
+                    toUninstall.map(x -> x.key().toString()).orElse("<empty>"),
+                    toInstall.map(x -> x.key().toString()).orElse("<empty>"),
+                    operations.stages().stream().mapToLong(i -> i.size()).sum(),
+                    operations.stages());
         }
 
         flowRuleService.apply(operations);
