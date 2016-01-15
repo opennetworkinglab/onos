@@ -293,11 +293,6 @@ public class IntentManager
         }
     }
 
-    private CompletableFuture<FinalIntentProcessPhase> submitIntentData(IntentData data) {
-        IntentProcessPhase initial = createInitialPhase(data);
-        return CompletableFuture.supplyAsync(() -> process(initial), workerExecutor);
-    }
-
     private IntentProcessPhase createInitialPhase(IntentData data) {
         IntentData current = store.getIntentData(data.key());
         return newInitialPhase(processor, data, current);
@@ -330,7 +325,8 @@ public class IntentManager
                     (we can also try to update these individually)
                  */
                     List<CompletableFuture<IntentData>> futures = operations.stream()
-                            .map(IntentManager.this::submitIntentData)
+                            .map(x -> createInitialPhase(x))
+                            .map(x -> CompletableFuture.supplyAsync(() -> process(x), workerExecutor))
                             .map(x -> x.thenApply(FinalIntentProcessPhase::data))
                             .map(x -> x.exceptionally(e -> {
                                 //FIXME
