@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-2016 Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,9 +15,11 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.aaa" origin="ATT" version="${project.version}"
+     category="default" url="http://onosproject.org"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
+    <readme>ONOS authentication application.</readme>
     <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-xos-integration/${project.version}</artifact>
     <bundle>mvn:com.sun.jersey/jersey-client/1.19</bundle>

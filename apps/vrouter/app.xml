@@ -15,9 +15,11 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.vrouter" origin="ON.Lab" version="${project.version}"
+     category="default" url="http://onosproject.org"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
+    <readme>Virtual router application.</readme>
     <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-routing-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-app-routing/${project.version}</artifact>

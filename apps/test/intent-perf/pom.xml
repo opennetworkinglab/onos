@@ -33,6 +33,9 @@
 
     <properties>
         <onos.app.name>org.onosproject.intentperf</onos.app.name>
+        <onos.app.category>test</onos.app.category>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.readme>intent performance test application.</onos.app.readme>
     </properties>
 
     <dependencies>

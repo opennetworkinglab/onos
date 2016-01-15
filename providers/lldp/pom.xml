@@ -32,6 +32,10 @@
 
     <properties>
         <onos.app.name>org.onosproject.lldpprovider</onos.app.name>
+        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.category>default</onos.app.category>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.readme>ONOS LLDP link provider.</onos.app.readme>
     </properties>
 
     <description>ONOS LLDP link provider</description>

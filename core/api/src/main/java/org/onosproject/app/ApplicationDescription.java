@@ -44,6 +44,13 @@ public interface ApplicationDescription {
     Version version();
 
     /**
+     * Returns the name of the application origin, group or company.
+     *
+     * @return application origin
+     */
+    String origin();
+
+    /**
      * Returns description of the application.
      *
      * @return application description text
@@ -51,11 +58,32 @@ public interface ApplicationDescription {
     String description();
 
     /**
-     * Returns the name of the application origin, group or company.
+     * Returns category of the application.
      *
-     * @return application origin
+     * @return application category text
      */
-    String origin();
+    String category();
+
+    /**
+     * Returns url of the application.
+     *
+     * @return application url
+     */
+    String url();
+
+    /**
+     * Returns readme of the application.
+     *
+     * @return application readme
+     */
+    String readme();
+
+    /**
+     * Returns icon of the application.
+     *
+     * @return application icon
+     */
+    byte[] icon();
 
     /**
      * Returns the role of the application.

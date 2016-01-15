@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Open Networking Laboratory
+  ~ Copyright 2014-2016 Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-apps</artifactId>
@@ -31,10 +30,6 @@
     <packaging>bundle</packaging>
 
     <description>ONOS authentication application</description>
-
-    <properties>
-        <onos.app.name>org.onosproject.aaa</onos.app.name>
-    </properties>
 
     <dependencies>
         <dependency>

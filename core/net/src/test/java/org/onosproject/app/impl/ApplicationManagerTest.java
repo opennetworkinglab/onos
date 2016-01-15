@@ -138,7 +138,8 @@ public class ApplicationManagerTest {
 
         @Override
         public Application create(InputStream appDescStream) {
-            app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE, PERMS,
+            app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, CATEGORY,
+                                         URL, README, ICON, ROLE, PERMS,
                                          Optional.of(FURL), FEATURES, ImmutableList.of());
             state = INSTALLED;
             delegate.notify(new ApplicationEvent(APP_INSTALLED, app));

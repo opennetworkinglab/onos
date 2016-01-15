@@ -31,7 +31,6 @@
     <description>OLT application for CORD</description>
 
     <properties>
-        <onos.app.name>org.onosproject.olt</onos.app.name>
         <web.context>/onos/olt</web.context>
         <api.version>1.0.0</api.version>
         <api.title>ONOS OLT REST API</api.title>

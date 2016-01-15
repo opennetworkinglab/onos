@@ -15,10 +15,11 @@
   ~ limitations under the License.
   -->
 <app name="org.onosproject.netconf" origin="ON.Lab" version="${project.version}"
+     category="default" url="http://onosproject.org"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
-
+    <readme>ONOS NetConf protocol southbound provider.</readme>
     <artifact>mvn:${project.groupId}/onos-netconf-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-netconf-ctl/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-drivers/${project.version}</artifact>

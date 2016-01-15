@@ -34,8 +34,6 @@
 
     <properties>
         <onos.version>1.5.0-SNAPSHOT</onos.version>
-        <onos.app.name>org.onosproject.vrouter</onos.app.name>
-        <onos.app.origin>ON.Lab</onos.app.origin>
     </properties>
 
     <dependencies>

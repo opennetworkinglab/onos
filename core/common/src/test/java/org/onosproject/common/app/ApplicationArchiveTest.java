@@ -60,6 +60,10 @@ public class ApplicationArchiveTest {
         assertEquals("incorrect origin", ORIGIN, app.origin());
         assertEquals("incorrect role", ROLE, app.role());
 
+        assertEquals("incorrect category", CATEGORY, app.category());
+        assertEquals("incorrect url", URL, app.url());
+        assertEquals("incorrect readme", README, app.readme());
+
         assertEquals("incorrect description", DESC, app.description());
         assertEquals("incorrect features URI", FURL, app.featuresRepo().get());
         assertEquals("incorrect permissions", PERMS, app.permissions());

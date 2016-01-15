@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-2016 Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -29,6 +29,13 @@
 
     <packaging>bundle</packaging>
     <description>Libraries for routing applications</description>
+
+    <properties>
+        <onos.app.name>org.onosproject.routing</onos.app.name>
+        <onos.app.category>default</onos.app.category>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.readme>SDN-IP reactive routing application.</onos.app.readme>
+    </properties>
 
     <dependencies>
         <dependency>

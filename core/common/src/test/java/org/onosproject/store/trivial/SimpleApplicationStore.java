@@ -74,6 +74,8 @@ public class SimpleApplicationStore extends ApplicationArchive implements Applic
             DefaultApplication app =
                     new DefaultApplication(appId, appDesc.version(),
                                            appDesc.description(), appDesc.origin(),
+                                           appDesc.category(), appDesc.url(),
+                                           appDesc.readme(), appDesc.icon(),
                                            appDesc.role(), appDesc.permissions(),
                                            appDesc.featuresRepo(), appDesc.features(),
                                            appDesc.requiredApps());
@@ -117,7 +119,9 @@ public class SimpleApplicationStore extends ApplicationArchive implements Applic
         ApplicationId appId = idStore.registerApplication(appDesc.name());
         DefaultApplication app =
                 new DefaultApplication(appId, appDesc.version(), appDesc.description(),
-                                       appDesc.origin(), appDesc.role(), appDesc.permissions(),
+                                       appDesc.origin(), appDesc.category(), appDesc.url(),
+                                       appDesc.readme(), appDesc.icon(),
+                                       appDesc.role(), appDesc.permissions(),
                                        appDesc.featuresRepo(), appDesc.features(),
                                        appDesc.requiredApps());
         apps.put(appId, app);

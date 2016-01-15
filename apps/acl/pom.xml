@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-2016 Open Networking Laboratory
   ~ Originally created by Pengfei Lu, Network and Cloud Computing Laboratory, Dalian University of Technology, China
   ~ Advisers: Keqiu Li and Heng Qi
   ~ This work is supported by the State Key Program of National Natural Science of China(Grant No. 61432002)
@@ -40,6 +40,9 @@
     <properties>
         <onos.app.name>org.onosproject.acl</onos.app.name>
         <onos.app.origin>DLUT</onos.app.origin>
+        <onos.app.category>default</onos.app.category>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.readme>ONOS ACL application.</onos.app.readme>
 
         <web.context>/onos/v1/acl</web.context>
         <api.version>1.0.0</api.version>

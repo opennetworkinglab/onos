@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-2016 Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -32,6 +32,9 @@
 
     <properties>
         <onos.app.name>org.onosproject.cordfabric</onos.app.name>
+        <onos.app.category>default</onos.app.category>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.readme>Simple fabric application for CORD.</onos.app.readme>
         <web.context>/onos/cordfabric</web.context>
         <api.version>1.0.0</api.version>
         <api.title>ONOS CORD Fabric REST API</api.title>

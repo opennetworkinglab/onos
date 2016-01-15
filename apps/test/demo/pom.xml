@@ -33,6 +33,9 @@
 
     <properties>
         <onos.app.name>org.onosproject.demo</onos.app.name>
+        <onos.app.category>test</onos.app.category>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.readme>Flow throughput test application.</onos.app.readme>
         <web.context>/onos/demo</web.context>
         <api.title>ONOS Flow Throughput Test App API</api.title>
         <api.description>

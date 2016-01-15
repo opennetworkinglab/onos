@@ -33,12 +33,17 @@ public class DefaultApplicationTest {
 
     @Test
     public void basics() {
-        Application app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
+        Application app = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+                                                 CATEGORY, URL, README, ICON, ROLE,
                                                  PERMS, Optional.of(FURL), FEATURES, APPS);
         assertEquals("incorrect id", APP_ID, app.id());
         assertEquals("incorrect version", VER, app.version());
         assertEquals("incorrect description", DESC, app.description());
         assertEquals("incorrect origin", ORIGIN, app.origin());
+        assertEquals("incorrect category", CATEGORY, app.category());
+        assertEquals("incorrect URL", URL, app.url());
+        assertEquals("incorrect readme", README, app.readme());
+        assertEquals("incorrect icon", ICON, app.icon());
         assertEquals("incorrect role", ROLE, app.role());
         assertEquals("incorrect permissions", PERMS, app.permissions());
         assertEquals("incorrect features repo", FURL, app.featuresRepo().get());
@@ -49,16 +54,19 @@ public class DefaultApplicationTest {
 
     @Test
     public void testEquality() {
-        Application a1 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
+        Application a1 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+                                                CATEGORY, URL, README, ICON, ROLE,
                                                 PERMS, Optional.of(FURL), FEATURES, APPS);
-        Application a2 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
+        Application a2 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+                                                CATEGORY, URL, README, ICON, ROLE,
                                                 PERMS, Optional.of(FURL), FEATURES, APPS);
-        Application a3 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN, ROLE,
+        Application a3 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN,
+                                                CATEGORY, URL, README, ICON, ROLE,
                                                 PERMS, Optional.empty(), FEATURES, APPS);
-        Application a4 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN + "asd", ROLE,
+        Application a4 = new DefaultApplication(APP_ID, VER, DESC, ORIGIN + "asd",
+                                                CATEGORY, URL, README, ICON, ROLE,
                                                 PERMS, Optional.of(FURL), FEATURES, APPS);
         new EqualsTester().addEqualityGroup(a1, a2)
                 .addEqualityGroup(a3).addEqualityGroup(a4).testEquals();
     }
-
 }

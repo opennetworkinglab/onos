@@ -49,6 +49,34 @@ public interface Application {
     String description();
 
     /**
+     * Returns category of the application.
+     *
+     * @return application category text
+     */
+    String category();
+
+    /**
+     * Returns url of the application.
+     *
+     * @return application url
+     */
+    String url();
+
+    /**
+     * Returns readme of the application.
+     *
+     * @return application readme
+     */
+    String readme();
+
+    /**
+     * Returns icon of the application.
+     *
+     * @return application icon
+     */
+    byte[] icon();
+
+    /**
      * Returns the name of the application origin, group or company.
      *
      * @return application origin

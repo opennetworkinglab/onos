@@ -34,6 +34,10 @@
     <properties>
         <onos.version>1.5.0-SNAPSHOT</onos.version>
         <onos.app.name>org.onosproject.events</onos.app.name>
+        <onos.app.category>default</onos.app.category>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.readme>ONOS event history display application.
+        </onos.app.readme>
     </properties>
 
     <dependencies>

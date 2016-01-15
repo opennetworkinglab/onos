@@ -37,6 +37,10 @@ public class DefaultApplicationDescription implements ApplicationDescription {
     private final Version version;
     private final String description;
     private final String origin;
+    private final String category;
+    private final String url;
+    private final String readme;
+    private final byte[] icon;
     private final ApplicationRole role;
     private final Set<Permission> permissions;
     private final Optional<URI> featuresRepo;
@@ -50,6 +54,10 @@ public class DefaultApplicationDescription implements ApplicationDescription {
      * @param version      application version
      * @param description  application description
      * @param origin       origin company
+     * @param category     application category
+     * @param url          application URL
+     * @param readme       application readme
+     * @param icon         application icon
      * @param role         application role
      * @param permissions  requested permissions
      * @param featuresRepo optional features repo URI
@@ -57,7 +65,8 @@ public class DefaultApplicationDescription implements ApplicationDescription {
      * @param requiredApps list of required application names
      */
     public DefaultApplicationDescription(String name, Version version,
-                                         String description, String origin,
+                                         String description, String origin, String category,
+                                         String url, String readme, byte[] icon,
                                          ApplicationRole role, Set<Permission> permissions,
                                          URI featuresRepo, List<String> features,
                                          List<String> requiredApps) {
@@ -65,6 +74,10 @@ public class DefaultApplicationDescription implements ApplicationDescription {
         this.version = checkNotNull(version, "Version cannot be null");
         this.description = checkNotNull(description, "Description cannot be null");
         this.origin = checkNotNull(origin, "Origin cannot be null");
+        this.category = checkNotNull(category, "Category cannot be null");
+        this.url = checkNotNull(url, "URL cannot be null");
+        this.readme = readme;
+        this.icon = icon;
         this.role = checkNotNull(role, "Role cannot be null");
         this.permissions = checkNotNull(permissions, "Permissions cannot be null");
         this.featuresRepo = Optional.ofNullable(featuresRepo);
@@ -86,6 +99,26 @@ public class DefaultApplicationDescription implements ApplicationDescription {
     @Override
     public String description() {
         return description;
+    }
+
+    @Override
+    public String category() {
+        return category;
+    }
+
+    @Override
+    public String url() {
+        return url;
+    }
+
+    @Override
+    public String readme() {
+        return readme;
+    }
+
+    @Override
+    public byte[] icon() {
+        return icon;
     }
 
     @Override
@@ -125,6 +158,9 @@ public class DefaultApplicationDescription implements ApplicationDescription {
                 .add("version", version)
                 .add("description", description)
                 .add("origin", origin)
+                .add("category", category)
+                .add("url", url)
+                .add("readme", readme)
                 .add("role", role)
                 .add("permissions", permissions)
                 .add("featuresRepo", featuresRepo)
