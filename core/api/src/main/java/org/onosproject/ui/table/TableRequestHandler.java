@@ -55,7 +55,7 @@ public abstract class TableRequestHandler extends RequestHandler {
         String sortDir = JsonUtils.string(payload, "sortDir", "asc");
         tm.sort(sortCol, TableModel.sortDir(sortDir));
 
-        addTableConfigAnnotations(tm);
+        addTableConfigAnnotations(tm, payload);
 
         ObjectNode rootNode = MAPPER.createObjectNode();
         rootNode.set(nodeName, TableUtils.generateRowArrayNode(tm));
@@ -77,12 +77,13 @@ public abstract class TableRequestHandler extends RequestHandler {
     }
 
     /**
-     * Adds all annotations to table model.
+     * Adds table configuration specific annotations to table model.
      *
      * @param tm a table model
+     * @param payload the event payload from the client
      */
-    protected void addTableConfigAnnotations(TableModel tm) {
-        tm.addAnnotation(NO_ROWS_MSG_KEY, noRowsMessage());
+    protected void addTableConfigAnnotations(TableModel tm, ObjectNode payload) {
+        tm.addAnnotation(NO_ROWS_MSG_KEY, noRowsMessage(payload));
     }
 
     /**
@@ -110,9 +111,10 @@ public abstract class TableRequestHandler extends RequestHandler {
      * are no rows to display. For example, a host table might return
      * "No hosts found".
      *
+     * @param payload request payload
      * @return the message
      */
-    protected abstract String noRowsMessage();
+    protected abstract String noRowsMessage(ObjectNode payload);
 
     /**
      * Subclasses should populate the table model by adding

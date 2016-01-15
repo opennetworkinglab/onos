@@ -19,7 +19,9 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupService;
@@ -45,6 +47,9 @@ public class GroupViewMessageHandler extends UiMessageHandler {
     private static final String GROUP_DATA_RESP = "groupDataResponse";
     private static final String GROUPS = "groups";
 
+    private static final String PROTOCOL = "protocol";
+    private static final String OF_10 = "OF_10";
+
     private static final String ID = "id";
     private static final String APP_ID = "app_id";
     private static final String STATE = "state";
@@ -62,10 +67,16 @@ public class GroupViewMessageHandler extends UiMessageHandler {
         return ImmutableSet.of(new GroupDataRequest());
     }
 
+    private static String deviceProtocol(Device device) {
+        String protocol = device.annotations().value(PROTOCOL);
+        return protocol != null ? protocol : "";
+    }
+
     // handler for group table requests
     private final class GroupDataRequest extends TableRequestHandler {
 
         private static final String NO_ROWS_MESSAGE = "No groups found";
+        private static final String NOT_SUPPORT_MESSAGE = "Groups not supported";
 
         private GroupDataRequest() {
             super(GROUP_DATA_REQ, GROUP_DATA_RESP, GROUPS);
@@ -77,8 +88,17 @@ public class GroupViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        protected String noRowsMessage() {
-            // TODO: if devices with OF 1.0, should return not support message
+        protected String noRowsMessage(ObjectNode payload) {
+            String uri = string(payload, "devId");
+            if (!Strings.isNullOrEmpty(uri)) {
+                DeviceService ds = get(DeviceService.class);
+                Device dev = ds.getDevice(DeviceId.deviceId(uri));
+
+                // TODO: replace with a less brittle solution...
+                if (deviceProtocol(dev).equals(OF_10)) {
+                    return NOT_SUPPORT_MESSAGE;
+                }
+            }
             return NO_ROWS_MESSAGE;
         }
 

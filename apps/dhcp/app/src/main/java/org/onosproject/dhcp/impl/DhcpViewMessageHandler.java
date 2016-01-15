@@ -74,7 +74,7 @@ public class DhcpViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        protected String noRowsMessage() {
+        protected String noRowsMessage(ObjectNode payload) {
             return NO_ROWS_MESSAGE;
         }
 

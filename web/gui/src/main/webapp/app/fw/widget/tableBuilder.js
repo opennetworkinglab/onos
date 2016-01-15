@@ -64,6 +64,7 @@
             cancelTardy();
             ls.stop();
             o.scope.tableData = data[root];
+            o.scope.annots = data.annots;
             onResp && onResp();
 
             // checks if data changed for row flashing

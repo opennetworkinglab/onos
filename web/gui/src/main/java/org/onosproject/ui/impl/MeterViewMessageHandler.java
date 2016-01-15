@@ -19,7 +19,9 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterService;
@@ -42,6 +44,9 @@ public class MeterViewMessageHandler extends UiMessageHandler {
     private static final String METER_DATA_RESP = "meterDataResponse";
     private static final String METERS = "meters";
 
+    private static final String PROTOCOL = "protocol";
+    private static final String OF_10 = "OF_10";
+
     private static final String ID = "id";
     private static final String APP_ID = "app_id";
     private static final String STATE = "state";
@@ -58,10 +63,16 @@ public class MeterViewMessageHandler extends UiMessageHandler {
         return ImmutableSet.of(new MeterDataRequest());
     }
 
+    private static String deviceProtocol(Device device) {
+        String protocol = device.annotations().value(PROTOCOL);
+        return protocol != null ? protocol : "";
+    }
+
     // handler for meter table requests
     private final class MeterDataRequest extends TableRequestHandler {
 
         private static final String NO_ROWS_MESSAGE = "No meters found";
+        private static final String NOT_SUPPORT_MESSAGE = "Meters not supported";
 
         private MeterDataRequest() {
             super(METER_DATA_REQ, METER_DATA_RESP, METERS);
@@ -73,8 +84,17 @@ public class MeterViewMessageHandler extends UiMessageHandler {
         }
 
         @Override
-        protected String noRowsMessage() {
-            // TODO: if the device with OF 1.0, return not support message
+        protected String noRowsMessage(ObjectNode payload) {
+            String uri = string(payload, "devId");
+            if (!Strings.isNullOrEmpty(uri)) {
+                DeviceService ds = get(DeviceService.class);
+                Device dev = ds.getDevice(DeviceId.deviceId(uri));
+
+                // TODO: replace with a less brittle solution...
+                if (deviceProtocol(dev).equals(OF_10)) {
+                    return NOT_SUPPORT_MESSAGE;
+                }
+            }
             return NO_ROWS_MESSAGE;
         }
 
