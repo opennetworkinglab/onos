@@ -62,6 +62,8 @@ public class HostViewMessageHandler extends UiMessageHandler {
 
     // handler for host table requests
     private final class HostDataRequest extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No hosts found";
+
         private HostDataRequest() {
             super(HOST_DATA_REQ, HOST_DATA_RESP, HOSTS);
         }
@@ -69,6 +71,11 @@ public class HostViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

@@ -64,6 +64,8 @@ public class ProcessorViewMessageHandler extends UiMessageHandler {
 
     // handler for packet processor table requests
     private final class ProcessorDataRequest extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No packet processors found";
+
         private ProcessorDataRequest() {
             super(PROCESSOR_DATA_REQ, PROCESSOR_DATA_RESP, PROCESSORS);
         }
@@ -71,6 +73,11 @@ public class ProcessorViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

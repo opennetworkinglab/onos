@@ -66,6 +66,8 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
 
     // handler for application table requests
     private final class AppDataRequest extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No applications found";
+
         private AppDataRequest() {
             super(APP_DATA_REQ, APP_DATA_RESP, APPS);
         }
@@ -73,6 +75,11 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

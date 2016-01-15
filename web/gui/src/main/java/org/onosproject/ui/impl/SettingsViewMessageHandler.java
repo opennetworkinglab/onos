@@ -53,6 +53,8 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
 
     // handler for host table requests
     private final class SettingsRequest extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No settings found";
+
         private SettingsRequest() {
             super(DATA_REQUEST, DATA_RESPONSE, SETTINGS);
         }
@@ -60,6 +62,11 @@ public class SettingsViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

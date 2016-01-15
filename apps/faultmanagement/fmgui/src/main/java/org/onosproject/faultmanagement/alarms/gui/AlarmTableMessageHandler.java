@@ -74,6 +74,8 @@ public class AlarmTableMessageHandler extends UiMessageHandler {
     // handler for alarm table requests
     private final class AlarmTableDataRequestHandler extends TableRequestHandler {
 
+        private static final String NO_ROWS_MESSAGE = "No alarms found";
+
         private AlarmTableDataRequestHandler() {
             super(ALARM_TABLE_DATA_REQ, ALARM_TABLE_DATA_RESP, ALARM_TABLES);
         }
@@ -87,6 +89,11 @@ public class AlarmTableMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COLUMN_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

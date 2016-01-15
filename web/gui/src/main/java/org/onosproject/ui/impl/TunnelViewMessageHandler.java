@@ -55,6 +55,8 @@ public class TunnelViewMessageHandler extends UiMessageHandler {
 
     private final class TunnelDataRequestHandler extends TableRequestHandler {
 
+        private static final String NO_ROWS_MESSAGE = "No tunnels found";
+
         public TunnelDataRequestHandler() {
             super(TUNNEL_DATA_REQ, TUNNEL_DATA_RESP, TUNNELS);
         }
@@ -62,6 +64,11 @@ public class TunnelViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

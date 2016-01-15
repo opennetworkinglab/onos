@@ -22,6 +22,7 @@ import org.onosproject.ui.table.cell.DefaultCellFormatter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -57,7 +58,7 @@ public class TableModel {
     private final Map<String, CellComparator> comparators = new HashMap<>();
     private final Map<String, CellFormatter> formatters = new HashMap<>();
     private final List<Row> rows = new ArrayList<>();
-
+    private final Map<String, Annot> annotations = new HashMap<>();
 
     /**
      * Constructs a table (devoid of data) with the given column IDs.
@@ -121,6 +122,28 @@ public class TableModel {
      */
     public Row[] getRows() {
         return rows.toArray(new Row[rows.size()]);
+    }
+
+    /**
+     * Inserts a new annotation.
+     *
+     * @param key key of annotation
+     * @param value value of annotation
+     */
+    public void addAnnotation(String key, Object value) {
+        Annot annot = new Annot(key, value);
+        annotations.put(key, annot);
+    }
+
+    /**
+     * Returns the annotations in this table.
+     *
+     * @return annotations
+     */
+    public Collection<Annot> getAnnotations() {
+        Collection<Annot> annots = new ArrayList<>(annotations.size());
+        annotations.forEach((k, v) -> annots.add(v));
+        return annots;
     }
 
     /**
@@ -229,6 +252,53 @@ public class TableModel {
             Object cellB = b.get(columnId);
             int result = cellComparator.compare(cellA, cellB);
             return dir == SortDir.ASC ? result : -result;
+        }
+    }
+
+    /**
+     * Model of an annotation.
+     */
+    public class Annot {
+        private final String key;
+        private final Object value;
+
+        /**
+         * Constructs an annotation with the given key and value.
+         *
+         * @param key the key
+         * @param value the value
+         */
+        public Annot(String key, Object value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        /**
+         * Returns the annotation's key.
+         *
+         * @return key
+         */
+        public String key() {
+            return key;
+        }
+
+        /**
+         * Returns the annotation's value.
+         *
+         * @return value
+         */
+        public Object value() {
+            return value;
+        }
+
+        /**
+         * Returns the value as a string.
+         * This default implementation uses the value's toString() method.
+         *
+         * @return the value as a string
+         */
+        public String valueAsString() {
+            return value.toString();
         }
     }
 

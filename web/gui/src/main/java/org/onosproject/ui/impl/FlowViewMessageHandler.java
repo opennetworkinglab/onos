@@ -75,6 +75,8 @@ public class FlowViewMessageHandler extends UiMessageHandler {
     // handler for flow table requests
     private final class FlowDataRequest extends TableRequestHandler {
 
+        private static final String NO_ROWS_MESSAGE = "No flows found";
+
         private FlowDataRequest() {
             super(FLOW_DATA_REQ, FLOW_DATA_RESP, FLOWS);
         }
@@ -82,6 +84,11 @@ public class FlowViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

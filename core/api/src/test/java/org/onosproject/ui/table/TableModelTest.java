@@ -21,6 +21,8 @@ import org.onosproject.ui.table.TableModel.SortDir;
 import org.onosproject.ui.table.cell.DefaultCellFormatter;
 import org.onosproject.ui.table.cell.HexFormatter;
 
+import java.util.Collection;
+
 import static org.junit.Assert.*;
 
 /**
@@ -121,7 +123,6 @@ public class TableModelTest {
         assertEquals("bad cell", 3, row.get(FOO));
         assertEquals("bad cell", true, row.get(BAR));
     }
-
 
     private static final String ONE = "one";
     private static final String TWO = "two";
@@ -313,7 +314,6 @@ public class TableModelTest {
         assertEquals("null sort dir", SortDir.ASC, TableModel.sortDir(null));
     }
 
-
     @Test
     public void enumSort() {
         tm = new TableModel(FOO);
@@ -335,4 +335,83 @@ public class TableModelTest {
             assertEquals(UNEX_SORT + i, ordered[i], rows[i].get(FOO));
         }
     }
+
+    @Test
+    public void stringAnnotation() {
+        tm = new TableModel(FOO);
+        tm.addAnnotation(BAR, ZOO);
+        Collection<TableModel.Annot> annots = tm.getAnnotations();
+        assertEquals("wrong size", 1, annots.size());
+
+        TableModel.Annot annot = annots.iterator().next();
+        assertEquals("wrong key", BAR, annot.key());
+        assertEquals("wrong value", ZOO, annot.value());
+    }
+
+    private static final String K_INT = "int";
+    private static final String K_BOOL = "bool";
+    private static final String K_FLOAT = "float";
+    private static final String K_DOUBLE = "double";
+    private static final String K_ENUM = "enum";
+
+    private TableModel.Annot getAnnotation(Collection<TableModel.Annot> annots, String key) {
+        final TableModel.Annot[] annot = {null};
+        annots.forEach(a -> {
+            if (a.key().equals(key)) {
+                annot[0] = a;
+            }
+        });
+        return annot[0];
+    }
+
+    private void verifyCollectionContains(Collection<TableModel.Annot> annots,
+                                          String key, int i) {
+        TableModel.Annot a = getAnnotation(annots, key);
+        assertEquals("wrong int value", i, a.value());
+    }
+
+    private void verifyCollectionContains(Collection<TableModel.Annot> annots,
+                                          String key, boolean b) {
+        TableModel.Annot a = getAnnotation(annots, key);
+        assertEquals("wrong boolean value", b, a.value());
+    }
+
+    private void verifyCollectionContains(Collection<TableModel.Annot> annots,
+                                          String key, float f) {
+        TableModel.Annot a = getAnnotation(annots, key);
+        assertEquals("wrong float value", f, a.value());
+    }
+
+    private void verifyCollectionContains(Collection<TableModel.Annot> annots,
+                                          String key, double d) {
+        TableModel.Annot a = getAnnotation(annots, key);
+        assertEquals("wrong double value", d, a.value());
+    }
+
+    private void verifyCollectionContains(Collection<TableModel.Annot> annots,
+                                          String key, Enum<?> e) {
+        TableModel.Annot a = getAnnotation(annots, key);
+        assertEquals("wrong double value", e, a.value());
+    }
+
+    @Test
+    public void primitivesAnnotation() {
+        tm = new TableModel(FOO);
+        tm.addAnnotation(K_INT, 1);
+        tm.addAnnotation(K_BOOL, true);
+        tm.addAnnotation(K_FLOAT, 3.14f);
+        tm.addAnnotation(K_DOUBLE, 2.71828);
+        tm.addAnnotation(K_ENUM, StarWars.LUKE_SKYWALKER);
+
+        Collection<TableModel.Annot> annots = tm.getAnnotations();
+        assertEquals("wrong size", 5, annots.size());
+
+        verifyCollectionContains(annots, K_INT, 1);
+        verifyCollectionContains(annots, K_BOOL, true);
+        verifyCollectionContains(annots, K_FLOAT, 3.14f);
+        verifyCollectionContains(annots, K_DOUBLE, 2.71828);
+        verifyCollectionContains(annots, K_ENUM, StarWars.LUKE_SKYWALKER);
+    }
+
+    // TODO: add support for compound object value
 }

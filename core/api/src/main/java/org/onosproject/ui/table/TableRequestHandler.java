@@ -25,6 +25,8 @@ import org.onosproject.ui.RequestHandler;
  */
 public abstract class TableRequestHandler extends RequestHandler {
 
+    private static final String ANNOTS = "annots";
+    private static final String NO_ROWS_MSG_KEY = "no_rows_msg";
     private final String respType;
     private final String nodeName;
 
@@ -53,8 +55,11 @@ public abstract class TableRequestHandler extends RequestHandler {
         String sortDir = JsonUtils.string(payload, "sortDir", "asc");
         tm.sort(sortCol, TableModel.sortDir(sortDir));
 
+        addTableConfigAnnotations(tm);
+
         ObjectNode rootNode = MAPPER.createObjectNode();
-        rootNode.set(nodeName, TableUtils.generateArrayNode(tm));
+        rootNode.set(nodeName, TableUtils.generateRowArrayNode(tm));
+        rootNode.set(ANNOTS, TableUtils.generateAnnotObjectNode(tm));
         sendMessage(respType, 0, rootNode);
     }
 
@@ -69,6 +74,15 @@ public abstract class TableRequestHandler extends RequestHandler {
      */
     protected TableModel createTableModel() {
         return new TableModel(getColumnIds());
+    }
+
+    /**
+     * Adds all annotations to table model.
+     *
+     * @param tm a table model
+     */
+    protected void addTableConfigAnnotations(TableModel tm) {
+        tm.addAnnotation(NO_ROWS_MSG_KEY, noRowsMessage());
     }
 
     /**
@@ -90,6 +104,15 @@ public abstract class TableRequestHandler extends RequestHandler {
      * @return the column IDs
      */
     protected abstract String[] getColumnIds();
+
+    /**
+     * Subclasses should return the message to display in the table when there
+     * are no rows to display. For example, a host table might return
+     * "No hosts found".
+     *
+     * @return the message
+     */
+    protected abstract String noRowsMessage();
 
     /**
      * Subclasses should populate the table model by adding

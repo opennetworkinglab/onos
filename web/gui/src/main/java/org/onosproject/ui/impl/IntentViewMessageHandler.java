@@ -71,6 +71,8 @@ public class IntentViewMessageHandler extends UiMessageHandler {
 
     // handler for intent table requests
     private final class IntentDataRequest extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No intents found";
+
         private IntentDataRequest() {
             super(INTENT_DATA_REQ, INTENT_DATA_RESP, INTENTS);
         }
@@ -83,6 +85,11 @@ public class IntentViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

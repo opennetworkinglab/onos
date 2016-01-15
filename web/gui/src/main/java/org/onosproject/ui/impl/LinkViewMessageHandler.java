@@ -65,6 +65,8 @@ public class LinkViewMessageHandler extends UiMessageHandler {
 
     // handler for link table requests
     private final class LinkDataRequest extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No links found";
+
         private LinkDataRequest() {
             super(LINK_DATA_REQ, LINK_DATA_RESP, LINKS);
         }
@@ -72,6 +74,11 @@ public class LinkViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

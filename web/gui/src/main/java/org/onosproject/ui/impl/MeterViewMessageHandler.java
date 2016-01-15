@@ -61,6 +61,8 @@ public class MeterViewMessageHandler extends UiMessageHandler {
     // handler for meter table requests
     private final class MeterDataRequest extends TableRequestHandler {
 
+        private static final String NO_ROWS_MESSAGE = "No meters found";
+
         private MeterDataRequest() {
             super(METER_DATA_REQ, METER_DATA_RESP, METERS);
         }
@@ -68,6 +70,12 @@ public class MeterViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            // TODO: if the device with OF 1.0, return not support message
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

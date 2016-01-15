@@ -65,6 +65,8 @@ public class GroupViewMessageHandler extends UiMessageHandler {
     // handler for group table requests
     private final class GroupDataRequest extends TableRequestHandler {
 
+        private static final String NO_ROWS_MESSAGE = "No groups found";
+
         private GroupDataRequest() {
             super(GROUP_DATA_REQ, GROUP_DATA_RESP, GROUPS);
         }
@@ -72,6 +74,12 @@ public class GroupViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            // TODO: if devices with OF 1.0, should return not support message
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

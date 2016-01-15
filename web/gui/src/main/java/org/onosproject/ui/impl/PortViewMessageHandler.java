@@ -62,6 +62,8 @@ public class PortViewMessageHandler extends UiMessageHandler {
     // handler for port table requests
     private final class PortDataRequest extends TableRequestHandler {
 
+        private static final String NO_ROWS_MESSAGE = "No ports found";
+
         private PortDataRequest() {
             super(PORT_DATA_REQ, PORT_DATA_RESP, PORTS);
         }
@@ -69,6 +71,11 @@ public class PortViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

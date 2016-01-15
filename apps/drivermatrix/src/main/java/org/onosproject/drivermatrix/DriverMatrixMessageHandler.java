@@ -63,6 +63,8 @@ public class DriverMatrixMessageHandler extends UiMessageHandler {
     // handler for sample table requests
     private final class SampleTableDataRequestHandler extends TableRequestHandler {
 
+        private static final String NO_ROWS_MESSAGE = "No data found";
+
         private SampleTableDataRequestHandler() {
             super(SAMPLE_TABLE_DATA_REQ, SAMPLE_TABLE_DATA_RESP, SAMPLE_TABLES);
         }
@@ -72,6 +74,11 @@ public class DriverMatrixMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COLUMN_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         // if required, override createTableModel() to set column formatters / comparators

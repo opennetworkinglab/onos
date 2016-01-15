@@ -37,7 +37,7 @@ public class TableUtilsTest {
         tm.addRow().cell(FOO, 1).cell(BAR, 2);
         tm.addRow().cell(FOO, 3).cell(BAR, 4);
 
-        ArrayNode array = TableUtils.generateArrayNode(tm);
+        ArrayNode array = TableUtils.generateRowArrayNode(tm);
         Assert.assertEquals("wrong results", ARRAY_AS_STRING, array.toString());
     }
 

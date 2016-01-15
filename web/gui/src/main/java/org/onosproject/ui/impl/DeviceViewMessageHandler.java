@@ -127,6 +127,8 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
 
     // handler for device table requests
     private final class DataRequestHandler extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No devices found";
+
         private DataRequestHandler() {
             super(DEV_DATA_REQ, DEV_DATA_RESP, DEVICES);
         }
@@ -134,6 +136,11 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

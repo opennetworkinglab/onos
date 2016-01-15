@@ -60,6 +60,8 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
 
     // handler for cluster table requests
     private final class ClusterDataRequest extends TableRequestHandler {
+        private static final String NO_ROWS_MESSAGE = "No cluster nodes found";
+
         private ClusterDataRequest() {
             super(CLUSTER_DATA_REQ, CLUSTER_DATA_RESP, CLUSTERS);
         }
@@ -67,6 +69,11 @@ public class ClusterViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override

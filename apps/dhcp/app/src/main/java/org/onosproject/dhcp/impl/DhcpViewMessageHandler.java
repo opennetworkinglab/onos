@@ -57,6 +57,8 @@ public class DhcpViewMessageHandler extends UiMessageHandler {
     // handler for dhcp table requests
     private final class DataRequestHandler extends TableRequestHandler {
 
+        private static final String NO_ROWS_MESSAGE = "No mappings found";
+
         private DataRequestHandler() {
             super(DHCP_DATA_REQ, DHCP_DATA_RESP, DHCP);
         }
@@ -69,6 +71,11 @@ public class DhcpViewMessageHandler extends UiMessageHandler {
         @Override
         protected String[] getColumnIds() {
             return COL_IDS;
+        }
+
+        @Override
+        protected String noRowsMessage() {
+            return NO_ROWS_MESSAGE;
         }
 
         @Override
