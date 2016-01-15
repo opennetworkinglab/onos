@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Tools;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.event.AbstractListenerManager;
@@ -322,16 +323,17 @@ public class IntentManager
                  3. accumulate results and submit batch write of IntentData to store
                     (we can also try to update these individually)
                  */
-                    store.batchWrite(operations.stream()
+                    List<CompletableFuture<IntentData>> futures = operations.stream()
                             .map(IntentManager.this::submitIntentData)
+                            .map(x -> x.thenApply(FinalIntentProcessPhase::data))
                             .map(x -> x.exceptionally(e -> {
                                 //FIXME
                                 log.warn("Future failed: {}", e);
                                 return null;
                             }))
-                            .map(CompletableFuture::join)
+                            .collect(Collectors.toList());
+                    store.batchWrite(Tools.allOf(futures).join().stream()
                             .filter(Objects::nonNull)
-                            .map(FinalIntentProcessPhase::data)
                             .collect(Collectors.toList()));
                 } catch (Exception e) {
                     log.error("Error submitting batches:", e);
