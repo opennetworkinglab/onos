@@ -325,8 +325,9 @@ public class IntentManager
                     (we can also try to update these individually)
                  */
                     List<CompletableFuture<IntentData>> futures = operations.stream()
-                            .map(x -> createInitialPhase(x))
-                            .map(x -> CompletableFuture.supplyAsync(() -> process(x), workerExecutor))
+                            .map(IntentManager.this::createInitialPhase)
+                            .map(CompletableFuture::completedFuture)
+                            .map(x -> x.thenApplyAsync(IntentManager.this::process, workerExecutor))
                             .map(x -> x.thenApply(FinalIntentProcessPhase::data))
                             .map(x -> x.exceptionally(e -> {
                                 //FIXME
