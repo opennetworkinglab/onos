@@ -18,7 +18,6 @@ package org.onosproject.net.flowobjective.impl.composition;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -64,7 +63,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.*;
+import static org.onosproject.security.AppPermission.Type.FLOWRULE_WRITE;
 
 
 /**
@@ -79,7 +78,7 @@ import static org.onosproject.security.AppPermission.Type.*;
  * Therefore, it is safest to use this component in a single instance scenario.
  * This comment will be removed when a distributed implementation is available.
  */
-@Component(immediate = true, enabled = false)
+//@Component(immediate = true, enabled = false)
 @Service
 public class FlowObjectiveCompositionManager implements FlowObjectiveService {
 

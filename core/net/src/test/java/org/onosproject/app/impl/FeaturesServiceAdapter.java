@@ -16,6 +16,7 @@
 package org.onosproject.app.impl;
 
 import org.apache.karaf.features.Feature;
+import org.apache.karaf.features.FeaturesListener;
 import org.apache.karaf.features.Repository;
 
 import java.net.URI;
@@ -163,6 +164,13 @@ public class FeaturesServiceAdapter implements org.apache.karaf.features.Feature
 
     @Override
     public void refreshRepository(URI uri) throws Exception {
+    }
 
+    @Override
+    public void registerListener(FeaturesListener featuresListener) {
+    }
+
+    @Override
+    public void unregisterListener(FeaturesListener featuresListener) {
     }
 }

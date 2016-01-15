@@ -16,7 +16,6 @@
 package org.onosproject.store.cluster.messaging.impl;
 
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -31,7 +30,7 @@ import org.slf4j.LoggerFactory;
 /**
  * IOLoop based MessagingService.
  */
-@Component(immediate = true, enabled = false)
+//@Component(immediate = true, enabled = false)
 @Service
 public class IOLoopMessagingManager extends IOLoopMessaging {
 

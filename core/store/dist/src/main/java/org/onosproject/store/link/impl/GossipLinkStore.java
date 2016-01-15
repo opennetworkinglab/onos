@@ -23,7 +23,6 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -90,7 +89,9 @@ import static org.onosproject.net.Link.State.INACTIVE;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.Link.Type.INDIRECT;
 import static org.onosproject.net.LinkKey.linkKey;
-import static org.onosproject.net.link.LinkEvent.Type.*;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_UPDATED;
 import static org.onosproject.store.link.impl.GossipLinkStoreMessageSubjects.LINK_ANTI_ENTROPY_ADVERTISEMENT;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -98,7 +99,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Manages inventory of infrastructure links in distributed data store
  * that uses optimistic replication and gossip based techniques.
  */
-@Component(immediate = true, enabled = false)
+//@Component(immediate = true, enabled = false)
 @Service
 public class GossipLinkStore
         extends AbstractStore<LinkEvent, LinkStoreDelegate>

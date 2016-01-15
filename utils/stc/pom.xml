@@ -68,17 +68,17 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>8.1.17.v20150415</version>
+            <version>8.1.18.v20150929</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>8.1.17.v20150415</version>
+            <version>8.1.18.v20150929</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-websocket</artifactId>
-            <version>8.1.17.v20150415</version>
+            <version>8.1.18.v20150929</version>
         </dependency>
     </dependencies>
 

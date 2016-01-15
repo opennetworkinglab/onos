@@ -12,9 +12,9 @@ RUN echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-s
 ENV HOME /root
 ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 ENV ONOS_ROOT /src/onos
-ENV KARAF_VERSION 3.0.3
-ENV KARAF_ROOT /root/onos/apache-karaf-3.0.3
-ENV KARAF_LOG /root/onos/apache-karaf-3.0.3/data/log/karaf.log
+ENV KARAF_VERSION 3.0.5
+ENV KARAF_ROOT /root/onos/apache-karaf-3.0.5
+ENV KARAF_LOG /root/onos/apache-karaf-3.0.5/data/log/karaf.log
 ENV BUILD_NUMBER docker
 ENV PATH $PATH:$KARAF_ROOT/bin
 

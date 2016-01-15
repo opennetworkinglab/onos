@@ -83,7 +83,7 @@
         <openflowj.version>0.9.1.onos</openflowj.version>
         <onos-maven-plugin.version>1.8-SNAPSHOT</onos-maven-plugin.version>
         <osgi.version>4.3.1</osgi.version>
-        <karaf.version>3.0.3</karaf.version>
+        <karaf.version>3.0.5</karaf.version>
         <jersey.version>1.19</jersey.version>
         <jackson.version>2.6.4</jackson.version>
         <slf4j.version>1.7.6</slf4j.version>
