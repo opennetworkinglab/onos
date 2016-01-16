@@ -85,8 +85,7 @@
         <osgi.version>4.3.1</osgi.version>
         <karaf.version>3.0.3</karaf.version>
         <jersey.version>1.19</jersey.version>
-        <fasterxml.jackson.version>2.6.4</fasterxml.jackson.version>
-        <codehaus.jackson.version>1.9.13</codehaus.jackson.version>
+        <jackson.version>2.6.4</jackson.version>
         <slf4j.version>1.7.6</slf4j.version>
         <guava.version>19.0</guava.version>
         <commons.io.version>2.4</commons.io.version>
@@ -196,17 +195,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-core-asl</artifactId>
-                <version>${codehaus.jackson.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-mapper-asl</artifactId>
-                <version>${codehaus.jackson.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>org.easymock</groupId>
                 <artifactId>easymock</artifactId>
                 <version>3.4</version>
@@ -246,13 +234,13 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${fasterxml.jackson.version}</version>
+                <version>${jackson.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>${fasterxml.jackson.version}</version>
+                <version>${jackson.version}</version>
                 <scope>provided</scope>
             </dependency>
 

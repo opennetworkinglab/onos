@@ -15,9 +15,10 @@
  */
 package org.onosproject.optical.cfg;
 
-import java.util.Map;
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.onlab.util.HexString;
+
+import java.util.Map;
 
 /**
  * Public class corresponding to JSON described data model.
