@@ -165,13 +165,10 @@ public class CordVtnRuleInstaller {
      * Populates basic rules that connect a VM to the other VMs in the system.
      *
      * @param host host
-     * @param hostIp host ip
      * @param tunnelIp tunnel ip
      * @param vNet openstack network
      */
-    public void populateBasicConnectionRules(Host host, IpAddress hostIp, IpAddress tunnelIp,
-                                             OpenstackNetwork vNet) {
-        // TODO we can get host ip from host.ip() after applying NetworkConfig host provider
+    public void populateBasicConnectionRules(Host host, IpAddress tunnelIp, OpenstackNetwork vNet) {
         checkNotNull(host);
         checkNotNull(vNet);
 
@@ -182,6 +179,7 @@ public class CordVtnRuleInstaller {
 
         PortNumber inPort = host.location().port();
         MacAddress dstMac = host.mac();
+        IpAddress hostIp = host.ipAddresses().stream().findFirst().get();
         long tunnelId = Long.parseLong(vNet.segmentId());
 
         OpenstackSubnet subnet = vNet.subnets().stream()
@@ -352,7 +350,7 @@ public class CordVtnRuleInstaller {
 
             Group group = groupService.getGroup(deviceId, groupKey);
             if (group == null) {
-                log.debug("No group exists for service {} in {}", service.id(), deviceId);
+                log.trace("No group exists for service {} in {}, do nothing.", service.id(), deviceId);
                 continue;
             }
 

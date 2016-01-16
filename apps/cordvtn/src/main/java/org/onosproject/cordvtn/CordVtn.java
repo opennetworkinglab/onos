@@ -15,7 +15,6 @@
  */
 package org.onosproject.cordvtn;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -24,59 +23,43 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.Ip4Address;
-import org.onlab.util.ItemNotFoundException;
 import org.onlab.packet.IpAddress;
-import org.onlab.util.KryoNamespace;
-import org.onosproject.cluster.ClusterService;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.Port;
-import org.onosproject.net.behaviour.BridgeConfig;
-import org.onosproject.net.behaviour.BridgeName;
-import org.onosproject.net.behaviour.ControllerInfo;
-import org.onosproject.net.behaviour.DefaultTunnelDescription;
-import org.onosproject.net.behaviour.TunnelConfig;
-import org.onosproject.net.behaviour.TunnelDescription;
-import org.onosproject.net.behaviour.TunnelName;
-import org.onosproject.net.device.DeviceAdminService;
-import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.group.GroupService;
+import org.onosproject.net.host.DefaultHostDescription;
+import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostProvider;
+import org.onosproject.net.host.HostProviderRegistry;
+import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openstackswitching.OpenstackNetwork;
 import org.onosproject.openstackswitching.OpenstackPort;
 import org.onosproject.openstackswitching.OpenstackSubnet;
 import org.onosproject.openstackswitching.OpenstackSwitchingService;
-import org.onosproject.ovsdb.controller.OvsdbClientService;
-import org.onosproject.ovsdb.controller.OvsdbController;
-import org.onosproject.ovsdb.controller.OvsdbNodeId;
-import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -84,8 +67,6 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.Device.Type.SWITCH;
-import static org.onosproject.net.behaviour.TunnelDescription.Type.VXLAN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -94,36 +75,15 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class CordVtn implements CordVtnService {
+public class CordVtn extends AbstractProvider implements CordVtnService, HostProvider {
 
     protected final Logger log = getLogger(getClass());
-
-    private static final int NUM_THREADS = 1;
-    private static final KryoNamespace.Builder NODE_SERIALIZER = KryoNamespace.newBuilder()
-            .register(KryoNamespaces.API)
-            .register(CordVtnNode.class)
-            .register(NodeState.class);
-
-    private static final String DEFAULT_BRIDGE = "br-int";
-    private static final String VPORT_PREFIX = "tap";
-    private static final String DEFAULT_TUNNEL = "vxlan";
-    private static final String OK = "OK";
-    private static final String NO = "NO";
-
-    private static final Map<String, String> DEFAULT_TUNNEL_OPTIONS = new HashMap<String, String>() {
-        {
-            put("key", "flow");
-            put("remote_ip", "flow");
-        }
-    };
-    private static final int DPID_BEGIN = 3;
-    private static final int OFPORT = 6653;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected StorageService storageService;
+    protected HostProviderRegistry hostProviderRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -135,19 +95,10 @@ public class CordVtn implements CordVtnService {
     protected DriverService driverService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceAdminService adminService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OvsdbController controller;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
@@ -158,76 +109,32 @@ public class CordVtn implements CordVtnService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackSwitchingService openstackService;
 
+    private static final int NUM_THREADS = 1;
+    private static final String DEFAULT_TUNNEL = "vxlan";
+    private static final String SERVICE_ID = "serviceId";
+    private static final String LOCATION_IP = "locationIp";
+    private static final String OPENSTACK_VM_ID = "openstackVmId";
+
     private final ExecutorService eventExecutor = Executors
             .newFixedThreadPool(NUM_THREADS, groupedThreads("onos/cordvtn", "event-handler"));
 
-    private final DeviceListener deviceListener = new InternalDeviceListener();
-    private final HostListener hostListener = new InternalHostListener();
     private final PacketProcessor packetProcessor = new InternalPacketProcessor();
+    private final HostListener hostListener = new InternalHostListener();
 
-    private final OvsdbHandler ovsdbHandler = new OvsdbHandler();
-    private final BridgeHandler bridgeHandler = new BridgeHandler();
-    private final VmHandler vmHandler = new VmHandler();
-
-    private ApplicationId appId;
-    private ConsistentMap<CordVtnNode, NodeState> nodeStore;
-    private Map<HostId, OpenstackNetwork> hostNetMap = Maps.newHashMap();
+    private HostProviderService hostProvider;
     private CordVtnRuleInstaller ruleInstaller;
     private CordVtnArpProxy arpProxy;
 
-    private enum NodeState {
-
-        INIT {
-            @Override
-            public void process(CordVtn cordVtn, CordVtnNode node) {
-                cordVtn.connect(node);
-            }
-        },
-        OVSDB_CONNECTED {
-            @Override
-            public void process(CordVtn cordVtn, CordVtnNode node) {
-                if (!cordVtn.getOvsdbConnectionState(node)) {
-                    cordVtn.connect(node);
-                } else {
-                    cordVtn.createIntegrationBridge(node);
-                }
-            }
-        },
-        BRIDGE_CREATED {
-            @Override
-            public void process(CordVtn cordVtn, CordVtnNode node) {
-                if (!cordVtn.getOvsdbConnectionState(node)) {
-                    cordVtn.connect(node);
-                } else {
-                    cordVtn.createTunnelInterface(node);
-                }
-            }
-        },
-        COMPLETE {
-            @Override
-            public void process(CordVtn cordVtn, CordVtnNode node) {
-                cordVtn.postInit(node);
-            }
-        },
-        INCOMPLETE {
-            @Override
-            public void process(CordVtn cordVtn, CordVtnNode node) {
-            }
-        };
-
-        // TODO Add physical port add state
-
-        public abstract void process(CordVtn cordVtn, CordVtnNode node);
+    /**
+     * Creates an cordvtn host location provider.
+     */
+    public CordVtn() {
+        super(new ProviderId("host", CORDVTN_APP_ID));
     }
 
     @Activate
     protected void activate() {
-        appId = coreService.registerApplication("org.onosproject.cordvtn");
-        nodeStore = storageService.<CordVtnNode, NodeState>consistentMapBuilder()
-                .withSerializer(Serializer.using(NODE_SERIALIZER.build()))
-                .withName("cordvtn-nodestore")
-                .withApplicationId(appId)
-                .build();
+        ApplicationId appId = coreService.registerApplication("org.onosproject.cordvtn");
 
         ruleInstaller = new CordVtnRuleInstaller(appId, flowRuleService,
                                                  deviceService,
@@ -240,95 +147,29 @@ public class CordVtn implements CordVtnService {
         packetService.addProcessor(packetProcessor, PacketProcessor.director(0));
         arpProxy.requestPacket();
 
-        deviceService.addListener(deviceListener);
         hostService.addListener(hostListener);
+        hostProvider = hostProviderRegistry.register(this);
 
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-        deviceService.removeListener(deviceListener);
         hostService.removeListener(hostListener);
         packetService.removeProcessor(packetProcessor);
 
         eventExecutor.shutdown();
-        nodeStore.clear();
+        hostProviderRegistry.unregister(this);
 
         log.info("Stopped");
     }
 
     @Override
-    public void addNode(CordVtnNode node) {
-        checkNotNull(node);
-
-        nodeStore.putIfAbsent(node, checkNodeState(node));
-        initNode(node);
-    }
-
-    @Override
-    public void deleteNode(CordVtnNode node) {
-        checkNotNull(node);
-
-        if (getOvsdbConnectionState(node)) {
-            disconnect(node);
-        }
-
-        nodeStore.remove(node);
-    }
-
-    @Override
-    public int getNodeCount() {
-        return nodeStore.size();
-    }
-
-    @Override
-    public List<CordVtnNode> getNodes() {
-        List<CordVtnNode> nodes = new ArrayList<>();
-        nodes.addAll(nodeStore.keySet());
-        return nodes;
-    }
-
-    @Override
-    public void initNode(CordVtnNode node) {
-        checkNotNull(node);
-
-        if (!nodeStore.containsKey(node)) {
-            log.warn("Node {} does not exist, add node first", node.hostname());
-            return;
-        }
-
-        NodeState state = checkNodeState(node);
-        state.process(this, node);
-    }
-
-    @Override
-    public boolean getNodeInitState(CordVtnNode node) {
-        checkNotNull(node);
-
-        NodeState state = getNodeState(node);
-        return state != null && state.equals(NodeState.COMPLETE);
-    }
-
-    @Override
-    public String checkNodeInitState(CordVtnNode node) {
-        checkNotNull(node);
-
-        NodeState state = getNodeState(node);
-        if (state == null) {
-            log.warn("Failed to get init state of {}", node.hostname());
-            return null;
-        }
-
-        String result = String.format(
-                "Integration bridge created/connected : %s (%s)%n" +
-                        "VXLAN interface created : %s%n" +
-                        "Physical interface added : %s (%s)",
-                checkIntegrationBridge(node) ? OK : NO, DEFAULT_BRIDGE,
-                checkTunnelInterface(node) ? OK : NO,
-                checkPhyInterface(node) ? OK : NO, node.phyPortName());
-
-        return result;
+    public void triggerProbe(Host host) {
+        /*
+         * Note: In CORD deployment, we assume that all hosts are configured.
+         * Therefore no probe is required.
+         */
     }
 
     @Override
@@ -341,6 +182,7 @@ public class CordVtn implements CordVtnService {
             return;
         }
 
+        log.info("Service dependency from {} to {} created.", tService.id().id(), pService.id().id());
         ruleInstaller.populateServiceDependencyRules(tService, pService);
     }
 
@@ -354,390 +196,61 @@ public class CordVtn implements CordVtnService {
             return;
         }
 
+        log.info("Service dependency from {} to {} removed.", tService.id().id(), pService.id().id());
         ruleInstaller.removeServiceDependencyRules(tService, pService);
     }
 
-    /**
-     * Returns state of a given cordvtn node.
-     *
-     * @param node cordvtn node
-     * @return node state, or null if no such node exists
-     */
-    private NodeState getNodeState(CordVtnNode node) {
-        checkNotNull(node);
-
-        try {
-            return nodeStore.get(node).value();
-        } catch (NullPointerException e) {
-            log.error("Failed to get state of {}", node.hostname());
-            return null;
-        }
-    }
-
-    /**
-     * Sets a new state for a given cordvtn node.
-     *
-     * @param node cordvtn node
-     * @param newState new node state
-     */
-    private void setNodeState(CordVtnNode node, NodeState newState) {
-        checkNotNull(node);
-
-        log.info("Changed {} state: {}", node.hostname(), newState.toString());
-
-        nodeStore.put(node, newState);
-        newState.process(this, node);
-    }
-
-    /**
-     * Checks current state of a given cordvtn node and returns it.
-     *
-     * @param node cordvtn node
-     * @return node state
-     */
-    private NodeState checkNodeState(CordVtnNode node) {
-        checkNotNull(node);
-
-        if (checkIntegrationBridge(node) && checkTunnelInterface(node)) {
-            // TODO add physical port add state
-            if (checkPhyInterface(node)) {
-                return NodeState.COMPLETE;
-            } else {
-                return NodeState.INCOMPLETE;
-            }
-        } else if (checkIntegrationBridge(node)) {
-            return NodeState.BRIDGE_CREATED;
-        } else if (getOvsdbConnectionState(node)) {
-            return NodeState.OVSDB_CONNECTED;
-        } else {
-            return NodeState.INIT;
-        }
-    }
-
-    /**
-     * Performs tasks after node initialization.
-     * First disconnect unnecessary OVSDB connection and then installs flow rules
-     * for existing VMs if there are any.
-     *
-     * @param node cordvtn node
-     */
-    private void postInit(CordVtnNode node) {
-        disconnect(node);
-
-        ruleInstaller.init(node.intBrId(), node.phyPortName(), node.localIp());
-        hostService.getConnectedHosts(node.intBrId())
-                .stream()
-                .forEach(vmHandler::connected);
-
-        log.info("Finished initializing {}", node.hostname());
-    }
-
-    /**
-     * Returns connection state of OVSDB server for a given node.
-     *
-     * @param node cordvtn node
-     * @return true if it is connected, false otherwise
-     */
-    private boolean getOvsdbConnectionState(CordVtnNode node) {
-        checkNotNull(node);
-
-        OvsdbClientService ovsdbClient = getOvsdbClient(node);
-        return deviceService.isAvailable(node.ovsdbId()) &&
-                ovsdbClient != null && ovsdbClient.isConnected();
-    }
-
-    /**
-     * Connects to OVSDB server for a given node.
-     *
-     * @param node cordvtn node
-     */
-    private void connect(CordVtnNode node) {
-        checkNotNull(node);
-
-        if (!nodeStore.containsKey(node)) {
-            log.warn("Node {} does not exist", node.hostname());
+    @Override
+    public void addServiceVm(CordVtnNode node, ConnectPoint connectPoint) {
+        Port port = deviceService.getPort(connectPoint.deviceId(), connectPoint.port());
+        OpenstackPort vPort = openstackService.port(port);
+        if (vPort == null) {
+            log.warn("Failed to get OpenstackPort for {}", getPortName(port));
             return;
         }
 
-        if (!getOvsdbConnectionState(node)) {
-            controller.connect(node.ovsdbIp(), node.ovsdbPort());
-        }
-    }
+        MacAddress mac = vPort.macAddress();
+        HostId hostId = HostId.hostId(mac);
 
-    /**
-     * Disconnects OVSDB server for a given node.
-     *
-     * @param node cordvtn node
-     */
-    private void disconnect(CordVtnNode node) {
-        checkNotNull(node);
-
-        if (!nodeStore.containsKey(node)) {
-            log.warn("Node {} does not exist", node.hostname());
+        Host host = hostService.getHost(hostId);
+        if (host != null) {
+            // Host is already known to the system, no HOST_ADDED event is triggered in this case.
+            // It happens when the application is restarted.
+            // TODO check host description if it has all the information
+            serviceVmAdded(host);
             return;
         }
 
-        if (getOvsdbConnectionState(node)) {
-            OvsdbClientService ovsdbClient = getOvsdbClient(node);
-            ovsdbClient.disconnect();
-        }
+        Set<IpAddress> ip = Sets.newHashSet(vPort.fixedIps().values());
+        SparseAnnotations annotations = DefaultAnnotations.builder()
+                .set(OPENSTACK_VM_ID, vPort.deviceId())
+                .set(SERVICE_ID, vPort.networkId())
+                .set(LOCATION_IP, node.localIp().toString())
+                .build();
+
+        HostDescription hostDesc = new DefaultHostDescription(
+                mac,
+                VlanId.NONE,
+                new HostLocation(connectPoint, System.currentTimeMillis()),
+                ip,
+                annotations);
+
+        hostProvider.hostDetected(hostId, hostDesc, false);
     }
 
-    /**
-     * Returns cordvtn node associated with a given OVSDB device.
-     *
-     * @param ovsdbId OVSDB device id
-     * @return cordvtn node, null if it fails to find the node
-     */
-    private CordVtnNode getNodeByOvsdbId(DeviceId ovsdbId) {
-        return getNodes().stream()
-                .filter(node -> node.ovsdbId().equals(ovsdbId))
-                .findFirst().orElse(null);
-    }
-
-    /**
-     * Returns cordvtn node associated with a given integration bridge.
-     *
-     * @param bridgeId device id of integration bridge
-     * @return cordvtn node, null if it fails to find the node
-     */
-    private CordVtnNode getNodeByBridgeId(DeviceId bridgeId) {
-        return getNodes().stream()
-                .filter(node -> node.intBrId().equals(bridgeId))
-                .findFirst().orElse(null);
-    }
-
-    /**
-     * Returns port name.
-     *
-     * @param port port
-     * @return port name
-     */
-    private String getPortName(Port port) {
-        return port.annotations().value("portName");
-    }
-
-    /**
-     * Returns OVSDB client for a given node.
-     *
-     * @param node cordvtn node
-     * @return OVSDB client, or null if it fails to get OVSDB client
-     */
-    private OvsdbClientService getOvsdbClient(CordVtnNode node) {
-        checkNotNull(node);
-
-        OvsdbClientService ovsdbClient = controller.getOvsdbClient(
-                new OvsdbNodeId(node.ovsdbIp(), node.ovsdbPort().toInt()));
-        if (ovsdbClient == null) {
-            log.debug("Couldn't find OVSDB client for {}", node.hostname());
-        }
-        return ovsdbClient;
-    }
-
-    /**
-     * Creates an integration bridge for a given node.
-     *
-     * @param node cordvtn node
-     */
-    private void createIntegrationBridge(CordVtnNode node) {
-        if (checkIntegrationBridge(node)) {
-            return;
-        }
-
-        List<ControllerInfo> controllers = new ArrayList<>();
-        Sets.newHashSet(clusterService.getNodes()).stream()
-                .forEach(controller -> {
-                    ControllerInfo ctrlInfo = new ControllerInfo(controller.ip(), OFPORT, "tcp");
-                    controllers.add(ctrlInfo);
-                });
-
-        String dpid = node.intBrId().toString().substring(DPID_BEGIN);
-
-        try {
-            DriverHandler handler = driverService.createHandler(node.ovsdbId());
-            BridgeConfig bridgeConfig =  handler.behaviour(BridgeConfig.class);
-            bridgeConfig.addBridge(BridgeName.bridgeName(DEFAULT_BRIDGE), dpid, controllers);
-        } catch (ItemNotFoundException e) {
-            log.warn("Failed to create integration bridge on {}", node.ovsdbId());
-        }
-    }
-
-    /**
-     * Creates tunnel interface to the integration bridge for a given node.
-     *
-     * @param node cordvtn node
-     */
-    private void createTunnelInterface(CordVtnNode node) {
-        if (checkTunnelInterface(node)) {
-            return;
-        }
-
-        DefaultAnnotations.Builder optionBuilder = DefaultAnnotations.builder();
-        for (String key : DEFAULT_TUNNEL_OPTIONS.keySet()) {
-            optionBuilder.set(key, DEFAULT_TUNNEL_OPTIONS.get(key));
-        }
-
-        TunnelDescription description = new DefaultTunnelDescription(
-                null, null, VXLAN, TunnelName.tunnelName(DEFAULT_TUNNEL),
-                optionBuilder.build());
-
-        try {
-            DriverHandler handler = driverService.createHandler(node.ovsdbId());
-            TunnelConfig tunnelConfig =  handler.behaviour(TunnelConfig.class);
-            tunnelConfig.createTunnelInterface(BridgeName.bridgeName(DEFAULT_BRIDGE), description);
-        } catch (ItemNotFoundException e) {
-            log.warn("Failed to create tunnel interface on {}", node.ovsdbId());
-        }
-    }
-
-    /**
-     * Checks if integration bridge exists and available.
-     *
-     * @param node cordvtn node
-     * @return true if the bridge is available, false otherwise
-     */
-    private boolean checkIntegrationBridge(CordVtnNode node) {
-        return (deviceService.getDevice(node.intBrId()) != null
-                && deviceService.isAvailable(node.intBrId()));
-    }
-
-    /**
-     * Checks if tunnel interface exists.
-     *
-     * @param node cordvtn node
-     * @return true if the interface exists, false otherwise
-     */
-    private boolean checkTunnelInterface(CordVtnNode node) {
-        return deviceService.getPorts(node.intBrId())
-                .stream()
-                .filter(p -> getPortName(p).contains(DEFAULT_TUNNEL)
-                        && p.isEnabled())
-                .findAny().isPresent();
-    }
-
-    /**
-     * Checks if physical interface exists.
-     *
-     * @param node cordvtn node
-     * @return true if the interface exists, false otherwise
-     */
-    private boolean checkPhyInterface(CordVtnNode node) {
-        return deviceService.getPorts(node.intBrId())
-                .stream()
-                .filter(p -> getPortName(p).contains(node.phyPortName())
-                        && p.isEnabled())
-                .findAny().isPresent();
-    }
-
-    /**
-     * Returns remote ip address for tunneling.
-     *
-     * @param bridgeId device id
-     * @return ip address, null if no such device exists
-     */
-    private Ip4Address getRemoteIp(DeviceId bridgeId) {
-        CordVtnNode node = getNodeByBridgeId(bridgeId);
-        if (node != null) {
-            return node.localIp().getIp4Address();
-        } else {
-            log.debug("Couldn't find node information for {}", bridgeId);
-            return null;
-        }
-    }
-
-    /**
-     * Returns OpenStack port associated with a given host.
-     *
-     * @param host host
-     * @return OpenStack port, or null if no port has been found
-     */
-    private OpenstackPort getOpenstackPortByHost(Host host) {
-        Port port = deviceService.getPort(host.location().deviceId(),
-                                          host.location().port());
-        if (port == null) {
-            log.debug("Failed to get port for {}", host.id());
-            return null;
-        }
-        return openstackService.port(port);
-    }
-
-    /**
-     * Returns OpenStack network associated with a given host.
-     *
-     * @param host host
-     * @return OpenStack network, or null if no network has been found
-     */
-    private OpenstackNetwork getOpenstackNetworkByHost(Host host) {
-        OpenstackPort vPort = getOpenstackPortByHost(host);
-        if (vPort != null) {
-            return openstackService.network(vPort.networkId());
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Returns hosts associated with a given OpenStack network.
-     *
-     * @param vNet openstack network
-     * @return set of hosts
-     */
-    private Set<Host> getHostsWithOpenstackNetwork(OpenstackNetwork vNet) {
-        checkNotNull(vNet);
-
-        Set<Host> hosts = openstackService.ports(vNet.id()).stream()
-                .filter(port -> port.deviceOwner().contains("compute"))
-                .map(port -> hostService.getHostsByMac(port.macAddress())
-                        .stream()
-                        .findFirst()
-                        .orElse(null))
-                .collect(Collectors.toSet());
-
-        hosts.remove(null);
-        return hosts;
-    }
-
-    /**
-     * Returns host IP assigned by OpenStack.
-     *
-     * @param host host
-     * @return IPv4 prefix, or null if it fails to get IP from OpenStack
-     */
-    private IpAddress getHostIpFromOpenstack(Host host) {
-        OpenstackPort vPort = getOpenstackPortByHost(host);
-
-        if (vPort == null || vPort.fixedIps().isEmpty()) {
-            log.error("Failed to get VM IP for {}", host.id());
-            return null;
-        }
-        // Assumes there's only one fixed IP is assigned to a port
-        return (Ip4Address) vPort.fixedIps().values()
+    @Override
+    public void removeServiceVm(ConnectPoint connectPoint) {
+        Host host = hostService.getConnectedHosts(connectPoint)
                 .stream()
                 .findFirst()
                 .orElse(null);
-    }
 
-    /**
-     * Returns port name with OpenStack port information.
-     *
-     * @param vPort OpenStack port
-     * @return port name
-     */
-    private String getPortName(OpenstackPort vPort) {
-        checkNotNull(vPort);
-        return VPORT_PREFIX + vPort.id().substring(0, 10);
-    }
+        if (host == null) {
+            log.debug("No host is connected on {}", connectPoint.toString());
+            return;
+        }
 
-    /**
-     * Returns if the host is VM or not.
-     *
-     * @param host host
-     * @return true if the host is a VM.
-     */
-    private boolean isVm(Host host) {
-        Port port = deviceService.getPort(host.location().deviceId(),
-                                          host.location().port());
-        return getPortName(port).contains(VPORT_PREFIX);
+        hostProvider.hostVanished(host.id());
     }
 
     /**
@@ -766,8 +279,7 @@ public class CordVtn implements CordVtnService {
 
         Map<Host, IpAddress> hosts = getHostsWithOpenstackNetwork(vNet)
                 .stream()
-                .collect(Collectors.toMap(host -> host,
-                                          host -> getRemoteIp(host.location().deviceId())));
+                .collect(Collectors.toMap(host -> host, this::getTunnelIp));
 
         return new CordService(vNet, subnet, hosts, tServices);
     }
@@ -795,40 +307,113 @@ public class CordVtn implements CordVtnService {
 
         Map<Host, IpAddress> hosts = getHostsWithOpenstackNetwork(vNet)
                 .stream()
-                .collect(Collectors.toMap(host -> host,
-                                          host -> getRemoteIp(host.location().deviceId())));
+                .collect(Collectors.toMap(host -> host, this::getTunnelIp));
 
         return new CordService(vNet, subnet, hosts, tServices);
     }
 
-    private class InternalDeviceListener implements DeviceListener {
+    /**
+     * Returns IP address for tunneling for a given host.
+     *
+     * @param host host
+     * @return ip address
+     */
+    private IpAddress getTunnelIp(Host host) {
+        return IpAddress.valueOf(host.annotations().value(LOCATION_IP));
+    }
 
-        @Override
-        public void event(DeviceEvent event) {
+    /**
+     * Returns port name.
+     *
+     * @param port port
+     * @return port name
+     */
+    private String getPortName(Port port) {
+        return port.annotations().value("portName");
+    }
 
-            Device device = event.subject();
-            ConnectionHandler<Device> handler =
-                    (device.type().equals(SWITCH) ? bridgeHandler : ovsdbHandler);
+    /**
+     * Returns hosts associated with a given OpenStack network.
+     *
+     * @param vNet openstack network
+     * @return set of hosts
+     */
+    private Set<Host> getHostsWithOpenstackNetwork(OpenstackNetwork vNet) {
+        checkNotNull(vNet);
 
-            switch (event.type()) {
-                case PORT_ADDED:
-                    eventExecutor.submit(() -> bridgeHandler.portAdded(event.port()));
-                    break;
-                case PORT_UPDATED:
-                    if (!event.port().isEnabled()) {
-                        eventExecutor.submit(() -> bridgeHandler.portRemoved(event.port()));
-                    }
-                    break;
-                case DEVICE_ADDED:
-                case DEVICE_AVAILABILITY_CHANGED:
-                    if (deviceService.isAvailable(device.id())) {
-                        eventExecutor.submit(() -> handler.connected(device));
-                    } else {
-                        eventExecutor.submit(() -> handler.disconnected(device));
-                    }
-                    break;
-                default:
-                    break;
+        Set<Host> hosts = openstackService.ports(vNet.id()).stream()
+                .filter(port -> port.deviceOwner().contains("compute"))
+                .map(port -> hostService.getHostsByMac(port.macAddress())
+                        .stream()
+                        .findFirst()
+                        .orElse(null))
+                .collect(Collectors.toSet());
+
+        hosts.remove(null);
+        return hosts;
+    }
+
+    /**
+     * Handles VM detected situation.
+     *
+     * @param host host
+     */
+    private void serviceVmAdded(Host host) {
+        String vNetId = host.annotations().value(SERVICE_ID);
+        OpenstackNetwork vNet = openstackService.network(vNetId);
+        if (vNet == null) {
+            log.warn("Failed to get OpenStack network {} for VM {}({}).",
+                     vNetId,
+                     host.id(),
+                     host.annotations().value(OPENSTACK_VM_ID));
+            return;
+        }
+
+        log.info("VM {} is detected, MAC: {} IP: {}",
+                 host.annotations().value(OPENSTACK_VM_ID),
+                 host.mac(),
+                 host.ipAddresses().stream().findFirst().get());
+
+        CordService service = getCordService(vNet);
+        if (service != null) {
+            // TODO check if the service needs an update on its group buckets after done CORD-433
+            ruleInstaller.updateServiceGroup(service);
+            arpProxy.addServiceIp(service.serviceIp());
+        }
+
+        ruleInstaller.populateBasicConnectionRules(host, getTunnelIp(host), vNet);
+    }
+
+    /**
+     * Handles VM removed situation.
+     *
+     * @param host host
+     */
+    private void serviceVmRemoved(Host host) {
+        String vNetId = host.annotations().value(SERVICE_ID);
+        OpenstackNetwork vNet = openstackService.network(host.annotations().value(SERVICE_ID));
+        if (vNet == null) {
+            log.warn("Failed to get OpenStack network {} for VM {}({}).",
+                     vNetId,
+                     host.id(),
+                     host.annotations().value(OPENSTACK_VM_ID));
+            return;
+        }
+
+        log.info("VM {} is vanished, MAC: {} IP: {}",
+                 host.annotations().value(OPENSTACK_VM_ID),
+                 host.mac(),
+                 host.ipAddresses().stream().findFirst().get());
+
+        ruleInstaller.removeBasicConnectionRules(host);
+
+        CordService service = getCordService(vNet);
+        if (service != null) {
+            // TODO check if the service needs an update on its group buckets after done CORD-433
+            ruleInstaller.updateServiceGroup(service);
+
+            if (getHostsWithOpenstackNetwork(vNet).isEmpty()) {
+                arpProxy.removeServiceIp(service.serviceIp());
             }
         }
     }
@@ -837,184 +422,18 @@ public class CordVtn implements CordVtnService {
 
         @Override
         public void event(HostEvent event) {
-            Host vm = event.subject();
+            Host host = event.subject();
 
             switch (event.type()) {
                 case HOST_ADDED:
-                    eventExecutor.submit(() -> vmHandler.connected(vm));
+                    eventExecutor.submit(() -> serviceVmAdded(host));
                     break;
                 case HOST_REMOVED:
-                    eventExecutor.submit(() -> vmHandler.disconnected(vm));
+                    eventExecutor.submit(() -> serviceVmRemoved(host));
                     break;
                 default:
                     break;
             }
-        }
-    }
-
-    private class OvsdbHandler implements ConnectionHandler<Device> {
-
-        @Override
-        public void connected(Device device) {
-            CordVtnNode node = getNodeByOvsdbId(device.id());
-            if (node != null) {
-                setNodeState(node, checkNodeState(node));
-            } else {
-                log.debug("Unregistered device {} connected, ignore it.", device.id());
-            }
-        }
-
-        @Override
-        public void disconnected(Device device) {
-            if (!deviceService.isAvailable(device.id())) {
-                adminService.removeDevice(device.id());
-            }
-        }
-    }
-
-    private class BridgeHandler implements ConnectionHandler<Device> {
-
-        @Override
-        public void connected(Device device) {
-            CordVtnNode node = getNodeByBridgeId(device.id());
-            if (node != null) {
-                setNodeState(node, checkNodeState(node));
-            } else {
-                log.debug("Unregistered device {} connected, ignore it.", device.id());
-            }
-        }
-
-        @Override
-        public void disconnected(Device device) {
-            CordVtnNode node = getNodeByBridgeId(device.id());
-            if (node != null) {
-                log.info("Integration Bridge is disconnected from {}", node.hostname());
-                setNodeState(node, NodeState.INCOMPLETE);
-            }
-        }
-
-        /**
-         * Handles port added situation.
-         * If the added port is tunnel or physical port, proceed remaining node
-         * initialization. Otherwise, do nothing.
-         *
-         * @param port port
-         */
-        public void portAdded(Port port) {
-            CordVtnNode node = getNodeByBridgeId((DeviceId) port.element().id());
-            if (node == null) {
-                return;
-            } else {
-                log.debug("Port {} added to unregistered device, ignore it.", getPortName(port));
-            }
-
-            // TODO add host by updating network config
-            String portName = getPortName(port);
-            if (!portName.contains(DEFAULT_TUNNEL) && !portName.equals(node.phyPortName())) {
-                return;
-            }
-
-            log.info("Port {} is added to {}", portName, node.hostname());
-            setNodeState(node, checkNodeState(node));
-        }
-
-        /**
-         * Handles port removed situation.
-         * If the removed port is tunnel or physical port, proceed remaining node
-         * initialization.Others, do nothing.
-         *
-         * @param port port
-         */
-        public void portRemoved(Port port) {
-            CordVtnNode node = getNodeByBridgeId((DeviceId) port.element().id());
-            if (node == null) {
-                return;
-            }
-
-            // TODO remove host by updating network config
-            String portName = getPortName(port);
-            if (!portName.contains(DEFAULT_TUNNEL) && !portName.equals(node.phyPortName())) {
-                return;
-            }
-
-            log.info("Port {} is removed from {}", portName, node.hostname());
-            setNodeState(node, NodeState.INCOMPLETE);
-        }
-    }
-
-    private class VmHandler implements ConnectionHandler<Host> {
-
-        @Override
-        public void connected(Host host) {
-            // TODO remove check VM here after applying network config host provider
-            if (!isVm(host)) {
-                log.debug("Host {} is not a VM, ignore it.", host.id());
-                return;
-            }
-
-            CordVtnNode node = getNodeByBridgeId(host.location().deviceId());
-            if (node == null || !Objects.equals(getNodeState(node), NodeState.COMPLETE)) {
-                log.debug("VM {} is detected unknown or incomplete device, ignore it.", host.id());
-                return;
-            }
-
-            OpenstackNetwork vNet = getOpenstackNetworkByHost(host);
-            if (vNet == null) {
-                log.debug("Failed to get OpenStack network for VM {}, ignore it.", host.id());
-                return;
-            }
-
-            // TODO host ip should be set in host information after applying network config host provider
-            IpAddress hostIp = getHostIpFromOpenstack(host);
-            if (hostIp == null) {
-                log.debug("Failed to get host IP of {}, ignore it.", host.id());
-                return;
-            }
-
-            log.info("VM {} is detected", host.id());
-            hostNetMap.put(host.id(), vNet);
-
-            CordService service = getCordService(vNet);
-            if (service != null) {
-                // TODO check if the service needs an update on its group buckets after done CORD-433
-                ruleInstaller.updateServiceGroup(service);
-                arpProxy.addServiceIp(service.serviceIp());
-            }
-
-            ruleInstaller.populateBasicConnectionRules(
-                    host,
-                    hostIp,
-                    checkNotNull(getRemoteIp(host.location().deviceId())).getIp4Address(),
-                    vNet);
-        }
-
-        @Override
-        public void disconnected(Host host) {
-            CordVtnNode node = getNodeByBridgeId(host.location().deviceId());
-            if (node == null || !Objects.equals(getNodeState(node), NodeState.COMPLETE)) {
-                // do nothing for the host on unregistered or unprepared device
-                return;
-            }
-
-            OpenstackNetwork vNet = hostNetMap.get(host.id());
-            if (vNet == null) {
-                return;
-            }
-
-            log.info("VM {} is vanished", host.id());
-            ruleInstaller.removeBasicConnectionRules(host);
-
-            CordService service = getCordService(vNet);
-            if (service != null) {
-                // TODO check if the service needs an update on its group buckets after done CORD-433
-                ruleInstaller.updateServiceGroup(service);
-
-                if (getHostsWithOpenstackNetwork(vNet).isEmpty()) {
-                    arpProxy.removeServiceIp(service.serviceIp());
-                }
-            }
-
-            hostNetMap.remove(host.id());
         }
     }
 

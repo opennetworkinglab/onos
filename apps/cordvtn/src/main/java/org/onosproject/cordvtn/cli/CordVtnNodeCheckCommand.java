@@ -20,7 +20,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cordvtn.CordVtnNode;
-import org.onosproject.cordvtn.CordVtnService;
+import org.onosproject.cordvtn.CordVtnNodeManager;
 
 /**
  * Checks detailed node init state.
@@ -35,8 +35,8 @@ public class CordVtnNodeCheckCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        CordVtnService service = AbstractShellCommand.get(CordVtnService.class);
-        CordVtnNode node = service.getNodes()
+        CordVtnNodeManager nodeManager = AbstractShellCommand.get(CordVtnNodeManager.class);
+        CordVtnNode node = nodeManager.getNodes()
                 .stream()
                 .filter(n -> n.hostname().equals(hostname))
                 .findFirst()
@@ -47,6 +47,6 @@ public class CordVtnNodeCheckCommand extends AbstractShellCommand {
             return;
         }
 
-        print(service.checkNodeInitState(node));
+        print(nodeManager.checkNodeInitState(node));
     }
 }

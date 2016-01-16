@@ -21,7 +21,7 @@ import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.cordvtn.CordVtnService;
+import org.onosproject.cordvtn.CordVtnNodeManager;
 import org.onosproject.cordvtn.CordVtnNode;
 import org.onosproject.net.DeviceId;
 
@@ -63,7 +63,7 @@ public class CordVtnNodeAddCommand extends AbstractShellCommand {
         checkArgument(ovsdb.contains(":"), "OVSDB address should be ip:port format");
         checkArgument(bridgeId.startsWith("of:"), "bridgeId should be of:dpid format");
 
-        CordVtnService service = AbstractShellCommand.get(CordVtnService.class);
+        CordVtnNodeManager nodeManager = AbstractShellCommand.get(CordVtnNodeManager.class);
         String[] ipPort = ovsdb.split(":");
         CordVtnNode node = new CordVtnNode(hostname,
                                            IpAddress.valueOf(ipPort[0]),
@@ -71,6 +71,6 @@ public class CordVtnNodeAddCommand extends AbstractShellCommand {
                                            DeviceId.deviceId(bridgeId),
                                            phyPortName,
                                            IpAddress.valueOf(localIp));
-        service.addNode(node);
+        nodeManager.addNode(node);
     }
 }

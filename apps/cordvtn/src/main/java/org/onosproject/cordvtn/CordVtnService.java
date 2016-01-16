@@ -15,7 +15,7 @@
  */
 package org.onosproject.cordvtn;
 
-import java.util.List;
+import org.onosproject.net.ConnectPoint;
 
 /**
  * Service for provisioning overlay virtual networks on compute nodes.
@@ -23,61 +23,21 @@ import java.util.List;
 public interface CordVtnService {
 
     String CORDVTN_APP_ID = "org.onosproject.cordvtn";
+
     /**
-     * Adds a new node to the service.
+     * Adds a new VM on a given node and connect point.
      *
      * @param node cordvtn node
+     * @param connectPoint connect point
      */
-    void addNode(CordVtnNode node);
+    void addServiceVm(CordVtnNode node, ConnectPoint connectPoint);
 
     /**
-     * Deletes a node from the service.
+     * Removes a VM from a given node and connect point.
      *
-     * @param node cordvtn node
+     * @param connectPoint connect point
      */
-    void deleteNode(CordVtnNode node);
-
-    /**
-     * Initiates node to serve virtual tenant network.
-     *
-     * @param node cordvtn node
-     */
-    void initNode(CordVtnNode node);
-
-    /**
-     * Returns the number of the nodes known to the service.
-     *
-     * @return number of nodes
-     */
-    int getNodeCount();
-
-    /**
-     * Returns node initialization state.
-     *
-     * @param node cordvtn node
-     * @return true if initial node setup is completed, otherwise false
-     */
-    boolean getNodeInitState(CordVtnNode node);
-
-    /**
-     * Returns detailed node initialization state.
-     * Return string includes the following information.
-     *
-     * Integration bridge created/connected: OK or NO
-     * VXLAN interface created: OK or NO
-     * Physical interface added: OK or NO
-     *
-     * @param node cordvtn node
-     * @return string including detailed node init state
-     */
-    String checkNodeInitState(CordVtnNode node);
-
-    /**
-     * Returns all nodes known to the service.
-     *
-     * @return list of nodes
-     */
-    List<CordVtnNode> getNodes();
+    void removeServiceVm(ConnectPoint connectPoint);
 
     /**
      * Creates dependencies for a given tenant service.

@@ -19,7 +19,7 @@ package org.onosproject.cordvtn.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.cordvtn.CordVtnService;
+import org.onosproject.cordvtn.CordVtnNodeManager;
 import org.onosproject.cordvtn.CordVtnNode;
 
 import java.util.NoSuchElementException;
@@ -37,12 +37,12 @@ public class CordVtnNodeInitCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        CordVtnService service = AbstractShellCommand.get(CordVtnService.class);
+        CordVtnNodeManager nodeManager = AbstractShellCommand.get(CordVtnNodeManager.class);
 
         for (String hostname : hostnames) {
             CordVtnNode node;
             try {
-                node = service.getNodes()
+                node = nodeManager.getNodes()
                         .stream()
                         .filter(n -> n.hostname().equals(hostname))
                         .findFirst().get();
@@ -51,7 +51,7 @@ public class CordVtnNodeInitCommand extends AbstractShellCommand {
                 continue;
             }
 
-            service.initNode(node);
+            nodeManager.initNode(node);
         }
     }
 }

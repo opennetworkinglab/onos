@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.cordvtn.CordVtnService;
+import org.onosproject.cordvtn.CordVtnNodeManager;
 import org.onosproject.cordvtn.CordVtnNode;
 
 import java.util.Collections;
@@ -36,12 +36,12 @@ public class CordVtnNodeListCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        CordVtnService service = AbstractShellCommand.get(CordVtnService.class);
-        List<CordVtnNode> nodes = service.getNodes();
+        CordVtnNodeManager nodeManager = AbstractShellCommand.get(CordVtnNodeManager.class);
+        List<CordVtnNode> nodes = nodeManager.getNodes();
         Collections.sort(nodes, CordVtnNode.CORDVTN_NODE_COMPARATOR);
 
         if (outputJson()) {
-            print("%s", json(service, nodes));
+            print("%s", json(nodeManager, nodes));
         } else {
             for (CordVtnNode node : nodes) {
                 print("hostname=%s, ovsdb=%s, br-int=%s, phyPort=%s, localIp=%s, init=%s",
@@ -50,13 +50,13 @@ public class CordVtnNodeListCommand extends AbstractShellCommand {
                       node.intBrId().toString(),
                       node.phyPortName(),
                       node.localIp().toString(),
-                      getState(service, node));
+                      getState(nodeManager, node));
             }
-            print("Total %s nodes", service.getNodeCount());
+            print("Total %s nodes", nodeManager.getNodeCount());
         }
     }
 
-    private JsonNode json(CordVtnService service, List<CordVtnNode> nodes) {
+    private JsonNode json(CordVtnNodeManager nodeManager, List<CordVtnNode> nodes) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
         for (CordVtnNode node : nodes) {
@@ -67,12 +67,12 @@ public class CordVtnNodeListCommand extends AbstractShellCommand {
                                .put("brInt", node.intBrId().toString())
                                .put("phyPort", node.phyPortName())
                                .put("localIp", node.localIp().toString())
-                               .put("init", getState(service, node)));
+                               .put("init", getState(nodeManager, node)));
         }
         return result;
     }
 
-    private String getState(CordVtnService service, CordVtnNode node) {
-        return service.getNodeInitState(node) ? "COMPLETE" : "INCOMPLETE";
+    private String getState(CordVtnNodeManager nodeManager, CordVtnNode node) {
+        return nodeManager.getNodeInitState(node) ? "COMPLETE" : "INCOMPLETE";
     }
 }
