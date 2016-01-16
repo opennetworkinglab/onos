@@ -26,6 +26,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <description>Fujitsu device drivers</description>
+    <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-netconf-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-drivers-utilities</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
     <artifactId>onos-drivers-fujitsu</artifactId>
     <packaging>bundle</packaging>

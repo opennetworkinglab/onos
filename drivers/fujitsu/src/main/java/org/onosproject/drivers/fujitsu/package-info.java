@@ -15,6 +15,6 @@
  */
 
 /**
- * Package for Ciena device drivers.
+ * Package for fujitsu device drivers.
  */
 package org.onosproject.drivers.fujitsu;
