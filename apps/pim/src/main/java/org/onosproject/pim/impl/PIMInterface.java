@@ -26,8 +26,11 @@ import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.slf4j.Logger;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -52,6 +55,12 @@ public class PIMInterface {
     // Our current genid
     private int genid      = PIMHelloOption.DEFAULT_GENID;   // Needs to be assigned.
 
+    // The IP address of the DR
+    IpAddress drIpaddress;
+
+    // A map of all our PIM neighbors keyed on our neighbors IP address
+    private Map<IpAddress, PIMNeighbor> pimNeighbors = new HashMap<>();
+
     /**
      * Create a PIMInterface from an ONOS Interface.
      *
@@ -59,6 +68,17 @@ public class PIMInterface {
      */
     public PIMInterface(Interface intf) {
         onosInterface = intf;
+        IpAddress ourIp = getIpAddress();
+        MacAddress mac = intf.mac();
+
+        // Create a PIM Neighbor to represent ourselves for DR election.
+        PIMNeighbor us = new PIMNeighbor(ourIp, mac);
+
+        // Priority and IP address are all we need to DR election.
+        us.setPriority(priority);
+
+        pimNeighbors.put(ourIp, us);
+        drIpaddress = ourIp;
     }
 
     /**
@@ -67,7 +87,8 @@ public class PIMInterface {
      * @return ONOS Interface.
      */
     public Interface getInterface() {
-        return this.onosInterface;
+        return onosInterface;
+
     }
 
     /**
@@ -76,7 +97,7 @@ public class PIMInterface {
      * @param intf ONOS Interface.
      */
     public PIMInterface setInterface(Interface intf) {
-        this.onosInterface = intf;
+        onosInterface = intf;
         return this;
     }
 
@@ -86,7 +107,7 @@ public class PIMInterface {
      * @return a set of Ip Addresses on this interface
      */
     public Set<InterfaceIpAddress> getIpAddresses() {
-        return this.onosInterface.ipAddresses();
+        return onosInterface.ipAddresses();
     }
 
     /**
@@ -113,7 +134,7 @@ public class PIMInterface {
      * @return the holdtime
      */
     public short getHoldtime() {
-        return this.holdtime;
+        return holdtime;
     }
 
     /**
@@ -122,7 +143,7 @@ public class PIMInterface {
      * @return The prune delay
      */
     public int getPruneDelay() {
-        return this.pruneDelay;
+        return pruneDelay;
     }
 
     /**
@@ -131,7 +152,7 @@ public class PIMInterface {
      * @return our priority
      */
     public int getPriority() {
-        return this.priority;
+        return priority;
     }
 
     /**
@@ -140,11 +161,18 @@ public class PIMInterface {
      * @return our generation ID
      */
     public int getGenid() {
-        return this.genid;
+        return genid;
     }
 
     /**
-     * Process an incoming PIM Hello message.
+     * Process an incoming PIM Hello message.  There are a few things going on in
+     * this method:
+     * <ul>
+     *     <li>We <em>may</em> have to create a new neighbor if one does not already exist</li>
+     *     <li>We <em>may</em> need to re-elect a new DR if new information is received</li>
+     *     <li>We <em>may</em> need to send an existing neighbor all joins if the genid changed</li>
+     *     <li>We will refresh the neighbors timestamp</li>
+     * </ul>
      *
      * @param ethPkt the Ethernet packet header
      */
@@ -163,24 +191,61 @@ public class PIMInterface {
             return;
         }
 
-        // TODO: Maybe a good idea to check the checksum.  Let's jump into the hello options.
+        // get the DR values for later calculation
+        PIMNeighbor dr = pimNeighbors.get(drIpaddress);
+        checkNotNull(dr);
+
+        IpAddress drip = drIpaddress;
+        int drpri = dr.getPriority();
+
+        // Assume we do not need to run a DR election
+        boolean reElectDr = false;
+        boolean genidChanged = false;
+
         PIMHello hello = (PIMHello) pimhdr.getPayload();
 
-        // TODO: this is about where we find or create our PIMNeighbor
-
-        boolean reElectDr = false;
-
-        // Start walking through all the hello options to handle accordingly.
-        for (PIMHelloOption opt : hello.getOptions().values()) {
-
-            // TODO: This is where we handle the options and modify the neighbor accordingly.
-            // We'll need to create the PIMNeighbor class next.  Depending on what happens
-            // we may need to re-elect a DR
+        // Determine if we already have a PIMNeighbor
+        PIMNeighbor nbr = pimNeighbors.getOrDefault(srcip, null);
+        if (nbr == null) {
+            nbr = new PIMNeighbor(srcip, hello.getOptions());
+            checkNotNull(nbr);
+        } else {
+            Integer previousGenid = nbr.getGenid();
+            nbr.addOptions(hello.getOptions());
+            if (previousGenid != nbr.getGenid()) {
+                genidChanged = true;
+            }
         }
 
-        if (reElectDr) {
-            // TODO: create an election() method and call it here with a PIMNeighbor
+        // Refresh this neighbors timestamp
+        nbr.refreshTimestamp();
+
+        /*
+         * the election method will frist determine if an election
+         * needs to be run, if so it will run the election.  The
+         * IP address of the DR will be returned.  If the IP address
+         * of the DR is different from what we already have we know a
+         * new DR has been elected.
+         */
+        IpAddress electedIp = election(nbr, drip, drpri);
+        if (!drip.equals(electedIp)) {
+            // we have a new DR.
+            drIpaddress = electedIp;
         }
+    }
+
+    // Run an election if we need to.  Return the elected IP address.
+    private IpAddress election(PIMNeighbor nbr, IpAddress drip, int drpri) {
+
+        IpAddress nbrip = nbr.getIpaddr();
+        if (nbr.getPriority() > drpri) {
+            return nbrip;
+        }
+
+        if (nbrip.compareTo(drip) > 0) {
+            return nbrip;
+        }
+        return drip;
     }
 
     /**
@@ -189,6 +254,6 @@ public class PIMInterface {
      * @param ethPkt the Ethernet packet header.
      */
     public void processJoinPrune(Ethernet ethPkt) {
-
+        // TODO: add Join/Prune processing code.
     }
 }
