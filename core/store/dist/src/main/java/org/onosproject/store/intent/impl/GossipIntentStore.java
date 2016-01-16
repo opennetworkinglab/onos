@@ -169,8 +169,6 @@ public class GossipIntentStore
         return ImmutableList.of();
     }
 
-
-
     @Override
     public void write(IntentData newData) {
         checkNotNull(newData);
