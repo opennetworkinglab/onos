@@ -166,7 +166,7 @@ public class GossipIntentStore
         if (data != null) {
             return data.installables();
         }
-        return null;
+        return ImmutableList.of();
     }
 
 
