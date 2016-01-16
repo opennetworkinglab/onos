@@ -275,13 +275,6 @@ public class IntentManager
                 }
             }
         }
-
-        //FIXME
-//        for (ApplicationId appId : batches.keySet()) {
-//            if (batchService.isLocalLeader(appId)) {
-//                execute(batches.get(appId).build());
-//            }
-//        }
     }
 
     // Topology change delegate
@@ -341,8 +334,6 @@ public class IntentManager
                 // the batch has failed
                 // TODO: maybe we should do more?
                 log.error("Walk the plank, matey...");
-                //FIXME
-//            batchService.removeIntentOperations(data);
                 return null;
             }).thenRun(accumulator::ready);
 
