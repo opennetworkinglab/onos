@@ -217,8 +217,8 @@ public class GossipIntentStore
                 .map(ControllerNode::id)
                 .filter(node -> !Objects.equals(node, me))
                 .collect(Collectors.toList());
-        if (nodes.size() == 0) {
-            return null;
+        if (nodes.isEmpty()) {
+            return ImmutableList.of();
         }
         return ImmutableList.of(nodes.get(RandomUtils.nextInt(nodes.size())));
     }
