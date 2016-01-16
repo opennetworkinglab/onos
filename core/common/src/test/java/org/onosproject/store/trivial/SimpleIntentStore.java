@@ -126,14 +126,8 @@ public class SimpleIntentStore
                         pending.remove(newData.key());
                     }
                 }
-                notifyDelegateIfNotNull(IntentEvent.getEvent(newData));
+                IntentEvent.getEvent(newData).ifPresent(this::notifyDelegate);
             }
-        }
-    }
-
-    private void notifyDelegateIfNotNull(IntentEvent event) {
-        if (event != null) {
-            notifyDelegate(event);
         }
     }
 
@@ -174,7 +168,7 @@ public class SimpleIntentStore
                 pending.put(data.key(), data);
                 checkNotNull(delegate, "Store delegate is not set")
                         .process(new IntentData(data));
-                notifyDelegateIfNotNull(IntentEvent.getEvent(data));
+                IntentEvent.getEvent(data).ifPresent(this::notifyDelegate);
             } else {
                 log.debug("IntentData {} is older than existing: {}",
                           data, existingData);

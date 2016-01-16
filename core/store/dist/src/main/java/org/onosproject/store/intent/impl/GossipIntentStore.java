@@ -284,12 +284,6 @@ public class GossipIntentStore
                 .collect(Collectors.toList());
     }
 
-    private void notifyDelegateIfNotNull(IntentEvent event) {
-        if (event != null) {
-            notifyDelegate(event);
-        }
-    }
-
     private final class InternalCurrentListener implements
             EventuallyConsistentMapListener<Key, IntentData> {
         @Override
@@ -303,7 +297,7 @@ public class GossipIntentStore
                 if (delegate != null && isMaster(event.value().intent().key())) {
                     delegate.onUpdate(new IntentData(intentData)); // copy for safety, likely unnecessary
                 }
-                notifyDelegateIfNotNull(IntentEvent.getEvent(intentData));
+                IntentEvent.getEvent(intentData).ifPresent(e -> notifyDelegate(e));
             }
         }
     }
@@ -323,7 +317,7 @@ public class GossipIntentStore
                     }
                 }
 
-                notifyDelegateIfNotNull(IntentEvent.getEvent(event.value()));
+                IntentEvent.getEvent(event.value()).ifPresent(e -> notifyDelegate(e));
             }
         }
     }
