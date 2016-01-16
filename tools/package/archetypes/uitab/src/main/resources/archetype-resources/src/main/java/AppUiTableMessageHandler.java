@@ -45,6 +45,8 @@ public class AppUiTableMessageHandler extends UiMessageHandler {
     private static final String SAMPLE_TABLE_DETAIL_RESP = "sampleTableDetailsResponse";
     private static final String DETAILS = "details";
 
+    private static final String NO_ROWS_MESSAGE = "No items found";
+
     private static final String ID = "id";
     private static final String LABEL = "label";
     private static final String CODE = "code";
@@ -79,6 +81,11 @@ public class AppUiTableMessageHandler extends UiMessageHandler {
         }
 
         // if required, override createTableModel() to set column formatters / comparators
+
+        @Override
+        protected String noRowsMessage(ObjectNode payload) {
+            return NO_ROWS_MESSAGE;
+        }
 
         @Override
         protected void populateTable(TableModel tm, ObjectNode payload) {
