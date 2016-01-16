@@ -441,6 +441,51 @@ public class CordVtnRuleInstaller {
 
         processFlowRule(true, flowRule);
 
+        // take a packet to the local ip through Linux stack
+        selector = DefaultTrafficSelector.builder()
+                .matchInPort(phyPort)
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(localIp.toIpPrefix())
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.LOCAL)
+                .build();
+
+        flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(HIGHER_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_FIRST)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+
+        // take an arp packet from physical through Linux stack
+        selector = DefaultTrafficSelector.builder()
+                .matchInPort(phyPort)
+                .matchEthType(Ethernet.TYPE_ARP)
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.LOCAL)
+                .build();
+
+        flowRule = DefaultFlowRule.builder()
+                .fromApp(appId)
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(HIGHER_PRIORITY)
+                .forDevice(deviceId)
+                .forTable(TABLE_FIRST)
+                .makePermanent()
+                .build();
+
+        processFlowRule(true, flowRule);
+
         // take all else to the next table
         selector = DefaultTrafficSelector.builder()
                 .build();
