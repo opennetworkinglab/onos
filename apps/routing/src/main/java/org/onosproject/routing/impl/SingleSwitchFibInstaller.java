@@ -34,6 +34,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -80,6 +81,8 @@ public class SingleSwitchFibInstaller {
     private static final int PRIORITY_OFFSET = 100;
     private static final int PRIORITY_MULTIPLIER = 5;
 
+    public static final short ASSIGNED_VLAN = 4094;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
@@ -103,7 +106,8 @@ public class SingleSwitchFibInstaller {
     // Device id of data-plane switch - should be learned from config
     private DeviceId deviceId;
 
-    private ApplicationId appId;
+    private ConnectPoint controlPlaneConnectPoint;
+
     private ApplicationId routerAppId;
 
     // Reference count for how many times a next hop is used by a route
@@ -121,10 +125,7 @@ public class SingleSwitchFibInstaller {
 
     @Activate
     protected void activate() {
-        // TODO why are there two of the same app ID?
         routerAppId = coreService.registerApplication(RoutingService.ROUTER_APP_ID);
-
-        appId = coreService.getAppId(RoutingService.ROUTER_APP_ID);
 
         deviceListener = new InternalDeviceListener();
         deviceService.addListener(deviceListener);
@@ -156,6 +157,8 @@ public class SingleSwitchFibInstaller {
             log.info("Router config not available");
             return;
         }
+        controlPlaneConnectPoint = routerConfig.getControlPlaneConnectPoint();
+        log.info("Control Plane Connect Point: {}", controlPlaneConnectPoint);
 
         deviceId = routerConfig.getControlPlaneConnectPoint().deviceId();
 
@@ -231,7 +234,7 @@ public class SingleSwitchFibInstaller {
         int priority = prefix.prefixLength() * PRIORITY_MULTIPLIER + PRIORITY_OFFSET;
 
         ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective.builder()
-                .fromApp(appId)
+                .fromApp(routerAppId)
                 .makePermanent()
                 .withSelector(selector)
                 .withPriority(priority)
@@ -266,23 +269,30 @@ public class SingleSwitchFibInstaller {
                     .setEthSrc(egressIntf.mac())
                     .setEthDst(nextHop.mac());
 
+            TrafficSelector.Builder metabuilder = null;
             if (!egressIntf.vlan().equals(VlanId.NONE)) {
                 treatment.pushVlan()
                         .setVlanId(egressIntf.vlan())
                         .setVlanPcp((byte) 0);
+            } else {
+                // untagged outgoing port may require internal vlan in some pipelines
+                metabuilder = DefaultTrafficSelector.builder();
+                metabuilder.matchVlanId(VlanId.vlanId(ASSIGNED_VLAN));
             }
 
             treatment.setOutput(egressIntf.connectPoint().port());
 
             int nextId = flowObjectiveService.allocateNextId();
-
-            NextObjective nextObjective = DefaultNextObjective.builder()
+            NextObjective.Builder nextBuilder = DefaultNextObjective.builder()
                     .withId(nextId)
                     .addTreatment(treatment.build())
                     .withType(NextObjective.Type.SIMPLE)
-                    .fromApp(appId)
-                    .add(); // TODO add callbacks
+                    .fromApp(routerAppId);
+            if (metabuilder != null) {
+                nextBuilder.withMeta(metabuilder.build());
+            }
 
+            NextObjective nextObjective = nextBuilder.add(); // TODO add callbacks
             flowObjectiveService.next(deviceId, nextObjective);
 
             nextHops.put(nextHop.ip(), nextId);
@@ -329,31 +339,46 @@ public class SingleSwitchFibInstaller {
             }
 
             FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
+            // first add filter for the interface
             fob.withKey(Criteria.matchInPort(intf.connectPoint().port()))
-                    .addCondition(Criteria.matchEthDst(intf.mac()))
-                    .addCondition(Criteria.matchVlanId(intf.vlan()));
-
+                .addCondition(Criteria.matchEthDst(intf.mac()))
+                .addCondition(Criteria.matchVlanId(intf.vlan()));
             fob.withPriority(PRIORITY_OFFSET);
+            if (intf.vlan() == VlanId.NONE) {
+                TrafficTreatment tt = DefaultTrafficTreatment.builder()
+                        .pushVlan().setVlanId(VlanId.vlanId(ASSIGNED_VLAN)).build();
+                fob.withMeta(tt);
+            }
 
-            fob.permit().fromApp(appId);
-            flowObjectiveService.filter(
-                    deviceId,
-                    fob.add(new ObjectiveContext() {
-                        @Override
-                        public void onSuccess(Objective objective) {
-                            log.info("Successfully installed interface based "
-                                    + "filtering objectives for intf {}", intf);
-                        }
-
-                        @Override
-                        public void onError(Objective objective,
-                                            ObjectiveError error) {
-                            log.error("Failed to install interface filters for intf {}: {}",
-                                    intf, error);
-                            // TODO something more than just logging
-                        }
-                    }));
+            fob.permit().fromApp(routerAppId);
+            sendFilteringObjective(install, fob, intf);
+            if (controlPlaneConnectPoint != null) {
+                // then add the same mac/vlan filters for control-plane connect point
+                fob.withKey(Criteria.matchInPort(controlPlaneConnectPoint.port()));
+                sendFilteringObjective(install, fob, intf);
+            }
         }
+    }
+
+    private void sendFilteringObjective(boolean install, FilteringObjective.Builder fob,
+                                        Interface intf) {
+        flowObjectiveService.filter(
+            deviceId,
+            fob.add(new ObjectiveContext() {
+                @Override
+                public void onSuccess(Objective objective) {
+                    log.info("Successfully installed interface based "
+                            + "filtering objectives for intf {}", intf);
+                }
+
+                @Override
+                public void onError(Objective objective,
+                                    ObjectiveError error) {
+                    log.error("Failed to install interface filters for intf {}: {}",
+                              intf, error);
+                    // TODO something more than just logging
+                }
+            }));
     }
 
     private class InternalFibListener implements FibListener {

@@ -584,34 +584,59 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     + "nextId or Treatment", fwd.selector(), fwd.appId());
             return Collections.emptySet();
         }
+
         // XXX driver does not currently do type checking as per Tables 65-67 in
         // OFDPA 2.0 spec. The only allowed treatment is a punt to the controller.
-        if (fwd.treatment() != null &&
-                fwd.treatment().allInstructions().size() == 1 &&
-                fwd.treatment().allInstructions().get(0).type() == Instruction.Type.OUTPUT) {
-            OutputInstruction o = (OutputInstruction) fwd.treatment().allInstructions().get(0);
-            if (o.port() == PortNumber.CONTROLLER) {
-                FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
-                        .fromApp(fwd.appId())
-                        .withPriority(fwd.priority())
-                        .forDevice(deviceId)
-                        .withSelector(fwd.selector())
-                        .withTreatment(fwd.treatment())
-                        .makePermanent()
-                        .forTable(ACL_TABLE);
-                return Collections.singletonList(ruleBuilder.build());
-            } else {
-                log.warn("Only allowed treatments in versatile forwarding "
-                        + "objectives are punts to the controller");
-                return Collections.emptySet();
+        TrafficTreatment.Builder ttBuilder = DefaultTrafficTreatment.builder();
+        if (fwd.treatment() != null) {
+            for (Instruction ins : fwd.treatment().allInstructions()) {
+                if (ins instanceof OutputInstruction) {
+                    OutputInstruction o = (OutputInstruction) ins;
+                    if (o.port() == PortNumber.CONTROLLER) {
+                        ttBuilder.add(o);
+                    } else {
+                        log.warn("Only allowed treatments in versatile forwarding "
+                                + "objectives are punts to the controller");
+                    }
+                } else {
+                    log.warn("Cannot process instruction in versatile fwd {}", ins);
+                }
             }
         }
-
         if (fwd.nextId() != null) {
-            // XXX overide case
-            log.warn("versatile objective --> next Id not yet implemeted");
+            // overide case
+            NextGroup next = getGroupForNextObjective(fwd.nextId());
+            List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
+            // we only need the top level group's key to point the flow to it
+            Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
+            if (group == null) {
+                log.warn("Group with key:{} for next-id:{} not found in dev:{}",
+                         gkeys.get(0).peekFirst(), fwd.nextId(), deviceId);
+                fail(fwd, ObjectiveError.GROUPMISSING);
+                return Collections.emptySet();
+            }
+            ttBuilder.deferred().group(group.id());
         }
-        return Collections.emptySet();
+       // ensure that match does not include vlan = NONE as OF-DPA does not
+       // match untagged packets this way in the ACL table.
+       TrafficSelector.Builder selBuilder = DefaultTrafficSelector.builder();
+       for (Criterion criterion : fwd.selector().criteria()) {
+           if (criterion instanceof VlanIdCriterion &&
+               ((VlanIdCriterion) criterion).vlanId() == VlanId.NONE) {
+               continue;
+           }
+           selBuilder.add(criterion);
+       }
+
+        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                .fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .forDevice(deviceId)
+                .withSelector(selBuilder.build())
+                .withTreatment(ttBuilder.build())
+                .makePermanent()
+                .forTable(ACL_TABLE);
+        return Collections.singletonList(ruleBuilder.build());
     }
 
     /**

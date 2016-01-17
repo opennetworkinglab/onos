@@ -42,6 +42,8 @@ import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.ForwardingObjective;
@@ -50,6 +52,7 @@ import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
+import static org.onlab.util.Tools.delay;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -314,19 +317,50 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
     }
 
     /**
-     * SoftRouter has a single versatile table - the filter table. All versatile
-     * flow rules must include the filtering rules.
+     * SoftRouter has a single versatile table - the filter table.
+     * This table can be used to filter entries that reach the next table (FIB table).
+     * It can also be used to punt packets to the controller and/or bypass
+     * the FIB table to forward out of a port.
      *
      * @param fwd The forwarding objective of type versatile
      * @return  A collection of flow rules meant to be delivered to the flowrule
      *          subsystem. May return empty collection in case of failures.
      */
     private Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
+        log.debug("Received versatile fwd: to next:{}", fwd.nextId());
         Collection<FlowRule> flowrules = new ArrayList<>();
+        if (fwd.nextId() == null && fwd.treatment() == null) {
+            log.error("Forwarding objective {} from {} must contain "
+                    + "nextId or Treatment", fwd.selector(), fwd.appId());
+            return Collections.emptySet();
+        }
+        TrafficTreatment.Builder ttBuilder = DefaultTrafficTreatment.builder();
+        if (fwd.treatment() != null) {
+            fwd.treatment().immediate().forEach(ins -> ttBuilder.add(ins));
+        }
+        //convert nextId to flow actions
+        if (fwd.nextId() != null) {
+            // only acceptable value is output to port
+            NextGroup next = flowObjectiveStore.getNextGroup(fwd.nextId());
+            if (next == null) {
+                log.error("next-id {} does not exist in store", fwd.nextId());
+                return Collections.emptySet();
+            }
+            TrafficTreatment nt = appKryo.deserialize(next.data());
+            if (nt == null)  {
+                log.error("Error in deserializing next-id {}", fwd.nextId());
+                return Collections.emptySet();
+            }
+            for (Instruction ins : nt.allInstructions()) {
+                if (ins instanceof OutputInstruction) {
+                    ttBuilder.add(ins);
+                }
+            }
+        }
 
         FlowRule rule = DefaultFlowRule.builder()
                 .withSelector(fwd.selector())
-                .withTreatment(fwd.treatment())
+                .withTreatment(ttBuilder.build())
                 .makePermanent()
                 .forDevice(deviceId)
                 .fromApp(fwd.appId())
@@ -350,7 +384,7 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
      *
      */
     private Collection<FlowRule> processSpecific(ForwardingObjective fwd) {
-        log.debug("Processing specific forwarding objective");
+        log.debug("Processing specific forwarding objective to next:{}", fwd.nextId());
         TrafficSelector selector = fwd.selector();
         EthTypeCriterion ethType =
                 (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
@@ -411,6 +445,9 @@ public class SoftRouterPipeline extends AbstractHandlerBehaviour implements Pipe
      */
     private void processSimpleNextObjective(NextObjective nextObj) {
         // Simple next objective has a single treatment (not a collection)
+        log.debug("Received nextObj {}", nextObj.id());
+        // delay processing to emulate group creation
+        delay(50);
         TrafficTreatment treatment = nextObj.next().iterator().next();
         flowObjectiveStore.putNextGroup(nextObj.id(),
                                         new DummyGroup(treatment));

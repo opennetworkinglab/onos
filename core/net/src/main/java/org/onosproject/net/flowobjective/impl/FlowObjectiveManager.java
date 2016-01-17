@@ -387,11 +387,12 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                 Set<PendingNext> pending = pendingForwards.remove(event.subject());
 
                 if (pending == null) {
-                    log.debug("Nothing pending for this obj event");
+                    log.warn("Nothing pending for this obj event {}", event);
                     return;
                 }
 
-                log.debug("Processing pending forwarding objectives {}", pending.size());
+                log.debug("Processing {} pending forwarding objectives for nextId {}",
+                         pending.size(), event.subject());
                 pending.forEach(p -> getDevicePipeliner(p.deviceId())
                                 .forward(p.forwardingObjective()));
             }

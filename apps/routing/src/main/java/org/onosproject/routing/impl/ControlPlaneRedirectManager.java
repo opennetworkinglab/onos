@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.EthType;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.intf.Interface;
@@ -40,8 +41,10 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.routing.RoutingService;
 import org.onosproject.routing.config.RouterConfig;
@@ -110,7 +113,7 @@ public class ControlPlaneRedirectManager {
                 routingAppId, RoutingService.ROUTER_CONFIG_CLASS);
 
         if (config == null) {
-            log.info("Router config not available");
+            log.warn("Router config not available");
             return;
         }
 
@@ -145,6 +148,23 @@ public class ControlPlaneRedirectManager {
         PortNumber controlPlanePort = controlPlaneConnectPoint.port();
 
         for (InterfaceIpAddress ip : intf.ipAddresses()) {
+            // create nextObjectives for forwarding to this interface and the
+            // controlPlaneConnectPoint
+            int cpNextId, intfNextId;
+            if (intf.vlan() == VlanId.NONE) {
+                cpNextId = createNextObjective(deviceId, controlPlanePort,
+                               VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN),
+                               true);
+                intfNextId = createNextObjective(deviceId, intf.connectPoint().port(),
+                               VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN),
+                               true);
+            } else {
+                cpNextId = createNextObjective(deviceId, controlPlanePort,
+                                               intf.vlan(), false);
+                intfNextId = createNextObjective(deviceId, intf.connectPoint().port(),
+                                                 intf.vlan(), false);
+            }
+
             // IPv4 to router
             TrafficSelector toSelector = DefaultTrafficSelector.builder()
                     .matchInPort(intf.connectPoint().port())
@@ -154,12 +174,8 @@ public class ControlPlaneRedirectManager {
                     .matchIPDst(ip.ipAddress().toIpPrefix())
                     .build();
 
-            TrafficTreatment toTreatment = DefaultTrafficTreatment.builder()
-                    .setOutput(controlPlanePort)
-                    .build();
-
             flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(toSelector, toTreatment, true));
+                    buildForwardingObjective(toSelector, null, cpNextId, true));
 
             // IPv4 from router
             TrafficSelector fromSelector = DefaultTrafficSelector.builder()
@@ -170,12 +186,8 @@ public class ControlPlaneRedirectManager {
                     .matchIPSrc(ip.ipAddress().toIpPrefix())
                     .build();
 
-            TrafficTreatment intfTreatment = DefaultTrafficTreatment.builder()
-                    .setOutput(intf.connectPoint().port())
-                    .build();
-
             flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(fromSelector, intfTreatment, true));
+                    buildForwardingObjective(fromSelector, null, intfNextId, true));
 
             // ARP to router
             toSelector = DefaultTrafficSelector.builder()
@@ -184,13 +196,12 @@ public class ControlPlaneRedirectManager {
                     .matchVlanId(intf.vlan())
                     .build();
 
-            toTreatment = DefaultTrafficTreatment.builder()
-                    .setOutput(controlPlanePort)
+            TrafficTreatment puntTreatment = DefaultTrafficTreatment.builder()
                     .punt()
                     .build();
 
             flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(toSelector, toTreatment, true));
+                    buildForwardingObjective(toSelector, puntTreatment, cpNextId, true));
 
             // ARP from router
             fromSelector = DefaultTrafficSelector.builder()
@@ -198,15 +209,11 @@ public class ControlPlaneRedirectManager {
                     .matchEthSrc(intf.mac())
                     .matchVlanId(intf.vlan())
                     .matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                    .build();
-
-            intfTreatment = DefaultTrafficTreatment.builder()
-                    .setOutput(intf.connectPoint().port())
-                    .punt()
+                    .matchArpSpa(ip.ipAddress().getIp4Address())
                     .build();
 
             flowObjectiveService.forward(deviceId,
-                    buildForwardingObjective(fromSelector, intfTreatment, true));
+            buildForwardingObjective(fromSelector, puntTreatment, intfNextId, true));
         }
     }
 
@@ -219,33 +226,85 @@ public class ControlPlaneRedirectManager {
                 .matchIPProtocol((byte) OSPF_IP_PROTO)
                 .build();
 
-        TrafficTreatment toTreatment = DefaultTrafficTreatment.builder()
-                .setOutput(controlPlaneConnectPoint.port())
-                .build();
-
+        // create nextObjectives for forwarding to the controlPlaneConnectPoint
+        DeviceId deviceId = controlPlaneConnectPoint.deviceId();
+        PortNumber controlPlanePort = controlPlaneConnectPoint.port();
+        int cpNextId;
+        if (intf.vlan() == VlanId.NONE) {
+            cpNextId = createNextObjective(deviceId, controlPlanePort,
+                           VlanId.vlanId(SingleSwitchFibInstaller.ASSIGNED_VLAN),
+                           true);
+        } else {
+            cpNextId = createNextObjective(deviceId, controlPlanePort,
+                                           intf.vlan(), false);
+        }
+        log.debug("ospf flows intf:{} nextid:{}", intf, cpNextId);
         flowObjectiveService.forward(controlPlaneConnectPoint.deviceId(),
-                buildForwardingObjective(toSelector, toTreatment, ospfEnabled));
+                buildForwardingObjective(toSelector, null, cpNextId, ospfEnabled));
     }
 
     /**
-     * Builds a forwarding objective from the given selector and treatment.
+     * Creates a next objective for forwarding to a port. Handles metadata for
+     * some pipelines that require vlan information for egress port.
+     *
+     * @param deviceId the device on which the next objective is being created
+     * @param portNumber the egress port
+     * @param vlanId vlan information for egress port
+     * @param popVlan if vlan tag should be popped or not
+     * @return nextId of the next objective created
+     */
+    private int createNextObjective(DeviceId deviceId, PortNumber portNumber,
+                                    VlanId vlanId, boolean popVlan) {
+        int nextId = flowObjectiveService.allocateNextId();
+        NextObjective.Builder nextObjBuilder = DefaultNextObjective
+                .builder().withId(nextId)
+                .withType(NextObjective.Type.SIMPLE)
+                .fromApp(appId);
+
+        TrafficTreatment.Builder ttBuilder = DefaultTrafficTreatment.builder();
+        if (popVlan) {
+            ttBuilder.popVlan();
+        }
+        ttBuilder.setOutput(portNumber);
+
+        // setup metadata to pass to nextObjective - indicate the vlan on egress
+        // if needed by the switch pipeline.
+        TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder();
+        metabuilder.matchVlanId(vlanId);
+
+        nextObjBuilder.withMeta(metabuilder.build());
+        nextObjBuilder.addTreatment(ttBuilder.build());
+        log.debug("Submited next objective {} in device {} for port/vlan {}/{}",
+                nextId, deviceId, portNumber, vlanId);
+        flowObjectiveService.next(deviceId, nextObjBuilder.add());
+        return nextId;
+    }
+
+    /**
+     * Builds a forwarding objective from the given selector, treatment and nextId.
      *
      * @param selector selector
-     * @param treatment treatment
+     * @param treatment treatment to apply to packet, can be null
+     * @param nextId next objective to point to for forwarding packet
      * @param add true to create an add objective, false to create a remove
      *            objective
      * @return forwarding objective
      */
     private ForwardingObjective buildForwardingObjective(TrafficSelector selector,
                                                          TrafficTreatment treatment,
+                                                         int nextId,
                                                          boolean add) {
-
-        ForwardingObjective.Builder fobBuilder = DefaultForwardingObjective.builder()
-                .withSelector(selector)
-                .withTreatment(treatment)
-                .fromApp(appId)
-                .withPriority(PRIORITY)
-                .withFlag(ForwardingObjective.Flag.VERSATILE);
+        DefaultForwardingObjective.Builder fobBuilder = DefaultForwardingObjective.builder();
+        fobBuilder.withSelector(selector);
+        if (treatment != null) {
+            fobBuilder.withTreatment(treatment);
+        }
+        if (nextId != -1) {
+            fobBuilder.nextStep(nextId);
+        }
+        fobBuilder.fromApp(appId)
+            .withPriority(PRIORITY)
+            .withFlag(ForwardingObjective.Flag.VERSATILE);
 
         return add ? fobBuilder.add() : fobBuilder.remove();
     }
