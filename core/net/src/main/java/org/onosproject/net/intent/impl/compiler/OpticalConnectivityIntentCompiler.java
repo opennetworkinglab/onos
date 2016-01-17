@@ -108,6 +108,11 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
         log.debug("Compiling optical connectivity intent between {} and {}", src, dst);
 
+        // Release of intent resources here is only a temporary solution for handling the
+        // case of recompiling due to intent restoration (when intent state is FAILED).
+        // TODO: try to release intent resources in IntentManager.
+        resourceService.release(intent.id());
+
         // Reserve OCh ports
         Resource srcPortResource = Resources.discrete(src.deviceId(), src.port()).resource();
         Resource dstPortResource = Resources.discrete(dst.deviceId(), dst.port()).resource();

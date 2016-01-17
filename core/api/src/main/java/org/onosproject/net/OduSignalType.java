@@ -45,4 +45,14 @@ public enum OduSignalType {
     public long bitRate() {
         return this.bitRate;
     }
+
+    /**
+     * Returns the number of tributary slots of the OduSignalType.
+     * Each TributarySlot is 1.25Gbps.
+     * @return number of tributary slots
+     */
+    public int tributarySlots() {
+        return (int) (this.bitRate() / OduSignalType.ODU0.bitRate());
+    }
+
 }
