@@ -504,6 +504,10 @@ class LINCSwitch(OpticalSwitch):
         links = {}
         devices = {}
         ports = {}
+        BasicDevConfigKeys = ['name', 'type', 'latitude', 'longitude', 'allowed',
+                              'rackAddress', 'owner', 'driver', 'manufacturer',
+                              'hwVersion', 'swVersion', 'serial',
+                              'managementAddress']
 
         for switch in LINCSwitch.opticalJSON[ 'devices' ]:
             # Build device entries - keyed on uri (DPID) and config key 'basic'
@@ -511,7 +515,7 @@ class LINCSwitch(OpticalSwitch):
             # Annotations hold switch name and latitude/longitude
             devDict = {}
             devDict[ 'type' ] = switch[ 'type' ]
-            devDict.update(switch[ 'annotations' ])
+            devDict.update({k: v for k, v in switch[ 'annotations' ].iteritems() if k in BasicDevConfigKeys})
             devSubj = switch[ 'uri' ]
             devices[ devSubj ] = { 'basic': devDict }
 
