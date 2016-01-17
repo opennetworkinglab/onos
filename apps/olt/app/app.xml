@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2016 Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,17 +14,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
-
-    <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
-        <command>
-            <action class="org.onosproject.olt.SubscriberAddCommand"/>
-            <completers>
-                <ref component-id="deviceIdCompleter"/>
-                <null/>
-            </completers>
-        </command>
-    </command-bundle>
-
-    <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
-</blueprint>
+<app name="org.onosproject.olt" origin="ON.Lab" version="${project.version}"
+     featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
+     features="${project.artifactId}">
+    <description>${project.description}</description>
+    <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-app-olt-api/${project.version}</artifact>
+</app>

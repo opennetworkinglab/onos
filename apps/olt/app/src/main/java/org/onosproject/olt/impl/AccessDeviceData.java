@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.olt;
+package org.onosproject.olt.impl;
 
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;

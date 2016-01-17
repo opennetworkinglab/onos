@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.olt;
+package org.onosproject.olt.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.onlab.packet.VlanId;

@@ -19,8 +19,6 @@ package org.onosproject.olt;
 import org.onlab.packet.VlanId;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.olt.api.AccessDeviceEvent;
-import org.onosproject.olt.api.AccessDeviceListener;
 
 /**
  * Service for interacting with an access device (OLT).

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.olt;
+package org.onosproject.olt.impl;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -54,8 +54,9 @@ import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
-import org.onosproject.olt.api.AccessDeviceEvent;
-import org.onosproject.olt.api.AccessDeviceListener;
+import org.onosproject.olt.AccessDeviceEvent;
+import org.onosproject.olt.AccessDeviceListener;
+import org.onosproject.olt.AccessDeviceService;
 import org.slf4j.Logger;
 
 import java.util.Map;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.olt;
+package org.onosproject.olt.cli;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
@@ -23,6 +23,7 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.olt.AccessDeviceService;
 
 /**
  * Adds a subscriber to an access device.

@@ -1,4 +1,4 @@
-package org.onosproject.olt.api;
+package org.onosproject.olt;
 
 import org.onlab.packet.VlanId;
 import org.onosproject.event.AbstractEvent;

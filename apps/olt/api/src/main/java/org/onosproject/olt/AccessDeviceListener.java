@@ -1,4 +1,4 @@
-package org.onosproject.olt.api;
+package org.onosproject.olt;
 
 import org.onosproject.event.EventListener;
 
