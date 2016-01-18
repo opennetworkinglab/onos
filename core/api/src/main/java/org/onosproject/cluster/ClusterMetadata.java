@@ -174,8 +174,8 @@ public final class ClusterMetadata {
          */
         private void verifyMetadata() {
             verifyNotNull(metadata.getName(), "Cluster name must be specified");
-            verify(CollectionUtils.isEmpty(metadata.getNodes()), "Cluster nodes must be specified");
-            verify(CollectionUtils.isEmpty(metadata.getPartitions()), "Cluster partitions must be specified");
+            verify(CollectionUtils.isNotEmpty(metadata.getNodes()), "Cluster nodes must be specified");
+            verify(CollectionUtils.isNotEmpty(metadata.getPartitions()), "Cluster partitions must be specified");
 
             // verify that partitions are constituted from valid cluster nodes.
             boolean validPartitions = Collections2.transform(metadata.getNodes(), ControllerNode::id)
