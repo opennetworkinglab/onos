@@ -68,6 +68,7 @@
         <module>openstackrouting</module>
         <module>cordmcast</module>
         <module>vpls</module>
+        <module>openstacknode</module>
   </modules>
 
     <properties>

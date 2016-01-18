@@ -1,0 +1,34 @@
+{
+    "apps" : {
+        "org.onosproject.openstacknode" : {
+            "openstacknode" : {
+                "nodes" : [
+                            {
+                                    "hostname" : "compute-01",
+                                    "ovsdbIp" : "192.168.56.112",
+                                    "ovsdbPort" : "6640",
+                                    "bridgeId" : "of:0000000000000001",
+                                    "openstackNodeType" : "COMPUTENODE"
+                            },
+                            {
+                                    "hostname" : "compute-02",
+                                    "ovsdbIp" : "192.168.56.106",
+                                    "ovsdbPort" : "6640",
+                                    "bridgeId" : "of:0000000000000002",
+                                    "openstackNodeType" : "COMPUTENODE"
+                            },
+                            {
+                                    "hostname" : "network",
+                                    "ovsdbIp" : "192.168.56.108",
+                                    "ovsdbPort" : "6640",
+                                    "bridgeId" : "of:0000000000000003",
+                                    "openstackNodeType" : "GATEWAYNODE",
+                                    "gatewayExternalInterfaceName" : "eth1",
+                                    "gatewayExternalInterfaceMac" : "00:00:00:00:00:10"
+                            }
+                ]
+            }
+        }
+    }
+}
+
