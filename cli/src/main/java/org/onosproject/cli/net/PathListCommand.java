@@ -50,6 +50,10 @@ public class PathListCommand extends TopologyCommand {
     @Override
     protected void execute() {
         init();
+        if (src.split("/").length != 1 || dst.split("/").length != 1) {
+            print("Expected device IDs as arguments");
+            return;
+        }
         Set<Path> paths = service.getPaths(topology, deviceId(src), deviceId(dst));
         if (outputJson()) {
             print("%s", json(this, paths));
