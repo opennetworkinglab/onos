@@ -20,13 +20,23 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.RequestHandler;
 
+import static org.onosproject.ui.table.TableModel.sortDir;
+
 /**
  * Message handler specifically for table views.
  */
 public abstract class TableRequestHandler extends RequestHandler {
 
+    private static final String FIRST_COL = "firstCol";
+    private static final String FIRST_DIR = "firstDir";
+    private static final String SECOND_COL = "secondCol";
+    private static final String SECOND_DIR = "secondDir";
+
+    private static final String ASC = "asc";
+
     private static final String ANNOTS = "annots";
     private static final String NO_ROWS_MSG_KEY = "no_rows_msg";
+
     private final String respType;
     private final String nodeName;
 
@@ -51,9 +61,11 @@ public abstract class TableRequestHandler extends RequestHandler {
         TableModel tm = createTableModel();
         populateTable(tm, payload);
 
-        String sortCol = JsonUtils.string(payload, "sortCol", defaultColumnId());
-        String sortDir = JsonUtils.string(payload, "sortDir", "asc");
-        tm.sort(sortCol, TableModel.sortDir(sortDir));
+        String firstCol = JsonUtils.string(payload, FIRST_COL, defaultColumnId());
+        String firstDir = JsonUtils.string(payload, FIRST_DIR, ASC);
+        String secondCol = JsonUtils.string(payload, SECOND_COL, null);
+        String secondDir = JsonUtils.string(payload, SECOND_DIR, null);
+        tm.sort(firstCol, sortDir(firstDir), secondCol, sortDir(secondDir));
 
         addTableConfigAnnotations(tm, payload);
 

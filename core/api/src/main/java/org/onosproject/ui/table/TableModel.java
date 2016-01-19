@@ -52,6 +52,7 @@ public class TableModel {
 
     private static final CellComparator DEF_CMP = DefaultCellComparator.INSTANCE;
     private static final CellFormatter DEF_FMT = DefaultCellFormatter.INSTANCE;
+    private static final String EMPTY = "";
 
     private final String[] columnIds;
     private final Set<String> idSet;
@@ -206,14 +207,17 @@ public class TableModel {
     }
 
     /**
-     * Sorts the table rows based on the specified column, in the
-     * specified direction.
+     * Sorts the table rows based on the specified columns, in the
+     * specified directions. The second column is optional, and can be
+     * disregarded by passing null into id2 and dir2.
      *
-     * @param columnId column identifier
-     * @param dir sort direction
+     * @param id1 first column identifier
+     * @param dir1 first column sort direction
+     * @param id2 second column identifier (may be null)
+     * @param dir2 second column sort direction (may be null)
      */
-    public void sort(String columnId, SortDir dir) {
-        Collections.sort(rows, new RowComparator(columnId, dir));
+    public void sort(String id1, SortDir dir1, String id2, SortDir dir2) {
+        Collections.sort(rows, new RowComparator(id1, dir1, id2, dir2));
     }
 
 
@@ -225,33 +229,54 @@ public class TableModel {
         DESC
     }
 
+    private boolean nullOrEmpty(String s) {
+        return s == null || EMPTY.equals(s.trim());
+    }
+
     /**
      * Row comparator.
      */
     private class RowComparator implements Comparator<Row> {
-        private final String columnId;
-        private final SortDir dir;
-        private final CellComparator cellComparator;
+        private final String id1;
+        private final SortDir dir1;
+        private final String id2;
+        private final SortDir dir2;
+        private final CellComparator cc1;
+        private final CellComparator cc2;
 
         /**
          * Constructs a row comparator based on the specified
-         * column identifier and sort direction.
+         * column identifiers and sort directions. Note that id2 and dir2 may
+         * be null.
          *
-         * @param columnId column identifier
-         * @param dir sort direction
+         * @param id1 first column identifier
+         * @param dir1 first column sort direction
+         * @param id2 second column identifier
+         * @param dir2 second column sort direction
          */
-        public RowComparator(String columnId, SortDir dir) {
-            this.columnId = columnId;
-            this.dir = dir;
-            cellComparator = getComparator(columnId);
+        public RowComparator(String id1, SortDir dir1, String id2, SortDir dir2) {
+            this.id1 = id1;
+            this.dir1 = dir1;
+            this.id2 = id2;
+            this.dir2 = dir2;
+            cc1 = getComparator(id1);
+            cc2 = nullOrEmpty(id2) ? null : getComparator(id2);
         }
 
         @Override
         public int compare(Row a, Row b) {
-            Object cellA = a.get(columnId);
-            Object cellB = b.get(columnId);
-            int result = cellComparator.compare(cellA, cellB);
-            return dir == SortDir.ASC ? result : -result;
+            Object cellA = a.get(id1);
+            Object cellB = b.get(id1);
+            int result = cc1.compare(cellA, cellB);
+            result = dir1 == SortDir.ASC ? result : -result;
+
+            if (result == 0 && cc2 != null) {
+                cellA = a.get(id2);
+                cellB = b.get(id2);
+                result = cc2.compare(cellA, cellB);
+                result = dir2 == SortDir.ASC ? result : -result;
+            }
+            return result;
         }
     }
 

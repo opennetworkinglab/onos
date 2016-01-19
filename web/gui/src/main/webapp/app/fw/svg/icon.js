@@ -209,26 +209,16 @@
     }
 
     function sortIcons() {
-        function sortAsc(div) {
+        function _s(div, gid) {
             div.style('display', 'inline-block');
-            loadEmbeddedIcon(div, 'upArrow', 10);
+            loadEmbeddedIcon(div, gid, 10);
             div.classed('tableColSort', true);
-        }
-
-        function sortDesc(div) {
-            div.style('display', 'inline-block');
-            loadEmbeddedIcon(div, 'downArrow', 10);
-            div.classed('tableColSort', true);
-        }
-
-        function sortNone(div) {
-            div.remove();
         }
 
         return {
-            sortAsc: sortAsc,
-            sortDesc: sortDesc,
-            sortNone: sortNone
+            asc: function (div) { _s(div, 'upArrow'); },
+            desc: function (div) { _s(div, 'downArrow'); },
+            none: function (div) { div.remove(); }
         };
     }
 

@@ -77,8 +77,10 @@
             respCb: refreshCtrls,
             // pre-populate sort so active apps are at the top of the list
             sortParams: {
-                sortCol: 'state',
-                sortDir: 'desc'
+                firstCol: 'state',
+                firstDir: 'desc',
+                secondCol: 'id',
+                secondDir: 'asc'
             }
         });
 
