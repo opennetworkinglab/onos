@@ -58,6 +58,9 @@ public class IntentData { //FIXME need to make this "immutable"
      * @param version version of the intent for this key
      */
     public IntentData(Intent intent, IntentState state, Timestamp version) {
+        checkNotNull(intent);
+        checkNotNull(state);
+
         this.intent = intent;
         this.state = state;
         this.request = state;
