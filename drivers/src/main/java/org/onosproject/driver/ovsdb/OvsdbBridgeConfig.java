@@ -104,6 +104,13 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
     }
 
     @Override
+    public void addPort(BridgeName bridgeName, String portName) {
+        DriverHandler handler = handler();
+        OvsdbClientService clientService = getOvsdbClientService(handler);
+        clientService.createPort(bridgeName.name(), portName);
+    }
+
+    @Override
     public void deletePort(PortDescription port) {
         DriverHandler handler = handler();
         OvsdbClientService clientService = getOvsdbClientService(handler);

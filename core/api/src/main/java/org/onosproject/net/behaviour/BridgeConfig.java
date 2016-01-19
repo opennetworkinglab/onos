@@ -74,7 +74,16 @@ public interface BridgeConfig extends HandlerBehaviour {
      *
      * @param port port number
      */
+    @Deprecated
     void addPort(PortDescription port);
+
+    /**
+     * Adds a port to a given bridge.
+     *
+     * @param bridgeName bridge name
+     * @param portName port name
+     */
+    void addPort(BridgeName bridgeName, String portName);
 
     /**
      * Delete a logical/virtual port.
