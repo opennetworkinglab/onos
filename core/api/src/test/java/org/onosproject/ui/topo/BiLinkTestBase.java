@@ -54,6 +54,9 @@ public abstract class BiLinkTestBase {
         @Override public boolean isDurable() {
             return false;
         }
+        @Override public boolean isExpected() {
+            return false;
+        }
         @Override public Annotations annotations() {
             return null;
         }

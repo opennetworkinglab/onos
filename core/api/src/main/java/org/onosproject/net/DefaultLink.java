@@ -31,7 +31,7 @@ public class DefaultLink extends AbstractModel implements Link {
     private final ConnectPoint dst;
     private final Type type;
     private final State state;
-    private final boolean isDurable;
+    private final boolean isExpected;
 
     /**
      * Creates an active infrastructure link using the supplied information.
@@ -57,18 +57,18 @@ public class DefaultLink extends AbstractModel implements Link {
      * @param dst         link destination
      * @param type        link type
      * @param state       link state
-     * @param isDurable   indicates if the link is to be considered durable
+     * @param isExpected   indicates if the link is preconfigured
      * @param annotations optional key/value annotations
      */
     public DefaultLink(ProviderId providerId, ConnectPoint src, ConnectPoint dst,
-                       Type type, State state,
-                       boolean isDurable, Annotations... annotations) {
+                           Type type, State state,
+                           boolean isExpected, Annotations... annotations) {
         super(providerId, annotations);
         this.src = src;
         this.dst = dst;
         this.type = type;
         this.state = state;
-        this.isDurable = isDurable;
+        this.isExpected = isExpected;
     }
 
     @Override
@@ -93,7 +93,12 @@ public class DefaultLink extends AbstractModel implements Link {
 
     @Override
     public boolean isDurable() {
-        return isDurable;
+        return isExpected();
+    }
+
+    @Override
+    public boolean isExpected() {
+        return isExpected;
     }
 
     // Note: Durability & state are purposefully omitted form equality & hashCode.
@@ -124,7 +129,7 @@ public class DefaultLink extends AbstractModel implements Link {
                 .add("dst", dst)
                 .add("type", type)
                 .add("state", state)
-                .add("durable", isDurable)
+                .add("configured", isExpected)
                 .toString();
     }
 

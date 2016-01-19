@@ -136,6 +136,11 @@ public class MockLinkService extends LinkServiceAdapter {
             }
 
             @Override
+            public boolean isExpected() {
+                return false;
+            }
+
+            @Override
             public Annotations annotations() {
                 return null;
             }
