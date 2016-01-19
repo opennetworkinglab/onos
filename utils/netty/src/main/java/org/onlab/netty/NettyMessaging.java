@@ -312,6 +312,7 @@ public class NettyMessaging implements MessagingService {
             bootstrap.option(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 10 * 64 * 1024);
             bootstrap.option(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 10 * 32 * 1024);
             bootstrap.option(ChannelOption.SO_SNDBUF, 1048576);
+            bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 1000);
             bootstrap.group(clientGroup);
             // TODO: Make this faster:
             // http://normanmaurer.me/presentations/2014-facebook-eng-netty/slides.html#37.0
