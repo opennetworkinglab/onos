@@ -36,6 +36,7 @@ import org.onosproject.cluster.ClusterMetadataEventListener;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.DefaultPartition;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.Partition;
 import org.onosproject.cluster.PartitionId;
@@ -79,7 +80,6 @@ import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
 
 import java.nio.ByteBuffer;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -953,16 +953,7 @@ public class LldpLinkProviderTest {
         public ClusterMetadata getClusterMetadata() {
             final NodeId nid = new NodeId("test-node");
             final IpAddress addr = IpAddress.valueOf(0);
-            final Partition p = new Partition() {
-                public PartitionId getId() {
-                    return PartitionId.from(1);
-                }
-
-                @Override
-                public Collection<NodeId> getMembers() {
-                    return Sets.newHashSet(nid);
-                }
-            };
+            final Partition p = new DefaultPartition(PartitionId.from(1), Sets.newHashSet(nid));
             return ClusterMetadata.builder()
                     .withName("test-cluster")
                     .withControllerNodes(Sets.newHashSet(new DefaultControllerNode(nid, addr)))

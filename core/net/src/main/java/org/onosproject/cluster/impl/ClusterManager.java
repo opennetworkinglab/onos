@@ -34,6 +34,7 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ClusterStore;
 import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.DefaultPartition;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.Partition;
 import org.onosproject.cluster.PartitionId;
@@ -179,35 +180,18 @@ public class ClusterManager
         Collections.sort(sorted, (o1, o2) -> o1.id().toString().compareTo(o2.id().toString()));
         Collection<Partition> partitions = Lists.newArrayList();
         // add p0 partition
-        partitions.add(new Partition() {
-            @Override
-            public PartitionId getId() {
-                return PartitionId.from((0));
-            }
-            @Override
-            public Collection<NodeId> getMembers() {
-                return Sets.newHashSet(Collections2.transform(nodes, ControllerNode::id));
-            }
-        });
+        partitions.add(new DefaultPartition(PartitionId.from(0),
+                                            Sets.newHashSet(Collections2.transform(nodes, ControllerNode::id))));
         // add extended partitions
         int length = nodes.size();
-        int count = 3;
+        int count = Math.min(3, length);
         for (int i = 0; i < length; i++) {
             int index = i;
             Set<NodeId> set = new HashSet<>(count);
             for (int j = 0; j < count; j++) {
                 set.add(sorted.get((i + j) % length).id());
             }
-            partitions.add(new Partition() {
-                @Override
-                public PartitionId getId() {
-                    return PartitionId.from((index + 1));
-                }
-                @Override
-                public Collection<NodeId> getMembers() {
-                    return set;
-                }
-            });
+            partitions.add(new DefaultPartition(PartitionId.from((index + 1)), set));
         }
         return partitions;
     }

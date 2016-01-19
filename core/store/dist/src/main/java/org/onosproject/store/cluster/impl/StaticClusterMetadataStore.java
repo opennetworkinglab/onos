@@ -41,6 +41,7 @@ import org.onosproject.cluster.ClusterMetadataStore;
 import org.onosproject.cluster.ClusterMetadataStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.DefaultPartition;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.Partition;
 import org.onosproject.cluster.PartitionId;
@@ -94,6 +95,8 @@ public class StaticClusterMetadataStore
         module.addSerializer(ControllerNode.class, new ControllerNodeSerializer());
         module.addDeserializer(ControllerNode.class, new ControllerNodeDeserializer());
         module.addDeserializer(Partition.class, new PartitionDeserializer());
+        module.addSerializer(PartitionId.class, new PartitionIdSerializer());
+        module.addDeserializer(PartitionId.class, new PartitionIdDeserializer());
         mapper.registerModule(module);
         File metadataFile = new File(CLUSTER_METADATA_FILE);
         if (metadataFile.exists()) {
@@ -107,21 +110,14 @@ public class StaticClusterMetadataStore
             String localIp = getSiteLocalAddress();
             ControllerNode localNode =
                     new DefaultControllerNode(new NodeId(localIp), IpAddress.valueOf(localIp), DEFAULT_ONOS_PORT);
-            Partition defaultPartition = new Partition() {
-                @Override
-                public PartitionId getId() {
-                    return PartitionId.from(1);
-                }
-
-                @Override
-                public Collection<NodeId> getMembers() {
-                    return Sets.newHashSet(localNode.id());
-                }
-            };
+            // p0 partition
+            Partition basePartition = new DefaultPartition(PartitionId.from(0), Sets.newHashSet(localNode.id()));
+            // p1 partition
+            Partition extendedPartition = new DefaultPartition(PartitionId.from(1), Sets.newHashSet(localNode.id()));
             metadata.set(ClusterMetadata.builder()
                     .withName("default")
                     .withControllerNodes(Arrays.asList(localNode))
-                    .withPartitions(Lists.newArrayList(defaultPartition))
+                    .withPartitions(Lists.newArrayList(basePartition, extendedPartition))
                     .build());
             version = System.currentTimeMillis();
         }
@@ -191,6 +187,23 @@ public class StaticClusterMetadataStore
         public Partition deserialize(JsonParser jp, DeserializationContext ctxt)
                 throws IOException, JsonProcessingException {
             return jp.readValueAs(DefaultPartition.class);
+        }
+    }
+
+    private static class PartitionIdSerializer extends JsonSerializer<PartitionId> {
+        @Override
+        public void serialize(PartitionId partitionId, JsonGenerator jgen, SerializerProvider provider)
+          throws IOException, JsonProcessingException {
+            jgen.writeNumber(partitionId.asInt());
+        }
+    }
+
+    private class PartitionIdDeserializer extends JsonDeserializer<PartitionId> {
+        @Override
+        public PartitionId deserialize(JsonParser jp, DeserializationContext ctxt)
+          throws IOException, JsonProcessingException {
+            JsonNode node = jp.getCodec().readTree(jp);
+            return new PartitionId(node.asInt());
         }
     }
 
