@@ -32,6 +32,9 @@
         <!-- Uncomment to generate ONOS app from this module.
         <onos.app.name>org.foo.app</onos.app.name>
         <onos.app.origin>Foo, Inc.</onos.app.origin>
+        <onos.app.category>UI</onos.app.category>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.readme>ONOS OSGi UI Topology-View bundle archetype.</onos.app.readme>
         -->
     </properties>
 
