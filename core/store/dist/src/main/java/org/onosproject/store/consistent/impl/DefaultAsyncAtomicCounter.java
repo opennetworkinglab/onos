@@ -51,6 +51,11 @@ public class DefaultAsyncAtomicCounter implements AsyncAtomicCounter {
     }
 
     @Override
+    public String name() {
+        return name;
+    }
+
+    @Override
     public CompletableFuture<Long> incrementAndGet() {
         final MeteringAgent.Context timer = monitor.startTimer(INCREMENT_AND_GET);
         return addAndGet(1L)

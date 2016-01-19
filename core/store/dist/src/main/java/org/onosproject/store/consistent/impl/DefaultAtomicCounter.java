@@ -18,6 +18,7 @@ package org.onosproject.store.consistent.impl;
 import org.onosproject.store.service.AsyncAtomicCounter;
 import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.StorageException;
+import org.onosproject.store.service.Synchronous;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -30,16 +31,15 @@ import java.util.concurrent.TimeoutException;
  * <p>
  * The initial value will be zero.
  */
-public class DefaultAtomicCounter implements AtomicCounter {
+public class DefaultAtomicCounter extends Synchronous<AsyncAtomicCounter> implements AtomicCounter  {
 
     private static final int OPERATION_TIMEOUT_MILLIS = 5000;
 
     private final AsyncAtomicCounter asyncCounter;
 
-    public DefaultAtomicCounter(String name,
-                                Database database,
-                                boolean meteringEnabled) {
-        asyncCounter = new DefaultAsyncAtomicCounter(name, database, meteringEnabled);
+    public DefaultAtomicCounter(AsyncAtomicCounter asyncCounter) {
+        super(asyncCounter);
+        this.asyncCounter = asyncCounter;
     }
 
     @Override

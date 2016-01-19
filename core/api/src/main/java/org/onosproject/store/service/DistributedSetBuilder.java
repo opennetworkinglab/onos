@@ -129,4 +129,13 @@ public interface DistributedSetBuilder<E> {
      * @throws java.lang.RuntimeException if a mandatory parameter is missing
      */
     DistributedSet<E> build();
+
+    /**
+     * Builds an {@link AsyncDistributedSet async set} based on the configuration options
+     * supplied to this builder.
+     *
+     * @return new AsyncDistributedSet
+     * @throws java.lang.RuntimeException if a mandatory parameter is missing
+     */
+    AsyncDistributedSet<E> buildAsyncSet();
 }

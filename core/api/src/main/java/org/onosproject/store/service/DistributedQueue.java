@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * @param <E> queue entry type
  */
-public interface DistributedQueue<E> {
+public interface DistributedQueue<E> extends DistributedPrimitive {
 
     /**
      * Returns total number of entries in the queue.

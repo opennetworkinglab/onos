@@ -44,7 +44,7 @@ import java.util.function.Predicate;
  * (which extends RuntimeException) to indicate failures.
  *
  */
-public interface ConsistentMap<K, V> {
+public interface ConsistentMap<K, V> extends DistributedPrimitive {
 
     /**
      * Returns the number of entries in the map.

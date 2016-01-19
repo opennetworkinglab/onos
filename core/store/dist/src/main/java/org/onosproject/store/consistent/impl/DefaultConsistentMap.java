@@ -28,9 +28,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.Set;
 
+import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.Synchronous;
 import org.onosproject.store.service.Versioned;
 
 /**
@@ -40,18 +42,15 @@ import org.onosproject.store.service.Versioned;
  * @param <K> type of key.
  * @param <V> type of value.
  */
-public class DefaultConsistentMap<K, V> implements ConsistentMap<K, V> {
+public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K, V>> implements ConsistentMap<K, V> {
 
     private static final int OPERATION_TIMEOUT_MILLIS = 5000;
 
     private final DefaultAsyncConsistentMap<K, V> asyncMap;
     private Map<K, V> javaMap;
 
-    public String name() {
-        return asyncMap.name();
-    }
-
     public DefaultConsistentMap(DefaultAsyncConsistentMap<K, V> asyncMap) {
+        super(asyncMap);
         this.asyncMap = asyncMap;
     }
 

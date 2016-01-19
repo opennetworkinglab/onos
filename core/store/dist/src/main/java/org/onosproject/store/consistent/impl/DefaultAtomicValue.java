@@ -17,10 +17,12 @@ package org.onosproject.store.consistent.impl;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AtomicValue;
 import org.onosproject.store.service.AtomicValueEventListener;
 import org.onosproject.store.service.StorageException;
+import org.onosproject.store.service.Synchronous;
 
 import com.google.common.util.concurrent.Futures;
 
@@ -29,12 +31,13 @@ import com.google.common.util.concurrent.Futures;
  *
  * @param <V> value type
  */
-public class DefaultAtomicValue<V> implements AtomicValue<V> {
+public class DefaultAtomicValue<V> extends Synchronous<AsyncAtomicValue<V>> implements AtomicValue<V> {
 
     private static final int OPERATION_TIMEOUT_MILLIS = 5000;
     private final AsyncAtomicValue<V> asyncValue;
 
     public DefaultAtomicValue(AsyncAtomicValue<V> asyncValue) {
+        super(asyncValue);
         this.asyncValue = asyncValue;
     }
 

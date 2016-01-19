@@ -171,6 +171,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
      * Returns this map name.
      * @return map name
      */
+    @Override
     public String name() {
         return name;
     }
@@ -187,6 +188,7 @@ public class DefaultAsyncConsistentMap<K, V>  implements AsyncConsistentMap<K, V
      * Returns the applicationId owning this map.
      * @return application Id
      */
+    @Override
     public ApplicationId applicationId() {
         return applicationId;
     }

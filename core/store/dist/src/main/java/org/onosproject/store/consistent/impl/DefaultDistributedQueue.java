@@ -19,12 +19,14 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 
 import org.onlab.util.SharedExecutors;
+import org.onosproject.store.service.DistributedPrimitive;
 import org.onosproject.store.service.DistributedQueue;
 import org.onosproject.store.service.Serializer;
 
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.store.consistent.impl.StateMachineUpdate.Target.QUEUE_PUSH;
 
@@ -108,8 +110,14 @@ public class DefaultDistributedQueue<E>  implements DistributedQueue<E> {
                                             .whenComplete((r, e) -> timer.stop(e)));
     }
 
+    @Override
     public String name() {
         return name;
+    }
+
+    @Override
+    public DistributedPrimitive.Type type() {
+        return DistributedPrimitive.Type.QUEUE;
     }
 
     protected void tryPoll() {

@@ -273,6 +273,11 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     @Override
+    public String name() {
+        return mapName;
+    }
+
+    @Override
     public int size() {
         checkState(!destroyed, destroyedMessage);
         // TODO: Maintain a separate counter for tracking live elements in map.

@@ -55,6 +55,11 @@ public class DefaultAsyncAtomicValue<V> implements AsyncAtomicValue<V> {
     }
 
     @Override
+    public String name() {
+        return name;
+    }
+
+    @Override
     public CompletableFuture<Boolean> compareAndSet(V expect, V update) {
         final MeteringAgent.Context newTimer = monitor.startTimer(COMPARE_AND_SET);
         CompletableFuture<Boolean> response;

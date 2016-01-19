@@ -49,7 +49,12 @@ import java.util.function.Predicate;
  * the returned future will be {@link CompletableFuture#complete completed} when the
  * operation finishes.
  */
-public interface AsyncConsistentMap<K, V> {
+public interface AsyncConsistentMap<K, V> extends DistributedPrimitive {
+
+    @Override
+    default DistributedPrimitive.Type type() {
+        return DistributedPrimitive.Type.CONSISTENT_MAP;
+    }
 
     /**
      * Returns the number of entries in the map.

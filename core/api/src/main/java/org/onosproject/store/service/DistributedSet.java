@@ -22,7 +22,7 @@ import java.util.Set;
  *
  * @param <E> set entry type
  */
-public interface DistributedSet<E> extends Set<E> {
+public interface DistributedSet<E> extends Set<E>, DistributedPrimitive {
 
     /**
      * Registers the specified listener to be notified whenever

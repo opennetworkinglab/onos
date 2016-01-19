@@ -27,7 +27,12 @@ import java.util.concurrent.CompletableFuture;
  *
  * @param <V> value type
  */
-public interface AsyncAtomicValue<V> {
+public interface AsyncAtomicValue<V> extends DistributedPrimitive {
+
+    @Override
+    default DistributedPrimitive.Type type() {
+        return DistributedPrimitive.Type.VALUE;
+    }
 
     /**
      * Atomically sets the value to the given updated value if the current value is equal to the expected value.

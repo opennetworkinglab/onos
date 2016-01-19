@@ -16,6 +16,7 @@
 package org.onosproject.store.consistent.impl;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
@@ -88,6 +89,11 @@ public class DefaultDistributedSetBuilder<E> implements DistributedSetBuilder<E>
 
     @Override
     public DistributedSet<E> build() {
-        return new DefaultDistributedSet<E>(name, metering, mapBuilder.build());
+        return new DefaultDistributedSet<E>(buildAsyncSet());
+    }
+
+    @Override
+    public AsyncDistributedSet<E> buildAsyncSet() {
+        return new DefaultAsyncDistributedSet<E>(mapBuilder.buildAsyncMap(), name, metering);
     }
 }

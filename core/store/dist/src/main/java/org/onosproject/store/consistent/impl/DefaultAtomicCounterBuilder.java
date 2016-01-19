@@ -53,9 +53,7 @@ public class DefaultAtomicCounterBuilder implements AtomicCounterBuilder {
 
     @Override
     public AtomicCounter build() {
-        validateInputs();
-        Database database = partitionsEnabled ? partitionedDatabase : inMemoryDatabase;
-        return new DefaultAtomicCounter(name, database, metering);
+        return new DefaultAtomicCounter(buildAsyncCounter());
     }
 
     @Override

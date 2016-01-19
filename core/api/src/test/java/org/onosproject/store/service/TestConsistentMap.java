@@ -28,7 +28,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.onosproject.core.ApplicationId;
-import static org.onosproject.store.service.MapEvent.Type;
+
 import static org.onosproject.store.service.MapEvent.Type.*;
 
 /**
@@ -37,7 +37,7 @@ import static org.onosproject.store.service.MapEvent.Type.*;
 public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
 
     private final List<MapEventListener<K, V>> listeners;
-    private final HashMap<K, V> map;
+    private final Map<K, V> map;
     private final String mapName;
     private final AtomicLong counter = new AtomicLong(0);
 
@@ -54,7 +54,7 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
     /**
      * Notify all listeners of an event.
      */
-    private void notifyListeners(String mapName, Type type,
+    private void notifyListeners(String mapName, MapEvent.Type type,
                                  K key, Versioned<V> value) {
         MapEvent<K, V> event = new MapEvent<>(mapName, type, key, value);
         listeners.forEach(

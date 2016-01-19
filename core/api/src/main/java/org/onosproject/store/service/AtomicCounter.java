@@ -18,7 +18,12 @@ package org.onosproject.store.service;
 /**
  * Distributed version of java.util.concurrent.atomic.AtomicLong.
  */
-public interface AtomicCounter {
+public interface AtomicCounter extends DistributedPrimitive {
+
+    @Override
+    default DistributedPrimitive.Type type() {
+        return DistributedPrimitive.Type.COUNTER;
+    }
 
     /**
      * Atomically increment by one the current value.

@@ -23,6 +23,16 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class TestAtomicCounter implements AtomicCounter {
     final AtomicLong value;
 
+    @Override
+    public String name() {
+        return null;
+    }
+
+    @Override
+    public Type type() {
+        return Type.COUNTER;
+    }
+
     private TestAtomicCounter() {
         value = new AtomicLong();
     }

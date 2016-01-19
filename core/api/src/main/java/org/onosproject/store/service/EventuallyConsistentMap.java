@@ -39,7 +39,12 @@ import java.util.function.BiFunction;
  * Null values are not allowed in this map.
  * </p>
  */
-public interface EventuallyConsistentMap<K, V> {
+public interface EventuallyConsistentMap<K, V> extends DistributedPrimitive {
+
+    @Override
+    default DistributedPrimitive.Type type() {
+        return DistributedPrimitive.Type.EVENTUALLY_CONSISTENT_MAP;
+    }
 
     /**
      * Returns the number of key-value mappings in this map.

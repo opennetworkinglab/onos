@@ -20,7 +20,12 @@ import java.util.concurrent.CompletableFuture;
 /**
  * An async atomic counter dispenses monotonically increasing values.
  */
-public interface AsyncAtomicCounter {
+public interface AsyncAtomicCounter extends DistributedPrimitive {
+
+    @Override
+    default DistributedPrimitive.Type type() {
+        return DistributedPrimitive.Type.COUNTER;
+    }
 
     /**
      * Atomically increment by one the current value.
