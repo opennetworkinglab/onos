@@ -41,7 +41,7 @@
         </api.description>
         <api.package>org.onosproject.cordvtn.rest</api.package>
         <onos.app.requires>
-            org.onosproject.ovsdb,
+            org.onosproject.ovsdb-base,
             org.onosproject.openstackswitching
         </onos.app.requires>
     </properties>
