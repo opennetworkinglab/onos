@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.net.config.BasicNetworkConfigService;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -45,6 +46,11 @@ public class NetworkConfigLoader {
     private static final File CFG_FILE = new File("../config/network-cfg.json");
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    // Dependency to ensure the basic subject factories are properly initialized
+    // before we start loading configs from file
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected BasicNetworkConfigService basicConfigs;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService networkConfigService;

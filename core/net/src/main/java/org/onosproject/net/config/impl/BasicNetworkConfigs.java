@@ -21,12 +21,14 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.config.basics.InterfaceConfig;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.LinkKey;
+import org.onosproject.net.config.BasicNetworkConfigService;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
@@ -44,8 +46,9 @@ import static org.onosproject.net.config.basics.SubjectFactories.*;
 /**
  * Component for registration of builtin basic network configurations.
  */
+@Service
 @Component(immediate = true)
-public class BasicNetworkConfigs {
+public class BasicNetworkConfigs implements BasicNetworkConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
