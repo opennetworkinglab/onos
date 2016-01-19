@@ -28,6 +28,10 @@
     <artifactId>onos-ovsdb-provider-host</artifactId>
     <packaging>bundle</packaging>
 
+    <properties>
+        <onos.app.name>org.onosproject.ovsdbhostprovider</onos.app.name>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>

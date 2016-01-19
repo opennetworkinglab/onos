@@ -28,7 +28,6 @@
         <bundle>mvn:${project.groupId}/onos-ovsdb-ctl/${project.version}</bundle>
 
         <bundle>mvn:${project.groupId}/onos-ovsdb-provider-device/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-ovsdb-provider-host/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-ovsdb-provider-tunnel/${project.version}</bundle>
     </feature>
 </features>

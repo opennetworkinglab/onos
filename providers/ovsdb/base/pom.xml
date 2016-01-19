@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2016 Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,24 +26,42 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-ovsdatabase</artifactId>
-    <packaging>bundle</packaging>
+    <artifactId>onos-ovsdb-base</artifactId>
+    <packaging>pom</packaging>
 
-    <properties>
-        <onos.app.name>org.onosproject.ovsdb</onos.app.name>
-        <onos.app.requires>
-            org.onosproject.ovsdb-base,
-            org.onosproject.ovsdbhostprovider
-        </onos.app.requires>
-    </properties>
-
-    <description>OVSDB southbound meta application</description>
+    <description>OVSDB protocol southbound providers</description>
 
     <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-ovsdb-rfc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-ovsdb-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-ovsdb-ctl</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-drivers</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-ovsdb-provider-device</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-ovsdb-provider-tunnel</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
+
 </project>
