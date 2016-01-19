@@ -156,7 +156,7 @@ public class SimpleIntentStore
     @Override
     public void addPending(IntentData data) {
         if (data.version() == null) { // recompiled intents will already have a version
-            data.setVersion(new SystemClockTimestamp());
+            data = new IntentData(data.intent(), data.state(), new SystemClockTimestamp());
         }
         synchronized (this) {
             IntentData existingData = pending.get(data.key());

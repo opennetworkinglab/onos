@@ -251,10 +251,12 @@ public class GossipIntentStore
         checkNotNull(data);
 
         if (data.version() == null) {
-            data.setVersion(new WallClockTimestamp());
+            pendingMap.put(data.key(), new IntentData(data.intent(), data.state(),
+                    new WallClockTimestamp(), clusterService.getLocalNode().id()));
+        } else {
+            pendingMap.put(data.key(), new IntentData(data.intent(), data.state(),
+                    data.version(), clusterService.getLocalNode().id()));
         }
-        data.setOrigin(clusterService.getLocalNode().id());
-        pendingMap.put(data.key(), new IntentData(data));
     }
 
     @Override

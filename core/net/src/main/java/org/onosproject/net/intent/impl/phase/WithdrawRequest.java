@@ -64,7 +64,6 @@ final class WithdrawRequest implements IntentProcessPhase {
             }
         }
 
-        data.setInstallables(stored.get().installables());
-        return Optional.of(new Withdrawing(processor, data));
+        return Optional.of(new Withdrawing(processor, new IntentData(data, stored.get().installables())));
     }
 }
