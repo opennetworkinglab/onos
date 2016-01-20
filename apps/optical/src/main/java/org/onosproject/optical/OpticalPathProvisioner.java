@@ -15,7 +15,6 @@
  */
 package org.onosproject.optical;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -47,16 +46,12 @@ import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.PointToPointIntent;
-import org.onosproject.net.newresource.ResourceAllocation;
-import org.onosproject.net.newresource.ResourceService;
-import org.onosproject.net.resource.device.IntentSetMultimap;
 import org.onosproject.net.topology.LinkWeight;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyEdge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -99,12 +94,6 @@ public class OpticalPathProvisioner {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected IntentSetMultimap intentSetMultimap;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ResourceService resourceService;
-
     private ApplicationId appId;
 
     private final InternalOpticalPathProvisioner pathProvisioner = new InternalOpticalPathProvisioner();
@@ -142,10 +131,6 @@ public class OpticalPathProvisioner {
                 case FAILED:
                     log.info("Intent {} failed, calling optical path provisioning app.", event.subject());
                     setupLightpath(event.subject());
-                    break;
-                case WITHDRAWN:
-                    log.info("Intent {} withdrawn.", event.subject());
-                    releaseResources(event.subject());
                     break;
                 default:
                     break;
@@ -371,26 +356,6 @@ public class OpticalPathProvisioner {
             }
         }
 
-        /**
-         * Release resources associated to the given intent.
-         *
-         * @param intent the intent
-         */
-        private void releaseResources(Intent intent) {
-            Collection<ResourceAllocation> allocations = resourceService.getResourceAllocations(intent.id());
-            if (intent instanceof OpticalConnectivityIntent) {
-                resourceService.release(intent.id());
-                if (!allocations.isEmpty()) {
-                    resourceService.release(ImmutableList.copyOf(allocations));
-                }
-            } else if (intent instanceof OpticalCircuitIntent) {
-                resourceService.release(intent.id());
-                intentSetMultimap.releaseMapping(intent.id());
-                if (!allocations.isEmpty()) {
-                    resourceService.release(ImmutableList.copyOf(allocations));
-                }
-            }
-        }
     }
 
     /**

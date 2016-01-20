@@ -44,6 +44,7 @@ import org.onosproject.net.intent.IntentStoreDelegate;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.impl.phase.FinalIntentProcessPhase;
 import org.onosproject.net.intent.impl.phase.IntentProcessPhase;
+import org.onosproject.net.newresource.ResourceService;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -107,6 +108,9 @@ public class IntentManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ResourceService resourceService;
 
     private ExecutorService batchExecutor;
     private ExecutorService workerExecutor;
@@ -238,6 +242,16 @@ public class IntentManager
         @Override
         public void notify(IntentEvent event) {
             post(event);
+            switch (event.type()) {
+                case WITHDRAWN:
+                    // release resources allocated to withdrawn intent
+                    if (!resourceService.release(event.subject().id())) {
+                        log.error("Failed to release resources allocated to {}", event.subject().id());
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
 
         @Override
