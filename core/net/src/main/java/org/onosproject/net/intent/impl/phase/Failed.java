@@ -25,20 +25,20 @@ import static org.onosproject.net.intent.IntentState.FAILED;
  */
 public class Failed extends FinalIntentProcessPhase {
 
-    private final IntentData intentData;
+    private final IntentData data;
 
     /**
      * Create an instance with the specified data.
      *
-     * @param intentData intentData
+     * @param data intentData
      */
-    Failed(IntentData intentData) {
-        this.intentData = checkNotNull(intentData);
-        this.intentData.setState(FAILED);
+    Failed(IntentData data) {
+        this.data = checkNotNull(data);
+        this.data.setState(FAILED);
     }
 
     @Override
     public IntentData data() {
-        return intentData;
+        return data;
     }
 }
