@@ -86,6 +86,8 @@ public class ApplicationArchive
     private static final String APPS = "[@apps]";
     private static final String DESCRIPTION = "description";
 
+    private static final String UTILITY = "utility";
+
     private static final String CATEGORY = "[@category]";
     private static final String URL = "[@url]";
 
@@ -293,7 +295,7 @@ public class ApplicationArchive
         String name = cfg.getString(NAME);
         Version version = Version.version(cfg.getString(VERSION));
         String origin = cfg.getString(ORIGIN);
-        String category = cfg.getString(CATEGORY);
+        String category = cfg.getString(CATEGORY, UTILITY);
         String url = cfg.getString(URL);
         byte[] icon = getApplicationIcon(name);
         ApplicationRole role = getRole(cfg.getString(ROLE));

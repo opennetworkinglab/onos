@@ -74,7 +74,7 @@ public class DefaultApplication implements Application {
         this.description = checkNotNull(description, "Description cannot be null");
         this.origin = checkNotNull(origin, "Origin cannot be null");
         this.category = checkNotNull(category, "Category cannot be null");
-        this.url = checkNotNull(url, "URL cannot be null");
+        this.url = url;
         this.readme = checkNotNull(readme, "Readme cannot be null");
         this.icon = icon;
         this.role = checkNotNull(role, "Role cannot be null");
