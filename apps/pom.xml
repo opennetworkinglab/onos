@@ -65,6 +65,7 @@
         <module>cpman</module>
         <module>events</module>
         <module>vrouter</module>
+        <module>openstackrouting</module>
   </modules>
 
     <properties>
