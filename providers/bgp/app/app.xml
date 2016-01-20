@@ -19,7 +19,6 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
-    <readme>BGP protocol southbound providers.</readme>
     <artifact>mvn:${project.groupId}/onos-bgpio/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgp-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-bgp-ctl/${project.version}</artifact>

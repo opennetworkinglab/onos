@@ -19,7 +19,6 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
-    <readme>SNMP protocol southbound provider.</readme>
     <artifact>mvn:${project.groupId}/onos-snmp-provider-device/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-snmp-provider-alarm/${project.version}</artifact>
 </app>

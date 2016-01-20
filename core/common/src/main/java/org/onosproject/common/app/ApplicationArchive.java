@@ -88,7 +88,6 @@ public class ApplicationArchive
 
     private static final String CATEGORY = "[@category]";
     private static final String URL = "[@url]";
-    private static final String README = "readme";
 
     private static final String ROLE = "security.role";
     private static final String APP_PERMISSIONS = "security.permissions.app-perm";
@@ -307,19 +306,16 @@ public class ApplicationArchive
         List<String> requiredApps = apps.isEmpty() ?
                 ImmutableList.of() : ImmutableList.copyOf(apps.split(","));
 
-        String desc = cfg.getString(DESCRIPTION);
-        String readme = cfg.getString(README);
+        // put full description to readme field
+        String readme = cfg.getString(DESCRIPTION);
 
-        if (readme == null) {
-            readme = desc;
-        } else {
-            desc = compactDescription(readme);
-        }
+        // put short description to description field
+        String desc = compactDescription(readme);
 
         return new DefaultApplicationDescription(name, version, desc, origin,
-                category, url, readme, icon, role,
-                                                 perms, featuresRepo, features,
-                                                 requiredApps);
+                                                 category, url, readme, icon,
+                                                 role, perms, featuresRepo,
+                                                 features, requiredApps);
     }
 
     // Expands the specified ZIP stream into app-specific directory.
@@ -488,7 +484,7 @@ public class ApplicationArchive
             if (StringUtils.contains(sentence, ".")) {
                 return StringUtils.substringBefore(sentence, ".") + ".";
             } else {
-                return sentence + ".";
+                return sentence;
             }
         }
         return sentence;

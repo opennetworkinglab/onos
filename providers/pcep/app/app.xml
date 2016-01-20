@@ -19,7 +19,6 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
-    <readme>PCEP protocol southbound provider.</readme>
     <artifact>mvn:${project.groupId}/onos-app-pcep-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcepio/${project.version}</artifact>     
     <artifact>mvn:${project.groupId}/onos-pcep-controller-api/${project.version}</artifact>     

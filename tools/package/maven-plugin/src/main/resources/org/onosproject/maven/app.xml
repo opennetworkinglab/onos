@@ -19,6 +19,5 @@
         featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
         features="${project.artifactId}" apps="${onos.app.requires}">
     <description>${project.description}</description>
-    <readme>${onos.app.readme}</readme>
     <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
 </app>

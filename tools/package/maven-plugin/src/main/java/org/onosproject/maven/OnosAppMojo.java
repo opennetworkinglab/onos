@@ -372,11 +372,10 @@ public class OnosAppMojo extends AbstractMojo {
                         .replaceAll("\\$\\{onos.app.requires\\}", requiredApps)
                         .replaceAll("\\$\\{onos.app.category\\}", category)
                         .replaceAll("\\$\\{onos.app.url\\}", url)
-                        .replaceAll("\\$\\{onos.app.readme\\}", readme)
                         .replaceAll("\\$\\{project.groupId\\}", projectGroupId)
                         .replaceAll("\\$\\{project.artifactId\\}", projectArtifactId)
                         .replaceAll("\\$\\{project.version\\}", projectVersion)
-                        .replaceAll("\\$\\{project.description\\}", projectDescription);
+                        .replaceAll("\\$\\{project.description\\}", readme);
     }
 
     // Recursively archives the specified directory into a given ZIP stream.
