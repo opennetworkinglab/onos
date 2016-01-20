@@ -46,7 +46,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -367,7 +366,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
 
         Versioned<Set<Resource>> children = childMap.get((Resource.Discrete) parent);
         if (children == null) {
-            return Collections.emptyList();
+            return ImmutableList.of();
         }
 
         return children.value();
@@ -381,7 +380,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
 
         Versioned<Set<Resource>> children = childMap.get((Resource.Discrete) parent);
         if (children == null) {
-            return Collections.emptyList();
+            return ImmutableList.of();
         }
 
         Stream<Resource.Discrete> discrete = children.value().stream()
