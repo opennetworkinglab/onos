@@ -40,11 +40,11 @@ import static org.onosproject.app.ApplicationState.ACTIVE;
 public class ApplicationsListCommand extends AbstractShellCommand {
 
     private static final String FMT =
-            "%s id=%d, name=%s, version=%s, origin=%s, description=%s, " +
-                    "features=%s, featuresRepo=%s, apps=%s, permissions=%s";
+            "%s id=%d, name=%s, version=%s, origin=%s, category=%s, description=%s, " +
+                    "features=%s, featuresRepo=%s, apps=%s, permissions=%s, url=%s";
 
     private static final String SHORT_FMT =
-            "%s %3d %-32s %-8s %s";
+            "%s %3d %-36s %-8s %s";
 
     @Option(name = "-s", aliases = "--short", description = "Show short output only",
             required = false, multiValued = false)
@@ -74,9 +74,9 @@ public class ApplicationsListCommand extends AbstractShellCommand {
                     } else {
                         print(FMT, isActive ? "*" : " ",
                               app.id().id(), app.id().name(), app.version(), app.origin(),
-                              app.description(), app.features(),
+                              app.category(), app.description(), app.features(),
                               app.featuresRepo().isPresent() ? app.featuresRepo().get().toString() : "",
-                              app.requiredApps(), app.permissions());
+                              app.requiredApps(), app.permissions(), app.url());
                     }
                 }
             }
