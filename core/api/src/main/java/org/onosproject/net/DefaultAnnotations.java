@@ -218,6 +218,34 @@ public final class DefaultAnnotations implements SparseAnnotations {
         }
 
         /**
+         * Adds all specified annotation. Any previous value associated with
+         * the given annotations will be overwritten.
+         *
+         * @param base annotations
+         * @return self
+         */
+        public Builder putAll(Annotations base) {
+            if (base instanceof DefaultAnnotations) {
+                builder.putAll(((DefaultAnnotations) base).map);
+
+            } else if (base instanceof SparseAnnotations) {
+                final SparseAnnotations sparse = (SparseAnnotations) base;
+                for (String key : base.keys()) {
+                    if (sparse.isRemoved(key)) {
+                        remove(key);
+                    } else {
+                        set(key, base.value(key));
+                    }
+                }
+
+            } else {
+                base.keys().forEach(key -> set(key, base.value(key)));
+
+            }
+            return this;
+        }
+
+        /**
          * Adds the specified annotation. Any previous value associated with
          * the given annotation key will be overwritten.
          *
