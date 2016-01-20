@@ -14,14 +14,20 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.restsb" origin="ON.Lab" version="${project.version}"
-     category="default" url="http://onosproject.org" apps="org.onosproject.drivers.ciena"
-     featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
-     features="${project.artifactId}">
-    <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-restsb-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-restsb-ctl/${project.version}</artifact>
 
-    <artifact>mvn:${project.groupId}/onos-restsb-provider-device/${project.version}</artifact>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>onos-drivers-general</artifactId>
+        <groupId>org.onosproject</groupId>
+        <version>1.5.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
 
-</app>
+    <description>Device drivers utilities</description>
+
+    <artifactId>onos-drivers-utilities</artifactId>
+    <packaging>bundle</packaging>
+
+</project>

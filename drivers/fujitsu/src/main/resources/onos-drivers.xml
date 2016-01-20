@@ -14,14 +14,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.restsb" origin="ON.Lab" version="${project.version}"
-     category="default" url="http://onosproject.org" apps="org.onosproject.drivers.ciena"
-     featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
-     features="${project.artifactId}">
-    <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-restsb-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-restsb-ctl/${project.version}</artifact>
+<drivers>
+  <driver>
+  </driver>
+</drivers>
 
-    <artifact>mvn:${project.groupId}/onos-restsb-provider-device/${project.version}</artifact>
-
-</app>

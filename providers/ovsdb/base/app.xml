@@ -22,7 +22,7 @@
     <artifact>mvn:${project.groupId}/onos-ovsdb-rfc/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-ovsdb-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-ovsdb-ctl/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-drivers/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-drivers-ovsdb/${project.version}</artifact>
 
     <artifact>mvn:${project.groupId}/onos-ovsdb-provider-device/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-ovsdb-provider-tunnel/${project.version}</artifact>

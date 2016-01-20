@@ -19,7 +19,6 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos</artifactId>
@@ -27,14 +26,23 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-drivers</artifactId>
-    <packaging>bundle</packaging>
+    <artifactId>onos-drivers-general</artifactId>
+    <packaging>pom</packaging>
 
-    <description>Builtin device drivers</description>
+    <description>Builtin device drivers general module</description>
 
-    <properties>
+    <modules>
+        <module>default</module>
+        <module>ciena</module>
+        <module>fujitsu</module>
+        <module>netconf</module>
+        <module>ovsdb</module>
+        <module>utilities</module>
+    </modules>
+
+    <!--<properties>
         <onos.app.name>org.onosproject.drivers</onos.app.name>
-    </properties>
+    </properties>-->
 
     <dependencies>
         <dependency>
@@ -49,17 +57,7 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-of-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onos-core-serializers</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-ovsdb-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -67,17 +65,6 @@
             <artifactId>easymock</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-restsb-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-netconf-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
@@ -92,13 +79,6 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-ovsdb-api</artifactId>
-            <version>${project.version}</version>
-            <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
     </dependencies>

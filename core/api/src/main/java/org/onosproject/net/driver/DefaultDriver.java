@@ -101,7 +101,6 @@ public class DefaultDriver implements Driver {
     public Driver merge(Driver other) {
         checkArgument(parents == null || Objects.equals(parent(), other.parent()),
                       "Parent drivers are not the same");
-
         // Merge the behaviours.
         Map<Class<? extends Behaviour>, Class<? extends Behaviour>>
                 behaviours = Maps.newHashMap();
@@ -261,4 +260,23 @@ public class DefaultDriver implements Driver {
                 .toString();
     }
 
+    @Override
+    public boolean equals(Object driverToBeCompared) {
+        if (this == driverToBeCompared) {
+            return true;
+        }
+        if (driverToBeCompared == null || getClass() != driverToBeCompared.getClass()) {
+            return false;
+        }
+
+        DefaultDriver driver = (DefaultDriver) driverToBeCompared;
+
+        return name.equals(driver.name());
+
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name);
+    }
 }
