@@ -45,15 +45,18 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
     private static final String STATE = "state";
     private static final String STATE_IID = "_iconid_state";
     private static final String ID = "id";
+    private static final String ICON = "icon";
     private static final String VERSION = "version";
+    private static final String CATEGORY = "category";
     private static final String ORIGIN = "origin";
     private static final String DESC = "desc";
+    private static final String URL = "url";
 
     private static final String ICON_ID_ACTIVE = "active";
     private static final String ICON_ID_INACTIVE = "appInactive";
 
     private static final String[] COL_IDS = {
-            STATE, STATE_IID, ID, VERSION, ORIGIN, DESC
+            STATE, STATE_IID, ID, ICON, VERSION, CATEGORY, ORIGIN, DESC, URL
     };
 
     @Override
@@ -99,9 +102,12 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
             row.cell(STATE, state)
                 .cell(STATE_IID, iconId)
                 .cell(ID, id.name())
+                .cell(ICON, id.name())
                 .cell(VERSION, app.version())
+                .cell(CATEGORY, app.category())
                 .cell(ORIGIN, app.origin())
-                .cell(DESC, app.description());
+                .cell(DESC, app.description())
+                .cell(URL, app.url());
         }
     }
 

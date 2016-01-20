@@ -41,10 +41,13 @@
             <table>
                 <tr>
                     <td colId="state" class="table-icon" sortable></td>
+                    <td colId="icon" col-width="36px">Icon </td>
                     <td colId="id" sortable>App ID </td>
                     <td colId="version" sortable>Version </td>
+                    <td colId="category" sortable>Category </td>
                     <td colId="origin" sortable>Origin </td>
                     <td colId="desc" col-width="475px">Description </td>
+                    <td col-width="50px">URL </td>
                 </tr>
             </table>
         </div>
@@ -64,10 +67,13 @@
                     <td class="table-icon">
                         <div icon icon-id="{{app._iconid_state}}"></div>
                     </td>
+                    <td><img data-ng-src="./rs/applications/{{app.icon}}/icon" height="28px" width="28px" /></td>
                     <td>{{app.id}}</td>
                     <td>{{app.version}}</td>
+                    <td>{{app.category}}</td>
                     <td>{{app.origin}}</td>
                     <td>{{app.desc}}</td>
+                    <td><a href="{{app.url}}" target="_blank">LINK</a></td>
                 </tr>
             </table>
         </div>

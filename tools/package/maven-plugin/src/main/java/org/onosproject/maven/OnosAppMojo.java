@@ -18,6 +18,7 @@ package org.onosproject.maven;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.AbstractMojo;
@@ -61,7 +62,7 @@ public class OnosAppMojo extends AbstractMojo {
     private static final String ARTIFACT = "artifact";
 
     private static final String APP_XML = "app.xml";
-    private static final String ICON_PNG = "icon.png";
+    private static final String APP_PNG = "app.png";
     private static final String FEATURES_XML = "features.xml";
 
     private static final String MVN_URL = "mvn:";
@@ -83,7 +84,7 @@ public class OnosAppMojo extends AbstractMojo {
     private static final String DEFAULT_ORIGIN = "ON.Lab";
     private static final String DEFAULT_VERSION = "${project.version}";
 
-    private static final String DEFAULT_CATEGORY = "Default";
+    private static final String DEFAULT_CATEGORY = "default";
     private static final String DEFAULT_URL = "http://onosproject.org";
 
     private static final String DEFAULT_FEATURES_REPO =
@@ -161,6 +162,7 @@ public class OnosAppMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException {
         File appFile = new File(baseDir, APP_XML);
+        File iconFile = new File(baseDir, APP_PNG);
         File featuresFile = new File(baseDir, FEATURES_XML);
 
         name = (String) project.getProperties().get(ONOS_APP_NAME);
@@ -204,6 +206,7 @@ public class OnosAppMojo extends AbstractMojo {
 
             if (stageDirectory.exists() || stageDirectory.mkdirs()) {
                 processAppXml(appFile);
+                processAppPng(iconFile);
                 processFeaturesXml(featuresFile);
                 processArtifacts();
                 generateAppPackage();
@@ -256,6 +259,19 @@ public class OnosAppMojo extends AbstractMojo {
             fileWrite(file.getAbsolutePath(), eval(contents));
         } catch (IOException e) {
             throw new MojoExecutionException("Unable to process app.xml", e);
+        }
+    }
+
+    // Stages the app.png file of a specific application.
+    private void processAppPng(File iconFile) throws MojoExecutionException {
+        try {
+            File stagedIconFile = new File(stageDirectory, APP_PNG);
+
+            if (iconFile.exists()) {
+                FileUtils.copyFile(iconFile, stagedIconFile);
+            }
+        } catch (IOException e) {
+            throw new MojoExecutionException("Unable to copy app.png", e);
         }
     }
 

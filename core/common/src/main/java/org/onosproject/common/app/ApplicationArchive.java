@@ -39,10 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -97,8 +95,9 @@ public class ApplicationArchive
     private static final String JAVA_PERMISSIONS = "security.permissions.java-perm";
 
     private static final String OAR = ".oar";
+    private static final String PNG = "png";
     private static final String APP_XML = "app.xml";
-    private static final String ICON_PNG = "icon.png";
+    private static final String APP_PNG = "app.png";
     private static final String M2_PREFIX = "m2";
 
     private static final String ROOT = "../";
@@ -197,7 +196,7 @@ public class ApplicationArchive
             ApplicationDescription desc = plainXml ?
                     parsePlainAppDescription(bis) : parseZippedAppDescription(bis);
             checkState(!appFile(desc.name(), APP_XML).exists(),
-                       "Application %s already installed", desc.name());
+                    "Application %s already installed", desc.name());
 
             if (plainXml) {
                 expandPlainApplication(cache, desc);
@@ -412,6 +411,11 @@ public class ApplicationArchive
         return new File(new File(appsDir, appName), fileName);
     }
 
+    // Returns the icon file located under the specified app directory.
+    private File iconFile(String appName, String fileName) {
+        return new File(new File(appsDir, appName), fileName);
+    }
+
     // Returns the set of Permissions specified in the app.xml file
     private ImmutableSet<Permission> getPermissions(XMLConfiguration cfg) {
         List<Permission> permissionList = Lists.newArrayList();
@@ -441,29 +445,25 @@ public class ApplicationArchive
 
     // Returns the byte stream from icon.png file in oar application archive.
     private byte[] getApplicationIcon(String appName) {
-        // open image
-        File iconFile = appFile(appName, ICON_PNG);
+
+        byte[] icon = new byte[0];
+        File iconFile = iconFile(appName, APP_PNG);
 
         if (!iconFile.exists()) {
-            iconFile = new File(appsDir, ICON_PNG);
+            // assume that we can always fallback to default icon
+            iconFile = new File(appsDir, APP_PNG);
         }
 
-        if (!iconFile.exists()) {
-            return null;
-        }
-
-        BufferedImage bufferedImage = null;
         try {
-            bufferedImage = ImageIO.read(iconFile);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ImageIO.write(ImageIO.read(iconFile), PNG, bos);
+            icon = bos.toByteArray();
+            bos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        // get DataBufferBytes from Raster
-        WritableRaster raster = bufferedImage .getRaster();
-        DataBufferByte data = (DataBufferByte) raster.getDataBuffer();
-
-        return data.getData();
+        return icon;
     }
 
     // Returns application role type
