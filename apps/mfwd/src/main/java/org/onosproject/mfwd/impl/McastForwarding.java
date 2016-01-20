@@ -32,7 +32,13 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.Key;
+import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.mcast.McastRoute;
+import org.onosproject.net.mcast.McastListener;
+import org.onosproject.net.mcast.McastEvent;
 import org.onosproject.net.mcast.MulticastRouteService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
@@ -44,6 +50,10 @@ import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -66,9 +76,12 @@ public class McastForwarding {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private IntentService intentService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MulticastRouteService mcastRouteManager;
 
-
+    protected McastIntentManager mcastIntentManager;
 
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
     private static ApplicationId appId;
@@ -79,6 +92,9 @@ public class McastForwarding {
     @Activate
     public void activate() {
         appId = coreService.registerApplication("org.onosproject.mfwd");
+
+        mcastIntentManager = new McastIntentManager();
+        mcastRouteManager.addListener(mcastIntentManager);
 
         packetService.addProcessor(processor, PacketProcessor.director(2));
 
@@ -98,6 +114,8 @@ public class McastForwarding {
     @Deactivate
     public void deactivate() {
         packetService.removeProcessor(processor);
+        mcastRouteManager.removeListener(mcastIntentManager);
+        mcastIntentManager.withdrawAllIntents();
         processor = null;
         log.info("Stopped");
     }
@@ -112,10 +130,47 @@ public class McastForwarding {
     }
 
     /**
+     * Forward the packet to it's multicast destinations.
+     *
+     * @param context The packet context
+     * @param egressList The list of egress ports which the multicast packet is intended for.
+     */
+    private void forwardPacketToDst(PacketContext context, ArrayList<ConnectPoint> egressList) {
+
+        // Send the pack out each of the respective egress ports
+        for (ConnectPoint egress : egressList) {
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .setOutput(egress.port()).build();
+
+            OutboundPacket packet = new DefaultOutboundPacket(
+                    egress.deviceId(),
+                    treatment,
+                    context.inPacket().unparsed());
+
+            packetService.emit(packet);
+        }
+    }
+
+    public static McastRoute createStaticRoute(String source, String group) {
+        checkNotNull(source, "Must provide a source");
+        checkNotNull(group, "Must provide a group");
+        IpAddress ipSource = IpAddress.valueOf(source);
+        IpAddress ipGroup = IpAddress.valueOf(group);
+        return createStaticcreateRoute(ipSource, ipGroup);
+    }
+
+    public static McastRoute createStaticcreateRoute(IpAddress source, IpAddress group) {
+        checkNotNull(source, "Must provide a source");
+        checkNotNull(group, "Must provide a group");
+        McastRoute.Type type = McastRoute.Type.STATIC;
+        return new McastRoute(source, group, type);
+    }
+
+    /**
      * Packet processor responsible for forwarding packets along their paths.
      */
-    private class ReactivePacketProcessor implements PacketProcessor {
 
+    private class ReactivePacketProcessor implements PacketProcessor {
         /**
          * Process incoming packets.
          *
@@ -188,42 +243,75 @@ public class McastForwarding {
             // Send the pack out each of the egress devices & port
             forwardPacketToDst(context, egressList);
         }
+
     }
 
-    /**
-     * Forward the packet to it's multicast destinations.
-     *
-     * @param context The packet context
-     * @param egressList The list of egress ports which the multicast packet is intended for.
-     */
-    private void forwardPacketToDst(PacketContext context, ArrayList<ConnectPoint> egressList) {
+    private class McastIntentManager implements McastListener {
 
-        // Send the pack out each of the respective egress ports
-        for (ConnectPoint egress : egressList) {
-            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                    .setOutput(egress.port()).build();
+        private Map<McastRoute, Key> intentHashMap;
 
-            OutboundPacket packet = new DefaultOutboundPacket(
-                    egress.deviceId(),
-                    treatment,
-                    context.inPacket().unparsed());
-
-            packetService.emit(packet);
+        public McastIntentManager() {
+            intentHashMap = new HashMap<>();
         }
-    }
 
-    public static McastRoute createStaticRoute(String source, String group) {
-        checkNotNull(source, "Must provide a source");
-        checkNotNull(group, "Must provide a group");
-        IpAddress ipSource = IpAddress.valueOf(source);
-        IpAddress ipGroup = IpAddress.valueOf(group);
-        return createStaticcreateRoute(ipSource, ipGroup);
-    }
+        @Override
+        public void event(McastEvent event) {
+            McastRoute route = event.subject().route();
+            if (intentHashMap.containsKey(route)) {
+                withdrawIntent(intentHashMap.get(route));
+            }
+            Key routeKey = setIntent(route);
+            intentHashMap.put(route, routeKey);
+        }
 
-    public static McastRoute createStaticcreateRoute(IpAddress source, IpAddress group) {
-        checkNotNull(source, "Must provide a source");
-        checkNotNull(group, "Must provide a group");
-        McastRoute.Type type = McastRoute.Type.STATIC;
-        return new McastRoute(source, group, type);
+        private Key setIntent(McastRoute route) {
+
+            ConnectPoint ingressPoint = mcastRouteManager.fetchSource(route);
+            Set<ConnectPoint> egressPoints = new HashSet<>(mcastRouteManager.fetchSinks(route));
+
+            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+            TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
+
+            if (ingressPoint == null) {
+                log.warn("Can't set intent without an ingress or egress connect points");
+                return null;
+            }
+
+            selector.matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(route.group().toIpPrefix())
+                    .matchIPSrc(route.source().toIpPrefix());
+
+            SinglePointToMultiPointIntent.Builder builder = SinglePointToMultiPointIntent.builder()
+                    .appId(appId)
+                    .selector(selector.build())
+                    .treatment(treatment)
+                    .ingressPoint(ingressPoint);
+
+            // allowing intent to be pushed without egress points means we can drop packets.
+            if (!egressPoints.isEmpty()) {
+                builder.egressPoints(egressPoints);
+            }
+
+            SinglePointToMultiPointIntent intent = builder.build();
+            intentService.submit(intent);
+
+            return intent.key();
+        }
+
+        public void withdrawAllIntents() {
+            for (Map.Entry<McastRoute, Key> entry : intentHashMap.entrySet()) {
+                withdrawIntent(entry.getValue());
+            }
+            intentHashMap.clear();
+        }
+
+        public void withdrawIntent(Key key) {
+            if (key == null) {
+                // nothing to withdraw
+                return;
+            }
+            Intent intent = intentService.getIntent(key);
+            intentService.withdraw(intent);
+        }
     }
 }
