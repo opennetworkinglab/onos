@@ -140,7 +140,7 @@ public final class CordVtnNode {
 
     @Override
     public int hashCode() {
-        return Objects.hash(hostname, ovsdbIp, ovsdbPort);
+        return Objects.hash(hostname);
     }
 
     @Override
