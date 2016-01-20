@@ -21,27 +21,33 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Enumeration;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterMetadata;
 import org.onosproject.cluster.ClusterMetadataAdminService;
 import org.onosproject.cluster.ClusterMetadataEvent;
 import org.onosproject.cluster.ClusterMetadataEventListener;
+import org.onosproject.cluster.ClusterMetadataProvider;
+import org.onosproject.cluster.ClusterMetadataProviderRegistry;
+import org.onosproject.cluster.ClusterMetadataProviderService;
 import org.onosproject.cluster.ClusterMetadataService;
-import org.onosproject.cluster.ClusterMetadataStore;
-import org.onosproject.cluster.ClusterMetadataStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
-import org.onosproject.event.AbstractListenerManager;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.PartitionId;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
+import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
+
+import com.google.common.base.Throwables;
 
 /**
  * Implementation of ClusterMetadataService.
@@ -49,53 +55,83 @@ import org.slf4j.Logger;
 @Component(immediate = true)
 @Service
 public class ClusterMetadataManager
-    extends AbstractListenerManager<ClusterMetadataEvent, ClusterMetadataEventListener>
-    implements ClusterMetadataService, ClusterMetadataAdminService {
+    extends AbstractListenerProviderRegistry<ClusterMetadataEvent,
+                                             ClusterMetadataEventListener,
+                                             ClusterMetadataProvider,
+                                             ClusterMetadataProviderService>
+    implements ClusterMetadataService, ClusterMetadataAdminService, ClusterMetadataProviderRegistry {
 
     private final Logger log = getLogger(getClass());
     private ControllerNode localNode;
 
-    private ClusterMetadataStoreDelegate delegate = new InternalStoreDelegate();
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterMetadataStore store;
-
     @Activate
     public void activate() {
-        store.setDelegate(delegate);
+        // FIXME: Need to ensure all cluster metadata providers are registered before we activate
         eventDispatcher.addSink(ClusterMetadataEvent.class, listenerRegistry);
-        establishSelfIdentity();
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        store.unsetDelegate(delegate);
         eventDispatcher.removeSink(ClusterMetadataEvent.class);
         log.info("Stopped");
     }
 
     @Override
     public ClusterMetadata getClusterMetadata() {
-        return Versioned.valueOrElse(store.getClusterMetadata(), null);
+        Versioned<ClusterMetadata> metadata = getProvider().getClusterMetadata();
+        return metadata.value();
+    }
+
+
+    @Override
+    protected ClusterMetadataProviderService createProviderService(
+            ClusterMetadataProvider provider) {
+        return new InternalClusterMetadataProviderService(provider);
     }
 
     @Override
     public ControllerNode getLocalNode() {
+        if (localNode == null) {
+            establishSelfIdentity();
+        }
         return localNode;
     }
 
     @Override
     public void setClusterMetadata(ClusterMetadata metadata) {
         checkNotNull(metadata, "Cluster metadata cannot be null");
-        store.setClusterMetadata(metadata);
+        ClusterMetadataProvider primaryProvider = getPrimaryProvider();
+        if (primaryProvider == null) {
+            throw new IllegalStateException("Missing primary provider. Cannot update cluster metadata");
+        }
+        primaryProvider.setClusterMetadata(metadata);
     }
 
-    // Store delegate to re-post events emitted from the store.
-    private class InternalStoreDelegate implements ClusterMetadataStoreDelegate {
-        @Override
-        public void notify(ClusterMetadataEvent event) {
-            post(event);
+    /**
+     * Returns the provider to use for fetching cluster metadata.
+     * @return cluster metadata provider
+     */
+    private ClusterMetadataProvider getProvider() {
+        ClusterMetadataProvider primaryProvider = getPrimaryProvider();
+        if (primaryProvider != null && primaryProvider.isAvailable()) {
+            return primaryProvider;
+        }
+        log.warn("Primary cluster metadata provider not available. Using default fallback.");
+        return getProvider("default");
+    }
+
+    /**
+     * Returns the primary provider for cluster metadata.
+     * @return primary cluster metadata provider
+     */
+    private ClusterMetadataProvider getPrimaryProvider() {
+        try {
+            URI uri = new URI(System.getProperty("onos.cluster.metadata.uri", "config:///cluster.json"));
+            return getProvider(uri.getScheme());
+        } catch (URISyntaxException e) {
+            Throwables.propagate(e);
+            return null;
         }
     }
 
@@ -127,6 +163,27 @@ public class ClusterMetadataManager
                                             .get();
         } catch (SocketException e) {
             throw new IllegalStateException("Cannot determine local IP", e);
+        }
+    }
+
+    private class InternalClusterMetadataProviderService
+            extends AbstractProviderService<ClusterMetadataProvider>
+            implements ClusterMetadataProviderService {
+
+        InternalClusterMetadataProviderService(ClusterMetadataProvider provider) {
+            super(provider);
+        }
+
+        @Override
+        public void clusterMetadataChanged(Versioned<ClusterMetadata> newMetadata) {
+            log.info("Cluster metadata changed. New metadata: {}", newMetadata);
+            post(new ClusterMetadataEvent(ClusterMetadataEvent.Type.METADATA_CHANGED, newMetadata.value()));
+        }
+
+        @Override
+        public void newActiveMemberForPartition(PartitionId partitionId, NodeId nodeId) {
+            log.info("Node {} is active member for partition {}", nodeId, partitionId);
+            // TODO: notify listeners
         }
     }
 }

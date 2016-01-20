@@ -42,7 +42,6 @@ import org.onosproject.event.AbstractListenerManager;
 import org.slf4j.Logger;
 
 import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
@@ -139,11 +138,7 @@ public class ClusterManager
         checkNotNull(nodes, "Nodes cannot be null");
         checkArgument(!nodes.isEmpty(), "Nodes cannot be empty");
 
-        ClusterMetadata metadata = ClusterMetadata.builder()
-                                                  .withName("default")
-                                                  .withControllerNodes(nodes)
-                                                  .withPartitions(buildDefaultPartitions(nodes))
-                                                  .build();
+        ClusterMetadata metadata = new ClusterMetadata("default", nodes, buildDefaultPartitions(nodes));
         clusterMetadataAdminService.setClusterMetadata(metadata);
         try {
             log.warn("Shutting down container for cluster reconfiguration!");
@@ -175,10 +170,10 @@ public class ClusterManager
         }
     }
 
-    private static Collection<Partition> buildDefaultPartitions(Collection<ControllerNode> nodes) {
+    private static Set<Partition> buildDefaultPartitions(Collection<ControllerNode> nodes) {
         List<ControllerNode> sorted = new ArrayList<>(nodes);
         Collections.sort(sorted, (o1, o2) -> o1.id().toString().compareTo(o2.id().toString()));
-        Collection<Partition> partitions = Lists.newArrayList();
+        Set<Partition> partitions = Sets.newHashSet();
         // add p0 partition
         partitions.add(new DefaultPartition(PartitionId.from(0),
                                             Sets.newHashSet(Collections2.transform(nodes, ControllerNode::id))));

@@ -954,10 +954,9 @@ public class LldpLinkProviderTest {
             final NodeId nid = new NodeId("test-node");
             final IpAddress addr = IpAddress.valueOf(0);
             final Partition p = new DefaultPartition(PartitionId.from(1), Sets.newHashSet(nid));
-            return ClusterMetadata.builder()
-                    .withName("test-cluster")
-                    .withControllerNodes(Sets.newHashSet(new DefaultControllerNode(nid, addr)))
-                    .withPartitions(Sets.newHashSet(p)).build();
+            return new ClusterMetadata("test-cluster",
+                                   Sets.newHashSet(new DefaultControllerNode(nid, addr)),
+                                   Sets.newHashSet(p));
         }
 
         @Override

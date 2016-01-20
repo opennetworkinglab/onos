@@ -108,4 +108,14 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
         return providersByScheme.get(deviceId.uri().getScheme());
     }
 
+    /**
+     * Returns the provider registered with the specified scheme.
+     *
+     * @param scheme provider scheme
+     * @return provider
+     */
+    protected synchronized P getProvider(String scheme) {
+        return providersByScheme.get(scheme);
+    }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,31 @@
  */
 package org.onosproject.cluster;
 
-import java.util.Collection;
+import java.util.Set;
 
-import org.onosproject.store.Store;
+import org.onosproject.net.provider.Provider;
 import org.onosproject.store.service.Versioned;
 
 /**
- * Manages persistence of {@link ClusterMetadata cluster metadata}; not intended for direct use.
+ * Abstraction of a {@link ClusterMetadata cluster metadata} provider.
  */
-public interface ClusterMetadataStore extends Store<ClusterMetadataEvent, ClusterMetadataStoreDelegate> {
+public interface ClusterMetadataProvider extends Provider {
 
     /**
-     * Returns the cluster metadata.
-     * <p>
-     * The retuned metadata is encapsulated as a {@link Versioned versioned} and therefore has a specific version.
+     * Tells if this provider is currently available and therefore can provide ClusterMetadata.
+     * @return {@code true} if this provider is available and can provide cluster metadata.
+     */
+    boolean isAvailable();
+
+    /**
+     * Returns the current cluster metadata.
      * @return cluster metadata
      */
     Versioned<ClusterMetadata> getClusterMetadata();
 
     /**
-     * Updates the cluster metadata.
-     * @param metadata new metadata value
+     * Updates cluster metadata.
+     * @param metadata new metadata
      */
     void setClusterMetadata(ClusterMetadata metadata);
 
@@ -54,12 +58,12 @@ public interface ClusterMetadataStore extends Store<ClusterMetadataEvent, Cluste
     /**
      * Removes a controller node from the list of active members for a partition.
      * @param partitionId partition identifier
-     * @param nodeId id of controller node
+     * @param nodeId identifier of controller node
      */
     void removeActivePartitionMember(PartitionId partitionId, NodeId nodeId);
 
     /**
-     * Returns the collection of controller nodes that are the active members for a partition.
+     * Returns the set of controller nodes that are the active members for a partition.
      * <p>
      * Active members of a partition are typically those that are actively
      * participating in the data replication protocol being employed. When
@@ -72,5 +76,5 @@ public interface ClusterMetadataStore extends Store<ClusterMetadataEvent, Cluste
      * @param partitionId partition identifier
      * @return identifiers of controller nodes that are active members
      */
-    Collection<NodeId> getActivePartitionMembers(PartitionId partitionId);
+    Set<NodeId> getActivePartitionMembers(PartitionId partitionId);
 }
