@@ -5,8 +5,11 @@
     "name",
     "id",
     "version",
+    "category",
     "description",
+    "readme",
     "origin",
+    "url",
     "permissions",
     "featuresRepo",
     "features",
@@ -27,13 +30,25 @@
       "type": "string",
       "example": "1.2.3"
     },
+    "category": {
+      "type": "string",
+      "example": "default"
+    },
     "description": {
       "type": "string",
       "example": "ONOS app to test distributed primitives"
     },
+    "readme": {
+      "type": "string",
+      "example": "ONOS app to test distributed primitives."
+    },
     "origin": {
       "type": "string",
       "example": "ON.Lab"
+    },
+    "url": {
+      "type": "string",
+      "example": "http://onosproject.org"
     },
     "permissions": {
       "type": "array",

@@ -16,6 +16,7 @@
 package org.onosproject.codec.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
@@ -36,8 +37,11 @@ public final class ApplicationCodec extends JsonCodec<Application> {
                 .put("name", app.id().name())
                 .put("id", app.id().id())
                 .put("version", app.version().toString())
-                .put("description", app.description())
+                .put("category", app.category())
+                .put("description", StringEscapeUtils.escapeJson(app.description()))
+                .put("readme", StringEscapeUtils.escapeJson(app.readme()))
                 .put("origin", app.origin())
+                .put("url", app.url())
                 .put("permissions", app.permissions().toString()) // FIXME: change to an array
                 .put("featuresRepo", app.featuresRepo().isPresent() ?
                         app.featuresRepo().get().toString() : "")
@@ -45,5 +49,4 @@ public final class ApplicationCodec extends JsonCodec<Application> {
                 .put("requiredApps", app.requiredApps().toString()) // FIXME: change to an array
                 .put("state", service.getState(app.id()).toString());
     }
-
 }

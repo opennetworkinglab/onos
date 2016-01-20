@@ -15,7 +15,7 @@
   -->
 <app name="org.foo.app" origin="Circus" version="1.2.a" category="other"
      url="http://www.onosproject.org" featuresRepo="mvn:org.foo-features/1.2a/xml/features"
-     readme="Awesome application from Circus, Inc." features="foo,bar">
+     features="foo,bar">
     <description>Awesome application from Circus, Inc.</description>
     <security>
         <role>ADMIN</role>
