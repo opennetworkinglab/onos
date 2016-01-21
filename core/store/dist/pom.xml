@@ -53,12 +53,6 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onlab-nio</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onlab-misc</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -75,15 +69,10 @@
         </dependency>
 
         <dependency>
-            <groupId>org.mapdb</groupId>
-            <artifactId>mapdb</artifactId>
-            <version>1.0.8</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
@@ -94,26 +83,23 @@
             <artifactId>guava-testlib</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
             <classifier>tests</classifier>
             <scope>test</scope>
-        </dependency>
-
-        <!-- for shaded copycat -->
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onlab-thirdparty</artifactId>
         </dependency>
     </dependencies>
 </project>
