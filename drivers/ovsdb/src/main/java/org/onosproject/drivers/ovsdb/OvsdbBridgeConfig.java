@@ -16,6 +16,7 @@
 
 package org.onosproject.drivers.ovsdb;
 
+
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
@@ -40,6 +41,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 
 /**
  * The implementation of BridageConfig.
@@ -92,6 +94,8 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
                 .collect(Collectors.toSet());
     }
 
+    //Deprecated from version 1.5.0 - Falcon
+    @Deprecated
     @Override
     public void addPort(PortDescription port) {
         DriverHandler handler = handler();
@@ -99,7 +103,7 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
         Set<OvsdbBridge> ovsdbSet = clientService.getBridges();
         if (ovsdbSet != null && ovsdbSet.size() > 0) {
             OvsdbBridge bridge = ovsdbSet.iterator().next();
-            clientService.createPort(bridge.bridgeName().toString(), port
+            clientService.createPort(bridge.bridgeName().value(), port
                     .portNumber().toString());
         }
     }
@@ -111,6 +115,8 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
         clientService.createPort(bridgeName.name(), portName);
     }
 
+    //Deprecated from version 1.5.0 - Falcon
+    @Deprecated
     @Override
     public void deletePort(PortDescription port) {
         DriverHandler handler = handler();
@@ -118,9 +124,16 @@ public class OvsdbBridgeConfig extends AbstractHandlerBehaviour
         Set<OvsdbBridge> ovsdbSet = clientService.getBridges();
         if (ovsdbSet != null && ovsdbSet.size() > 0) {
             OvsdbBridge bridge = ovsdbSet.iterator().next();
-            clientService.dropPort(bridge.bridgeName().toString(), port
+            clientService.dropPort(bridge.bridgeName().value(), port
                     .portNumber().toString());
         }
+    }
+
+    @Override
+    public void deletePort(BridgeName bridgeName, String portName) {
+        DriverHandler handler = handler();
+        OvsdbClientService clientService = getOvsdbClientService(handler);
+        clientService.dropPort(bridgeName.name(), portName);
     }
 
     @Override
