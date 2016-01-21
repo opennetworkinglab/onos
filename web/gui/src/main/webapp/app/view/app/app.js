@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,32 @@
 (function () {
     'use strict';
 
+    // injected refs
+    var $log, $scope, $loc, fs, ps, wss, is, ns, ks, is;
+
+    // internal state
+    var  detailsPanel,
+         pStartY,
+         pHeight,
+         top,
+         bottom,
+         iconDiv,
+         wSize = false;
+
     // constants
     var INSTALLED = 'INSTALLED',
         ACTIVE = 'ACTIVE',
         appMgmtReq = 'appManagementRequest',
+        topPdg = 50,
+        ctnrPdg = 24,
+        winWidth = 500,
+        scrollSize = 17,
+        pName = 'application-details-panel',
+        detailsReq = 'appDetailsRequest',
+        detailsResp = 'appDetailsResponse',
         fileUploadUrl = 'applications/upload',
+        iconUrlPrefix = 'rs/applications/',
+        iconUrlSuffix = '/icon',
         dialogId = 'app-dialog',
         dialogOpts = {
             edge: 'right'
@@ -34,26 +55,199 @@
             'org.onosproject.drivers': true
         },
         discouragement = 'Deactivating or uninstalling this component can' +
-        ' have serious negative consequences! Do so at your own risk!!';
+        ' have serious negative consequences! Do so at your own risk!!',
+        propOrder = ['id', 'state', 'category', 'version', 'origin', 'role', 'url'],
+        friendlyProps = ['App ID', 'State', 'Category', 'Version', 'Origin', 'Role', 'URL'];
+
+    function createDetailsPane() {
+        detailsPanel = ps.createPanel(pName, {
+            width: wSize.width,
+            margin: 0,
+            hideMargin: 0
+        });
+        detailsPanel.el().style({
+            position: 'absolute',
+            top: pStartY + 'px'
+        });
+        $scope.hidePanel = function () { detailsPanel.hide(); };
+        detailsPanel.hide();
+    }
+
+    function closePanel() {
+        if (detailsPanel.isVisible()) {
+            $scope.selId = null;
+            detailsPanel.hide();
+            return true;
+        }
+        return false;
+    }
+
+    function handleEscape() {
+        return editNameCancel() || closePanel();
+    }
+
+    function addCloseBtn(div) {
+        is.loadEmbeddedIcon(div, 'plus', 30);
+        div.select('g').attr('transform', 'translate(25, 0) rotate(45)');
+        div.on('click', closePanel);
+    }
+
+    function setUpPanel() {
+        var container, closeBtn, tblDiv;
+        detailsPanel.empty();
+
+        container = detailsPanel.append('div').classed('container', true);
+
+        top = container.append('div').classed('top', true);
+        closeBtn = top.append('div').classed('close-btn', true);
+        addCloseBtn(closeBtn);
+        iconDiv = top.append('div').classed('dev-icon', true);
+        top.append('h2');
+
+        tblDiv = top.append('div').classed('top-tables', true);
+        tblDiv.append('div').classed('left', true).append('table');
+        tblDiv.append('div').classed('right', true).append('table');
+        tblDiv.append('div').classed('readme', true).append('table');
+
+        top.append('hr');
+
+        // TODO: need add required applications and features
+        bottom = container.append('div').classed('bottom', true);
+        bottom.append('h2');
+        bottom.append('table');
+    }
+
+    function addProp(tbody, index, value) {
+        var tr = tbody.append('tr');
+
+        function addCell(cls, txt) {
+            tr.append('td').attr('class', cls).html(txt);
+        }
+        addCell('label', friendlyProps[index] + ' :');
+        addCell('value', value);
+    }
+
+    function addIcon(tbody, value) {
+        var tr = tbody.append('tr');
+        var td = tr.append('td');
+        td.append('img').attr('src', iconUrlPrefix + value + iconUrlSuffix);
+    }
+
+    function addReadme(tbody, value) {
+        var tr = tbody.append('tr');
+        tr.append('td').html(value);
+    }
+
+    function populateTop(tblDiv, details) {
+        var leftTbl = tblDiv.select('.left')
+                        .select('table')
+                        .append('tbody'),
+            rightTbl = tblDiv.select('.right')
+                        .select('table')
+                        .append('tbody'),
+            readmeTbl = tblDiv.select('.readme')
+                        .select('table')
+                        .append('tbody');
+
+        top.select('h2').html(details.name);
+
+        // place application icon to the left table
+        addIcon(leftTbl, details.id);
+
+        // place rest of the fields to the right table
+        propOrder.forEach(function (prop, i) {
+            addProp(rightTbl, i, details[prop]);
+        });
+
+        // place readme field to the readme table
+        addReadme(readmeTbl, details.readme);
+    }
+
+    function populateName(div, name) {
+        var lab = div.select('.label'),
+            val = div.select('.value');
+        lab.html('Friendly Name:');
+        val.html(name);
+    }
+
+    function populateDetails(details) {
+        var nameDiv, topTbs, btmTbl, ports;
+        setUpPanel();
+
+        nameDiv = top.select('.name-div');
+        topTbs = top.select('.top-tables');
+        btmTbl = bottom.select('table');
+
+        populateName(nameDiv, details.name);
+        populateTop(topTbs, details);
+        populateBottom(btmTbl);
+
+        detailsPanel.height(pHeight);
+    }
+
+    function populateBottom(table) {
+        var theader = table.append('thead').append('tr'),
+            tbody = table.append('tbody'),
+            tbWidth, tbHeight;
+
+        tbWidth = fs.noPxStyle(tbody, 'width') + scrollSize;
+        tbHeight = pHeight
+                    - (fs.noPxStyle(detailsPanel.el()
+                                        .select('.top'), 'height'));
+        table.style({
+            height: tbHeight + 'px',
+            width: tbWidth + 'px',
+            overflow: 'auto',
+            display: 'block'
+        });
+
+        detailsPanel.width(winWidth + ctnrPdg);
+    }
+
+    function respDetailsCb(data) {
+        $scope.panelData = data.details;
+        $scope.$apply();
+    }
 
     angular.module('ovApp', [])
     .controller('OvAppCtrl',
         ['$log', '$scope', '$http',
-        'FnService', 'TableBuilderService', 'WebSocketService', 'UrlFnService',
-        'KeyService', 'DialogService',
+        'FnService', 'TableBuilderService', 'PanelService', 'WebSocketService',
+        'IconService', 'UrlFnService', 'KeyService', 'DialogService',
 
-    function ($log, $scope, $http, fs, tbs, wss, ufs, ks, ds) {
+    function (_$log_, _$scope_, $http, _fs_, tbs, _ps_, _wss_, _is_, ufs, _ks_, ds) {
+        $log = _$log_;
+        $scope = _$scope_;
+        wss = _wss_;
+        ks = _ks_;
+        fs = _fs_;
+        ps = _ps_;
+        is = _is_;
+        $scope.panelData = {};
         $scope.ctrlBtnState = {};
         $scope.uploadTip = 'Upload an application (.oar file)';
         $scope.activateTip = 'Activate selected application';
         $scope.deactivateTip = 'Deactivate selected application';
         $scope.uninstallTip = 'Uninstall selected application';
 
+        var handlers = {};
+
+        // details panel handlers
+        handlers[detailsResp] = respDetailsCb;
+        wss.bindHandlers(handlers);
+
         function selCb($event, row) {
             // $scope.selId is set by code in tableBuilder
             $scope.ctrlBtnState.selection = !!$scope.selId;
             refreshCtrls();
             ds.closeDialog();  // don't want dialog from previous selection
+
+            if ($scope.selId) {
+                wss.sendEvent(detailsReq, { id: row.id });
+            } else {
+                $scope.hidePanel();
+            }
+            $log.debug('Got a click on:', row);
         }
 
         function refreshCtrls() {
@@ -93,7 +287,6 @@
             ['click row', 'Select / deselect app'],
             ['scroll down', 'See more apps']
         ]);
-
 
         function createConfirmationText(action, itemId) {
             var content = ds.createDiv();
@@ -154,6 +347,7 @@
 
         $scope.$on('$destroy', function () {
             ks.unbindKeys();
+            wss.unbindHandlers(handlers);
         });
 
         $log.log('OvAppCtrl has been created');
@@ -190,5 +384,72 @@
                 });
             }
         };
-    }]);
+    }])
+
+    .directive('applicationDetailsPanel',
+        ['$rootScope', '$window', '$timeout', 'KeyService',
+        function ($rootScope, $window, $timeout, ks) {
+            return function (scope) {
+                var unbindWatch;
+
+                function heightCalc() {
+                    pStartY = fs.noPxStyle(d3.select('.tabular-header'), 'height')
+                                           + topPdg;
+                    wSize = fs.windowSize(pStartY);
+                    pHeight = wSize.height;
+                }
+
+                function initPanel() {
+                    heightCalc();
+                    createDetailsPane();
+                    $log.debug('start to initialize panel!');
+                }
+
+                // Safari has a bug where it renders the fixed-layout table wrong
+                // if you ask for the window's size too early
+                if (scope.onos.browser === 'safari') {
+                    $timeout(initPanel);
+                } else {
+                    initPanel();
+                }
+                // create key bindings to handle panel
+                ks.keyBindings({
+                    esc: [handleEscape, 'Close the details panel'],
+                    _helpFormat: ['esc']
+                });
+                ks.gestureNotes([
+                    ['click', 'Select a row to show application details'],
+                    ['scroll down', 'See more application']
+                ]);
+
+                // if the panelData changes
+                scope.$watch('panelData', function () {
+                    if (!fs.isEmptyObject(scope.panelData)) {
+                        populateDetails(scope.panelData);
+                        detailsPanel.show();
+                    }
+                });
+
+                // if the window size changes
+                unbindWatch = $rootScope.$watchCollection(
+                    function () {
+                        return {
+                            h: $window.innerHeight,
+                            w: $window.innerWidth
+                        };
+                    }, function () {
+                        if (!fs.isEmptyObject(scope.panelData)) {
+                            heightCalc();
+                            populateDetails(scope.panelData);
+                        }
+                    }
+                );
+
+                scope.$on('$destroy', function () {
+                    unbindWatch();
+                    ks.unbindKeys();
+                    ps.destroyPanel(pName);
+                });
+            };
+        }]);
 }());

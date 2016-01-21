@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,4 +59,119 @@
 }
 .dark #app-dialog.floatpanel.dialog {
     background-color: #444;
+}
+
+#application-details-panel.floatpanel {
+    -moz-border-radius: 0;
+    border-radius: 0;
+    z-index: 0;
+}
+
+.light #application-details-panel.floatpanel {
+    background-color: rgb(229, 234, 237);
+}
+.dark #application-details-panel.floatpanel {
+    background-color: #3A4042;
+}
+
+#application-details-panel .container {
+    padding: 0 12px;
+}
+
+#application-details-panel .close-btn {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    cursor: pointer;
+}
+.light .close-btn svg.embeddedIcon .icon.plus .glyph {
+    fill: #aaa;
+}
+.dark .close-btn svg.embeddedIcon .icon.plus .glyph {
+    fill: #ccc;
+}
+
+#application-details-panel .dev-icon {
+    display: inline-block;
+    padding: 0 6px 0 0;
+    vertical-align: middle;
+}
+.light .dev-icon svg.embeddedIcon .glyph {
+    fill: rgb(0, 172, 229);
+}
+.dark .dev-icon svg.embeddedIcon .glyph {
+    fill: #486D91;
+}
+
+#application-details-panel h2 {
+    display: inline-block;
+    margin: 8px 0;
+}
+
+#application-details-panel .top div.left {
+    float: left;
+    padding: 0 18px 0 0;
+}
+#application-details-panel .top div.right {
+    display: inline-block;
+}
+
+#application-details-panel td.label {
+    font-style: italic;
+    padding-right: 12px;
+    /* works for both light and dark themes ... */
+    color: #777;
+}
+
+#application-details-panel .actionBtns div {
+    padding: 12px 6px;
+}
+
+#application-details-panel .top hr {
+    width: 95%;
+    margin: 0 auto;
+}
+
+.light #application-details-panel hr {
+    opacity: .5;
+    border-color: #FFF;
+}
+.dark #application-details-panel hr {
+    border-color: #666;
+}
+
+#application-details-panel .bottom table {
+    border-spacing: 0;
+}
+
+#application-details-panel .bottom th {
+    letter-spacing: 0.02em;
+}
+
+.light #application-details-panel .bottom th {
+    background-color: #CCC;
+    /* default text color */
+}
+.dark #application-details-panel .bottom th {
+    background-color: #131313;
+    color: #ccc;
+}
+
+#application-details-panel .bottom th,
+#application-details-panel .bottom td {
+    padding: 6px 12px;
+    text-align: center;
+}
+
+.light #application-details-panel .bottom tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+.light #application-details-panel .bottom tr:nth-child(even) {
+    background-color: #EBEDF2;
+}
+.dark #application-details-panel .bottom tr:nth-child(odd) {
+    background-color: #333;
+}
+.dark #application-details-panel .bottom tr:nth-child(even) {
+    background-color: #555;
 }

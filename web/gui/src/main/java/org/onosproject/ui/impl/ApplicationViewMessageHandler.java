@@ -15,6 +15,7 @@
  */
 package org.onosproject.ui.impl;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.app.ApplicationAdminService;
@@ -42,6 +43,10 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
 
     private static final String APP_MGMT_REQ = "appManagementRequest";
 
+    private static final String APP_DETAILS_REQ = "appDetailsRequest";
+    private static final String APP_DETAILS_RESP = "appDetailsResponse";
+    private static final String DETAILS = "details";
+
     private static final String STATE = "state";
     private static final String STATE_IID = "_iconid_state";
     private static final String ID = "id";
@@ -51,19 +56,25 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
     private static final String ORIGIN = "origin";
     private static final String DESC = "desc";
     private static final String URL = "url";
+    private static final String README = "readme";
+    private static final String ROLE = "role";
+    private static final String REQUIRED_APPS = "_required_apps";
+    private static final String FEATURES = "features";
 
     private static final String ICON_ID_ACTIVE = "active";
     private static final String ICON_ID_INACTIVE = "appInactive";
 
     private static final String[] COL_IDS = {
-            STATE, STATE_IID, ID, ICON, VERSION, CATEGORY, ORIGIN, DESC, URL
+            STATE, STATE_IID, ID, ICON, VERSION, CATEGORY, ORIGIN, DESC,
+            URL, README, ROLE, REQUIRED_APPS, FEATURES
     };
 
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new AppDataRequest(),
-                new AppMgmtRequest()
+                new AppMgmtRequest(),
+                new DetailRequestHandler()
         );
     }
 
@@ -133,6 +144,48 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
                 }
                 chain(APP_DATA_REQ, sid, payload);
             }
+        }
+    }
+
+    // handler for selected application detail requests
+    private final class DetailRequestHandler extends RequestHandler {
+        private DetailRequestHandler() {
+            super(APP_DETAILS_REQ);
+        }
+
+        @Override
+        public void process(long sid, ObjectNode payload) {
+            String id = string(payload, ID);
+            ApplicationService as = get(ApplicationService.class);
+            ApplicationId appId = as.getId(id);
+            ApplicationState state = as.getState(appId);
+            Application app = as.getApplication(appId);
+            ObjectNode data = objectNode();
+
+            data.put(STATE, state.toString());
+            data.put(ID, appId.name());
+            data.put(VERSION, app.version().toString());
+            data.put(ROLE, app.role().toString());
+            data.put(CATEGORY, app.category());
+            data.put(ORIGIN, app.origin());
+            data.put(README, app.readme());
+            data.put(URL, app.url());
+
+            // process required applications
+            ArrayNode requiredApps = arrayNode();
+            app.requiredApps().forEach(s -> requiredApps.add(s));
+
+            data.set(REQUIRED_APPS, requiredApps);
+
+            // process features
+            ArrayNode features = arrayNode();
+            app.features().forEach(f -> features.add(f));
+
+            data.set(FEATURES, features);
+
+            ObjectNode rootNode = objectNode();
+            rootNode.set(DETAILS, data);
+            sendMessage(APP_DETAILS_RESP, 0, rootNode);
         }
     }
 }
