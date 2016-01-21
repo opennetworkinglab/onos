@@ -224,11 +224,6 @@ public class FloatingIpManager implements FloatingIpService {
                                                    "FloatingIP ID doesn't exist");
             }
             FloatingIp floatingIp = floatingIpStore.get(floatingIpId);
-            if (floatingIp.portId() != null) {
-                log.debug("The floating Ip is uesd by the port whose identifier is {}",
-                          floatingIp.portId().toString());
-                return false;
-            }
             floatingIpStore.remove(floatingIpId, floatingIp);
             floatingIpBindStore.remove(floatingIpId);
             if (floatingIpStore.containsKey(floatingIpId)) {
@@ -331,6 +326,11 @@ public class FloatingIpManager implements FloatingIpService {
                 notifyListeners(new FloatingIpEvent(
                                                     FloatingIpEvent.Type.FLOATINGIP_DELETE,
                                                     floatingIp));
+                if (floatingIp.portId() != null) {
+                    notifyListeners(new FloatingIpEvent(
+                                                        FloatingIpEvent.Type.FLOATINGIP_UNBIND,
+                                                        floatingIp));
+                }
             }
         }
     }
