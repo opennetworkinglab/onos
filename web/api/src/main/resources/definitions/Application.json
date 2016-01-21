@@ -53,7 +53,7 @@
     "permissions": {
       "type": "array",
       "xml": {
-        "name": "hosts",
+        "name": "permissions",
         "wrapped": true
       },
       "items": {

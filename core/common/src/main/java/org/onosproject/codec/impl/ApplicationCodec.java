@@ -15,6 +15,7 @@
  */
 package org.onosproject.codec.impl;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.onosproject.app.ApplicationService;
@@ -33,7 +34,16 @@ public final class ApplicationCodec extends JsonCodec<Application> {
     public ObjectNode encode(Application app, CodecContext context) {
         checkNotNull(app, "Application cannot be null");
         ApplicationService service = context.getService(ApplicationService.class);
-        return context.mapper().createObjectNode()
+
+        ArrayNode permissions = context.mapper().createArrayNode();
+        ArrayNode features = context.mapper().createArrayNode();
+        ArrayNode requiredApps = context.mapper().createArrayNode();
+
+        app.permissions().forEach(p -> permissions.add(p.toString()));
+        app.features().forEach(f -> features.add(f));
+        app.requiredApps().forEach(a -> requiredApps.add(a));
+
+        ObjectNode result = context.mapper().createObjectNode()
                 .put("name", app.id().name())
                 .put("id", app.id().id())
                 .put("version", app.version().toString())
@@ -42,11 +52,14 @@ public final class ApplicationCodec extends JsonCodec<Application> {
                 .put("readme", StringEscapeUtils.escapeJson(app.readme()))
                 .put("origin", app.origin())
                 .put("url", app.url())
-                .put("permissions", app.permissions().toString()) // FIXME: change to an array
                 .put("featuresRepo", app.featuresRepo().isPresent() ?
                         app.featuresRepo().get().toString() : "")
-                .put("features", app.features().toString()) // FIXME: change to an array
-                .put("requiredApps", app.requiredApps().toString()) // FIXME: change to an array
                 .put("state", service.getState(app.id()).toString());
+
+        result.set("features", features);
+        result.set("permissions", permissions);
+        result.set("requiredApps", requiredApps);
+
+        return result;
     }
 }
