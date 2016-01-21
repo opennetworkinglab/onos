@@ -16,7 +16,6 @@
 package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -95,8 +94,6 @@ public final class ResourceId {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("components", components)
-                .toString();
+        return components.toString();
     }
 }

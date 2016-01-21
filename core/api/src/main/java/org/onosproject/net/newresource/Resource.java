@@ -208,7 +208,11 @@ public abstract class Resource {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof Resource)) {
+
+        if (obj == null) {
+            return false;
+        }
+        if (this.getClass() != obj.getClass()) {
             return false;
         }
         final Resource that = (Resource) obj;
@@ -259,25 +263,14 @@ public abstract class Resource {
 
         @Override
         public int hashCode() {
-            return Objects.hash(this.id(), this.value);
+            return super.hashCode();
         }
 
+        // explicitly overriding to express that we intentionally ignore
+        // `value` in equality comparison
         @Override
         public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-
-            if (!(obj instanceof Continuous)) {
-                return false;
-            }
-
-            if (!super.equals(obj)) {
-                return false;
-            }
-
-            final Continuous other = (Continuous) obj;
-            return Objects.equals(this.id(), other.id());
+            return super.equals(obj);
         }
 
         /**
@@ -287,6 +280,14 @@ public abstract class Resource {
          */
         public double value() {
             return value;
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(this)
+                    .add("id", id())
+                    .add("value", value)
+                    .toString();
         }
     }
 

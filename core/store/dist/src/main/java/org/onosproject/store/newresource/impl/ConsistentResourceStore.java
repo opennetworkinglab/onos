@@ -143,6 +143,9 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     @Override
     public boolean register(List<Resource> resources) {
         checkNotNull(resources);
+        if (log.isTraceEnabled()) {
+            resources.forEach(r -> log.trace("registering {}", r));
+        }
 
         TransactionContext tx = service.transactionContextBuilder().build();
         tx.begin();
@@ -324,17 +327,36 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         checkNotNull(resource);
         checkArgument(resource instanceof Resource.Discrete || resource instanceof Resource.Continuous);
 
+        // check if it's registered or not.
+        Versioned<Set<Resource>> v = childMap.get(resource.parent().get());
+        if (v == null || !v.value().contains(resource)) {
+            return false;
+        }
+
         if (resource instanceof Resource.Discrete) {
+            // check if already consumed
             return getConsumer((Resource.Discrete) resource).isEmpty();
         } else {
-            return isAvailable((Resource.Continuous) resource);
+            Resource.Continuous requested = (Resource.Continuous) resource;
+            Resource.Continuous registered = v.value().stream()
+                    .filter(c -> c.equals(resource))
+                    .findFirst()
+                    .map(c -> (Resource.Continuous) c)
+                    .get();
+            if (registered.value() < requested.value()) {
+                // Capacity < requested, can never satisfy
+                return false;
+            }
+            // check if there's enough left
+            return isAvailable(requested);
         }
     }
 
     private boolean isAvailable(Resource.Continuous resource) {
         Versioned<ContinuousResourceAllocation> allocation = continuousConsumers.get(resource.id());
         if (allocation == null) {
-            return false;
+            // no allocation (=no consumer) full registered resources available
+            return true;
         }
 
         return hasEnoughResource(allocation.value().original(), resource, allocation.value());
@@ -362,7 +384,10 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     @Override
     public Collection<Resource> getChildResources(Resource parent) {
         checkNotNull(parent);
-        checkArgument(parent instanceof Resource.Discrete);
+        if (!(parent instanceof Resource.Discrete)) {
+            // only Discrete resource can have child resource
+            return ImmutableList.of();
+        }
 
         Versioned<Set<Resource>> children = childMap.get((Resource.Discrete) parent);
         if (children == null) {

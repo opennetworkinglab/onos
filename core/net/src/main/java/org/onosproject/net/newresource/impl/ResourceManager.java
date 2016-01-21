@@ -34,12 +34,14 @@ import org.onosproject.net.newresource.ResourceService;
 import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceStore;
 import org.onosproject.net.newresource.ResourceStoreDelegate;
+import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * An implementation of ResourceService.
@@ -53,18 +55,24 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ResourceStore store;
 
+    private final Logger log = getLogger(getClass());
+
     private final ResourceStoreDelegate delegate = new InternalStoreDelegate();
 
     @Activate
     public void activate() {
         store.setDelegate(delegate);
         eventDispatcher.addSink(ResourceEvent.class, listenerRegistry);
+
+        log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(ResourceEvent.class);
+
+        log.info("Stopped");
     }
 
     @Override
