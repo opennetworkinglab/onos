@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
-/**
- * Implementation of partitioned and distributed store facility capable of
- * providing consistent update semantics.
- */
 package org.onosproject.store.primitives.impl;
+
+/**
+ * Partitioner is responsible for mapping keys to individual database partitions.
+ *
+ * @param <K> key type.
+ */
+public interface Partitioner<K> {
+
+    /**
+     * Returns the database partition.
+     * @param mapName map name
+     * @param key key
+     * @return Database partition
+     */
+    Database getPartition(String mapName, K key);
+}

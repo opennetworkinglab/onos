@@ -14,8 +14,25 @@
  * limitations under the License.
  */
 
-/**
- * Implementation of partitioned and distributed store facility capable of
- * providing consistent update semantics.
- */
 package org.onosproject.store.primitives.impl;
+
+import java.util.List;
+
+/**
+ * A simple Partitioner for mapping keys to database partitions.
+ * <p>
+ * This class uses a md5 hash based hashing scheme for hashing the key to
+ * a partition.
+ *
+ */
+public class SimpleKeyHashPartitioner extends DatabasePartitioner {
+
+    public SimpleKeyHashPartitioner(List<Database> partitions) {
+        super(partitions);
+    }
+
+    @Override
+    public Database getPartition(String mapName, String key) {
+        return partitions.get(hash(key) % partitions.size());
+    }
+}

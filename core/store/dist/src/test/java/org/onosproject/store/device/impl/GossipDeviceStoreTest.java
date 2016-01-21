@@ -27,6 +27,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
@@ -56,9 +57,10 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.ClusterMessage;
 import org.onosproject.store.cluster.messaging.ClusterMessageHandler;
 import org.onosproject.store.cluster.messaging.MessageSubject;
-import org.onosproject.store.consistent.impl.DatabaseManager;
 import org.onosproject.store.impl.MastershipBasedTimestamp;
-
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.EventuallyConsistentMapBuilder;
+import org.onosproject.store.service.StorageService;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,6 +73,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static java.util.Arrays.asList;
@@ -132,7 +135,9 @@ public class GossipDeviceStoreTest {
             new DefaultControllerNode(NID2, IpAddress.valueOf("127.0.0.2"));
     private static final List<SparseAnnotations> NO_ANNOTATION = Collections.<SparseAnnotations>emptyList();
 
-
+    EventuallyConsistentMapBuilder ecMapBuilder;
+    EventuallyConsistentMap ecMap;
+    StorageService testStorageService;
     private TestGossipDeviceStore testGossipDeviceStore;
     private GossipDeviceStore gossipDeviceStore;
     private DeviceStore deviceStore;
@@ -161,9 +166,21 @@ public class GossipDeviceStoreTest {
         testGossipDeviceStore = new TestGossipDeviceStore(deviceClockService, clusterService, clusterCommunicator);
         testGossipDeviceStore.mastershipService = new TestMastershipService();
 
-        TestDatabaseManager testDatabaseManager = new TestDatabaseManager();
-        testDatabaseManager.init(clusterService, clusterCommunicator);
-        testGossipDeviceStore.storageService = testDatabaseManager;
+        ecMapBuilder = createNiceMock(EventuallyConsistentMapBuilder.class);
+        expect(ecMapBuilder.withName(anyObject(String.class))).andReturn(ecMapBuilder).anyTimes();
+        expect(ecMapBuilder.withSerializer(anyObject(KryoNamespace.Builder.class))).andReturn(ecMapBuilder).anyTimes();
+        expect(ecMapBuilder.withAntiEntropyPeriod(5, TimeUnit.SECONDS)).andReturn(ecMapBuilder).anyTimes();
+        expect(ecMapBuilder.withTimestampProvider(anyObject(BiFunction.class))).andReturn(ecMapBuilder).anyTimes();
+        expect(ecMapBuilder.withTombstonesDisabled()).andReturn(ecMapBuilder).anyTimes();
+
+        ecMap = createNiceMock(EventuallyConsistentMap.class);
+        expect(ecMapBuilder.build()).andReturn(ecMap).anyTimes();
+        testStorageService = createNiceMock(StorageService.class);
+        expect(testStorageService.eventuallyConsistentMapBuilder()).andReturn(ecMapBuilder).anyTimes();
+
+        replay(testStorageService, ecMapBuilder, ecMap);
+
+        testGossipDeviceStore.storageService = testStorageService;
         testGossipDeviceStore.deviceClockService = deviceClockService;
 
         gossipDeviceStore = testGossipDeviceStore;
@@ -895,14 +912,6 @@ public class GossipDeviceStoreTest {
         @Override
         public boolean isTimestampAvailable(DeviceId deviceId) {
             return DID1.equals(deviceId) || DID2.equals(deviceId);
-        }
-    }
-
-    private class TestDatabaseManager extends DatabaseManager {
-        void init(ClusterService clusterService,
-                  ClusterCommunicationService clusterCommunicator) {
-            this.clusterService = clusterService;
-            this.clusterCommunicator = clusterCommunicator;
         }
     }
 }
