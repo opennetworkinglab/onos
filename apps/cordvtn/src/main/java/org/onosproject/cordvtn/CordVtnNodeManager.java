@@ -200,6 +200,17 @@ public class CordVtnNodeManager {
                 }
             }
         },
+        TUNNEL_INTERFACE_CREATED {
+            @Override
+            public void process(CordVtnNodeManager nodeManager, CordVtnNode node) {
+                if (!nodeManager.getOvsdbConnectionState(node)) {
+                    nodeManager.connectOvsdb(node);
+                } else {
+                    nodeManager.createPhyInterface(node);
+                }
+            }
+
+        },
         COMPLETE {
             @Override
             public void process(CordVtnNodeManager nodeManager, CordVtnNode node) {
@@ -422,13 +433,11 @@ public class CordVtnNodeManager {
     private NodeState checkNodeState(CordVtnNode node) {
         checkNotNull(node);
 
-        if (checkIntegrationBridge(node) && checkTunnelInterface(node)) {
-            // TODO add physical port add state
-            if (checkPhyInterface(node)) {
-                return NodeState.COMPLETE;
-            } else {
-                return NodeState.INCOMPLETE;
-            }
+        if (checkIntegrationBridge(node) && checkTunnelInterface(node) &&
+                checkPhyInterface(node)) {
+            return NodeState.COMPLETE;
+        } else if (checkTunnelInterface(node)) {
+            return NodeState.TUNNEL_INTERFACE_CREATED;
         } else if (checkIntegrationBridge(node)) {
             return NodeState.BRIDGE_CREATED;
         } else if (getOvsdbConnectionState(node)) {
@@ -569,7 +578,7 @@ public class CordVtnNodeManager {
             BridgeConfig bridgeConfig =  handler.behaviour(BridgeConfig.class);
             bridgeConfig.addBridge(BridgeName.bridgeName(DEFAULT_BRIDGE), dpid, controllers);
         } catch (ItemNotFoundException e) {
-            log.warn("Failed to create integration bridge on {}", node.ovsdbId());
+            log.warn("Failed to create integration bridge on {}", node.hostname());
         }
     }
 
@@ -597,7 +606,26 @@ public class CordVtnNodeManager {
             TunnelConfig tunnelConfig =  handler.behaviour(TunnelConfig.class);
             tunnelConfig.createTunnelInterface(BridgeName.bridgeName(DEFAULT_BRIDGE), description);
         } catch (ItemNotFoundException e) {
-            log.warn("Failed to create tunnel interface on {}", node.ovsdbId());
+            log.warn("Failed to create tunnel interface on {}", node.hostname());
+        }
+    }
+
+    /**
+     * Creates physical interface to a given node.
+     *
+     * @param node cordvtn node
+     */
+    private void createPhyInterface(CordVtnNode node) {
+        if (checkPhyInterface(node)) {
+            return;
+        }
+
+        try {
+            DriverHandler handler = driverService.createHandler(node.ovsdbId());
+            BridgeConfig bridgeConfig =  handler.behaviour(BridgeConfig.class);
+            bridgeConfig.addPort(BridgeName.bridgeName(DEFAULT_BRIDGE), node.phyPortName());
+        } catch (ItemNotFoundException e) {
+            log.warn("Failed to add {} on {}", node.phyPortName(), node.hostname());
         }
     }
 
