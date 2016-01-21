@@ -16,6 +16,7 @@
 package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
+
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 

@@ -113,9 +113,15 @@ public class ResourcesCommand extends AbstractShellCommand {
                 return;
             }
 
+
             if (resource instanceof ContinuousResource) {
+                String s = ((String) resource.last());
+                String simpleName = s.substring(s.lastIndexOf('.') + 1);
                 print("%s%s: %f", Strings.repeat(" ", level),
-                                  resource.last(),
+                                  simpleName,
+                                  // Note: last() does not return, what we've registered
+                                  // following does not work
+                                  //((Class<?>) resource.last()).getSimpleName(),
                                   ((ContinuousResource) resource).value());
                 // Continuous resource is terminal node, stop here
                 return;

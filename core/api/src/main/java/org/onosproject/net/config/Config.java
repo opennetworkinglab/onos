@@ -191,6 +191,17 @@ public abstract class Config<S> {
     }
 
     /**
+     * Clears the specified property.
+     *
+     * @param name  property name
+     * @return self
+     */
+    protected Config<S> clear(String name) {
+        object.remove(name);
+        return this;
+    }
+
+    /**
      * Sets the specified property as a boolean or clears it if null value given.
      *
      * @param name  property name
@@ -437,7 +448,38 @@ public abstract class Config<S> {
      */
     protected boolean isNumber(String field, FieldPresence presence, long... minMax) {
         JsonNode node = object.path(field);
-        return isValid(node, presence, (node.isLong() || node.isInt()) &&
+        return isValid(node, presence, node.isNumber() &&
+                (minMax.length > 0 && minMax[0] <= node.asLong() || minMax.length < 1) &&
+                (minMax.length > 1 && minMax[1] > node.asLong() || minMax.length < 2));
+    }
+    /**
+     * Indicates whether the specified field holds a valid number.
+     *
+     * @param field    JSON field name
+     * @param presence specifies if field is optional or mandatory
+     * @param minMax   optional min/max values
+     * @return true if valid; false otherwise
+     * @throws IllegalArgumentException if field is present, but not valid
+     */
+    protected boolean isNumber(String field, FieldPresence presence, double... minMax) {
+        JsonNode node = object.path(field);
+        return isValid(node, presence, node.isNumber() &&
+                (minMax.length > 0 && minMax[0] <= node.asDouble() || minMax.length < 1) &&
+                (minMax.length > 1 && minMax[1] > node.asDouble() || minMax.length < 2));
+    }
+
+    /**
+     * Indicates whether the specified field holds a valid integer.
+     *
+     * @param field    JSON field name
+     * @param presence specifies if field is optional or mandatory
+     * @param minMax   optional min/max values
+     * @return true if valid; false otherwise
+     * @throws IllegalArgumentException if field is present, but not valid
+     */
+    protected boolean isIntegralNumber(String field, FieldPresence presence, long... minMax) {
+        JsonNode node = object.path(field);
+        return isValid(node, presence, node.isIntegralNumber() &&
                 (minMax.length > 0 && minMax[0] <= node.asLong() || minMax.length < 1) &&
                 (minMax.length > 1 && minMax[1] > node.asLong() || minMax.length < 2));
     }

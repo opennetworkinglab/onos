@@ -18,7 +18,9 @@ package org.onosproject.net.newresource.impl;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onlab.util.Bandwidth;
 import org.onlab.util.ItemNotFoundException;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;
@@ -29,17 +31,20 @@ import org.onosproject.net.behaviour.LambdaQuery;
 import org.onosproject.net.behaviour.MplsQuery;
 import org.onosproject.net.behaviour.TributarySlotQuery;
 import org.onosproject.net.behaviour.VlanQuery;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.newresource.ResourceAdminService;
+import org.onosproject.net.newresource.BandwidthCapacity;
 import org.onosproject.net.newresource.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -56,7 +61,9 @@ final class ResourceDeviceListener implements DeviceListener {
     private final ResourceAdminService adminService;
     private final DeviceService deviceService;
     private final DriverService driverService;
+    private final NetworkConfigService netcfgService;
     private final ExecutorService executor;
+
 
     /**
      * Creates an instance with the specified ResourceAdminService and ExecutorService.
@@ -64,13 +71,15 @@ final class ResourceDeviceListener implements DeviceListener {
      * @param adminService instance invoked to register resources
      * @param deviceService {@link DeviceService} to be used
      * @param driverService {@link DriverService} to be used
+     * @param netcfgService {@link NetworkConfigService} to be used.
      * @param executor executor used for processing resource registration
      */
     ResourceDeviceListener(ResourceAdminService adminService, DeviceService deviceService, DriverService driverService,
-                           ExecutorService executor) {
+                           NetworkConfigService netcfgService, ExecutorService executor) {
         this.adminService = checkNotNull(adminService);
         this.deviceService = checkNotNull(deviceService);
         this.driverService = checkNotNull(driverService);
+        this.netcfgService = checkNotNull(netcfgService);
         this.executor = checkNotNull(executor);
     }
 
@@ -121,6 +130,15 @@ final class ResourceDeviceListener implements DeviceListener {
         executor.submit(() -> {
             adminService.registerResources(portPath);
 
+            queryBandwidth(device.id(), port.number())
+                .map(bw -> portPath.child(Bandwidth.class, bw.bps()))
+                .map(adminService::registerResources)
+                .ifPresent(success -> {
+                   if (!success) {
+                       log.error("Failed to register Bandwidth for {}", portPath.id());
+                   }
+                });
+
             // for VLAN IDs
             Set<VlanId> vlans = queryVlanIds(device.id(), port.number());
             if (!vlans.isEmpty()) {
@@ -158,6 +176,30 @@ final class ResourceDeviceListener implements DeviceListener {
     private void unregisterPortResource(Device device, Port port) {
         Resource resource = Resource.discrete(device.id(), port.number());
         executor.submit(() -> adminService.unregisterResources(resource));
+    }
+
+    /**
+     * Query bandwidth capacity on a port.
+     *
+     * @param did {@link DeviceId}
+     * @param number {@link PortNumber}
+     * @return bandwidth capacity
+     */
+    private Optional<Bandwidth> queryBandwidth(DeviceId did, PortNumber number) {
+        // Check and use netcfg first.
+        ConnectPoint cp = new ConnectPoint(did, number);
+        BandwidthCapacity config = netcfgService.getConfig(cp, BandwidthCapacity.class);
+        if (config != null) {
+            log.trace("Registering configured bandwidth {} for {}/{}", config.capacity(), did, number);
+            return Optional.of(config.capacity());
+        }
+
+        // populate bandwidth value, assuming portSpeed == bandwidth
+        Port port = deviceService.getPort(did, number);
+        if (port != null) {
+            return Optional.of(Bandwidth.mbps(port.portSpeed()));
+        }
+        return Optional.empty();
     }
 
     private Set<OchSignal> queryLambdas(DeviceId did, PortNumber port) {
