@@ -400,7 +400,7 @@ public class OpticalPathProvisioner {
      * @return true if in packet layer, false otherwise
      */
     private boolean isPacketLayer(Device.Type type) {
-        return type == Device.Type.SWITCH || type == Device.Type.ROUTER;
+        return type == Device.Type.SWITCH || type == Device.Type.ROUTER || type == Device.Type.VIRTUAL;
     }
 
     /**
