@@ -19,6 +19,8 @@ import static org.onosproject.net.DeviceId.deviceId;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,13 +28,23 @@ import java.util.Collections;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
+import org.onlab.packet.MplsLabel;
+import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.TributarySlot;
 import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.TreeRangeSet;
 
 /**
  * Lists available resources.
@@ -87,7 +99,8 @@ public class ResourcesCommand extends AbstractShellCommand {
     }
 
     private void printResource(Resource resource, int level) {
-        Collection<Resource> children = resourceService.getAvailableResources(resource);
+        // TODO add an option to show only available resource
+        Collection<Resource> children = resourceService.getRegisteredResources(resource);
 
         if (resource.equals(Resource.ROOT)) {
             print("ROOT");
@@ -99,24 +112,88 @@ public class ResourcesCommand extends AbstractShellCommand {
                 return;
             }
 
-            String toString = String.valueOf(resource.last());
-            if (toString.startsWith(resourceName)) {
-                print("%s%s", Strings.repeat(" ", level),
-                              toString);
+            if (resource instanceof Resource.Continuous) {
+                print("%s%s: %f", Strings.repeat(" ", level),
+                                  resource.last(),
+                                  ((Resource.Continuous) resource).value());
+                // Continuous resource is terminal node, stop here
+                return;
             } else {
-                print("%s%s: %s", Strings.repeat(" ", level),
-                                 resourceName,
-                                 toString);
+
+                String toString = String.valueOf(resource.last());
+                if (toString.startsWith(resourceName)) {
+                    print("%s%s", Strings.repeat(" ", level),
+                          toString);
+                } else {
+                    print("%s%s: %s", Strings.repeat(" ", level),
+                          resourceName,
+                          toString);
+                }
             }
         }
 
+
+        // Classify children into aggregatable terminal resources and everything else
+
+        Set<Class<?>> aggregatableTypes = ImmutableSet.<Class<?>>builder()
+                .add(VlanId.class)
+                .add(MplsLabel.class)
+                .build();
+        // (last() resource name) -> { Resource }
+        Multimap<String, Resource> aggregatables = ArrayListMultimap.create();
+        List<Resource> nonAggregatable = new ArrayList<>();
+
+        for (Resource r : children) {
+            if (r instanceof Resource.Continuous) {
+                // non-aggregatable terminal node
+                nonAggregatable.add(r);
+            } else if (aggregatableTypes.contains(r.last().getClass())) {
+                // aggregatable & terminal node
+                aggregatables.put(r.last().getClass().getSimpleName(), r);
+            } else {
+                nonAggregatable.add(r);
+            }
+        }
+
+        // print aggregated (terminal)
+        aggregatables.asMap().entrySet()
+            .forEach(e -> {
+                // for each type...
+                String resourceName = e.getKey();
+
+                RangeSet<Long> rangeSet = TreeRangeSet.create();
+
+                // aggregate into RangeSet
+                e.getValue().stream()
+                    .map(Resource::last)
+                    .map(res -> {
+                            if (res instanceof VlanId) {
+                                return (long) ((VlanId) res).toShort();
+                            } else if (res instanceof MplsLabel) {
+                                return (long) ((MplsLabel) res).toInt();
+                            } else if (res instanceof TributarySlot) {
+                                return ((TributarySlot) res).index();
+                            }
+                            // TODO support Lambda (OchSignal types)
+                            return 0L;
+                        })
+                    .map(Range::singleton)
+                    .map(range -> range.canonical(DiscreteDomain.longs()))
+                    .forEach(rangeSet::add);
+
+                print("%s%s: %s", Strings.repeat(" ", level + 1),
+                      resourceName,
+                      rangeSet);
+            });
+
+
+        // print non-aggregatables (recurse)
         if (sort) {
-            children.stream()
+            nonAggregatable.stream()
                     .sorted((o1, o2) -> String.valueOf(o1.id()).compareTo(String.valueOf(o2.id())))
                     .forEach(r -> printResource(r, level + 1));
         } else {
-            // TODO: Should consider better output for leaf nodes
-            children.forEach(r -> printResource(r, level + 1));
+            nonAggregatable.forEach(r -> printResource(r, level + 1));
         }
     }
 }
