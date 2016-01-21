@@ -933,6 +933,7 @@ public class VTNManager implements VTNService {
                         .getL3vni(vmPort.tenantId());
                 // Floating ip BIND
                 if (type == VtnRscEvent.Type.FLOATINGIP_BIND) {
+                    vPortStore.put(fipPort.portId(), fipPort);
                     applyNorthSouthL3Flows(deviceId, host, vmPort, fipPort,
                                            floaingIp, l3vni, exPort,
                                            Objective.Operation.ADD);
@@ -941,6 +942,7 @@ public class VTNManager implements VTNService {
                     applyNorthSouthL3Flows(deviceId, host, vmPort, fipPort,
                                            floaingIp, l3vni, exPort,
                                            Objective.Operation.REMOVE);
+                    vPortStore.remove(fipPort.portId());
                 }
             }
         }
