@@ -15,6 +15,8 @@
  */
 package org.onosproject.core;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.security.Permission;
 
 import java.net.URI;
@@ -76,12 +78,18 @@ public class DefaultApplication implements Application {
         this.category = checkNotNull(category, "Category cannot be null");
         this.url = url;
         this.readme = checkNotNull(readme, "Readme cannot be null");
-        this.icon = icon;
+        this.icon = icon == null ? new byte[0] : icon.clone();
         this.role = checkNotNull(role, "Role cannot be null");
-        this.permissions = checkNotNull(permissions, "Permissions cannot be null");
+        this.permissions = ImmutableSet.copyOf(
+                checkNotNull(permissions, "Permissions cannot be null")
+        );
         this.featuresRepo = checkNotNull(featuresRepo, "Features repo cannot be null");
-        this.features = checkNotNull(features, "Features cannot be null");
-        this.requiredApps = checkNotNull(requiredApps, "Required apps cannot be null");
+        this.features = ImmutableList.copyOf(
+                checkNotNull(features, "Features cannot be null")
+        );
+        this.requiredApps = ImmutableList.copyOf(
+                checkNotNull(requiredApps, "Required apps cannot be null")
+        );
         checkArgument(!features.isEmpty(), "There must be at least one feature");
     }
 
@@ -117,7 +125,7 @@ public class DefaultApplication implements Application {
 
     @Override
     public byte[] icon() {
-        return icon;
+        return icon.clone();
     }
 
     @Override
