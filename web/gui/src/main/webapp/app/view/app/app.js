@@ -83,10 +83,6 @@
         return false;
     }
 
-    function handleEscape() {
-        return editNameCancel() || closePanel();
-    }
-
     function addCloseBtn(div) {
         is.loadEmbeddedIcon(div, 'plus', 30);
         div.select('g').attr('transform', 'translate(25, 0) rotate(45)');
@@ -137,6 +133,11 @@
         addCell('value', value);
     }
 
+    function addUrl(tbody, index, value) {
+        var href = '<a href="' + value + '" target="_blank">' + value + '</a>';
+        addProp(tbody, index, href);
+    }
+
     function addIcon(tbody, value) {
         var tr = tbody.append('tr');
         var td = tr.append('td');
@@ -166,7 +167,8 @@
 
         // place rest of the fields to the right table
         propOrder.forEach(function (prop, i) {
-            addProp(rightTbl, i, details[prop]);
+            var fn = prop === 'url' ? addUrl : addProp;
+            fn(rightTbl, i, details[prop]);
         });
 
         // place description field to the description table
@@ -450,7 +452,7 @@
                 }
                 // create key bindings to handle panel
                 ks.keyBindings({
-                    esc: [handleEscape, 'Close the details panel'],
+                    esc: [closePanel, 'Close the details panel'],
                     _helpFormat: ['esc']
                 });
                 ks.gestureNotes([
