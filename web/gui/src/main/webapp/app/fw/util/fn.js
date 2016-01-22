@@ -223,9 +223,7 @@
 
     // return the given string with the first character capitalized.
     function cap(s) {
-        return s.toLowerCase().replace(/^[a-z]/, function (m) {
-            return m.toUpperCase();
-        });
+        return s ? s[0].toUpperCase() + s.slice(1) : s;
     }
 
     // return the parameter without a px suffix

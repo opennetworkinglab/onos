@@ -62,9 +62,9 @@ public class MainIndexResource extends AbstractInjectionResource {
         InputStream indexTemplate = classLoader.getResourceAsStream(INDEX);
         String index = new String(toByteArray(indexTemplate));
 
-        int p1s = split(index, 0, INJECT_JS_START);
+        int p1s = split(index, 0, INJECT_JS_START) - INJECT_JS_START.length();
         int p1e = split(index, p1s, INJECT_JS_END);
-        int p2s = split(index, p1e, INJECT_CSS_START);
+        int p2s = split(index, p1e, INJECT_CSS_START) - INJECT_CSS_START.length();
         int p2e = split(index, p2s, INJECT_CSS_END);
         int p3s = split(index, p2e, null);
 
@@ -78,17 +78,23 @@ public class MainIndexResource extends AbstractInjectionResource {
         return Response.ok(new SequenceInputStream(streams)).build();
     }
 
-    // Produces an input stream including CSS injections from all extensions.
-    private InputStream includeCss(UiExtensionService service) {
-        Builder<InputStream> builder = ImmutableList.builder();
-        service.getExtensions().forEach(ext -> add(builder, ext.css()));
-        return new SequenceInputStream(new StreamEnumeration(builder.build()));
-    }
-
     // Produces an input stream including JS injections from all extensions.
     private InputStream includeJs(UiExtensionService service) {
         Builder<InputStream> builder = ImmutableList.builder();
-        service.getExtensions().forEach(ext -> add(builder, ext.js()));
+        service.getExtensions().forEach(ext -> {
+            add(builder, ext.js());
+            add(builder, new NewlineInputStream());
+        });
+        return new SequenceInputStream(new StreamEnumeration(builder.build()));
+    }
+
+    // Produces an input stream including CSS injections from all extensions.
+    private InputStream includeCss(UiExtensionService service) {
+        Builder<InputStream> builder = ImmutableList.builder();
+        service.getExtensions().forEach(ext -> {
+            add(builder, ext.css());
+            add(builder, new NewlineInputStream());
+        });
         return new SequenceInputStream(new StreamEnumeration(builder.build()));
     }
 
@@ -96,6 +102,21 @@ public class MainIndexResource extends AbstractInjectionResource {
     private void add(Builder<InputStream> builder, InputStream inputStream) {
         if (inputStream != null) {
             builder.add(inputStream);
+        }
+    }
+
+    private static final String NL = String.format("%n");
+    private static final byte[] NL_BYTES = NL.getBytes();
+
+    private static class NewlineInputStream extends InputStream {
+        private int index = 0;
+
+        @Override
+        public int read() throws IOException {
+            if (index == NL_BYTES.length) {
+                return -1;
+            }
+            return NL_BYTES[index++];
         }
     }
 

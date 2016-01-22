@@ -326,13 +326,9 @@
             ['scroll down', 'See more apps']
         ]);
 
-        function capitalize(s) {
-            return s ? s[0].toUpperCase() + s.slice(1) : s;
-        }
-
         function createConfirmationText(action, itemId) {
             var content = ds.createDiv();
-            content.append('p').text(capitalize(action) + ' ' + itemId);
+            content.append('p').text(fs.cap(action) + ' ' + itemId);
             if (strongWarning[itemId]) {
                 content.append('p').text(discouragement).classed('strong', true);
             }

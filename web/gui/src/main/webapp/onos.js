@@ -33,38 +33,27 @@
         'onosWidget'
     ];
 
-    // view IDs.. note the first view listed is loaded at startup
+    // view IDs.. injected via the servlet
     var viewIds = [
         // {INJECTED-VIEW-IDS-START}
-        'topo',
-        'device',
-        'flow',
-        'port',
-        'group',
-        'meter',
-        'host',
-        'app',
-        'intent',
-        'cluster',
-        'link',
         // {INJECTED-VIEW-IDS-END}
-
         // dummy entry
         ''
     ];
 
-    var viewDependencies = [];
+    var defaultView = 'topo',
+        viewDependencies = [];
 
     viewIds.forEach(function (id) {
         if (id) {
-            viewDependencies.push('ov' + capitalize(id));
+            viewDependencies.push('ov' + cap(id));
         }
     });
 
     var moduleDependencies = coreDependencies.concat(viewDependencies);
 
-    function capitalize(word) {
-        return word ? word[0].toUpperCase() + word.slice(1) : word;
+    function cap(s) {
+        return s ? s[0].toUpperCase() + s.slice(1) : s;
     }
 
     angular.module('onosApp', moduleDependencies)
@@ -97,8 +86,6 @@
                 flash.initFlash();
                 qhs.initQuickHelp();
 
-                // TODO: register handler for user settings, etc.
-
                 wss.createWebSocket({
                     wsport: $location.search().wsport
                 });
@@ -111,14 +98,14 @@
             }])
 
         .config(['$routeProvider', function ($routeProvider) {
-            // If view ID not provided, route to the first view in the list.
+            // If view ID not provided, route to the default view
             $routeProvider
                 .otherwise({
-                    redirectTo: '/topo'
+                    redirectTo: '/' + defaultView
                 });
 
             function viewCtrlName(vid) {
-                return 'Ov' + capitalize(vid) + 'Ctrl';
+                return 'Ov' + cap(vid) + 'Ctrl';
             }
 
             function viewTemplateUrl(vid) {
