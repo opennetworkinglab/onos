@@ -62,6 +62,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static com.google.common.collect.Multimaps.newSetMultimap;
@@ -93,6 +94,8 @@ public class GossipApplicationStore extends ApplicationArchive
     private static final int RETRY_DELAY_MS = 2_000;
 
     private static final int FETCH_TIMEOUT_MS = 10_000;
+
+    private static final int APP_LOAD_DELAY_MS = 500;
 
     public enum InternalState {
         INSTALLED, ACTIVATED, DEACTIVATED
@@ -230,7 +233,7 @@ public class GossipApplicationStore extends ApplicationArchive
     @Override
     public void setDelegate(ApplicationStoreDelegate delegate) {
         super.setDelegate(delegate);
-        loadFromDisk();
+        executor.schedule(() -> loadFromDisk(), APP_LOAD_DELAY_MS, TimeUnit.MILLISECONDS);
     }
 
     @Override
