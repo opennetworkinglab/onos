@@ -17,8 +17,6 @@ package org.onosproject.net.flow.criteria;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of ICMP type criterion (8 bits unsigned integer).
  */
@@ -51,8 +49,7 @@ public final class IcmpTypeCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-            .add("icmpType", icmpType).toString();
+        return type().toString() + SEPARATOR + icmpType;
     }
 
     @Override

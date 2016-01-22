@@ -17,8 +17,6 @@ package org.onosproject.net.flow.criteria;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of ICMPv6 type criterion (8 bits unsigned integer).
  */
@@ -51,8 +49,7 @@ public final class Icmpv6TypeCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-            .add("icmpv6Type", icmpv6Type).toString();
+        return type().toString() + SEPARATOR + icmpv6Type;
     }
 
     @Override

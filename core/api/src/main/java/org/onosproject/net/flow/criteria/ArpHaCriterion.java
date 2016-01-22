@@ -15,12 +15,11 @@
  */
 package org.onosproject.net.flow.criteria;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.onlab.packet.MacAddress;
 
 import java.util.Objects;
 
-import org.onlab.packet.MacAddress;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Implementation of arp_eth_src address or arp_eth_dst address criterion.
@@ -59,8 +58,7 @@ public final class ArpHaCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("mac", mac).toString();
+        return type().toString() + SEPARATOR + mac;
     }
 
     @Override

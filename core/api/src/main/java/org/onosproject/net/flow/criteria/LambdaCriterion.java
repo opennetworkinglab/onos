@@ -17,8 +17,6 @@ package org.onosproject.net.flow.criteria;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of lambda (wavelength) criterion (16 bits unsigned
  * integer).
@@ -56,8 +54,7 @@ public final class LambdaCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-            .add("lambda", lambda).toString();
+        return type().toString() + SEPARATOR + lambda;
     }
 
     @Override

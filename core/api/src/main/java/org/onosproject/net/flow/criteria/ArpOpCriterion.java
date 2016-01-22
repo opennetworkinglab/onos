@@ -15,8 +15,6 @@
  */
 package org.onosproject.net.flow.criteria;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 import java.util.Objects;
 
 /**
@@ -54,8 +52,7 @@ public final class ArpOpCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("arpOp", arpOp).toString();
+        return type().toString() + SEPARATOR + arpOp;
     }
 
     @Override

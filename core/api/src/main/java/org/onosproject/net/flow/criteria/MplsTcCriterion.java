@@ -17,8 +17,6 @@ package org.onosproject.net.flow.criteria;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of MPLS TC criterion (3 bits).
  */
@@ -51,8 +49,7 @@ public final class MplsTcCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("tc", Long.toHexString(mplsTc)).toString();
+        return type().toString() + SEPARATOR + Long.toHexString(mplsTc);
     }
 
     @Override

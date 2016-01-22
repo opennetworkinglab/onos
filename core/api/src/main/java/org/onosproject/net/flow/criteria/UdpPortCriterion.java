@@ -19,8 +19,6 @@ import org.onlab.packet.TpPort;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of UDP port criterion (16 bits unsigned integer).
  */
@@ -56,8 +54,7 @@ public final class UdpPortCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-            .add("udpPort", udpPort).toString();
+        return type().toString() + SEPARATOR + udpPort;
     }
 
     @Override

@@ -15,12 +15,11 @@
  */
 package org.onosproject.net.flow.criteria;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.onosproject.net.OduSignalType;
 
 import java.util.Objects;
 
-import org.onosproject.net.OduSignalType;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Implementation of ODU (Optical channel Data Unit) signal Type criterion.
@@ -74,8 +73,6 @@ public final class OduSignalTypeCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(this)
-                .add("signalType", signalType)
-                .toString();
+        return type().toString() + SEPARATOR + signalType;
     }
 }

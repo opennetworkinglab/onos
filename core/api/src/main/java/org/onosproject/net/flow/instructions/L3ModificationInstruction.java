@@ -15,17 +15,17 @@
  */
 package org.onosproject.net.flow.instructions;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
-import java.util.Objects;
-
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+
+import java.util.Objects;
 
 /**
  * Abstraction of a single traffic treatment step.
  */
 public abstract class L3ModificationInstruction implements Instruction {
+
+    private static final String SEPARATOR = ":";
 
     /**
      * Represents the type of traffic treatment.
@@ -85,8 +85,6 @@ public abstract class L3ModificationInstruction implements Instruction {
          * Arp operation modification.
          */
         ARP_OP
-
-        //TODO: remaining types
     }
 
     /**
@@ -125,8 +123,7 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("ip", ip).toString();
+            return subtype().toString() + SEPARATOR + ip;
         }
 
         @Override
@@ -173,8 +170,7 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("ip", ip).toString();
+            return subtype().toString() + SEPARATOR + ip;
         }
 
         @Override
@@ -221,8 +217,7 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("mac", mac).toString();
+            return subtype().toString() + SEPARATOR + mac;
         }
 
         @Override
@@ -269,8 +264,7 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("op", op).toString();
+            return subtype().toString() + SEPARATOR + op;
         }
 
         @Override
@@ -326,8 +320,7 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                .add("flowLabel", Long.toHexString(flowLabel)).toString();
+            return subtype().toString() + SEPARATOR + Long.toHexString(flowLabel);
         }
 
         @Override
@@ -367,8 +360,7 @@ public abstract class L3ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .toString();
+            return subtype().toString();
         }
 
         @Override

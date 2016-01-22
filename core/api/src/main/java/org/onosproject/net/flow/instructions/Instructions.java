@@ -54,6 +54,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class Instructions {
 
+    private static final String SEPARATOR = ":";
+
     // Ban construction
     private Instructions() {}
 
@@ -547,7 +549,7 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString()).toString();
+            return type().toString();
         }
 
         @Override
@@ -581,7 +583,7 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString()).toString();
+            return type().toString();
         }
 
         @Override
@@ -619,10 +621,10 @@ public final class Instructions {
         public Type type() {
             return Type.OUTPUT;
         }
+
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
-                    .add("port", port).toString();
+            return type().toString() + SEPARATOR + port.toString();
         }
 
         @Override
@@ -665,9 +667,7 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
-                    .addValue("group ID=0x" + Integer.toHexString(groupId.id()))
-                    .toString();
+            return type().toString() + SEPARATOR + Integer.toHexString(groupId.id());
         }
 
         @Override
@@ -770,8 +770,7 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
-                    .add("meter ID", meterId.id()).toString();
+            return type().toString() + SEPARATOR + meterId.id();
         }
 
         @Override
@@ -814,8 +813,7 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
-                    .add("tableId", this.tableId).toString();
+            return type().toString() + SEPARATOR + this.tableId;
         }
 
         @Override
@@ -864,10 +862,9 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
-                    .add("metadata", Long.toHexString(this.metadata))
-                    .add("metadata mask", Long.toHexString(this.metadataMask))
-                    .toString();
+            return type().toString() + SEPARATOR +
+                    Long.toHexString(this.metadata) + "/" +
+                    Long.toHexString(this.metadataMask);
         }
 
         @Override
@@ -917,10 +914,7 @@ public final class Instructions {
 
         @Override
         public String toString() {
-            return toStringHelper(type().toString())
-                    .add("extension", extensionTreatment)
-                    .add("deviceId", deviceId)
-                    .toString();
+            return type().toString() + SEPARATOR + deviceId + "/" + extensionTreatment;
         }
 
         @Override

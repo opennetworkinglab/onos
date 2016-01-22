@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.flow.criteria;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
 import java.util.Objects;
 
 /**
@@ -39,8 +38,7 @@ public class MplsBosCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("bos", mplsBos).toString();
+        return type().toString() + SEPARATOR + mplsBos;
     }
 
     @Override

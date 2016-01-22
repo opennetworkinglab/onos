@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.flow.criteria;
 
-import com.google.common.base.MoreObjects;
 import org.onosproject.net.OchSignalType;
 
 import java.util.Objects;
@@ -71,8 +70,6 @@ public class OchSignalTypeCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("signalType", signalType)
-                .toString();
+        return type().toString() + SEPARATOR + signalType;
     }
 }

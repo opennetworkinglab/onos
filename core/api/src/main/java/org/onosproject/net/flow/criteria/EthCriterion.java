@@ -19,8 +19,6 @@ import org.onlab.packet.MacAddress;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of MAC address criterion.
  */
@@ -56,8 +54,7 @@ public final class EthCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("mac", mac).toString();
+        return type().toString() + SEPARATOR + mac;
     }
 
     @Override

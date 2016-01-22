@@ -19,8 +19,6 @@ import org.onlab.packet.IpPrefix;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of IP address criterion.
  */
@@ -56,8 +54,7 @@ public final class IPCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("ip", ip).toString();
+        return type().toString() + SEPARATOR + ip;
     }
 
     @Override

@@ -15,16 +15,13 @@
  */
 package org.onosproject.cli.net;
 
-import static com.google.common.collect.Lists.newArrayList;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.commands.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.Comparators;
 import org.onosproject.core.ApplicationId;
@@ -35,11 +32,16 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TrafficTreatment;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.function.Predicate;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * Lists all currently-known flows.
@@ -48,26 +50,44 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
          description = "Lists all currently-known flows.")
 public class FlowsListCommand extends AbstractShellCommand {
 
+    private static final Predicate<FlowEntry> TRUE_PREDICATE = f -> true;
+
     public static final String ANY = "any";
 
-    private static final String FMT =
-            "   id=%s, state=%s, bytes=%s, packets=%s, duration=%s, priority=%s, tableId=%s appId=%s, payLoad=%s";
-    private static final String TFMT = "      treatment=%s";
-    private static final String SFMT = "      selector=%s";
+    private static final String LONG_FORMAT = "    id=%s, state=%s, bytes=%s, "
+            + "packets=%s, duration=%s, priority=%s, tableId=%s, appId=%s, "
+            + "payLoad=%s, selector=%s, treatment=%s";
+
+    private static final String SHORT_FORMAT = "    %s, bytes=%s, packets=%s, "
+            + "table=%s, priority=%s, selector=%s, treatment=%s";
+
+    @Argument(index = 0, name = "state", description = "Flow Rule state",
+            required = false, multiValued = false)
+    String state = null;
 
     @Argument(index = 1, name = "uri", description = "Device ID",
               required = false, multiValued = false)
     String uri = null;
 
-    @Argument(index = 0, name = "state", description = "Flow Rule state",
-              required = false, multiValued = false)
-    String state = null;
+    @Argument(index = 2, name = "table", description = "Table ID",
+            required = false, multiValued = false)
+    String table = null;
+
+    @Option(name = "-s", aliases = "--short",
+            description = "Print more succinct output for each flow",
+            required = false, multiValued = false)
+    private boolean shortOutput = false;
+
+    private Predicate<FlowEntry> predicate = TRUE_PREDICATE;
 
     @Override
     protected void execute() {
         CoreService coreService = get(CoreService.class);
         DeviceService deviceService = get(DeviceService.class);
         FlowRuleService service = get(FlowRuleService.class);
+
+        compilePredicate();
+
         SortedMap<Device, List<FlowEntry>> flows = getSortedFlows(deviceService, service);
 
         if (outputJson()) {
@@ -92,6 +112,22 @@ public class FlowsListCommand extends AbstractShellCommand {
             result.add(json(mapper, device, flows.get(device)));
         }
         return result;
+    }
+
+    /**
+     * Compiles a predicate to find matching flows based on the command
+     * arguments.
+     */
+    private void compilePredicate() {
+        if (state != null && !state.equals(ANY)) {
+            final FlowEntryState feState = FlowEntryState.valueOf(state.toUpperCase());
+            predicate = predicate.and(f -> f.state().equals(feState));
+        }
+
+        if (table != null) {
+            final int tableId = Integer.parseInt(table);
+            predicate = predicate.and(f -> f.tableId() == tableId);
+        }
     }
 
     // Produces JSON object with the flows of the given device.
@@ -119,10 +155,7 @@ public class FlowsListCommand extends AbstractShellCommand {
                                                           FlowRuleService service) {
         SortedMap<Device, List<FlowEntry>> flows = new TreeMap<>(Comparators.ELEMENT_COMPARATOR);
         List<FlowEntry> rules;
-        FlowEntryState s = null;
-        if (state != null && !state.equals("any")) {
-            s = FlowEntryState.valueOf(state.toUpperCase());
-        }
+
         Iterable<Device> devices = null;
         if (uri == null) {
             devices = deviceService.getDevices();
@@ -131,13 +164,14 @@ public class FlowsListCommand extends AbstractShellCommand {
             devices = (dev == null) ? deviceService.getDevices()
                                     : Collections.singletonList(dev);
         }
+
         for (Device d : devices) {
-            if (s == null) {
+            if (predicate.equals(TRUE_PREDICATE)) {
                 rules = newArrayList(service.getFlowEntries(d.id()));
             } else {
                 rules = newArrayList();
                 for (FlowEntry f : service.getFlowEntries(d.id())) {
-                    if (f.state().equals(s)) {
+                    if (predicate.test(f)) {
                         rules.add(f);
                     }
                 }
@@ -159,17 +193,51 @@ public class FlowsListCommand extends AbstractShellCommand {
                               CoreService coreService) {
         boolean empty = flows == null || flows.isEmpty();
         print("deviceId=%s, flowRuleCount=%d", d.id(), empty ? 0 : flows.size());
-        if (!empty) {
-            for (FlowEntry f : flows) {
+        if (empty) {
+            return;
+        }
+
+        for (FlowEntry f : flows) {
+            if (shortOutput) {
+                print(SHORT_FORMAT, f.state(), f.bytes(), f.packets(),
+                        f.tableId(), f.priority(), f.selector().criteria(),
+                        printTreatment(f.treatment()));
+            } else {
                 ApplicationId appId = coreService.getAppId(f.appId());
-                print(FMT, Long.toHexString(f.id().value()), f.state(),
-                      f.bytes(), f.packets(), f.life(), f.priority(), f.tableId(),
-                      appId != null ? appId.name() : "<none>",
-                      f.payLoad() == null ? null : f.payLoad().payLoad().toString());
-                print(SFMT, f.selector().criteria());
-                print(TFMT, f.treatment());
+                print(LONG_FORMAT, Long.toHexString(f.id().value()), f.state(),
+                        f.bytes(), f.packets(), f.life(), f.priority(), f.tableId(),
+                        appId != null ? appId.name() : "<none>",
+                        f.payLoad() == null ? null : f.payLoad().payLoad().toString(),
+                        f.selector().criteria(), f.treatment());
             }
         }
+    }
+
+    private String printTreatment(TrafficTreatment treatment) {
+        final String delimiter = ", ";
+        StringBuilder builder = new StringBuilder("[");
+        if (!treatment.immediate().isEmpty()) {
+            builder.append("immediate=" + treatment.immediate() + delimiter);
+        }
+        if (!treatment.deferred().isEmpty()) {
+            builder.append("deferred=" + treatment.deferred() + delimiter);
+        }
+        if (treatment.clearedDeferred()) {
+            builder.append("clearDeferred" + delimiter);
+        }
+        if (treatment.tableTransition() != null) {
+            builder.append("transition=" + treatment.tableTransition() + delimiter);
+        }
+        if (treatment.metered() != null) {
+            builder.append("meter=" + treatment.metered() + delimiter);
+        }
+        if (treatment.writeMetadata() != null) {
+            builder.append("metadata=" + treatment.writeMetadata() + delimiter);
+        }
+        // Chop off last delimiter
+        builder.replace(builder.length() - delimiter.length(), builder.length(), "");
+        builder.append("]");
+        return builder.toString();
     }
 
 }

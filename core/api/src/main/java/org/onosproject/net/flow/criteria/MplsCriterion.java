@@ -19,8 +19,6 @@ import org.onlab.packet.MplsLabel;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of MPLS tag criterion (20 bits).
  */
@@ -43,8 +41,7 @@ public final class MplsCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("mpls", mplsLabel).toString();
+        return type().toString() + SEPARATOR + mplsLabel;
     }
 
     @Override

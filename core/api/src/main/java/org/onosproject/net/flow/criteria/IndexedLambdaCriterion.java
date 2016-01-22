@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.flow.criteria;
 
-import com.google.common.base.MoreObjects;
 import org.onosproject.net.IndexedLambda;
 
 import java.util.Objects;
@@ -76,8 +75,6 @@ public class IndexedLambdaCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("lambda", lambda)
-                .toString();
+        return type().toString() + SEPARATOR + lambda;
     }
 }

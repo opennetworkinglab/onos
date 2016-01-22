@@ -19,7 +19,6 @@ import org.onlab.packet.VlanId;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -69,8 +68,7 @@ public final class VlanIdCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("vlanId", vlanId).toString();
+        return type().toString() + SEPARATOR + vlanId;
     }
 
     @Override

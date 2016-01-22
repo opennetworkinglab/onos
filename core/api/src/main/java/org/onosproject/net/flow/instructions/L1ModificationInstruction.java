@@ -17,11 +17,11 @@ package org.onosproject.net.flow.instructions;
 
 import org.onosproject.net.OduSignalId;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 import java.util.Objects;
 
 public abstract class L1ModificationInstruction implements Instruction {
+
+    public static final String SEPARATOR = ":";
 
     /**
      * Represents the type of traffic treatment.
@@ -79,9 +79,7 @@ public abstract class L1ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(this)
-                    .add("oduSignalId", oduSignalId)
-                    .toString();
+            return subtype().toString() + SEPARATOR + oduSignalId;
         }
     }
 

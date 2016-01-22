@@ -17,8 +17,6 @@ package org.onosproject.net.flow.criteria;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of Internet Protocol Number criterion (8 bits unsigned)
  * integer.
@@ -53,8 +51,7 @@ public final class IPProtocolCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("protocol", proto).toString();
+        return type().toString() + SEPARATOR + proto;
     }
 
     @Override

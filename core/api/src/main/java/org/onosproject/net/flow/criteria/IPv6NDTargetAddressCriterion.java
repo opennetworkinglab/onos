@@ -19,8 +19,6 @@ import org.onlab.packet.Ip6Address;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of IPv6 Neighbor Discovery target address criterion.
  */
@@ -52,8 +50,7 @@ public final class IPv6NDTargetAddressCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("targetAddress", targetAddress).toString();
+        return type().toString() + SEPARATOR + targetAddress;
     }
 
     @Override

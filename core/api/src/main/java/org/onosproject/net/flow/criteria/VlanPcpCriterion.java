@@ -17,7 +17,6 @@ package org.onosproject.net.flow.criteria;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -68,8 +67,7 @@ public final class VlanPcpCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-            .add("priority", Long.toHexString(vlanPcp)).toString();
+        return type().toString() + SEPARATOR + Long.toHexString(vlanPcp);
     }
 
     @Override

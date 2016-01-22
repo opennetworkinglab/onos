@@ -19,8 +19,6 @@ import org.onosproject.net.PortNumber;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of input port criterion.
  */
@@ -56,8 +54,7 @@ public final class PortCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("port", port).toString();
+        return type().toString() + SEPARATOR + port;
     }
 
     @Override

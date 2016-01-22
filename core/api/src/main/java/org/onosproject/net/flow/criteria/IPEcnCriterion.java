@@ -17,8 +17,6 @@ package org.onosproject.net.flow.criteria;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of IP ECN (Explicit Congestion Notification) criterion
  * (2 bits).
@@ -52,8 +50,7 @@ public final class IPEcnCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-            .add("ipEcn", Long.toHexString(ipEcn)).toString();
+        return type().toString() + SEPARATOR + Long.toHexString(ipEcn);
     }
 
     @Override

@@ -16,8 +16,6 @@
 package org.onosproject.net.flow.criteria;
 
 import java.util.Objects;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Implementation of Tunnel ID criterion.
  */
@@ -49,9 +47,7 @@ public class TunnelIdCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("tunnelId", Long.toHexString(tunnelId))
-                .toString();
+        return type().toString() + SEPARATOR + Long.toHexString(tunnelId);
     }
 
     @Override

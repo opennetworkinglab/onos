@@ -15,11 +15,9 @@
  */
 package org.onosproject.net.flow.criteria;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
+import org.onlab.packet.Ip4Address;
 
 import java.util.Objects;
-
-import org.onlab.packet.Ip4Address;
 
 /**
  * Implementation of arp spa or tpa address criterion.
@@ -56,8 +54,7 @@ public final class ArpPaCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("ip", ip).toString();
+        return type().toString() + SEPARATOR + ip;
     }
 
     @Override

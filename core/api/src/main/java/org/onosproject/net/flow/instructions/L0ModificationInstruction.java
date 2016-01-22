@@ -15,14 +15,13 @@
  */
 package org.onosproject.net.flow.instructions;
 
-import com.google.common.base.MoreObjects;
 import org.onosproject.net.OchSignal;
-
-import static com.google.common.base.MoreObjects.toStringHelper;
 
 import java.util.Objects;
 
 public abstract class L0ModificationInstruction implements Instruction {
+
+    public static final String SEPARATOR = ":";
 
     /**
      * Represents the type of traffic treatment.
@@ -69,8 +68,7 @@ public abstract class L0ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("lambda", lambda).toString();
+            return subtype().toString() + SEPARATOR + lambda;
         }
 
         @Override
@@ -131,9 +129,7 @@ public abstract class L0ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return MoreObjects.toStringHelper(this)
-                    .add("lambda", lambda)
-                    .toString();
+            return subtype().toString() + SEPARATOR + lambda;
         }
     }
 }

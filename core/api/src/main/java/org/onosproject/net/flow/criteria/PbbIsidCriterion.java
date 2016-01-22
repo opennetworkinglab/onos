@@ -17,8 +17,6 @@ package org.onosproject.net.flow.criteria;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of PBB I-SID criterion (24 bits unsigned integer).
  */
@@ -51,8 +49,7 @@ public final class PbbIsidCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("pbbIsid", Long.toHexString(pbbIsid)).toString();
+        return type().toString() + SEPARATOR + Long.toHexString(pbbIsid);
     }
 
     @Override

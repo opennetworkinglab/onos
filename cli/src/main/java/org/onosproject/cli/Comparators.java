@@ -71,10 +71,16 @@ public final class Comparators {
     public static final Comparator<FlowRule> FLOW_RULE_COMPARATOR = new Comparator<FlowRule>() {
         @Override
         public int compare(FlowRule f1, FlowRule f2) {
-            int tableCompare = Integer.valueOf(f1.tableId()).compareTo(f2.tableId());
-            return (tableCompare == 0)
+            // Compare table IDs in ascending order
+            int tableCompare = f1.tableId() - f2.tableId();
+            if (tableCompare != 0) {
+                return tableCompare;
+            }
+            // Compare priorities in descending order
+            int priorityCompare = f2.priority() - f1.priority();
+            return (priorityCompare == 0)
                     ? Long.valueOf(f1.id().value()).compareTo(f2.id().value())
-                    : tableCompare;
+                    : priorityCompare;
         }
     };
 

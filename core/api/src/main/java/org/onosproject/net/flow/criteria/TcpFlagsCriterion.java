@@ -17,8 +17,6 @@ package org.onosproject.net.flow.criteria;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of TCP flags criterion (12 bits unsigned integer).
  */
@@ -51,8 +49,7 @@ public final class TcpFlagsCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("flags", Long.toHexString(flags)).toString();
+        return type().toString() + SEPARATOR + Long.toHexString(flags);
     }
 
     @Override

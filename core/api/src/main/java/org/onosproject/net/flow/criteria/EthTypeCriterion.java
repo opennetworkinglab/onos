@@ -19,8 +19,6 @@ import org.onlab.packet.EthType;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of Ethernet type criterion (16 bits unsigned integer).
  */
@@ -64,9 +62,7 @@ public final class EthTypeCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("ethType", ethType.toString())
-                .toString();
+        return type().toString() + SEPARATOR + ethType;
     }
 
     @Override

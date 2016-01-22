@@ -21,6 +21,8 @@ package org.onosproject.net.flow.criteria;
  */
 public interface Criterion {
 
+    static final String SEPARATOR = ":";
+
     /**
      * Types of fields to which the selection criterion may apply.
      */

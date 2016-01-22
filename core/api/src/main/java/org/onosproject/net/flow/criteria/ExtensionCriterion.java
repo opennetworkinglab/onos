@@ -20,8 +20,6 @@ import org.onosproject.net.DeviceId;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Criterion for implementing selector extensions.
  */
@@ -66,10 +64,7 @@ public class ExtensionCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-                .add("extensionSelector", extensionSelector.toString())
-                .add("deviceId", deviceId)
-                .toString();
+        return type().toString() + SEPARATOR + deviceId + "/" + extensionSelector;
     }
 
     @Override

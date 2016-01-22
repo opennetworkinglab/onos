@@ -17,8 +17,6 @@ package org.onosproject.net.flow.criteria;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Implementation of IP DSCP (Differentiated Services Code Point)
  * criterion (6 bits).
@@ -52,8 +50,7 @@ public final class IPDscpCriterion implements Criterion {
 
     @Override
     public String toString() {
-        return toStringHelper(type().toString())
-            .add("ipDscp", Long.toHexString(ipDscp)).toString();
+        return type().toString() + SEPARATOR + Long.toHexString(ipDscp);
     }
 
     @Override

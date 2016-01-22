@@ -22,12 +22,12 @@ import org.onlab.packet.VlanId;
 
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-
 /**
  * Abstraction of a single traffic treatment step.
  */
 public abstract class L2ModificationInstruction implements Instruction {
+
+    private static final String SEPARATOR = ":";
 
     /**
      * Represents the type of traffic treatment.
@@ -94,9 +94,6 @@ public abstract class L2ModificationInstruction implements Instruction {
         MPLS_BOS
     }
 
-    // TODO: Create factory class 'Instructions' that will have various factory
-    // to create specific instructions.
-
     public abstract L2SubType subtype();
 
     @Override
@@ -129,8 +126,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("mac", mac).toString();
+            return subtype().toString() + SEPARATOR + mac;
         }
 
         @Override
@@ -176,9 +172,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("ethernetType", ethernetType())
-                    .toString();
+            return subtype().toString() + SEPARATOR + ethernetType;
         }
 
         @Override
@@ -224,8 +218,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("id", vlanId).toString();
+            return subtype().toString() + SEPARATOR + vlanId;
         }
 
         @Override
@@ -269,8 +262,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("pcp", Long.toHexString(vlanPcp)).toString();
+            return subtype().toString() + SEPARATOR + Long.toHexString(vlanPcp);
         }
 
         @Override
@@ -308,8 +300,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .toString();
+            return subtype().toString();
         }
 
         @Override
@@ -365,8 +356,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("mpls", mplsLabel).toString();
+            return subtype().toString() + SEPARATOR + mplsLabel;
         }
 
         @Override
@@ -410,8 +400,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString()).add("bos", mplsBos)
-                    .toString();
+            return subtype().toString() + SEPARATOR + mplsBos;
         }
 
         @Override
@@ -448,8 +437,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .toString();
+            return subtype().toString();
         }
 
         @Override
@@ -492,9 +480,7 @@ public abstract class L2ModificationInstruction implements Instruction {
 
         @Override
         public String toString() {
-            return toStringHelper(subtype().toString())
-                    .add("id", Long.toHexString(tunnelId))
-                    .toString();
+            return subtype().toString() + SEPARATOR + Long.toHexString(tunnelId);
         }
 
         @Override
