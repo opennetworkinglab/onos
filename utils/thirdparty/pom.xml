@@ -138,7 +138,7 @@
         <configuration>
           <instructions>
             <Export-Package>
-              com.googlecode.concurrenttrees.*;net.kuujo.copycat.*;io.atomix.*
+              com.googlecode.concurrenttrees.*;net.kuujo.copycat.*;io.atomix.*;org.apache.commons.io.*
             </Export-Package>
             <Import-Package>
               !sun.nio.ch,!sun.misc,*
