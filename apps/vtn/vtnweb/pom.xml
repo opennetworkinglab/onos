@@ -69,13 +69,11 @@
                             com.fasterxml.jackson.databind.node,
                             com.fasterxml.jackson.core,
                             org.apache.karaf.shell.commands,
-                            org.apache.commons.lang.math.*,
                             com.google.common.*,
                             org.onlab.packet.*,
                             org.onlab.rest.*,
                             org.onosproject.*,
                             org.onlab.util.*,
-                            org.jboss.netty.util.*
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

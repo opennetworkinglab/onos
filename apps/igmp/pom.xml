@@ -92,14 +92,9 @@
                         <Import-Package>
                             org.slf4j,
                             org.osgi.framework,
-                            org.apache.commons.lang.math.*,
                             com.google.common.*,
                             org.onlab.packet.*,
-                            org.onlab.rest.*,
                             org.onosproject.*,
-                            org.onosproject.mfwd.impl.*;
-                            org.onlab.util.*,
-                            org.jboss.netty.util.*
                         </Import-Package>
                     </instructions>
                 </configuration>
@@ -107,7 +102,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>

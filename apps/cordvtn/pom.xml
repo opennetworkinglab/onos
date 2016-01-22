@@ -146,7 +146,6 @@
                             org.onlab.rest.*,
                             org.onosproject.*,
                             org.onlab.util.*,
-                            org.jboss.netty.util.*
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
                     </instructions>

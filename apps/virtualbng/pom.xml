@@ -49,7 +49,7 @@
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>1.19</version>
+            <version>${jersey.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -101,7 +101,6 @@
                             org.apache.karaf.shell.commands,
                             com.google.common.*,
                             org.onlab.packet.*,
-                            org.onlab.rest.*,
                             org.onosproject.*
                         </Import-Package>
                         <Web-ContextPath>${web.context}</Web-ContextPath>
