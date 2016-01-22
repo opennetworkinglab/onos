@@ -42,8 +42,8 @@ public class ResourceTest {
         Resource resource1 = Resource.discrete(D1, P1, VLAN1);
         Resource sameAsResource1 = Resource.discrete(D1, P1, VLAN1);
         Resource resource2 = Resource.discrete(D2, P1, VLAN1);
-        Resource resource3 = Resource.continuous(BW1.bps(), D1, P1, BW1);
-        Resource sameAsResource3 = Resource.continuous(BW1.bps(), D1, P1, BW1);
+        Resource resource3 = Resource.continuous(BW1.bps(), D1, P1, Bandwidth.class);
+        Resource sameAsResource3 = Resource.continuous(BW1.bps(), D1, P1, Bandwidth.class);
 
         new EqualsTester()
                 .addEqualityGroup(resource1, sameAsResource1)
@@ -64,9 +64,9 @@ public class ResourceTest {
         ResourceId id1 = Resource.discrete(D1, P1, VLAN1).id();
         ResourceId sameAsId1 = Resource.discrete(D1, P1, VLAN1).id();
         ResourceId id2 = Resource.discrete(D2, P1, VLAN1).id();
-        ResourceId id3 = Resource.continuous(BW1.bps(), D1, P1, BW1).id();
+        ResourceId id3 = Resource.continuous(BW1.bps(), D1, P1, Bandwidth.class).id();
         // intentionally set a different value
-        ResourceId sameAsId3 = Resource.continuous(BW2.bps(), D1, P1, BW1).id();
+        ResourceId sameAsId3 = Resource.continuous(BW2.bps(), D1, P1, Bandwidth.class).id();
 
         new EqualsTester()
                 .addEqualityGroup(id1, sameAsId1)
@@ -103,5 +103,21 @@ public class ResourceTest {
 
         DeviceId child = (DeviceId) resource.last();
         assertThat(child, is(D1));
+    }
+
+    @Test
+    public void testVolumeOfDiscrete() {
+        Resource resource = Resource.discrete(D1);
+
+        DeviceId volume = resource.volume();
+        assertThat(volume, is(D1));
+    }
+
+    @Test
+    public void testVolumeOfContinuous() {
+        Resource resource = Resource.continuous(BW1.bps(), D1, P1, Bandwidth.class);
+
+        double volume = resource.volume();
+        assertThat(volume, is(BW1.bps()));
     }
 }

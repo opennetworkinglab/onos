@@ -53,7 +53,7 @@ public abstract class Resource {
     public static final Discrete ROOT = new Discrete();
 
     public static Resource discrete(DeviceId device) {
-        return new Discrete(ResourceId.of(device));
+        return new Discrete(ResourceId.discrete(device));
     }
 
     /**
@@ -64,7 +64,7 @@ public abstract class Resource {
      * @return resource path instance
      */
     public static Resource discrete(DeviceId device, Object... components) {
-        return new Discrete(ResourceId.of(device, components));
+        return new Discrete(ResourceId.discrete(device, components));
     }
 
     /**
@@ -76,7 +76,7 @@ public abstract class Resource {
      * @return resource path instance
      */
     public static Resource discrete(DeviceId device, PortNumber port, Object... components) {
-        return new Discrete(ResourceId.of(device, port, components));
+        return new Discrete(ResourceId.discrete(device, port, components));
     }
 
     /**
@@ -85,13 +85,15 @@ public abstract class Resource {
      * @param value amount of the resource
      * @param device device ID which is the first component of the path
      * @param components following components of the path. The order represents hierarchical structure of the resource.
+     *                   The last element of this list must be an {@link Class} instance. Otherwise, this method throws
+     *                   an IllegalArgumentException.
      * @return resource path instance
      */
     public static Resource continuous(double value, DeviceId device, Object... components) {
         checkArgument(components.length > 0,
                 "Length of components must be greater thant 0, but " + components.length);
 
-        return new Continuous(ResourceId.of(device, components), value);
+        return new Continuous(ResourceId.continuous(device, components), value);
     }
 
     /**
@@ -101,10 +103,12 @@ public abstract class Resource {
      * @param device device ID which is the first component of the path.
      * @param port port number which is the second component of the path.
      * @param components following components of the path. The order represents hierarchical structure of the resource.
+     *                   The last element of this list must be an {@link Class} instance. Otherwise, this method throws
+     *                   an IllegalArgumentException.
      * @return resource path instance
      */
     public static Resource continuous(double value, DeviceId device, PortNumber port, Object... components) {
-        return new Continuous(ResourceId.of(device, port, components), value);
+        return new Continuous(ResourceId.continuous(device, port, components), value);
     }
 
     /**
@@ -137,6 +141,14 @@ public abstract class Resource {
     public List<Object> components() {
         return id.components;
     }
+
+    /**
+     * Returns the volume of this resource.
+     *
+     * @return the volume of this resource
+     */
+    // TODO: think about other naming possibilities. amount? quantity?
+    public abstract <T> T volume();
 
     /**
      * Returns the parent resource path of this instance.
@@ -199,30 +211,10 @@ public abstract class Resource {
     }
 
     @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-
-        if (obj == null) {
-            return false;
-        }
-        if (this.getClass() != obj.getClass()) {
-            return false;
-        }
-        final Resource that = (Resource) obj;
-        return Objects.equals(this.id, that.id);
-    }
-
-    @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("id", id)
+                .add("id", id())
+                .add("volume", volume())
                 .toString();
     }
 
@@ -243,6 +235,39 @@ public abstract class Resource {
         private Discrete(ResourceId id) {
             super(id);
         }
+
+        /**
+         * The user of this methods must receive the return value as the correct type.
+         * Otherwise, this methods throws an exception.
+         *
+         * @param <T> type of the return value
+         * @return the volume of this resource
+         */
+        @SuppressWarnings("unchecked")
+        @Override
+        // TODO: consider receiving Class<T> as an argument. Which approach is convenient?
+        public <T> T volume() {
+            return (T) last();
+        }
+
+        @Override
+        public int hashCode() {
+            // the value returing from volume() is excluded due to optimization
+            return id().hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            final Discrete other = (Discrete) obj;
+            // the value returing from volume() is excluded due to optimization
+            return Objects.equals(this.id(), other.id());
+        }
     }
 
     /**
@@ -261,16 +286,35 @@ public abstract class Resource {
             this.value = value;
         }
 
+        /**
+         * The user of this methods must receive the return value as Double or double.
+         * Otherwise, this methods throws an exception.
+         *
+         * @param <T> type of the return value
+         * @return the volume of this resource
+         */
+        @SuppressWarnings("unchecked")
         @Override
-        public int hashCode() {
-            return super.hashCode();
+        public <T> T volume() {
+            return (T) Double.valueOf(value);
         }
 
-        // explicitly overriding to express that we intentionally ignore
-        // `value` in equality comparison
+        @Override
+        public int hashCode() {
+            return Objects.hash(id(), value);
+        }
+
         @Override
         public boolean equals(Object obj) {
-            return super.equals(obj);
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            final Continuous other = (Continuous) obj;
+            return Objects.equals(this.id(), other.id())
+                    && Objects.equals(this.value, other.value);
         }
 
         /**
@@ -278,16 +322,9 @@ public abstract class Resource {
          *
          * @return the value of the resource amount
          */
+        // FIXME: overlapping a purpose with volume()
         public double value() {
             return value;
-        }
-
-        @Override
-        public String toString() {
-            return MoreObjects.toStringHelper(this)
-                    .add("id", id())
-                    .add("value", value)
-                    .toString();
         }
     }
 

@@ -84,6 +84,7 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * @return resource consumers who are allocated the resource.
      * Returns empty list if there is no such consumer.
      */
+    // TODO: need to change the argument type to ResourceId
     List<ResourceConsumer> getConsumers(Resource resource);
 
     /**
@@ -108,6 +109,7 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * @param parent parent of the resource to be returned
      * @return a collection of the child resources of the specified resource
      */
+    // TODO: need to change the argument type to ResourceId or ResourceId.Discrete
     Collection<Resource> getChildResources(Resource parent);
 
     /**
@@ -120,5 +122,6 @@ public interface ResourceStore extends Store<ResourceEvent, ResourceStoreDelegat
      * @return a collection of the resources which belongs to the specified subject and
      * whose type is the specified class.
      */
+    // TODO: need to change the argument type to ResourceId or ResourceId.Discrete
     <T> Collection<Resource> getAllocatedResources(Resource parent, Class<T> cls);
 }

@@ -132,6 +132,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @return list of allocation information.
      * If the resource is not allocated, the return value is an empty list.
      */
+    // TODO: need to change the argument type to ResourceId
     List<ResourceAllocation> getResourceAllocation(Resource resource);
 
     /**
@@ -143,6 +144,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @return non-empty collection of resource allocations if resources are allocated with the subject and type,
      * empty collection if no resource is allocated with the subject and type
      */
+    // TODO: might need to change the first argument type to ResourceId or ResourceId.Discrete
     <T> Collection<ResourceAllocation> getResourceAllocations(Resource parent, Class<T> cls);
 
     /**
@@ -159,6 +161,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @param parent parent resource
      * @return available resources under the specified resource
      */
+    // TODO: need to change the argument type to ResourceId or ResourceId.Discrete
     Collection<Resource> getAvailableResources(Resource parent);
 
     /**
@@ -167,6 +170,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * @param parent parent resource
      * @return registered resources under the specified resource
      */
+    // TODO: need to change the argument type to ResourceId or ResourceId.Discrete
     Collection<Resource> getRegisteredResources(Resource parent);
 
 

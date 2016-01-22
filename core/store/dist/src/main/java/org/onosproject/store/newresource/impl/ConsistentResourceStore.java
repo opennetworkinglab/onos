@@ -339,7 +339,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         } else {
             Resource.Continuous requested = (Resource.Continuous) resource;
             Resource.Continuous registered = v.value().stream()
-                    .filter(c -> c.equals(resource))
+                    .filter(c -> c.id().equals(resource.id()))
                     .findFirst()
                     .map(c -> (Resource.Continuous) c)
                     .get();
@@ -415,7 +415,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 .filter(discreteConsumers::containsKey);
 
         Stream<Resource.Continuous> continuous = children.value().stream()
-                .filter(x -> x.last().getClass().equals(cls))
+                .filter(x -> x.id().equals(parent.id().child(cls)))
                 .filter(x -> x instanceof Resource.Continuous)
                 .map(x -> (Resource.Continuous) x)
                 .filter(x -> continuousConsumers.containsKey(x.id()))

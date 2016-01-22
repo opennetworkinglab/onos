@@ -437,6 +437,8 @@ public final class KryoNamespaces {
                     Resource.Discrete.class,
                     Resource.Continuous.class,
                     ResourceId.class,
+                    ResourceId.Discrete.class,
+                    ResourceId.Continuous.class,
                     ResourceAllocation.class,
                     // Constraints
                     LambdaConstraint.class,
