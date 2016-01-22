@@ -85,7 +85,7 @@
         <osgi.version>4.3.1</osgi.version>
         <karaf.version>3.0.5</karaf.version>
         <jersey.version>1.19</jersey.version>
-        <jackson.version>2.6.4</jackson.version>
+        <jackson.version>2.7.0</jackson.version>
         <slf4j.version>1.7.6</slf4j.version>
         <guava.version>19.0</guava.version>
         <commons.io.version>2.4</commons.io.version>

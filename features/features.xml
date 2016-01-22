@@ -48,9 +48,9 @@
 
         <bundle>mvn:org.onosproject/onlab-nio/@ONOS-VERSION</bundle>
 
-        <bundle>mvn:com.fasterxml.jackson.core/jackson-core/2.6.4</bundle>
-        <bundle>mvn:com.fasterxml.jackson.core/jackson-annotations/2.6.4</bundle>
-        <bundle>mvn:com.fasterxml.jackson.core/jackson-databind/2.6.4</bundle>
+        <bundle>mvn:com.fasterxml.jackson.core/jackson-core/2.7.0</bundle>
+        <bundle>mvn:com.fasterxml.jackson.core/jackson-annotations/2.7.0</bundle>
+        <bundle>mvn:com.fasterxml.jackson.core/jackson-databind/2.7.0</bundle>
 
         <bundle>mvn:commons-configuration/commons-configuration/1.10</bundle>
         <bundle>mvn:commons-collections/commons-collections/3.2.1</bundle>
