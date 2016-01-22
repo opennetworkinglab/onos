@@ -16,24 +16,10 @@
 
 package org.onosproject.store.primitives.impl;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Maps;
-
-import org.onlab.util.HexString;
-import org.onlab.util.Match;
-import org.onlab.util.SharedExecutors;
-import org.onlab.util.Tools;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.store.service.AsyncConsistentMap;
-import org.onosproject.store.service.ConsistentMapException;
-import org.onosproject.store.service.ConsistentMapException.ConcurrentModification;
-import org.onosproject.store.service.MapEvent;
-import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.Versioned;
-import org.slf4j.Logger;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.store.primitives.impl.StateMachineUpdate.Target.MAP_UPDATE;
+import static org.onosproject.store.primitives.impl.StateMachineUpdate.Target.TX_COMMIT;
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -49,10 +35,24 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.store.primitives.impl.StateMachineUpdate.Target.MAP_UPDATE;
-import static org.onosproject.store.primitives.impl.StateMachineUpdate.Target.TX_COMMIT;
-import static org.slf4j.LoggerFactory.getLogger;
+import org.onlab.util.HexString;
+import org.onlab.util.Match;
+import org.onlab.util.SharedExecutors;
+import org.onlab.util.Tools;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.ConsistentMapException;
+import org.onosproject.store.service.ConsistentMapException.ConcurrentModification;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.Versioned;
+import org.slf4j.Logger;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Maps;
 
 /**
  * AsyncConsistentMap implementation that is backed by a Raft consensus

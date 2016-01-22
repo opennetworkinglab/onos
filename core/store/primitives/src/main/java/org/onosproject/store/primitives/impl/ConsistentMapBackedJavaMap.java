@@ -30,7 +30,7 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
 
 /**
- * Standard java Map backed by a ConsistentMap.
+ * Standard java {@link Map} backed by a {@link ConsistentMap}.
  *
  * @param <K> key type
  * @param <V> value type
@@ -65,7 +65,7 @@ public final class ConsistentMapBackedJavaMap<K, V> implements Map<K, V> {
 
     @Override
     public V get(Object key) {
-        return Versioned.valueOrElse(backingMap.get((K) key), null);
+        return Versioned.valueOrNull(backingMap.get((K) key));
     }
 
     @Override
@@ -75,17 +75,17 @@ public final class ConsistentMapBackedJavaMap<K, V> implements Map<K, V> {
 
     @Override
     public V put(K key, V value) {
-        return Versioned.valueOrElse(backingMap.put(key, value), null);
+        return Versioned.valueOrNull(backingMap.put(key, value));
     }
 
     @Override
     public V putIfAbsent(K key, V value) {
-        return Versioned.valueOrElse(backingMap.putIfAbsent(key, value), null);
+        return Versioned.valueOrNull(backingMap.putIfAbsent(key, value));
     }
 
     @Override
     public V remove(Object key) {
-        return Versioned.valueOrElse(backingMap.remove((K) key), null);
+        return Versioned.valueOrNull(backingMap.remove((K) key));
     }
 
     @Override
@@ -95,7 +95,7 @@ public final class ConsistentMapBackedJavaMap<K, V> implements Map<K, V> {
 
     @Override
     public V replace(K key, V value) {
-        throw new UnsupportedOperationException();
+        return Versioned.valueOrNull(backingMap.replace(key, value));
     }
 
     @Override
@@ -117,17 +117,17 @@ public final class ConsistentMapBackedJavaMap<K, V> implements Map<K, V> {
 
     @Override
     public V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-        return Versioned.valueOrElse(backingMap.compute(key, remappingFunction), null);
+        return Versioned.valueOrNull(backingMap.compute(key, remappingFunction));
     }
 
     @Override
     public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
-        return Versioned.valueOrElse(backingMap.computeIfAbsent(key, mappingFunction), null);
+        return Versioned.valueOrNull(backingMap.computeIfAbsent(key, mappingFunction));
     }
 
     @Override
     public V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-        return Versioned.valueOrElse(backingMap.computeIfPresent(key, remappingFunction), null);
+        return Versioned.valueOrNull(backingMap.computeIfPresent(key, remappingFunction));
     }
 
     @Override

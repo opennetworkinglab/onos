@@ -112,9 +112,4 @@ public class VtnEventuallyConsistentMapAdapter<K, V> implements EventuallyConsis
     public void removeListener(EventuallyConsistentMapListener<K, V> listener) {
 
     }
-
-    @Override
-    public void destroy() {
-
-    }
 }

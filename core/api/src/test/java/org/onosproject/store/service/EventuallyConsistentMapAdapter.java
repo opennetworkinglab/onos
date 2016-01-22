@@ -18,6 +18,7 @@ package org.onosproject.store.service;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 
 import org.onosproject.store.service.DistributedPrimitive.Type;
@@ -118,7 +119,7 @@ public class EventuallyConsistentMapAdapter<K, V> implements EventuallyConsisten
     }
 
     @Override
-    public void destroy() {
-
+    public CompletableFuture<Void> destroy() {
+        return CompletableFuture.completedFuture(null);
     }
 }

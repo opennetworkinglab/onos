@@ -42,6 +42,11 @@ public class DefaultPartition implements Partition {
         this.members = ImmutableSet.copyOf(members);
     }
 
+    public DefaultPartition(Partition other) {
+        this.id = checkNotNull(other.getId());
+        this.members = ImmutableSet.copyOf(other.getMembers());
+    }
+
     @Override
     public PartitionId getId() {
         return this.id;

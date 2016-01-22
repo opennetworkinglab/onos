@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.service;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * DistributedPrimitive that is a synchronous (blocking) version of
  * another.
@@ -37,5 +39,10 @@ public abstract class Synchronous<T extends DistributedPrimitive> implements Dis
     @Override
     public Type type() {
         return primitive.type();
+    }
+
+    @Override
+    public CompletableFuture<Void> destroy() {
+        return primitive.destroy();
     }
 }

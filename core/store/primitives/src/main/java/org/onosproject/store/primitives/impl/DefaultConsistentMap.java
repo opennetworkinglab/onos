@@ -19,6 +19,7 @@ package org.onosproject.store.primitives.impl;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +27,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.Set;
 
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
@@ -36,8 +36,7 @@ import org.onosproject.store.service.Synchronous;
 import org.onosproject.store.service.Versioned;
 
 /**
- * ConsistentMap implementation that is backed by a Raft consensus
- * based database.
+ * Default implementation of {@code ConsistentMap}.
  *
  * @param <K> type of key.
  * @param <V> type of value.
@@ -46,10 +45,10 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
 
     private static final int OPERATION_TIMEOUT_MILLIS = 5000;
 
-    private final DefaultAsyncConsistentMap<K, V> asyncMap;
+    private final AsyncConsistentMap<K, V> asyncMap;
     private Map<K, V> javaMap;
 
-    public DefaultConsistentMap(DefaultAsyncConsistentMap<K, V> asyncMap) {
+    public DefaultConsistentMap(AsyncConsistentMap<K, V> asyncMap) {
         super(asyncMap);
         this.asyncMap = asyncMap;
     }
@@ -169,6 +168,26 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
         return complete(asyncMap.replace(key, oldVersion, newValue));
     }
 
+    @Override
+    public void addListener(MapEventListener<K, V> listener) {
+        complete(asyncMap.addListener(listener));
+    }
+
+    @Override
+    public void removeListener(MapEventListener<K, V> listener) {
+        complete(asyncMap.addListener(listener));
+    }
+
+    @Override
+    public Map<K, V> asJavaMap() {
+        synchronized (this) {
+            if (javaMap == null) {
+                javaMap = new ConsistentMapBackedJavaMap<>(this);
+            }
+        }
+        return javaMap;
+    }
+
     private static <T> T complete(CompletableFuture<T> future) {
         try {
             return future.get(OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
@@ -184,25 +203,5 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
                 throw new ConsistentMapException(e.getCause());
             }
         }
-    }
-
-    @Override
-    public void addListener(MapEventListener<K, V> listener) {
-        asyncMap.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(MapEventListener<K, V> listener) {
-        asyncMap.addListener(listener);
-    }
-
-    @Override
-    public Map<K, V> asJavaMap() {
-        synchronized (this) {
-            if (javaMap == null) {
-                javaMap = new ConsistentMapBackedJavaMap<>(this);
-            }
-        }
-        return javaMap;
     }
 }

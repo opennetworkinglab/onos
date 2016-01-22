@@ -31,6 +31,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Timer;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -502,7 +503,7 @@ public class EventuallyConsistentMapImpl<K, V>
     }
 
     @Override
-    public void destroy() {
+    public CompletableFuture<Void> destroy() {
         destroyed = true;
 
         executor.shutdown();
@@ -513,6 +514,7 @@ public class EventuallyConsistentMapImpl<K, V>
 
         clusterCommunicator.removeSubscriber(updateMessageSubject);
         clusterCommunicator.removeSubscriber(antiEntropyAdvertisementSubject);
+        return CompletableFuture.completedFuture(null);
     }
 
     private void notifyListeners(EventuallyConsistentMapEvent<K, V> event) {

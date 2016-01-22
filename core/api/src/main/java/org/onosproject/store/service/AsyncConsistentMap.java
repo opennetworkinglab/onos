@@ -37,12 +37,12 @@ import java.util.function.Predicate;
  * a temporary disruption in network connectivity between participating nodes
  * or due to a node being temporarily down.
  * </p><p>
- * All values stored in this map are versioned and the API supports optimistic
- * concurrency by allowing conditional updates that take into consideration
- * the version or value that was previously read.
+ * All values stored in this map are {@link Versioned versioned} and the API
+ * supports optimistic concurrency by allowing conditional updates that take into
+ * consideration the version or value that was previously read.
  * </p><p>
  * This map does not allow null values. All methods can throw a ConsistentMapException
- * (which extends RuntimeException) to indicate failures.
+ * (which extends {@code RuntimeException}) to indicate failures.
  * <p>
  * All methods of this interface return a {@link CompletableFuture future} immediately
  * after a successful invocation. The operation itself is executed asynchronous and
@@ -54,6 +54,11 @@ public interface AsyncConsistentMap<K, V> extends DistributedPrimitive {
     @Override
     default DistributedPrimitive.Type type() {
         return DistributedPrimitive.Type.CONSISTENT_MAP;
+    }
+
+    @Override
+    default CompletableFuture<Void> destroy() {
+        return clear();
     }
 
     /**

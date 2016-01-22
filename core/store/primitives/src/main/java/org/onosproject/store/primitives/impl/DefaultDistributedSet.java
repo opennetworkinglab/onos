@@ -15,12 +15,6 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import org.onosproject.store.service.AsyncDistributedSet;
-import org.onosproject.store.service.ConsistentMapException;
-import org.onosproject.store.service.DistributedSet;
-import org.onosproject.store.service.SetEventListener;
-import org.onosproject.store.service.Synchronous;
-
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
@@ -28,6 +22,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import org.onosproject.store.service.AsyncDistributedSet;
+import org.onosproject.store.service.DistributedSet;
+import org.onosproject.store.service.SetEventListener;
+import org.onosproject.store.service.StorageException;
+import org.onosproject.store.service.Synchronous;
 
 /**
  * Implementation of {@link DistributedSet} that merely delegates to a {@link AsyncDistributedSet}
@@ -51,14 +51,14 @@ public class DefaultDistributedSet<E> extends Synchronous<AsyncDistributedSet<E>
             return future.get(OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new ConsistentMapException.Interrupted();
+            throw new StorageException.Interrupted();
         } catch (TimeoutException e) {
-            throw new ConsistentMapException.Timeout();
+            throw new StorageException.Timeout();
         } catch (ExecutionException e) {
-            if (e.getCause() instanceof ConsistentMapException) {
-                throw (ConsistentMapException) e.getCause();
+            if (e.getCause() instanceof StorageException) {
+                throw (StorageException) e.getCause();
             } else {
-                throw new ConsistentMapException(e.getCause());
+                throw new StorageException(e.getCause());
             }
         }
     }

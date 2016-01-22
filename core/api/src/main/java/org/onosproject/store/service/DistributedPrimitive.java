@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.service;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.onosproject.core.ApplicationId;
 
 /**
@@ -75,5 +77,16 @@ public interface DistributedPrimitive {
      */
     default ApplicationId applicationId() {
         return null;
+    }
+
+    /**
+     * Purges state associated with this primitive.
+     * <p>
+     * Implementations can override and provide appropriate clean up logic for purging
+     * any state state associated with the primitive. Whether modifications made within the
+     * destroy method have local or global visibility is left unspecified.
+     */
+    default CompletableFuture<Void> destroy() {
+        return CompletableFuture.completedFuture(null);
     }
 }

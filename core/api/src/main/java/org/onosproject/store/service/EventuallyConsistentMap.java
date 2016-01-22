@@ -201,12 +201,4 @@ public interface EventuallyConsistentMap<K, V> extends DistributedPrimitive {
      * @param listener listener to deregister for events
      */
     void removeListener(EventuallyConsistentMapListener<K, V> listener);
-
-    /**
-     * Shuts down the map and breaks communication between different instances.
-     * This allows the map objects to be cleaned up and garbage collected.
-     * Calls to any methods on the map subsequent to calling destroy() will
-     * throw a {@link java.lang.RuntimeException}.
-     */
-    void destroy();
 }

@@ -25,24 +25,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * A distributed, strongly consistent key-value map.
- * <p>
- * This map offers strong read-after-update (where update == create/update/delete)
- * consistency. All operations to the map are serialized and applied in a consistent
- * manner.
- * <p>
- * The stronger consistency comes at the expense of availability in
- * the event of a network partition. A network partition can be either due to
- * a temporary disruption in network connectivity between participating nodes
- * or due to a node being temporarily down.
- * </p><p>
- * All values stored in this map are versioned and the API supports optimistic
- * concurrency by allowing conditional updates that take into consideration
- * the version or value that was previously read.
- * </p><p>
- * This map does not allow null values. All methods can throw a ConsistentMapException
- * (which extends RuntimeException) to indicate failures.
+ * {@code ConsistentMap} provides the same functionality as {@link AsyncConsistentMap} with
+ * the only difference that all its methods block until the corresponding operation completes.
  *
+ * @param <K> type of key
+ * @param <V> type of value
  */
 public interface ConsistentMap<K, V> extends DistributedPrimitive {
 
