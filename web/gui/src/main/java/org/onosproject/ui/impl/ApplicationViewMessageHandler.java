@@ -60,13 +60,14 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
     private static final String ROLE = "role";
     private static final String REQUIRED_APPS = "_required_apps";
     private static final String FEATURES = "features";
+    private static final String PERMISSIONS = "permissions";
 
     private static final String ICON_ID_ACTIVE = "active";
     private static final String ICON_ID_INACTIVE = "appInactive";
 
     private static final String[] COL_IDS = {
             STATE, STATE_IID, ID, ICON, VERSION, CATEGORY, ORIGIN, DESC,
-            URL, README, ROLE, REQUIRED_APPS, FEATURES
+            URL, README, ROLE, REQUIRED_APPS, FEATURES, PERMISSIONS
     };
 
     @Override
@@ -169,6 +170,7 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
             data.put(CATEGORY, app.category());
             data.put(ORIGIN, app.origin());
             data.put(README, app.readme());
+            data.put(DESC, app.description());
             data.put(URL, app.url());
 
             // process required applications
@@ -182,6 +184,12 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
             app.features().forEach(f -> features.add(f));
 
             data.set(FEATURES, features);
+
+            // process permissions
+            ArrayNode permissions = arrayNode();
+            app.permissions().forEach(p -> permissions.add(p.getName()));
+
+            data.set(PERMISSIONS, permissions);
 
             ObjectNode rootNode = objectNode();
             rootNode.set(DETAILS, data);

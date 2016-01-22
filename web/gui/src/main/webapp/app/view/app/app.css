@@ -140,6 +140,19 @@
     border-color: #666;
 }
 
+#application-details-panel .middle hr {
+    width: 95%;
+    margin: 0 auto;
+}
+
+.light #application-details-panel hr {
+    opacity: .5;
+    border-color: #FFF;
+}
+.dark #application-details-panel hr {
+    border-color: #666;
+}
+
 #application-details-panel .bottom table {
     border-spacing: 0;
 }

@@ -29,6 +29,7 @@
          pStartY,
          pHeight,
          top,
+         middle,
          bottom,
          iconDiv,
          wSize = false;
@@ -39,7 +40,7 @@
         appMgmtReq = 'appManagementRequest',
         topPdg = 50,
         ctnrPdg = 24,
-        winWidth = 500,
+        tbWidth = 470,
         scrollSize = 17,
         pName = 'application-details-panel',
         detailsReq = 'appDetailsRequest',
@@ -102,19 +103,28 @@
         closeBtn = top.append('div').classed('close-btn', true);
         addCloseBtn(closeBtn);
         iconDiv = top.append('div').classed('dev-icon', true);
-        top.append('h2');
 
         tblDiv = top.append('div').classed('top-tables', true);
         tblDiv.append('div').classed('left', true).append('table');
         tblDiv.append('div').classed('right', true).append('table');
-        tblDiv.append('div').classed('readme', true).append('table');
+        tblDiv.append('div').classed('description', true).append('table');
 
         top.append('hr');
 
-        // TODO: need add required applications and features
+        middle = container.append('div').classed('middle', true);
+        tblDiv = middle.append('div').classed('middle-tables', true);
+        tblDiv.append('div').classed('readme', true).append('table');
+
+        middle.append('hr');
+
         bottom = container.append('div').classed('bottom', true);
-        bottom.append('h2');
-        bottom.append('table');
+        tblDiv = bottom.append('div').classed('bottom-tables', true).append('table');
+        tblDiv.append('h2').html('Features');
+        tblDiv.append('div').classed('features', true).append('table');
+        tblDiv.append('h2').html('Required Apps');
+        tblDiv.append('div').classed('required-apps', true).append('table');
+        tblDiv.append('h2').html('Permissions');
+        tblDiv.append('div').classed('permissions', true).append('table');
     }
 
     function addProp(tbody, index, value) {
@@ -133,7 +143,7 @@
         td.append('img').attr('src', iconUrlPrefix + value + iconUrlSuffix);
     }
 
-    function addReadme(tbody, value) {
+    function addContent(tbody, value) {
         var tr = tbody.append('tr');
         tr.append('td').html(value);
     }
@@ -145,7 +155,7 @@
             rightTbl = tblDiv.select('.right')
                         .select('table')
                         .append('tbody'),
-            readmeTbl = tblDiv.select('.readme')
+            descriptionTbl = tblDiv.select('.description')
                         .select('table')
                         .append('tbody');
 
@@ -159,8 +169,17 @@
             addProp(rightTbl, i, details[prop]);
         });
 
+        // place description field to the description table
+        addContent(descriptionTbl, details.desc);
+    }
+
+    function populateMiddle(tblDiv, details) {
+        var readmeTbl = tblDiv.select('.readme')
+                        .select('table')
+                        .append('tbody');
+
         // place readme field to the readme table
-        addReadme(readmeTbl, details.readme);
+        addContent(readmeTbl, details.readme);
     }
 
     function populateName(div, name) {
@@ -171,37 +190,54 @@
     }
 
     function populateDetails(details) {
-        var nameDiv, topTbs, btmTbl, ports;
+        var nameDiv, topTbs, middleTbs, bottomTbs;
         setUpPanel();
 
         nameDiv = top.select('.name-div');
         topTbs = top.select('.top-tables');
-        btmTbl = bottom.select('table');
+        middleTbs = middle.select('.middle-tables');
+        bottomTbs = bottom.select('.bottom-tables');
 
         populateName(nameDiv, details.name);
         populateTop(topTbs, details);
-        populateBottom(btmTbl);
+        populateMiddle(middleTbs, details);
+        populateBottom(bottomTbs, details);
 
         detailsPanel.height(pHeight);
     }
 
-    function populateBottom(table) {
-        var theader = table.append('thead').append('tr'),
-            tbody = table.append('tbody'),
-            tbWidth, tbHeight;
+    function addItem(tbody, item) {
+        var tr = tbody.append('tr').attr('width', tbWidth + 'px');
+        tr.append('td').attr('width', tbWidth + 'px')
+                       .attr('style', 'text-align:left').html(item);
+    }
 
-        tbWidth = fs.noPxStyle(tbody, 'width') + scrollSize;
-        tbHeight = pHeight
-                    - (fs.noPxStyle(detailsPanel.el()
-                                        .select('.top'), 'height'));
-        table.style({
-            height: tbHeight + 'px',
+    function addItems(table, items) {
+        var tbody = table.append('tbody');
+        items.forEach(function (item) {
+            addItem(tbody, item);
+        });
+    }
+
+    function populateBottom(tblDiv, details) {
+        var featuresTbl = tblDiv.select('.features')
+                                    .select('table'),
+            permissionsTbl = tblDiv.select('.permissions')
+                                    .select('table'),
+            requiredAppsTbl = tblDiv.select('.required-apps')
+                                    .select('table');
+
+        addItems(featuresTbl, details.features);
+        addItems(requiredAppsTbl, details._required_apps);
+        addItems(permissionsTbl, details.permissions);
+
+        featuresTbl.style({
             width: tbWidth + 'px',
             overflow: 'auto',
             display: 'block'
         });
 
-        detailsPanel.width(winWidth + ctnrPdg);
+        detailsPanel.width(tbWidth + ctnrPdg);
     }
 
     function respDetailsCb(data) {
