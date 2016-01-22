@@ -379,7 +379,7 @@ public class KryoSerializerTest {
     }
 
     @Test
-    public void testResourceKey() {
+    public void testResourceId() {
         testSerializedEquals(Resource.discrete(DID1, P1).id());
     }
 
