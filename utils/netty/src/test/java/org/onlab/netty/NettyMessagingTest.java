@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Uninterruptibles;
 
 import static org.junit.Assert.*;
+import static org.onlab.junit.TestTools.findAvailablePort;
 
 /**
  * Unit tests for NettyMessaging.
@@ -34,10 +35,12 @@ public class NettyMessagingTest {
 
     @Before
     public void setUp() throws Exception {
+        ep1 = new Endpoint(IpAddress.valueOf("127.0.0.1"), findAvailablePort(5001));
         netty1 = new NettyMessaging();
-        netty2 = new NettyMessaging();
-
         netty1.start(12, ep1);
+
+        ep2 = new Endpoint(IpAddress.valueOf("127.0.0.1"), findAvailablePort(5003));
+        netty2 = new NettyMessaging();
         netty2.start(12, ep2);
     }
 
