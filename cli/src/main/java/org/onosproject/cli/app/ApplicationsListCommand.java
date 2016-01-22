@@ -70,7 +70,7 @@ public class ApplicationsListCommand extends AbstractShellCommand {
                     if (shortOnly) {
                         print(SHORT_FMT, isActive ? "*" : " ",
                               app.id().id(), app.id().name(), app.version(),
-                              app.description());
+                              app.description().replaceAll("[\\r\\n]", " ").replaceAll(" +", " "));
                     } else {
                         print(FMT, isActive ? "*" : " ",
                               app.id().id(), app.id().name(), app.version(), app.origin(),
