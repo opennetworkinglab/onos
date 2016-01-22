@@ -158,6 +158,13 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     }
 
     @Override
+    public Collection<Resource> getRegisteredResources(Resource parent) {
+        checkNotNull(parent);
+
+        return store.getChildResources(parent);
+    }
+
+    @Override
     public boolean isAvailable(Resource resource) {
         checkNotNull(resource);
 

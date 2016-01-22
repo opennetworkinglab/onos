@@ -162,6 +162,15 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
     Collection<Resource> getAvailableResources(Resource parent);
 
     /**
+     * Returns resources registered under the specified resource.
+     *
+     * @param parent parent resource
+     * @return registered resources under the specified resource
+     */
+    Collection<Resource> getRegisteredResources(Resource parent);
+
+
+    /**
      * Returns the availability of the specified resource.
      *
      * @param resource resource to check the availability

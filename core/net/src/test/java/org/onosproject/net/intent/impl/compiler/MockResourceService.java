@@ -101,6 +101,11 @@ class MockResourceService implements ResourceService {
     }
 
     @Override
+    public Collection<Resource> getRegisteredResources(Resource parent) {
+        return getAvailableResources(parent);
+    }
+
+    @Override
     public boolean isAvailable(Resource resource) {
         return true;
     }
