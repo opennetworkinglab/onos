@@ -40,11 +40,8 @@
     padding: 2px 6px;
     margin: 4px;
     float: right;
+    /* color works for both light and dark themes */
+    background-color: #c55;
+    color: white;
 }
 
-.light .dialog .dialog-button {
-    background-color: #fec;
-}
-.dark .dialog .dialog-button {
-    background-color: #369;
-}
