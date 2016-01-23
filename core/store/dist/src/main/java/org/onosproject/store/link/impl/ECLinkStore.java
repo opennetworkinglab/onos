@@ -15,21 +15,6 @@
  */
 package org.onosproject.store.link.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.DefaultAnnotations.merge;
-import static org.onosproject.net.DefaultAnnotations.union;
-import static org.onosproject.net.Link.State.ACTIVE;
-import static org.onosproject.net.Link.State.INACTIVE;
-import static org.onosproject.net.Link.Type.DIRECT;
-import static org.onosproject.net.Link.Type.INDIRECT;
-import static org.onosproject.net.LinkKey.linkKey;
-import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
-import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
-import static org.onosproject.net.link.LinkEvent.Type.LINK_UPDATED;
-import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
-import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.REMOVE;
-import static org.slf4j.LoggerFactory.getLogger;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -48,6 +33,8 @@ import org.onlab.util.KryoNamespace;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.AnnotationsUtil;
@@ -56,8 +43,12 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.net.LinkKey;
 import org.onosproject.net.Link.Type;
+import org.onosproject.net.LinkKey;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DeviceClockService;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkDescription;
@@ -82,6 +73,22 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.DefaultAnnotations.merge;
+import static org.onosproject.net.DefaultAnnotations.union;
+import static org.onosproject.net.Link.State.ACTIVE;
+import static org.onosproject.net.Link.State.INACTIVE;
+import static org.onosproject.net.Link.Type.DIRECT;
+import static org.onosproject.net.Link.Type.INDIRECT;
+import static org.onosproject.net.LinkKey.linkKey;
+import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_UPDATED;
+import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.PUT;
+import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.REMOVE;
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Manages the inventory of links using a {@code EventuallyConsistentMap}.
  */
@@ -91,10 +98,28 @@ public class ECLinkStore
     extends AbstractStore<LinkEvent, LinkStoreDelegate>
     implements LinkStore {
 
+    /**
+     * Modes for dealing with newly discovered links.
+     */
+    protected enum LinkDiscoveryMode {
+        /**
+         * Permissive mode - all newly discovered links are valid.
+         */
+        PERMISSIVE,
+
+        /**
+         * Strict mode - all newly discovered links must be defined in
+         * the network config.
+         */
+        STRICT
+    }
+
     private final Logger log = getLogger(getClass());
 
     private final Map<LinkKey, Link> links = Maps.newConcurrentMap();
     private EventuallyConsistentMap<Provided<LinkKey>, LinkDescription> linkDescriptions;
+
+    private ApplicationId appId;
 
     private static final MessageSubject LINK_INJECT_MESSAGE = new MessageSubject("inject-link-request");
 
@@ -113,8 +138,19 @@ public class ECLinkStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry netCfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
     private EventuallyConsistentMapListener<Provided<LinkKey>, LinkDescription> linkTracker =
             new InternalLinkTracker();
+
+    // Listener for config changes
+    private final InternalConfigListener cfgListener = new InternalConfigListener();
+
+    protected LinkDiscoveryMode linkDiscoveryMode = LinkDiscoveryMode.STRICT;
 
     protected static final KryoSerializer SERIALIZER = new KryoSerializer() {
         @Override
@@ -129,6 +165,12 @@ public class ECLinkStore
 
     @Activate
     public void activate() {
+        appId = coreService.registerApplication("org.onosproject.core");
+        netCfgService.registerConfigFactory(factory);
+        netCfgService.addListener(cfgListener);
+
+        cfgListener.reconfigure(netCfgService.getConfig(appId, CoreConfig.class));
+
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(MastershipBasedTimestamp.class)
@@ -162,6 +204,8 @@ public class ECLinkStore
         linkDescriptions.destroy();
         links.clear();
         clusterCommunicator.removeSubscriber(LINK_INJECT_MESSAGE);
+        netCfgService.removeListener(cfgListener);
+        netCfgService.unregisterConfigFactory(factory);
 
         log.info("Stopped");
     }
@@ -255,6 +299,7 @@ public class ECLinkStore
                         current.src(),
                         current.dst(),
                         current.type() == DIRECT ? DIRECT : updated.type(),
+                        current.isExpected(),
                         union(current.annotations(), updated.annotations()));
         }
         return updated;
@@ -268,6 +313,7 @@ public class ECLinkStore
                 eventType.set(LINK_ADDED);
                 return newLink;
             } else if (existingLink.state() != newLink.state() ||
+                       existingLink.isExpected() != newLink.isExpected() ||
                         (existingLink.type() == INDIRECT && newLink.type() == DIRECT) ||
                         !AnnotationsUtil.isEqual(existingLink.annotations(), newLink.annotations())) {
                     eventType.set(LINK_UPDATED);
@@ -316,14 +362,28 @@ public class ECLinkStore
                                                           linkDescriptions.get(key).annotations()));
         });
 
-        boolean isDurable = Objects.equals(annotations.get().value(AnnotationKeys.DURABLE), "true");
+        Link.State initialLinkState;
+
+        boolean isExpected;
+        if (linkDiscoveryMode == LinkDiscoveryMode.PERMISSIVE) {
+            initialLinkState = ACTIVE;
+            isExpected =
+                    Objects.equals(annotations.get().value(AnnotationKeys.DURABLE), "true");
+        } else {
+            initialLinkState = base.isExpected() ? ACTIVE : INACTIVE;
+            isExpected = base.isExpected();
+        }
+
+
+
+
         return DefaultLink.builder()
                 .providerId(baseProviderId)
                 .src(src)
                 .dst(dst)
                 .type(type)
-                .state(ACTIVE)
-                .isExpected(isDurable)
+                .state(initialLinkState)
+                .isExpected(isExpected)
                 .annotations(annotations.get())
                 .build();
     }
@@ -350,7 +410,7 @@ public class ECLinkStore
             return null;
         }
 
-        if (link.isDurable()) {
+        if (linkDiscoveryMode == LinkDiscoveryMode.PERMISSIVE && link.isExpected()) {
             // FIXME: this will not sync link state!!!
             return link.state() == INACTIVE ? null :
                     updateLink(linkKey(link.src(), link.dst()), link,
@@ -421,4 +481,47 @@ public class ECLinkStore
             }
         }
     }
+
+    private class InternalConfigListener implements NetworkConfigListener {
+
+        void reconfigure(CoreConfig coreConfig) {
+            if (coreConfig == null) {
+                linkDiscoveryMode = LinkDiscoveryMode.PERMISSIVE;
+            } else {
+                linkDiscoveryMode = coreConfig.linkDiscoveryMode();
+            }
+            if (linkDiscoveryMode == LinkDiscoveryMode.STRICT) {
+                // Remove any previous links to force them to go through the strict
+                // discovery process
+                linkDescriptions.clear();
+                links.clear();
+            }
+            log.debug("config set link discovery mode to {}",
+                      linkDiscoveryMode.name());
+        }
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+
+            if ((event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                    event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED) &&
+                    event.configClass().equals(CoreConfig.class)) {
+
+                CoreConfig cfg = netCfgService.getConfig(appId, CoreConfig.class);
+                reconfigure(cfg);
+                log.info("Reconfigured");
+            }
+        }
+    }
+
+    // Configuration properties factory
+    private final ConfigFactory factory =
+            new ConfigFactory<ApplicationId, CoreConfig>(APP_SUBJECT_FACTORY,
+                                                        CoreConfig.class,
+                                                        "core") {
+                @Override
+                public CoreConfig createConfig() {
+                    return new CoreConfig();
+                }
+            };
 }

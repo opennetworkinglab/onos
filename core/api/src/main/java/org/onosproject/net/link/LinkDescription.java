@@ -45,5 +45,12 @@ public interface LinkDescription extends Description {
      */
     Link.Type type();
 
+    /**
+     * Returns true if the link is expected, false otherwise.
+     *
+     * @return expected flag
+     */
+    boolean isExpected();
+
     // Add further link attributes
 }

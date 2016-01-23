@@ -15,12 +15,20 @@
  */
 package org.onosproject.store.link.impl;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -32,7 +40,6 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
-import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.AnnotationsUtil;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
@@ -60,20 +67,12 @@ import org.onosproject.store.serializers.KryoSerializer;
 import org.onosproject.store.serializers.custom.DistributedStoreSerializers;
 import org.slf4j.Logger;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
@@ -433,7 +432,9 @@ public class GossipLinkStore
                     new DefaultLinkDescription(
                         linkDescription.value().src(),
                         linkDescription.value().dst(),
-                        newType, merged),
+                        newType,
+                        existingLinkDescription.value().isExpected(),
+                        merged),
                     linkDescription.timestamp());
         }
         return descs.put(providerId, newLinkDescription);
@@ -608,14 +609,17 @@ public class GossipLinkStore
             annotations = merge(annotations, e.getValue().value().annotations());
         }
 
-        boolean isDurable = Objects.equals(annotations.value(AnnotationKeys.DURABLE), "true");
+        //boolean isDurable = Objects.equals(annotations.value(AnnotationKeys.DURABLE), "true");
+
+        // TEMP
+        Link.State initialLinkState = base.value().isExpected() ? ACTIVE : INACTIVE;
         return DefaultLink.builder()
                 .providerId(baseProviderId)
                 .src(src)
                 .dst(dst)
                 .type(type)
-                .state(ACTIVE)
-                .isExpected(isDurable)
+                .state(initialLinkState)
+                .isExpected(base.value().isExpected())
                 .annotations(annotations)
                 .build();
     }

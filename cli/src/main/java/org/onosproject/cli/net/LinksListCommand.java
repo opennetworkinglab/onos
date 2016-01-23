@@ -35,7 +35,7 @@ import static org.onosproject.net.DeviceId.deviceId;
          description = "Lists all infrastructure links")
 public class LinksListCommand extends AbstractShellCommand {
 
-    private static final String FMT = "src=%s/%s, dst=%s/%s, type=%s, state=%s%s";
+    private static final String FMT = "src=%s/%s, dst=%s/%s, type=%s, state=%s%s, expected=%s";
     private static final String COMPACT = "%s/%s-%s/%s";
 
     @Argument(index = 0, name = "uri", description = "Device ID",
@@ -93,7 +93,8 @@ public class LinksListCommand extends AbstractShellCommand {
         return String.format(FMT, link.src().deviceId(), link.src().port(),
                              link.dst().deviceId(), link.dst().port(),
                              link.type(), link.state(),
-                             annotations(link.annotations()));
+                             annotations(link.annotations()),
+                             link.isExpected());
     }
 
     /**

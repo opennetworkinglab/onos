@@ -301,8 +301,12 @@
         return linkTypePres[d.type()] || d.type();
     }
 
+    function linkExpected(d) {
+        return d.expected();
+    }
+
     var coreOrder = [
-            'Type', '-',
+            'Type', 'Expected', '-',
             'A_type', 'A_id', 'A_label', 'A_port', '-',
             'B_type', 'B_id', 'B_label', 'B_port', '-'
         ],
@@ -332,6 +336,7 @@
             propOrder: order,
             props: {
                 Type: linkType(data),
+                Expected: linkExpected(data),
 
                 A_type: data.source.class,
                 A_id: data.source.id,

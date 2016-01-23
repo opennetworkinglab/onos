@@ -119,7 +119,8 @@ public class DefaultLink extends AbstractProjectableModel implements Link {
             final DefaultLink other = (DefaultLink) obj;
             return Objects.equals(this.src, other.src) &&
                     Objects.equals(this.dst, other.dst) &&
-                    Objects.equals(this.type, other.type);
+                    Objects.equals(this.type, other.type) &&
+                    Objects.equals(this.isExpected, other.isExpected);
         }
         return false;
     }

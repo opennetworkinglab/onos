@@ -526,6 +526,12 @@ html[data-platform='iPad'] #topo-p-detail {
     opacity: .5;
     stroke-dasharray: 8 4;
 }
+/* FIXME: Review for not-permitted links */
+#ov-topo svg .link.not-permitted {
+    stroke: rgb(255,0,0);
+    stroke-width: 5.0;
+    stroke-dasharray: 8 4;
+}
 
 #ov-topo svg .link.secondary {
     stroke-width: 3px;

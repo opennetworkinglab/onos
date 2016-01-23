@@ -278,6 +278,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         ObjectNode payload = objectNode()
                 .put("id", compactLinkString(link))
                 .put("type", link.type().toString().toLowerCase())
+                .put("expected", link.isExpected())
                 .put("online", link.state() == Link.State.ACTIVE)
                 .put("linkWidth", 1.2)
                 .put("src", link.src().deviceId().toString())

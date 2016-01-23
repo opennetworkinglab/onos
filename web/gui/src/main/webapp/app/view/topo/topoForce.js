@@ -323,7 +323,8 @@
             .domain([1, 12])
             .range([widthRatio, 12 * widthRatio])
             .clamp(true),
-        allLinkTypes = 'direct indirect optical tunnel';
+        allLinkTypes = 'direct indirect optical tunnel',
+        allLinkSubTypes = 'inactive not-permitted';
 
     function restyleLinkElement(ldata, immediate) {
         // this fn's job is to look at raw links and decide what svg classes
@@ -333,6 +334,7 @@
             type = ldata.type(),
             lw = ldata.linkWidth(),
             online = ldata.online(),
+            modeCls = ldata.expected() ? 'inactive' : 'not-permitted',
             delay = immediate ? 0 : 1000;
 
         // FIXME: understand why el is sometimes undefined on addLink events...
@@ -343,7 +345,8 @@
         // a more efficient way to fix it.
         if (el && !el.empty()) {
             el.classed('link', true);
-            el.classed('inactive', !online);
+            el.classed(allLinkSubTypes, false);
+            el.classed(modeCls, !online);
             el.classed(allLinkTypes, false);
             if (type) {
                 el.classed(type, true);

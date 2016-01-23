@@ -43,6 +43,7 @@
         <module>bgp</module>
         <module>snmp</module>
         <module>rest</module>
+        <module>netcfglinks</module>
     </modules>
 
     <dependencies>
