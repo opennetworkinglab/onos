@@ -186,6 +186,7 @@ public class BgpAppConfig extends Config<ApplicationId> {
     /**
      * Validates the Bgp peer As number.
      *
+     * @param remoteAs remote As number
      * @return true if valid else false
      */
     public boolean validateRemoteAs(long remoteAs) {
@@ -218,6 +219,7 @@ public class BgpAppConfig extends Config<ApplicationId> {
     /**
      * Validates the Bgp peer holdTime.
      *
+     * @param remoteAs remote As number
      * @return true if valid else false
      */
     public boolean validatePeerHoldTime(long remoteAs) {

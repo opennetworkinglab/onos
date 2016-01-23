@@ -43,6 +43,7 @@ public class AccessDeviceData {
      * @param deviceId access device ID
      * @param uplink uplink port number
      * @param vlan device VLAN ID
+     * @param defaultVlan default device VLAN ID
      */
     public AccessDeviceData(DeviceId deviceId, PortNumber uplink, VlanId vlan,
                             Optional<VlanId> defaultVlan) {

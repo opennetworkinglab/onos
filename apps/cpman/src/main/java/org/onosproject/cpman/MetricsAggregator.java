@@ -45,8 +45,9 @@ public class MetricsAggregator {
      * Instantiates the metrics service
      * Initializes all the general metrics for that object
      *
-     * @param type      Control metric type
-     * @param deviceId  DeviceId
+     * @param metricsService MetricsService reference
+     * @param type           Control metric type
+     * @param deviceId       DeviceId
      */
     MetricsAggregator(MetricsService metricsService, ControlMetricType type, Optional<DeviceId> deviceId) {
         String primitiveName = type.toString();

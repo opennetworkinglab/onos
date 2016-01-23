@@ -34,6 +34,7 @@ public class ExtensionCriterion implements Criterion {
      * Constructor.
      *
      * @param extensionSelector extension selector
+     * @param deviceId          device identification
      */
     public ExtensionCriterion(ExtensionSelector extensionSelector, DeviceId deviceId) {
         this.extensionSelector = extensionSelector;

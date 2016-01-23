@@ -53,6 +53,7 @@ public final class CordService {
      * Default constructor.
      *
      * @param vNet OpenStack network
+     * @param subnet OpenStack subnet
      * @param hosts host and tunnel ip map
      * @param tenantServices list of tenant service ids
      */

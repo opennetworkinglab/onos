@@ -35,6 +35,7 @@ public interface InterfaceAdminService {
      *
      * @param connectPoint connect point of the interface
      * @param name name of the interface
+     * @return the result of removal
      */
     boolean remove(ConnectPoint connectPoint, String name);
 }

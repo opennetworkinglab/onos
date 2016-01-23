@@ -40,6 +40,9 @@ public class OltWebResource extends AbstractWebResource {
     /**
      * Provision a subscriber.
      *
+     * @param device device id
+     * @param port port number
+     * @param vlan vlan id
      * @return 200 OK
      */
     @POST
@@ -60,6 +63,10 @@ public class OltWebResource extends AbstractWebResource {
 
     /**
      * Remove the provisioning for a subscriber.
+     *
+     * @param device device id
+     * @param port port number
+     * @return 200 OK
      */
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)

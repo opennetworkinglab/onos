@@ -40,6 +40,7 @@ public interface AsyncDistributedSet<E> extends DistributedPrimitive {
      * the set is updated.
      *
      * @param listener listener to notify about set update events
+     * @return CompletableFuture that is completed when the operation completes
      */
     CompletableFuture<Void> addListener(SetEventListener<E> listener);
 
@@ -79,6 +80,7 @@ public interface AsyncDistributedSet<E> extends DistributedPrimitive {
 
     /**
      * Removes all elements from the set.
+     * @return CompletableFuture that is completed when the operation completes
      */
     CompletableFuture<Void> clear();
 

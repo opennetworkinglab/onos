@@ -40,6 +40,7 @@ public class PartitionId implements Comparable<PartitionId> {
      * Creates a partition identifier from an integer.
      *
      * @param id input integer
+     * @return partition identification
      */
     public static PartitionId from(int id) {
         return new PartitionId(id);

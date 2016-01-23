@@ -96,6 +96,7 @@ public class MetersWebResource extends AbstractWebResource {
      * Returns a meter by the meter id.
      *
      * @param deviceId device identifier
+     * @param meterId meter identifier
      * @return a meter, return 404 if no entry has been found
      * @onos.rsModel Meter
      */

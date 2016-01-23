@@ -31,6 +31,7 @@ public interface ControlPlaneMonitorService {
      *
      * @param controlMetric  control plane metric (e.g., control message rate, cpu, memory, etc.)
      * @param updateInterval value update interval (time unit will be in minute)
+     * @param deviceId       {@link org.onosproject.net.DeviceId}
      */
     void updateMetric(ControlMetric controlMetric, int updateInterval, Optional<DeviceId> deviceId);
 

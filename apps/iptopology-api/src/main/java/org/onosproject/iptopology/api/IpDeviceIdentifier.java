@@ -34,6 +34,7 @@ public class IpDeviceIdentifier {
     /**
      * Constructor to initialize parameters.
      *
+     * @param routeDish routing distinguisher instance
      * @param routeInstance routing protocol instance
      * @param asNum AS number
      * @param domainIdentifier BGP-LS domain

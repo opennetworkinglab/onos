@@ -19,6 +19,8 @@ public class HopCountLinkWeight implements LinkWeight {
 
     /**
      * Creates a new hop-count weight with the specified cost of indirect links.
+     *
+     * @param indirectLinkCost indirect link cost
      */
     public HopCountLinkWeight(int indirectLinkCost) {
         this.indirectLinkCost = indirectLinkCost;

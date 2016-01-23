@@ -150,6 +150,7 @@ public class EventuallyConsistentMapImpl<K, V>
      * @param antiEntropyTimeUnit   time unit for anti-entropy period
      * @param convergeFaster        make anti-entropy try to converge faster
      * @param persistent            persist data to disk
+     * @param persistenceService    persistence service
      */
     EventuallyConsistentMapImpl(String mapName,
                                 ClusterService clusterService,

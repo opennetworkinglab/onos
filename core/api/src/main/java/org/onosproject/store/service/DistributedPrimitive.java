@@ -71,6 +71,7 @@ public interface DistributedPrimitive {
 
     /**
      * Returns the application owning this primitive.
+     * @return application id
      */
     default ApplicationId applicationId() {
         return null;

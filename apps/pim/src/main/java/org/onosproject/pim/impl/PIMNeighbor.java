@@ -57,6 +57,7 @@ public class PIMNeighbor {
      * Construct a new PIM Neighbor.
      *
      * @param ipAddr the IP Address of our new neighbor
+     * @param opts option map
      */
     public PIMNeighbor(IpAddress ipAddr, Map<Short, PIMHelloOption> opts) {
         this.ipAddr = ipAddr;
@@ -67,6 +68,7 @@ public class PIMNeighbor {
      * Construct a new PIM neighbor.
      *
      * @param ipAddr the neighbors IP addr
+     * @param macAddr MAC address
      */
     public PIMNeighbor(IpAddress ipAddr, MacAddress macAddr) {
         this.ipAddr = ipAddr;

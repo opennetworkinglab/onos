@@ -36,6 +36,7 @@ public class DefaultIpLink extends AbstractModel implements IpLink {
     /**
      * Constructor to initialize its parameters.
      *
+     * @param providerId     provider identification
      * @param src            link source termination point
      * @param dst            link destination termination point
      * @param linkIdentifier provides link identifier details

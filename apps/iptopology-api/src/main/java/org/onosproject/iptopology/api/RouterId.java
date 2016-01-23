@@ -29,7 +29,8 @@ public class RouterId implements RouteIdentifier {
     /**
      * Constructor to initialize its parameters.
      *
-     * @param routerId Router ID of designated router
+     * @param routerId  Router ID of designated router
+     * @param type      protocol type
      */
     public RouterId(int routerId, ProtocolType type) {
         this.routerId = routerId;

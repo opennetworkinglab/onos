@@ -108,7 +108,7 @@ public final class BgpSelectionAlgo implements Comparator<PathAttrNlriDetailsLoc
      *
      * @param obj1Size object1 AS count
      * @param obj2Size object2 AS count
-     * @return
+     * @return object with shortest AsPath
      */
     int compareAsPath(Integer obj1Size, Integer obj2Size) {
             return obj1Size.compareTo(obj2Size);

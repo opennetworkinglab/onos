@@ -34,13 +34,14 @@ public interface OpenstackSwitchingService {
     /**
      * Removes flow rules corresponding to the port removed by Openstack.
      *
+     * @param uuid UUID
      */
     void deletePort(String uuid);
 
     /**
      * Updates flow rules corresponding to the port information updated by Openstack.
      *
-     * @param openstackPort
+     * @param openstackPort OpenStack port
      */
     void updatePort(OpenstackPort openstackPort);
 

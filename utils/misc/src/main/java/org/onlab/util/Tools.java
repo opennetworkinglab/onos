@@ -213,6 +213,8 @@ public abstract class Tools {
 
     /**
      * Returns the UTF-8 encoded byte[] representation of a String.
+     * @param input input string
+     * @return UTF-8 encoded byte array
      */
     public static byte[] getBytesUtf8(String input) {
         return input.getBytes(Charsets.UTF_8);
@@ -220,6 +222,8 @@ public abstract class Tools {
 
     /**
      * Returns the String representation of UTF-8 encoded byte[].
+     * @param input input byte array
+     * @return UTF-8 encoded string
      */
     public static String toStringUtf8(byte[] input) {
         return new String(input, Charsets.UTF_8);

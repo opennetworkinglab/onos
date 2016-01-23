@@ -116,10 +116,10 @@ public interface DhcpStore {
     Iterable<Ip4Address> getAvailableIPs();
 
     /**
+     * Returns IpAssignment from map.
      *
-     *
-     * @param hostId
-     * @return
+     * @param hostId host identification
+     * @return IpAssignment
      */
     IpAssignment getIpAssignmentFromAllocationMap(HostId hostId);
 }

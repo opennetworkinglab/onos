@@ -61,6 +61,7 @@ public class EventuallyConsistentMapBuilderImpl<K, V>
      *
      * @param clusterService cluster service
      * @param clusterCommunicator cluster communication service
+     * @param persistenceService persistence service
      */
     public EventuallyConsistentMapBuilderImpl(ClusterService clusterService,
                                               ClusterCommunicationService clusterCommunicator,

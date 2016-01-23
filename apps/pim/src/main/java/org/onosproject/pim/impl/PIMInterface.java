@@ -94,7 +94,8 @@ public class PIMInterface {
     /**
      * Set the ONOS Interface, it will override a previous value.
      *
-     * @param intf ONOS Interface.
+     * @param intf ONOS Interface
+     * @return PIM interface instance
      */
     public PIMInterface setInterface(Interface intf) {
         onosInterface = intf;
