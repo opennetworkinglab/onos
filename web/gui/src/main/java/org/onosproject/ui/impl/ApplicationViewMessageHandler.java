@@ -58,7 +58,7 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
     private static final String URL = "url";
     private static final String README = "readme";
     private static final String ROLE = "role";
-    private static final String REQUIRED_APPS = "_required_apps";
+    private static final String REQUIRED_APPS = "required_apps";
     private static final String FEATURES = "features";
     private static final String PERMISSIONS = "permissions";
 
@@ -175,13 +175,13 @@ public class ApplicationViewMessageHandler extends UiMessageHandler {
 
             // process required applications
             ArrayNode requiredApps = arrayNode();
-            app.requiredApps().forEach(s -> requiredApps.add(s));
+            app.requiredApps().forEach(requiredApps::add);
 
             data.set(REQUIRED_APPS, requiredApps);
 
             // process features
             ArrayNode features = arrayNode();
-            app.features().forEach(f -> features.add(f));
+            app.features().forEach(features::add);
 
             data.set(FEATURES, features);
 
