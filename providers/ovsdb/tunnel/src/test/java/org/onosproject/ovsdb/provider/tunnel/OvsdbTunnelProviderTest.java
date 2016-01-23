@@ -55,6 +55,13 @@ public class OvsdbTunnelProviderTest {
     private final TestTunnelRegistry tunnelRegistry = new TestTunnelRegistry();
     private TestTunnelProviderService providerService;
 
+    Link link = DefaultLink.builder()
+            .providerId(this.provider.id())
+            .src(ConnectPoint.deviceConnectPoint("192.168.2.3/20"))
+            .dst(ConnectPoint.deviceConnectPoint("192.168.2.4/30"))
+            .type(Link.Type.DIRECT)
+            .build();
+
     @Before
     public void setUp() {
         provider.providerRegistry = tunnelRegistry;
@@ -75,11 +82,7 @@ public class OvsdbTunnelProviderTest {
                 .valueOf("192.168.1.3"));
         SparseAnnotations annotations = DefaultAnnotations.builder()
                 .set("bandwidth", "1024").build();
-        Link link = new DefaultLink(
-                                    this.provider.id(),
-                                    ConnectPoint.deviceConnectPoint("192.168.2.3/20"),
-                                    ConnectPoint.deviceConnectPoint("192.168.2.4/30"),
-                                    Link.Type.DIRECT);
+
         List<Link> links = new ArrayList<Link>();
         links.add(link);
         TunnelDescription tunnel = new DefaultTunnelDescription(
@@ -104,11 +107,7 @@ public class OvsdbTunnelProviderTest {
                 .valueOf("192.168.1.3"));
         SparseAnnotations annotations = DefaultAnnotations.builder()
                 .set("bandwidth", "1024").build();
-        Link link = new DefaultLink(
-                                    this.provider.id(),
-                                    ConnectPoint.deviceConnectPoint("192.168.2.3/20"),
-                                    ConnectPoint.deviceConnectPoint("192.168.2.4/30"),
-                                    Link.Type.DIRECT);
+
         List<Link> links = new ArrayList<Link>();
         links.add(link);
         TunnelDescription tunnel = new DefaultTunnelDescription(

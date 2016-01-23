@@ -480,9 +480,12 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
 
     // Short-hand for creating a link.
     private Link link(PcepDpid src, long sp, PcepDpid dst, long dp) {
-        return new DefaultLink(id(), connectPoint(src, sp), connectPoint(dst,
-                                                                         dp),
-                               Link.Type.TUNNEL);
+        return DefaultLink.builder()
+                .providerId(id())
+                .src(connectPoint(src, sp))
+                .dst(connectPoint(dst, dp))
+                .type(Link.Type.TUNNEL)
+                .build();
     }
 
     // Creates a path that leads through the given devices.
@@ -1132,7 +1135,12 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
                     } else {
                         IpAddress dstIp = IpAddress.valueOf(ipv4SubObj.getIpAddress());
                         dst = new ConnectPoint(IpElementId.ipElement(dstIp), PortNumber.portNumber(0));
-                        Link link = new DefaultLink(providerId, src, dst, Link.Type.DIRECT, EMPTY);
+                        Link link = DefaultLink.builder()
+                                .providerId(providerId)
+                                .src(src)
+                                .dst(dst)
+                                .type(Link.Type.DIRECT)
+                                .build();
                         links.add(link);
                         src = dst;
                     }

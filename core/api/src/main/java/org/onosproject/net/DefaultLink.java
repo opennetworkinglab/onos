@@ -21,6 +21,9 @@ import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onosproject.net.Link.State.ACTIVE;
+import static org.onosproject.net.DefaultAnnotations.EMPTY;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 
 /**
  * Default infrastructure link model implementation.
@@ -42,7 +45,7 @@ public class DefaultLink extends AbstractModel implements Link {
      * @param type        link type
      * @param annotations optional key/value annotations
      */
-    public DefaultLink(ProviderId providerId, ConnectPoint src, ConnectPoint dst,
+    protected DefaultLink(ProviderId providerId, ConnectPoint src, ConnectPoint dst,
                        Type type, Annotations... annotations) {
         this(providerId, src, dst, type, ACTIVE, false, annotations);
     }
@@ -60,7 +63,7 @@ public class DefaultLink extends AbstractModel implements Link {
      * @param isExpected   indicates if the link is preconfigured
      * @param annotations optional key/value annotations
      */
-    public DefaultLink(ProviderId providerId, ConnectPoint src, ConnectPoint dst,
+    private DefaultLink(ProviderId providerId, ConnectPoint src, ConnectPoint dst,
                            Type type, State state,
                            boolean isExpected, Annotations... annotations) {
         super(providerId, annotations);
@@ -129,8 +132,130 @@ public class DefaultLink extends AbstractModel implements Link {
                 .add("dst", dst)
                 .add("type", type)
                 .add("state", state)
-                .add("configured", isExpected)
+                .add("expected", isExpected)
                 .toString();
     }
+
+    /**
+     * Creates a new default link builder.
+     *
+     * @return default link builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for DefaultLink objects.
+     */
+    public static final class Builder {
+        private ProviderId providerId;
+        private Annotations annotations = EMPTY;
+        private ConnectPoint src;
+        private ConnectPoint dst;
+        private Type type;
+        private State state = ACTIVE;
+        private boolean isExpected = false;
+
+        private Builder() {
+            // Hide constructor
+        }
+
+        /**
+         * Sets the providerId to be used by the builder.
+         *
+         * @param providerId new provider id
+         * @return self
+         */
+        public Builder providerId(ProviderId providerId) {
+            this.providerId = providerId;
+            return this;
+        }
+
+        /**
+         * Sets the annotations to be used by the builder.
+         *
+         * @param annotations new annotations
+         * @return self
+         */
+        public Builder annotations(Annotations annotations) {
+            this.annotations = annotations;
+            return this;
+        }
+
+        /**
+         * Sets the source connect point to be used by the builder.
+         *
+         * @param src source connect point
+         * @return self
+         */
+        public Builder src(ConnectPoint src) {
+            this.src = src;
+            return this;
+        }
+
+        /**
+         * Sets the destination connect point to be used by the builder.
+         *
+         * @param dst new destination connect point
+         * @return self
+         */
+        public Builder dst(ConnectPoint dst) {
+            this.dst = dst;
+            return this;
+        }
+
+        /**
+         * Sets the link type to be used by the builder.
+         *
+         * @param type new link type
+         * @return self
+         */
+        public Builder type(Type type) {
+            this.type = type;
+            return this;
+        }
+
+        /**
+         * Sets the link state to be used by the builder.
+         *
+         * @param state new link state
+         * @return self
+         */
+        public Builder state(State state) {
+            this.state = state;
+            return this;
+        }
+
+        /**
+         * Sets the expected flag to be used by the builder.
+         *
+         * @param isExpected new expected flag
+         * @return self
+         */
+        public Builder isExpected(boolean isExpected) {
+            this.isExpected = isExpected;
+            return this;
+        }
+
+        /**
+         * Builds a default link object from the accumulated parameters.
+         *
+         * @return default link object
+         */
+        public DefaultLink build() {
+            checkNotNull(src, "Source connect point cannot be null");
+            checkNotNull(dst, "Destination connect point cannot be null");
+            checkNotNull(type, "Type cannot be null");
+            checkNotNull(providerId, "Provider Id cannot be null");
+
+            return new DefaultLink(providerId, src, dst,
+                                   type, state,
+                                   isExpected, annotations);
+        }
+
+    }
+
+
 
 }

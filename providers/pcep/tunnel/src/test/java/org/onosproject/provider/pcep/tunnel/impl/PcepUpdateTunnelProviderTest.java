@@ -83,7 +83,8 @@ public class PcepUpdateTunnelProviderTest {
 
         ConnectPoint dst = new ConnectPoint(dstElementId, PortNumber.portNumber(10023));
 
-        Link link = new DefaultLink(pid, src, dst, Link.Type.DIRECT, EMPTY);
+        Link link = DefaultLink.builder().providerId(pid).src(src).dst(dst)
+                .type(Link.Type.DIRECT).build();
         links.add(link);
 
         path = new DefaultPath(pid, links, 20, EMPTY);

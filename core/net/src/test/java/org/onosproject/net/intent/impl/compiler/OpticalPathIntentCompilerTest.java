@@ -64,8 +64,8 @@ public class OpticalPathIntentCompilerTest {
     private final ConnectPoint d3p1 = connectPoint("s3", 1);
 
     private final List<Link> links = Arrays.asList(
-            new DefaultLink(PID, d1p1, d2p0, DIRECT),
-            new DefaultLink(PID, d2p1, d3p1, DIRECT)
+            DefaultLink.builder().providerId(PID).src(d1p1).dst(d2p0).type(DIRECT).build(),
+            DefaultLink.builder().providerId(PID).src(d2p1).dst(d3p1).type(DIRECT).build()
     );
     private final int hops = links.size() + 1;
     private OpticalPathIntent intent;

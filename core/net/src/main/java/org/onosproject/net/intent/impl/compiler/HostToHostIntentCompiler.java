@@ -88,8 +88,13 @@ public class HostToHostIntentCompiler
 
     // Produces a reverse variant of the specified link.
     private Link reverseLink(Link link) {
-        return new DefaultLink(link.providerId(), link.dst(), link.src(),
-                               link.type(), link.state(), link.isDurable());
+        return DefaultLink.builder().providerId(link.providerId())
+                .src(link.dst())
+                .dst(link.src())
+                .type(link.type())
+                .state(link.state())
+                .isExpected(link.isExpected())
+                .build();
     }
 
     // Creates a path intent from the specified path and original connectivity intent.

@@ -65,9 +65,9 @@ public class LinkCollectionIntentCompilerTest {
     private final ConnectPoint d1p0 = connectPoint("s1", 10);
 
     private final Set<Link> links = ImmutableSet.of(
-            new DefaultLink(PID, d1p1, d2p0, DIRECT),
-            new DefaultLink(PID, d2p1, d3p1, DIRECT),
-            new DefaultLink(PID, d1p1, d3p1, DIRECT));
+            DefaultLink.builder().providerId(PID).src(d1p1).dst(d2p0).type(DIRECT).build(),
+            DefaultLink.builder().providerId(PID).src(d2p1).dst(d3p1).type(DIRECT).build(),
+            DefaultLink.builder().providerId(PID).src(d1p1).dst(d3p1).type(DIRECT).build());
 
     private final TrafficSelector selector = DefaultTrafficSelector.builder().build();
     private final TrafficTreatment treatment = DefaultTrafficTreatment.builder().build();

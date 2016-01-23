@@ -361,11 +361,15 @@ public class GossipLinkStore
             // FIXME: this is not the right thing to call for the gossip store; will not sync link state!!!
             return link.state() == INACTIVE ? null :
                     updateLink(linkKey(link.src(), link.dst()), link,
-                               new DefaultLink(link.providerId(),
-                                               link.src(), link.dst(),
-                                               link.type(), INACTIVE,
-                                               link.isDurable(),
-                                               link.annotations()));
+                               DefaultLink.builder()
+                                    .providerId(link.providerId())
+                                    .src(link.src())
+                                    .dst(link.dst())
+                                    .type(link.type())
+                                    .state(INACTIVE)
+                                    .isExpected(link.isExpected())
+                                    .annotations(link.annotations())
+                                    .build());
         }
         return removeLink(src, dst);
     }
@@ -605,7 +609,15 @@ public class GossipLinkStore
         }
 
         boolean isDurable = Objects.equals(annotations.value(AnnotationKeys.DURABLE), "true");
-        return new DefaultLink(baseProviderId, src, dst, type, ACTIVE, isDurable, annotations);
+        return DefaultLink.builder()
+                .providerId(baseProviderId)
+                .src(src)
+                .dst(dst)
+                .type(type)
+                .state(ACTIVE)
+                .isExpected(isDurable)
+                .annotations(annotations)
+                .build();
     }
 
     private Map<ProviderId, Timestamped<LinkDescription>> getOrCreateLinkDescriptions(LinkKey key) {

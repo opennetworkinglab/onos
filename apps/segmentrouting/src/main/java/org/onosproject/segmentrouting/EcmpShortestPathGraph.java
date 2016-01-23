@@ -342,8 +342,13 @@ public class EcmpShortestPathGraph {
 
     private Link copyDefaultLink(Link link) {
         DefaultLink src = (DefaultLink) link;
-        DefaultLink defaultLink = new DefaultLink(src.providerId(), src.src(),
-                src.dst(), src.type(), src.annotations());
+        DefaultLink defaultLink = DefaultLink.builder()
+                .providerId(src.providerId())
+                .src(src.src())
+                .dst(src.dst())
+                .type(src.type())
+                .annotations(src.annotations())
+                .build();
 
         return defaultLink;
     }

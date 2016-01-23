@@ -62,8 +62,19 @@ public class WaypointConstraintTest {
     public void setUp() {
         linkResourceService = createMock(LinkResourceService.class);
 
-        link1 = new DefaultLink(PROVIDER_ID, cp(DID1, PN1), cp(DID2, PN2), DIRECT);
-        link2 = new DefaultLink(PROVIDER_ID, cp(DID2, PN3), cp(DID3, PN4), DIRECT);
+        link1 = DefaultLink.builder()
+                .providerId(PROVIDER_ID)
+                .src(cp(DID1, PN1))
+                .dst(cp(DID2, PN2))
+                .type(DIRECT)
+                .build();
+        link2 = DefaultLink.builder()
+                .providerId(PROVIDER_ID)
+                .src(cp(DID2, PN3))
+                .dst(cp(DID3, PN4))
+                .type(DIRECT)
+                .build();
+
         path = new DefaultPath(PROVIDER_ID, Arrays.asList(link1, link2), 10);
     }
 

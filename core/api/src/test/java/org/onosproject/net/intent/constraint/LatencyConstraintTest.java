@@ -69,8 +69,20 @@ public class LatencyConstraintTest {
         Annotations annotations1 = DefaultAnnotations.builder().set(LATENCY, LATENCY1).build();
         Annotations annotations2 = DefaultAnnotations.builder().set(LATENCY, LATENCY2).build();
 
-        link1 = new DefaultLink(PROVIDER_ID, cp(DID1, PN1), cp(DID2, PN2), DIRECT, annotations1);
-        link2 = new DefaultLink(PROVIDER_ID, cp(DID2, PN3), cp(DID3, PN4), DIRECT, annotations2);
+        link1 = DefaultLink.builder()
+                .providerId(PROVIDER_ID)
+                .src(cp(DID1, PN1))
+                .dst(cp(DID2, PN2))
+                .type(DIRECT)
+                .annotations(annotations1)
+                .build();
+        link2 = DefaultLink.builder()
+                .providerId(PROVIDER_ID)
+                .src(cp(DID2, PN3))
+                .dst(cp(DID3, PN4))
+                .type(DIRECT)
+                .annotations(annotations2)
+                .build();
         path = new DefaultPath(PROVIDER_ID, Arrays.asList(link1, link2), 10);
     }
 

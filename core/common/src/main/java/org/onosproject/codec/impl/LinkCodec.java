@@ -75,6 +75,13 @@ public final class LinkCodec extends AnnotatedCodec<Link> {
         Type type = Type.valueOf(json.get(TYPE).asText());
         Annotations annotations = extractAnnotations(json, context);
 
-        return new DefaultLink(pid, src, dst, type, annotations);
+        return DefaultLink
+                .builder()
+                .providerId(pid)
+                .src(src)
+                .dst(dst)
+                .type(type)
+                .annotations(annotations)
+                .build();
     }
 }

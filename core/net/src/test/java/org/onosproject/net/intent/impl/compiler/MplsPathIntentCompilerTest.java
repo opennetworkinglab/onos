@@ -77,8 +77,8 @@ public class MplsPathIntentCompilerTest {
 
     private final List<Link> links = Arrays.asList(
             createEdgeLink(d1pi, true),
-            new DefaultLink(PID, d1p1, d2p0, DIRECT),
-            new DefaultLink(PID, d2p1, d3p1, DIRECT),
+            DefaultLink.builder().providerId(PID).src(d1p1).dst(d2p0).type(DIRECT).build(),
+            DefaultLink.builder().providerId(PID).src(d2p1).dst(d3p1).type(DIRECT).build(),
             createEdgeLink(d3pe, false)
     );
 

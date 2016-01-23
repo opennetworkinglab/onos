@@ -183,8 +183,19 @@ public class KryoSerializerTest {
 
     @Test
     public void testDefaultLink() {
-        testSerializedEquals(new DefaultLink(PID, CP1, CP2, Link.Type.DIRECT));
-        testSerializedEquals(new DefaultLink(PID, CP1, CP2, Link.Type.DIRECT, A1));
+        testSerializedEquals(DefaultLink.builder()
+                                     .providerId(PID)
+                                     .src(CP1)
+                                     .dst(CP2)
+                                     .type(Link.Type.DIRECT)
+                                     .build());
+        testSerializedEquals(DefaultLink.builder()
+                                     .providerId(PID)
+                                     .src(CP1)
+                                     .dst(CP2)
+                                     .type(Link.Type.DIRECT)
+                                     .annotations(A1)
+                                     .build());
     }
 
     @Test
@@ -367,7 +378,9 @@ public class KryoSerializerTest {
                         .addBandwidthRequest(32.195)
                         .build();
         Map<Link, Set<ResourceAllocation>> allocations = new HashMap<>();
-        allocations.put(new DefaultLink(PID, CP1, CP2, Type.DIRECT),
+        allocations.put(DefaultLink.builder()
+                                .providerId(PID)
+                                .src(CP1).dst(CP2).type(Type.DIRECT).build(),
                         ImmutableSet.of(new BandwidthResourceAllocation(new BandwidthResource(Bandwidth.bps(10.0))),
                                         new LambdaResourceAllocation(LambdaResource.valueOf(1))));
         testSerializable(new DefaultLinkResourceAllocations(request, allocations));

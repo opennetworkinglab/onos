@@ -84,8 +84,8 @@ public class PathIntentCompilerTest {
 
     private final List<Link> links = Arrays.asList(
             createEdgeLink(d1p0, true),
-            new DefaultLink(PID, d1p1, d2p0, DIRECT),
-            new DefaultLink(PID, d2p1, d3p1, DIRECT),
+            DefaultLink.builder().providerId(PID).src(d1p1).dst(d2p0).type(DIRECT).build(),
+            DefaultLink.builder().providerId(PID).src(d2p1).dst(d3p1).type(DIRECT).build(),
             createEdgeLink(d3p0, false)
     );
     private final int hops = links.size() - 1;

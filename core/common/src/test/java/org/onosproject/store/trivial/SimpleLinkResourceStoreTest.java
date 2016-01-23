@@ -76,11 +76,13 @@ public class SimpleLinkResourceStoreTest {
                 .set(AnnotationKeys.OPTICAL_WAVES, "80")
                 .set(AnnotationKeys.BANDWIDTH, "1000")
                 .build();
-        return new DefaultLink(
-                new ProviderId("of", "foo"),
-                new ConnectPoint(deviceId(dev1), portNumber(port1)),
-                new ConnectPoint(deviceId(dev2), portNumber(port2)),
-                DIRECT, annotations);
+        return DefaultLink.builder()
+                .providerId(new ProviderId("of", "foo"))
+                .src(new ConnectPoint(deviceId(dev1), portNumber(port1)))
+                .dst(new ConnectPoint(deviceId(dev2), portNumber(port2)))
+                .type(DIRECT)
+                .annotations(annotations)
+                .build();
     }
 
     @Before

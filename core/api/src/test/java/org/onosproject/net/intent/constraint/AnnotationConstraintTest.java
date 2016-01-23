@@ -59,7 +59,12 @@ public class AnnotationConstraintTest {
 
         DefaultAnnotations annotations = DefaultAnnotations.builder().set(KEY, String.valueOf(VALUE)).build();
 
-        link = new DefaultLink(PID, cp(DID1, PID1), cp(DID2, PID2), DIRECT, annotations);
+        link = DefaultLink.builder()
+                .providerId(PID)
+                .src(cp(DID1, PID1))
+                .dst(cp(DID2, PID2))
+                .type(DIRECT)
+                .annotations(annotations).build();
     }
 
     /**

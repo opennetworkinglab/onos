@@ -51,8 +51,18 @@ public class PathIntentTest extends ConnectivityIntentTest {
     private final ConnectPoint cp2 = new ConnectPoint(device1, port2);
     private final ConnectPoint cp3 = new ConnectPoint(device2, port3);
     private final ConnectPoint cp4 = new ConnectPoint(device2, port4);
-    private final DefaultLink link1 = new DefaultLink(provider1, cp1, cp2, DIRECT);
-    private final DefaultLink link2 = new DefaultLink(provider1, cp1, cp2, DIRECT);
+    private final DefaultLink link1 = DefaultLink.builder()
+            .providerId(provider1)
+            .src(cp1)
+            .dst(cp2)
+            .type(DIRECT)
+            .build();
+    private final DefaultLink link2 = DefaultLink.builder()
+            .providerId(provider1)
+            .src(cp1)
+            .dst(cp2)
+            .type(DIRECT)
+            .build();
     private final double cost = 1;
 
     @Test
