@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.onosproject.openstackswitching;
+package org.onosproject.openstackswitching.impl;
 
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
@@ -27,6 +27,7 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.openstackswitching.OpenstackPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;

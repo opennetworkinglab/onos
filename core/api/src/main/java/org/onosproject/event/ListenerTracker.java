@@ -30,7 +30,6 @@ import com.google.common.collect.Lists;
  * <p>
  * Usage Example:
  * <pre>
- * <code>
     private ListenerTracker listeners;
 
     {@code @Activate}
@@ -47,7 +46,6 @@ import com.google.common.collect.Lists;
     protected void deactivate() {
         listeners.removeListeners();
     }
- * </code>
  * </pre>
  */
 @Beta
@@ -60,6 +58,8 @@ public class ListenerTracker {
     /**
      * Adds {@link EventListener} to specified {@link ListenerService}.
      *
+     * @param <E> event
+     * @param <L> listener
      * @param service {@link ListenerService}
      * @param listener {@link EventListener}
      * @return self

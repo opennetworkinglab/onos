@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstackswitching;
+package org.onosproject.openstackswitching.impl;
 
 import org.onlab.packet.Ip4Address;
 import org.onosproject.net.DeviceId;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstackswitching;
+package org.onosproject.openstackswitching.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -50,6 +50,10 @@ import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.openstackswitching.OpenstackNetwork;
+import org.onosproject.openstackswitching.OpenstackPort;
+import org.onosproject.openstackswitching.OpenstackSubnet;
+import org.onosproject.openstackswitching.OpenstackSwitchingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;

@@ -40,6 +40,7 @@ public class UnmodifiableDeque<E> implements Deque<E> {
     /**
      * Returns an unmodifiable view of the specified Deque.
      *
+     * @param <T> type
      * @param deque underlying {@link Deque} to use.
      * @return unmodifiable view of {@code deque}
      */

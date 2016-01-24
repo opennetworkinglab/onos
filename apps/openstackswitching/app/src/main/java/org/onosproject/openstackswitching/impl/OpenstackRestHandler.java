@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstackswitching;
+package org.onosproject.openstackswitching.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -21,6 +21,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
+import org.onosproject.openstackswitching.OpenstackNetwork;
+import org.onosproject.openstackswitching.OpenstackPort;
+import org.onosproject.openstackswitching.OpenstackSubnet;
 import org.onosproject.openstackswitching.web.OpenstackNetworkCodec;
 import org.onosproject.openstackswitching.web.OpenstackPortCodec;
 import org.onosproject.openstackswitching.web.OpenstackSubnetCodec;

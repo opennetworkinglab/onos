@@ -31,6 +31,7 @@ public final class GuavaCollectors {
      * Returns a {@code Collector} that accumulates the input elements into a
      * new ImmutableSet.
      *
+     * @param <T> type
      * @return a {@code Collector} which collects all the input elements into a
      * {@code ImmutableSet}
      */
@@ -46,6 +47,7 @@ public final class GuavaCollectors {
      * Returns a {@code Collector} that accumulates the input elements into a
      * new ImmutableList.
      *
+     * @param <T> type
      * @return a {@code Collector} which collects all the input elements into a
      * {@code ImmutableList}, in encounter order
      */
