@@ -41,12 +41,10 @@ import org.onosproject.net.behaviour.DefaultTunnelDescription;
 import org.onosproject.net.behaviour.TunnelConfig;
 import org.onosproject.net.behaviour.TunnelDescription;
 import org.onosproject.net.behaviour.TunnelName;
-import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -151,14 +149,6 @@ public class CordVtnNodeManager {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CordVtnService cordVtnService;
 
-    private final ConfigFactory configFactory =
-            new ConfigFactory(SubjectFactories.APP_SUBJECT_FACTORY, CordVtnConfig.class, "cordvtn") {
-                @Override
-                public CordVtnConfig createConfig() {
-                    return new CordVtnConfig();
-                }
-            };
-
     private final ExecutorService eventExecutor =
             newSingleThreadScheduledExecutor(groupedThreads("onos/cordvtncfg", "event-handler"));
 
@@ -231,7 +221,6 @@ public class CordVtnNodeManager {
     @Activate
     protected void active() {
         appId = coreService.getAppId(CordVtnService.CORDVTN_APP_ID);
-
         nodeStore = storageService.<CordVtnNode, NodeState>consistentMapBuilder()
                 .withSerializer(Serializer.using(NODE_SERIALIZER.build()))
                 .withName("cordvtn-nodestore")
@@ -247,12 +236,11 @@ public class CordVtnNodeManager {
 
         deviceService.addListener(deviceListener);
         configService.addListener(configListener);
-        configRegistry.registerConfigFactory(configFactory);
+        readConfiguration();
     }
 
     @Deactivate
     protected void deactivate() {
-        configRegistry.unregisterConfigFactory(configFactory);
         configService.removeListener(configListener);
         deviceService.removeListener(deviceListener);
 
@@ -820,13 +808,13 @@ public class CordVtnNodeManager {
     }
 
     /**
-     * Reads node configuration from config file.
+     * Reads cordvtn nodes from config file.
      */
     private void readConfiguration() {
         CordVtnConfig config = configRegistry.getConfig(appId, CordVtnConfig.class);
 
         if (config == null) {
-            log.warn("No configuration found");
+            log.debug("No configuration found");
             return;
         }
 
@@ -841,6 +829,8 @@ public class CordVtnNodeManager {
 
             addNode(cordVtnNode);
         });
+
+        // TODO remove nodes if needed
     }
 
     private class InternalConfigListener implements NetworkConfigListener {
@@ -853,11 +843,7 @@ public class CordVtnNodeManager {
 
             switch (event.type()) {
                 case CONFIG_ADDED:
-                    log.info("Network configuration added");
-                    eventExecutor.execute(CordVtnNodeManager.this::readConfiguration);
-                    break;
                 case CONFIG_UPDATED:
-                    log.info("Network configuration updated");
                     eventExecutor.execute(CordVtnNodeManager.this::readConfiguration);
                     break;
                 default:

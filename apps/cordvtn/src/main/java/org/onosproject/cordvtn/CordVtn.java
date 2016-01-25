@@ -36,6 +36,12 @@ import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Port;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.FlowRuleService;
@@ -62,10 +68,10 @@ import org.slf4j.Logger;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -81,6 +87,12 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry configRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService configService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostProviderRegistry hostProviderRegistry;
@@ -109,21 +121,31 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackSwitchingService openstackService;
 
-    private static final int NUM_THREADS = 1;
+    private final ConfigFactory configFactory =
+            new ConfigFactory(SubjectFactories.APP_SUBJECT_FACTORY, CordVtnConfig.class, "cordvtn") {
+                @Override
+                public CordVtnConfig createConfig() {
+                    return new CordVtnConfig();
+                }
+            };
+
     private static final String DEFAULT_TUNNEL = "vxlan";
     private static final String SERVICE_ID = "serviceId";
     private static final String LOCATION_IP = "locationIp";
     private static final String OPENSTACK_VM_ID = "openstackVmId";
 
-    private final ExecutorService eventExecutor = Executors
-            .newFixedThreadPool(NUM_THREADS, groupedThreads("onos/cordvtn", "event-handler"));
+    private final ExecutorService eventExecutor =
+            newSingleThreadScheduledExecutor(groupedThreads("onos/cordvtn", "event-handler"));
 
     private final PacketProcessor packetProcessor = new InternalPacketProcessor();
     private final HostListener hostListener = new InternalHostListener();
+    private final NetworkConfigListener configListener = new InternalConfigListener();
 
+    private ApplicationId appId;
     private HostProviderService hostProvider;
     private CordVtnRuleInstaller ruleInstaller;
     private CordVtnArpProxy arpProxy;
+    private volatile MacAddress gatewayMac = MacAddress.NONE;
 
     /**
      * Creates an cordvtn host location provider.
@@ -134,8 +156,7 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
 
     @Activate
     protected void activate() {
-        ApplicationId appId = coreService.registerApplication("org.onosproject.cordvtn");
-
+        appId = coreService.registerApplication("org.onosproject.cordvtn");
         ruleInstaller = new CordVtnRuleInstaller(appId, flowRuleService,
                                                  deviceService,
                                                  driverService,
@@ -150,17 +171,24 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         hostService.addListener(hostListener);
         hostProvider = hostProviderRegistry.register(this);
 
+        configRegistry.registerConfigFactory(configFactory);
+        configService.addListener(configListener);
+        readConfiguration();
+
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
+        hostProviderRegistry.unregister(this);
         hostService.removeListener(hostListener);
+
         packetService.removeProcessor(packetProcessor);
 
-        eventExecutor.shutdown();
-        hostProviderRegistry.unregister(this);
+        configRegistry.unregisterConfigFactory(configFactory);
+        configService.removeListener(configListener);
 
+        eventExecutor.shutdown();
         log.info("Stopped");
     }
 
@@ -379,6 +407,10 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             // TODO check if the service needs an update on its group buckets after done CORD-433
             ruleInstaller.updateServiceGroup(service);
             arpProxy.addServiceIp(service.serviceIp());
+
+            // sends gratuitous ARP here for the case of adding existing VMs
+            // when ONOS or cordvtn app is restarted
+            arpProxy.sendGratuitousArp(service.serviceIp(), gatewayMac, Sets.newHashSet(host));
         }
 
         ruleInstaller.populateBasicConnectionRules(host, getTunnelIp(host), vNet);
@@ -418,6 +450,47 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
         }
     }
 
+    /**
+     * Sets service network gateway MAC address and sends out gratuitous ARP to all
+     * VMs to update the gateway MAC address.
+     *
+     * @param mac mac address
+     */
+    private void setServiceGatewayMac(MacAddress mac) {
+        if (mac != null && !mac.equals(gatewayMac)) {
+            gatewayMac = mac;
+            log.debug("Set service gateway MAC address to {}", gatewayMac.toString());
+        }
+
+        // TODO get existing service list from XOS and replace the loop below
+        Set<String> vNets = Sets.newHashSet();
+        hostService.getHosts().forEach(host -> vNets.add(host.annotations().value(SERVICE_ID)));
+        vNets.remove(null);
+
+        vNets.stream().forEach(vNet -> {
+            CordService service = getCordService(CordServiceId.of(vNet));
+            if (service != null) {
+                arpProxy.sendGratuitousArp(
+                        service.serviceIp(),
+                        gatewayMac,
+                        service.hosts().keySet());
+            }
+        });
+    }
+
+    /**
+     * Updates configurations.
+     */
+    private void readConfiguration() {
+        CordVtnConfig config = configRegistry.getConfig(appId, CordVtnConfig.class);
+        if (config == null) {
+            log.debug("No configuration found");
+            return;
+        }
+
+        setServiceGatewayMac(config.gatewayMac());
+   }
+
     private class InternalHostListener implements HostListener {
 
         @Override
@@ -446,15 +519,31 @@ public class CordVtn extends AbstractProvider implements CordVtnService, HostPro
             }
 
             Ethernet ethPacket = context.inPacket().parsed();
-            if (ethPacket == null) {
+            if (ethPacket == null || ethPacket.getEtherType() != Ethernet.TYPE_ARP) {
                 return;
             }
 
-            if (ethPacket.getEtherType() != Ethernet.TYPE_ARP) {
+            arpProxy.processArpPacket(context, ethPacket, gatewayMac);
+        }
+    }
+
+    private class InternalConfigListener implements NetworkConfigListener {
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            if (!event.configClass().equals(CordVtnConfig.class)) {
                 return;
             }
 
-            arpProxy.processArpPacket(context, ethPacket);
+            switch (event.type()) {
+                case CONFIG_ADDED:
+                case CONFIG_UPDATED:
+                    log.info("Network configuration changed");
+                    eventExecutor.execute(CordVtn.this::readConfiguration);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

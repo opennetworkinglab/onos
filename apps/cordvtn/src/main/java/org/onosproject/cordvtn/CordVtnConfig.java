@@ -18,19 +18,24 @@ package org.onosproject.cordvtn;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
+import org.slf4j.Logger;
 
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Configuration object for CordVtn service.
  */
 public class CordVtnConfig extends Config<ApplicationId> {
+
+    protected final Logger log = getLogger(getClass());
 
     public static final String CORDVTN_NODES = "nodes";
     public static final String HOSTNAME = "hostname";
@@ -39,6 +44,7 @@ public class CordVtnConfig extends Config<ApplicationId> {
     public static final String BRIDGE_ID = "bridgeId";
     public static final String PHYSICAL_PORT_NAME = "phyPortName";
     public static final String LOCAL_IP = "localIp";
+    public static final String GATEWAY_MAC = "gatewayMac";
 
     /**
      * Returns the set of nodes read from network config.
@@ -61,6 +67,25 @@ public class CordVtnConfig extends Config<ApplicationId> {
             IpAddress.valueOf(jsonNode.path(LOCAL_IP).asText()))));
 
         return nodes;
+    }
+
+    /**
+     * Returns gateway MAC address.
+     *
+     * @return mac address, or null
+     */
+    public MacAddress gatewayMac() {
+        JsonNode jsonNode = object.get(GATEWAY_MAC);
+        if (jsonNode == null) {
+            return null;
+        }
+
+        try {
+            return MacAddress.valueOf(jsonNode.asText());
+        } catch (IllegalArgumentException e) {
+            log.error("Wrong MAC address format {}", jsonNode.asText());
+            return null;
+        }
     }
 
     /**

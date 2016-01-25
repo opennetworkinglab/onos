@@ -23,6 +23,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.net.Host;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -37,6 +38,7 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -45,8 +47,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class CordVtnArpProxy {
     protected final Logger log = getLogger(getClass());
-    // TODO make gateway MAC address configurable
-    private static final MacAddress DEFAULT_GATEWAY_MAC = MacAddress.valueOf("00:00:00:00:00:01");
 
     private final ApplicationId appId;
     private final PacketService packetService;
@@ -120,22 +120,21 @@ public class CordVtnArpProxy {
      *
      * @param context packet context
      * @param ethPacket ethernet packet
+     * @param gatewayMac gateway mac address
      */
-    public void processArpPacket(PacketContext context, Ethernet ethPacket) {
+    public void processArpPacket(PacketContext context, Ethernet ethPacket, MacAddress gatewayMac) {
+        checkArgument(!gatewayMac.equals(MacAddress.NONE));
+
         ARP arpPacket = (ARP) ethPacket.getPayload();
         Ip4Address targetIp = Ip4Address.valueOf(arpPacket.getTargetProtocolAddress());
 
-        if (arpPacket.getOpCode() != ARP.OP_REQUEST) {
+        if (arpPacket.getOpCode() != ARP.OP_REQUEST || !serviceIPs.contains(targetIp)) {
            return;
-        }
-
-        if (!serviceIPs.contains(targetIp)) {
-            return;
         }
 
         Ethernet ethReply = ARP.buildArpReply(
                 targetIp,
-                DEFAULT_GATEWAY_MAC,
+                gatewayMac,
                 ethPacket);
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -148,5 +147,58 @@ public class CordVtnArpProxy {
                 ByteBuffer.wrap(ethReply.serialize())));
 
         context.block();
+    }
+
+    /**
+     * Emits gratuitous ARP when a gateway mac address has been changed.
+     *
+     * @param ip ip address to update MAC
+     * @param mac new mac address
+     * @param hosts set of hosts to send gratuitous ARP packet
+     */
+    public void sendGratuitousArp(IpAddress ip, MacAddress mac, Set<Host> hosts) {
+        checkArgument(!mac.equals(MacAddress.NONE));
+
+        Ethernet ethArp = buildGratuitousArp(ip.getIp4Address(), mac);
+        hosts.stream().forEach(host -> {
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .setOutput(host.location().port())
+                    .build();
+
+            packetService.emit(new DefaultOutboundPacket(
+                    host.location().deviceId(),
+                    treatment,
+                    ByteBuffer.wrap(ethArp.serialize())));
+        });
+    }
+
+    /**
+     * Builds gratuitous ARP packet with a given IP and MAC address.
+     *
+     * @param ip ip address for TPA and SPA
+     * @param mac new mac address
+     * @return ethernet packet
+     */
+    private Ethernet buildGratuitousArp(IpAddress ip, MacAddress mac) {
+        Ethernet eth = new Ethernet();
+
+        eth.setEtherType(Ethernet.TYPE_ARP);
+        eth.setSourceMACAddress(mac);
+        eth.setDestinationMACAddress(MacAddress.BROADCAST);
+
+        ARP arp = new ARP();
+        arp.setOpCode(ARP.OP_REQUEST);
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
+        arp.setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH);
+        arp.setProtocolType(ARP.PROTO_TYPE_IP);
+        arp.setProtocolAddressLength((byte) Ip4Address.BYTE_LENGTH);
+
+        arp.setSenderHardwareAddress(mac.toBytes());
+        arp.setTargetHardwareAddress(MacAddress.BROADCAST.toBytes());
+        arp.setSenderProtocolAddress(ip.getIp4Address().toOctets());
+        arp.setTargetProtocolAddress(ip.getIp4Address().toOctets());
+
+        eth.setPayload(arp);
+        return eth;
     }
 }
