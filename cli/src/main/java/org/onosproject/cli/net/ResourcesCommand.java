@@ -150,7 +150,10 @@ public class ResourcesCommand extends AbstractShellCommand {
                 nonAggregatable.add(r);
             } else if (aggregatableTypes.contains(r.last().getClass())) {
                 // aggregatable & terminal node
-                aggregatables.put(r.last().getClass().getSimpleName(), r);
+                String className = r.last().getClass().getSimpleName();
+                if (typesToPrint.isEmpty() || typesToPrint.contains(className)) {
+                    aggregatables.put(className, r);
+                }
             } else {
                 nonAggregatable.add(r);
             }
