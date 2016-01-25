@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015,2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@
     var $log, $interval, $timeout, fs, wss, ls;
 
     // constants
-    var refreshInterval = 2000,
-        tardyWait = 500;
+    var refreshInterval = 2000;
 
     // example params to buildTable:
     // {
@@ -49,8 +48,7 @@
             onResp = fs.isF(o.respCb),
             idKey = o.idKey || 'id',
             oldTableData = [],
-            refreshPromise,
-            tardyPromise;
+            refreshPromise;
 
         o.scope.tableData = [];
         o.scope.changedData = [];
@@ -61,7 +59,6 @@
         // === websocket functions --------------------
         // response
         function respCb(data) {
-            cancelTardy();
             ls.stop();
             o.scope.tableData = data[root];
             o.scope.annots = data.annots;
@@ -85,24 +82,12 @@
         handlers[resp] = respCb;
         wss.bindHandlers(handlers);
 
-        // handle "loading..." animation
-        function scheduleTardy() {
-            tardyPromise = $timeout(ls.start, tardyWait);
-        }
-
-        function cancelTardy() {
-            if (tardyPromise) {
-                $timeout.cancel(tardyPromise);
-                tardyPromise = null;
-            }
-        }
-
         // request
         function sortCb(params) {
             var p = angular.extend({}, params, o.query);
             if (wss.isConnected()) {
                 wss.sendEvent(req, p);
-                scheduleTardy();
+                ls.start();
             }
         }
         o.scope.sortCallback = sortCb;
@@ -118,7 +103,7 @@
 
         // === autoRefresh functions ------------------
         function fetchDataIfNotWaiting() {
-            if (!tardyPromise) {
+            if (!ls.waiting()) {
                 if (fs.debugOn('widget')) {
                     $log.debug('Refreshing ' + root + ' page');
                 }
@@ -147,7 +132,7 @@
         o.scope.$on('$destroy', function () {
             wss.unbindHandlers(handlers);
             stopRefresh();
-            cancelTardy();
+            ls.stop();
         });
 
         sortCb(o.scope.sortParams);

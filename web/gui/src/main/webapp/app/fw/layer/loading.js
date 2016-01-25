@@ -1,5 +1,5 @@
 /*
- *  Copyright 2015 Open Networking Laboratory
+ *  Copyright 2015,2016 Open Networking Laboratory
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,14 +29,16 @@
     var id = 'loading-anim',
         dir = 'data/img/loading/',
         pfx = '/load-',
-        speed = 100;
+        speed = 100,
+        waitDelay = 500;
 
     // internal state
     var div,
         img,
         th,
         idx,
-        task;
+        task,
+        wait;
 
     function fname(i) {
         var z = i > 9 ? '' : '0';
@@ -50,7 +52,7 @@
     }
 
     // start displaying 'loading...' animation (idempotent)
-    function start() {
+    function startAnim() {
         th = ts.theme();
         div = d3.select('#'+id);
         if (div.empty()) {
@@ -62,12 +64,31 @@
     }
 
     // stop displaying 'loading...' animation (idempotent)
-    function stop() {
+    function stopAnim() {
         if (task) {
             $timeout.cancel(task);
             task = null;
         }
         d3.select('#'+id).remove();
+    }
+
+    // schedule function to start animation in the future
+    function start() {
+        wait = $timeout(startAnim, waitDelay);
+    }
+
+    // cancel future start, if any; stop the animation
+    function stop() {
+        if (wait) {
+            $timeout.cancel(wait);
+            wait = null;
+        }
+        stopAnim();
+    }
+
+    // return true if start() has been called but not stop()
+    function waiting() {
+        return !!wait;
     }
 
     angular.module('onosLayer')
@@ -79,7 +100,8 @@
 
             return {
                 start: start,
-                stop: stop
+                stop: stop,
+                waiting: waiting
             };
         }]);
 
