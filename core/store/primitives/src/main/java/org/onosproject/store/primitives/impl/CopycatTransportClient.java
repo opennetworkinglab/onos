@@ -37,18 +37,17 @@ public class CopycatTransportClient implements Client {
     private final String clusterName;
     private final MessagingService messagingService;
     private final CopycatTransport.Mode mode;
-    private final ThreadContext context;
     private final Set<CopycatTransportConnection> connections = Sets.newConcurrentHashSet();
 
     CopycatTransportClient(String clusterName, MessagingService messagingService, CopycatTransport.Mode mode) {
         this.clusterName = checkNotNull(clusterName);
         this.messagingService = checkNotNull(messagingService);
         this.mode = checkNotNull(mode);
-        this.context = ThreadContext.currentContextOrThrow();
     }
 
     @Override
     public CompletableFuture<Connection> connect(Address remoteAddress) {
+        ThreadContext context = ThreadContext.currentContextOrThrow();
         CopycatTransportConnection connection = new CopycatTransportConnection(
                 nextConnectionId(),
                 CopycatTransport.Mode.CLIENT,
