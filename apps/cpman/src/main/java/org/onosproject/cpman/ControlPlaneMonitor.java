@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,12 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     @Override
     public void updateMetric(ControlMetric cpm, int updateInterval,
                              Optional<DeviceId> deviceId) {
+    }
+
+    @Override
+    public void updateMetric(ControlMetric controlMetric, int updateInterval,
+                             String resourceName) {
+
     }
 
     @Override

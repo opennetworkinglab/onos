@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  */
 package org.onosproject.cpman;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.onlab.metrics.MetricsService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -34,16 +36,35 @@ public final class ControlMetricsFactory {
     private MetricsService metricsService;
     private boolean enableMonitor = false;
 
+    // define a ControlMetricsSystemSpec
+    private ControlMetricsSystemSpec cmss;
+
     // define a set of MetricsAggregators
-    private MetricsAggregator cpuInfoMetric;
-    private MetricsAggregator memoryInfoMetric;
-    private Map<DeviceId, MetricsAggregator> inboundPacketMetrics;
-    private Map<DeviceId, MetricsAggregator> outboundPacketMetrics;
-    private Map<DeviceId, MetricsAggregator> flowmodPacketMetrics;
-    private Map<DeviceId, MetricsAggregator> flowrmvPacketMetrics;
-    private Map<DeviceId, MetricsAggregator> requestPacketMetrics;
-    private Map<DeviceId, MetricsAggregator> replyPacketMetrics;
-    private Set<DeviceId> deviceIds = new HashSet<>();
+    private MetricsAggregator cpuLoad;
+    private MetricsAggregator totalCpuTime;
+    private MetricsAggregator sysCpuTime;
+    private MetricsAggregator userCpuTime;
+    private MetricsAggregator cpuIdleTime;
+    private MetricsAggregator memoryUsed;
+    private MetricsAggregator memoryFree;
+    private MetricsAggregator memoryUsedPercentage;
+    private MetricsAggregator memoryFreePercentage;
+    private Map<String, MetricsAggregator> diskReadBytes;
+    private Map<String, MetricsAggregator> diskWriteBytes;
+    private Map<String, MetricsAggregator> nwIncomingBytes;
+    private Map<String, MetricsAggregator> nwOutgoingBytes;
+    private Map<String, MetricsAggregator> nwIncomingPackets;
+    private Map<String, MetricsAggregator> nwOutgoingPackets;
+
+    private Map<DeviceId, MetricsAggregator> inboundPacket;
+    private Map<DeviceId, MetricsAggregator> outboundPacket;
+    private Map<DeviceId, MetricsAggregator> flowmodPacket;
+    private Map<DeviceId, MetricsAggregator> flowrmvPacket;
+    private Map<DeviceId, MetricsAggregator> requestPacket;
+    private Map<DeviceId, MetricsAggregator> replyPacket;
+    private Set<DeviceId> deviceIds = Sets.newConcurrentHashSet();
+    private Set<String> diskPartitions = Sets.newConcurrentHashSet();
+    private Set<String> nwInterfaces = Sets.newConcurrentHashSet();
 
     private ControlMetricsFactory(MetricsService metricsService, DeviceService deviceService) {
         this.metricsService = metricsService;
@@ -51,7 +72,7 @@ public final class ControlMetricsFactory {
 
         deviceService.getDevices().forEach(d->deviceIds.add(d.id()));
 
-        addAllDeviceMetrics(deviceIds);
+        addAllControlMessageMetrics(deviceIds);
     }
 
     public static ControlMetricsFactory getInstance(MetricsService metricsService,
@@ -67,11 +88,22 @@ public final class ControlMetricsFactory {
     }
 
     /**
+     * Sets system specification.
+     *
+     * @param cmss ControlMetricsSystemSpec object
+     */
+    public void setSystemSpec(ControlMetricsSystemSpec cmss) {
+        if (this.cmss == null) {
+            this.cmss = cmss;
+        }
+    }
+
+    /**
      * Adds control metrics of a new device.
      *
      * @param deviceId {@link org.onosproject.net.DeviceId}
      */
-    public void addMetricsByDeviceId(DeviceId deviceId) {
+    public void addControlMessageMetricsByDeviceId(DeviceId deviceId) {
         MetricsAggregator inbound = new MetricsAggregator(metricsService,
                         ControlMetricType.INBOUND_PACKET, Optional.of(deviceId));
         MetricsAggregator outbound = new MetricsAggregator(metricsService,
@@ -85,14 +117,54 @@ public final class ControlMetricsFactory {
         MetricsAggregator reply = new MetricsAggregator(metricsService,
                         ControlMetricType.REPLY_PACKET, Optional.of(deviceId));
 
-        inboundPacketMetrics.putIfAbsent(deviceId, inbound);
-        outboundPacketMetrics.putIfAbsent(deviceId, outbound);
-        flowmodPacketMetrics.putIfAbsent(deviceId, flowmod);
-        flowrmvPacketMetrics.putIfAbsent(deviceId, flowrmv);
-        requestPacketMetrics.putIfAbsent(deviceId, request);
-        replyPacketMetrics.putIfAbsent(deviceId, reply);
+        inboundPacket.putIfAbsent(deviceId, inbound);
+        outboundPacket.putIfAbsent(deviceId, outbound);
+        flowmodPacket.putIfAbsent(deviceId, flowmod);
+        flowrmvPacket.putIfAbsent(deviceId, flowrmv);
+        requestPacket.putIfAbsent(deviceId, request);
+        replyPacket.putIfAbsent(deviceId, reply);
 
         deviceIds.add(deviceId);
+    }
+
+    /**
+     * Adds control metrics of a disk.
+     *
+     * @param partitionName disk partition name
+     */
+    public void addDiskMetricsByPartition(String partitionName) {
+        MetricsAggregator readBytes = new MetricsAggregator(metricsService,
+                        ControlMetricType.DISK_READ_BYTES, partitionName);
+        MetricsAggregator writeBytes = new MetricsAggregator(metricsService,
+                ControlMetricType.DISK_WRITE_BYTES, partitionName);
+
+        diskReadBytes.putIfAbsent(partitionName, readBytes);
+        diskWriteBytes.putIfAbsent(partitionName, writeBytes);
+
+        diskPartitions.add(partitionName);
+    }
+
+    /**
+     * Adds control metrics of a ethernet interface.
+     *
+     * @param interfaceName network interface name
+     */
+    public void addNetworkMetricsByInterface(String interfaceName) {
+        MetricsAggregator incomingBytes = new MetricsAggregator(metricsService,
+                        ControlMetricType.NW_INCOMING_BYTES, interfaceName);
+        MetricsAggregator outgoingBytes = new MetricsAggregator(metricsService,
+                ControlMetricType.NW_OUTGOING_BYTES, interfaceName);
+        MetricsAggregator incomingPackets = new MetricsAggregator(metricsService,
+                ControlMetricType.NW_INCOMING_PACKETS, interfaceName);
+        MetricsAggregator outgoingPackets = new MetricsAggregator(metricsService,
+                ControlMetricType.NW_OUTGOING_PACKETS, interfaceName);
+
+        nwIncomingBytes.putIfAbsent(interfaceName, incomingBytes);
+        nwOutgoingBytes.putIfAbsent(interfaceName, outgoingBytes);
+        nwIncomingPackets.putIfAbsent(interfaceName, incomingPackets);
+        nwOutgoingPackets.putIfAbsent(interfaceName, outgoingPackets);
+
+        nwInterfaces.add(interfaceName);
     }
 
     /**
@@ -100,19 +172,68 @@ public final class ControlMetricsFactory {
      *
      * @param deviceId {@link org.onosproject.net.DeviceId}
      */
-    public void removeMetricsByDeviceId(DeviceId deviceId) {
-        inboundPacketMetrics.remove(deviceId);
-        outboundPacketMetrics.remove(deviceId);
-        flowmodPacketMetrics.remove(deviceId);
-        flowrmvPacketMetrics.remove(deviceId);
-        requestPacketMetrics.remove(deviceId);
-        replyPacketMetrics.remove(deviceId);
+    public void removeControlMessageMetricsByDeviceId(DeviceId deviceId) {
+        inboundPacket.remove(deviceId);
+        outboundPacket.remove(deviceId);
+        flowmodPacket.remove(deviceId);
+        flowrmvPacket.remove(deviceId);
+        requestPacket.remove(deviceId);
+        replyPacket.remove(deviceId);
 
         deviceIds.remove(deviceId);
     }
 
+    /**
+     * Removes control metrics of a disk.
+     *
+     * @param partitionName disk partition name
+     */
+    public void removeDiskMetricsByResourceName(String partitionName) {
+        diskReadBytes.remove(partitionName);
+        diskWriteBytes.remove(partitionName);
+
+        diskPartitions.remove(partitionName);
+    }
+
+    /**
+     * Removes control metrics of a network interface.
+     *
+     * @param interfaceName network interface name
+     */
+    public void removeNetworkInterfacesByResourceName(String interfaceName) {
+        nwIncomingBytes.remove(interfaceName);
+        nwOutgoingBytes.remove(interfaceName);
+        nwIncomingPackets.remove(interfaceName);
+        nwOutgoingPackets.remove(interfaceName);
+
+        nwInterfaces.remove(interfaceName);
+    }
+
+    /**
+     * Returns all device ids.
+     *
+     * @return a collection of device id
+     */
     public Set<DeviceId> getDeviceIds() {
-        return this.deviceIds;
+        return ImmutableSet.copyOf(this.deviceIds);
+    }
+
+    /**
+     * Returns all disk partition names.
+     *
+     * @return a collection of disk partition.
+     */
+    public Set<String> getDiskPartitions() {
+        return ImmutableSet.copyOf(this.diskPartitions);
+    }
+
+    /**
+     * Returns all network interface names.
+     *
+     * @return a collection of network interface.
+     */
+    public Set<String> getNetworkInterfaces() {
+        return ImmutableSet.copyOf(this.nwInterfaces);
     }
 
     /**
@@ -120,8 +241,8 @@ public final class ControlMetricsFactory {
      *
      * @param deviceIds a set of deviceIds
      */
-    public void addAllDeviceMetrics(Set<DeviceId> deviceIds) {
-        deviceIds.forEach(v -> addMetricsByDeviceId(v));
+    public void addAllControlMessageMetrics(Set<DeviceId> deviceIds) {
+        deviceIds.forEach(v -> addControlMessageMetricsByDeviceId(v));
     }
 
     /**
@@ -151,87 +272,160 @@ public final class ControlMetricsFactory {
      * Registers new control metrics.
      */
     protected void registerMetrics() {
-        cpuInfoMetric = new MetricsAggregator(metricsService,
-                        ControlMetricType.CPU_INFO, Optional.ofNullable(null));
-        memoryInfoMetric = new MetricsAggregator(metricsService,
-                        ControlMetricType.MEMORY_INFO, Optional.ofNullable(null));
+        /* CPU */
+        cpuLoad = new MetricsAggregator(metricsService, ControlMetricType.CPU_LOAD);
+        totalCpuTime = new MetricsAggregator(metricsService, ControlMetricType.TOTAL_CPU_TIME);
+        sysCpuTime = new MetricsAggregator(metricsService, ControlMetricType.SYS_CPU_TIME);
+        userCpuTime = new MetricsAggregator(metricsService, ControlMetricType.USER_CPU_TIME);
+        cpuIdleTime = new MetricsAggregator(metricsService, ControlMetricType.CPU_IDLE_TIME);
 
-        inboundPacketMetrics = new ConcurrentHashMap<>();
-        outboundPacketMetrics = new ConcurrentHashMap<>();
-        flowmodPacketMetrics = new ConcurrentHashMap<>();
-        flowrmvPacketMetrics = new ConcurrentHashMap<>();
-        requestPacketMetrics = new ConcurrentHashMap<>();
-        replyPacketMetrics = new ConcurrentHashMap<>();
+        /* Memory */
+        memoryFree = new MetricsAggregator(metricsService, ControlMetricType.MEMORY_FREE);
+        memoryUsed = new MetricsAggregator(metricsService, ControlMetricType.MEMORY_USED);
+        memoryFreePercentage = new MetricsAggregator(metricsService,
+                                        ControlMetricType.MEMORY_FREE_PERCENTAGE);
+        memoryUsedPercentage = new MetricsAggregator(metricsService,
+                                        ControlMetricType.MEMORY_USED_PERCENTAGE);
+
+        /* Disk I/O */
+        diskReadBytes = new ConcurrentHashMap<>();
+        diskWriteBytes = new ConcurrentHashMap<>();
+
+        /* Network I/O */
+        nwIncomingBytes = new ConcurrentHashMap<>();
+        nwOutgoingBytes = new ConcurrentHashMap<>();
+        nwIncomingPackets = new ConcurrentHashMap<>();
+        nwOutgoingPackets = new ConcurrentHashMap<>();
+
+        /* OpenFlow Messages */
+        inboundPacket = new ConcurrentHashMap<>();
+        outboundPacket = new ConcurrentHashMap<>();
+        flowmodPacket = new ConcurrentHashMap<>();
+        flowrmvPacket = new ConcurrentHashMap<>();
+        requestPacket = new ConcurrentHashMap<>();
+        replyPacket = new ConcurrentHashMap<>();
     }
 
     /**
      * Unregisters all control metrics.
      */
     protected void unregisterMetrics() {
-        cpuInfoMetric.removeMetrics();
-        memoryInfoMetric.removeMetrics();
+        /* Disk I/O */
+        diskReadBytes.clear();
+        diskWriteBytes.clear();
 
-        inboundPacketMetrics.clear();
-        outboundPacketMetrics.clear();
-        flowmodPacketMetrics.clear();
-        flowrmvPacketMetrics.clear();
-        requestPacketMetrics.clear();
-        replyPacketMetrics.clear();
+        /* Network I/O */
+        nwIncomingBytes.clear();
+        nwOutgoingBytes.clear();
+        nwIncomingPackets.clear();
+        nwOutgoingPackets.clear();
+
+        /* OpenFlow Message */
+        inboundPacket.clear();
+        outboundPacket.clear();
+        flowmodPacket.clear();
+        flowrmvPacket.clear();
+        requestPacket.clear();
+        replyPacket.clear();
     }
 
-    public MetricsAggregator cpuInfoMetric() {
-        return cpuInfoMetric;
+    public MetricsAggregator cpuLoadMetric() {
+        return cpuLoad;
     }
 
-    public MetricsAggregator memoryInfoMetric() {
-        return memoryInfoMetric;
+    public MetricsAggregator totalCpuTimeMetric() {
+        return totalCpuTime;
     }
 
-    public Map<DeviceId, MetricsAggregator> inboundPacketMetrics() {
-        return inboundPacketMetrics;
+    public MetricsAggregator sysCpuTimeMetric() {
+        return sysCpuTime;
     }
 
-    public Map<DeviceId, MetricsAggregator> outboundPacketMetrics() {
-        return outboundPacketMetrics;
+    public MetricsAggregator userCpuTime() {
+        return userCpuTime;
     }
 
-    public Map<DeviceId, MetricsAggregator> flowmodPacketMetrics() {
-        return flowmodPacketMetrics;
+    public MetricsAggregator cpuIdleTime() {
+        return cpuIdleTime;
     }
 
-    public Map<DeviceId, MetricsAggregator> flowrmvPacketMetrics() {
-        return flowrmvPacketMetrics;
+    public MetricsAggregator memoryFreePercentage() {
+        return memoryFreePercentage;
     }
 
-    public Map<DeviceId, MetricsAggregator> requestPacketMetrics() {
-        return requestPacketMetrics;
+    public MetricsAggregator memoryUsedPercentage() {
+        return memoryUsedPercentage;
     }
 
-    public Map<DeviceId, MetricsAggregator> replyPacketMetrics() {
-        return replyPacketMetrics;
+    public MetricsAggregator diskReadBytes(String partitionName) {
+        return diskReadBytes.get(partitionName);
     }
 
-    public MetricsAggregator inboundPacketMetrics(DeviceId deviceId) {
-        return inboundPacketMetrics.get(deviceId);
+    public MetricsAggregator diskWriteBytes(String partitionName) {
+        return diskWriteBytes.get(partitionName);
     }
 
-    public MetricsAggregator outboundPacketMetrics(DeviceId deviceId) {
-        return outboundPacketMetrics.get(deviceId);
+    public MetricsAggregator nwIncomingBytes(String interfaceName) {
+        return nwIncomingBytes.get(interfaceName);
     }
 
-    public MetricsAggregator flowmodPacketMetrics(DeviceId deviceId) {
-        return flowmodPacketMetrics.get(deviceId);
+    public MetricsAggregator nwOutgoingBytes(String interfaceName) {
+        return nwOutgoingBytes.get(interfaceName);
     }
 
-    public MetricsAggregator flowrmvPacketMetrics(DeviceId deviceId) {
-        return flowrmvPacketMetrics.get(deviceId);
+    public MetricsAggregator nwIncomingPackets(String interfaceName) {
+        return nwIncomingPackets.get(interfaceName);
     }
 
-    public MetricsAggregator requestPacketMetrics(DeviceId deviceId) {
-        return requestPacketMetrics.get(deviceId);
+    public MetricsAggregator nwOutgoingPackets(String interfaceName) {
+        return nwOutgoingPackets.get(interfaceName);
     }
 
-    public MetricsAggregator replyPacketMetrics(DeviceId deviceId) {
-        return replyPacketMetrics.get(deviceId);
+    public Map<DeviceId, MetricsAggregator> inboundPacket() {
+        return ImmutableMap.copyOf(inboundPacket);
+    }
+
+    public Map<DeviceId, MetricsAggregator> outboundPacket() {
+        return ImmutableMap.copyOf(outboundPacket);
+    }
+
+    public Map<DeviceId, MetricsAggregator> flowmodPacket() {
+        return ImmutableMap.copyOf(flowmodPacket);
+    }
+
+    public Map<DeviceId, MetricsAggregator> flowrmvPacket() {
+        return ImmutableMap.copyOf(flowrmvPacket);
+    }
+
+    public Map<DeviceId, MetricsAggregator> requestPacket() {
+        return ImmutableMap.copyOf(requestPacket);
+    }
+
+    public Map<DeviceId, MetricsAggregator> replyPacket() {
+        return ImmutableMap.copyOf(replyPacket);
+    }
+
+    public MetricsAggregator inboundPacket(DeviceId deviceId) {
+        return inboundPacket.get(deviceId);
+    }
+
+    public MetricsAggregator outboundPacket(DeviceId deviceId) {
+        return outboundPacket.get(deviceId);
+    }
+
+    public MetricsAggregator flowmodPacket(DeviceId deviceId) {
+        return flowmodPacket.get(deviceId);
+    }
+
+    public MetricsAggregator flowrmvPacket(DeviceId deviceId) {
+        return flowrmvPacket.get(deviceId);
+    }
+
+    public MetricsAggregator requestPacket(DeviceId deviceId) {
+        return requestPacket.get(deviceId);
+    }
+
+    public MetricsAggregator replyPacket(DeviceId deviceId) {
+        return replyPacket.get(deviceId);
     }
 }

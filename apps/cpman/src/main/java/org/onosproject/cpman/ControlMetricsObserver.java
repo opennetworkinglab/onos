@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,4 +31,12 @@ public interface ControlMetricsObserver {
      * @param deviceId          device id {@link org.onosproject.net.DeviceId}
      */
     void feedMetrics(MetricsAggregator metricsAggregator, Optional<DeviceId> deviceId);
+
+    /**
+     * Feeds the extracted value from MetricAggregator to back-end storage.
+     *
+     * @param metricsAggregator metric aggregator
+     * @param resourceName      resource name
+     */
+    void feedMetrics(MetricsAggregator metricsAggregator, String resourceName);
 }

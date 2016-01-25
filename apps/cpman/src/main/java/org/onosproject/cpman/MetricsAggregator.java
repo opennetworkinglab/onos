@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.onosproject.cpman;
 
 import com.codahale.metrics.Meter;
+import org.apache.commons.lang3.StringUtils;
 import org.onlab.metrics.MetricsComponent;
 import org.onlab.metrics.MetricsFeature;
 import org.onlab.metrics.MetricsService;
@@ -49,11 +50,56 @@ public class MetricsAggregator {
      * @param type           Control metric type
      * @param deviceId       DeviceId
      */
-    MetricsAggregator(MetricsService metricsService, ControlMetricType type, Optional<DeviceId> deviceId) {
+    MetricsAggregator(MetricsService metricsService, ControlMetricType type,
+                      Optional<DeviceId> deviceId) {
+        init(metricsService, type, deviceId, null);
+    }
+
+    /**
+     * Constructs a new MetricAggregator for aggregating a metric.
+     * Instantiates the metrics service
+     * Initializes all the general metrics for that object
+     *
+     * @param metricsService MetricsService reference
+     * @param type           Control metric type
+     * @param resourceName   resource name (e.g., ethernet interface name)
+     */
+    MetricsAggregator(MetricsService metricsService, ControlMetricType type,
+                      String resourceName) {
+        init(metricsService, type, Optional.ofNullable(null), resourceName);
+
+    }
+
+    /**
+     * Constructs a new MetricAggregator for aggregating a metric.
+     * Instantiates the metrics service
+     * Initializes all the general metrics for that object
+     *
+     * @param metricsService MetricsService reference
+     * @param type           Control metric type
+     */
+    MetricsAggregator(MetricsService metricsService, ControlMetricType type) {
+        init(metricsService, type, Optional.ofNullable(null), null);
+    }
+
+    /**
+     * Base method of the constructor of this class.
+     *
+     * @param metricsService MetricsService reference
+     * @param type           Control metric type
+     * @param deviceId       DeviceId
+     * @param resourceName   resource name
+     */
+    private void init(MetricsService metricsService, ControlMetricType type,
+                      Optional<DeviceId> deviceId, String resourceName) {
         String primitiveName = type.toString();
         String objName = "all";
         if (deviceId.isPresent()) {
             objName = deviceId.toString();
+        }
+
+        if (StringUtils.isNotEmpty(resourceName)) {
+            objName = resourceName;
         }
 
         checkNotNull(primitiveName, "Component name cannot be null");
@@ -71,14 +117,6 @@ public class MetricsAggregator {
 
     public ControlMetricType getMetricsType() {
         return metricsType;
-    }
-
-    /**
-     * Removes both rate and count metrics.
-     */
-    protected void removeMetrics() {
-        metricsService.removeMetric(metricsComponent, metricsFeature, RATE_NAME);
-        metricsService.removeMetric(metricsComponent, metricsFeature, COUNT_NAME);
     }
 
     /**

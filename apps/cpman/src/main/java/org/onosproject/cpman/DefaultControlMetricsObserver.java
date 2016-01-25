@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,14 @@ public class DefaultControlMetricsObserver implements ControlMetricsObserver {
     @Override
     public void feedMetrics(MetricsAggregator ma, Optional<DeviceId> deviceId) {
         MetricValue mv = new MetricValue((long) ma.getRate(), (long) ma.getLoad(), (long) ma.getCount());
-        ControlMetric cpm = new ControlMetric(ma.getMetricsType(), mv);
-        controlPlaneMonitorService.updateMetric(cpm, 1, deviceId);
+        ControlMetric cm = new ControlMetric(ma.getMetricsType(), mv);
+        controlPlaneMonitorService.updateMetric(cm, 1, deviceId);
+    }
+
+    @Override
+    public void feedMetrics(MetricsAggregator ma, String resourceName) {
+        MetricValue mv = new MetricValue((long) ma.getRate(), (long) ma.getLoad(), (long) ma.getCount());
+        ControlMetric cm = new ControlMetric(ma.getMetricsType(), mv);
+        controlPlaneMonitorService.updateMetric(cm, 1, resourceName);
     }
 }

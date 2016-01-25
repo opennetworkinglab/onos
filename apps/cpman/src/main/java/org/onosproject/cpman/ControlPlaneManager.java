@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,18 +95,18 @@ public class ControlPlaneManager {
         if (cmf.isMonitor()) {
             controlMetricsObservers.forEach(observer -> {
 
-                // try to feed the CPU and memory stats
-                observer.feedMetrics(cmf.cpuInfoMetric(), Optional.ofNullable(null));
-                observer.feedMetrics(cmf.memoryInfoMetric(), Optional.ofNullable(null));
+                // only OpenFlow messages are spontaneously monitored with
+                // 1 minute period. Other system metrics will be pushed from
+                // external monitoring agent through REST API
 
-                // try to feed the control message stats
+                // feed the control message stats
                 cmf.getDeviceIds().forEach(v -> {
-                    observer.feedMetrics(cmf.inboundPacketMetrics(v), Optional.of(v));
-                    observer.feedMetrics(cmf.outboundPacketMetrics(v), Optional.of(v));
-                    observer.feedMetrics(cmf.flowmodPacketMetrics(v), Optional.of(v));
-                    observer.feedMetrics(cmf.flowrmvPacketMetrics(v), Optional.of(v));
-                    observer.feedMetrics(cmf.requestPacketMetrics(v), Optional.of(v));
-                    observer.feedMetrics(cmf.replyPacketMetrics(v), Optional.of(v));
+                    observer.feedMetrics(cmf.inboundPacket(v), Optional.of(v));
+                    observer.feedMetrics(cmf.outboundPacket(v), Optional.of(v));
+                    observer.feedMetrics(cmf.flowmodPacket(v), Optional.of(v));
+                    observer.feedMetrics(cmf.flowrmvPacket(v), Optional.of(v));
+                    observer.feedMetrics(cmf.requestPacket(v), Optional.of(v));
+                    observer.feedMetrics(cmf.replyPacket(v), Optional.of(v));
                 });
             });
         }

@@ -34,8 +34,7 @@
         <onos.app.name>org.onosproject.cpman</onos.app.name>
         <onos.app.category>default</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>Control plane management application.
-        </onos.app.readme>
+        <onos.app.readme>Control plane management application.</onos.app.readme>
     </properties>
 
     <dependencies>

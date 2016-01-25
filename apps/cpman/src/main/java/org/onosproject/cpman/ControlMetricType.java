@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,27 +20,78 @@ package org.onosproject.cpman;
  */
 public enum ControlMetricType {
 
-    /** Mapped to PACKET-IN message of OpenFlow. */
+    /* Mapped to PACKET-IN message of OpenFlow. */
     INBOUND_PACKET,
 
-    /** Mapped to PACKET-OUT message of OpenFlow. */
+    /* Mapped to PACKET-OUT message of OpenFlow. */
     OUTBOUND_PACKET,
 
-    /** Mapped to FLOW-MOD message of OpenFlow. */
+    /* Mapped to FLOW-MOD message of OpenFlow. */
     FLOW_MOD_PACKET,
 
-    /** Mapped to FLOW-REMOVED message of OpenFlow. */
+    /* Mapped to FLOW-REMOVED message of OpenFlow. */
     FLOW_REMOVED_PACKET,
 
-    /** Mapped to STATS-REQUEST message of OpenFlow. */
+    /* Mapped to STATS-REQUEST message of OpenFlow. */
     REQUEST_PACKET,
 
-    /** Mapped to STATS-REPLY message of OpenFlow. */
+    /* Mapped to STATS-REPLY message of OpenFlow. */
     REPLY_PACKET,
 
-    /** Cpu Utilization. */
-    CPU_INFO,
+    /* Number of CPU cores. */
+    NUM_OF_CORES,
 
-    /** Memory Utilization. */
-    MEMORY_INFO
+    /* Number of CPUs. **/
+    NUM_OF_CPUS,
+
+    /* CPU Speed. **/
+    CPU_SPEED,
+
+    /* CPU Load. **/
+    CPU_LOAD,
+
+    /* Total Amount of CPU Up Time. **/
+    TOTAL_CPU_TIME,
+
+    /* System CPU Up Time. **/
+    SYS_CPU_TIME,
+
+    /* User CPU Up Time. **/
+    USER_CPU_TIME,
+
+    /* CPU Idle Time. **/
+    CPU_IDLE_TIME,
+
+    /* Percentage of Used Memory Amount. */
+    MEMORY_USED_PERCENTAGE,
+
+    /* Percentage of Free Memory Amount. **/
+    MEMORY_FREE_PERCENTAGE,
+
+    /* Used Memory Amount. **/
+    MEMORY_USED,
+
+    /* Free Memory Amount. **/
+    MEMORY_FREE,
+
+    /* Total Amount of Memory. **/
+    MEMORY_TOTAL,
+
+    /* Disk Read Bytes. **/
+    DISK_READ_BYTES,
+
+    /* Disk Write Bytes. **/
+    DISK_WRITE_BYTES,
+
+    /* Network Incoming Bytes. **/
+    NW_INCOMING_BYTES,
+
+    /* Network Outgoing Bytes. **/
+    NW_OUTGOING_BYTES,
+
+    /* Network Incoming Packets. **/
+    NW_INCOMING_PACKETS,
+
+    /* Network Outgoing Packets. **/
+    NW_OUTGOING_PACKETS
 }

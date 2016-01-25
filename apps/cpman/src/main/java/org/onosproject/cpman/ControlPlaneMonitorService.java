@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,15 @@ public interface ControlPlaneMonitorService {
      * @param deviceId       {@link org.onosproject.net.DeviceId}
      */
     void updateMetric(ControlMetric controlMetric, int updateInterval, Optional<DeviceId> deviceId);
+
+    /**
+     * Adds a new control metric value with a certain update interval.
+     *
+     * @param controlMetric     control plane metric (e.g., disk and network metrics)
+     * @param updateInterval    value update interval (time unit will be in minute)
+     * @param resourceName      resource name
+     */
+    void updateMetric(ControlMetric controlMetric, int updateInterval, String resourceName);
 
     /**
      * Obtains the control plane load of a specific device.
