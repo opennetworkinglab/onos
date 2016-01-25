@@ -251,6 +251,17 @@
         return debugFlags[tag];
     }
 
+    // output debug message to console, if debug tag set...
+    // e.g. fs.debug('mytag', arg1, arg2, ...)
+    function debug(tag) {
+        var args;
+        if (debugOn(tag)) {
+            args = Array.prototype.slice.call(arguments, 1);
+            args.unshift('['+tag+']');
+            $log.debug.apply(this, args);
+        }
+    }
+
     angular.module('onosUtil')
         .factory('FnService',
         ['$window', '$location', '$log', function (_$window_, $loc, _$log_) {
@@ -273,6 +284,7 @@
                 isSafari: isSafari,
                 isFirefox: isFirefox,
                 debugOn: debugOn,
+                debug: debug,
                 find: find,
                 inArray: inArray,
                 removeFromArray: removeFromArray,
