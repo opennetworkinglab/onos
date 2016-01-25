@@ -20,6 +20,7 @@ import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
+import org.onosproject.netconf.NetconfSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +36,15 @@ public class NetconfDeviceImpl implements NetconfDevice {
 
     private NetconfDeviceInfo netconfDeviceInfo;
     private boolean deviceState = false;
+    protected NetconfSessionFactory sessionFactory = new SshNetconfSessionFactory();
     private NetconfSession netconfSession;
 
-    public NetconfDeviceImpl(NetconfDeviceInfo deviceInfo) throws NetconfException {
+
+    public NetconfDeviceImpl(NetconfDeviceInfo deviceInfo)
+            throws NetconfException {
         netconfDeviceInfo = deviceInfo;
         try {
-            netconfSession = new NetconfSessionImpl(netconfDeviceInfo);
+            netconfSession = sessionFactory.createNetconfSession(deviceInfo);
         } catch (IOException e) {
             throw new NetconfException("Cannot create connection and session for device " +
                                                deviceInfo, e);
@@ -72,4 +76,13 @@ public class NetconfDeviceImpl implements NetconfDevice {
     public NetconfDeviceInfo getDeviceInfo() {
         return netconfDeviceInfo;
     }
+
+    public class SshNetconfSessionFactory implements NetconfSessionFactory {
+
+        @Override
+        public NetconfSession createNetconfSession(NetconfDeviceInfo netconfDeviceInfo) throws NetconfException {
+            return new NetconfSessionImpl(netconfDeviceInfo);
+        }
+    }
+
 }

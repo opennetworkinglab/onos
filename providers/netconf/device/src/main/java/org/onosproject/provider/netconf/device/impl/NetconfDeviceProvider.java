@@ -46,6 +46,7 @@ import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceListener;
+import org.onosproject.netconf.NetconfException;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -190,10 +191,11 @@ public class NetconfDeviceProvider extends AbstractProvider
                                                                        addr.ip(),
                                                                        addr.port()));
                                      } catch (IOException e) {
-                                         log.info("Can't connect to NETCONF " +
-                                                          "device on {}:{}",
-                                                  addr.ip(),
-                                                  addr.port());
+                                         throw new RuntimeException(
+                                                 new NetconfException(
+                                                         "Can't connect to NETCONF " +
+                                                                 "device on " + addr.ip() +
+                                                                 ":" + addr.port(), e));
                                      }
                                  }
                         );

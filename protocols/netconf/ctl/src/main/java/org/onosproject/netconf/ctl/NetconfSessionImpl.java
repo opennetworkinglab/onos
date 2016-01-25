@@ -401,6 +401,4 @@ public class NetconfSessionImpl implements NetconfSession {
             completedReply.complete(event.getMessagePayload());
         }
     }
-
-
 }

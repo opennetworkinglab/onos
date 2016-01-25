@@ -46,7 +46,7 @@ public class NetconfControllerImpl implements NetconfController {
     public static final Logger log = LoggerFactory
             .getLogger(NetconfControllerImpl.class);
 
-    public Map<DeviceId, NetconfDevice> netconfDeviceMap = new ConcurrentHashMap<>();
+    private Map<DeviceId, NetconfDevice> netconfDeviceMap = new ConcurrentHashMap<>();
 
     protected Set<NetconfDeviceListener> netconfDeviceListeners = new CopyOnWriteArraySet<>();
 
@@ -130,6 +130,4 @@ public class NetconfControllerImpl implements NetconfController {
     public Map<DeviceId, NetconfDevice> getDevicesMap() {
         return netconfDeviceMap;
     }
-
-
 }
