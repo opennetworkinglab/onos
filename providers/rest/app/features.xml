@@ -25,6 +25,8 @@
 
         <bundle>mvn:com.sun.jersey/jersey-client/1.19</bundle>
         <bundle>mvn:commons-io/commons-io/2.4</bundle>
+        <bundle>mvn:org.apache.httpcomponents/httpclient-osgi/4.5.1</bundle>
+        <bundle>mvn:org.apache.httpcomponents/httpcore-osgi/4.4.4</bundle>
     </feature>
 </features>
 

@@ -24,11 +24,13 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClients;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.protocol.rest.RestSBController;
 import org.onosproject.protocol.rest.RestSBDevice;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +52,6 @@ public class RestSBControllerImpl implements RestSBController {
 
     private static final Logger log =
             LoggerFactory.getLogger(RestSBControllerImpl.class);
-    private static final String APPLICATION = "application/";
     private static final String XML = "xml";
     private static final String JSON = "json";
     private static final String DOUBLESLASH = "//";
@@ -64,7 +65,7 @@ public class RestSBControllerImpl implements RestSBController {
     Client client;
 
     @Activate
-    public void activate(ComponentContext context) {
+    public void activate() {
         client = Client.create();
         log.info("Started");
     }
@@ -87,10 +88,10 @@ public class RestSBControllerImpl implements RestSBController {
 
     @Override
     public RestSBDevice getDevice(IpAddress ip, int port) {
-        for (DeviceId info : deviceMap.keySet()) {
-            if (IpAddress.valueOf(info.uri().getHost()).equals(ip) &&
-                    info.uri().getPort() == port) {
-                return deviceMap.get(info);
+        for (RestSBDevice device : deviceMap.values()) {
+            if (device.ip().equals(ip) &&
+                    device.port() == port) {
+                return device;
             }
         }
         return null;
@@ -167,6 +168,31 @@ public class RestSBControllerImpl implements RestSBController {
     }
 
     @Override
+    public boolean patch(DeviceId device, String request, InputStream payload, String mediaType) {
+        String url = deviceMap.get(device).protocol() + COLON +
+                DOUBLESLASH +
+                deviceMap.get(device).ip().toString() +
+                COLON + deviceMap.get(device).port() +
+                SLASH + request;
+        try {
+            HttpPatch httprequest = new HttpPatch(url);
+            if (payload != null) {
+                StringEntity input = new StringEntity(IOUtils.toString(payload, StandardCharsets.UTF_8));
+                input.setContentType(mediaType);
+                httprequest.setEntity(input);
+            }
+            int responseStatusCode = HttpClients.createDefault().execute(httprequest)
+                    .getStatusLine()
+                    .getStatusCode();
+            return checkStatusCode(responseStatusCode);
+        } catch (IOException e) {
+            log.error("Cannot do PATCH {} request on device {} because can't read payload",
+                      request, device);
+        }
+        return false;
+    }
+
+    @Override
     public boolean delete(DeviceId device, String request, InputStream payload, String mediaType) {
         WebResource webResource = getWebResource(device, request);
         ClientResponse response = null;
@@ -195,17 +221,21 @@ public class RestSBControllerImpl implements RestSBController {
 
     private boolean checkReply(ClientResponse response) {
         if (response != null) {
-            if (response.getStatus() == STATUS_OK ||
-                    response.getStatus() == STATUS_CREATED ||
-                    response.getStatus() == STATUS_ACCEPTED) {
-                return true;
-            } else {
-                log.error("Failed request: HTTP error code : "
-                                  + response.getStatus());
-                return false;
-            }
+            return checkStatusCode(response.getStatus());
         }
         log.error("Null reply from device");
         return false;
+    }
+
+    private boolean checkStatusCode(int statusCode) {
+        if (statusCode == STATUS_OK ||
+                statusCode == STATUS_CREATED ||
+                statusCode == STATUS_ACCEPTED) {
+            return true;
+        } else {
+            log.error("Failed request: HTTP error code : "
+                              + statusCode);
+            return false;
+        }
     }
 }

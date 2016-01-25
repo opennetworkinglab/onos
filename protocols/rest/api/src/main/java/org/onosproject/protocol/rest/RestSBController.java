@@ -99,6 +99,17 @@ public interface RestSBController {
     InputStream get(DeviceId device, String request, String mediaType);
 
     /**
+     * Does a REST PATCH request with specified parameters to the device.
+     *
+     * @param device  device to make the request to
+     * @param request url of the request
+     * @param payload   payload of the request as an InputStream
+     * @param mediaType format to retrieve the content in
+     * @return true if operation returned 200, 201, 202, false otherwise
+     */
+    boolean patch(DeviceId device, String request, InputStream payload, String mediaType);
+
+    /**
      * Does a REST DELETE request with specified parameters to the device.
      *
      * @param device    device to make the request to
