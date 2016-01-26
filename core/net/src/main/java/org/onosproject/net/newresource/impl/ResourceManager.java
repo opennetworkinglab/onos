@@ -114,7 +114,7 @@ public final class ResourceManager extends AbstractListenerManager<ResourceEvent
     }
 
     @Override
-    public List<ResourceAllocation> getResourceAllocation(Resource resource) {
+    public List<ResourceAllocation> getResourceAllocations(Resource resource) {
         checkNotNull(resource);
 
         List<ResourceConsumer> consumers = store.getConsumers(resource);

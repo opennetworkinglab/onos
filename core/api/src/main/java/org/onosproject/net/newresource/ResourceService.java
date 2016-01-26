@@ -133,7 +133,7 @@ public interface ResourceService extends ListenerService<ResourceEvent, Resource
      * If the resource is not allocated, the return value is an empty list.
      */
     // TODO: need to change the argument type to ResourceId
-    List<ResourceAllocation> getResourceAllocation(Resource resource);
+    List<ResourceAllocation> getResourceAllocations(Resource resource);
 
     /**
      * Returns allocated resources being as children of the specified parent and being the specified resource type.

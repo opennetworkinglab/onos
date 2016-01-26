@@ -312,7 +312,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         if (ochCP != null) {
             OchPort ochPort = (OchPort) deviceService.getPort(ochCP.deviceId(), ochCP.port());
             Optional<IntentId> intentId =
-                    resourceService.getResourceAllocation(Resource.discrete(ochCP.deviceId(), ochCP.port()))
+                    resourceService.getResourceAllocations(Resource.discrete(ochCP.deviceId(), ochCP.port()))
                             .stream()
                             .map(ResourceAllocation::consumer)
                             .filter(x -> x instanceof IntentId)
@@ -333,7 +333,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             }
 
             Optional<IntentId> intentId =
-                    resourceService.getResourceAllocation(Resource.discrete(oduPort.deviceId(), port.number()))
+                    resourceService.getResourceAllocations(Resource.discrete(oduPort.deviceId(), port.number()))
                             .stream()
                             .map(ResourceAllocation::consumer)
                             .filter(x -> x instanceof IntentId)

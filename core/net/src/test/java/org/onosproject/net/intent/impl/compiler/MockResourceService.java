@@ -68,7 +68,7 @@ class MockResourceService implements ResourceService {
     }
 
     @Override
-    public List<ResourceAllocation> getResourceAllocation(Resource resource) {
+    public List<ResourceAllocation> getResourceAllocations(Resource resource) {
         return Optional.ofNullable(assignment.get(resource))
                 .map(x -> ImmutableList.of(new ResourceAllocation(resource, x)))
                 .orElse(ImmutableList.of());

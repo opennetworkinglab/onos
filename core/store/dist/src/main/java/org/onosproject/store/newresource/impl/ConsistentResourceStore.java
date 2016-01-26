@@ -115,13 +115,13 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         checkArgument(resource instanceof DiscreteResource || resource instanceof ContinuousResource);
 
         if (resource instanceof DiscreteResource) {
-            return getConsumer((DiscreteResource) resource);
+            return getConsumers((DiscreteResource) resource);
         } else {
-            return getConsumer((ContinuousResource) resource);
+            return getConsumers((ContinuousResource) resource);
         }
     }
 
-    private List<ResourceConsumer> getConsumer(DiscreteResource resource) {
+    private List<ResourceConsumer> getConsumers(DiscreteResource resource) {
         Versioned<ResourceConsumer> consumer = discreteConsumers.get(resource);
         if (consumer == null) {
             return ImmutableList.of();
@@ -130,7 +130,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
         return ImmutableList.of(consumer.value());
     }
 
-    private List<ResourceConsumer> getConsumer(ContinuousResource resource) {
+    private List<ResourceConsumer> getConsumers(ContinuousResource resource) {
         Versioned<ContinuousResourceAllocation> allocations = continuousConsumers.get(resource.id());
         if (allocations == null) {
             return ImmutableList.of();
@@ -337,7 +337,7 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
 
         if (resource instanceof DiscreteResource) {
             // check if already consumed
-            return getConsumer((DiscreteResource) resource).isEmpty();
+            return getConsumers((DiscreteResource) resource).isEmpty();
         } else {
             ContinuousResource requested = (ContinuousResource) resource;
             ContinuousResource registered = v.value().stream()
