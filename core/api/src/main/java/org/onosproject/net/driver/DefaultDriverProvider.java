@@ -45,19 +45,17 @@ public class DefaultDriverProvider implements DriverProvider {
     }
 
     /**
-     * Adds the specified driver to the provider.
+     * Adds the specified driver to the provider. If a driver with the same
+     * does not exist yet, the specified one will be added. Otherwise, the
+     * existing driver will be merged with the new one and the result will be
+     * registered.
      *
      * @param driver driver to be provided
+     * @return registered driver
      */
-    public void addDriver(Driver driver) {
-        Driver ddc = drivers.get(driver.name());
-        if (ddc == null) {
-            // If we don't have the driver yet, just use the new one.
-            drivers.put(driver.name(), driver);
-        } else {
-            // Otherwise merge the existing driver with the new one and rebind.
-            drivers.put(driver.name(), ddc.merge(driver));
-        }
+    public Driver addDriver(Driver driver) {
+        return drivers.compute(driver.name(), (name, oldDriver) ->
+                oldDriver == null ? driver : oldDriver.merge(driver));
     }
 
     /**
