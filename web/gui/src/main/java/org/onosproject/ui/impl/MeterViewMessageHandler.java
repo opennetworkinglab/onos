@@ -34,6 +34,7 @@ import org.onosproject.ui.table.cell.HexLongFormatter;
 import org.onosproject.ui.table.cell.NumberFormatter;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Message handler for meter view related messages.
@@ -46,6 +47,10 @@ public class MeterViewMessageHandler extends UiMessageHandler {
 
     private static final String PROTOCOL = "protocol";
     private static final String OF_10 = "OF_10";
+    private static final String OF_11 = "OF_11";
+    private static final String OF_12 = "OF_12";
+    private static final Set<String> UNSUPPORTED_PROTOCOLS =
+            ImmutableSet.of(OF_10, OF_11, OF_12);
 
     private static final String ID = "id";
     private static final String APP_ID = "app_id";
@@ -61,11 +66,6 @@ public class MeterViewMessageHandler extends UiMessageHandler {
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(new MeterDataRequest());
-    }
-
-    private static String deviceProtocol(Device device) {
-        String protocol = device.annotations().value(PROTOCOL);
-        return protocol != null ? protocol : "";
     }
 
     // handler for meter table requests
@@ -90,8 +90,7 @@ public class MeterViewMessageHandler extends UiMessageHandler {
                 DeviceService ds = get(DeviceService.class);
                 Device dev = ds.getDevice(DeviceId.deviceId(uri));
 
-                // TODO: replace with a less brittle solution...
-                if (deviceProtocol(dev).equals(OF_10)) {
+                if (meterNotSupported(dev)) {
                     return NOT_SUPPORT_MESSAGE;
                 }
             }
@@ -127,6 +126,11 @@ public class MeterViewMessageHandler extends UiMessageHandler {
                     .cell(PACKETS, m.packetsSeen())
                     .cell(BYTES, m.bytesSeen())
                     .cell(BANDS, m.bands());
+        }
+
+        private boolean meterNotSupported(Device dev) {
+            String protocol = dev.annotations().value(PROTOCOL);
+            return UNSUPPORTED_PROTOCOLS.contains(protocol);
         }
 
         private final class BandFormatter implements CellFormatter {
