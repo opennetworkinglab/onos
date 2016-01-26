@@ -33,19 +33,19 @@ import static com.google.common.base.Preconditions.checkState;
  */
 @Beta
 public abstract class ResourceId {
-    static final ResourceId ROOT = new Discrete();
+    static final ResourceId ROOT = new DiscreteResourceId();
 
     final ImmutableList<Object> components;
 
     static ResourceId discrete(DeviceId device, Object... components) {
-        return new Discrete(ImmutableList.builder()
+        return new DiscreteResourceId(ImmutableList.builder()
                 .add(device)
                 .add(components)
                 .build());
     }
 
     static ResourceId discrete(DeviceId device, PortNumber port, Object... components) {
-        return new Discrete(ImmutableList.builder()
+        return new DiscreteResourceId(ImmutableList.builder()
                 .add(device)
                 .add(port)
                 .add(components)
@@ -72,17 +72,17 @@ public abstract class ResourceId {
     }
 
     private static ResourceId continuous(ImmutableList.Builder<Object> parentComponents, Class<?> last) {
-        return new Continuous(parentComponents
+        return new ContinuousResourceId(parentComponents
                 .add(last.getCanonicalName())
                 .build(), last.getSimpleName());
     }
 
-    private ResourceId(ImmutableList<Object> components) {
+    protected ResourceId(ImmutableList<Object> components) {
         this.components = checkNotNull(components);
     }
 
     // for serializer
-    private ResourceId() {
+    protected ResourceId() {
         this.components = ImmutableList.of();
     }
 
@@ -91,27 +91,27 @@ public abstract class ResourceId {
         if (components.size() == 1) {
             return ROOT;
         } else {
-            return new Discrete(components.subList(0, components.size() - 1));
+            return new DiscreteResourceId(components.subList(0, components.size() - 1));
         }
     }
 
     /**
      * Returns a resource ID of a child of this resource based on the specified object.
      * If the argument is an instance of {@link Class}, this method returns an instance of
-     * {@link Continuous}. Otherwise, it returns an instance of {@link Discrete}
-     * This method only work when the receiver is {@link Discrete}. Otherwise,
+     * {@link ContinuousResourceId}. Otherwise, it returns an instance of {@link DiscreteResourceId}
+     * This method only work when the receiver is {@link DiscreteResourceId}. Otherwise,
      * this method throws an exception.
      *
      * @param child the last component of the child
      * @return a child resource ID
      */
     public ResourceId child(Object child) {
-        checkState(this instanceof Discrete);
+        checkState(this instanceof DiscreteResourceId);
 
         if (child instanceof Class<?>) {
             return continuous(ImmutableList.builder().addAll(components), (Class<?>) child);
         } else {
-            return new Discrete(ImmutableList.builder()
+            return new DiscreteResourceId(ImmutableList.builder()
                     .addAll(components)
                     .add(child)
                     .build());
@@ -140,44 +140,4 @@ public abstract class ResourceId {
         return components.toString();
     }
 
-    /**
-     * ResourceId for {@link Resource.Discrete}.
-     *
-     * Note: This class is exposed to the public, but intended to be used in the resource API
-     * implementation only. It is not for resource API user.
-     */
-    public static final class Discrete extends ResourceId {
-        private Discrete(ImmutableList<Object> components) {
-            super(components);
-        }
-
-        private Discrete() {
-            super();
-        }
-    }
-
-    /**
-     * ResourceId for {@link Resource.Continuous}
-     *
-     * Note: This class is exposed to the public, but intended to be used in the resource API
-     * implementation only. It is not for resource API user.
-     */
-    public static final class Continuous extends ResourceId {
-        // for printing purpose only (used in toString() implementation)
-        private final String name;
-
-        private Continuous(ImmutableList<Object> components, String name) {
-            super(components);
-            this.name = checkNotNull(name);
-        }
-
-        @Override
-        public String toString() {
-            // due to performance consideration, the value might need to be stored in a field
-            return ImmutableList.builder()
-                    .addAll(components.subList(0, components.size() - 1))
-                    .add(name)
-                    .build().toString();
-        }
-    }
 }

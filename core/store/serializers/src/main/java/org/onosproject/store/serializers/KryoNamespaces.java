@@ -172,6 +172,10 @@ import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.meter.MeterId;
+import org.onosproject.net.newresource.ContinuousResource;
+import org.onosproject.net.newresource.ContinuousResourceId;
+import org.onosproject.net.newresource.DiscreteResource;
+import org.onosproject.net.newresource.DiscreteResourceId;
 import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourceId;
 import org.onosproject.net.newresource.Resource;
@@ -434,11 +438,11 @@ public final class KryoNamespaces {
                     BandwidthResourceAllocation.class,
                     LambdaResourceAllocation.class,
                     Resource.class,
-                    Resource.Discrete.class,
-                    Resource.Continuous.class,
+                    DiscreteResource.class,
+                    ContinuousResource.class,
                     ResourceId.class,
-                    ResourceId.Discrete.class,
-                    ResourceId.Continuous.class,
+                    DiscreteResourceId.class,
+                    ContinuousResourceId.class,
                     ResourceAllocation.class,
                     // Constraints
                     LambdaConstraint.class,

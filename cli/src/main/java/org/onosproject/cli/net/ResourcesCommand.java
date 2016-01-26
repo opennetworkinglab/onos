@@ -34,6 +34,7 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.TributarySlot;
+import org.onosproject.net.newresource.ContinuousResource;
 import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 
@@ -112,10 +113,10 @@ public class ResourcesCommand extends AbstractShellCommand {
                 return;
             }
 
-            if (resource instanceof Resource.Continuous) {
+            if (resource instanceof ContinuousResource) {
                 print("%s%s: %f", Strings.repeat(" ", level),
                                   resource.last(),
-                                  ((Resource.Continuous) resource).value());
+                                  ((ContinuousResource) resource).value());
                 // Continuous resource is terminal node, stop here
                 return;
             } else {
@@ -144,7 +145,7 @@ public class ResourcesCommand extends AbstractShellCommand {
         List<Resource> nonAggregatable = new ArrayList<>();
 
         for (Resource r : children) {
-            if (r instanceof Resource.Continuous) {
+            if (r instanceof ContinuousResource) {
                 // non-aggregatable terminal node
                 nonAggregatable.add(r);
             } else if (aggregatableTypes.contains(r.last().getClass())) {

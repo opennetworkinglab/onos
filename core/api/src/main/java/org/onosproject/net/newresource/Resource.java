@@ -21,7 +21,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -47,13 +46,13 @@ import static com.google.common.base.Preconditions.checkState;
 @Beta
 public abstract class Resource {
 
-    private final Discrete parent;
+    private final DiscreteResource parent;
     private final ResourceId id;
 
-    public static final Discrete ROOT = new Discrete();
+    public static final DiscreteResource ROOT = new DiscreteResource();
 
     public static Resource discrete(DeviceId device) {
-        return new Discrete(ResourceId.discrete(device));
+        return new DiscreteResource(ResourceId.discrete(device));
     }
 
     /**
@@ -64,7 +63,7 @@ public abstract class Resource {
      * @return resource path instance
      */
     public static Resource discrete(DeviceId device, Object... components) {
-        return new Discrete(ResourceId.discrete(device, components));
+        return new DiscreteResource(ResourceId.discrete(device, components));
     }
 
     /**
@@ -76,7 +75,7 @@ public abstract class Resource {
      * @return resource path instance
      */
     public static Resource discrete(DeviceId device, PortNumber port, Object... components) {
-        return new Discrete(ResourceId.discrete(device, port, components));
+        return new DiscreteResource(ResourceId.discrete(device, port, components));
     }
 
     /**
@@ -93,7 +92,7 @@ public abstract class Resource {
         checkArgument(components.length > 0,
                 "Length of components must be greater thant 0, but " + components.length);
 
-        return new Continuous(ResourceId.continuous(device, components), value);
+        return new ContinuousResource(ResourceId.continuous(device, components), value);
     }
 
     /**
@@ -108,7 +107,7 @@ public abstract class Resource {
      * @return resource path instance
      */
     public static Resource continuous(double value, DeviceId device, PortNumber port, Object... components) {
-        return new Continuous(ResourceId.continuous(device, port, components), value);
+        return new ContinuousResource(ResourceId.continuous(device, port, components), value);
     }
 
     /**
@@ -123,12 +122,12 @@ public abstract class Resource {
         if (id.components.size() == 1) {
             this.parent = ROOT;
         } else {
-            this.parent = new Discrete(id.parent());
+            this.parent = new DiscreteResource(id.parent());
         }
     }
 
     // for serialization
-    private Resource() {
+    protected Resource() {
         this.parent = null;
         this.id = ResourceId.ROOT;
     }
@@ -157,7 +156,7 @@ public abstract class Resource {
      * @return the parent resource path of this instance.
      * If there is no parent, empty instance will be returned.
      */
-    public Optional<Discrete> parent() {
+    public Optional<DiscreteResource> parent() {
         return Optional.ofNullable(parent);
     }
 
@@ -169,9 +168,9 @@ public abstract class Resource {
      * @return a child resource path
      */
     public Resource child(Object child) {
-        checkState(this instanceof Discrete);
+        checkState(this instanceof DiscreteResource);
 
-        return new Discrete(id().child(child));
+        return new DiscreteResource(id().child(child));
     }
 
     /**
@@ -183,9 +182,9 @@ public abstract class Resource {
      * @return a child resource path
      */
     public Resource child(Object child, double value) {
-        checkState(this instanceof Discrete);
+        checkState(this instanceof DiscreteResource);
 
-        return new Continuous(id.child(child), value);
+        return new ContinuousResource(id.child(child), value);
     }
 
     /**
@@ -216,116 +215,6 @@ public abstract class Resource {
                 .add("id", id())
                 .add("volume", volume())
                 .toString();
-    }
-
-    /**
-     * Represents a resource path which specifies a resource which can be measured
-     * as a discrete unit. A VLAN ID and a MPLS label of a link are examples of the resource.
-     * <p>
-     * Note: This class is exposed to the public, but intended to be used in the resource API
-     * implementation only. It is not for resource API user.
-     * </p>
-     */
-    @Beta
-    public static final class Discrete extends Resource {
-        private Discrete() {
-            super();
-        }
-
-        private Discrete(ResourceId id) {
-            super(id);
-        }
-
-        /**
-         * The user of this methods must receive the return value as the correct type.
-         * Otherwise, this methods throws an exception.
-         *
-         * @param <T> type of the return value
-         * @return the volume of this resource
-         */
-        @SuppressWarnings("unchecked")
-        @Override
-        // TODO: consider receiving Class<T> as an argument. Which approach is convenient?
-        public <T> T volume() {
-            return (T) last();
-        }
-
-        @Override
-        public int hashCode() {
-            // the value returing from volume() is excluded due to optimization
-            return id().hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            final Discrete other = (Discrete) obj;
-            // the value returing from volume() is excluded due to optimization
-            return Objects.equals(this.id(), other.id());
-        }
-    }
-
-    /**
-     * Represents a resource path which specifies a resource which can be measured
-     * as continuous value. Bandwidth of a link is an example of the resource.
-     * <p>
-     * Note: This class is exposed to the public, but intended to be used in the resource API
-     * implementation only. It is not for resource API user.
-     */
-    @Beta
-    public static final class Continuous extends Resource {
-        private final double value;
-
-        private Continuous(ResourceId id, double value) {
-            super(id);
-            this.value = value;
-        }
-
-        /**
-         * The user of this methods must receive the return value as Double or double.
-         * Otherwise, this methods throws an exception.
-         *
-         * @param <T> type of the return value
-         * @return the volume of this resource
-         */
-        @SuppressWarnings("unchecked")
-        @Override
-        public <T> T volume() {
-            return (T) Double.valueOf(value);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(id(), value);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            final Continuous other = (Continuous) obj;
-            return Objects.equals(this.id(), other.id())
-                    && Objects.equals(this.value, other.value);
-        }
-
-        /**
-         * Returns the value of the resource amount.
-         *
-         * @return the value of the resource amount
-         */
-        // FIXME: overlapping a purpose with volume()
-        public double value() {
-            return value;
-        }
     }
 
 }
