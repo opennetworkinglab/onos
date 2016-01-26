@@ -586,7 +586,7 @@ public class GossipDeviceStore
             // Only forward for ConfigProvider
             // Forwarding was added as a workaround for ONOS-490
             if (!providerId.scheme().equals("cfg")) {
-                return null;
+                return Collections.emptyList();
             }
             // FIXME Temporary hack for NPE (ONOS-1171).
             // Proper fix is to implement forwarding to master on ConfigProvider

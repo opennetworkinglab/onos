@@ -422,7 +422,7 @@ public class ECDeviceStore
             // Only forward for ConfigProvider
             // Forwarding was added as a workaround for ONOS-490
             if (!providerId.scheme().equals("cfg")) {
-                return null;
+                return Collections.emptyList();
             }
             if (master == null) {
                 return Collections.emptyList();
