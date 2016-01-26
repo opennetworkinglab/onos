@@ -17,6 +17,7 @@ package org.onosproject.pim.impl;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.PIM;
@@ -163,6 +164,30 @@ public class PIMInterface {
      */
     public int getGenid() {
         return genid;
+    }
+
+    /**
+     * Multicast a hello message out our interface.  This hello message is sent
+     * periodically during the normal PIM Neighbor refresh time, as well as a
+     * result of a newly created interface.
+     */
+    public void sendHello() {
+
+        // Create the base PIM Packet and mark it a hello packet
+        PIMPacket pimPacket = new PIMPacket(PIM.TYPE_HELLO);
+
+        // We need to set the source MAC and IPv4 addresses
+        pimPacket.setSrcMacAddr(onosInterface.mac());
+        pimPacket.setSrcIpAddress(Ip4Address.valueOf(getIpAddress().toOctets()));
+
+        // Create the hello message with options
+        PIMHello hello = new PIMHello();
+        hello.createDefaultOptions();
+
+        // Now set the hello option payload
+        pimPacket.setPIMPayload(hello);
+
+        // TODO: How to send the packet.?.
     }
 
     /**

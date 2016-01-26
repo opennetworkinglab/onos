@@ -28,6 +28,9 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -45,6 +48,17 @@ public class PIMInterfaceManager implements PIMInterfaceService {
     // Create ourselves a provider ID
     private static final ProviderId PID = new ProviderId("pim", "org.onosproject.pim");
 
+    // Create a Scheduled Executor service to send PIM hellos
+    private final ScheduledExecutorService helloScheduler =
+            Executors.newScheduledThreadPool(1);
+
+    // Wait for a bout 3 seconds before sending the initial hello messages.
+    // TODO: make this tunnable.
+    private final long initialHelloDelay = (long) 3;
+
+    // Send PIM hello packets: 30 seconds.
+    private final long pimHelloPeriod = (long) 30;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;
 
@@ -60,10 +74,24 @@ public class PIMInterfaceManager implements PIMInterfaceService {
         for (Interface intf : interfaceService.getInterfaces()) {
             pimInterfaces.put(intf.connectPoint(), new PIMInterface(intf));
         }
+
+        // Schedule the periodic hello sender.
+        helloScheduler.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                for (PIMInterface pif : pimInterfaces.values()) {
+                    pif.sendHello();
+                }
+            }
+        }, initialHelloDelay, pimHelloPeriod, TimeUnit.SECONDS);
     }
 
     @Deactivate
     public void deactivate() {
+
+        // Shutdown the periodic hello task.
+        helloScheduler.shutdown();
+
         log.info("Stopped");
     }
 
