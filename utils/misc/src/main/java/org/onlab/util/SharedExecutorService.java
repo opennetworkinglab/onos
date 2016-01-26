@@ -15,6 +15,10 @@
  */
 package org.onlab.util;
 
+import org.onlab.metrics.MetricsComponent;
+import org.onlab.metrics.MetricsFeature;
+import org.onlab.metrics.MetricsService;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -23,6 +27,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import com.codahale.metrics.Timer;
+
+
 
 /**
  * Executor service wrapper for shared executors with safeguards on shutdown
@@ -33,6 +40,13 @@ class SharedExecutorService implements ExecutorService {
     private static final String NOT_ALLOWED = "Shutdown of shared executor is not allowed";
 
     private ExecutorService executor;
+
+    private MetricsService metricsService = null;
+
+    private MetricsComponent executorMetrics;
+    private Timer queueMetrics = null;
+    private Timer delayMetrics = null;
+
 
     /**
      * Creates a wrapper for the given executor service.
@@ -63,6 +77,7 @@ class SharedExecutorService implements ExecutorService {
         oldExecutor.shutdown();
     }
 
+
     @Override
     public void shutdown() {
         throw new UnsupportedOperationException(NOT_ALLOWED);
@@ -91,7 +106,31 @@ class SharedExecutorService implements ExecutorService {
 
     @Override
     public <T> Future<T> submit(Callable<T> task) {
-        return executor.submit(task);
+        Counter taskCounter = new Counter();
+        taskCounter.reset();
+        return executor.submit(() -> {
+                    T t = null;
+                    long queueWaitTime = (long) taskCounter.duration();
+                    String className;
+                    if (task instanceof  CallableExtended) {
+                        className =  ((CallableExtended) task).getRunnable().getClass().toString();
+                    } else {
+                        className = task.getClass().toString();
+                    }
+                    if (queueMetrics != null) {
+                        queueMetrics.update(queueWaitTime, TimeUnit.SECONDS);
+                    }
+                    taskCounter.reset();
+                    try {
+                        t = task.call();
+                    } catch (Exception e) { }
+                    long taskwaittime = (long) taskCounter.duration();
+                    if (delayMetrics != null) {
+                        delayMetrics.update(taskwaittime, TimeUnit.SECONDS);
+                    }
+                    return t;
+                }
+        );
     }
 
     @Override
@@ -133,6 +172,49 @@ class SharedExecutorService implements ExecutorService {
     @Override
     public void execute(Runnable command) {
         executor.execute(command);
+    }
+
+    public void setCalculatePoolPerformance(boolean calculatePoolPerformance, MetricsService metricsSrv) {
+       this.metricsService = metricsSrv;
+       if (calculatePoolPerformance) {
+           if (metricsService != null) {
+               executorMetrics = metricsService.registerComponent("SharedExecutor");
+               MetricsFeature mf = executorMetrics.registerFeature("*");
+               queueMetrics = metricsService.createTimer(executorMetrics, mf, "Queue");
+               delayMetrics = metricsService.createTimer(executorMetrics, mf, "Delay");
+           }
+       } else {
+           metricsService = null;
+           queueMetrics = null;
+           delayMetrics = null;
+       }
+    }
+
+    /**
+     *  CallableExtended class is used to get Runnable Object
+     *  from Callable Object.
+     *
+     */
+    class CallableExtended implements Callable {
+
+        private Runnable runnable;
+
+        /**
+         * Wrapper for Callable object .
+         * @param runnable Runnable object
+         */
+        public CallableExtended(Runnable runnable) {
+            this.runnable = runnable;
+        }
+        public Runnable getRunnable() {
+            return runnable;
+        }
+
+        @Override
+        public Object call() throws Exception {
+            runnable.run();
+            return null;
+        }
     }
 
 }

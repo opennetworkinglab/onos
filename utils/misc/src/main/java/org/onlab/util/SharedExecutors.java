@@ -16,6 +16,8 @@
 
 package org.onlab.util;
 
+import org.onlab.metrics.MetricsService;
+
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 
@@ -91,6 +93,11 @@ public final class SharedExecutors {
         poolThreadExecutor.setBackingExecutor(
                 newFixedThreadPool(poolSize, groupedThreads("onos/shared",
                                                             "onos-pool-executor-%d")));
+    }
+
+
+    public static void setCalculatePoolPerformance(boolean calculatePoolPerformance, MetricsService metricsService) {
+        poolThreadExecutor.setCalculatePoolPerformance(calculatePoolPerformance, metricsService);
     }
 
     /**

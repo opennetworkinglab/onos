@@ -23,6 +23,7 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.metrics.MetricsService;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.cfg.ComponentConfigService;
@@ -80,6 +81,9 @@ public class CoreManager implements CoreService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected EventDeliveryService eventDeliveryService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MetricsService metricsService;
+
     private static final int DEFAULT_POOL_SIZE = 30;
     @Property(name = "sharedThreadPoolSize", intValue = DEFAULT_POOL_SIZE,
             label = "Configure shared pool maximum size ")
@@ -89,6 +93,12 @@ public class CoreManager implements CoreService {
     @Property(name = "maxEventTimeLimit", intValue = DEFAULT_EVENT_TIME,
             label = "Maximum number of millis an event sink has to process an event")
     private int maxEventTimeLimit = DEFAULT_EVENT_TIME;
+
+    private static final boolean DEFAULT_PERFORMANCE_CHECK = false;
+    @Property(name = "sharedThreadPerformanceCheck", boolValue = DEFAULT_PERFORMANCE_CHECK,
+            label = "Enable queue performance check on shared pool")
+    private boolean calculatePoolPerformance = DEFAULT_PERFORMANCE_CHECK;
+
 
     @Activate
     public void activate() {
@@ -177,8 +187,14 @@ public class CoreManager implements CoreService {
             log.warn("maxEventTimeLimit must be greater than 1");
         }
 
-        log.info("Settings: sharedThreadPoolSize={}, maxEventTimeLimit={}",
-                 sharedThreadPoolSize, maxEventTimeLimit);
+        Boolean performanceCheck = isPropertyEnabled(properties, "sharedThreadPerformanceCheck");
+        if (performanceCheck != null) {
+            calculatePoolPerformance = performanceCheck;
+            SharedExecutors.setCalculatePoolPerformance(calculatePoolPerformance, metricsService);
+        }
+
+        log.info("Settings: sharedThreadPoolSize={}, maxEventTimeLimit={}, calculatePoolPerformance={}",
+                 sharedThreadPoolSize, maxEventTimeLimit, calculatePoolPerformance);
     }
 
 
@@ -201,6 +217,27 @@ public class CoreManager implements CoreService {
         }
         return value;
     }
+
+    /**
+     * Check property name is defined and set to true.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    private static Boolean isPropertyEnabled(Dictionary<?, ?> properties,
+                                             String propertyName) {
+        Boolean value = null;
+        try {
+            String s = (String) properties.get(propertyName);
+            value = isNullOrEmpty(s) ? null : s.trim().equals("true");
+        } catch (ClassCastException e) {
+            // No propertyName defined.
+            value = null;
+        }
+        return value;
+    }
+
 
 
 }
