@@ -39,9 +39,6 @@
         </api.description>
         <api.package>org.onosproject.openstackswitching.web</api.package>
         <onos.app.origin>SKT, Inc.</onos.app.origin>
-        <onos.app.requires>
-            org.onosproject.dhcp
-        </onos.app.requires>
     </properties>
 
 

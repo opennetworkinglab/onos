@@ -18,10 +18,10 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
+        <bundle>mvn:${project.groupId}/onos-app-openstackswitching-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-openstackswitching/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-dhcp-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-dhcp/${project.version}</bundle>
         <bundle>mvn:com.sun.jersey/jersey-client/1.19</bundle>
-        <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version}</bundle>
     </feature>
 </features>
