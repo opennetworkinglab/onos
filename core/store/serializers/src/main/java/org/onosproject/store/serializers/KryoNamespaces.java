@@ -181,8 +181,6 @@ import org.onosproject.net.newresource.ContinuousResourceId;
 import org.onosproject.net.newresource.DiscreteResource;
 import org.onosproject.net.newresource.DiscreteResourceId;
 import org.onosproject.net.newresource.ResourceAllocation;
-import org.onosproject.net.newresource.ResourceId;
-import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
 import org.onosproject.net.packet.PacketPriority;
@@ -442,10 +440,8 @@ public final class KryoNamespaces {
                     DefaultLinkResourceAllocations.class,
                     BandwidthResourceAllocation.class,
                     LambdaResourceAllocation.class,
-                    Resource.class,
                     DiscreteResource.class,
                     ContinuousResource.class,
-                    ResourceId.class,
                     DiscreteResourceId.class,
                     ContinuousResourceId.class,
                     ResourceAllocation.class,

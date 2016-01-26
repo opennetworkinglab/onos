@@ -18,6 +18,11 @@ package org.onosproject.net.newresource;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 
+import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * ResourceId for {@link DiscreteResource}.
  *
@@ -25,13 +30,65 @@ import com.google.common.collect.ImmutableList;
  * implementation only. It is not for resource API user.
  */
 @Beta
-// TODO: consider how to restrict the visibility
 public final class DiscreteResourceId extends ResourceId {
+    final ImmutableList<Object> components;
+
     DiscreteResourceId(ImmutableList<Object> components) {
-        super(components);
+        this.components = components;
     }
 
     DiscreteResourceId() {
-        super();
+        this.components = ImmutableList.of();
+    }
+
+    @Override
+    public DiscreteResourceId child(Object child) {
+        checkArgument(!(child instanceof Class<?>));
+
+        return new DiscreteResourceId(ImmutableList.builder()
+                .addAll(components)
+                .add(child)
+                .build());
+    }
+
+    @Override
+    public ContinuousResourceId child(Class<?> child) {
+        checkNotNull(child);
+
+        return new ContinuousResourceId(ImmutableList.builder().addAll(components), child);
+    }
+
+    @Override
+    DiscreteResourceId parent() {
+        if (components.size() == 0) {
+            return null;
+        }
+        if (components.size() == 1) {
+            return ROOT;
+        } else {
+            return new DiscreteResourceId(components.subList(0, components.size() - 1));
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return components.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final DiscreteResourceId other = (DiscreteResourceId) obj;
+        return Objects.equals(this.components, other.components);
+    }
+
+    @Override
+    public String toString() {
+        return components.toString();
     }
 }

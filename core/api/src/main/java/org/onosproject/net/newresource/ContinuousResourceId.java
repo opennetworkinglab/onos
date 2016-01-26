@@ -18,6 +18,8 @@ package org.onosproject.net.newresource;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 
+import java.util.Objects;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -27,14 +29,71 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * implementation only. It is not for resource API user.
  */
 @Beta
-// TODO: consider how to restrict the visibility
 public final class ContinuousResourceId extends ResourceId {
+    final ImmutableList<Object> components;
+
     // for printing purpose only (used in toString() implementation)
     private final String name;
 
     ContinuousResourceId(ImmutableList<Object> components, String name) {
-        super(components);
+        this.components = components;
         this.name = checkNotNull(name);
+    }
+
+    ContinuousResourceId(ImmutableList.Builder<Object> parentComponents, Class<?> last) {
+        this.components = parentComponents.add(last.getCanonicalName()).build();
+        this.name = last.getSimpleName();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * A child of a continuous-type resource is prohibited.
+     * {@link UnsupportedOperationException} is always thrown.
+     */
+    @Override
+    public DiscreteResourceId child(Object child) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * A child of a continuous-type resource is prohibited.
+     * {@link UnsupportedOperationException} is always thrown.
+     */
+    @Override
+    public ContinuousResourceId child(Class<?> child) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    DiscreteResourceId parent() {
+        if (components.size() == 0) {
+            return null;
+        }
+        if (components.size() == 1) {
+            return ROOT;
+        } else {
+            return new DiscreteResourceId(components.subList(0, components.size() - 1));
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return components.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final ContinuousResourceId other = (ContinuousResourceId) obj;
+        return Objects.equals(this.components, other.components);
     }
 
     @Override

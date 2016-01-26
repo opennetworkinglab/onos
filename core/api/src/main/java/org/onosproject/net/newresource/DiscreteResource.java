@@ -16,8 +16,13 @@
 package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.MoreObjects;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Represents a resource path which specifies a resource which can be measured
@@ -28,14 +33,20 @@ import java.util.Objects;
  * </p>
  */
 @Beta
-// TODO: consider how to restrict the visibility
-public final class DiscreteResource extends Resource {
-    protected DiscreteResource() {
-        super();
+public final class DiscreteResource implements Resource {
+    private final DiscreteResourceId id;
+
+    DiscreteResource(DiscreteResourceId id) {
+        this.id = id;
     }
 
-    DiscreteResource(ResourceId id) {
-        super(id);
+    protected DiscreteResource() {
+        this.id = ResourceId.ROOT;
+    }
+
+    @Override
+    public DiscreteResourceId id() {
+        return id;
     }
 
     /**
@@ -50,6 +61,36 @@ public final class DiscreteResource extends Resource {
     // TODO: consider receiving Class<T> as an argument. Which approach is convenient?
     public <T> T volume() {
         return (T) last();
+    }
+
+    @Override
+    public List<Object> components() {
+        return id.components;
+    }
+
+    @Override
+    public Object last() {
+        if (id.components.isEmpty()) {
+            return null;
+        }
+        return id.components.get(id.components.size() - 1);
+    }
+
+    @Override
+    public DiscreteResource child(Object child) {
+        checkArgument(!(child instanceof Class<?>));
+
+        return new DiscreteResource(id().child(child));
+    }
+
+    @Override
+    public ContinuousResource child(Class<?> child, double value) {
+        return new ContinuousResource(id.child(child), value);
+    }
+
+    @Override
+    public Optional<DiscreteResource> parent() {
+        return Optional.ofNullable(id.parent()).map(DiscreteResource::new);
     }
 
     @Override
@@ -69,5 +110,13 @@ public final class DiscreteResource extends Resource {
         final DiscreteResource other = (DiscreteResource) obj;
         // the value returing from volume() is excluded due to optimization
         return Objects.equals(this.id(), other.id());
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("id", id)
+                .add("volume", volume())
+                .toString();
     }
 }

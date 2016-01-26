@@ -16,7 +16,6 @@
 package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.MoreObjects;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
@@ -24,8 +23,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * An object that represent a resource in a network.
@@ -44,14 +41,11 @@ import static com.google.common.base.Preconditions.checkState;
  * VLAN ID:100/Device:1/Port:1 is not valid because a link is not a sub-component of a VLAN ID.
  */
 @Beta
-public abstract class Resource {
+public interface Resource {
 
-    private final DiscreteResource parent;
-    private final ResourceId id;
+    DiscreteResource ROOT = new DiscreteResource();
 
-    public static final DiscreteResource ROOT = new DiscreteResource();
-
-    public static Resource discrete(DeviceId device) {
+    static DiscreteResource discrete(DeviceId device) {
         return new DiscreteResource(ResourceId.discrete(device));
     }
 
@@ -62,7 +56,7 @@ public abstract class Resource {
      * @param components following components of the path. The order represents hierarchical structure of the resource.
      * @return resource path instance
      */
-    public static Resource discrete(DeviceId device, Object... components) {
+    static DiscreteResource discrete(DeviceId device, Object... components) {
         return new DiscreteResource(ResourceId.discrete(device, components));
     }
 
@@ -74,7 +68,7 @@ public abstract class Resource {
      * @param components following components of the path. The order represents hierarchical structure of the resource.
      * @return resource path instance
      */
-    public static Resource discrete(DeviceId device, PortNumber port, Object... components) {
+    static DiscreteResource discrete(DeviceId device, PortNumber port, Object... components) {
         return new DiscreteResource(ResourceId.discrete(device, port, components));
     }
 
@@ -88,7 +82,7 @@ public abstract class Resource {
      *                   an IllegalArgumentException.
      * @return resource path instance
      */
-    public static Resource continuous(double value, DeviceId device, Object... components) {
+    static ContinuousResource continuous(double value, DeviceId device, Object... components) {
         checkArgument(components.length > 0,
                 "Length of components must be greater thant 0, but " + components.length);
 
@@ -106,30 +100,8 @@ public abstract class Resource {
      *                   an IllegalArgumentException.
      * @return resource path instance
      */
-    public static Resource continuous(double value, DeviceId device, PortNumber port, Object... components) {
+    static ContinuousResource continuous(double value, DeviceId device, PortNumber port, Object... components) {
         return new ContinuousResource(ResourceId.continuous(device, port, components), value);
-    }
-
-    /**
-     * Creates an resource path from the specified id.
-     *
-     * @param id id of the path
-     */
-    protected Resource(ResourceId id) {
-        checkNotNull(id);
-
-        this.id = id;
-        if (id.components.size() == 1) {
-            this.parent = ROOT;
-        } else {
-            this.parent = new DiscreteResource(id.parent());
-        }
-    }
-
-    // for serialization
-    protected Resource() {
-        this.parent = null;
-        this.id = ResourceId.ROOT;
     }
 
     /**
@@ -137,9 +109,7 @@ public abstract class Resource {
      *
      * @return the components of this resource path
      */
-    public List<Object> components() {
-        return id.components;
-    }
+    List<Object> components();
 
     /**
      * Returns the volume of this resource.
@@ -147,7 +117,7 @@ public abstract class Resource {
      * @return the volume of this resource
      */
     // TODO: think about other naming possibilities. amount? quantity?
-    public abstract <T> T volume();
+    <T> T volume();
 
     /**
      * Returns the parent resource path of this instance.
@@ -156,9 +126,7 @@ public abstract class Resource {
      * @return the parent resource path of this instance.
      * If there is no parent, empty instance will be returned.
      */
-    public Optional<DiscreteResource> parent() {
-        return Optional.ofNullable(parent);
-    }
+    Optional<DiscreteResource> parent();
 
     /**
      * Returns a child resource path of this instance with specifying the child object.
@@ -167,11 +135,7 @@ public abstract class Resource {
      * @param child child object
      * @return a child resource path
      */
-    public Resource child(Object child) {
-        checkState(this instanceof DiscreteResource);
-
-        return new DiscreteResource(id().child(child));
-    }
+    DiscreteResource child(Object child);
 
     /**
      * Returns a child resource path of this instance with specifying a child object and
@@ -181,11 +145,7 @@ public abstract class Resource {
      * @param value value
      * @return a child resource path
      */
-    public Resource child(Object child, double value) {
-        checkState(this instanceof DiscreteResource);
-
-        return new ContinuousResource(id.child(child), value);
-    }
+    ContinuousResource child(Class<?> child, double value);
 
     /**
      * Returns the last component of this instance.
@@ -193,28 +153,12 @@ public abstract class Resource {
      * @return the last component of this instance.
      * The return value is equal to the last object of {@code components()}.
      */
-    public Object last() {
-        if (id.components.isEmpty()) {
-            return null;
-        }
-        return id.components.get(id.components.size() - 1);
-    }
+    Object last();
 
     /**
      * Returns the ID of this resource path.
      *
      * @return the ID of this resource path
      */
-    public ResourceId id() {
-        return id;
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-                .add("id", id())
-                .add("volume", volume())
-                .toString();
-    }
-
+    ResourceId id();
 }

@@ -16,8 +16,11 @@
 package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.MoreObjects;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents a resource path which specifies a resource which can be measured
@@ -27,13 +30,18 @@ import java.util.Objects;
  * implementation only. It is not for resource API user.
  */
 @Beta
-// TODO: consider how to restrict the visibility
-public final class ContinuousResource extends Resource {
+public final class ContinuousResource implements Resource {
+    private final ContinuousResourceId id;
     private final double value;
 
-    ContinuousResource(ResourceId id, double value) {
-        super(id);
+    ContinuousResource(ContinuousResourceId id, double value) {
+        this.id = id;
         this.value = value;
+    }
+
+    @Override
+    public ContinuousResourceId id() {
+        return id;
     }
 
     /**
@@ -47,6 +55,44 @@ public final class ContinuousResource extends Resource {
     @Override
     public <T> T volume() {
         return (T) Double.valueOf(value);
+    }
+
+    /**
+     * Returns the value of the resource amount.
+     *
+     * @return the value of the resource amount
+     */
+    // FIXME: overlapping a purpose with volume()
+    public double value() {
+        return value;
+    }
+
+    @Override
+    public List<Object> components() {
+        return id.components;
+    }
+
+    @Override
+    public Object last() {
+        if (id.components.isEmpty()) {
+            return null;
+        }
+        return id.components.get(id.components.size() - 1);
+    }
+
+    @Override
+    public DiscreteResource child(Object child) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ContinuousResource child(Class<?> child, double value) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<DiscreteResource> parent() {
+        return Optional.ofNullable(id.parent()).map(DiscreteResource::new);
     }
 
     @Override
@@ -67,13 +113,11 @@ public final class ContinuousResource extends Resource {
                 && Objects.equals(this.value, other.value);
     }
 
-    /**
-     * Returns the value of the resource amount.
-     *
-     * @return the value of the resource amount
-     */
-    // FIXME: overlapping a purpose with volume()
-    public double value() {
-        return value;
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("id", id)
+                .add("volume", value)
+                .toString();
     }
 }
