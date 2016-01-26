@@ -26,6 +26,9 @@
     // internal state
     var debugFlags = {};
 
+    // function references
+    var fcc = String.fromCharCode,
+        cca = String.prototype.charCodeAt;
 
     function _parseDebugFlags(dbgstr) {
         var bits = dbgstr ? dbgstr.split(",") : [];
@@ -226,6 +229,28 @@
         return s ? s[0].toUpperCase() + s.slice(1) : s;
     }
 
+    // return encoding structure for given parameters
+    function eecode(h, w) {
+        var m = 65,
+            x = 90,
+            d = x - m + 1,
+            s = x + m,
+            o = [],
+            n, i, c, e;
+
+        for (i = 0, n = w.length; i<n; i++) {
+            c = cca.call(w, i);
+            e = s - c + h;
+            e = e > x ? e - d : e;
+            o.push(e);
+        }
+        return {
+            o: w,
+            d: o.join(''),
+            e: fcc.apply(o, o)
+        };
+    }
+
     // return the parameter without a px suffix
     function noPx(num) {
         return Number(num.replace(/px$/, ''));
@@ -292,6 +317,7 @@
                 sameObjProps: sameObjProps,
                 containsObj: containsObj,
                 cap: cap,
+                eecode: eecode,
                 noPx: noPx,
                 noPxStyle: noPxStyle,
                 endsWith: endsWith,
