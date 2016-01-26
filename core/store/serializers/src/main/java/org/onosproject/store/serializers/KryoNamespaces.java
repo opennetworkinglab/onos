@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ip4Address;
@@ -33,6 +34,7 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
 import org.onlab.util.Frequency;
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.Match;
 import org.onosproject.app.ApplicationState;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
@@ -270,6 +272,7 @@ public final class KryoNamespaces {
             .register(new Ip4AddressSerializer(), Ip4Address.class)
             .register(new Ip6AddressSerializer(), Ip6Address.class)
             .register(new MacAddressSerializer(), MacAddress.class)
+            .register(Match.class)
             .register(VlanId.class)
             .register(Frequency.class)
             .register(Bandwidth.class)
