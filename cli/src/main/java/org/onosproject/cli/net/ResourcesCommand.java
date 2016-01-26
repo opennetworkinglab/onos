@@ -89,11 +89,11 @@ public class ResourcesCommand extends AbstractShellCommand {
             DeviceId deviceId = deviceId(deviceIdStr);
             PortNumber portNumber = PortNumber.fromString(portNumberStr);
 
-            printResource(Resource.discrete(deviceId, portNumber), 0);
+            printResource(Resource.discrete(deviceId, portNumber).resource(), 0);
         } else if (deviceIdStr != null) {
             DeviceId deviceId = deviceId(deviceIdStr);
 
-            printResource(Resource.discrete(deviceId), 0);
+            printResource(Resource.discrete(deviceId).resource(), 0);
         } else {
             printResource(Resource.ROOT, 0);
         }

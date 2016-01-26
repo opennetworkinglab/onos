@@ -16,14 +16,8 @@
 package org.onosproject.net.newresource;
 
 import com.google.common.annotations.Beta;
-import com.google.common.collect.ImmutableList;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 
-import java.util.Arrays;
 import java.util.Optional;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Represents identifier of resource.
@@ -32,40 +26,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 @Beta
 public abstract class ResourceId {
     static final DiscreteResourceId ROOT = new DiscreteResourceId();
-
-    static DiscreteResourceId discrete(DeviceId device, Object... components) {
-        return new DiscreteResourceId(ImmutableList.builder()
-                .add(device)
-                .add(components)
-                .build());
-    }
-
-    static DiscreteResourceId discrete(DeviceId device, PortNumber port, Object... components) {
-        return new DiscreteResourceId(ImmutableList.builder()
-                .add(device)
-                .add(port)
-                .add(components)
-                .build());
-    }
-
-    static ContinuousResourceId continuous(DeviceId device, Object... components) {
-        Object last = components[components.length - 1];
-        checkArgument(last instanceof Class<?>);
-
-        return new ContinuousResourceId(ImmutableList.builder()
-                .add(device)
-                .add(Arrays.copyOfRange(components, 0, components.length - 1)), (Class<?>) last);
-    }
-
-    static ContinuousResourceId continuous(DeviceId device, PortNumber port, Object... components) {
-        Object last = components[components.length - 1];
-        checkArgument(last instanceof Class<?>);
-
-        return new ContinuousResourceId(ImmutableList.builder()
-                .add(device)
-                .add(port)
-                .add(Arrays.copyOfRange(components, 0, components.length - 1)), (Class<?>) last);
-    }
 
     /**
      * Returns the parent resource ID of this instance.

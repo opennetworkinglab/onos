@@ -252,8 +252,10 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
         //same VLANID is used for both directions
         Set<Resource> resources = vlanIds.entrySet().stream()
                 .flatMap(x -> Stream.of(
-                        Resource.discrete(x.getKey().src().deviceId(), x.getKey().src().port(), x.getValue()),
+                        Resource.discrete(x.getKey().src().deviceId(), x.getKey().src().port(), x.getValue())
+                                .resource(),
                         Resource.discrete(x.getKey().dst().deviceId(), x.getKey().dst().port(), x.getValue())
+                                .resource()
                 ))
                 .collect(Collectors.toSet());
         List<org.onosproject.net.newresource.ResourceAllocation> allocations =
@@ -280,7 +282,7 @@ public class PathIntentCompiler implements IntentCompiler<PathIntent> {
     }
 
     private Set<VlanId> findVlanId(ConnectPoint cp) {
-        return resourceService.getAvailableResources(Resource.discrete(cp.deviceId(), cp.port())).stream()
+        return resourceService.getAvailableResources(Resource.discrete(cp.deviceId(), cp.port()).resource()).stream()
                 .filter(x -> x.last() instanceof VlanId)
                 .map(x -> (VlanId) x.last())
                 .collect(Collectors.toSet());

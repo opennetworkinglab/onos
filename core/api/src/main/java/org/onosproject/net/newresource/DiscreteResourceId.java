@@ -50,17 +50,14 @@ public final class DiscreteResourceId extends ResourceId {
     public DiscreteResourceId child(Object child) {
         checkArgument(!(child instanceof Class<?>));
 
-        return new DiscreteResourceId(ImmutableList.builder()
-                .addAll(components)
-                .add(child)
-                .build());
+        return Resource.discrete(this, child).id();
     }
 
     @Override
     public ContinuousResourceId child(Class<?> child) {
         checkNotNull(child);
 
-        return new ContinuousResourceId(ImmutableList.builder().addAll(components), child);
+        return Resource.continuous(this, child).id();
     }
 
     @Override

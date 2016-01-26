@@ -21,8 +21,6 @@ import com.google.common.collect.ImmutableList;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * ResourceId for {@link ContinuousResource}
  *
@@ -35,11 +33,6 @@ public final class ContinuousResourceId extends ResourceId {
 
     // for printing purpose only (used in toString() implementation)
     private final String name;
-
-    ContinuousResourceId(ImmutableList<Object> components, String name) {
-        this.components = components;
-        this.name = checkNotNull(name);
-    }
 
     ContinuousResourceId(ImmutableList.Builder<Object> parentComponents, Class<?> last) {
         this.components = parentComponents.add(last.getCanonicalName()).build();

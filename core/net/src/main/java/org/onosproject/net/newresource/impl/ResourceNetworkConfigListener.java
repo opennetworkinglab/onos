@@ -93,9 +93,9 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
 
         switch (event.type()) {
         case CONFIG_ADDED:
-            if (!adminService.registerResources(continuous(bwCapacity.capacity().bps(),
-                                                           cp.deviceId(),
-                                                           cp.port(), Bandwidth.class))) {
+            if (!adminService.registerResources(continuous(cp.deviceId(),
+                                                           cp.port(), Bandwidth.class)
+                    .resource(bwCapacity.capacity().bps()))) {
                 log.info("Failed to register Bandwidth for {}, attempting update", cp);
 
                 // Bandwidth based on port speed, was probably already registered.
@@ -115,10 +115,9 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
 
         case CONFIG_REMOVED:
             // FIXME Following should be an update to the value based on port speed
-            if (!adminService.unregisterResources(continuous(0,
-                                                             cp.deviceId(),
+            if (!adminService.unregisterResources(continuous(cp.deviceId(),
                                                              cp.port(),
-                                                             Bandwidth.class))) {
+                                                             Bandwidth.class).resource(0))) {
                 log.warn("Failed to unregister Bandwidth for {}", cp);
             }
             break;
@@ -148,13 +147,12 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
         // but both unregisterResources(..) and  registerResources(..)
         // returns true (success)
 
-        if (!adminService.unregisterResources(continuous(0, cp.deviceId(), cp.port(), Bandwidth.class))) {
+        if (!adminService.unregisterResources(continuous(cp.deviceId(), cp.port(), Bandwidth.class).resource(0))) {
             log.warn("unregisterResources for {} failed", cp);
         }
-        return adminService.registerResources(continuous(bwCapacity.capacity().bps(),
-                                                         cp.deviceId(),
+        return adminService.registerResources(continuous(cp.deviceId(),
                                                          cp.port(),
-                                                         Bandwidth.class));
+                                                         Bandwidth.class).resource(bwCapacity.capacity().bps()));
     }
 
 }

@@ -160,8 +160,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         log.debug("Compiling optical circuit intent between {} and {}", src, dst);
 
         // Reserve OduClt ports
-        Resource srcPortResource = Resource.discrete(src.deviceId(), src.port());
-        Resource dstPortResource = Resource.discrete(dst.deviceId(), dst.port());
+        Resource srcPortResource = Resource.discrete(src.deviceId(), src.port()).resource();
+        Resource dstPortResource = Resource.discrete(dst.deviceId(), dst.port()).resource();
         List<ResourceAllocation> allocation = resourceService.allocate(intent.id(), srcPortResource, dstPortResource);
         if (allocation.isEmpty()) {
             throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
@@ -312,7 +312,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         if (ochCP != null) {
             OchPort ochPort = (OchPort) deviceService.getPort(ochCP.deviceId(), ochCP.port());
             Optional<IntentId> intentId =
-                    resourceService.getResourceAllocations(Resource.discrete(ochCP.deviceId(), ochCP.port()))
+                    resourceService.getResourceAllocations(Resource.discrete(ochCP.deviceId(), ochCP.port()).resource())
                             .stream()
                             .map(ResourceAllocation::consumer)
                             .filter(x -> x instanceof IntentId)
@@ -333,7 +333,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             }
 
             Optional<IntentId> intentId =
-                    resourceService.getResourceAllocations(Resource.discrete(oduPort.deviceId(), port.number()))
+                    resourceService.getResourceAllocations(
+                            Resource.discrete(oduPort.deviceId(), port.number()).resource())
                             .stream()
                             .map(ResourceAllocation::consumer)
                             .filter(x -> x instanceof IntentId)

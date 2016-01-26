@@ -232,7 +232,7 @@ public class ObjectiveTrackerTest {
     @Test
     public void testResourceEvent() throws Exception {
         ResourceEvent event = new ResourceEvent(RESOURCE_ADDED,
-                Resource.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)));
+                Resource.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource());
         resourceListener.event(event);
 
         assertThat(

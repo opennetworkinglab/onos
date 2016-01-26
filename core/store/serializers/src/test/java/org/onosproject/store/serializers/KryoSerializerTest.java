@@ -388,7 +388,7 @@ public class KryoSerializerTest {
 
     @Test
     public void testResource() {
-        testSerializedEquals(Resource.discrete(DID1, P1, VLAN1));
+        testSerializedEquals(Resource.discrete(DID1, P1, VLAN1).resource());
     }
 
     @Test
@@ -399,7 +399,7 @@ public class KryoSerializerTest {
     @Test
     public void testResourceAllocation() {
         testSerializedEquals(new org.onosproject.net.newresource.ResourceAllocation(
-                Resource.discrete(DID1, P1, VLAN1),
+                Resource.discrete(DID1, P1, VLAN1).resource(),
                 IntentId.valueOf(30)));
     }
 

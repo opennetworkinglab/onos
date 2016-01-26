@@ -118,15 +118,15 @@ final class ResourceDeviceListener implements DeviceListener {
     }
 
     private void registerDeviceResource(Device device) {
-        executor.submit(() -> adminService.registerResources(Resource.discrete(device.id())));
+        executor.submit(() -> adminService.registerResources(Resource.discrete(device.id()).resource()));
     }
 
     private void unregisterDeviceResource(Device device) {
-        executor.submit(() -> adminService.unregisterResources(Resource.discrete(device.id())));
+        executor.submit(() -> adminService.unregisterResources(Resource.discrete(device.id()).resource()));
     }
 
     private void registerPortResource(Device device, Port port) {
-        Resource portPath = Resource.discrete(device.id(), port.number());
+        Resource portPath = Resource.discrete(device.id(), port.number()).resource();
         executor.submit(() -> {
             adminService.registerResources(portPath);
 
@@ -174,7 +174,7 @@ final class ResourceDeviceListener implements DeviceListener {
     }
 
     private void unregisterPortResource(Device device, Port port) {
-        Resource resource = Resource.discrete(device.id(), port.number());
+        Resource resource = Resource.discrete(device.id(), port.number()).resource();
         executor.submit(() -> adminService.unregisterResources(resource));
     }
 

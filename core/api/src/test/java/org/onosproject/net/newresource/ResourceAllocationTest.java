@@ -32,9 +32,9 @@ public class ResourceAllocationTest {
 
     @Test
     public void testEquals() {
-        ResourceAllocation alloc1 = new ResourceAllocation(Resource.discrete(D1, P1, VLAN1), IID1);
-        ResourceAllocation sameAsAlloc1 = new ResourceAllocation(Resource.discrete(D1, P1, VLAN1), IID1);
-        ResourceAllocation alloc2 = new ResourceAllocation(Resource.discrete(D2, P1, VLAN1), IID1);
+        ResourceAllocation alloc1 = new ResourceAllocation(Resource.discrete(D1, P1, VLAN1).resource(), IID1);
+        ResourceAllocation sameAsAlloc1 = new ResourceAllocation(Resource.discrete(D1, P1, VLAN1).resource(), IID1);
+        ResourceAllocation alloc2 = new ResourceAllocation(Resource.discrete(D2, P1, VLAN1).resource(), IID1);
 
         new EqualsTester()
                 .addEqualityGroup(alloc1, sameAsAlloc1)

@@ -74,7 +74,7 @@ public class TestAllocateResource extends AbstractShellCommand {
         ResourceConsumer consumer = IntentId.valueOf(nIntendId);
 
         Resource resource = discrete(did, portNum,
-                                         createLambda(Integer.parseInt(lambda)));
+                                         createLambda(Integer.parseInt(lambda))).resource();
 
         Optional<ResourceAllocation> allocate = resourceService.allocate(consumer, resource);
         if (allocate.isPresent()) {

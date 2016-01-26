@@ -40,7 +40,7 @@ public final class DiscreteResource implements Resource {
         this.id = id;
     }
 
-    protected DiscreteResource() {
+    DiscreteResource() {
         this.id = ResourceId.ROOT;
     }
 
@@ -80,17 +80,17 @@ public final class DiscreteResource implements Resource {
     public DiscreteResource child(Object child) {
         checkArgument(!(child instanceof Class<?>));
 
-        return new DiscreteResource(id.child(child));
+        return Resource.discrete(id.child(child)).resource();
     }
 
     @Override
     public ContinuousResource child(Class<?> child, double value) {
-        return new ContinuousResource(id.child(child), value);
+        return Resource.continuous(id.child(child)).resource(value);
     }
 
     @Override
     public Optional<DiscreteResource> parent() {
-        return id.parent().map(DiscreteResource::new);
+        return id.parent().map(x -> Resource.discrete(x).resource());
     }
 
     @Override

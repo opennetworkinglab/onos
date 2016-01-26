@@ -125,8 +125,10 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
         // TODO: introduce the concept of Tx and Rx resources of a port
         Set<Resource> resources = labels.entrySet().stream()
                 .flatMap(x -> Stream.of(
-                        Resource.discrete(x.getKey().src().deviceId(), x.getKey().src().port(), x.getValue()),
+                        Resource.discrete(x.getKey().src().deviceId(), x.getKey().src().port(), x.getValue())
+                                .resource(),
                         Resource.discrete(x.getKey().dst().deviceId(), x.getKey().dst().port(), x.getValue())
+                                .resource()
                 ))
                 .collect(Collectors.toSet());
         List<org.onosproject.net.newresource.ResourceAllocation> allocations =
@@ -154,7 +156,7 @@ public class MplsPathIntentCompiler implements IntentCompiler<MplsPathIntent> {
     }
 
     private Set<MplsLabel> findMplsLabel(ConnectPoint cp) {
-        return resourceService.getAvailableResources(Resource.discrete(cp.deviceId(), cp.port())).stream()
+        return resourceService.getAvailableResources(Resource.discrete(cp.deviceId(), cp.port()).resource()).stream()
                 .filter(x -> x.last() instanceof MplsLabel)
                 .map(x -> (MplsLabel) x.last())
                 .collect(Collectors.toSet());

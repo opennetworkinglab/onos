@@ -98,7 +98,7 @@ public final class ContinuousResource implements Resource {
 
     @Override
     public Optional<DiscreteResource> parent() {
-        return id.parent().map(DiscreteResource::new);
+        return id.parent().map(x -> Resource.discrete(x).resource());
     }
 
     @Override

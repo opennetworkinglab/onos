@@ -109,8 +109,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         log.debug("Compiling optical connectivity intent between {} and {}", src, dst);
 
         // Reserve OCh ports
-        Resource srcPortResource = Resource.discrete(src.deviceId(), src.port());
-        Resource dstPortResource = Resource.discrete(dst.deviceId(), dst.port());
+        Resource srcPortResource = Resource.discrete(src.deviceId(), src.port()).resource();
+        Resource dstPortResource = Resource.discrete(dst.deviceId(), dst.port()).resource();
         List<org.onosproject.net.newresource.ResourceAllocation> allocation =
                 resourceService.allocate(intent.id(), srcPortResource, dstPortResource);
         if (allocation.isEmpty()) {
@@ -184,8 +184,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         List<OchSignal> minLambda = findFirstLambda(lambdas, slotCount());
         List<Resource> lambdaResources = path.links().stream()
                 .flatMap(x -> Stream.of(
-                        Resource.discrete(x.src().deviceId(), x.src().port()),
-                        Resource.discrete(x.dst().deviceId(), x.dst().port())
+                        Resource.discrete(x.src().deviceId(), x.src().port()).resource(),
+                        Resource.discrete(x.dst().deviceId(), x.dst().port()).resource()
                 ))
                 .flatMap(x -> minLambda.stream().map(l -> x.child(l)))
                 .collect(Collectors.toList());
@@ -214,8 +214,8 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     private Set<OchSignal> findCommonLambdasOverLinks(List<Link> links) {
         return links.stream()
                 .flatMap(x -> Stream.of(
-                        Resource.discrete(x.src().deviceId(), x.src().port()),
-                        Resource.discrete(x.dst().deviceId(), x.dst().port())
+                        Resource.discrete(x.src().deviceId(), x.src().port()).resource(),
+                        Resource.discrete(x.dst().deviceId(), x.dst().port()).resource()
                 ))
                 .map(resourceService::getAvailableResources)
                 .map(x -> Iterables.filter(x, r -> r.last() instanceof OchSignal))

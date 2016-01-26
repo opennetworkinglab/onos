@@ -106,7 +106,7 @@ public class AllocationsCommand extends AbstractShellCommand {
         // TODO: Current design cannot deal with sub-resources
         //        (e.g., TX/RX under Port)
 
-        Resource resource = Resource.discrete(did, num);
+        Resource resource = Resource.discrete(did, num).resource();
         if (lambda) {
             //print("Lambda resources:");
             Collection<ResourceAllocation> allocations
