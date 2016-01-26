@@ -417,8 +417,10 @@ public class DeviceManager
                     .collect(Collectors.toList());
             List<DeviceEvent> events = store.updatePorts(this.provider().id(),
                                                          deviceId, portDescriptions);
-            for (DeviceEvent event : events) {
-                post(event);
+            if (events != null) {
+                for (DeviceEvent event : events) {
+                    post(event);
+                }
             }
         }
 
