@@ -150,6 +150,8 @@ public class Olt
                 .filter(p -> p.isEnabled())
                 .forEach(p -> installFilteringObjectives((DeviceId) p.element().id(), p));
 
+        deviceService.addListener(deviceListener);
+
         log.info("Started with Application ID {}", appId.id());
     }
 
