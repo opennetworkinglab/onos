@@ -214,10 +214,13 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                 }
             });
             if (allocated) {
+                log.warn("Failed to unregister {}: allocation exists", entry.getKey());
                 return abortTransaction(tx);
             }
 
             if (!removeValues(childTxMap, entry.getKey(), entry.getValue())) {
+                log.warn("Failed to unregister {}: Failed to remove values: {}",
+                         entry.getKey(), entry.getValue());
                 return abortTransaction(tx);
             }
         }
@@ -229,6 +232,8 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
                     .map(x -> new ResourceEvent(RESOURCE_REMOVED, x))
                     .collect(Collectors.toList());
             notifyDelegate(events);
+        } else {
+            log.warn("Failed to unregister {}: Commit failed.", resources);
         }
         return success;
     }
