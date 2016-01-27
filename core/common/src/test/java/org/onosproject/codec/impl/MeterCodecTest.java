@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.onosproject.codec.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
@@ -29,14 +28,10 @@ import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterId;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onosproject.codec.impl.MeterJsonMatcher.matchesMeter;
 import static org.onosproject.net.NetTestTools.APP_ID;
@@ -90,49 +85,5 @@ public class MeterCodecTest {
 
         ObjectNode meterJson = meterCodec.encode(meter, context);
         assertThat(meterJson, matchesMeter(meter));
-    }
-
-    /**
-     * Test decoding of a Meter object.
-     */
-    @Test
-    public void testMeterDecode() throws IOException  {
-        Meter meter = getMeter("simple-meter.json");
-        checkCommonData(meter);
-
-        assertThat(meter.bands().size(), is(1));
-        Band band = meter.bands().iterator().next();
-        assertThat(band.type().toString(), is("REMARK"));
-        assertThat(band.rate(), is(10L));
-        assertThat(band.dropPrecedence(), is((short) 20));
-        assertThat(band.burst(), is(30L));
-    }
-
-    /**
-     * Checks that the data shared by all the resource is correct for a given meter.
-     *
-     * @param meter meter to check
-     */
-    private void checkCommonData(Meter meter) {
-        assertThat(meter.id().id(), is(1L));
-        assertThat(meter.deviceId().toString(), is("of:0000000000000001"));
-        assertThat(meter.appId(), is(APP_ID));
-        assertThat(meter.unit().toString(), is("KB_PER_SEC"));
-    }
-
-    /**
-     * Reads in a meter from the given resource and decodes it.
-     *
-     * @param resourceName resource to use to read the JSON for the rule
-     * @return decoded meter
-     * @throws IOException if processing the resource fails
-     */
-    private Meter getMeter(String resourceName) throws IOException {
-        InputStream jsonStream = MeterCodecTest.class.getResourceAsStream(resourceName);
-        JsonNode json = context.mapper().readTree(jsonStream);
-        assertThat(json, notNullValue());
-        Meter meter = meterCodec.decode((ObjectNode) json, context);
-        assertThat(meter, notNullValue());
-        return meter;
     }
 }

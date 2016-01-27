@@ -2,17 +2,12 @@
   "type": "object",
   "title": "meter",
   "required": [
-    "id",
     "deviceId",
     "unit",
     "burst",
     "bands"
   ],
   "properties": {
-    "id": {
-      "type": "string",
-      "example": "1"
-    },
     "deviceId": {
       "type": "string",
       "example": "of:0000000000000001"

@@ -15,26 +15,15 @@
  */
 package org.onosproject.codec.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.Band;
-import org.onosproject.net.meter.DefaultMeter;
 import org.onosproject.net.meter.Meter;
-import org.onosproject.net.meter.MeterId;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.IntStream;
-
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.util.Tools.nullIsIllegal;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -57,7 +46,6 @@ public final class MeterCodec extends JsonCodec<Meter> {
     private static final String UNIT = "unit";
     private static final String BANDS = "bands";
     public static final String REST_APP_ID = "org.onosproject.rest";
-    private static final String MISSING_MEMBER_MESSAGE = " member is required in Meter";
 
     @Override
     public ObjectNode encode(Meter meter, CodecContext context) {
@@ -87,80 +75,5 @@ public final class MeterCodec extends JsonCodec<Meter> {
         });
         result.set(BANDS, bands);
         return result;
-    }
-
-    @Override
-    public Meter decode(ObjectNode json, CodecContext context) {
-        if (json == null || !json.isObject()) {
-            return null;
-        }
-
-        final JsonCodec<Band> meterBandCodec = context.codec(Band.class);
-        CoreService coreService = context.getService(CoreService.class);
-
-        // parse meter id
-        int meterIdInt = nullIsIllegal(json.get(ID), ID + MISSING_MEMBER_MESSAGE).asInt();
-        MeterId meterId = MeterId.meterId(meterIdInt);
-
-        // parse device id
-        DeviceId deviceId = DeviceId.deviceId(nullIsIllegal(json.get(DEVICE_ID),
-                DEVICE_ID + MISSING_MEMBER_MESSAGE).asText());
-
-        // application id
-        ApplicationId appId = coreService.registerApplication(REST_APP_ID);
-
-        // parse burst
-        boolean burst = false;
-        JsonNode burstJson = json.get("burst");
-        if (burstJson != null) {
-            burst = burstJson.asBoolean();
-        }
-
-        // parse unit type
-        String unit = nullIsIllegal(json.get(UNIT), UNIT + MISSING_MEMBER_MESSAGE).asText();
-        Meter.Unit meterUnit;
-
-        switch (unit) {
-            case "KB_PER_SEC":
-                meterUnit = Meter.Unit.KB_PER_SEC;
-                break;
-            case "PKTS_PER_SEC":
-                meterUnit = Meter.Unit.PKTS_PER_SEC;
-                break;
-            default:
-                log.warn("The requested unit {} is not defined for meter.", unit);
-                return null;
-        }
-
-        // parse meter bands
-        List<Band> bandList = new ArrayList<>();
-        JsonNode bandsJson = json.get(BANDS);
-        checkNotNull(bandsJson);
-        if (bandsJson != null) {
-            IntStream.range(0, bandsJson.size()).forEach(i -> {
-                ObjectNode bandJson = get(bandsJson, i);
-                bandList.add(meterBandCodec.decode(bandJson, context));
-            });
-        }
-
-        Meter meter;
-        if (burst) {
-            meter = DefaultMeter.builder()
-                    .withId(meterId)
-                    .fromApp(appId)
-                    .forDevice(deviceId)
-                    .withUnit(meterUnit)
-                    .withBands(bandList)
-                    .burst().build();
-        } else {
-            meter = DefaultMeter.builder()
-                    .withId(meterId)
-                    .fromApp(appId)
-                    .forDevice(deviceId)
-                    .withUnit(meterUnit)
-                    .withBands(bandList).build();
-        }
-
-        return meter;
     }
 }

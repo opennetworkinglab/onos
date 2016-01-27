@@ -55,6 +55,7 @@ import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.PointToPointIntent;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterRequest;
 import org.onosproject.net.statistic.Load;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyCluster;
@@ -107,6 +108,7 @@ public class CodecManager implements CodecService {
         registerCodec(Driver.class, new DriverCodec());
         registerCodec(GroupBucket.class, new GroupBucketCodec());
         registerCodec(Load.class, new LoadCodec());
+        registerCodec(MeterRequest.class, new MeterRequestCodec());
         registerCodec(Meter.class, new MeterCodec());
         registerCodec(Band.class, new MeterBandCodec());
         registerCodec(TableStatisticsEntry.class, new TableStatisticsEntryCodec());

@@ -141,8 +141,7 @@ public class MetersWebResource extends AbstractWebResource {
                 throw new IllegalArgumentException(DEVICE_INVALID);
             }
             jsonTree.put("deviceId", deviceId);
-            final Meter tmpMeter = codec(Meter.class).decode(jsonTree, this);
-            final MeterRequest meterRequest = meterToMeterRequest(tmpMeter, "ADD");
+            final MeterRequest meterRequest = codec(MeterRequest.class).decode(jsonTree, this);
             final Meter meter = meterService.submit(meterRequest);
             location = new URI(Long.toString(meter.id().id()));
         } catch (IOException | URISyntaxException ex) {

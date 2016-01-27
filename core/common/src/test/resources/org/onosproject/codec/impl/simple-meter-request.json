@@ -1,5 +1,4 @@
 {
-  "id": 1,
   "deviceId": "of:0000000000000001",
   "unit": "KB_PER_SEC",
   "burst": true,
