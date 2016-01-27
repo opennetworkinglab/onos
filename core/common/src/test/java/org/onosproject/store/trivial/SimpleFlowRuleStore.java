@@ -258,6 +258,23 @@ public class SimpleFlowRuleStore
     }
 
     @Override
+    public FlowRuleEvent pendingFlowRule(FlowEntry rule) {
+        List<StoredFlowEntry> entries = getFlowEntries(rule.deviceId(), rule.id());
+        synchronized (entries) {
+            for (StoredFlowEntry entry : entries) {
+                if (entry.equals(rule) &&
+                        entry.state() != FlowEntryState.PENDING_ADD) {
+                    synchronized (entry) {
+                        entry.setState(FlowEntryState.PENDING_ADD);
+                        return new FlowRuleEvent(Type.RULE_UPDATED, rule);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
     public void storeBatch(
             FlowRuleBatchOperation operation) {
         List<FlowRuleBatchEntry> toAdd = new ArrayList<>();

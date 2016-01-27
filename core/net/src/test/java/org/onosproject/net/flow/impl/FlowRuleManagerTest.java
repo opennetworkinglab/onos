@@ -206,7 +206,7 @@ public class FlowRuleManagerTest {
         assertEquals("should still be 2 rules", 2, flowCount());
 
         providerService.pushFlowMetrics(DID, ImmutableList.of(fe1));
-        validateEvents(RULE_UPDATED);
+        validateEvents(RULE_UPDATED, RULE_UPDATED);
     }
 
     private boolean validateState(Map<FlowRule, FlowEntryState> expected) {
@@ -293,7 +293,7 @@ public class FlowRuleManagerTest {
         service.applyFlowRules(f3);
 
         providerService.pushFlowMetrics(DID, Collections.singletonList(fe3));
-        validateEvents(RULE_ADD_REQUESTED, RULE_ADDED);
+        validateEvents(RULE_ADD_REQUESTED, RULE_ADDED, RULE_UPDATED);
 
         providerService.flowRemoved(fe3);
         validateEvents();

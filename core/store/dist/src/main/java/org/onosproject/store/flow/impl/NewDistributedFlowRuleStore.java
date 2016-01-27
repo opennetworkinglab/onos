@@ -526,6 +526,19 @@ public class NewDistributedFlowRuleStore
     }
 
     @Override
+    public FlowRuleEvent pendingFlowRule(FlowEntry rule) {
+        if (mastershipService.isLocalMaster(rule.deviceId())) {
+            StoredFlowEntry stored = flowTable.getFlowEntry(rule);
+            if (stored != null &&
+                    stored.state() != FlowEntryState.PENDING_ADD) {
+                stored.setState(FlowEntryState.PENDING_ADD);
+                return new FlowRuleEvent(Type.RULE_UPDATED, rule);
+            }
+        }
+        return null;
+    }
+
+    @Override
     public FlowRuleEvent addOrUpdateFlowRule(FlowEntry rule) {
         NodeId master = mastershipService.getMasterFor(rule.deviceId());
         if (Objects.equals(local, master)) {

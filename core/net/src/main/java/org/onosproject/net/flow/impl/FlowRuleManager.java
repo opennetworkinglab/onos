@@ -305,6 +305,7 @@ public class FlowRuleManager
                     break;
                 case ADDED:
                 case PENDING_ADD:
+                    event = store.pendingFlowRule(flowRule);
                     try {
                         frp.applyFlowRule(flowRule);
                     } catch (UnsupportedOperationException e) {
