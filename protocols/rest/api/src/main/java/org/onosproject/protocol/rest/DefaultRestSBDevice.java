@@ -16,7 +16,9 @@
 
 package org.onosproject.protocol.rest;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang3.StringUtils;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 
@@ -34,18 +36,20 @@ public class DefaultRestSBDevice implements RestSBDevice {
     private final String password;
     private boolean isActive;
     private String protocol;
+    private String url;
 
     public DefaultRestSBDevice(IpAddress ip, int port, String name, String password,
-                               String protocol, boolean isActive) {
+                               String protocol, String url, boolean isActive) {
         Preconditions.checkNotNull(ip, "IP address cannot be null");
         Preconditions.checkArgument(port > 0, "Port address cannot be negative");
         Preconditions.checkNotNull(protocol, "protocol address cannot be null");
         this.ip = ip;
         this.port = port;
         this.name = name;
-        this.password = password;
+        this.password = StringUtils.isEmpty(password) ? null : password;
         this.isActive = isActive;
         this.protocol = protocol;
+        this.url = StringUtils.isEmpty(url) ? null : url;
     }
 
     @Override
@@ -86,6 +90,22 @@ public class DefaultRestSBDevice implements RestSBDevice {
     @Override
     public String protocol() {
         return protocol;
+    }
+
+    @Override
+    public String url() {
+        return url;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("url", url)
+                .add("protocol", protocol)
+                .add("name", name)
+                .add("port", port)
+                .add("ip", ip)
+                .toString();
     }
 
     @Override

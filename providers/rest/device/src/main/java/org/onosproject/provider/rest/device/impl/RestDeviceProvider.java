@@ -49,9 +49,14 @@ import org.onosproject.protocol.rest.RestSBController;
 import org.onosproject.protocol.rest.RestSBDevice;
 import org.slf4j.Logger;
 
+import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -71,6 +76,10 @@ public class RestDeviceProvider extends AbstractProvider
     private static final String PROVIDER = "org.onosproject.provider.rest.device";
     private static final String IPADDRESS = "ipaddress";
     private static final int TEST_CONNECT_TIMEOUT = 1000;
+    private static final String HTTPS = "https";
+    private static final String AUTHORIZATION_PROPERTY = "authorization";
+    private static final String BASIC_AUTH_PREFIX = "Basic ";
+    private static final String URL_SEPARATOR = "://";
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -202,7 +211,7 @@ public class RestDeviceProvider extends AbstractProvider
         } catch (ConfigException e) {
             log.error("Configuration error {}", e);
         }
-        log.info("REST Devices {}", controller.getDevices());
+        log.debug("REST Devices {}", controller.getDevices());
         controller.getDevices().keySet().forEach(deviceId -> {
             DriverHandler h = driverService.createHandler(deviceId);
             PortDiscovery portConfig = h.behaviour(PortDiscovery.class);
@@ -216,14 +225,39 @@ public class RestDeviceProvider extends AbstractProvider
 
     private boolean testDeviceConnection(RestSBDevice device) {
         try {
-            URL url = new URL(device.protocol(), device.ip().toString(), device.port(), "/");
-            HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
+            URL url;
+            if (device.url() == null) {
+                url = new URL(device.protocol(), device.ip().toString(), device.port(), "");
+            } else {
+                url = new URL(device.protocol() + URL_SEPARATOR + device.url());
+            }
+            HttpURLConnection urlConn;
+            if (device.protocol().equals(HTTPS)) {
+                //FIXME this method provides no security accepting all SSL certs.
+                RestDeviceProviderUtilities.enableSslCert();
+
+                urlConn = (HttpsURLConnection) url.openConnection();
+            } else {
+                urlConn = (HttpURLConnection) url.openConnection();
+            }
+            if (device.password() != null) {
+                String userPassword = device.name() + ":" + device.password();
+                String basicAuth = Base64.getEncoder()
+                        .encodeToString(userPassword.getBytes(StandardCharsets.UTF_8));
+                urlConn.setRequestProperty(AUTHORIZATION_PROPERTY, BASIC_AUTH_PREFIX + basicAuth);
+            }
             urlConn.setConnectTimeout(TEST_CONNECT_TIMEOUT);
-            boolean open = urlConn.getResponseCode() == (HttpURLConnection.HTTP_OK);
+            boolean open = urlConn.getResponseCode() == (HttpsURLConnection.HTTP_OK);
+            if (!open) {
+                log.error("Device {} not accessibile, response code {} ", device,
+                          urlConn.getResponseCode());
+            }
             urlConn.disconnect();
             return open;
-        } catch (IOException e) {
-            log.error("Device {} not reachable, error creating HTTP connection", device, e);
+
+        } catch (IOException | NoSuchAlgorithmException | KeyManagementException e) {
+            log.error("Device {} not reachable, error creating {} connection", device,
+                      device.protocol(), e);
         }
         return false;
     }

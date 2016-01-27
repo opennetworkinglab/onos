@@ -39,8 +39,8 @@ public class RestSBControllerImplTest {
     public void setUp() {
         controller = new RestSBControllerImpl();
         controller.activate();
-        device1 = new DefaultRestSBDevice(IpAddress.valueOf("127.0.0.1"), 8080, "foo", "bar", "http", true);
-        device2 = new DefaultRestSBDevice(IpAddress.valueOf("127.0.0.2"), 8080, "foo1", "bar2", "http", true);
+        device1 = new DefaultRestSBDevice(IpAddress.valueOf("127.0.0.1"), 8080, "foo", "bar", "http", null, true);
+        device2 = new DefaultRestSBDevice(IpAddress.valueOf("127.0.0.2"), 8080, "foo1", "bar2", "http", null, true);
         controller.addDevice(device1);
     }
 

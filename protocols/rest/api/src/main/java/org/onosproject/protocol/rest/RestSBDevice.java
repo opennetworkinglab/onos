@@ -79,4 +79,10 @@ public interface RestSBDevice {
      */
     String protocol();
 
+    /**
+     * Returns the url for the REST requests, to be used instead of IP and PORT.
+     *
+     * @return url
+     */
+    String url();
 }

@@ -54,14 +54,20 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
     private static final String NAME = "name";
     private static final String ADMIN_STATE = "admin-state";
 
-    private static final ArrayList<String> LINESIDE = Lists.newArrayList(
-            "1.1", "1.2", "12.1", "12.2");
+    private static final ArrayList<String> LINESIDE_PORT_ID = Lists.newArrayList(
+            "4", "48");
 
     private static final String GENERAL_PORT_REQUEST =
-            "yang-api/datastore/ws-ports?config=true&format=xml&depth=unbounded";
-    private static final String SPECIFIC_PORT_PATH = "yang-api/datastore/ws-ptps/ptp/";
+            "ws-ports?config=true&format=xml&depth=unbounded";
+    private static final String SPECIFIC_PORT_PATH = "ws-ptps/ptp/";
     private static final String SPECIFIC_PORT_CONFIG =
             "/ptp-config?config=true&format=xml&depth=unbounded";
+    //HTTP strings
+//    private static final String GENERAL_PORT_REQUEST =
+//            "/yang-api/datastore/ws-ports?config=true&format=xml&depth=unbounded";
+//    private static final String SPECIFIC_PORT_PATH = "/yang-api/datastore/ws-ptps/ptp/";
+//    private static final String SPECIFIC_PORT_CONFIG =
+//            "/ptp-config?config=true&format=xml&depth=unbounded";
 
 
     @Override
@@ -76,24 +82,35 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
                 loadXml(controller.get(deviceId, GENERAL_PORT_REQUEST, XML));
         List<HierarchicalConfiguration> portsConfig =
                 XmlConfigParser.parseWaveServerCienaPorts(config);
-
         portsConfig.stream().forEach(sub -> {
+            String portId = sub.getString(PORT_ID);
             String name = sub.getString(NAME);
             SparseAnnotations annotations = DefaultAnnotations.builder()
-                    .set(AnnotationKeys.NAME, String.valueOf(name)).build();
-            if (LINESIDE.contains(name)) {
-                String wsportInfoRequest = SPECIFIC_PORT_PATH + sub.getLong(PORT_ID) +
+                    .set(AnnotationKeys.NAME, name).build();
+            if (LINESIDE_PORT_ID.contains(portId)) {
+                String wsportInfoRequest = SPECIFIC_PORT_PATH + portId +
                         SPECIFIC_PORT_CONFIG;
                 ports.add(XmlConfigParser.parseWaveServerCienaOchPorts(
                         sub.getLong(PORT_ID),
-                        toGbps(Long.parseLong(sub.getString(SPEED).replace(GBPS, EMPTY_STRING))),
+                        toGbps(Long.parseLong(sub.getString(SPEED).replace(GBPS, EMPTY_STRING)
+                                                      .replace(" ", EMPTY_STRING))),
                         XmlConfigParser.loadXml(controller.get(deviceId, wsportInfoRequest, XML)),
                         annotations));
-            } else {
+                //adding corresponding opposite side port
+                ports.add(XmlConfigParser.parseWaveServerCienaOchPorts(
+                        sub.getLong(PORT_ID) + 1,
+                        toGbps(Long.parseLong(sub.getString(SPEED).replace(GBPS, EMPTY_STRING)
+                                                      .replace(" ", EMPTY_STRING))),
+                        XmlConfigParser.loadXml(controller.get(deviceId, wsportInfoRequest, XML)),
+                        DefaultAnnotations.builder()
+                                .set(AnnotationKeys.NAME, name.replace(".1", ".2"))
+                                .build()));
+            } else if (!portId.equals("5") && !portId.equals("49")) {
                 //FIXME change when all optical types have two way information methods, see jira tickets
                 final int speed100GbpsinMbps = 100000;
                 CltSignalType cltType = toGbps(Long.parseLong(
-                        sub.getString(SPEED).replace(GBPS, EMPTY_STRING))) == speed100GbpsinMbps ?
+                        sub.getString(SPEED).replace(GBPS, EMPTY_STRING)
+                                .replace(" ", EMPTY_STRING))) == speed100GbpsinMbps ?
                         CltSignalType.CLT_100GBE : null;
                 ports.add(new OduCltPortDescription(PortNumber.portNumber(sub.getLong(PORT_ID)),
                                                     sub.getString(ADMIN_STATE).equals(ENABLED),
@@ -107,5 +124,6 @@ public class PortDiscoveryCienaWaveserverImpl extends AbstractHandlerBehaviour
     private long toGbps(long speed) {
         return speed * 1000;
     }
+
 }
 

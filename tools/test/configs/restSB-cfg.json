@@ -9,8 +9,8 @@
   "apps": {
     "org.onosproject.restsb": {
       "restDevices": [{
-        "name": "local",
-        "password": "local",
+        "name": "dev",
+        "password": "",
         "ip": "127.0.0.1",
         "port": 8080,
         "protocol": "http"

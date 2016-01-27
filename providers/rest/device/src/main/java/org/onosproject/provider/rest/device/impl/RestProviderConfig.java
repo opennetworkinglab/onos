@@ -42,6 +42,7 @@ public class RestProviderConfig extends Config<ApplicationId> {
     private static final String NAME = "name";
     private static final String PASSWORD = "password";
     private static final String PROTOCOL = "protocol";
+    private static final String URL = "url";
 
     public Set<RestSBDevice> getDevicesAddresses() throws ConfigException {
         Set<RestSBDevice> devicesAddresses = Sets.newHashSet();
@@ -54,8 +55,10 @@ public class RestProviderConfig extends Config<ApplicationId> {
                 String name = node.path(NAME).asText();
                 String password = node.path(PASSWORD).asText();
                 String protocol = node.path(PROTOCOL).asText();
+                String url = node.path(URL).asText();
                 devicesAddresses.add(new DefaultRestSBDevice(ipAddr, port, name,
-                                                             password, protocol, false));
+                                                             password, protocol,
+                                                             url, false));
 
             }
         } catch (IllegalArgumentException e) {

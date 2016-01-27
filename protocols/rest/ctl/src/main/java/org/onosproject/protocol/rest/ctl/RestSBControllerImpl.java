@@ -16,17 +16,22 @@
 
 package org.onosproject.protocol.rest.ctl;
 
+import com.google.common.collect.ImmutableMap;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import org.apache.commons.io.IOUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.protocol.rest.RestSBController;
@@ -40,6 +45,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -59,7 +68,9 @@ public class RestSBControllerImpl implements RestSBController {
     private static final int STATUS_OK = Response.Status.OK.getStatusCode();
     private static final int STATUS_CREATED = Response.Status.CREATED.getStatusCode();
     private static final int STATUS_ACCEPTED = Response.Status.ACCEPTED.getStatusCode();
-    private static final String SLASH = "/";
+    private static final String HTTPS = "https";
+    private static final String AUTHORIZATION_PROPERTY = "authorization";
+    private static final String BASIC_AUTH_PREFIX = "Basic ";
 
     private final Map<DeviceId, RestSBDevice> deviceMap = new ConcurrentHashMap<>();
     Client client;
@@ -78,7 +89,7 @@ public class RestSBControllerImpl implements RestSBController {
 
     @Override
     public Map<DeviceId, RestSBDevice> getDevices() {
-        return deviceMap;
+        return ImmutableMap.copyOf(deviceMap);
     }
 
     @Override
@@ -88,13 +99,8 @@ public class RestSBControllerImpl implements RestSBController {
 
     @Override
     public RestSBDevice getDevice(IpAddress ip, int port) {
-        for (RestSBDevice device : deviceMap.values()) {
-            if (device.ip().equals(ip) &&
-                    device.port() == port) {
-                return device;
-            }
-        }
-        return null;
+        return deviceMap.values().stream().filter(v -> v.ip().equals(ip)
+                && v.port() == port).findFirst().get();
     }
 
     @Override
@@ -162,32 +168,44 @@ public class RestSBControllerImpl implements RestSBController {
                 throw new IllegalArgumentException("Unsupported media type " + mediaType);
 
         }
-        return new ByteArrayInputStream(webResource.accept(type).get(ClientResponse.class)
-                                                .getEntity(String.class)
-                                                .getBytes(StandardCharsets.UTF_8));
+
+        ClientResponse s = webResource.accept(type).get(ClientResponse.class);
+        if (checkReply(s)) {
+            return new ByteArrayInputStream(s.getEntity(String.class)
+                                                    .getBytes(StandardCharsets.UTF_8));
+        }
+        return null;
     }
 
     @Override
     public boolean patch(DeviceId device, String request, InputStream payload, String mediaType) {
-        String url = deviceMap.get(device).protocol() + COLON +
-                DOUBLESLASH +
-                deviceMap.get(device).ip().toString() +
-                COLON + deviceMap.get(device).port() +
-                SLASH + request;
         try {
-            HttpPatch httprequest = new HttpPatch(url);
+            log.debug("Url request {} ", getUrlString(device, request));
+            HttpPatch httprequest = new HttpPatch(getUrlString(device, request));
+            if (deviceMap.get(device).password() != null) {
+                String userPassword = deviceMap.get(device).name() + COLON + deviceMap.get(device).password();
+                String base64string = Base64.getEncoder().encodeToString(userPassword.getBytes(StandardCharsets.UTF_8));
+                httprequest.addHeader(AUTHORIZATION_PROPERTY, BASIC_AUTH_PREFIX + base64string);
+            }
             if (payload != null) {
                 StringEntity input = new StringEntity(IOUtils.toString(payload, StandardCharsets.UTF_8));
                 input.setContentType(mediaType);
                 httprequest.setEntity(input);
             }
-            int responseStatusCode = HttpClients.createDefault().execute(httprequest)
+            CloseableHttpClient httpClient;
+            if (deviceMap.containsKey(device) && deviceMap.get(device).protocol().equals(HTTPS)) {
+                httpClient = getApacheSslBypassClient();
+            } else {
+                httpClient = HttpClients.createDefault();
+            }
+            int responseStatusCode = httpClient
+                    .execute(httprequest)
                     .getStatusLine()
                     .getStatusCode();
             return checkStatusCode(responseStatusCode);
-        } catch (IOException e) {
-            log.error("Cannot do PATCH {} request on device {} because can't read payload",
-                      request, device);
+        } catch (IOException | NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
+            log.error("Cannot do PATCH {} request on device {}",
+                      request, device, e);
         }
         return false;
     }
@@ -212,11 +230,35 @@ public class RestSBControllerImpl implements RestSBController {
     }
 
     private WebResource getWebResource(DeviceId device, String request) {
-        return Client.create().resource(deviceMap.get(device).protocol() + COLON +
-                                                DOUBLESLASH +
-                                                deviceMap.get(device).ip().toString() +
-                                                COLON + deviceMap.get(device).port() +
-                                                SLASH + request);
+        log.debug("Sending request to URL {} ", getUrlString(device, request));
+        WebResource webResource = client.resource(getUrlString(device, request));
+        if (deviceMap.containsKey(device) && deviceMap.get(device).password() != null) {
+            client.addFilter(new HTTPBasicAuthFilter(deviceMap.get(device).name(),
+                                                     deviceMap.get(device).password()));
+        }
+        return webResource;
+    }
+
+    //FIXME security issue: this trusts every SSL certificate, even if is self-signed. Also deprecated methods.
+    private CloseableHttpClient getApacheSslBypassClient() throws NoSuchAlgorithmException,
+            KeyManagementException, KeyStoreException {
+        return HttpClients.custom().
+                setHostnameVerifier(new AllowAllHostnameVerifier()).
+                setSslcontext(new SSLContextBuilder()
+                                      .loadTrustMaterial(null, (arg0, arg1) -> true)
+                                      .build()).build();
+    }
+
+    private String getUrlString(DeviceId device, String request) {
+        if (deviceMap.get(device).url() != null) {
+            return deviceMap.get(device).protocol() + COLON + DOUBLESLASH
+                    + deviceMap.get(device).url() + request;
+        } else {
+            return deviceMap.get(device).protocol() + COLON +
+                    DOUBLESLASH +
+                    deviceMap.get(device).ip().toString() +
+                    COLON + deviceMap.get(device).port() + request;
+        }
     }
 
     private boolean checkReply(ClientResponse response) {
@@ -233,7 +275,7 @@ public class RestSBControllerImpl implements RestSBController {
                 statusCode == STATUS_ACCEPTED) {
             return true;
         } else {
-            log.error("Failed request: HTTP error code : "
+            log.error("Failed request, HTTP error code : "
                               + statusCode);
             return false;
         }
