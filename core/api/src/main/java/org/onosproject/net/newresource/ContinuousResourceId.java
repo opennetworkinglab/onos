@@ -46,6 +46,12 @@ public final class ContinuousResourceId extends ResourceId {
         this.name = last.getSimpleName();
     }
 
+    // for serializer
+    ContinuousResourceId() {
+        this.components = ImmutableList.of();
+        this.name = "";
+    }
+
     ImmutableList<Object> components() {
         return components;
     }

@@ -39,6 +39,12 @@ public final class ContinuousResource implements Resource {
         this.value = value;
     }
 
+    // for serializer
+    ContinuousResource() {
+        this.id = null;
+        this.value = 0;
+    }
+
     @Override
     public ContinuousResourceId id() {
         return id;
