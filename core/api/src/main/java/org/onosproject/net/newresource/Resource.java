@@ -114,6 +114,7 @@ public interface Resource {
     /**
      * Returns the volume of this resource.
      *
+     * @param <T> type of return value
      * @return the volume of this resource
      */
     // TODO: think about other naming possibilities. amount? quantity?
