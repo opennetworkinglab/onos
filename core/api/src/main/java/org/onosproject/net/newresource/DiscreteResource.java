@@ -80,7 +80,7 @@ public final class DiscreteResource implements Resource {
     public DiscreteResource child(Object child) {
         checkArgument(!(child instanceof Class<?>));
 
-        return new DiscreteResource(id().child(child));
+        return new DiscreteResource(id.child(child));
     }
 
     @Override
@@ -96,7 +96,7 @@ public final class DiscreteResource implements Resource {
     @Override
     public int hashCode() {
         // the value returing from volume() is excluded due to optimization
-        return id().hashCode();
+        return id.hashCode();
     }
 
     @Override
@@ -109,7 +109,7 @@ public final class DiscreteResource implements Resource {
         }
         final DiscreteResource other = (DiscreteResource) obj;
         // the value returing from volume() is excluded due to optimization
-        return Objects.equals(this.id(), other.id());
+        return Objects.equals(this.id, other.id);
     }
 
     @Override

@@ -97,7 +97,7 @@ public final class ContinuousResource implements Resource {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id(), value);
+        return Objects.hash(id, value);
     }
 
     @Override
@@ -109,7 +109,7 @@ public final class ContinuousResource implements Resource {
             return false;
         }
         final ContinuousResource other = (ContinuousResource) obj;
-        return Objects.equals(this.id(), other.id())
+        return Objects.equals(this.id, other.id)
                 && Objects.equals(this.value, other.value);
     }
 
