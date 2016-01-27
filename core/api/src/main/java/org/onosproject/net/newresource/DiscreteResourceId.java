@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Beta
 public final class DiscreteResourceId extends ResourceId {
-    final ImmutableList<Object> components;
+    private final ImmutableList<Object> components;
 
     DiscreteResourceId(ImmutableList<Object> components) {
         this.components = components;
@@ -39,6 +39,10 @@ public final class DiscreteResourceId extends ResourceId {
 
     DiscreteResourceId() {
         this.components = ImmutableList.of();
+    }
+
+    ImmutableList<Object> components() {
+        return components;
     }
 
     @Override

@@ -65,15 +65,15 @@ public final class DiscreteResource implements Resource {
 
     @Override
     public List<Object> components() {
-        return id.components;
+        return id.components();
     }
 
     @Override
     public Object last() {
-        if (id.components.isEmpty()) {
+        if (id.components().isEmpty()) {
             return null;
         }
-        return id.components.get(id.components.size() - 1);
+        return id.components().get(id.components().size() - 1);
     }
 
     @Override

@@ -30,7 +30,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Beta
 public final class ContinuousResourceId extends ResourceId {
-    final ImmutableList<Object> components;
+    private final ImmutableList<Object> components;
 
     // for printing purpose only (used in toString() implementation)
     private final String name;
@@ -43,6 +43,10 @@ public final class ContinuousResourceId extends ResourceId {
     ContinuousResourceId(ImmutableList.Builder<Object> parentComponents, Class<?> last) {
         this.components = parentComponents.add(last.getCanonicalName()).build();
         this.name = last.getSimpleName();
+    }
+
+    ImmutableList<Object> components() {
+        return components;
     }
 
     /**
