@@ -19,6 +19,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -72,14 +73,14 @@ public final class ContinuousResourceId extends ResourceId {
     }
 
     @Override
-    DiscreteResourceId parent() {
+    public Optional<DiscreteResourceId> parent() {
         if (components.size() == 0) {
-            return null;
+            return Optional.empty();
         }
         if (components.size() == 1) {
-            return ROOT;
+            return Optional.of(ROOT);
         } else {
-            return new DiscreteResourceId(components.subList(0, components.size() - 1));
+            return Optional.of(new DiscreteResourceId(components.subList(0, components.size() - 1)));
         }
     }
 

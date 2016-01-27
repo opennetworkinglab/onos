@@ -21,6 +21,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -66,7 +67,13 @@ public abstract class ResourceId {
                 .add(Arrays.copyOfRange(components, 0, components.length - 1)), (Class<?>) last);
     }
 
-    abstract DiscreteResourceId parent();
+    /**
+     * Returns the parent resource ID of this instance.
+     *
+     * @return the parent resource path of this instance.
+     * If there is no parent, empty instance will be returned.
+     */
+    public abstract Optional<DiscreteResourceId> parent();
 
     /**
      * Returns a resource ID of a child of this resource based on the specified object.

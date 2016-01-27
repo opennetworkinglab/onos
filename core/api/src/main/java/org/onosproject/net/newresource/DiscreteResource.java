@@ -90,7 +90,7 @@ public final class DiscreteResource implements Resource {
 
     @Override
     public Optional<DiscreteResource> parent() {
-        return Optional.ofNullable(id.parent()).map(DiscreteResource::new);
+        return id.parent().map(DiscreteResource::new);
     }
 
     @Override
