@@ -13,6 +13,15 @@
 ONOS_HOME=/opt/onos
 KARAF_ARGS=
 SYS_APPS=drivers
+CURRENT_ONOS_HOME="`( cd $(dirname $0)/.. && pwd )`"
+
+# check whether executable onos binary is located under /opt/onos
+# if not try to reconfigure ONOS_HOME with current path
+if [ $CURRENT_ONOS_HOME != $ONOS_HOME ]; then
+    ONOS_HOME=$CURRENT_ONOS_HOME
+fi
+
+echo $ONOS_HOME
 
 [ -d $ONOS_HOME ] && cd $ONOS_HOME || ONOS_HOME=$(dirname $0)/..
 
