@@ -111,8 +111,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         // Reserve OCh ports
         Resource srcPortResource = Resource.discrete(src.deviceId(), src.port()).resource();
         Resource dstPortResource = Resource.discrete(dst.deviceId(), dst.port()).resource();
-        List<org.onosproject.net.newresource.ResourceAllocation> allocation =
-                resourceService.allocate(intent.id(), srcPortResource, dstPortResource);
+        List<ResourceAllocation> allocation = resourceService.allocate(intent.id(), srcPortResource, dstPortResource);
         if (allocation.isEmpty()) {
             throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
         }
