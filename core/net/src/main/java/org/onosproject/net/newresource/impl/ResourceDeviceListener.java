@@ -40,6 +40,7 @@ import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.newresource.ResourceAdminService;
 import org.onosproject.net.newresource.BandwidthCapacity;
 import org.onosproject.net.newresource.Resource;
+import org.onosproject.net.newresource.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,15 +119,15 @@ final class ResourceDeviceListener implements DeviceListener {
     }
 
     private void registerDeviceResource(Device device) {
-        executor.submit(() -> adminService.registerResources(Resource.discrete(device.id()).resource()));
+        executor.submit(() -> adminService.registerResources(Resources.discrete(device.id()).resource()));
     }
 
     private void unregisterDeviceResource(Device device) {
-        executor.submit(() -> adminService.unregisterResources(Resource.discrete(device.id()).resource()));
+        executor.submit(() -> adminService.unregisterResources(Resources.discrete(device.id()).resource()));
     }
 
     private void registerPortResource(Device device, Port port) {
-        Resource portPath = Resource.discrete(device.id(), port.number()).resource();
+        Resource portPath = Resources.discrete(device.id(), port.number()).resource();
         executor.submit(() -> {
             adminService.registerResources(portPath);
 
@@ -174,7 +175,7 @@ final class ResourceDeviceListener implements DeviceListener {
     }
 
     private void unregisterPortResource(Device device, Port port) {
-        Resource resource = Resource.discrete(device.id(), port.number()).resource();
+        Resource resource = Resources.discrete(device.id(), port.number()).resource();
         executor.submit(() -> adminService.unregisterResources(resource));
     }
 

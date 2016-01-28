@@ -17,7 +17,6 @@ package org.onosproject.net.newresource.impl;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.newresource.Resource.continuous;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Set;
@@ -30,6 +29,7 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.newresource.BandwidthCapacity;
 import org.onosproject.net.newresource.ResourceAdminService;
+import org.onosproject.net.newresource.Resources;
 import org.slf4j.Logger;
 
 import com.google.common.annotations.Beta;
@@ -93,8 +93,8 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
 
         switch (event.type()) {
         case CONFIG_ADDED:
-            if (!adminService.registerResources(continuous(cp.deviceId(),
-                                                           cp.port(), Bandwidth.class)
+            if (!adminService.registerResources(Resources.continuous(cp.deviceId(),
+                    cp.port(), Bandwidth.class)
                     .resource(bwCapacity.capacity().bps()))) {
                 log.info("Failed to register Bandwidth for {}, attempting update", cp);
 
@@ -115,9 +115,9 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
 
         case CONFIG_REMOVED:
             // FIXME Following should be an update to the value based on port speed
-            if (!adminService.unregisterResources(continuous(cp.deviceId(),
-                                                             cp.port(),
-                                                             Bandwidth.class).resource(0))) {
+            if (!adminService.unregisterResources(Resources.continuous(cp.deviceId(),
+                    cp.port(),
+                    Bandwidth.class).resource(0))) {
                 log.warn("Failed to unregister Bandwidth for {}", cp);
             }
             break;
@@ -147,12 +147,13 @@ final class ResourceNetworkConfigListener implements NetworkConfigListener {
         // but both unregisterResources(..) and  registerResources(..)
         // returns true (success)
 
-        if (!adminService.unregisterResources(continuous(cp.deviceId(), cp.port(), Bandwidth.class).resource(0))) {
+        if (!adminService.unregisterResources(
+                Resources.continuous(cp.deviceId(), cp.port(), Bandwidth.class).resource(0))) {
             log.warn("unregisterResources for {} failed", cp);
         }
-        return adminService.registerResources(continuous(cp.deviceId(),
-                                                         cp.port(),
-                                                         Bandwidth.class).resource(bwCapacity.capacity().bps()));
+        return adminService.registerResources(Resources.continuous(cp.deviceId(),
+                cp.port(),
+                Bandwidth.class).resource(bwCapacity.capacity().bps()));
     }
 
 }

@@ -39,11 +39,11 @@ public class ResourceTest {
 
     @Test
     public void testEquals() {
-        Resource resource1 = Resource.discrete(D1, P1, VLAN1).resource();
-        Resource sameAsResource1 = Resource.discrete(D1, P1, VLAN1).resource();
-        Resource resource2 = Resource.discrete(D2, P1, VLAN1).resource();
-        Resource resource3 = Resource.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
-        Resource sameAsResource3 = Resource.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
+        Resource resource1 = Resources.discrete(D1, P1, VLAN1).resource();
+        Resource sameAsResource1 = Resources.discrete(D1, P1, VLAN1).resource();
+        Resource resource2 = Resources.discrete(D2, P1, VLAN1).resource();
+        Resource resource3 = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
+        Resource sameAsResource3 = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
 
         new EqualsTester()
                 .addEqualityGroup(resource1, sameAsResource1)
@@ -54,19 +54,19 @@ public class ResourceTest {
 
     @Test
     public void testComponents() {
-        Resource port = Resource.discrete(D1, P1).resource();
+        Resource port = Resources.discrete(D1, P1).resource();
 
         assertThat(port.components(), contains(D1, P1));
     }
 
     @Test
     public void testIdEquality() {
-        ResourceId id1 = Resource.discrete(D1, P1, VLAN1).id();
-        ResourceId sameAsId1 = Resource.discrete(D1, P1, VLAN1).id();
-        ResourceId id2 = Resource.discrete(D2, P1, VLAN1).id();
-        ResourceId id3 = Resource.continuous(D1, P1, Bandwidth.class).resource(BW1.bps()).id();
+        ResourceId id1 = Resources.discrete(D1, P1, VLAN1).id();
+        ResourceId sameAsId1 = Resources.discrete(D1, P1, VLAN1).id();
+        ResourceId id2 = Resources.discrete(D2, P1, VLAN1).id();
+        ResourceId id3 = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps()).id();
         // intentionally set a different value
-        ResourceId sameAsId3 = Resource.continuous(D1, P1, Bandwidth.class).resource(BW2.bps()).id();
+        ResourceId sameAsId3 = Resources.continuous(D1, P1, Bandwidth.class).resource(BW2.bps()).id();
 
         new EqualsTester()
                 .addEqualityGroup(id1, sameAsId1)
@@ -76,30 +76,30 @@ public class ResourceTest {
 
     @Test
     public void testChild() {
-        Resource r1 = Resource.discrete(D1).resource().child(P1);
-        Resource sameAsR2 = Resource.discrete(D1, P1).resource();
+        Resource r1 = Resources.discrete(D1).resource().child(P1);
+        Resource sameAsR2 = Resources.discrete(D1, P1).resource();
 
         assertThat(r1, is(sameAsR2));
     }
 
     @Test
     public void testThereIsParent() {
-        Resource resource = Resource.discrete(D1, P1, VLAN1).resource();
-        Resource parent = Resource.discrete(D1, P1).resource();
+        Resource resource = Resources.discrete(D1, P1, VLAN1).resource();
+        Resource parent = Resources.discrete(D1, P1).resource();
 
         assertThat(resource.parent(), is(Optional.of(parent)));
     }
 
     @Test
     public void testNoParent() {
-        Resource resource = Resource.discrete(D1).resource();
+        Resource resource = Resources.discrete(D1).resource();
 
         assertThat(resource.parent(), is(Optional.of(Resource.ROOT)));
     }
 
     @Test
     public void testBase() {
-        Resource resource = Resource.discrete(D1).resource();
+        Resource resource = Resources.discrete(D1).resource();
 
         DeviceId child = (DeviceId) resource.last();
         assertThat(child, is(D1));
@@ -107,7 +107,7 @@ public class ResourceTest {
 
     @Test
     public void testVolumeOfDiscrete() {
-        Resource resource = Resource.discrete(D1).resource();
+        Resource resource = Resources.discrete(D1).resource();
 
         DeviceId volume = resource.volume();
         assertThat(volume, is(D1));
@@ -115,7 +115,7 @@ public class ResourceTest {
 
     @Test
     public void testVolumeOfContinuous() {
-        Resource resource = Resource.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
+        Resource resource = Resources.continuous(D1, P1, Bandwidth.class).resource(BW1.bps());
 
         double volume = resource.volume();
         assertThat(volume, is(BW1.bps()));

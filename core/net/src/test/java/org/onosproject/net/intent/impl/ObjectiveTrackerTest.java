@@ -41,7 +41,7 @@ import org.onosproject.net.intent.MockIdGenerator;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.newresource.ResourceEvent;
 import org.onosproject.net.newresource.ResourceListener;
-import org.onosproject.net.newresource.Resource;
+import org.onosproject.net.newresource.Resources;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
@@ -232,7 +232,7 @@ public class ObjectiveTrackerTest {
     @Test
     public void testResourceEvent() throws Exception {
         ResourceEvent event = new ResourceEvent(RESOURCE_ADDED,
-                Resource.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource());
+                Resources.discrete(DeviceId.deviceId("a"), PortNumber.portNumber(1)).resource());
         resourceListener.event(event);
 
         assertThat(

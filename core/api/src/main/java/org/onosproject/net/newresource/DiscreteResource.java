@@ -80,17 +80,17 @@ public final class DiscreteResource implements Resource {
     public DiscreteResource child(Object child) {
         checkArgument(!(child instanceof Class<?>));
 
-        return Resource.discrete(id.child(child)).resource();
+        return Resources.discrete(id.child(child)).resource();
     }
 
     @Override
     public ContinuousResource child(Class<?> child, double value) {
-        return Resource.continuous(id.child(child)).resource(value);
+        return Resources.continuous(id.child(child)).resource(value);
     }
 
     @Override
     public Optional<DiscreteResource> parent() {
-        return id.parent().map(x -> Resource.discrete(x).resource());
+        return id.parent().map(x -> Resources.discrete(x).resource());
     }
 
     @Override

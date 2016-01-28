@@ -32,20 +32,20 @@ public class ResourceIdTest {
 
     @Test
     public void testDiscreteToString() {
-        ResourceId resource = Resource.discrete(D1, P1).id();
+        ResourceId resource = Resources.discrete(D1, P1).id();
 
         assertThat(resource.toString(), is(Arrays.asList(D1, P1).toString()));
     }
 
     @Test
     public void testContinuousToString() {
-        ResourceId resource = Resource.continuous(D1, P1, Bandwidth.class).id();
+        ResourceId resource = Resources.continuous(D1, P1, Bandwidth.class).id();
 
         assertThat(resource.toString(), is(Arrays.asList(D1, P1, Bandwidth.class.getSimpleName()).toString()));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testInitWithNonClassInstance() {
-        Resource.continuous(D1, P1, BW1).id();
+        Resources.continuous(D1, P1, BW1).id();
     }
 }

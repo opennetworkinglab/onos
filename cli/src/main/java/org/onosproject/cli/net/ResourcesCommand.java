@@ -46,6 +46,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
+import org.onosproject.net.newresource.Resources;
 
 /**
  * Lists available resources.
@@ -89,11 +90,11 @@ public class ResourcesCommand extends AbstractShellCommand {
             DeviceId deviceId = deviceId(deviceIdStr);
             PortNumber portNumber = PortNumber.fromString(portNumberStr);
 
-            printResource(Resource.discrete(deviceId, portNumber).resource(), 0);
+            printResource(Resources.discrete(deviceId, portNumber).resource(), 0);
         } else if (deviceIdStr != null) {
             DeviceId deviceId = deviceId(deviceIdStr);
 
-            printResource(Resource.discrete(deviceId).resource(), 0);
+            printResource(Resources.discrete(deviceId).resource(), 0);
         } else {
             printResource(Resource.ROOT, 0);
         }

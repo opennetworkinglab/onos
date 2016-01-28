@@ -15,8 +15,6 @@
  */
 package org.onosproject.cli.net;
 
-import static org.onosproject.net.newresource.Resource.discrete;
-
 import java.util.Optional;
 
 import org.apache.karaf.shell.commands.Argument;
@@ -33,6 +31,7 @@ import org.onosproject.net.newresource.ResourceAllocation;
 import org.onosproject.net.newresource.ResourceConsumer;
 import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
+import org.onosproject.net.newresource.Resources;
 
 /**
  * Test tool to allocate resources.
@@ -73,8 +72,8 @@ public class TestAllocateResource extends AbstractShellCommand {
 
         ResourceConsumer consumer = IntentId.valueOf(nIntendId);
 
-        Resource resource = discrete(did, portNum,
-                                         createLambda(Integer.parseInt(lambda))).resource();
+        Resource resource = Resources.discrete(did, portNum,
+                createLambda(Integer.parseInt(lambda))).resource();
 
         Optional<ResourceAllocation> allocate = resourceService.allocate(consumer, resource);
         if (allocate.isPresent()) {

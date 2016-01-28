@@ -35,6 +35,7 @@ import org.onosproject.net.newresource.Resource;
 import org.onosproject.net.newresource.ResourceService;
 
 import com.google.common.base.Strings;
+import org.onosproject.net.newresource.Resources;
 
 /**
  * Lists allocated resources.
@@ -106,7 +107,7 @@ public class AllocationsCommand extends AbstractShellCommand {
         // TODO: Current design cannot deal with sub-resources
         //        (e.g., TX/RX under Port)
 
-        Resource resource = Resource.discrete(did, num).resource();
+        Resource resource = Resources.discrete(did, num).resource();
         if (lambda) {
             //print("Lambda resources:");
             Collection<ResourceAllocation> allocations

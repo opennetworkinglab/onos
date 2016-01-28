@@ -50,14 +50,14 @@ public final class DiscreteResourceId extends ResourceId {
     public DiscreteResourceId child(Object child) {
         checkArgument(!(child instanceof Class<?>));
 
-        return Resource.discrete(this, child).id();
+        return Resources.discrete(this, child).id();
     }
 
     @Override
     public ContinuousResourceId child(Class<?> child) {
         checkNotNull(child);
 
-        return Resource.continuous(this, child).id();
+        return Resources.continuous(this, child).id();
     }
 
     @Override
