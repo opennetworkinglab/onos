@@ -37,10 +37,12 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.mcast.MulticastRouteService;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
+import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 
+import java.util.Optional;
 import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -85,6 +87,8 @@ public class PIMApplication {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PIMInterfaceService pimInterfaceManager;
 
+    private final PIMPacketProcessor processor = new PIMPacketProcessor();
+
     /**
      * Activate the PIM component.
      */
@@ -100,9 +104,10 @@ public class PIMApplication {
         selector.matchIPProtocol(IPv4.PROTOCOL_PIM);
 
         // Use the traffic selector to tell the packet service which packets we want.
-        // PIMPacketService is an inner class defined below
-        PIMPacketProcessor processor = new PIMPacketProcessor();
         packetService.addProcessor(processor, PacketProcessor.director(5));
+
+        packetService.requestPackets(selector.build(), PacketPriority.CONTROL,
+                appId, Optional.empty());
 
         // Register for notifications from the Network config & Interface services.
         // We'll use these services to represent "PIMInterfaces"
@@ -121,6 +126,8 @@ public class PIMApplication {
      */
     @Deactivate
     public void deactivate() {
+        packetService.removeProcessor(processor);
+
         log.info("Stopped");
     }
 

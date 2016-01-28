@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.incubator.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 import java.util.Map;
@@ -62,6 +63,9 @@ public class PIMInterfaceManager implements PIMInterfaceService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PacketService packetService;
+
     // Store PIM Interfaces in a map key'd by ConnectPoint
     private final Map<ConnectPoint, PIMInterface> pimInterfaces = Maps.newConcurrentMap();
 
@@ -72,7 +76,7 @@ public class PIMInterfaceManager implements PIMInterfaceService {
 
         // Create PIM Interfaces for each of the existing ONOS Interfaces.
         for (Interface intf : interfaceService.getInterfaces()) {
-            pimInterfaces.put(intf.connectPoint(), new PIMInterface(intf));
+            pimInterfaces.put(intf.connectPoint(), new PIMInterface(intf, packetService));
         }
 
         // Schedule the periodic hello sender.
@@ -107,7 +111,7 @@ public class PIMInterfaceManager implements PIMInterfaceService {
 
         log.debug("Updating Interface for " + intf.connectPoint().toString());
         pimInterfaces.compute(cp, (k, v) -> (v == null) ?
-                new PIMInterface(intf) :
+                new PIMInterface(intf, packetService) :
                 v.setInterface(intf));
     }
 

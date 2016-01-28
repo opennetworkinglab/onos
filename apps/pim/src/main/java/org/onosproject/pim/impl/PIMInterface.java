@@ -24,9 +24,14 @@ import org.onlab.packet.PIM;
 import org.onlab.packet.pim.PIMHello;
 import org.onlab.packet.pim.PIMHelloOption;
 import org.onosproject.incubator.net.intf.Interface;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.InterfaceIpAddress;
+import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.PacketService;
 import org.slf4j.Logger;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +47,10 @@ public class PIMInterface {
 
     private final Logger log = getLogger(getClass());
 
+    private final PacketService packetService;
+
     private Interface onosInterface;
+    private final TrafficTreatment outputTreatment;
 
     // Our hello opt holdtime
     private short holdtime = PIMHelloOption.DEFAULT_HOLDTIME;
@@ -67,8 +75,10 @@ public class PIMInterface {
      *
      * @param intf the ONOS Interface.
      */
-    public PIMInterface(Interface intf) {
+    public PIMInterface(Interface intf, PacketService packetService) {
         onosInterface = intf;
+        outputTreatment = createOutputTreatment();
+        this.packetService = packetService;
         IpAddress ourIp = getIpAddress();
         MacAddress mac = intf.mac();
 
@@ -80,6 +90,12 @@ public class PIMInterface {
 
         pimNeighbors.put(ourIp, us);
         drIpaddress = ourIp;
+    }
+
+    private TrafficTreatment createOutputTreatment() {
+        return DefaultTrafficTreatment.builder()
+                .setOutput(onosInterface.connectPoint().port())
+                .build();
     }
 
     /**
@@ -187,7 +203,10 @@ public class PIMInterface {
         // Now set the hello option payload
         pimPacket.setPIMPayload(hello);
 
-        // TODO: How to send the packet.?.
+        packetService.emit(new DefaultOutboundPacket(
+                onosInterface.connectPoint().deviceId(),
+                outputTreatment,
+                ByteBuffer.wrap(pimPacket.getEthernet().serialize())));
     }
 
     /**
