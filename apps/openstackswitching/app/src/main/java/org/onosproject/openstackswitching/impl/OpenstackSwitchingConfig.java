@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ public class OpenstackSwitchingConfig extends Config<ApplicationId> {
     public static final String KEYSTONE_SERVER = "keystone_server";
     public static final String USER_NAME = "user_name";
     public static final String PASSWORD = "password";
+    public static final String PHYSICAL_ROUTER_MAC = "physicalRouterMac";
 
     /**
      * Returns the flag whether the app pushes flows or not.
@@ -75,6 +76,14 @@ public class OpenstackSwitchingConfig extends Config<ApplicationId> {
         return get(PASSWORD, "");
     }
 
+    /**
+     * Returns the MacAddress for physical router.
+     *
+     * @return physical router mac
+     */
+    public String physicalRouterMac() {
+        return get(PHYSICAL_ROUTER_MAC, "");
+    }
     /**
      * Sets the flag whether the app pushes flows or not.
      *

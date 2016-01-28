@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2015 Open Networking Laboratory
+ * Copyright 2015 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstackswitching.impl;
+package org.onosproject.openstackswitching;
 
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Contains OpenstackPort Information.
  */
-public final class OpenstackPortInfo {
-
+public class OpenstackPortInfo {
     private final Ip4Address hostIp;
-    private final DeviceId deviceId;
     private final MacAddress hostMac;
+    private final DeviceId deviceId;
     private final long vni;
+    private final Ip4Address gatewayIP;
 
-    public OpenstackPortInfo(Ip4Address hostIp, MacAddress hostMac, DeviceId deviceId,
-                             long vni) {
+    public OpenstackPortInfo(Ip4Address hostIp, MacAddress hostMac, DeviceId deviceId, long vni, Ip4Address gatewayIP) {
         this.hostIp = hostIp;
         this.hostMac = hostMac;
         this.deviceId = deviceId;
         this.vni = vni;
+        this.gatewayIP = gatewayIP;
     }
 
     public Ip4Address ip() {
@@ -55,6 +54,10 @@ public final class OpenstackPortInfo {
         return vni;
     }
 
+    public Ip4Address gatewayIP() {
+        return gatewayIP;
+    }
+
     public static OpenstackPortInfo.Builder builder() {
         return new Builder();
     }
@@ -64,6 +67,12 @@ public final class OpenstackPortInfo {
         private MacAddress hostMac;
         private DeviceId deviceId;
         private long vni;
+        private Ip4Address gatewayIP;
+
+        public Builder setGatewayIP(Ip4Address gatewayIP) {
+            this.gatewayIP = checkNotNull(gatewayIP, "gatewayIP cannot be null");
+            return this;
+        }
 
         public Builder setHostIp(Ip4Address hostIp) {
             this.hostIp = checkNotNull(hostIp, "hostIp cannot be null");
@@ -94,5 +103,6 @@ public final class OpenstackPortInfo {
         hostMac = builder.hostMac;
         deviceId = builder.deviceId;
         vni = builder.vni;
+        gatewayIP = builder.gatewayIP;
     }
 }

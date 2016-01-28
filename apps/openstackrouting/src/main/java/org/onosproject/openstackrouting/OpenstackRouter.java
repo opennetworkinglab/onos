@@ -44,6 +44,10 @@ public final class OpenstackRouter {
 
     }
 
+    public static OpenstackRouter.Builder builder() {
+        return new Builder();
+    }
+
     /**
      * Returns tenant ID.
      *

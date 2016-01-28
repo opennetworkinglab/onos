@@ -21,12 +21,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
+import org.onosproject.openstackrouting.OpenstackRouter;
 import org.onosproject.openstackswitching.OpenstackNetwork;
 import org.onosproject.openstackswitching.OpenstackPort;
 import org.onosproject.openstackswitching.OpenstackSubnet;
 import org.onosproject.openstackswitching.web.OpenstackNetworkCodec;
 import org.onosproject.openstackswitching.web.OpenstackPortCodec;
 import org.onosproject.openstackswitching.web.OpenstackSecurityGroupCodec;
+import org.onosproject.openstackswitching.web.OpenstackRouterCodec;
 import org.onosproject.openstackswitching.web.OpenstackSubnetCodec;
 import org.slf4j.Logger;
 import javax.ws.rs.core.MediaType;
@@ -51,6 +53,7 @@ public class OpenstackRestHandler {
     private static final String URI_SECURITY_GROUPS = "security-groups";
     private static final String URI_TOKENS = "tokens";
 
+    private static final String PATH_ROUTERS = "routers";
     private static final String PATH_NETWORKS = "networks";
     private static final String PATH_PORTS = "ports";
     private static final String PATH_SUBNETS = "subnets";
@@ -135,6 +138,30 @@ public class OpenstackRestHandler {
         openstackPorts.forEach(n -> log.debug("port ID: {}", n.id()));
 
         return openstackPorts;
+    }
+
+    public Collection<OpenstackRouter> getRouters() {
+        WebResource.Builder builder = getClientBuilder(neutronUrl + PATH_ROUTERS);
+        String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
+                header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
+
+        ObjectMapper mapper = new ObjectMapper();
+        List<OpenstackRouter> openstackRouters = Lists.newArrayList();
+
+        try {
+            ObjectNode node = (ObjectNode) mapper.readTree(response);
+            ArrayNode routerList = (ArrayNode) node.path(PATH_ROUTERS);
+            OpenstackRouterCodec openstackRouterCodec = new OpenstackRouterCodec();
+            routerList.forEach(r -> openstackRouters
+                    .add(openstackRouterCodec.decode((ObjectNode) r, null)));
+        } catch (IOException e) {
+            log.warn("getRouters()", e);
+        }
+
+        log.debug("router response:" + response);
+        openstackRouters.forEach(r -> log.debug("router ID: {}", r.id()));
+
+        return openstackRouters;
     }
 
     /**

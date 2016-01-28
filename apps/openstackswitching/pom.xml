@@ -37,6 +37,11 @@
     </modules>
 
     <dependencies>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-app-openstackrouting</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 

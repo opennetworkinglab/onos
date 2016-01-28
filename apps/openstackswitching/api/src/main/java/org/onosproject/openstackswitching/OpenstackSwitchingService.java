@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2015-2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package org.onosproject.openstackswitching;
 
 import org.onosproject.net.Port;
+import org.onosproject.openstackrouting.OpenstackRouter;
+import org.onosproject.openstackrouting.OpenstackRouterInterface;
 
 import java.util.Collection;
 
@@ -68,6 +70,12 @@ public interface OpenstackSwitchingService {
     Collection<OpenstackPort> ports(String networkId);
 
     /**
+     * Returns port information list.
+     *
+     * @return port information list
+     */
+    Collection<OpenstackPort> ports();
+    /**
      * Returns port information for the port given.
      *
      * @param port port reference
@@ -99,4 +107,68 @@ public interface OpenstackSwitchingService {
      * @return subnet information, or null if not present
      */
     OpenstackSubnet subnet(String subnetId);
+
+    /**
+     * Sends the created router information to OpenstackRouting service.
+     *
+     * @param openstackRouter Router Information
+     */
+    void createRouter(OpenstackRouter openstackRouter);
+    /**
+     * Sends the updated router information to OpenstackRouting service.
+     *
+     * @param routerId Router ID
+     */
+    void updateRouter(String  routerId);
+    /**
+     * Sends the removed router information to OpenstackRouting service.
+     *
+     * @param routerId Router ID
+     */
+    void deleteRouter(String routerId);
+
+    /**
+     * Sends the updated router interface information to OpenstackRouting service.
+     *
+     * @param openstackRouterInterface Router interface information
+     */
+    void updateRouterInterface(OpenstackRouterInterface openstackRouterInterface);
+
+    /**
+     * Sends the removed router interface information to OpenstackRouting service.
+     *
+     * @param openstackRouterInterface Router interface information
+     */
+    void removeRouterInterface(OpenstackRouterInterface openstackRouterInterface);
+
+    /**
+     * Returns the router information list.
+     *
+     * @return router information list
+     */
+    Collection<OpenstackRouter> routers();
+
+    /**
+     * Returns the router information for the router ID given.
+     *
+     * @param routerId router ID
+     * @return router information
+     */
+    OpenstackRouter router(String routerId);
+
+    /**
+     * Returns the OpensatckPortInfo list.
+     *
+     * @return OpensatckPortInfo list
+     */
+    Collection<OpenstackPortInfo> portInfos();
+
+    /**
+     * Returns the MacAddress for physical router.
+     *
+     * @return physical router mac
+     */
+    String physicalRouterMac();
+
+
 }

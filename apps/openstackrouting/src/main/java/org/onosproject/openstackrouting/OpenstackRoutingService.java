@@ -77,11 +77,11 @@ public interface OpenstackRoutingService {
     void updateRouterInterface(OpenstackRouterInterface openstackRouterInterface);
 
     /**
-     * Removes flow rules corresponding to the router information deleted by Openstack.
+     * Removes flow rules corresponding to the router information removed by Openstack.
      *
-     * @param id Deleted router`s ID
+     * @param openstackRouterInterface Router information
      */
-    void deleteRouterInterface(String id);
+    void removeRouterInterface(OpenstackRouterInterface openstackRouterInterface);
 
 
 }

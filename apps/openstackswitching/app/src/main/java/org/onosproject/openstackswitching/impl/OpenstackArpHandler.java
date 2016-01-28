@@ -1,5 +1,5 @@
 /*
-* Copyright 2015 Open Networking Laboratory
+* Copyright 2015-2016 Open Networking Laboratory
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -28,9 +28,11 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstackswitching.OpenstackPort;
+import org.onosproject.openstackswitching.OpenstackPortInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -41,6 +43,7 @@ public class OpenstackArpHandler {
 
     private static Logger log = LoggerFactory
             .getLogger(OpenstackArpHandler.class);
+    private static final MacAddress GATEWAY_MAC = MacAddress.valueOf("1f:1f:1f:1f:1f:1f");
     private PacketService packetService;
     private OpenstackRestHandler restHandler;
     private HostService hostService;
@@ -66,7 +69,7 @@ public class OpenstackArpHandler {
      *
      * @param pkt ARP request packet
      */
-    public void processPacketIn(InboundPacket pkt) {
+    public void processPacketIn(InboundPacket pkt, Collection<OpenstackPortInfo> openstackPortInfoCollection) {
         Ethernet ethRequest = pkt.parsed();
         ARP arp = (ARP) ethRequest.getPayload();
 
@@ -74,10 +77,21 @@ public class OpenstackArpHandler {
             return;
         }
 
+        IpAddress sourceIp = Ip4Address.valueOf(arp.getSenderProtocolAddress());
+        MacAddress srcMac = MacAddress.valueOf(arp.getSenderHardwareAddress());
+        OpenstackPortInfo portInfo = openstackPortInfoCollection.stream()
+                .filter(p -> p.ip().equals(sourceIp) && p.mac().equals(srcMac)).findFirst().orElse(null);
         IpAddress targetIp = Ip4Address.valueOf(arp.getTargetProtocolAddress());
-        MacAddress dstMac = getMacFromHostService(targetIp);
-        if (dstMac == null) {
-            dstMac = getMacFromOpenstack(targetIp);
+
+        MacAddress dstMac;
+
+        if (targetIp.equals(portInfo == null ? null : portInfo.gatewayIP())) {
+            dstMac = GATEWAY_MAC;
+        } else {
+            dstMac = getMacFromHostService(targetIp);
+            if (dstMac == null) {
+                dstMac = getMacFromOpenstack(targetIp);
+            }
         }
 
         if (dstMac == null) {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright 2015 Open Networking Laboratory
+  ~ Copyright 2015-16 Open Networking Laboratory
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
         <bundle>mvn:${project.groupId}/onos-app-openstackswitching/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-dhcp-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-app-dhcp/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-app-openstackrouting/${project.version}</bundle>
         <bundle>mvn:com.sun.jersey/jersey-client/1.19</bundle>
     </feature>
 </features>

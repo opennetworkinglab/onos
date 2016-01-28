@@ -124,10 +124,9 @@ public class OpenstackRoutingManager implements OpenstackRoutingService {
     }
 
     @Override
-    public void deleteRouterInterface(String id) {
+    public void removeRouterInterface(OpenstackRouterInterface openstackRouterInterface) {
 
     }
-
     private class InternalPacketProcessor implements PacketProcessor {
 
         @Override

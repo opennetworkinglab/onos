@@ -15,9 +15,11 @@
  */
 package org.onosproject.openstackrouting;
 
+import com.google.common.collect.ImmutableMap;
 import org.onlab.packet.Ip4Address;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A configurable external gateway modes extension model in openstack router.
@@ -26,15 +28,18 @@ public final class OpenstackExternalGateway {
 
     private String networkId;
     private boolean enablePnat;
-    private HashMap<String, Ip4Address> externalFixedIps;
+    private Map<String, Ip4Address> externalFixedIps;
 
     private OpenstackExternalGateway(String networkId, boolean enablePnat,
-                                     HashMap externalFixedIps) {
+                                     Map<String, Ip4Address> externalFixedIps) {
         this.networkId = networkId;
         this.enablePnat = enablePnat;
         this.externalFixedIps = externalFixedIps;
     }
 
+    public static OpenstackExternalGateway.Builder builder() {
+        return new Builder();
+    }
     /**
      * Returns network ID.
      *
@@ -53,13 +58,17 @@ public final class OpenstackExternalGateway {
         return enablePnat;
     }
 
+    public Map<String, Ip4Address> externalFixedIps() {
+        return ImmutableMap.copyOf(externalFixedIps);
+    }
+
     /**
      * An Openstack External Gateway Builder class.
      */
     public static final class Builder {
         private String networkId;
         private boolean enablePnat;
-        private HashMap<String, Ip4Address> externalFixedIps;
+        private Map<String, Ip4Address> externalFixedIps;
 
         Builder() {
             externalFixedIps = new HashMap<>();
@@ -90,11 +99,12 @@ public final class OpenstackExternalGateway {
         /**
          * Sets external fixed IP address information.
          *
-         * @param externalFixedIPs External fixed IP information
+         * @param externalFixedIps External fixed IP information
          * @return Builder object
          */
-        public Builder externalFixedIps(HashMap<String, Ip4Address> externalFixedIPs) {
-            this.externalFixedIps.putAll(externalFixedIPs);
+
+        public Builder externalFixedIps(Map<String, Ip4Address> externalFixedIps) {
+            this.externalFixedIps.putAll(externalFixedIps);
             return this;
         }
 
