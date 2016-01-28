@@ -120,14 +120,14 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         // Calculate available light paths
         Set<Path> paths = getOpticalPaths(intent);
 
+        // Static or dynamic lambda allocation
+        String staticLambda = srcPort.annotations().value(AnnotationKeys.STATIC_LAMBDA);
+        OchPort srcOchPort = (OchPort) srcPort;
+        OchPort dstOchPort = (OchPort) dstPort;
+        OchSignal ochSignal;
+
         // Use first path that can be successfully reserved
         for (Path path : paths) {
-
-            // Static or dynamic lambda allocation
-            String staticLambda = srcPort.annotations().value(AnnotationKeys.STATIC_LAMBDA);
-            OchPort srcOchPort = (OchPort) srcPort;
-            OchPort dstOchPort = (OchPort) dstPort;
-            OchSignal ochSignal;
 
             // FIXME: need to actually reserve the lambda for static lambda's
             if (staticLambda != null) {
