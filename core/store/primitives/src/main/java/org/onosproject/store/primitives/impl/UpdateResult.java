@@ -76,10 +76,7 @@ public class UpdateResult<K, V> {
         if (!updated) {
             return null;
         } else {
-            MapEvent.Type eventType = oldValue == null ?
-                    MapEvent.Type.INSERT : newValue == null ? MapEvent.Type.REMOVE : MapEvent.Type.UPDATE;
-            Versioned<V> eventValue = eventType == MapEvent.Type.REMOVE ? oldValue : newValue;
-            return new MapEvent<>(mapName(), eventType, key(), eventValue);
+            return new MapEvent<>(mapName(), key(), newValue, oldValue);
         }
     }
 }

@@ -21,15 +21,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.onosproject.core.ApplicationId;
+import org.onosproject.store.primitives.ConsistentMapBackedJavaMap;
 
-import static org.onosproject.store.service.MapEvent.Type.*;
+import com.google.common.base.Objects;
 
 /**
  * Test implementation of the consistent map.
@@ -37,7 +40,7 @@ import static org.onosproject.store.service.MapEvent.Type.*;
 public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
 
     private final List<MapEventListener<K, V>> listeners;
-    private final Map<K, V> map;
+    private final Map<K, Versioned<V>> map;
     private final String mapName;
     private final AtomicLong counter = new AtomicLong(0);
 
@@ -54,9 +57,9 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
     /**
      * Notify all listeners of an event.
      */
-    private void notifyListeners(String mapName, MapEvent.Type type,
-                                 K key, Versioned<V> value) {
-        MapEvent<K, V> event = new MapEvent<>(mapName, type, key, value);
+    private void notifyListeners(String mapName,
+                                 K key, Versioned<V> newvalue, Versioned<V> oldValue) {
+        MapEvent<K, V> event = new MapEvent<>(mapName, key, newvalue, oldValue);
         listeners.forEach(
                 listener -> listener.event(event)
         );
@@ -84,71 +87,103 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
 
     @Override
     public Versioned<V> get(K key) {
-        V value = map.get(key);
-        if (value != null) {
-            return version(value);
-        } else {
-            return null;
-        }
+        return map.get(key);
     }
 
     @Override
     public Versioned<V> computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
-        Versioned<V> result = version(map.computeIfAbsent(key, mappingFunction));
-        notifyListeners(mapName, INSERT, key, result);
+        AtomicBoolean updated = new AtomicBoolean(false);
+        Versioned<V> result = map.compute(key, (k, v) -> {
+            if (v == null) {
+                updated.set(true);
+                return version(mappingFunction.apply(key));
+            }
+            return v;
+        });
+        if (updated.get()) {
+            notifyListeners(mapName, key, result, null);
+        }
         return result;
     }
 
     @Override
     public Versioned<V> compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-        return version(map.compute(key, remappingFunction));
+            AtomicBoolean updated = new AtomicBoolean(false);
+            AtomicReference<Versioned<V>> previousValue = new AtomicReference<>();
+            Versioned<V> result = map.compute(key, (k, v) -> {
+                    updated.set(true);
+                    previousValue.set(v);
+                    return version(remappingFunction.apply(k, Versioned.valueOrNull(v)));
+                });
+            if (updated.get()) {
+                notifyListeners(mapName, key, result, previousValue.get());
+            }
+            return result;
     }
 
     @Override
     public Versioned<V> computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-        return version(map.computeIfPresent(key, remappingFunction));
-    }
-
-    @Override
-    public Versioned<V> computeIf(K key, Predicate<? super V> condition,
-                                  BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-        return version(map.compute(key, (k, existingValue) -> {
-            if (condition.test(existingValue)) {
-                return remappingFunction.apply(k, existingValue);
-            } else {
-                return existingValue;
+        AtomicBoolean updated = new AtomicBoolean(false);
+        AtomicReference<Versioned<V>> previousValue = new AtomicReference<>();
+        Versioned<V> result = map.compute(key, (k, v) -> {
+            if (v != null) {
+                updated.set(true);
+                previousValue.set(v);
+                return version(remappingFunction.apply(k, v.value()));
             }
-        }));
-    }
-
-    @Override
-    public Versioned<V> put(K key, V value) {
-        Versioned<V> result = version(value);
-        if (map.put(key, value) == null) {
-            notifyListeners(mapName, INSERT, key, result);
-        } else {
-            notifyListeners(mapName, UPDATE, key, result);
+            return v;
+        });
+        if (updated.get()) {
+            notifyListeners(mapName, key, result, previousValue.get());
         }
         return result;
     }
 
     @Override
-    public Versioned<V> putAndGet(K key, V value) {
-        Versioned<V> result = version(map.put(key, value));
-        notifyListeners(mapName, UPDATE, key, result);
+    public Versioned<V> computeIf(K key, Predicate<? super V> condition,
+                                  BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        AtomicBoolean updated = new AtomicBoolean(false);
+        AtomicReference<Versioned<V>> previousValue = new AtomicReference<>();
+        Versioned<V> result = map.compute(key, (k, v) -> {
+            if (condition.test(Versioned.valueOrNull(v))) {
+                previousValue.set(v);
+                updated.set(true);
+                return version(remappingFunction.apply(k, Versioned.valueOrNull(v)));
+            }
+            return v;
+        });
+        if (updated.get()) {
+            notifyListeners(mapName, key, result, previousValue.get());
+        }
         return result;
     }
 
     @Override
+    public Versioned<V> put(K key, V value) {
+        Versioned<V> newValue = version(value);
+        Versioned<V> previousValue = map.put(key, newValue);
+        notifyListeners(mapName, key, newValue, previousValue);
+        return previousValue;
+    }
+
+    @Override
+    public Versioned<V> putAndGet(K key, V value) {
+        Versioned<V> newValue = version(value);
+        Versioned<V> previousValue = map.put(key, newValue);
+        notifyListeners(mapName, key, newValue, previousValue);
+        return newValue;
+    }
+
+    @Override
     public Versioned<V> remove(K key) {
-        Versioned<V> result = version(map.remove(key));
-        notifyListeners(mapName, REMOVE, key, result);
+        Versioned<V> result = map.remove(key);
+        notifyListeners(mapName, key, null, result);
         return result;
     }
 
     @Override
     public void clear() {
-        map.clear();
+        map.keySet().forEach(this::remove);
     }
 
     @Override
@@ -158,70 +193,85 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
 
     @Override
     public Collection<Versioned<V>> values() {
-        return map
-                .values()
+        return map.values()
                 .stream()
-                .map(this::version)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Set<Map.Entry<K, Versioned<V>>> entrySet() {
-        return super.entrySet();
+        return map.entrySet();
     }
 
     @Override
     public Versioned<V> putIfAbsent(K key, V value) {
-        Versioned<V> result =  version(map.putIfAbsent(key, value));
-        if (map.get(key).equals(value)) {
-            notifyListeners(mapName, INSERT, key, result);
+        Versioned<V> newValue = version(value);
+        Versioned<V> result =  map.putIfAbsent(key, newValue);
+        if (result == null) {
+            notifyListeners(mapName, key, newValue, result);
         }
         return result;
     }
 
     @Override
     public boolean remove(K key, V value) {
-        boolean removed = map.remove(key, value);
-        if (removed) {
-            notifyListeners(mapName, REMOVE, key, null);
+        Versioned<V> existingValue = map.get(key);
+        if (Objects.equal(Versioned.valueOrNull(existingValue), value)) {
+            map.remove(key);
+            notifyListeners(mapName, key, null, existingValue);
+            return true;
         }
-        return removed;
+        return false;
     }
 
     @Override
     public boolean remove(K key, long version) {
-        boolean removed =  map.remove(key, version);
-        if (removed) {
-            notifyListeners(mapName, REMOVE, key, null);
+        Versioned<V> existingValue = map.get(key);
+        if (existingValue == null) {
+            return false;
         }
-        return removed;
+        if (existingValue.version() == version) {
+            map.remove(key);
+            notifyListeners(mapName, key, null, existingValue);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public Versioned<V> replace(K key, V value) {
-        Versioned<V> result = version(map.replace(key, value));
-        if (map.get(key).equals(value)) {
-            notifyListeners(mapName, UPDATE, key, result);
+        Versioned<V> existingValue = map.get(key);
+        if (existingValue == null) {
+            return null;
         }
+        Versioned<V> newValue = version(value);
+        Versioned<V> result = map.put(key, newValue);
+        notifyListeners(mapName, key, newValue, result);
         return result;
     }
 
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
-        boolean replaced = map.replace(key, oldValue, newValue);
-        if (replaced) {
-            notifyListeners(mapName, REMOVE, key, null);
+        Versioned<V> existingValue = map.get(key);
+        if (existingValue == null || !existingValue.value().equals(oldValue)) {
+            return false;
         }
-        return replaced;
+        Versioned<V> value = version(newValue);
+        Versioned<V> result = map.put(key, value);
+        notifyListeners(mapName, key, value, result);
+        return true;
     }
 
     @Override
     public boolean replace(K key, long oldVersion, V newValue) {
-        boolean replaced =  map.replace(key, map.get(key), newValue);
-        if (replaced) {
-            notifyListeners(mapName, REMOVE, key, null);
+        Versioned<V> existingValue = map.get(key);
+        if (existingValue == null || existingValue.version() != oldVersion) {
+            return false;
         }
-        return replaced;
+        Versioned<V> value = version(newValue);
+        Versioned<V> result = map.put(key, value);
+        notifyListeners(mapName, key, value, result);
+        return true;
     }
 
     @Override
@@ -236,7 +286,7 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
 
     @Override
     public Map<K, V> asJavaMap() {
-        return map;
+        return new ConsistentMapBackedJavaMap<>(this);
     }
 
     public static Builder builder() {
