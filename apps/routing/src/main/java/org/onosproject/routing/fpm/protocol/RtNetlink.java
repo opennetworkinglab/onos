@@ -43,7 +43,7 @@ public final class RtNetlink {
     private final int srcLength;
     private final short tos;
     private final short table;
-    private final short protocol;
+    private final RtProtocol protocol;
     private final short scope;
     private final short type;
     private final long flags;
@@ -69,7 +69,7 @@ public final class RtNetlink {
                       int srcLength,
                       short tos,
                       short table,
-                      short protocol,
+                      RtProtocol protocol,
                       short scope,
                       short type,
                       long flags,
@@ -139,7 +139,7 @@ public final class RtNetlink {
      *
      * @return protocol
      */
-    public short protocol() {
+    public RtProtocol protocol() {
         return protocol;
     }
 
@@ -222,6 +222,8 @@ public final class RtNetlink {
         long flags = Integer.reverseBytes(bb.getInt());
         List<RouteAttribute> attributes = new ArrayList<>();
 
+        RtProtocol rtProtocol = RtProtocol.get(protocol);
+
         while (bb.hasRemaining()) {
             RouteAttribute attribute = RouteAttribute.decode(buffer, bb.position(),
                     bb.limit() - bb.position());
@@ -235,7 +237,7 @@ public final class RtNetlink {
                 srcLength,
                 tos,
                 table,
-                protocol,
+                rtProtocol,
                 scope,
                 type,
                 flags,

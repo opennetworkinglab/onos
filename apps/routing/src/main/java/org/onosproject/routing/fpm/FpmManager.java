@@ -41,6 +41,7 @@ import org.onosproject.routing.fpm.protocol.RouteAttribute;
 import org.onosproject.routing.fpm.protocol.RouteAttributeDst;
 import org.onosproject.routing.fpm.protocol.RouteAttributeGateway;
 import org.onosproject.routing.fpm.protocol.RtNetlink;
+import org.onosproject.routing.fpm.protocol.RtProtocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,6 +144,11 @@ public class FpmManager implements RouteSourceService {
 
         if (log.isTraceEnabled()) {
             log.trace("Received FPM message: {}", fpmMessage);
+        }
+
+        if (rtNetlink.protocol() != RtProtocol.ZEBRA) {
+            log.trace("Ignoring non-zebra route");
+            return;
         }
 
         IpAddress dstAddress = null;
