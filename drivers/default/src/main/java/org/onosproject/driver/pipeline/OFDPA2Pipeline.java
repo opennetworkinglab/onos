@@ -632,10 +632,9 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      */
     private Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
         log.info("Processing versatile forwarding objective");
-        TrafficSelector selector = fwd.selector();
 
         EthTypeCriterion ethType =
-                (EthTypeCriterion) selector.getCriterion(Criterion.Type.ETH_TYPE);
+                (EthTypeCriterion) fwd.selector().getCriterion(Criterion.Type.ETH_TYPE);
         if (ethType == null) {
             log.error("Versatile forwarding objective must include ethType");
             fail(fwd, ObjectiveError.BADPARAMS);
@@ -646,6 +645,23 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                     + "nextId or Treatment", fwd.selector(), fwd.appId());
             return Collections.emptySet();
         }
+
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+        fwd.selector().criteria().forEach(criterion -> {
+            if (criterion instanceof VlanIdCriterion) {
+                VlanId vlanId = ((VlanIdCriterion) criterion).vlanId();
+                // ensure that match does not include vlan = NONE as OF-DPA does not
+                // match untagged packets this way in the ACL table.
+                if (vlanId.equals(VlanId.NONE)) {
+                    return;
+                }
+                OfdpaMatchVlanVid ofdpaMatchVlanVid =
+                        new OfdpaMatchVlanVid(vlanId);
+                sbuilder.extension(ofdpaMatchVlanVid, deviceId);
+            } else {
+                sbuilder.add(criterion);
+            }
+        });
 
         // XXX driver does not currently do type checking as per Tables 65-67 in
         // OFDPA 2.0 spec. The only allowed treatment is a punt to the controller.
@@ -679,22 +695,12 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
             ttBuilder.deferred().group(group.id());
         }
-       // ensure that match does not include vlan = NONE as OF-DPA does not
-       // match untagged packets this way in the ACL table.
-       TrafficSelector.Builder selBuilder = DefaultTrafficSelector.builder();
-       for (Criterion criterion : fwd.selector().criteria()) {
-           if (criterion instanceof VlanIdCriterion &&
-               ((VlanIdCriterion) criterion).vlanId() == VlanId.NONE) {
-               continue;
-           }
-           selBuilder.add(criterion);
-       }
 
         FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .withPriority(fwd.priority())
                 .forDevice(deviceId)
-                .withSelector(selBuilder.build())
+                .withSelector(sbuilder.build())
                 .withTreatment(ttBuilder.build())
                 .makePermanent()
                 .forTable(ACL_TABLE);
