@@ -125,7 +125,7 @@ public final class Resources {
     }
 
     /**
-     * Creates a factory for continuous-type wit the specified parent ID and child.
+     * Creates a factory for continuous-type with the specified parent ID and child.
      *
      * @param parent ID of the parent
      * @param child child
