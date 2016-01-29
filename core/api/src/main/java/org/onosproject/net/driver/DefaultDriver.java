@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -110,8 +111,20 @@ public class DefaultDriver implements Driver {
         // Merge the properties.
         ImmutableMap.Builder<String, String> properties = ImmutableMap.builder();
         properties.putAll(this.properties).putAll(other.properties());
+        List<Driver> completeParents = new ArrayList<>();
 
-        return new DefaultDriver(name, other.parents(),
+        if (parents != null) {
+            parents.forEach(parent -> other.parents().forEach(otherParent -> {
+                if (otherParent.name().equals(parent.name())) {
+                    completeParents.add(parent.merge(otherParent));
+                } else if (!completeParents.contains(otherParent)) {
+                    completeParents.add(otherParent);
+                } else if (!completeParents.contains(parent)) {
+                    completeParents.add(parent);
+                }
+            }));
+        }
+        return new DefaultDriver(name, completeParents.size() > 0 ? completeParents : other.parents(),
                                  manufacturer, hwVersion, swVersion,
                                  ImmutableMap.copyOf(behaviours), properties.build());
     }
