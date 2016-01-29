@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.Port;
@@ -49,6 +50,9 @@ import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
+import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.Group;
@@ -58,11 +62,150 @@ import org.slf4j.Logger;
 
 /**
  * Driver for software switch emulation of the OFDPA 2.0 pipeline.
- * The software switch is the CPqD OF 1.3 switch.
+ * The software switch is the CPqD OF 1.3 switch. Unfortunately the CPqD switch
+ * does not handle vlan tags and mpls labels simultaneously, which requires us
+ * to do some workarounds in the driver. This driver is meant for the use of
+ * the cpqd switch when MPLS is required. As a result this driver works only
+ * on incoming untagged packets.
  */
 public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
 
     private final Logger log = getLogger(getClass());
+
+    /*
+     * CPQD emulation does not require special untagged packet handling, unlike
+     * the real ofdpa.
+     */
+    @Override
+    protected void processFilter(FilteringObjective filt,
+                                 boolean install, ApplicationId applicationId) {
+        // This driver only processes filtering criteria defined with switch
+        // ports as the key
+        PortCriterion portCriterion = null;
+        EthCriterion ethCriterion = null;
+        VlanIdCriterion vidCriterion = null;
+        Collection<IPCriterion> ips = new ArrayList<IPCriterion>();
+        if (!filt.key().equals(Criteria.dummy()) &&
+                filt.key().type() == Criterion.Type.IN_PORT) {
+            portCriterion = (PortCriterion) filt.key();
+        } else {
+            log.warn("No key defined in filtering objective from app: {}. Not"
+                    + "processing filtering objective", applicationId);
+            fail(filt, ObjectiveError.UNKNOWN);
+            return;
+        }
+        // convert filtering conditions for switch-intfs into flowrules
+        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+        for (Criterion criterion : filt.conditions()) {
+            if (criterion.type() == Criterion.Type.ETH_DST) {
+                ethCriterion = (EthCriterion) criterion;
+            } else if (criterion.type() == Criterion.Type.VLAN_VID) {
+                vidCriterion = (VlanIdCriterion) criterion;
+            } else if (criterion.type() == Criterion.Type.IPV4_DST) {
+                ips.add((IPCriterion) criterion);
+            } else {
+                log.error("Unsupported filter {}", criterion);
+                fail(filt, ObjectiveError.UNSUPPORTED);
+                return;
+            }
+        }
+
+        VlanId assignedVlan = null;
+        // For VLAN cross-connect packets, use the configured VLAN
+        if (vidCriterion != null) {
+            if (vidCriterion.vlanId() != VlanId.NONE) {
+                assignedVlan = vidCriterion.vlanId();
+
+            // For untagged packets, assign a VLAN ID
+            } else {
+                if (filt.meta() == null) {
+                    log.error("Missing metadata in filtering objective required " +
+                            "for vlan assignment in dev {}", deviceId);
+                    fail(filt, ObjectiveError.BADPARAMS);
+                    return;
+                }
+                for (Instruction i : filt.meta().allInstructions()) {
+                    if (i instanceof ModVlanIdInstruction) {
+                        assignedVlan = ((ModVlanIdInstruction) i).vlanId();
+                    }
+                }
+                if (assignedVlan == null) {
+                    log.error("Driver requires an assigned vlan-id to tag incoming "
+                            + "untagged packets. Not processing vlan filters on "
+                            + "device {}", deviceId);
+                    fail(filt, ObjectiveError.BADPARAMS);
+                    return;
+                }
+            }
+        }
+
+        if (ethCriterion == null || ethCriterion.mac().equals(MacAddress.NONE)) {
+            log.debug("filtering objective missing dstMac, cannot program TMAC table");
+        } else {
+            for (FlowRule tmacRule : processEthDstFilter(portCriterion, ethCriterion,
+                                                         vidCriterion, assignedVlan,
+                                                         applicationId)) {
+                log.debug("adding MAC filtering rules in TMAC table: {} for dev: {}",
+                          tmacRule, deviceId);
+                ops = install ? ops.add(tmacRule) : ops.remove(tmacRule);
+            }
+        }
+
+        if (ethCriterion == null || vidCriterion == null) {
+            log.debug("filtering objective missing dstMac or VLAN, "
+                    + "cannot program VLAN Table");
+        } else {
+            List<FlowRule> allRules = processVlanIdFilter(
+                    portCriterion, vidCriterion, assignedVlan, applicationId);
+            for (FlowRule rule : allRules) {
+                log.debug("adding VLAN filtering rule in VLAN table: {} for dev: {}",
+                        rule, deviceId);
+                ops = install ? ops.add(rule) : ops.remove(rule);
+            }
+        }
+
+        for (IPCriterion ipaddr : ips) {
+            // since we ignore port information for IP rules, and the same (gateway) IP
+            // can be configured on multiple ports, we make sure that we send
+            // only a single rule to the switch.
+            if (!sentIpFilters.contains(ipaddr)) {
+                sentIpFilters.add(ipaddr);
+                log.debug("adding IP filtering rules in ACL table {} for dev: {}",
+                          ipaddr, deviceId);
+                TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+                TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+                selector.matchEthType(Ethernet.TYPE_IPV4);
+                selector.matchIPDst(ipaddr.ip());
+                treatment.setOutput(PortNumber.CONTROLLER);
+                FlowRule rule = DefaultFlowRule.builder()
+                        .forDevice(deviceId)
+                        .withSelector(selector.build())
+                        .withTreatment(treatment.build())
+                        .withPriority(HIGHEST_PRIORITY)
+                        .fromApp(applicationId)
+                        .makePermanent()
+                        .forTable(ACL_TABLE).build();
+                ops = install ? ops.add(rule) : ops.remove(rule);
+            }
+        }
+
+        // apply filtering flow rules
+        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                log.info("Applied {} filtering rules in device {}",
+                         ops.stages().get(0).size(), deviceId);
+                pass(filt);
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                log.info("Failed to apply all filtering rules in dev {}", deviceId);
+                fail(filt, ObjectiveError.FLOWINSTALLATIONFAILED);
+            }
+        }));
+
+    }
 
     /*
      * Cpqd emulation does not require the non-OF standard rules for
@@ -297,6 +440,89 @@ public class CpqdOFDPA2Pipeline extends OFDPA2Pipeline {
         return Collections.singletonList(ruleBuilder.build());
     }
 
+    /*
+     * In the OF-DPA 2.0 pipeline, versatile forwarding objectives go to the
+     * ACL table. Because we pop off vlan tags in TMAC table,
+     * we need to avoid matching on vlans in the ACL table.
+     */
+    @Override
+    protected Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
+        log.info("Processing versatile forwarding objective");
+
+        EthTypeCriterion ethType =
+                (EthTypeCriterion) fwd.selector().getCriterion(Criterion.Type.ETH_TYPE);
+        if (ethType == null) {
+            log.error("Versatile forwarding objective must include ethType");
+            fail(fwd, ObjectiveError.BADPARAMS);
+            return Collections.emptySet();
+        }
+        if (fwd.nextId() == null && fwd.treatment() == null) {
+            log.error("Forwarding objective {} from {} must contain "
+                    + "nextId or Treatment", fwd.selector(), fwd.appId());
+            return Collections.emptySet();
+        }
+
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+        fwd.selector().criteria().forEach(criterion -> {
+            if (criterion instanceof VlanIdCriterion) {
+                // avoid matching on vlans
+                return;
+            } else {
+                sbuilder.add(criterion);
+            }
+        });
+
+        // XXX driver does not currently do type checking as per Tables 65-67 in
+        // OFDPA 2.0 spec. The only allowed treatment is a punt to the controller.
+        TrafficTreatment.Builder ttBuilder = DefaultTrafficTreatment.builder();
+        if (fwd.treatment() != null) {
+            for (Instruction ins : fwd.treatment().allInstructions()) {
+                if (ins instanceof OutputInstruction) {
+                    OutputInstruction o = (OutputInstruction) ins;
+                    if (o.port() == PortNumber.CONTROLLER) {
+                        ttBuilder.add(o);
+                    } else {
+                        log.warn("Only allowed treatments in versatile forwarding "
+                                + "objectives are punts to the controller");
+                    }
+                } else {
+                    log.warn("Cannot process instruction in versatile fwd {}", ins);
+                }
+            }
+        }
+        if (fwd.nextId() != null) {
+            // overide case
+            NextGroup next = getGroupForNextObjective(fwd.nextId());
+            List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
+            // we only need the top level group's key to point the flow to it
+            Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
+            if (group == null) {
+                log.warn("Group with key:{} for next-id:{} not found in dev:{}",
+                         gkeys.get(0).peekFirst(), fwd.nextId(), deviceId);
+                fail(fwd, ObjectiveError.GROUPMISSING);
+                return Collections.emptySet();
+            }
+            ttBuilder.deferred().group(group.id());
+        }
+
+        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                .fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .forDevice(deviceId)
+                .withSelector(sbuilder.build())
+                .withTreatment(ttBuilder.build())
+                .makePermanent()
+                .forTable(ACL_TABLE);
+        return Collections.singletonList(ruleBuilder.build());
+    }
+
+    /*
+     * Cpqd emulation requires table-miss-entries in forwarding tables.
+     * Real OFDPA does not require these rules as they are put in by default.
+     *
+     * (non-Javadoc)
+     * @see org.onosproject.driver.pipeline.OFDPA2Pipeline#initializePipeline()
+     */
     @Override
     protected void initializePipeline() {
         processPortTable();

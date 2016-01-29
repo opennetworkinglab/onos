@@ -141,6 +141,7 @@
             manufacturer="NoviFlow Inc" hwVersion="NS.*" swVersion="NW.*">
     </driver>
     <!--  Emulation of the ofdpa pipeline using a CPqD OF 1.3 software switch.
+       ~  Use this driver when MPLS functionality is required.
        ~  To use this driver, configure ONOS with the dpid of the device.
       -->
     <driver name="ofdpa-cpqd" extends="default"
@@ -148,6 +149,16 @@
             hwVersion="OF1.3 Software Switch from CPqD" swVersion="for Group Chaining">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.CpqdOFDPA2Pipeline"/>
+    </driver>
+    <!--  Emulation of the ofdpa pipeline using a CPqD OF 1.3 software switch.
+       ~  Use this driver when VLAN functionality is required.
+       ~  To use this driver, configure ONOS with the dpid of the device.
+      -->
+    <driver name="ofdpa-cpqd-vlan" extends="default"
+            manufacturer="ONF"
+            hwVersion="OF1.3 Software Switch from CPqD" swVersion="for Group Chaining">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.CpqdOFDPA2VlanPipeline"/>
     </driver>
     <driver name="calient" extends="default"
             manufacturer="calient inc" hwVersion="calient hardware"

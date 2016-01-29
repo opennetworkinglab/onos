@@ -101,7 +101,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static final int MAC_LEARNING_TABLE = 254;
     protected static final long OFPP_MAX = 0xffffff00L;
 
-    private static final int HIGHEST_PRIORITY = 0xffff;
+    protected static final int HIGHEST_PRIORITY = 0xffff;
     protected static final int DEFAULT_PRIORITY = 0x8000;
     protected static final int LOWEST_PRIORITY = 0x0;
 
@@ -125,7 +125,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
     protected OFDPA2GroupHandler ofdpa2GroupHandler;
 
-    private Set<IPCriterion> sentIpFilters = Collections.newSetFromMap(
+    protected Set<IPCriterion> sentIpFilters = Collections.newSetFromMap(
                                                new ConcurrentHashMap<>());
 
     @Override
@@ -276,8 +276,8 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @param install   indicates whether to add or remove the objective
      * @param applicationId     the application that sent this objective
      */
-    private void processFilter(FilteringObjective filt,
-                               boolean install, ApplicationId applicationId) {
+    protected void processFilter(FilteringObjective filt,
+                                 boolean install, ApplicationId applicationId) {
         // This driver only processes filtering criteria defined with switch
         // ports as the key
         PortCriterion portCriterion = null;
@@ -357,7 +357,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             /*
              * NOTE: Separate vlan filtering rules and assignment rules
              * into different stage in order to guarantee that filtering rules
-             * always go first.
+             * always go first, as required by ofdpa.
              */
             List<FlowRule> allRules = processVlanIdFilter(
                     portCriterion, vidCriterion, assignedVlan, applicationId);
@@ -464,9 +464,11 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             selector.extension(ofdpaMatchVlanVid, deviceId);
             OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(assignedVlan);
             treatment.extension(ofdpaSetVlanVid, deviceId);
-            // XXX ofdpa will require an additional vlan match on the assigned vlan
-            // and it may not require the push. This is not in compliance with OF
-            // standard. Waiting on what the exact flows are going to look like.
+            // ofdpa requires an additional vlan match rule for the assigned vlan
+            // and it does not require the push when setting the assigned vlan.
+            // It also requires the extra rule to be sent to the switch before we
+            // send the untagged match rule.
+            // None of this in compliance with OF standard.
             storeVlan = assignedVlan;
 
             preSelector = DefaultTrafficSelector.builder();
@@ -630,7 +632,7 @@ public class OFDPA2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      *             collection may be returned if there is a problem in processing
      *             the flow rule
      */
-    private Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
+    protected Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
         log.info("Processing versatile forwarding objective");
 
         EthTypeCriterion ethType =
