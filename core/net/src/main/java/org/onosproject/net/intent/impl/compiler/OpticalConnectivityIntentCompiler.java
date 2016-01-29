@@ -97,7 +97,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     @Override
     public List<Intent> compile(OpticalConnectivityIntent intent,
                                 List<Intent> installable,
-                                Set<LinkResourceAllocations> resources) {
+                                Set<LinkResourceAllocations> linkResources) {
         // Check if source and destination are optical OCh ports
         ConnectPoint src = intent.getSrc();
         ConnectPoint dst = intent.getDst();
@@ -113,94 +113,117 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         // TODO: try to release intent resources in IntentManager.
         resourceService.release(intent.id());
 
-        // Reserve OCh ports
+        // Check OCh port availability
         Resource srcPortResource = Resources.discrete(src.deviceId(), src.port()).resource();
         Resource dstPortResource = Resources.discrete(dst.deviceId(), dst.port()).resource();
-        List<ResourceAllocation> allocation = resourceService.allocate(intent.id(), srcPortResource, dstPortResource);
-        if (allocation.isEmpty()) {
-            throw new IntentCompilationException("Unable to reserve ports for intent " + intent);
+        // If ports are not available, compilation fails
+        if (!Stream.of(srcPortResource, dstPortResource).allMatch(resourceService::isAvailable)) {
+            throw new IntentCompilationException("Ports for the intent are not available. Intent: " + intent);
         }
+
+        List<Resource> resources = new ArrayList<>();
+        resources.add(srcPortResource);
+        resources.add(dstPortResource);
 
         // Calculate available light paths
         Set<Path> paths = getOpticalPaths(intent);
+
+        if (paths.isEmpty()) {
+            throw new IntentCompilationException("Unable to find suitable lightpath for intent " + intent);
+        }
 
         // Static or dynamic lambda allocation
         String staticLambda = srcPort.annotations().value(AnnotationKeys.STATIC_LAMBDA);
         OchPort srcOchPort = (OchPort) srcPort;
         OchPort dstOchPort = (OchPort) dstPort;
-        OchSignal ochSignal;
+
+        Path firstPath = paths.iterator().next();
+        // FIXME: need to actually reserve the lambda for static lambda's
+        // static lambda case: early return
+        if (staticLambda != null) {
+            allocateResources(intent, resources);
+
+            OchSignal lambda = new OchSignal(Frequency.ofHz(Long.parseLong(staticLambda)),
+                    srcOchPort.lambda().channelSpacing(),
+                    srcOchPort.lambda().slotGranularity());
+            return ImmutableList.of(createIntent(intent, firstPath, lambda));
+        }
+
+        // FIXME: also check destination OCh port
+        // non-tunable case: early return
+        if (!srcOchPort.isTunable() || !dstOchPort.isTunable()) {
+            allocateResources(intent, resources);
+
+            OchSignal lambda = srcOchPort.lambda();
+            return ImmutableList.of(createIntent(intent, firstPath, lambda));
+        }
 
         // Use first path that can be successfully reserved
         for (Path path : paths) {
-
-            // FIXME: need to actually reserve the lambda for static lambda's
-            if (staticLambda != null) {
-                ochSignal = new OchSignal(Frequency.ofHz(Long.parseLong(staticLambda)),
-                        srcOchPort.lambda().channelSpacing(),
-                        srcOchPort.lambda().slotGranularity());
-            } else if (!srcOchPort.isTunable() || !dstOchPort.isTunable()) {
-                // FIXME: also check destination OCh port
-                ochSignal = srcOchPort.lambda();
-            } else {
-                // Request and reserve lambda on path
-                List<OchSignal> lambdas = assignWavelength(intent, path);
-                if (lambdas.isEmpty()) {
-                    continue;
-                }
-                ochSignal = OchSignal.toFixedGrid(lambdas, ChannelSpacing.CHL_50GHZ);
+            // find common lambda on path
+            // a list of OchSignal indicates consecutive OchSignals
+            List<OchSignal> lambda = findFirstAvailableOch(path);
+            if (lambda.isEmpty()) {
+                continue;
             }
+            List<Resource> lambdaResources = convertToResources(path.links(), lambda);
+            if (!lambdaResources.stream().allMatch(resourceService::isAvailable)) {
+                continue;
+            }
+            resources.addAll(lambdaResources);
 
-            // Create installable optical path intent
-            // Only support fixed grid for now
-            OchSignalType signalType = OchSignalType.FIXED_GRID;
+            allocateResources(intent, resources);
 
-            Intent newIntent = OpticalPathIntent.builder()
-                    .appId(intent.appId())
-                    .src(intent.getSrc())
-                    .dst(intent.getDst())
-                    .path(path)
-                    .lambda(ochSignal)
-                    .signalType(signalType)
-                    .bidirectional(intent.isBidirectional())
-                    .build();
-
-            return ImmutableList.of(newIntent);
+            OchSignal ochSignal = OchSignal.toFixedGrid(lambda, ChannelSpacing.CHL_50GHZ);
+            return ImmutableList.of(createIntent(intent, path, ochSignal));
         }
-
-        // Release port allocations if unsuccessful
-        resourceService.release(intent.id());
 
         throw new IntentCompilationException("Unable to find suitable lightpath for intent " + intent);
     }
 
-    /**
-     * Request and reserve first available wavelength across path.
-     *
-     * @param path path in WDM topology
-     * @return first available lambda allocated
-     */
-    private List<OchSignal> assignWavelength(Intent intent, Path path) {
+    private Intent createIntent(OpticalConnectivityIntent parentIntent, Path path, OchSignal lambda) {
+        // Create installable optical path intent
+        // Only support fixed grid for now
+        OchSignalType signalType = OchSignalType.FIXED_GRID;
+
+        return OpticalPathIntent.builder()
+                .appId(parentIntent.appId())
+                .src(parentIntent.getSrc())
+                .dst(parentIntent.getDst())
+                // calling paths.iterator().next() is safe because of non-empty set
+                .path(path)
+                .lambda(lambda)
+                .signalType(signalType)
+                .bidirectional(parentIntent.isBidirectional())
+                .build();
+    }
+
+    private void allocateResources(Intent intent, List<Resource> resources) {
+        // reserve all of required resources
+        List<ResourceAllocation> allocations = resourceService.allocate(intent.id(), resources);
+        if (allocations.isEmpty()) {
+            log.info("Resource allocation for {} failed (resource request: {})", intent, resources);
+            throw new IntentCompilationException("Unable to allocate resources: " + resources);
+        }
+    }
+
+    private List<OchSignal> findFirstAvailableOch(Path path) {
         Set<OchSignal> lambdas = findCommonLambdasOverLinks(path.links());
         if (lambdas.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<OchSignal> minLambda = findFirstLambda(lambdas, slotCount());
-        List<Resource> lambdaResources = path.links().stream()
+        return findFirstLambda(lambdas, slotCount());
+    }
+
+    private List<Resource> convertToResources(List<Link> links, List<OchSignal> lambda) {
+        return links.stream()
                 .flatMap(x -> Stream.of(
                         Resources.discrete(x.src().deviceId(), x.src().port()).resource(),
                         Resources.discrete(x.dst().deviceId(), x.dst().port()).resource()
                 ))
-                .flatMap(x -> minLambda.stream().map(l -> x.child(l)))
+                .flatMap(x -> lambda.stream().map(x::child))
                 .collect(Collectors.toList());
-
-        List<ResourceAllocation> allocations = resourceService.allocate(intent.id(), lambdaResources);
-        if (allocations.isEmpty()) {
-            log.info("Resource allocation for {} failed (resource request: {})", intent, lambdaResources);
-            return Collections.emptyList();
-        }
-
-        return minLambda;
     }
 
     /**
