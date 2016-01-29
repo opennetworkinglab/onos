@@ -16,6 +16,7 @@
 package org.onosproject.store.primitives;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -146,6 +147,23 @@ public final class ConsistentMapBackedJavaMap<K, V> implements Map<K, V> {
                          .stream()
                          .map(entry -> Maps.immutableEntry(entry.getKey(), entry.getValue().value()))
                          .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String toString() {
+        // Map like output
+        StringBuilder sb = new StringBuilder();
+        sb.append('{');
+        Iterator<Entry<K, Versioned<V>>> it = backingMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Entry<K, Versioned<V>> entry = it.next();
+            sb.append(entry.getKey()).append('=').append(entry.getValue().value());
+            if (it.hasNext()) {
+                sb.append(',').append(' ');
+            }
+        }
+        sb.append('}');
+        return sb.toString();
     }
 
     @Override

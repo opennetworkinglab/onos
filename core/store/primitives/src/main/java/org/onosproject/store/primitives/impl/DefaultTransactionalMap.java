@@ -30,6 +30,7 @@ import org.onosproject.store.service.Versioned;
 
 import static com.google.common.base.Preconditions.*;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -191,6 +192,15 @@ public class DefaultTransactionalMap<K, V> implements TransactionalMap<K, V> {
             }
         });
         return updates;
+    }
+
+    // TODO: build expected result Map processing DB updates?
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("backingMap", backingMap)
+                .add("updates", prepareDatabaseUpdates())
+                .toString();
     }
 
     /**

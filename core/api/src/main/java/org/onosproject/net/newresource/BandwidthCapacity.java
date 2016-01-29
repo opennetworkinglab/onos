@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.Beta;
+import com.google.common.base.MoreObjects;
 
 /**
  * Configuration to specify maximum available bandwidth resource (Capacity) on a port.
@@ -81,5 +82,12 @@ public class BandwidthCapacity extends Config<ConnectPoint> {
             log.warn("Unexpected JsonNode for {}: {}", CAPACITY, v);
             return Bandwidth.mbps(v.asDouble());
         }
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("capacity", capacity())
+                .toString();
     }
 }

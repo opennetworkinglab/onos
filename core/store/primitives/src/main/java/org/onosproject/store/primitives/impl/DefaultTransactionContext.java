@@ -29,6 +29,8 @@ import org.onosproject.store.service.Transaction;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.TransactionalMap;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
@@ -113,5 +115,17 @@ public class DefaultTransactionContext implements TransactionContext {
                 isOpen = false;
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        ToStringHelper s = MoreObjects.toStringHelper(this)
+             .add("transactionId", transactionId)
+             .add("isOpen", isOpen);
+
+        txMaps.entrySet().forEach(e -> {
+            s.add(e.getKey(), e.getValue());
+        });
+        return s.toString();
     }
 }

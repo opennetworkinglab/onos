@@ -189,6 +189,11 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
         return javaMap;
     }
 
+    @Override
+    public String toString() {
+        return asJavaMap().toString();
+    }
+
     private static <T> T complete(CompletableFuture<T> future) {
         try {
             return future.get(OPERATION_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);

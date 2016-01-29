@@ -505,11 +505,13 @@ public class ConsistentResourceStore extends AbstractStore<ResourceEvent, Resour
     private <K, V> boolean removeValues(TransactionalMap<K, Set<V>> map, K key, List<? extends V> values) {
         Set<V> oldValues = map.putIfAbsent(key, new LinkedHashSet<>());
         if (oldValues == null) {
+            log.trace("No-Op removing values. key {} did not exist", key);
             return true;
         }
 
         if (values.stream().allMatch(x -> !oldValues.contains(x))) {
             // don't write map because none of the values are stored
+            log.trace("No-Op removing values. key {} did not contain {}", key, values);
             return true;
         }
 
