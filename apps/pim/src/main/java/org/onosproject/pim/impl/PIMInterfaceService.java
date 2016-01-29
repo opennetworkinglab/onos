@@ -15,8 +15,9 @@
  */
 package org.onosproject.pim.impl;
 
-import org.onosproject.incubator.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
+
+import java.util.Set;
 
 /**
  * Define the PIMInterfaceService.  PIM will use ONOS Interfaces to
@@ -28,25 +29,17 @@ import org.onosproject.net.ConnectPoint;
 public interface PIMInterfaceService {
 
     /**
-     * Update the corresponding PIMInterface.  If the PIMInterface
-     * does not exist it will be created.
-     *
-     * @param intf ONOS Interface.
-     */
-    public void updateInterface(Interface intf);
-
-    /**
-     * Delete the PIMInterface that corresponds to the given ConnectPoint.
-     *
-     * @param cp The connect point associated with this interface.
-     */
-    public void deleteInterface(ConnectPoint cp);
-
-    /**
      * Return the PIMInterface associated with the given ConnectPoint.
      *
      * @param cp The ConnectPoint we want to get the PIMInterface for.
      * @return the PIMInterface if it exists, NULL if it does not exist.
      */
     public PIMInterface getPIMInterface(ConnectPoint cp);
+
+    /**
+     * Retrieves the set of all interfaces running PIM.
+     *
+     * @return set of PIM interfaces
+     */
+    Set<PIMInterface> getPimInterfaces();
 }

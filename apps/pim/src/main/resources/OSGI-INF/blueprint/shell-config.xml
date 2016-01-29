@@ -17,7 +17,7 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
-            <action class="org.onosproject.pim.cli.PIMShowCommand"/>
+            <action class="org.onosproject.pim.cli.PimInterfacesListCommand"/>
         </command>
     </command-bundle>
 
