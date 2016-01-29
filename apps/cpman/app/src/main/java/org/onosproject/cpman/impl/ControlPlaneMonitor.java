@@ -43,7 +43,6 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
 
     @Activate
     public void activate() {
-
     }
 
     @Deactivate
@@ -53,6 +52,7 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     @Override
     public void updateMetric(ControlMetric cpm, Integer updateInterval,
                              Optional<DeviceId> deviceId) {
+
     }
 
     @Override
