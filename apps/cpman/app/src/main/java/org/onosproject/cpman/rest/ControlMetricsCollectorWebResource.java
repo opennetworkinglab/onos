@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.cpman.ControlMetric;
 import org.onosproject.cpman.ControlMetricType;
-import org.onosproject.cpman.ControlMetricsSystemSpec;
+import org.onosproject.cpman.impl.ControlMetricsSystemSpec;
 import org.onosproject.cpman.ControlPlaneMonitorService;
 import org.onosproject.cpman.MetricValue;
 import org.onosproject.rest.AbstractWebResource;

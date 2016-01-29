@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cpman;
+package org.onosproject.cpman.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.cpman.ControlLoad;
+import org.onosproject.cpman.ControlMetric;
+import org.onosproject.cpman.ControlMetricType;
+import org.onosproject.cpman.ControlPlaneMonitorService;
 import org.onosproject.net.DeviceId;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -46,10 +48,6 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
 
     @Deactivate
     public void deactivate() {
-    }
-
-    @Modified
-    public void modified(ComponentContext context) {
     }
 
     @Override

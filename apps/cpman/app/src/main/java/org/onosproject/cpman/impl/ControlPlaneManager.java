@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cpman;
+package org.onosproject.cpman.impl;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.core.ApplicationId;
@@ -28,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Skeletal ONOS application component.
+ * Skeletal control plane management component.
  */
 @Component(immediate = true)
 public class ControlPlaneManager {
@@ -53,10 +52,6 @@ public class ControlPlaneManager {
     @Deactivate
     protected void deactivate() {
         log.info("Stopped");
-    }
-
-    @Modified
-    protected void modified() {
     }
 
 }

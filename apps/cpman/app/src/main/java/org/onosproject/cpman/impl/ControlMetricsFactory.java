@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cpman;
+package org.onosproject.cpman.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.onlab.metrics.MetricsService;
+import org.onosproject.cpman.ControlMetricType;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 

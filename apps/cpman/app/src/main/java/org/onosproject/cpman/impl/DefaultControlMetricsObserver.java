@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cpman;
+package org.onosproject.cpman.impl;
 
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.cpman.ControlMetric;
+import org.onosproject.cpman.ControlPlaneMonitorService;
+import org.onosproject.cpman.MetricValue;
 import org.onosproject.net.DeviceId;
 
 import java.util.Optional;

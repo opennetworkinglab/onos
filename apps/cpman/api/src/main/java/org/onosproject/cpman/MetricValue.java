@@ -15,7 +15,7 @@
  */
 package org.onosproject.cpman;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
+import com.google.common.base.MoreObjects;
 
 /**
  * Primitive Metric Value.
@@ -145,7 +145,7 @@ public final class MetricValue {
 
     @Override
     public String toString() {
-        return toStringHelper(getClass())
+        return MoreObjects.toStringHelper(getClass())
                 .add("rate", Long.toHexString(rate))
                 .add("load", Long.toHexString(load))
                 .add("count", Long.toHexString(count)).toString();

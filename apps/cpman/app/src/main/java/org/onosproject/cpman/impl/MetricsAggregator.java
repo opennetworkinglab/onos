@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cpman;
+package org.onosproject.cpman.impl;
 
 import com.codahale.metrics.Meter;
 import org.apache.commons.lang3.StringUtils;
 import org.onlab.metrics.MetricsComponent;
 import org.onlab.metrics.MetricsFeature;
 import org.onlab.metrics.MetricsService;
+import org.onosproject.cpman.ControlMetricType;
 import org.onosproject.net.DeviceId;
 
 import java.util.Optional;
