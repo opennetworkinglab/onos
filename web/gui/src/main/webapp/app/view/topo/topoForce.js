@@ -230,7 +230,7 @@
             d = result.ldata;
 
         if (bad) {
-            //logicError(bad + ': ' + link.id);
+            $log.debug(bad + ': ' + link.id);
             return;
         }
 
@@ -255,10 +255,10 @@
         var result = tms.findLink(data, 'update'),
             bad = result.badLogic;
         if (bad) {
-            //logicError(bad + ': ' + link.id);
+            $log.debug(bad + ': ' + link.id);
             return;
         }
-        result.updateWith(link);
+        result.updateWith(data);
     }
 
     function removeLink(data) {
