@@ -42,9 +42,9 @@ public interface Resource {
     DiscreteResource ROOT = new DiscreteResource();
 
     /**
-     * Returns the components of this resource path.
+     * Returns the components of this resource.
      *
-     * @return the components of this resource path
+     * @return the components of this resource
      */
     List<Object> components();
 
@@ -58,30 +58,34 @@ public interface Resource {
     <T> T volume();
 
     /**
-     * Returns the parent resource path of this instance.
-     * E.g. if this path is Link:1/VLAN ID:100, the return value is the resource path for Link:1.
+     * Returns the parent resource of this instance.
+     * E.g. if this resource is Link:1/VLAN ID:100, the return value is the resource for Link:1.
      *
-     * @return the parent resource path of this instance.
+     * @return the parent resource of this instance.
      * If there is no parent, empty instance will be returned.
      */
     Optional<DiscreteResource> parent();
 
     /**
-     * Returns a child resource path of this instance with specifying the child object.
-     * The child resource path is discrete-type.
+     * Returns a child resource of this instance with specifying the child object.
+     * It is not allowed that a continuous type resource has a child. If the instance is
+     * ContinuousResource, {@link UnsupportedOperationException} is thrown. If the given
+     * object is a {@link Class} instance, {@link IllegalArgumentException} is thrown.
      *
      * @param child child object
-     * @return a child resource path
+     * @return a child resource
+     * @throws IllegalArgumentException if the given object is a {@link Class} instance.
      */
     DiscreteResource child(Object child);
 
     /**
-     * Returns a child resource path of this instance with specifying a child object and
-     * value. The child resource path is continuous-type.
+     * Returns a child resource of this instance with specifying a child object and
+     * value. It is not allowed that a continuous type resource has a child. If the instance is
+     * ContinuousResource, {@link UnsupportedOperationException} is thrown.
      *
      * @param child child object
      * @param value value
-     * @return a child resource path
+     * @return a child resource
      */
     ContinuousResource child(Class<?> child, double value);
 
@@ -94,9 +98,9 @@ public interface Resource {
     Object last();
 
     /**
-     * Returns the ID of this resource path.
+     * Returns the ID of this resource.
      *
-     * @return the ID of this resource path
+     * @return the ID of this resource
      */
     ResourceId id();
 }

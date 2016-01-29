@@ -30,7 +30,7 @@ public abstract class ResourceId {
     /**
      * Returns the parent resource ID of this instance.
      *
-     * @return the parent resource path of this instance.
+     * @return the parent resource ID of this instance.
      * If there is no parent, empty instance will be returned.
      */
     public abstract Optional<DiscreteResourceId> parent();
