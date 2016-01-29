@@ -26,6 +26,7 @@ import org.onosproject.openstackswitching.OpenstackPort;
 import org.onosproject.openstackswitching.OpenstackSubnet;
 import org.onosproject.openstackswitching.web.OpenstackNetworkCodec;
 import org.onosproject.openstackswitching.web.OpenstackPortCodec;
+import org.onosproject.openstackswitching.web.OpenstackSecurityGroupCodec;
 import org.onosproject.openstackswitching.web.OpenstackSubnetCodec;
 import org.slf4j.Logger;
 import javax.ws.rs.core.MediaType;
@@ -43,6 +44,21 @@ import static org.slf4j.LoggerFactory.getLogger;
  *
  */
 public class OpenstackRestHandler {
+
+    private static final String URI_NETWORKS = "networks";
+    private static final String URI_PORTS = "ports";
+    private static final String URI_SUBNETS = "subnets";
+    private static final String URI_SECURITY_GROUPS = "security-groups";
+    private static final String URI_TOKENS = "tokens";
+
+    private static final String PATH_NETWORKS = "networks";
+    private static final String PATH_PORTS = "ports";
+    private static final String PATH_SUBNETS = "subnets";
+    private static final String PATH_ACCESS = "access";
+    private static final String PATH_TOKEN = "token";
+    private static final String PATH_ID = "id";
+
+    private static final String HEADER_AUTH_TOKEN = "X-Auth-Token";
 
     private final Logger log = getLogger(getClass());
     private String neutronUrl;
@@ -70,9 +86,9 @@ public class OpenstackRestHandler {
      */
     public Collection<OpenstackNetwork> getNetworks() {
 
-        WebResource.Builder builder = getClientBuilder(neutronUrl + "networks");
+        WebResource.Builder builder = getClientBuilder(neutronUrl + URI_NETWORKS);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
-                header("X-Auth-Token", getToken()).get(String.class);
+                header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
         log.debug("networks response:" + response);
 
@@ -80,7 +96,7 @@ public class OpenstackRestHandler {
         List<OpenstackNetwork> openstackNetworks = Lists.newArrayList();
         try {
             ObjectNode node = (ObjectNode) mapper.readTree(response);
-            ArrayNode networkList = (ArrayNode) node.path("networks");
+            ArrayNode networkList = (ArrayNode) node.path(PATH_NETWORKS);
             OpenstackNetworkCodec networkCodec = new OpenstackNetworkCodec();
             networkList.forEach(n -> openstackNetworks.add(networkCodec.decode((ObjectNode) n, null)));
         } catch (IOException e) {
@@ -100,15 +116,15 @@ public class OpenstackRestHandler {
      */
     public Collection<OpenstackPort> getPorts() {
 
-        WebResource.Builder builder = getClientBuilder(neutronUrl + "ports");
+        WebResource.Builder builder = getClientBuilder(neutronUrl + URI_PORTS);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
-                header("X-Auth-Token", getToken()).get(String.class);
+                header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
         ObjectMapper mapper = new ObjectMapper();
         List<OpenstackPort> openstackPorts = Lists.newArrayList();
         try {
             ObjectNode node = (ObjectNode) mapper.readTree(response);
-            ArrayNode portList = (ArrayNode) node.path("ports");
+            ArrayNode portList = (ArrayNode) node.path(PATH_PORTS);
             OpenstackPortCodec portCodec = new OpenstackPortCodec();
             portList.forEach(p -> openstackPorts.add(portCodec.decode((ObjectNode) p, null)));
         } catch (IOException e) {
@@ -128,15 +144,15 @@ public class OpenstackRestHandler {
      */
     public Collection<OpenstackSubnet> getSubnets() {
 
-        WebResource.Builder builder = getClientBuilder(neutronUrl + "subnets");
+        WebResource.Builder builder = getClientBuilder(neutronUrl + URI_SUBNETS);
         String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
-                header("X-Auth-Token", getToken()).get(String.class);
+                header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
 
         ObjectMapper mapper = new ObjectMapper();
         List<OpenstackSubnet> subnets = Lists.newArrayList();
         try {
             ObjectNode node = (ObjectNode) mapper.readTree(response);
-            ArrayNode subnetList = (ArrayNode) node.path("subnets");
+            ArrayNode subnetList = (ArrayNode) node.path(PATH_SUBNETS);
             OpenstackSubnetCodec subnetCodec = new OpenstackSubnetCodec();
             subnetList.forEach(s -> subnets.add(subnetCodec.decode((ObjectNode) s, null)));
         } catch (IOException e) {
@@ -147,6 +163,30 @@ public class OpenstackRestHandler {
         subnets.forEach(s -> log.debug("subnet ID: {}", s.id()));
 
         return subnets;
+    }
+
+    /**
+     * Extracts OpenstackSecurityGroup information for the ID.
+     *
+     * @param id Security Group ID
+     * @return OpenstackSecurityGroup object or null if fails
+     */
+    public OpenstackSecurityGroup getSecurityGroup(String id) {
+        WebResource.Builder builder = getClientBuilder(neutronUrl + URI_SECURITY_GROUPS + "/" + id);
+        String response = builder.accept(MediaType.APPLICATION_JSON_TYPE).
+                header(HEADER_AUTH_TOKEN, getToken()).get(String.class);
+
+        ObjectMapper mapper = new ObjectMapper();
+        OpenstackSecurityGroup securityGroup = null;
+        try {
+            ObjectNode node = (ObjectNode) mapper.readTree(response);
+            OpenstackSecurityGroupCodec sgCodec = new OpenstackSecurityGroupCodec();
+            securityGroup = sgCodec.decode(node, null);
+        } catch (IOException e) {
+            log.warn("getSecurityGroup()", e);
+        }
+
+        return securityGroup;
     }
 
     private WebResource.Builder getClientBuilder(String uri) {
@@ -161,13 +201,13 @@ public class OpenstackRestHandler {
             String request = "{\"auth\": {\"tenantName\": \"admin\", " +
                     "\"passwordCredentials\":  {\"username\": \"" +
                     userName + "\",\"password\": \"" + pass + "\"}}}";
-            WebResource.Builder builder = getClientBuilder(keystoneUrl + "tokens");
+            WebResource.Builder builder = getClientBuilder(keystoneUrl + URI_TOKENS);
             String response = builder.accept(MediaType.APPLICATION_JSON).post(String.class, request);
 
             ObjectMapper mapper = new ObjectMapper();
             try {
                 ObjectNode node = (ObjectNode) mapper.readTree(response);
-                tokenId = node.path("access").path("token").path("id").asText();
+                tokenId = node.path(PATH_ACCESS).path(PATH_TOKEN).path(PATH_ID).asText();
             } catch (IOException e) {
                 log.warn("getToken()", e);
             }

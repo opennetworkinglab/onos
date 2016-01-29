@@ -18,6 +18,7 @@ package org.onosproject.openstackswitching.web;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.codec.CodecContext;
@@ -26,6 +27,7 @@ import org.onosproject.openstackswitching.OpenstackPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.HashMap;
 
 /**
@@ -79,7 +81,9 @@ public class OpenstackPortCodec extends JsonCodec<OpenstackPort> {
             }
         }
         String id = portInfo.path(ID).asText();
-        String securityGroups = portInfo.path(SECURITY_GROUPS).asText();
+        ArrayNode securityGroupList = (ArrayNode) portInfo.path(SECURITY_GROUPS);
+        Collection<String> securityGroupIdList = Lists.newArrayList();
+        securityGroupList.forEach(securityGroup -> securityGroupIdList.add(securityGroup.asText()));
         String deviceId = portInfo.path(DEVICE_ID).asText();
 
         OpenstackPort.Builder openstackPortBuilder = OpenstackPort.builder();
@@ -96,12 +100,9 @@ public class OpenstackPortCodec extends JsonCodec<OpenstackPort> {
                 .macAddress(MacAddress.valueOf(macStr))
                 .fixedIps(fixedIpMap)
                 .id(id)
-                .deviceId(deviceId);
+                .deviceId(deviceId)
+                .securityGroup(securityGroupIdList);
 
-        // FIX ME
-        if (!securityGroups.isEmpty()) {
-            openstackPortBuilder.securityGroup(securityGroups);
-        }
 
         OpenstackPort openstackPort = openstackPortBuilder.build();
 

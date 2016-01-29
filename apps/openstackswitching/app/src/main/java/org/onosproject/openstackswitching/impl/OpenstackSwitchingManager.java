@@ -176,6 +176,13 @@ public class OpenstackSwitchingManager implements OpenstackSwitchingService {
                 && !openstackPort.deviceOwner().equals(DEVICE_OWNER_GATEWAY)) {
             registerDhcpInfo(openstackPort);
         }
+
+        if (!openstackPort.securityGroups().isEmpty()) {
+            openstackPort.securityGroups().forEach(sgId -> {
+                OpenstackSecurityGroup sg = restHandler.getSecurityGroup(sgId);
+                log.debug("SecurityGroup : {}", sg.toString());
+            });
+        }
     }
 
     @Override

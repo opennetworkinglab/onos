@@ -17,6 +17,8 @@ package org.onosproject.openstackswitching;
 
 import org.onlab.packet.Ip4Address;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -34,10 +36,11 @@ public final class OpenstackSubnet {
     private String gatewayIp;
     private String cidr;
     private String id;
+    private Collection<String> securityGroups;
 
     private OpenstackSubnet(String name, boolean enableHhcp, String networkId,
                             String tenantId, List<Ip4Address> dnsNameservers, String gatewayIp,
-                            String cidr, String id) {
+                            String cidr, String id, Collection<String> securityGroups) {
         this.name = name;
         this.enableHhcp = enableHhcp;
         this.networkId = checkNotNull(networkId);
@@ -46,6 +49,7 @@ public final class OpenstackSubnet {
         this.gatewayIp = gatewayIp;
         this.cidr = checkNotNull(cidr);
         this.id = checkNotNull(id);
+        this.securityGroups = securityGroups;
     }
 
     /**
@@ -89,6 +93,10 @@ public final class OpenstackSubnet {
         return id;
     }
 
+    public Collection<String> securityGroups() {
+        return Collections.unmodifiableCollection(this.securityGroups);
+    }
+
     /**
      * OpenstackSubnet Builder class.
      *
@@ -102,6 +110,7 @@ public final class OpenstackSubnet {
         private String gatewayIp;
         private String cidr;
         private String id;
+        private Collection<String> securityGroups;
 
         Builder() {}
 
@@ -153,9 +162,15 @@ public final class OpenstackSubnet {
             return this;
         }
 
+        public Builder securityGroups(Collection<String> securityGroups) {
+            this.securityGroups = securityGroups;
+
+            return this;
+        }
+
         public OpenstackSubnet build() {
             return new OpenstackSubnet(name, enableDhcp, networkId, tenantId,
-                    dnsNameservers, gatewayIp, cidr, id);
+                    dnsNameservers, gatewayIp, cidr, id, securityGroups);
         }
     }
 }

@@ -15,13 +15,12 @@
  */
 package org.onosproject.openstackswitching;
 
-import com.google.common.collect.Lists;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -49,13 +48,13 @@ public final class OpenstackPort {
     // <subnet id, ip address>
     private HashMap<String, Ip4Address> fixedIps;
     private String id;
-    private List<String> securityGroups;
+    private Collection<String> securityGroups;
     private String deviceId;
 
     private OpenstackPort(PortStatus status, String name, boolean adminStateUp,
                           String networkId, String tenantId, String deviceOwner,
                           MacAddress macAddress, HashMap fixedIps, String id,
-                          List<String> securityGroups, String deviceId) {
+                          Collection<String> securityGroups, String deviceId) {
 
         this.status = status;
         this.name = name;
@@ -158,7 +157,7 @@ public final class OpenstackPort {
      *
      * @return security group info
      */
-    public List<String> securityGroups() {
+    public Collection<String> securityGroups() {
         return securityGroups;
     }
 
@@ -187,7 +186,7 @@ public final class OpenstackPort {
         OpenstackPort op = new OpenstackPort(this.status, this.name, this.adminStateUp,
                 this.networkId, this.tenantId, this.deviceOwner, this.macAddress,
                 (HashMap) this.fixedIps.clone(), this.id,
-                Collections.unmodifiableList(this.securityGroups), this.deviceId);
+                Collections.unmodifiableCollection(this.securityGroups), this.deviceId);
 
         return op;
     }
@@ -209,12 +208,11 @@ public final class OpenstackPort {
         // list  of hash map <subnet id, ip address>
         private HashMap<String, Ip4Address> fixedIps;
         private String id;
-        private List<String> securityGroups;
+        private Collection<String> securityGroups;
         private String deviceId;
 
         Builder() {
             fixedIps = new HashMap<>();
-            securityGroups = Lists.newArrayList();
         }
 
         /**
@@ -328,12 +326,11 @@ public final class OpenstackPort {
         /**
          * Sets security group of the port.
          *
-         * @param securityGroup security group of the port
+         * @param securityGroupList security group list of the port
          * @return Builder object
          */
-        public Builder securityGroup(String securityGroup) {
-            securityGroups.add(securityGroup);
-
+        public Builder securityGroup(Collection<String> securityGroupList) {
+            this.securityGroups = securityGroupList;
             return this;
         }
 
