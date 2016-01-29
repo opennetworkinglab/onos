@@ -97,7 +97,9 @@
                 $log.warn('adjustHeight: height from top of page not given');
                 return null;
             } else if (!body || !p) {
-                $log.warn('adjustHeight: panel contents are not defined');
+                // panel contents are not defined
+                // this may happen when window is resizing but panel has
+                //   been cleared or removed
                 return null;
             }
 

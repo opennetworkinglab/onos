@@ -270,6 +270,13 @@
         ovRset.selectedIndex(idx);
     }
 
+    // an overlay was selected via Function-Key press
+    function fnkey(idx) {
+        if (idx < ovRset.size() && idx !== ovRset.selectedIndex()) {
+            ovRset.selectedIndex(idx);
+        }
+    }
+
     angular.module('ovTopo')
         .factory('TopoToolbarService',
         ['$log', 'FnService', 'ToolbarService', 'PrefsService',
@@ -289,7 +296,8 @@
                 destroyToolbar: destroyToolbar,
                 keyListener: keyListener,
                 toggleToolbar: toggleToolbar,
-                setDefaultOverlay: setDefaultOverlay
+                setDefaultOverlay: setDefaultOverlay,
+                fnkey: fnkey
             };
         }]);
 }());

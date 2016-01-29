@@ -65,6 +65,13 @@
 
             E: [equalizeMasters, 'Equalize mastership roles'],
 
+            // topology overlay selections
+            F1: function () { ttbs.fnkey(0); },
+            F2: function () { ttbs.fnkey(1); },
+            F3: function () { ttbs.fnkey(2); },
+            F4: function () { ttbs.fnkey(3); },
+            F5: function () { ttbs.fnkey(4); },
+
             esc: handleEscape,
 
             _keyListener: ttbs.keyListener,

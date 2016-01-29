@@ -240,7 +240,8 @@
         return {
             width: rsetWidth,
             selected: selected,
-            selectedIndex: selectedIndex
+            selectedIndex: selectedIndex,
+            size: function () { return rads.length; }
         }
     }
 
