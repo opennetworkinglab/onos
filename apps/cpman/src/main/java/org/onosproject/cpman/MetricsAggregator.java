@@ -134,8 +134,8 @@ public class MetricsAggregator {
      *
      * @return load value
      */
-    public double getLoad() {
-        return rateMeter.getOneMinuteRate() / countMeter.getOneMinuteRate();
+    public long getLoad() {
+        return (long) rateMeter.getOneMinuteRate() / (long) countMeter.getOneMinuteRate();
     }
 
     /**
@@ -143,8 +143,8 @@ public class MetricsAggregator {
      *
      * @return rate value
      */
-    public double getRate() {
-        return rateMeter.getOneMinuteRate();
+    public long getRate() {
+        return (long) rateMeter.getOneMinuteRate();
     }
 
     /**
@@ -152,7 +152,7 @@ public class MetricsAggregator {
      *
      * @return count value
      */
-    public double getCount() {
-        return countMeter.getOneMinuteRate() * EXECUTE_PERIOD_IN_SECOND;
+    public long getCount() {
+        return (long) countMeter.getOneMinuteRate() * EXECUTE_PERIOD_IN_SECOND;
     }
 }

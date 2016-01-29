@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cpman;
+
+package org.onosproject.cpman.rest;
+
+import org.onlab.rest.AbstractWebApplication;
+
+import java.util.Set;
 
 /**
- * Include various control plane metrics.
+ * CPMan REST APIs web application.
  */
-public class ControlMetric {
-
-    private final ControlMetricType metricType;
-    private final MetricValue metricValue;
-
-    public ControlMetric(ControlMetricType metricType, MetricValue metricValue) {
-        this.metricType = metricType;
-        this.metricValue = metricValue;
-    }
-
-    ControlMetricType metricType() {
-        return metricType;
-    }
-
-    MetricValue metricValue() {
-        return metricValue;
+public class CPManWebApplication extends AbstractWebApplication {
+    @Override
+    public Set<Class<?>> getClasses() {
+        return getClasses(ControlMetricsCollectorWebResource.class);
     }
 }

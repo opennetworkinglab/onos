@@ -31,14 +31,22 @@ public class DefaultControlMetricsObserver implements ControlMetricsObserver {
 
     @Override
     public void feedMetrics(MetricsAggregator ma, Optional<DeviceId> deviceId) {
-        MetricValue mv = new MetricValue((long) ma.getRate(), (long) ma.getLoad(), (long) ma.getCount());
+        MetricValue mv = new MetricValue.Builder()
+                        .rate(ma.getRate())
+                        .count(ma.getCount())
+                        .load(ma.getLoad())
+                        .add();
         ControlMetric cm = new ControlMetric(ma.getMetricsType(), mv);
         controlPlaneMonitorService.updateMetric(cm, 1, deviceId);
     }
 
     @Override
     public void feedMetrics(MetricsAggregator ma, String resourceName) {
-        MetricValue mv = new MetricValue((long) ma.getRate(), (long) ma.getLoad(), (long) ma.getCount());
+        MetricValue mv = new MetricValue.Builder()
+                        .rate(ma.getRate())
+                        .count(ma.getCount())
+                        .load(ma.getLoad())
+                        .add();
         ControlMetric cm = new ControlMetric(ma.getMetricsType(), mv);
         controlPlaneMonitorService.updateMetric(cm, 1, resourceName);
     }

@@ -33,7 +33,7 @@ public interface ControlPlaneMonitorService {
      * @param updateInterval value update interval (time unit will be in minute)
      * @param deviceId       {@link org.onosproject.net.DeviceId}
      */
-    void updateMetric(ControlMetric controlMetric, int updateInterval, Optional<DeviceId> deviceId);
+    void updateMetric(ControlMetric controlMetric, Integer updateInterval, Optional<DeviceId> deviceId);
 
     /**
      * Adds a new control metric value with a certain update interval.
@@ -42,7 +42,7 @@ public interface ControlPlaneMonitorService {
      * @param updateInterval    value update interval (time unit will be in minute)
      * @param resourceName      resource name
      */
-    void updateMetric(ControlMetric controlMetric, int updateInterval, String resourceName);
+    void updateMetric(ControlMetric controlMetric, Integer updateInterval, String resourceName);
 
     /**
      * Obtains the control plane load of a specific device.

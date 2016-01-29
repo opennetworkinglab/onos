@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Open Networking Laboratory
+ * Copyright 2016 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.cpman;
 
 /**
- * Include various control plane metrics.
+ * REST APIs for the control plane monitor.
  */
-public class ControlMetric {
-
-    private final ControlMetricType metricType;
-    private final MetricValue metricValue;
-
-    public ControlMetric(ControlMetricType metricType, MetricValue metricValue) {
-        this.metricType = metricType;
-        this.metricValue = metricValue;
-    }
-
-    ControlMetricType metricType() {
-        return metricType;
-    }
-
-    MetricValue metricValue() {
-        return metricValue;
-    }
-}
+package org.onosproject.cpman.rest;

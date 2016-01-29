@@ -16,9 +16,9 @@
 package org.onosproject.cpman;
 
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
@@ -41,6 +41,7 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
 
     @Activate
     public void activate() {
+
     }
 
     @Deactivate
@@ -52,12 +53,12 @@ public class ControlPlaneMonitor implements ControlPlaneMonitorService {
     }
 
     @Override
-    public void updateMetric(ControlMetric cpm, int updateInterval,
+    public void updateMetric(ControlMetric cpm, Integer updateInterval,
                              Optional<DeviceId> deviceId) {
     }
 
     @Override
-    public void updateMetric(ControlMetric controlMetric, int updateInterval,
+    public void updateMetric(ControlMetric controlMetric, Integer updateInterval,
                              String resourceName) {
 
     }

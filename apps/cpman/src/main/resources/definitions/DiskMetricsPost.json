@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "required": [
+    "readBytes",
+    "writeBytes"
+  ],
+  "properties": {
+    "readBytes": {
+      "type": "integer",
+      "format": "int64",
+      "example": "500"
+    },
+    "writeBytes": {
+      "type": "integer",
+      "format": "int64",
+      "example": "300"
+    }
+  }
+}

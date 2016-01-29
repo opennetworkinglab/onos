@@ -20,7 +20,7 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Primitive Metric Value.
  */
-public class MetricValue {
+public final class MetricValue {
 
     private final long rate;
     private final long load;
@@ -33,22 +33,88 @@ public class MetricValue {
      * @param load load
      * @param count count
      */
-    MetricValue(long rate, long load, long count) {
+    private MetricValue(long rate, long load, long count) {
         this.rate = rate;
         this.load = load;
         this.count = count;
     }
 
+    /**
+     * Returns rate value.
+     *
+     * @return rate
+     */
     public long getRate() {
         return rate;
     }
 
+    /**
+     * Returns load value.
+     *
+     * @return load
+     */
     public long getLoad() {
         return load;
     }
 
+    /**
+     * Returns count value.
+     *
+     * @return cound
+     */
     public long getCount() {
         return count;
+    }
+
+    /**
+     * MetricValue builder class.
+     */
+    public static final class Builder {
+        private long rate;
+        private long load;
+        private long count;
+
+        /**
+         * Sets rate value.
+         *
+         * @param rate rate value
+         * @return Builder object
+         */
+        public Builder rate(long rate) {
+            this.rate = rate;
+            return this;
+        }
+
+        /**
+         * Sets load value.
+         *
+         * @param load load value
+         * @return Builder object
+         */
+        public Builder load(long load) {
+            this.load = load;
+            return this;
+        }
+
+        /**
+         * Sets count value.
+         *
+         * @param count count value
+         * @return Builder object
+         */
+        public Builder count(long count) {
+            this.count = count;
+            return this;
+        }
+
+        /**
+         * Builds a MetricValue object.
+         *
+         * @return MetricValue object
+         */
+        public MetricValue add() {
+            return new MetricValue(rate, load, count);
+        }
     }
 
     @Override

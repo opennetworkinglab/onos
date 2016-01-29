@@ -18,7 +18,6 @@ package org.onosproject.cpman;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.metrics.MetricsServiceAdapter;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.net.device.DeviceServiceAdapter;
 
@@ -37,7 +36,6 @@ public class ControlPlaneManagerTest {
         cpMan = new ControlPlaneManager();
         cpMan.coreService = new CoreServiceAdapter();
         cpMan.deviceService = new DeviceServiceAdapter();
-        cpMan.metricsService = new MetricsServiceAdapter();
         cpMan.activate();
     }
 

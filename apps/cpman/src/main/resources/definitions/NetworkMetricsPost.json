@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "required": [
+    "incomingBytes",
+    "outgoingBytes",
+    "incomingPackets",
+    "outgoingPackets"
+  ],
+  "properties": {
+    "incomingBytes": {
+      "type": "integer",
+      "format": "int64",
+      "example": "1024"
+    },
+    "outgoingBytes": {
+      "type": "integer",
+      "format": "int64",
+      "example": "1024"
+    },
+    "incomingPackets": {
+      "type": "integer",
+      "format": "int64",
+      "example": "1000"
+    },
+    "outgoingPackets": {
+      "type": "integer",
+      "format": "int64",
+      "example": "2000"
+    }
+  }
+}

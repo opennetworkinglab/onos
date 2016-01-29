@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "required": [
+    "memoryUsedPercentage",
+    "memoryFreePercentage",
+    "memoryUsed",
+    "memoryFree"
+  ],
+  "properties": {
+    "memoryUsedPercentage": {
+      "type": "integer",
+      "format": "int64",
+      "example": "30"
+    },
+    "memoryFreePercentage": {
+      "type": "integer",
+      "format": "int64",
+      "example": "70"
+    },
+    "memoryUsed": {
+      "type": "integer",
+      "format": "int64",
+      "example": "1024"
+    },
+    "memoryFree": {
+      "type": "integer",
+      "format": "int64",
+      "example": "2048"
+    }
+  }
+}
