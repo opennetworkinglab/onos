@@ -202,7 +202,7 @@
                 var s = lnk.fromSource,
                     t = lnk.fromTarget,
                     both = lnk.source.online && lnk.target.online;
-                return both && ((s && s.online) || (t && t.online));
+                return both && ((s && s.online) && (t && t.online));
             },
             linkWidth: function () {
                 var s = lnk.fromSource,
